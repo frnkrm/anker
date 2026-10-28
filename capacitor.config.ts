@@ -14,6 +14,10 @@ const config: CapacitorConfig = {
     CapacitorSQLite: {
       androidIsEncryption: false,
     },
+    // Nur Google-Login, keine Facebook-SDK (kein Tracking)
+    SocialLogin: {
+      providers: { google: true, facebook: false, apple: false, twitter: false },
+    },
   },
 }
 

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Anker</string>
+    <string name="title_activity_main">Anker</string>
+    <string name="package_name">de.frnkrm.anker</string>
+    <string name="custom_url_scheme">de.frnkrm.anker</string>
+    <string name="widget_description">Deine nächste Aktion auf einen Blick</string>
+</resources>
