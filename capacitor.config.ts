@@ -1,0 +1,20 @@
+import type { CapacitorConfig } from '@capacitor/cli'
+import { APP_ID, APP_NAME } from './app.config'
+
+const config: CapacitorConfig = {
+  appId: APP_ID,
+  appName: APP_NAME,
+  webDir: 'dist',
+  android: { backgroundColor: '#0f1115' },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_anker',
+      iconColor: '#7dd3c0',
+    },
+    CapacitorSQLite: {
+      androidIsEncryption: false,
+    },
+  },
+}
+
+export default config
