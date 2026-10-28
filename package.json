@@ -13,7 +13,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "android:sync": "npm run build && cap sync android",
-    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug"
+    "android:debug": "npm run android:sync && node scripts/gradle.mjs assembleDebug",
+    "android:release": "npm run android:sync && node scripts/gradle.mjs assembleRelease",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",

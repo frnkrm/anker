@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { fmtTime, parseTime } from '../../core/time'
 
@@ -159,7 +160,8 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
   if (!open) return null
-  return (
+  // Portal: unabhängig von Eltern mit backdrop-filter/transform, die position:fixed verschieben würden
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50" onClick={onClose}>
       <div
         ref={ref}
@@ -172,7 +174,8 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
         {title && <h2 className="mb-3 text-xl font-semibold">{title}</h2>}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
