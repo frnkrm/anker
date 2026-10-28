@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -28,6 +29,8 @@ export default defineConfig({
       workbox: { navigateFallback: '/index.html', globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
     }),
   ],
+  // Windows-Dateiüberwachung verpasst sonst gelegentlich schnelle Änderungen
+  server: { watch: { usePolling: process.platform === 'win32', interval: 300 } },
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
