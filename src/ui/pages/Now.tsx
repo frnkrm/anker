@@ -5,6 +5,7 @@ import { theme } from '../../core/game'
 import { nowView, type NowAction } from '../../core/now'
 import { fmtDuration, fmtTime, weekday, WEEKDAYS_LONG } from '../../core/time'
 import type { DayType, EveningPlan, PlannedStep } from '../../core/types'
+import { pushPcStop } from '../../platform/supabase'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { StuckSheet } from '../components/Stuck'
@@ -183,6 +184,7 @@ function ActionButtons({ action: a, date, onLonger }: { action: NowAction; date:
           className="w-full"
           onClick={async () => {
             await st.setOverride(date, { pcStopExtendMin: 15 })
+            void pushPcStop()
             st.showToast('15 Minuten mehr. Einmal pro Abend.')
           }}
         >

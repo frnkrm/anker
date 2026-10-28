@@ -196,9 +196,10 @@ export const useApp = create<AppState>()((set, get) => ({
 
   async saveReview(r) {
     const first = get().reviews.length === 0
+    const before = get().reviews.find((x) => x.id === r.id)
     set({ reviews: [...get().reviews.filter((x) => x.id !== r.id), r] })
     await repo.put('reviews', r.id, r)
-    if (r.change.trim()) {
+    if (r.change.trim() && r.change.trim() !== before?.change.trim()) {
       await get().saveSettings((s) => ({
         ...s,
         suggestions: [...s.suggestions, { id: randomId(), text: r.change.trim(), createdAt: r.id }],

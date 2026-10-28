@@ -1,0 +1,5 @@
+# Minimal-Konfiguration für die Supabase CLI (supabase link / db push / functions deploy).
+project_id = "anker"
+
+[functions.pc-stop]
+verify_jwt = false

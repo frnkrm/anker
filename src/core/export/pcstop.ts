@@ -68,11 +68,11 @@ $tag = $target.ToString('yyyyMMddHHmm')
 $left = ($target - $now).TotalMinutes
 
 if ($left -le 15 -and $left -gt 5 -and $state['w15'] -ne $tag) {
-  Show-Toast 'In 15 Minuten PC-Stopp' ("Um " + $target.ToString('HH:mm') + " fährt der PC herunter. Runde in Ruhe beenden.")
+  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") ("Um " + $target.ToString('HH:mm') + " fährt der PC herunter. Runde in Ruhe beenden.")
   $state['w15'] = $tag
 }
 elseif ($left -le 5 -and $left -gt 0 -and $state['w5'] -ne $tag) {
-  Show-Toast 'In 5 Minuten PC-Stopp' 'Jetzt speichern. Gleich ist Feierabend für den PC.'
+  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") 'Jetzt speichern. Gleich ist Feierabend für den PC.'
   $state['w5'] = $tag
   & shutdown.exe /s /t ([int]([math]::Max(60, $left * 60))) /c "Anker: PC-Stopp um $($target.ToString('HH:mm'))"
 }

@@ -31,6 +31,10 @@ const Help = lazy(() => import('./ui/pages/Static').then((m) => ({ default: m.He
 const Backup = lazy(() => import('./ui/pages/Static').then((m) => ({ default: m.Backup })))
 const Print = lazy(() => import('./ui/pages/Static').then((m) => ({ default: m.Print })))
 
+// Netz-Extras gedrosselt: Sync höchstens jede Minute, Kalender alle 15 Minuten
+let lastSync = 0
+let lastCalendar = 0
+
 function useAppearance() {
   const { dark, fontScale } = useApp((s) => s.settings.appearance)
   useEffect(() => {
@@ -83,9 +87,16 @@ export default function App() {
         listenForAuthLinks()
         startEffects({
           sync: async () => {
-            await syncNow()
-            await refreshCalendar()
-            await writeAnkerBlocks()
+            const now = Date.now()
+            if (now - lastSync > 60_000) {
+              lastSync = now
+              await syncNow()
+            }
+            if (now - lastCalendar > 15 * 60_000) {
+              lastCalendar = now
+              await refreshCalendar()
+              await writeAnkerBlocks()
+            }
           },
         })
       })
