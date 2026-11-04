@@ -84,6 +84,7 @@ object AnkerPrefs {
             .put("enabled", c.enabled)
             .put("wakeMinutes", c.wakeMinutes)
             .put("skipDates", JSONArray(c.skipDates.toList()))
+            .put("wakeOverrides", JSONObject(c.wakeOverrides as Map<*, *>))
             .put("preWakeEnabled", c.preWakeEnabled)
             .put("preWakeLeadMinutes", c.preWakeLeadMinutes)
             .put("wakeCheckEnabled", c.wakeCheckEnabled)
@@ -98,10 +99,12 @@ object AnkerPrefs {
         return try {
             val o = JSONObject(raw)
             val skip = o.optJSONArray("skipDates") ?: JSONArray()
+            val overrides = o.optJSONObject("wakeOverrides") ?: JSONObject()
             AlarmConfig(
                 enabled = o.getBoolean("enabled"),
                 wakeMinutes = o.getInt("wakeMinutes"),
                 skipDates = (0 until skip.length()).map { skip.getString(it) }.toSet(),
+                wakeOverrides = overrides.keys().asSequence().associateWith { overrides.getInt(it) },
                 preWakeEnabled = o.optBoolean("preWakeEnabled"),
                 preWakeLeadMinutes = o.optInt("preWakeLeadMinutes", 30),
                 wakeCheckEnabled = o.optBoolean("wakeCheckEnabled"),

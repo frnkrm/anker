@@ -78,10 +78,12 @@ class AnkerNativePlugin : Plugin() {
     fun syncAlarmConfig(call: PluginCall) {
         try {
             val skip = call.getArray("skipDates") ?: JSONArray()
+            val overrides = call.getObject("wakeOverrides") ?: JSObject()
             val cfg = AlarmConfig(
                 enabled = call.getBoolean("enabled") ?: return call.reject("enabled fehlt"),
                 wakeMinutes = call.getInt("wakeMinutes") ?: return call.reject("wakeMinutes fehlt"),
                 skipDates = (0 until skip.length()).map { skip.getString(it) }.toSet(),
+                wakeOverrides = overrides.keys().asSequence().associateWith { overrides.getInt(it) },
                 preWakeEnabled = call.getBoolean("preWakeEnabled") ?: false,
                 preWakeLeadMinutes = call.getInt("preWakeLeadMinutes") ?: 30,
                 wakeCheckEnabled = call.getBoolean("wakeCheckEnabled") ?: false,

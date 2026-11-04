@@ -28,6 +28,8 @@ data class AlarmConfig(
     val enabled: Boolean,
     val wakeMinutes: Int,
     val skipDates: Set<String> = emptySet(),
+    /** Einmalige Weckzeit je Datum. Alle anderen Tage nutzen wakeMinutes. */
+    val wakeOverrides: Map<String, Int> = emptyMap(),
     val preWakeEnabled: Boolean = false,
     val preWakeLeadMinutes: Int = 30,
     val wakeCheckEnabled: Boolean = false,
@@ -81,7 +83,7 @@ object AlarmPlanner {
         for (i in 0..SEARCH_DAYS) {
             val date = today.plusDays(i)
             if (date.toString() in cfg.skipDates) continue
-            val at = toUtc(date, cfg.wakeMinutes)
+            val at = toUtc(date, cfg.wakeOverrides[date.toString()] ?: cfg.wakeMinutes)
             if (at > now) {
                 val pre = if (cfg.preWakeEnabled && cfg.preWakeLeadMinutes > 0) at - cfg.preWakeLeadMinutes * 60_000L else 0L
                 return NextAlarms(at, if (pre > now) pre else 0L)

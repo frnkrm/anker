@@ -33,6 +33,22 @@ class AlarmModelTest {
     }
 
     @Test
+    fun einmaligeWeckzeitGiltNurFuerDiesenTag() {
+        val c = cfg.copy(wakeOverrides = mapOf("2026-11-05" to 8 * 60))
+        assertEquals(at("2026-11-05", 8 * 60), AlarmPlanner.next(c, at("2026-11-04", 720)).mainAt)
+        assertEquals(at("2026-11-06", wake), AlarmPlanner.next(c, at("2026-11-05", 8 * 60)).mainAt)
+    }
+
+    @Test
+    fun klingelnderWeckerBleibtBeiNeuplanungUnberuehrt() {
+        val now = at("2026-11-05", wake)
+        val ringing = AlarmMachine.fired(AlarmState(), AlarmKind.MAIN, now, now).state
+        val r = AlarmMachine.reconcile(ringing, cfg.copy(wakeOverrides = mapOf("2026-11-06" to 8 * 60)), now + 1000)
+        assertEquals(AlarmKind.MAIN, r.state.ringing)
+        assertEquals(at("2026-11-06", 8 * 60), r.state.mainAt)
+    }
+
+    @Test
     fun sommerzeitUmstellungBehaeltWandzeit() {
         // 29.03.2026: 02:00 → 03:00, 25.10.2026: 03:00 → 02:00
         val spring = AlarmPlanner.next(cfg, at("2026-03-28", 720)).mainAt
