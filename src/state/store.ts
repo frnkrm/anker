@@ -55,7 +55,7 @@ interface AppState {
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   setOverride(date: DateStr, patch: Partial<DayOverride>): Promise<void>
-  addInbox(text: string, context?: string): Promise<void>
+  addInbox(text: string, context?: string): Promise<string | undefined>
   updateInbox(id: string, patch: Partial<InboxItem>): Promise<void>
   removeInbox(id: string): Promise<void>
   saveReview(r: WeeklyReview): Promise<void>
@@ -203,9 +203,10 @@ export const useApp = create<AppState>()((set, get) => ({
 
   async addInbox(text, context) {
     const item: InboxItem = { id: randomId(), text: text.trim(), createdAt: Date.now(), status: 'open', ...(context ? { captureContext: context } : {}) }
-    if (!item.text) return
+    if (!item.text) return undefined
     set({ inbox: [...get().inbox, item] })
     await repo.put('inbox', item.id, item)
+    return item.id
   },
 
   async updateInbox(id, patch) {
@@ -213,6 +214,8 @@ export const useApp = create<AppState>()((set, get) => ({
     set({ inbox })
     const item = inbox.find((x) => x.id === id)
     if (item) await repo.put('inbox', id, item)
+    // Eingeplante Aufgaben gehören zum Tagesplan
+    changed()
   },
 
   async setInboxDone(id, done) {

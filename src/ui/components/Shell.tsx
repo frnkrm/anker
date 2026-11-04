@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { theme as getTheme } from '../../core/game'
-import { useApp } from '../../state/store'
+import { addDays } from '../../core/time'
+import { nextNow } from '../../state/hooks'
+import { today, useApp } from '../../state/store'
 import { Button, Sheet } from './ui'
 
 const TABS = [
@@ -24,6 +26,9 @@ const FULLSCREEN = ['/fokus', '/wecker/klingelt', '/start', '/druck']
 export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
   const full = FULLSCREEN.some((p) => loc.pathname.startsWith(p))
+  // Spiel ausblenden, wenn abgeschaltet oder überlastet. Es läuft im Hintergrund unverändert weiter.
+  const gameVisible = useApp((s) => s.settings.support.gameVisible && s.days[today()]?.override.mode !== 'ueberlastet')
+  const right = TABS.slice(2).filter((t) => gameVisible || t.to !== '/spiel')
   return (
     <>
       <main>{children}</main>
@@ -34,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <Tab key={t.to} {...t} />
             ))}
             <InboxButton />
-            {TABS.slice(2).map((t) => (
+            {right.map((t) => (
               <Tab key={t.to} {...t} />
             ))}
           </div>
@@ -70,17 +75,48 @@ export function InboxButton() {
 
 export function InboxSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const add = useApp((s) => s.addInbox)
-  const toast = useApp((s) => s.showToast)
+  const update = useApp((s) => s.updateInbox)
   const [text, setText] = useState('')
+  const [saved, setSaved] = useState<{ id: string; was: string; planned?: boolean }>()
   const submit = async () => {
     if (!text.trim()) return
-    await add(text)
+    const a = nextNow().action
+    const was = a.title
+    // Gedanken werden synchronisiert, Arbeitsinhalte nicht: Der Hinweis erscheint, wird aber nicht gespeichert
+    const isWork = a.type === 'worktask' || (a.type === 'resume' && a.resume.kind === 'work')
+    const id = await add(text, isWork ? undefined : was)
     setText('')
+    if (id) setSaved({ id, was })
+  }
+  const close = () => {
+    setSaved(undefined)
     onClose()
-    toast('Notiert. Weiter geht’s.')
+  }
+  if (saved) {
+    // Kein weiteres Entscheiden nötig: gespeichert, und zurück dorthin, wo du warst
+    return (
+      <Sheet open={open} onClose={close} title="Gespeichert">
+        <p className="text-muted">Du warst bei:</p>
+        <p className="mb-5 text-2xl font-semibold leading-snug">{saved.was}</p>
+        <Button variant="primary" size="xl" className="w-full" onClick={close}>
+          Weiter
+        </Button>
+        <button
+          type="button"
+          disabled={saved.planned}
+          className="mt-2 min-h-11 w-full text-sm text-muted"
+          onClick={async () => {
+            await update(saved.id, { status: 'task', taskDate: addDays(today(), 1), estimateMin: 5 })
+            setSaved({ ...saved, planned: true })
+          }}
+        >
+          {saved.planned ? 'Für morgen eingeplant' : 'Lieber für morgen einplanen'}
+        </button>
+      </Sheet>
+    )
   }
   return (
-    <Sheet open={open} onClose={onClose} title="Gedanke festhalten">
+    <Sheet open={open} onClose={close} title="Gedanke festhalten">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -99,7 +135,7 @@ export function InboxSheet({ open, onClose }: { open: boolean; onClose: () => vo
         <Button type="submit" variant="primary" size="lg" className="w-full">
           Merken
         </Button>
-        <p className="text-center text-sm text-muted">Heute Abend schaust du kurz drüber.</p>
+        <p className="text-center text-sm text-muted">Bleibt erst mal geparkt. Abends schaust du kurz drüber.</p>
       </form>
     </Sheet>
   )

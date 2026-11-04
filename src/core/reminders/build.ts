@@ -181,7 +181,9 @@ export function buildReminders(
       const at = d.at - lead
       if (at <= nowMs || at > nowMs + lookaheadMs) continue
       const key = `deadline-${suffix}:${d.id}`
-      out.push({ key, date: utcToZoned(d.at).date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, ...slotFor(key) })
+      const date = utcToZoned(d.at).date
+      if (logs[date]?.dismissed?.includes(key)) continue
+      out.push({ key, date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, ...slotFor(key) })
     }
   }
   const steps = escalationSteps(s.reminders.intensity)

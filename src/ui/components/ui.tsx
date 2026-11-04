@@ -23,7 +23,7 @@ export function Button({
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-3xl bg-surface p-4 ${className}`}>{children}</div>
+  return <div className={`rounded-2xl border border-line bg-surface p-4 ${className}`}>{children}</div>
 }
 
 export function Page({ title, back, children, actions }: { title: string; back?: boolean | string; children: ReactNode; actions?: ReactNode }) {
@@ -169,7 +169,7 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl rounded-t-3xl bg-surface p-5 safe-bottom animate-pop"
+        className="w-full max-w-xl rounded-t-3xl bg-surface p-5 safe-bottom"
       >
         {title && <h2 className="mb-3 text-xl font-semibold">{title}</h2>}
         {children}

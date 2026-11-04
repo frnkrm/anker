@@ -80,7 +80,7 @@ export async function rescheduleAll() {
 }
 
 /** Knöpfe in Meldungen wirken auch bei geschlossener App: Hier werden sie im Store nachgetragen. */
-async function drainActions() {
+export async function drainActions() {
   const { actions } = await safe(() => AnkerNative.drainReminderActions(), { actions: [] as ReminderActionInfo[] })
   for (const a of actions) await applyAction(a)
 }

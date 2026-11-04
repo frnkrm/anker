@@ -5,6 +5,7 @@ import { usePlan, useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { SportToggle } from '../components/SportToggle'
 import { Timeline } from '../components/Timeline'
+import { DayTasks, TrialCard } from '../components/DayTasks'
 import { Card, Page, Segmented } from '../components/ui'
 
 export default function Day() {
@@ -38,8 +39,9 @@ export default function Day() {
       <Card>
         <Timeline plan={plan} log={log} m={offset === 0 ? m : -1} />
       </Card>
+      <DayTasks date={date} plan={plan} />
       {offset === 0 && <SportToggle plan={plan} />}
-      {goals.length > 0 && (
+      {goals.length > 0 && st.settings.support.gameVisible && log?.override.mode !== 'ueberlastet' && (
         <Card>
           <h2 className="mb-2 font-semibold">Kernziele {offset === 0 ? 'heute' : ''}</h2>
           <ul className="space-y-1">
@@ -54,6 +56,7 @@ export default function Day() {
           </ul>
         </Card>
       )}
+      {offset === 0 && <TrialCard date={date} />}
       <p className="px-1 text-sm text-muted">
         Feste Zeiten: Aufstehen {fmtTime(plan.wake)}
         {plan.leave !== undefined && ` · Los ${fmtTime(plan.leave)}`} · PC-Stopp {fmtTime(plan.pcStop)} · Bett {fmtTime(plan.bed)}

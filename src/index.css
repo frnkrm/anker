@@ -4,10 +4,10 @@
 
 /* Farb-Tokens: ruhig, kontrastreich, kein Alarm-Rot */
 :root {
-  --bg: #f6f5f1;
+  --bg: #f7f7f5;
   --surface: #ffffff;
-  --surface-2: #eceae4;
-  --line: #dcd9d1;
+  --surface-2: #eeede9;
+  --line: #d9d7d0;
   --text: #16181d;
   --muted: #5b6270;
   --accent: #127a68;

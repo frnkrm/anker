@@ -260,10 +260,15 @@ export function AlarmRinging() {
   const [mode, setMode] = useState<'main' | 'other' | 'math' | 'emergency' | 'testAsk'>('main')
 
   useEffect(() => {
-    void safe(() => AnkerNative.getAlarmState(), { ringing: false, snoozed: 0, kind: null }).then((s) => {
-      setSnoozed(s.snoozed)
-      setKind(s.ringing && s.kind ? s.kind : 'none')
-    })
+    const load = () =>
+      safe(() => AnkerNative.getAlarmState(), { ringing: false, snoozed: 0, kind: null }).then((s) => {
+        setSnoozed(s.snoozed)
+        setKind(s.ringing && s.kind ? s.kind : 'none')
+      })
+    void load()
+    // Vorwecker kann in den Hauptwecker übergehen, während diese Seite offen ist
+    const sub = isNative() ? AnkerNative.addListener('alarmRinging', () => void load()) : undefined
+    return () => void sub?.then((h) => h.remove())
   }, [])
 
   // Alter Link oder Timeout: nichts klingelt, also auch keinen Klingel-Bildschirm zeigen
@@ -281,7 +286,13 @@ export function AlarmRinging() {
   }
 
   const finishOther = async (method: string, to = '/') => {
-    await AnkerNative.stopAlarm({ method })
+    const after = await AnkerNative.stopAlarm({ method })
+    // Inzwischen klingelt der Hauptwecker: nicht weggehen, sondern seine Seite zeigen
+    if (after.ringing && after.kind) {
+      setKind(after.kind)
+      setMode('main')
+      return
+    }
     await syncAlarm()
     nav(to, { replace: true })
   }

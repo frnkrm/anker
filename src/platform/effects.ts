@@ -5,7 +5,7 @@ import { onPlanChange, planFor, today, useApp } from '../state/store'
 import { syncAlarm } from './alarm'
 import { syncWorkout } from './health'
 import { AnkerNative, isNative, safe } from './native'
-import { rescheduleAll, setupNotifications } from './notifications'
+import { drainActions, rescheduleAll, setupNotifications } from './notifications'
 
 /** Widget auf dem Homescreen aktualisieren. */
 export async function updateWidget() {
@@ -44,6 +44,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   if (started) return
   started = true
   const run = async () => {
+    if (isNative()) await drainActions()
     await rescheduleAll()
     await syncAlarm()
     await updateWidget()

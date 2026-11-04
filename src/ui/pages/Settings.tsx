@@ -34,6 +34,8 @@ export default function Settings() {
       return <Reminders s={s} save={save} />
     case 'darstellung':
       return <Look s={s} save={save} />
+    case 'hilfen':
+      return <Supports s={s} save={save} />
   }
 
   const sug = deriveSchedule(s)
@@ -65,6 +67,7 @@ export default function Settings() {
       </Section>
       <Section title="App">
         <Row label="Erinnerungen" sub={{ gentle: 'Sanft', normal: 'Normal', persistent: 'Hartnäckig' }[s.reminders.intensity]} to="/einstellungen/erinnerungen" />
+        <Row label="Alltagshilfen" sub="Fokus-Puls, Abendmodus, Ankommen, Spiel" to="/einstellungen/hilfen" />
         <Row label="Darstellung & Thema" to="/einstellungen/darstellung" />
         <Row label="Belohnungen" to="/spiel/shop" />
         <Row label="Gerichte" to="/essen" />
@@ -345,6 +348,85 @@ function Reminders({ s, save }: { s: S; save: Save }) {
         </div>
         <p className="text-sm text-muted">Harte Zeiten (Losgehen, PC-Stopp, Bett) kommen trotzdem.</p>
       </Card>
+    </Page>
+  )
+}
+
+/** Alles hier ist freiwillig und aus, bis du es einschaltest (außer dem Spiel, das schon da war). */
+function Supports({ s, save }: { s: S; save: Save }) {
+  const f = s.focus
+  const setFocus = (patch: Partial<S['focus']>) => save((x) => ({ ...x, focus: { ...x.focus, ...patch } }))
+  const sup = s.support
+  const setSup = (patch: Partial<S['support']>) => save((x) => ({ ...x, support: { ...x.support, ...patch } }))
+  return (
+    <Page title="Alltagshilfen" back="/einstellungen">
+      <Section title="Fokus-Puls" hint="Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.">
+        <Card className="space-y-3">
+          <Segmented<S['focus']['pulse']>
+            label="Fokus-Puls"
+            value={f.pulse}
+            options={[
+              { value: 'off', label: 'Aus' },
+              { value: 'gentle', label: 'Sanft' },
+              { value: 'strong', label: 'Deutlich' },
+            ]}
+            onChange={(v) => setFocus({ pulse: v })}
+          />
+          {f.pulse !== 'off' && (
+            <>
+              <Segmented<number>
+                label="Abstand"
+                value={f.everyMin}
+                options={[
+                  { value: 2, label: 'Alle 2 Minuten' },
+                  { value: 5, label: 'Alle 5 Minuten' },
+                ]}
+                onChange={(v) => setFocus({ everyMin: v as 2 | 5 })}
+              />
+              <div className="flex items-center justify-between">
+                <span>Zur Hälfte des Schritts</span>
+                <Toggle label="Zur Hälfte" checked={f.halfway} onChange={(v) => setFocus({ halfway: v })} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Eine Minute vor Ende</span>
+                <Toggle label="Eine Minute vor Ende" checked={f.lastMinute} onChange={(v) => setFocus({ lastMinute: v })} />
+              </div>
+            </>
+          )}
+        </Card>
+      </Section>
+      <Section title="Abendmodus" hint="Nur ein Vorschlag auf der Startseite. Du entscheidest mit einem Tipp.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Abends vorschlagen</span>
+            <Toggle label="Abendmodus vorschlagen" checked={sup.eveningPreset.enabled} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, enabled: v } })} />
+          </div>
+          {sup.eveningPreset.enabled && (
+            <div className="flex items-center justify-between">
+              <span>Ab</span>
+              <TimeField label="Abendmodus ab" value={sup.eveningPreset.from} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, from: v } })} />
+            </div>
+          )}
+        </Card>
+      </Section>
+      <Section title="Ankommen nach der Arbeit" hint="Zwei bis drei kurze Schritte, bevor der Abend beginnt.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Einschalten</span>
+            <Toggle label="Ankommen" checked={sup.arrival.enabled} onChange={(v) => setSup({ arrival: { ...sup.arrival, enabled: v } })} />
+          </div>
+          {sup.arrival.enabled &&
+            sup.arrival.steps.map((step, i) => (
+              <TextInput key={i} aria-label={`Schritt ${i + 1}`} value={step} onChange={(e) => setSup({ arrival: { ...sup.arrival, steps: sup.arrival.steps.map((x, j) => (j === i ? e.target.value : x)) } })} />
+            ))}
+        </Card>
+      </Section>
+      <Section title="Spiel" hint="XP zählen im Hintergrund weiter und sind beim Einschalten wieder da.">
+        <Card className="flex items-center justify-between">
+          <span>Spiel und Level anzeigen</span>
+          <Toggle label="Spiel anzeigen" checked={sup.gameVisible} onChange={(v) => setSup({ gameVisible: v })} />
+        </Card>
+      </Section>
     </Page>
   )
 }

@@ -10,7 +10,8 @@ export default function Inbox() {
   const st = useApp()
   const d = today()
   const open = st.inbox.filter((x) => x.status === 'open').sort((a, b) => a.createdAt - b.createdAt)
-  const tasks = st.inbox.filter((x) => x.status === 'task' && !x.done && (x.taskDate ?? d) <= addDays(d, 1))
+  const tasks = st.inbox.filter((x) => x.status === 'task' && !x.done)
+  const doneToday = st.inbox.filter((x) => x.status === 'task' && x.done && x.doneAt && Date.now() - x.doneAt < 24 * 3600_000)
   const kept = st.inbox.filter((x) => x.status === 'kept')
   const [left, setLeft] = useState<number | null>(null)
   const [adding, setAdding] = useState(false)
@@ -54,8 +55,20 @@ export default function Inbox() {
               <Button size="sm" className="flex-1" onClick={() => st.updateInbox(x.id, { status: 'kept' })}>
                 Behalten
               </Button>
-              <Button size="sm" className="flex-1" onClick={() => st.updateInbox(x.id, { status: 'task', taskDate: addDays(d, 1) })}>
+              <Button size="sm" className="flex-1" onClick={() => st.updateInbox(x.id, { status: 'task', taskDate: addDays(d, 1), estimateMin: x.estimateMin ?? 5 })}>
                 Morgen erledigen
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label="Zur Arbeit verschieben"
+                onClick={async () => {
+                  await st.saveLocal((l) => ({ ...l, work: [...l.work, { id: x.id, title: x.text, createdAt: x.createdAt }] }))
+                  await st.removeInbox(x.id)
+                  st.showToast('Liegt jetzt bei der Arbeit, nur auf diesem Gerät.')
+                }}
+              >
+                Arbeit
               </Button>
               <Button size="sm" variant="ghost" onClick={() => st.removeInbox(x.id)} aria-label="Löschen">
                 Löschen
@@ -69,9 +82,20 @@ export default function Inbox() {
         <Section title="Eingeplant">
           {tasks.map((x) => (
             <label key={x.id} className="flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4">
-              <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" checked={!!x.done} onChange={() => st.updateInbox(x.id, { done: true })} />
+              <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" checked={false} onChange={() => st.setInboxDone(x.id, true)} />
               <span className="flex-1">{x.text}</span>
-              <span className="text-sm text-muted">{x.taskDate === d ? 'heute' : 'morgen'}</span>
+              <span className="text-sm text-muted">{(x.taskDate ?? d) <= d ? 'heute' : (x.taskDate ?? d) === addDays(d, 1) ? 'morgen' : x.taskDate}</span>
+            </label>
+          ))}
+        </Section>
+      )}
+
+      {doneToday.length > 0 && (
+        <Section title="Erledigt">
+          {doneToday.map((x) => (
+            <label key={x.id} className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface px-4 text-muted">
+              <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" checked onChange={() => st.setInboxDone(x.id, false)} aria-label={`${x.text} zurücknehmen`} />
+              <span className="flex-1 line-through">{x.text}</span>
             </label>
           ))}
         </Section>

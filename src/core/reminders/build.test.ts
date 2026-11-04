@@ -51,6 +51,14 @@ describe('Slots und lange Vorausplanung', () => {
     expect(r.every((x) => x.slot === 1 && !x.body.includes('x'))).toBe(true)
   })
 
+  it('Deadline-Erinnerung bleibt nach „Erledigt“ weg', () => {
+    const s = defaultSettings('2026-11-01')
+    const at = zonedToUtc('2026-11-06', 720)
+    const logs = { '2026-11-06': { date: '2026-11-06', override: {}, steps: {}, dismissed: ['deadline-hour:x'] } }
+    const r = buildReminders([], logs, s, now, 7 * 24 * 3600_000, { deadlines: [{ id: 'x', at }] })
+    expect(r.map((x) => x.key)).toEqual(['deadline-day:x'])
+  })
+
   it('auf Kurs: nur noch, was zählt', () => {
     const s = defaultSettings('2026-11-01')
     const plans = plansFor(s, 1)

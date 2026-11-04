@@ -7,7 +7,7 @@ import { pickTextFile, saveFile } from '../../platform/files'
 import { AnkerNative, isNative, safe } from '../../platform/native'
 import { repository, today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
-import { Button, Card, Page, Section, Segmented } from '../components/ui'
+import { Button, Card, Page, Row, Section, Segmented } from '../components/ui'
 
 function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -36,6 +36,16 @@ export function Help() {
         <p className="font-semibold">Anker ersetzt keine ärztliche oder therapeutische Beratung.</p>
         <p className="mt-1">Wenn es dir schlecht geht: Telefonseelsorge 0800 111 0 111 (kostenlos, rund um die Uhr).</p>
       </Card>
+      <Section title="Wenn es trotz Behandlung schwer bleibt">
+        <Card className="space-y-3">
+          <p>Sprich es bei deiner Fachärztin oder deinem Facharzt an, wenn der Alltag weiter stark leidet. Mögliche Wege sind ADHS-spezifische Psychotherapie (z. B. Verhaltenstherapie), Ergotherapie, Coaching und freiwillige Anpassungen am Arbeitsplatz.</p>
+          <p className="text-sm text-muted">Anker hilft im Alltag. Es ersetzt keine Behandlung und kann Folgen im Beruf oder bei der Gesundheit nicht sicher verhindern.</p>
+        </Card>
+        <AskSomeone />
+        {isNative() && (
+          <Row label="Ablenkungen am Handy begrenzen" sub="Android hat dafür eigene Fokus- und Wohlbefinden-Einstellungen" onClick={() => void AnkerNative.openFocusSettings()} />
+        )}
+      </Section>
       <Section title="ADHS: Diagnose und Behandlung">
         <Card className="space-y-3">
           <p>
@@ -73,6 +83,27 @@ export function Help() {
   )
 }
 
+/** Freiwillig: Der Text wird nur kopiert oder geteilt, wenn du es antippst. Anker sendet nichts selbst. */
+function AskSomeone() {
+  const [copied, setCopied] = useState(false)
+  const text = 'Hast du kurz Zeit für mich? Ich hänge gerade fest und könnte etwas Unterstützung gebrauchen.'
+  return (
+    <Card className="space-y-3">
+      <p className="font-medium">Eine vertraute Person um Hilfe bitten</p>
+      <p className="text-muted">„{text}“</p>
+      <Button
+        size="sm"
+        onClick={async () => {
+          await safe(() => navigator.clipboard.writeText(text), undefined)
+          setCopied(true)
+        }}
+      >
+        {copied ? 'Kopiert' : 'Text kopieren'}
+      </Button>
+    </Card>
+  )
+}
+
 /** JSON-Export/-Import als Backup. */
 export function Backup() {
   const st = useApp()
@@ -80,6 +111,7 @@ export function Backup() {
   return (
     <Page title="Sicherung" back="/mehr">
       <p className="px-1 text-muted">Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
+      <p className="px-1 text-sm text-muted">Die Datei ist nicht verschlüsselt und enthält auch Arbeitsaufgaben und, falls genutzt, dein Einnahmeprotokoll. Teile sie nicht unbedacht.</p>
       <Button
         variant="primary"
         size="lg"
