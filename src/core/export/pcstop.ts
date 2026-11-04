@@ -13,7 +13,10 @@ export function configJson(c: PcStopConfig): string {
   return JSON.stringify({ endpoint: c.endpoint, token: c.token, fallbackTime: c.fallbackTime }, null, 2)
 }
 
-export const PC_STOP_PS1 = String.raw`# Anker PC-Stopp: holt die heutige Zeit, warnt 15 und 5 Minuten vorher, fährt dann herunter.
+// Wichtig: "shutdown /s /t N" mit N > 0 schließt laut Windows-Doku Programme erzwungen (/f) und vernichtet
+// Ungespeichertes. Deshalb erst warnen, eine Schonfrist lassen und dann ohne Zwang mit /t 0 herunterfahren:
+// Programme mit offener Arbeit können das dann noch aufhalten. pc-stop-abbrechen.ps1 setzt für heute aus.
+export const PC_STOP_PS1 = String.raw`# Anker PC-Stopp: holt die heutige Zeit, warnt 15 und 5 Minuten vorher, gibt 5 Minuten Schonfrist, fährt dann ohne Zwang herunter.
 $ErrorActionPreference = 'SilentlyContinue'
 $dir = Join-Path $env:LOCALAPPDATA 'Anker'
 $cfg = Get-Content (Join-Path $dir 'config.json') -Raw | ConvertFrom-Json
@@ -72,14 +75,22 @@ if ($left -le 15 -and $left -gt 5 -and $state['w15'] -ne $tag) {
   $state['w15'] = $tag
 }
 elseif ($left -le 5 -and $left -gt 0 -and $state['w5'] -ne $tag) {
-  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") 'Jetzt speichern. Gleich ist Feierabend für den PC.'
+  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") 'Jetzt speichern. Danach bleiben noch 5 Minuten.'
   $state['w5'] = $tag
-  & shutdown.exe /s /t ([int]([math]::Max(60, $left * 60))) /c "Anker: PC-Stopp um $($target.ToString('HH:mm'))"
 }
 elseif ($left -le 0 -and $left -gt -360) {
-  if ($state['down'] -ne $tag) { Show-Toast 'PC-Stopp' 'Der PC fährt in 2 Minuten herunter. Gute Nacht!' }
-  $state['down'] = $tag
-  & shutdown.exe /s /t 120 /c "Anker: PC-Stopp"
+  if ($state['paused'] -eq $tag) {
+    # Für heute ausgesetzt: nichts tun
+  }
+  elseif ($state['down'] -ne $tag) {
+    # Erster Lauf nach der Stopp-Zeit: Schonfrist. Der nächste Lauf kommt nach etwa 5 Minuten.
+    Show-Toast 'PC-Stopp: jetzt speichern' 'In etwa 5 Minuten fährt der PC herunter. Abbrechen: pc-stop-abbrechen.ps1'
+    $state['down'] = $tag
+  }
+  else {
+    # Ohne /f und ohne Wartezeit: Programme mit ungespeicherter Arbeit können das Herunterfahren noch aufhalten
+    & shutdown.exe /s /t 0 /c "Anker: PC-Stopp"
+  }
 }
 $state | ConvertTo-Json | Set-Content $stateFile -Encoding UTF8
 `
@@ -90,6 +101,7 @@ $src = Split-Path -Parent $MyInvocation.MyCommand.Path
 $dir = Join-Path $env:LOCALAPPDATA 'Anker'
 New-Item -ItemType Directory -Force $dir | Out-Null
 Copy-Item (Join-Path $src 'pc-stop.ps1') $dir -Force
+Copy-Item (Join-Path $src 'pc-stop-abbrechen.ps1') $dir -Force
 Copy-Item (Join-Path $src 'config.json') $dir -Force
 
 $script = Join-Path $dir 'pc-stop.ps1'
@@ -104,6 +116,26 @@ Register-ScheduledTask -TaskName 'Anker PC-Stopp' -Action $action -Trigger @($ev
 Write-Host 'Anker PC-Stopp ist eingerichtet. Test:' -ForegroundColor Green
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
 Write-Host 'Fertig. Die Aufgabe läuft alle 5 Minuten und bei der Anmeldung.'
+`
+
+export const ABORT_PS1 = String.raw`# Anker PC-Stopp: für heute aussetzen. Morgen läuft alles wieder normal.
+$dir = Join-Path $env:LOCALAPPDATA 'Anker'
+$stateFile = Join-Path $dir 'state.json'
+$cfg = Get-Content (Join-Path $dir 'config.json') -Raw | ConvertFrom-Json
+$state = @{}
+if (Test-Path $stateFile) { (Get-Content $stateFile -Raw | ConvertFrom-Json).psobject.Properties | ForEach-Object { $state[$_.Name] = $_.Value } }
+$cacheFile = Join-Path $dir 'cache.json'
+$now = Get-Date
+$t = [datetime]::ParseExact($cfg.fallbackTime, 'HH:mm', $null)
+$target = $now.Date.AddHours($t.Hour).AddMinutes($t.Minute)
+if (Test-Path $cacheFile) {
+  $cached = ([datetimeoffset]::Parse((Get-Content $cacheFile -Raw | ConvertFrom-Json).stopAt)).LocalDateTime
+  if ($cached.Date -eq $now.Date) { $target = $cached }
+}
+$state['paused'] = $target.ToString('yyyyMMddHHmm')
+$state | ConvertTo-Json | Set-Content $stateFile -Encoding UTF8
+& shutdown.exe /a 2>$null
+Write-Host 'PC-Stopp ist für heute ausgesetzt.' -ForegroundColor Green
 `
 
 export const UNINSTALL_PS1 = String.raw`# Anker PC-Stopp entfernen
@@ -122,12 +154,13 @@ export function readme(c: PcStopConfig): string {
     '2. Im Ordner: Rechtsklick auf install.ps1 > "Mit PowerShell ausführen".',
     '   Falls Windows warnt: "Weitere Informationen" > "Trotzdem ausführen".',
     '3. Fertig. Alle 5 Minuten fragt der PC die heutige PC-Stopp-Zeit ab.',
-    '   15 und 5 Minuten vorher kommt eine Windows-Benachrichtigung, dann fährt der PC herunter.',
+    '   15 und 5 Minuten vorher kommt eine Windows-Benachrichtigung. Zur Stopp-Zeit kommt noch eine,',
+    '   etwa 5 Minuten später fährt der PC ohne Zwang herunter. Programme mit offener Arbeit können das aufhalten.',
     '',
     `Verbindung: ${c.endpoint ? 'mit der App verbunden (Verlängerungen kommen automatisch an)' : 'ohne Verbindung, feste Zeit'}`,
     `Rückfallzeit ohne Internet: ${c.fallbackTime} (bzw. die zuletzt bekannte Zeit).`,
     '',
-    'Notfall: "shutdown /a" in der Eingabeaufforderung bricht ein laufendes Herunterfahren ab.',
+    'Für heute aussetzen: pc-stop-abbrechen.ps1 mit PowerShell ausführen.',
     'Entfernen: uninstall.ps1 mit PowerShell ausführen.',
     '',
   ].join('\r\n')
@@ -138,6 +171,7 @@ export function pcStopFiles(c: PcStopConfig): Record<string, string> {
   return {
     'install.ps1': INSTALL_PS1,
     'pc-stop.ps1': PC_STOP_PS1,
+    'pc-stop-abbrechen.ps1': ABORT_PS1,
     'uninstall.ps1': UNINSTALL_PS1,
     'config.json': configJson(c),
     'ANLEITUNG.txt': readme(c),
