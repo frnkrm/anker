@@ -93,12 +93,14 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   // Morgen: bis zum Losgehen (bzw. Ende Morgenblock + 30 min am freien Tag)
   const morning = plan.blocks.find((b) => b.routine === 'morning')
   const later = morning !== undefined && morning.start > plan.wake + 1 && !plan.blocks.some((b) => b.kind === 'sport')
-  const morningUntil = later ? morning!.end + 30 : (plan.leave ?? (morning ? morning.end + 30 : plan.wake))
-  if (m < morningUntil && (!later || m >= morning!.start)) {
+  const started = !!plan.workInfo?.started
+  const readyAt = plan.homeOffice && plan.workInfo ? plan.workInfo.plannedStart : undefined
+  const morningUntil = later ? morning!.end + 30 : (plan.leave ?? readyAt ?? (morning ? morning.end + 30 : plan.wake))
+  if (!started && m < morningUntil && (!later || m >= morning!.start)) {
     const a = stepAction(plan, log, 'morning')
     if (a) return view(a)
   }
-  if (plan.leave !== undefined && !log?.leftAt && m >= plan.leave - 20 && m < plan.leave + 45) {
+  if (plan.leave !== undefined && !started && !log?.leftAt && m >= plan.leave - 20 && m < plan.leave + 45) {
     return view({ type: 'leave', title: m < plan.leave ? `Losgehen um ${t(plan.leave)}` : 'Jetzt losgehen', sub: 'Schlüssel, Handy, Tasche.' })
   }
 
@@ -125,5 +127,17 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
       return view({ type: 'info', title: block.title, sub: `Bis ${t(block.end)}`, block })
     default:
       return view({ type: 'info', title: block.title, sub: `Bis ${t(block.end)}`, block })
+  }
+}
+
+/** Das Widget ist von außen lesbar: Anlass, Ort und Kunde bleiben in der App. */
+export function widgetEntry(at: number, v: NowView) {
+  const privateBlock = !!v.block && ['commitment', 'prep', 'travel'].includes(v.block.kind)
+  return {
+    at,
+    action: privateBlock ? 'Termin' : v.action.title,
+    sub: privateBlock ? '' : (v.action.sub ?? ''),
+    hardLabel: v.hard?.key === 'commitment' || v.hard?.label.startsWith('Los:') ? 'Losgehen' : (v.hard?.label ?? ''),
+    hardTime: v.hard ? fmtTime(v.hard.at) : '',
   }
 }

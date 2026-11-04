@@ -33,7 +33,8 @@ export function dayGoals(plan: DayPlan, log: DayLog | undefined, s: Settings): G
   const wakeAt = at(date, log?.wakeAt)
   goals.push({ key: 'wake', label: 'Aufgestanden', met: wakeAt !== undefined && Math.abs(wakeAt - plan.wake) <= tol })
 
-  if (plan.leave !== undefined) {
+  // Schon bei der Arbeit, ohne „Bin los“ getippt: Das Ziel entfällt neutral, statt als verfehlt zu gelten
+  if (plan.leave !== undefined && !(plan.workInfo?.started && !log?.leftAt)) {
     const leftAt = at(date, log?.leftAt)
     goals.push({ key: 'leave', label: 'Pünktlich los', met: leftAt !== undefined && leftAt <= plan.leave + LEAVE_TOLERANCE })
   }

@@ -1,5 +1,6 @@
 import { EVENING_LABELS } from '../defaults'
 import { addDays, fmtTime, minutesOnPlanDay, weekday, type DateStr } from '../time'
+import { dayActual, forecastEnd, latestInfo, overLatest, workRule } from '../worktime'
 import type {
   Block,
   CalendarEvent,
@@ -13,6 +14,8 @@ import type {
   PlannedStep,
   RoutineStep,
   Settings,
+  WorkInfo,
+  WorkSession,
 } from '../types'
 import { hardConflicts, legSpan, planLegs } from './adaptive'
 import { allMinimal, busyMinutes, fitSteps, minimalMinutes, placeAfter, totalMinutes } from './fit'
@@ -26,6 +29,10 @@ export interface PlanInput {
   places?: Place[]
   /** Vom Vortag über eine gesetzte Regel versorgte Schritte */
   covered?: string[]
+  /** Erfasste Arbeitszeiten. Nur damit rechnet der Plan mit Ist-Werten. */
+  sessions?: WorkSession[]
+  /** Bis hierhin laufen offene Abschnitte. Nur nötig, wenn `sessions` etwas Offenes enthält. */
+  nowMs?: number
 }
 
 const WEEKEND_EVENING_START = 18 * 60
@@ -130,8 +137,10 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   const isWork = dayType === 'work'
   const w = s.work[wd]!
   const homeOffice = isWork && (o.homeOffice ?? w.homeOffice)
-  const workStart = w.start
-  const officeLeave = isWork ? (homeOffice ? workStart - 5 : workStart - s.commute.minutes - s.commute.bufferMin) : undefined
+  const rule = workRule(date, s, o, isWork)
+  const nowMs = input.nowMs ?? 0
+  const actual = dayActual(input.sessions ?? [], date, nowMs)
+  const nowM = minutesOnPlanDay(date, nowMs)
   let leaveOverride: number | undefined
 
   // Schon versorgte Schritte entfallen für heute. Sie gelten damit nicht als heute erledigt.
@@ -140,10 +149,16 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   // Wege und Termine dieses Tages
   const officeOnsite = isWorkDayOnsite(dayType, o, w) && !(input.commitments ?? []).some((c) => c.replacesCommute && c.status !== 'cancelled')
-  const workEndBase = o.workEnd ?? w.start + w.durationMin + w.pauseMin
-  const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: w.start, end: workEndBase } : undefined })
-  const morningLeg = legs.find((l) => l.leave !== undefined && l.commitment.commitment === 'hard' && l.commitment.start < 12 * 60 && (dayType !== 'work' || l.commitment.replacesCommute || homeOffice || l.commitment.start < w.start))
+  const workEndBase = o.workEnd ?? rule.plannedStart + rule.targetNetMin + rule.plannedBreakMin
+  const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: rule.plannedStart, end: workEndBase } : undefined })
+  const morningLeg = legs.find((l) => l.leave !== undefined && l.commitment.commitment === 'hard' && l.commitment.start < 12 * 60 && (dayType !== 'work' || l.commitment.replacesCommute || homeOffice || l.commitment.start < rule.plannedStart))
   if (morningLeg) leaveOverride = morningLeg.leave
+  // Bestätigter Kundentermin vor der eigenen Grenze: Die Arbeit beginnt dort, nicht zusätzlich woanders
+  const firstCustomer = morningLeg && morningLeg.commitment.replacesCommute && ['customer', 'work'].includes(morningLeg.commitment.context) && morningLeg.commitment.start <= Math.max(rule.plannedStart, s.flex.latestStart ?? 0) ? morningLeg.commitment.start : undefined
+  const plannedStart = firstCustomer ?? rule.plannedStart
+  const firstRegular = actual.sessions.find((x) => x.kind === 'regular')
+  const workStart = firstRegular ? minutesOnPlanDay(date, firstRegular.startAt) : plannedStart
+  const officeLeave = isWork ? (homeOffice ? plannedStart - 5 : plannedStart - s.commute.minutes - s.commute.bufferMin) : undefined
   const sportToday = isSportDay(date, s) && dayType !== 'vacation'
   const morningSport = sportToday && s.sport.time === 'morning'
   let gymBlock: Block | undefined
@@ -208,10 +223,27 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   let home: number
   let workEnd: number | undefined
+  let workInfo: WorkInfo | undefined
   if (isWork) {
-    workEnd = o.workEnd ?? workStart + w.durationMin + w.pauseMin
+    // Reales Ende vor gesetztem Ende vor Prognose. Eine laufende Arbeit endet nie in der Vergangenheit.
+    const forecast = forecastEnd({ ...rule, plannedStart, date, actual, nowMs })
+    workEnd = actual.closed ? forecast : (o.workEnd ?? forecast)
+    if (actual.open) workEnd = Math.max(workEnd, nowM)
+    const latest = latestInfo(s, homeOffice)
+    workInfo = {
+      ...rule,
+      plannedStart,
+      latestStart: latest?.latestStart,
+      latestLeave: latest?.latestLeave,
+      fixedMorning: !!morningLeg,
+      started: !!firstRegular || !!actual.open,
+      closed: actual.closed,
+    }
+    if (!morningLeg && overLatest(plannedStart, latest)) notes.push(`Heute beginnst du nach deiner Grenze ${fmtTime(latest!.latestStart)}. Prüf kurz, ob das so abgesprochen ist.`)
+    const otherDays = s.work.filter((d, i) => i !== 4 && d.isWorkDay).map((d) => d.durationMin)
+    if (wd === 4 && !actual.closed && otherDays.length && w.durationMin < Math.min(...otherDays)) notes.push(`Heute ist dein kürzerer Freitag. Geplanter Feierabend ${fmtTime(workEnd)}.`)
     if (!homeOffice && !morningLeg) {
-      blocks.push({ id: id('commute'), kind: 'commute', title: 'Losgehen', start: leave!, end: workStart, hard: true })
+      blocks.push({ id: id('commute'), kind: 'commute', title: 'Losgehen', start: leave!, end: plannedStart, hard: true })
     }
     if (morningLeg && officeOnsite && !morningLeg.commitment.replacesCommute) notes.push('Der Weg vom Termin ins Büro ist nicht eingeplant.')
     blocks.push({ id: id('work'), kind: 'work', title: homeOffice ? 'Arbeit (Homeoffice)' : 'Arbeit', start: workStart, end: workEnd })
@@ -222,7 +254,9 @@ export function buildDayPlan(input: PlanInput): DayPlan {
       blocks.push({ id: id('commute-home'), kind: 'commute', title: 'Heimweg', start: workEnd, end: workEnd + s.commute.minutes })
       home = workEnd + s.commute.minutes
     }
-    if (o.workEnd !== undefined) notes.push(`Heute länger: Feierabend ${fmtTime(workEnd)}. PC-Stopp und Bett bleiben gleich.`)
+    if (o.workEnd !== undefined && !actual.closed) {
+      notes.push(o.workEnd >= plannedStart + rule.targetNetMin + rule.plannedBreakMin ? `Heute länger: Feierabend ${fmtTime(workEnd)}. PC-Stopp und Bett bleiben gleich.` : `Heute früher Schluss: Feierabend ${fmtTime(workEnd)}.`)
+    }
   } else {
     home = Math.max(WEEKEND_EVENING_START, routineStart + mDur)
     blocks.push({
@@ -234,6 +268,14 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     })
   }
 
+  // Einsätze außerhalb der regulären Arbeit stehen als das im Tag, was sie waren. Der Tag bleibt, was er ist.
+  for (const x of actual.sessions) {
+    if (isWork && x.kind === 'regular') continue
+    const start = minutesOnPlanDay(date, x.startAt)
+    const end = x.endAt !== undefined ? minutesOnPlanDay(date, x.endAt) : Math.max(start + 1, nowM)
+    blocks.push({ id: `session:${x.id}`, kind: 'session', title: 'Arbeitseinsatz', start, end })
+  }
+
   // ---------- Abend ----------
   let plan: EveningPlan = o.evening ?? s.evenings[wd] ?? 'free'
   if (!o.evening && sportToday && s.sport.time === 'afterWork') plan = 'sport'
@@ -241,9 +283,11 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   let planDur = s.eveningDurations[plan]
   if (plan === 'sport') planDur = s.sport.durationMin + (s.sport.kind === 'gym' ? 2 * s.sport.gymWayMin : 0)
   // Ein Termin am Abend ist der Abendplan
-  const eveningLegs = legs.filter((l) => l.commitment.start >= Math.min(home, 15 * 60))
+  const eveningLegs = legs.filter((l) => l.commitment.workKind !== 'oncall' && l.commitment.start >= Math.min(home, 15 * 60))
   if (eveningLegs.length && !o.evening) planDur = 0
   for (const l of legs) {
+    // Rufbereitschaft belegt die Zeit nicht: Der Tag bleibt frei, bis wirklich ein Einsatz läuft
+    if (l.commitment.workKind === 'oncall') continue
     const span = legSpan(l)
     // „Bin wieder da“ beendet den Termin, auch wenn sein Ende vorher offen war
     const back = l.commitment.backAt !== undefined ? minutesOnPlanDay(date, l.commitment.backAt) : undefined
@@ -335,13 +379,15 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     const c = l.commitment
     if (l.prepStart !== undefined) blocks.push({ id: `prep:${c.id}`, kind: 'prep', title: `Fertig machen: ${c.label}`, start: l.prepStart, end: l.leave ?? c.start })
     if (l.leave !== undefined) blocks.push({ id: `travel:${c.id}`, kind: 'travel', title: `Weg: ${l.fromLabel} → ${l.toLabel}`, start: l.leave, end: c.start, hard: c.commitment === 'hard' })
-    blocks.push({ id: `commitment:${c.id}`, kind: 'commitment', title: c.label, start: c.start, end: c.end ?? c.start + 1, hard: c.commitment === 'hard' })
+    // Früher zurück oder früher fertig: Der Block endet dort, statt den Rest des Fensters zu belegen
+    const backM = c.backAt !== undefined ? minutesOnPlanDay(date, c.backAt) : undefined
+    if (backM === undefined || backM > c.start) blocks.push({ id: `commitment:${c.id}`, kind: 'commitment', title: c.label, start: c.start, end: backM ?? c.end ?? c.start + 1, hard: c.commitment === 'hard' })
     if (l.travelOpen) notes.push(`Fahrzeit zu „${c.label}“ fehlt noch.`)
   }
 
   for (const e of events) {
     if (e.end > pcStop && e.start < bed + 120) notes.push(`Termin ${eventLabel(e)} geht über den PC-Stopp hinaus.`)
-    else if (isWork && leave !== undefined && e.start < workStart && e.end > leave && !homeOffice)
+    else if (isWork && leave !== undefined && e.start < plannedStart && e.end > leave && !homeOffice)
       notes.push(`Termin ${eventLabel(e)} überschneidet den Arbeitsweg.`)
   }
 
@@ -359,8 +405,18 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     const clash = legs.find((l) => l.commitment.commitment === 'hard' && !l.commitment.replacesCommute && l.commitment.start < workEnd! && (l.commitment.end ?? l.commitment.start) > workStart && l !== morningLeg && l.commitment.context !== 'work')
     if (clash) conflicts.push(`„${clash.commitment.label}“ liegt in deiner Arbeitszeit.`)
   }
+  // Rückt der Feierabend, rückt der Termin nicht. Ein fester wird benannt, ein flexibler nur erwähnt.
+  if (workEnd !== undefined && !actual.closed) {
+    for (const l of legs) {
+      const c = l.commitment
+      if (l === morningLeg || c.workKind === 'oncall' || l.leave === undefined || c.start < workEnd || l.leave >= workEnd) continue
+      const text = `Dein Feierabend ${fmtTime(workEnd)} liegt hinter der Abfahrt zu „${c.label}“ (${fmtTime(l.leave)}).`
+      if (c.commitment === 'hard') conflicts.push(`${text} Früher aufhören oder den Termin selbst absprechen?`)
+      else notes.push(text)
+    }
+  }
 
-  return finish({ date, dayType, homeOffice, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave, legs, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
+  return finish({ date, dayType, homeOffice, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave: homeOffice && !morningLeg ? undefined : leave, legs, workInfo, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
 }
 
 function isWorkDayOnsite(dayType: DayType, o: DayOverride, w: Settings['work'][number]): boolean {

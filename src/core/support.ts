@@ -3,7 +3,8 @@
 
 import { nowView, type NowAction, type NowView } from './now'
 import { fmtTime, minutesOnPlanDay, type DateStr } from './time'
-import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkTask } from './types'
+import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkSession, WorkSessionKind, WorkTask } from './types'
+import { dayActual, staleSession } from './worktime'
 
 export const MODE_LABEL: Record<SupportMode, string> = {
   normal: 'Normal',
@@ -110,6 +111,10 @@ export type NextAction =
   | { type: 'underway'; title: string; sub?: string; leg: Leg }
   | { type: 'away'; title: string; sub?: string; leg: Leg }
   | { type: 'return-check'; title: string; sub?: string }
+  | { type: 'work-break'; title: string; sub?: string; session: WorkSession }
+  | { type: 'work-stale'; title: string; sub?: string; session: WorkSession }
+  | { type: 'einsatz-start'; title: string; sub?: string; leg: Leg }
+  | { type: 'einsatz-running'; title: string; sub?: string; session: WorkSession }
 
 export interface NextView extends Omit<NowView, 'action'> {
   action: NextAction
@@ -126,6 +131,16 @@ export interface NextInput {
   inbox: InboxItem[]
   work: WorkTask[]
   resume?: ResumePoint
+  /** Erfasste Arbeitszeiten. Ohne sie bleibt alles wie geplant. */
+  sessions?: WorkSession[]
+}
+
+export const SESSION_LABEL: Record<WorkSessionKind, string> = {
+  regular: 'Arbeit',
+  maintenance: 'Wartung',
+  incident: 'Störung',
+  onsite: 'Vor-Ort-Termin',
+  other: 'Andere Arbeit',
 }
 
 /** Wiedereinstieg gilt nur am selben Tag und höchstens 8 Stunden. */
@@ -144,8 +159,22 @@ export function nextAction(i: NextInput): NextView {
   // Schlafen und Aufwachen gehen immer vor
   if (a.type === 'sleep' || a.type === 'wake') return view(a)
 
+  // Eine vergessene Sitzung wird angesprochen, aber nie selbst beendet: Das Ende kennst nur du
+  const sessions = i.sessions ?? []
+  const stale = staleSession(sessions, i.plan.date, i.nowMs)
+  if (stale) return view({ type: 'work-stale', title: 'Läuft deine Arbeit noch?', sub: `Gestartet um ${fmtTime(minutesOnPlanDay(stale.date, stale.startAt))}. Trag einfach das Ende ein.`, session: stale })
+
   // Ein Termin läuft oder steht an: Er bestimmt den Moment, ohne weitere Fragen
-  const leg = legAction(i.plan, i.m)
+  const leg = legAction(i.plan, i.m, sessions)
+  if (leg?.action.type === 'go') return view(leg.action, leg.reason)
+  const actual = dayActual(sessions, i.plan.date, i.nowMs)
+  if (actual.open && actual.openBreak) {
+    const since = fmtTime(minutesOnPlanDay(i.plan.date, actual.openBreak.startAt))
+    return view({ type: 'work-break', title: 'Pause läuft', sub: i.plan.workEnd !== undefined ? `Seit ${since} · Feierabend gerade etwa ${fmtTime(i.plan.workEnd)}` : `Seit ${since}`, session: actual.open })
+  }
+  if (actual.open && actual.open.kind !== 'regular') {
+    return view({ type: 'einsatz-running', title: actual.open.label?.trim() || SESSION_LABEL[actual.open.kind], sub: `Läuft seit ${fmtTime(minutesOnPlanDay(i.plan.date, actual.open.startAt))}`, session: actual.open })
+  }
   if (leg) return view(leg.action, leg.reason)
   if (i.plan.pendingEvening && i.m >= (i.plan.workEnd ?? 18 * 60) && !i.log?.override.backAt && i.log?.override.routineAt?.evening === 'return') {
     return view({ type: 'return-check', title: 'Bist du wieder zuhause?', sub: 'Dann schauen wir, was heute noch sinnvoll ist.' })
@@ -208,16 +237,22 @@ function legSub(l: Leg): string | undefined {
 }
 
 /** Was ein Termin gerade verlangt. Undefined, wenn keiner dran ist. Das Ende wird nie erfunden. */
-function legAction(plan: DayPlan, m: number): { action: NextAction; reason?: string } | undefined {
+function legAction(plan: DayPlan, m: number, sessions: WorkSession[]): { action: NextAction; reason?: string } | undefined {
   for (const l of plan.legs ?? []) {
     const c = l.commitment
-    if (c.backAt !== undefined) continue
+    if (c.backAt !== undefined || c.workKind === 'oncall') continue
+    const linked = c.workKind ? sessions.find((x) => x.commitmentId === c.id) : undefined
+    // Ein Einsatz ohne Weg ist nach dem Beenden vorbei, auch wenn das geplante Ende noch aussteht
+    if (linked?.endAt !== undefined && !l.toLabel) continue
     const startsAt = l.prepStart ?? l.leave ?? c.start
     if (m < startsAt) continue
     const ended = c.end !== undefined && m >= c.end + (l.returnMin ?? 0)
     if (ended) continue
+    const offerStart = !!c.workKind && !linked
+    if (offerStart && !l.toLabel) return { action: { type: 'einsatz-start', title: c.label, sub: `Geplant ab ${fmtTime(c.start)}`, leg: l } }
     if (m >= c.start || c.arrivedAt) {
       if (l.toLabel && c.leftAt && !c.arrivedAt && m < c.start + 60) return { action: { type: 'underway', title: `Unterwegs zu ${c.label}`, leg: l } }
+      if (offerStart) return { action: { type: 'einsatz-start', title: c.label, sub: `Geplant ab ${fmtTime(c.start)}`, leg: l } }
       return { action: { type: 'away', title: c.label, sub: c.end !== undefined ? `Bis ${fmtTime(c.end)}` : 'Melde dich einfach, wenn du wieder da bist.', leg: l } }
     }
     if (c.leftAt) return { action: { type: 'underway', title: `Unterwegs zu ${c.label}`, sub: `Um ${fmtTime(c.start)} dort`, leg: l } }
@@ -277,7 +312,7 @@ export function stuckLadder(a: NextAction): { text: string; seconds: number }[] 
       { text: `Stell dich dorthin, wo du „${a.title}“ machst.`, seconds: 30 },
     ]
   }
-  if (a.type === 'worktask' || a.type === 'task' || a.type === 'resume') {
+  if (a.type === 'worktask' || a.type === 'task' || a.type === 'resume' || a.type === 'einsatz-start' || a.type === 'einsatz-running') {
     return [
       { text: a.title, seconds: 120 },
       { text: 'Öffne nur, was du dafür brauchst.', seconds: 30 },

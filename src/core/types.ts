@@ -102,6 +102,17 @@ export interface Settings {
   game: { stage: 1 | 2 | 3; startDate: DateStr }
   integrations: { healthConnect: boolean; googleCalendar: boolean; writeCalendar: boolean; sync: boolean }
   alarm: AlarmPreferences
+  /** Gleitzeit. Wunsch-Beginn, Netto-Soll und Pause je Tag stehen in `work`. */
+  flex: {
+    /** Spätester normaler Arbeitsbeginn (Plan-Minuten), null = keine Grenze. Eine Grenze, kein Ziel. */
+    latestStart: number | null
+    /** Arbeit starten, Pause und Feierabend auf der Startseite anbieten. Erfassen bleibt freiwillig. */
+    tracking: boolean
+    /** Sachliche Hinweise zu Pausen, Ruhezeit und Sonntag */
+    legalHints: boolean
+    /** Entwurf zum Kopieren, Anker sendet nichts */
+    lateMessage: string
+  }
   /** Eigene Minuten für Wege und Übergänge */
   travel: { arrivalBufferMin: number; prepMin: number; homeOfficeStartupMin: number; activationMin: number }
   /** Ausdrücklich gesetzt: Ist der Abendschritt erledigt, ist der Morgenschritt am Folgetag nicht nötig */
@@ -133,6 +144,10 @@ export interface DayOverride {
   /** „Ich mache heute länger“: neue Feierabendzeit */
   workEnd?: number
   homeOffice?: boolean
+  /** Nur dieser Tag: anderer Arbeitsbeginn, anderes Netto-Soll, andere Pause */
+  workStart?: number
+  targetNetMin?: number
+  pauseMin?: number
   /** Verlängerung PC-Stopp in Minuten (max. 15) */
   pcStopExtendMin?: number
   /** Unterstützungsmodus für diesen Tag */
@@ -193,6 +208,7 @@ export interface CalendarEvent {
 
 export type BlockKind =
   | 'commitment'
+  | 'session'
   | 'prep'
   | 'travel'
   | 'wake'
@@ -211,6 +227,20 @@ export type BlockKind =
 
 export interface PlannedStep extends RoutineStep {
   useMinimal: boolean
+}
+
+/** Was der Planer zur Arbeit dieses Tages weiß. Prognose bleibt Prognose. */
+export interface WorkInfo {
+  plannedStart: number
+  targetNetMin: number
+  plannedBreakMin: number
+  latestStart?: number
+  latestLeave?: number
+  /** Ein fester Termin gibt den Morgen vor */
+  fixedMorning: boolean
+  /** Es läuft oder lief heute eine reguläre oder andere Arbeit */
+  started: boolean
+  closed: boolean
 }
 
 export interface Block {
@@ -254,6 +284,8 @@ export interface DayPlan {
   openEnd?: boolean
   /** Echte Konflikte, immer sichtbar */
   conflicts?: string[]
+  /** Nur an Arbeitstagen */
+  workInfo?: WorkInfo
 }
 
 export interface InboxItem {
@@ -291,6 +323,34 @@ export interface ResumePoint {
   nextStep?: string
   refId?: string
   at: number
+}
+
+export type WorkSessionKind = 'regular' | 'maintenance' | 'incident' | 'onsite' | 'other'
+/** Geplanter Einsatz. Rufbereitschaft ist ausdrücklich keine Arbeitszeit, bis ein Einsatz läuft. */
+export type PlannedWorkKind = Exclude<WorkSessionKind, 'regular'> | 'oncall'
+
+export interface WorkBreak {
+  id: string
+  startAt: number
+  endAt?: number
+}
+
+/**
+ * Wirklich gearbeitete Zeit in UTC-ms, nie geplant. Lokal, kein Sync, keine Arbeitgeber-Zeiterfassung.
+ * Gehört ganz zu dem Plantag, an dem sie begann (Wechsel um 04:00), und wird nicht aufgeteilt.
+ */
+export interface WorkSession {
+  id: string
+  date: DateStr
+  kind: WorkSessionKind
+  startAt: number
+  endAt?: number
+  breaks: WorkBreak[]
+  label?: string
+  note?: string
+  commitmentId?: string
+  /** Nachgetragen oder korrigiert */
+  manual?: boolean
 }
 
 export type CommitmentKind = 'hard' | 'soft' | 'optional'
@@ -331,6 +391,8 @@ export interface Commitment {
   items?: string[]
   /** Ersetzt den Weg ins Büro an diesem Tag */
   replacesCommute?: boolean
+  /** Ist ein geplanter Arbeitseinsatz. Ändert den Wochenstandard nicht. */
+  workKind?: PlannedWorkKind
   thenTo?: 'home' | 'next'
   status?: 'planned' | 'cancelled'
   leftAt?: number
@@ -366,6 +428,8 @@ export interface LocalData {
   places: Place[]
   weather?: WeatherCache
   work: WorkTask[]
+  /** Erfasste Arbeitszeiten */
+  workSessions: WorkSession[]
   resume?: ResumePoint
   handover: Record<DateStr, { open: string; next: string }>
   /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */

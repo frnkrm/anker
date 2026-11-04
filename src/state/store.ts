@@ -19,7 +19,10 @@ import type {
   Settings,
   StepResult,
   WeeklyReview,
+  WorkSession,
+  WorkSessionKind,
 } from '../core/types'
+import { endBreak, startBreak, startSession, stopSession } from '../core/worktime'
 import { getRepository, type Rec, type Repository } from '../data'
 
 export interface AlarmStatus {
@@ -49,6 +52,8 @@ interface AppState {
   toast?: string
   /** Was Android zuletzt zur Weckerplanung gemeldet hat. Nicht gespeichert. */
   alarmStatus?: AlarmStatus
+  /** Stand vor der letzten Korrektur an Arbeitszeiten, für „Rückgängig“. Nicht gespeichert. */
+  workUndo?: WorkSession[]
 
   load(): Promise<void>
   saveSettings(fn: (s: Settings) => Settings): Promise<void>
@@ -76,6 +81,15 @@ interface AppState {
   /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
   restoreDay(date: DateStr): Promise<void>
   saveCommitment(c: Commitment): Promise<void>
+  /** Arbeit starten. Läuft schon etwas, bleibt es dabei. */
+  workStart(i?: { kind?: WorkSessionKind; label?: string; commitmentId?: string; at?: number }): Promise<void>
+  /** Beendet, was läuft. Mehrfaches Tippen ändert nichts. */
+  workStop(at?: number): Promise<void>
+  workBreakStart(at?: number): Promise<void>
+  workBreakEnd(at?: number): Promise<void>
+  /** Nachtragen oder korrigieren, mit Rückgängig */
+  editWork(fn: (list: WorkSession[]) => WorkSession[]): Promise<void>
+  undoWork(): Promise<void>
   importRecords(recs: Rec[]): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
@@ -119,10 +133,14 @@ function coveredBy(date: DateStr, st: Pick<AppState, 'settings' | 'days'>): stri
 export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events' | 'local'> = useApp.getState()): DayPlan {
   const override = st.days[date]?.override
   const covered = coveredBy(date, st)
-  const key = [st.settings, override, st.events, st.local.commitments, st.local.places, covered]
+  const sessions = st.local.workSessions
+  // Laufende Arbeit: Die Prognose hängt von der Uhr ab, also je Minute neu
+  const nowMs = Date.now()
+  const minute = sessions.some((x) => x.endAt === undefined) ? Math.floor(nowMs / 60_000) : 0
+  const key = [st.settings, override, st.events, st.local.commitments, st.local.places, covered, sessions, minute]
   const hit = planCache.get(date)
   if (hit && hit.key.every((k, i) => k === key[i])) return hit.plan
-  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events), commitments: st.local.commitments.filter((c) => c.date === date), places: st.local.places, covered: covered ? covered.split(',') : undefined })
+  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events), commitments: st.local.commitments.filter((c) => c.date === date), places: st.local.places, covered: covered ? covered.split(',') : undefined, sessions, nowMs })
   planCache.set(date, { key, plan })
   return plan
 }
@@ -351,11 +369,45 @@ export const useApp = create<AppState>()((set, get) => ({
       delete restored.changes
       return restored
     })
-    await get().saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.date === date && !c.arrivedAt ? { ...c, status: 'cancelled' as const } : c)) }))
+    await get().saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.date === date && !c.arrivedAt && !l.workSessions.some((x) => x.commitmentId === c.id) ? { ...c, status: 'cancelled' as const } : c)) }))
   },
 
   async saveCommitment(c) {
     await get().saveLocal((l) => ({ ...l, commitments: [...l.commitments.filter((x) => x.id !== c.id), c] }))
+  },
+
+  async workStart(i = {}) {
+    const at = i.at ?? Date.now()
+    await get().saveLocal((l) => ({ ...l, workSessions: startSession(l.workSessions, { id: randomId(), date: today(), at, kind: i.kind, label: i.label, commitmentId: i.commitmentId }) }))
+  },
+
+  async workStop(at = Date.now()) {
+    await get().saveLocal((l) => {
+      const open = l.workSessions.find((x) => x.endAt === undefined)
+      // Ein Einsatz ohne Weg ist mit dem Beenden abgeschlossen. Vor Ort folgt noch „Bin wieder da“.
+      const commitments = open?.commitmentId ? l.commitments.map((c) => (c.id === open.commitmentId && c.routeMode === 'none' ? { ...c, backAt: at } : c)) : l.commitments
+      return { ...l, commitments, workSessions: stopSession(l.workSessions, at) }
+    })
+  },
+
+  async workBreakStart(at = Date.now()) {
+    await get().saveLocal((l) => ({ ...l, workSessions: startBreak(l.workSessions, randomId(), at) }))
+  },
+
+  async workBreakEnd(at = Date.now()) {
+    await get().saveLocal((l) => ({ ...l, workSessions: endBreak(l.workSessions, at) }))
+  },
+
+  async editWork(fn) {
+    set({ workUndo: get().local.workSessions })
+    await get().saveLocal((l) => ({ ...l, workSessions: fn(l.workSessions) }))
+  },
+
+  async undoWork() {
+    const before = get().workUndo
+    if (!before) return
+    set({ workUndo: undefined })
+    await get().saveLocal((l) => ({ ...l, workSessions: before }))
   },
 
   setAlarmStatus(a) {

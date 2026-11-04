@@ -155,6 +155,8 @@ export function defaultSettings(today: string): Settings {
       medicationEnabled: false,
       medicationReminderAt: null,
     },
+    // 09:00 stammt aus deinem Auftrag und ist änderbar. Freitag, Wochenstunden und Vergütung werden nicht geraten.
+    flex: { latestStart: 9 * 60, tracking: true, legalHints: true, lateMessage: 'Ich starte heute etwas später und bin ab [Uhrzeit] da.' },
     travel: { arrivalBufferMin: 10, prepMin: 15, homeOfficeStartupMin: 10, activationMin: 5 },
     routineLinks: [],
     askReason: true,
@@ -193,7 +195,7 @@ export function resetToSuggested(s: Settings): Settings {
 }
 
 export function emptyLocal(): LocalData {
-  return { commitments: [], places: [], work: [], handover: {}, meds: {} }
+  return { commitments: [], places: [], work: [], workSessions: [], handover: {}, meds: {} }
 }
 
 /**
@@ -214,6 +216,7 @@ export function migrateSettings(s: Settings, today: string): Settings {
     appearance: { ...d.appearance, ...s.appearance },
     focus: { ...d.focus, ...s.focus },
     travel: { ...d.travel, ...s.travel },
+    flex: { ...d.flex, ...s.flex },
     weather: { ...d.weather, ...s.weather, rules: { ...d.weather.rules, ...s.weather?.rules } },
     support: {
       ...d.support,

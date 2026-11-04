@@ -26,8 +26,8 @@ export interface ReminderSpec {
 
 /** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
 export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
-  if (key === 'leave' || key === 'pcstop' || key === 'bed' || key.startsWith('go:')) return { slot: 1, rank: 4 }
-  if (key === 'leave-10' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
+  if (key === 'leave' || key === 'latest-leave' || key === 'pcstop' || key === 'bed' || key.startsWith('go:')) return { slot: 1, rank: 4 }
+  if (key === 'leave-10' || key === 'latest-start' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
   if (key === 'morning' || key === 'evening' || key === 'meds' || key.startsWith('prep:')) return { slot: 0, rank: 2 }
   return { slot: 2, rank: 1 }
 }
@@ -79,9 +79,18 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
     const first = morning.steps[0]!
     out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: `Erster Schritt: ${first.useMinimal && first.minimal ? first.minimal.title : first.title}`, escalate: false })
   }
-  if (plan.leave !== undefined && !log?.leftAt) {
+  const wi = plan.workInfo
+  if (plan.leave !== undefined && !log?.leftAt && !wi?.started) {
     out.push({ key: 'leave-10', at: plan.leave - 10, channel: 'uebergang', title: `Noch 10 Minuten bis Losgehen`, body: `Um ${t(plan.leave)} geht's los. Schuhe, Schlüssel, Handy.`, escalate: false })
     out.push({ key: 'leave', at: plan.leave, channel: 'uebergang', title: `${t(plan.leave)} – Losgehen!`, body: 'Jetzt los, dann bist du entspannt pünktlich.', escalate: true, hard: true })
+  }
+  // Die eigene Grenze meldet sich je einmal, ohne Wiederholung und ohne Vorwurf
+  if (wi && !wi.started && !wi.fixedMorning && wi.latestStart !== undefined && wi.plannedStart <= wi.latestStart) {
+    if (wi.latestLeave !== undefined) {
+      if (!log?.leftAt && wi.latestLeave > (plan.leave ?? -1)) out.push({ key: 'latest-leave', at: wi.latestLeave, channel: 'uebergang', title: `${t(wi.latestLeave)} – Spätestens jetzt los`, body: `Dann schaffst du es bis ${t(wi.latestStart)}.`, escalate: false, hard: true })
+    } else {
+      out.push({ key: 'latest-start', at: wi.latestStart - 10, channel: 'sanft', title: `Um ${t(wi.latestStart)} ist deine Grenze`, body: 'Noch 10 Minuten bis dahin.', escalate: false, hard: true })
+    }
   }
   const gymbag = evening?.steps?.some((x) => x.tag === 'gymbag')
   if (!sick && gymbag && evening) {

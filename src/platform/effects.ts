@@ -1,6 +1,6 @@
 import { App } from '@capacitor/app'
-import { nowView } from '../core/now'
-import { addDays, fmtTime, minutesOnPlanDay, zonedToUtc } from '../core/time'
+import { nowView, widgetEntry } from '../core/now'
+import { addDays, minutesOnPlanDay, zonedToUtc } from '../core/time'
 import { onPlanChange, planFor, today, useApp } from '../state/store'
 import { syncAlarm } from './alarm'
 import { syncWorkout } from './health'
@@ -24,13 +24,13 @@ export function widgetEntries() {
     for (const m of [...points].sort((a, b) => a - b)) {
       const at = zonedToUtc(d, m)
       const v = nowView(plan, st.days[d], m)
-      entries.push({ at, action: v.action.title, sub: v.action.sub ?? '', hardLabel: v.hard?.label ?? '', hardTime: v.hard ? fmtTime(v.hard.at) : '' })
+      entries.push(widgetEntry(at, v))
     }
   }
   // Aktuellen Zustand als ersten Eintrag sichern
   const d = today()
   const cur = nowView(planFor(d), st.days[d], minutesOnPlanDay(d, now))
-  entries.push({ at: now, action: cur.action.title, sub: cur.action.sub ?? '', hardLabel: cur.hard?.label ?? '', hardTime: cur.hard ? fmtTime(cur.hard.at) : '' })
+  entries.push(widgetEntry(now, cur))
   return entries.sort((a, b) => a.at - b.at).filter((e) => e.at > now - 36 * 3600_000)
 }
 
