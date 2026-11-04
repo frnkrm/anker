@@ -188,6 +188,8 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 ## Datenschutz & Backup
 
 - Daten liegen lokal: SQLite auf Android, IndexedDB im Browser.
+- Termine, Orte, Arbeitsaufgaben und Einnahmeprotokoll werden nie synchronisiert.
+- **Externe Dienste:** Wetter (Open-Meteo, standardmäßig aus, überträgt nur den gewählten Ort) und der Maps-Link (Adresse erst beim Antippen). Beide kostenlos und ohne Key. Details: [Flexible Planung](docs/FLEXIBLE_PLANUNG.md).
 - **Mehr → Sicherung:** JSON-Export/-Import. Beim Import gewinnt pro Eintrag der neuere Stand.
 - Sync (optional) nutzt last-write-wins pro Datensatz (`updated_at`).
 - Keine Werbung, kein Tracking, keine Analytics. Werbe-IDs aus Abhängigkeiten werden im Android-Manifest entfernt, das Facebook-SDK ist ausgeschlossen.
@@ -196,6 +198,7 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 - [Anleitung](docs/ANLEITUNG.md): Bedienung, Funktionen, bekannte Grenzen
 - [Struktur des Repositorys](docs/STRUKTUR.md): wo liegt was, wo ändere ich was
+- [Flexible Planung](docs/FLEXIBLE_PLANUNG.md): Zustände, Wege, Schlaf, externe Dienste
 - [Geräteprüfung](docs/GERAETETEST.md): was auf dem Handy von Hand zu prüfen ist
 - [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [ADHS-Designprinzipien](docs/ADHS_DESIGNPRINZIPIEN.md)
 - [Patch Notes](CHANGELOG.md): was sich in welcher Version geändert hat

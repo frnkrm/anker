@@ -33,6 +33,30 @@ Unten ist die Navigation: **Jetzt · Tag · 💭 · Spiel · Mehr**
 
 **Was als Nächstes kommt, entscheidet eine feste Reihenfolge:** feste Zeiten und Termine, Arbeit mit naher Frist, wo du unterbrochen wurdest, heute Eingeplantes, Routine, dann Pause oder Freizeit. Auf dem Arbeitsweg unterbricht nichts.
 
+### Heute anders
+
+Ein Plan ist ein Angebot. Der Knopf **Heute anders** steht immer auf der Startseite, auch mitten in einer Routine. Für einen späteren Tag nimmst du unter **Tag** den Knopf **Morgen anders**.
+
+| Weg | Was passiert |
+|---|---|
+| **Ich habe heute etwas anderes vor** | Text, Uhrzeit, optional Ende, Ort und Fahrzeit. Du siehst zuerst eine Vorschau. Anker plant Fertigmachen und Losgehen rückwärts, die Abendroutine kommt danach oder wartet auf dich. |
+| **Diese Routine später** | In einer Stunde, zu einer Uhrzeit oder „Wenn ich zurück bin“. |
+| **Heute nicht nötig** | Ein Schritt oder die ganze Routine. Das gilt nicht als erledigt und nicht als verfehlt, und dein Standard bleibt. |
+| **Länger wach bleiben** | +30 Minuten, +1 Stunde, bis zu einer Uhrzeit oder „Weiß ich noch nicht“. Anker nennt sachlich die Schlafzeit, Erinnerungen bleiben still, der Wecker bleibt gestellt. |
+| **Plan ab jetzt neu machen** | Rest des Tages in kleinen Versionen. |
+| **Für morgen schon erledigt** | Etwa abends geduscht: Der Morgenschritt entfällt, gilt dort aber nicht als erledigt. Als feste Regel unter *Alltagshilfen*. |
+
+**Zurück zum ursprünglichen Plan** steht unter *Heute anders*, sobald du etwas geändert hast. Wirklich Erledigtes bleibt erledigt.
+
+Ein Tag, den du bewusst geändert hast, zählt im Spiel nie als verfehlt. XP gibt es nur für das, was du wirklich gemacht hast, abgezogen wird nichts.
+
+**Beispiele:**
+- **Film bei einer Freundin um 17 Uhr:** Heute anders → etwas anderes vor. Kein Heimweg, stattdessen Fertigmachen und Losgehen. Danach tippst du **Bin wieder da**, und Anker bietet höchstens die kurze Abendroutine an.
+- **Kunde morgen um 9:** Tag → Morgen → Morgen anders → Termin, Art „Kunde“, Ort und deine Fahrzeit, „Statt ins Büro“. Anker rechnet die Abfahrt aus und schlägt eine Weckzeit vor. Der Wecker ändert sich erst, wenn du **Einmalig um … wecken** antippst.
+- **Homeoffice:** Oben rechts „Arbeitstag ▾“ → Homeoffice. Dort kannst du einen Text kopieren, falls du jemandem Bescheid geben musst. Anker sendet nichts und weiß nicht, ob du Homeoffice machen darfst.
+
+**Unterwegs:** Die Startseite zeigt der Reihe nach Fertigmachen, **Bin los**, **Ich bin angekommen**, **Bin wieder da**. **Route öffnen** startet Google Maps. Die Fahrzeit bleibt deine Schätzung, Maps meldet Anker nichts zurück.
+
 ### Unterstützung wählen
 
 Oben rechts, gilt für heute, jederzeit änderbar. Es ist deine Wahl, Anker leitet sie nie aus Uhrzeit oder Medikamenten ab.
@@ -213,6 +237,9 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 - **Fokus-Puls** läuft nur, solange der Fokus-Modus offen ist.
 - **Sync:** Arbeitsaufgaben und Einnahmeprotokoll bleiben auf dem Gerät. Tagesdaten wie Routinen, Gedanken und der gewählte Modus werden mitsynchronisiert, wenn du Sync eingerichtet hast.
 - **Sprache:** Gedanken lassen sich nur tippen, Spracheingabe gibt es nicht.
+- **Keine Live-Verkehrsdaten und keine Ankunftserkennung:** Fahrzeiten sind deine Schätzungen, „Angekommen“ tippst du selbst.
+- **Termine und Orte** bleiben auf dem Gerät und erscheinen deshalb nicht auf anderen Geräten. Orte lassen sich noch nicht als feste Liste speichern, du gibst sie pro Termin ein.
+- **Wetter** ist aus, bis du es unter *Einstellungen → Alltagshilfen* mit einem Ort einschaltest. Es kommt von Open-Meteo, übertragen wird nur dieser Ort. Eine Vorhersage kann danebenliegen.
 - **Hartnäckig** bedeutet 3 Erinnerungen, nicht Dauerklingeln bis zur Bestätigung.
 - **Google-Anmeldung:** Sie gilt auf Handy und im Browser etwa eine Stunde. Danach bleiben die zuletzt geladenen Termine stehen, bis du dich unter *Kalender & Sync* neu verbindest.
 - **Fitnessstudio morgens** passt bei 8:00 Arbeitsbeginn rechnerisch nicht. Anker schlägt dann Training zu Hause vor.

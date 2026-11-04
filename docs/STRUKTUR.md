@@ -56,6 +56,9 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `now.ts` | Was der Tagesplan gerade vorsieht |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
 | `alarm.ts` | Konfiguration für den nativen Wecker |
+| `planner/adaptive.ts` | Wege und Termine, Konflikte, Maps-Link |
+| `sleep.ts` | Späteste Weckzeit, Schlafhinweis, Weckvorschlag |
+| `weather.ts` | Wetterhinweis für die Zeit draußen |
 | `print.ts` | Was auf welchem Druckblatt steht |
 | `planner/plan.ts` | `buildDayPlan()`: die Zeitleiste eines Tages |
 | `planner/fit.ts` | Routinen ins Zeitfenster einpassen, Minimal-Versionen wählen |
@@ -91,12 +94,13 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `notifications.ts` | Übergibt Erinnerungen an den nativen Teil, trägt Knopf-Aktionen im Store nach |
 | `alarm.ts` | Wecker-Konfiguration an Kotlin, Fehler landen sichtbar im Store (nicht über `safe()`) |
 | `native.ts` | Brücke zum Kotlin-Plugin |
+| `weather.ts` | Open-Meteo, nur wenn eingeschaltet |
 | `qr.ts`, `health.ts`, `files.ts` | QR-Scan, Health Connect, Dateien speichern oder teilen |
 | `supabase.ts`, `google.ts` | Sync und Login, PC-Stopp-Zeiten, Kalender |
 
 ## `src/ui/` – die Oberfläche
 
-**`components/`**: `ui.tsx` (Button, Card, Sheet …), `Shell.tsx` (Navigation, Gedanken-Knopf, Feier-Bildschirme), `Timeline.tsx`, `Stuck.tsx`, `Sortable.tsx`, `QrCode.tsx`, `SportToggle.tsx`.
+**`components/`**: `ui.tsx` (Button, Card, Sheet …), `Shell.tsx` (Navigation, Gedanken-Knopf, Feier-Bildschirme), `Timeline.tsx`, `Stuck.tsx`, `TodayDifferent.tsx` („Heute anders“), `DayCommitments.tsx`, `DayTasks.tsx`, `WeatherCard.tsx`, `Sortable.tsx`, `QrCode.tsx`, `SportToggle.tsx`.
 
 **`pages/`** (die Routen stehen in `src/App.tsx`):
 
@@ -158,6 +162,7 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 | Eine neue Seite ergänzen | Datei in `src/ui/pages/`, Route in `src/App.tsx`, Link in `More.tsx` |
 | Wecker-Regeln ändern | `android/…/AlarmModel.kt` samt Test, Anzeige in `src/ui/pages/Alarm.tsx` |
 | Was als Nächstes dran ist | `src/core/support.ts` |
+| Termine und Wege | `src/core/planner/adaptive.ts`, Regeln in [FLEXIBLE_PLANUNG.md](FLEXIBLE_PLANUNG.md) |
 | Sichtbare Slots ändern | `slotFor` in `src/core/reminders/build.ts`, Regeln in `android/…/ReminderModel.kt` |
 
 ## Tests und Befehle

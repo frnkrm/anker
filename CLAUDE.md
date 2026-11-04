@@ -73,6 +73,14 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Arbeit und Einnahmeprotokoll liegen in `LocalData` (`meta/local`), ausgenommen vom Sync. Texte auf dem Sperrbildschirm allgemein halten.
 - Status ehrlich führen: „am Gerät verifiziert“ nur nach echtem Handy-Test (`docs/GERAETETEST.md`).
 
+## Flexible Planung (Regeln, Details in docs/FLEXIBLE_PLANUNG.md)
+
+- Nichts als erledigt ausgeben, was nicht gemacht wurde: `routineCompleted` für echte Erledigung, `not-needed` und `skipped` bringen keine XP.
+- `override.adjusted` macht einen Tag höchstens neutral, nie verfehlt.
+- Harte Termine nie selbst verschieben, Fahrzeiten und Rückkehr nie erfinden, Weckzeit nur nach Bestätigung und nur für einen Tag.
+- Termine und Orte nur in `LocalData`. Erinnerungstexte nennen weder Anlass noch Ort.
+- Änderungen über „Heute anders“ laufen durch `adjustDay`, damit sie rückgängig zu machen sind.
+
 ## Fallstricke
 
 - Paketname `de.frnkrm.anker` steht in `app.config.ts`, `android/app/build.gradle`, Kotlin-Paket, Supabase-Redirect.

@@ -1,5 +1,29 @@
 # Patch Notes
 
+## 1.2.0-rc.1 (2026-11-04), Vorabversion
+
+**Noch nicht auf einem echten Handy geprüft,** auch die Prüfung von 1.1.0-rc.1 steht noch aus.
+
+### Neu
+- **Heute anders:** etwas anderes vor, Routine später, heute nicht nötig, länger wach, Plan ab jetzt neu. Mit Änderungsliste und „Zurück zum ursprünglichen Plan“.
+- **Termine und Wege:** Freunde, Kunden und eigene Termine mit Uhrzeit, optional Ort, Fahrzeit und Ende. Der Weg startet am letzten bekannten Ort, ohne Umweg über die Wohnung. Die Rückkehr wird nicht erfunden.
+- **Unterwegs:** Fertigmachen, Bin los, Ich bin angekommen, Bin wieder da, Route in Google Maps.
+- **Morgen rückwärts geplant:** Vorschlag für eine einmalige Weckzeit, nur nach Bestätigung. Der Standard bleibt.
+- **Schlaf:** sachlicher Hinweis zur erwarteten Schlafzeit, keine Bewertung.
+- **Abends schon erledigt:** Morgenschritt entfällt, gilt dort aber nicht als erledigt.
+- **Wetter für morgen** (aus, bis du es einschaltest), **Homeoffice-Text zum Kopieren**, eigene Puffer für Wege.
+
+### Behoben
+- **Überspringen galt als „Abendroutine erledigt“.** Das Kernziel ließ sich so ohne echte Handlung erreichen. Jetzt zählt nur, was du wirklich gemacht hast.
+- **Haken in der Tageslinie** erscheinen nur noch bei wirklich Gemachtem.
+
+### Geändert
+- **Ein bewusst geänderter Tag zählt nie als verfehlt** und kostet im Kapitel nichts. Alte Tage bleiben, wie sie sind.
+
+### Noch offen
+- Live-Verkehrsdaten und Ankunftserkennung per Standort sind nicht umgesetzt.
+- Orte lassen sich noch nicht als feste Liste speichern. Zielkompass, „Nicht vergessen“-Liste und eine selbst gesetzte einzelne Abend-Erinnerung fehlen noch.
+
 ## 1.1.0-rc.1 (2026-11-04), Vorabversion
 
 **Noch nicht auf einem echten Handy geprüft.** Logik per Unit-Tests geprüft, die APK ist gebaut. Lass den Android-Wecker zusätzlich gestellt, bis du [die Geräteprüfung](docs/GERAETETEST.md) durchlaufen hast.

@@ -109,6 +109,46 @@ Branch: `entwicklung/anker-2` (nicht gepusht).
 | F4 Hilfe-Hinweise, vertraute Person | implementiert |
 | Doku | aktualisiert |
 
+## v4: Flexibler Alltag
+
+Vorrang hatte P0. Dessen Geräteprüfung steht noch aus, daher ist auch hier nichts am Gerät verifiziert. Semantik: [FLEXIBLE_PLANUNG.md](FLEXIBLE_PLANUNG.md).
+
+### Delta gegen den Stand von v3
+
+| Anforderung | Einordnung | Umsetzung |
+|---|---|---|
+| Eine nächste Aktion, Modi, Wiedereinstieg | schon durch v3 vorhanden | `nextAction()` erweitert, kein zweiter Planer |
+| `DayOverride`, Homeoffice, Tagesarten | für v4 erweitern | gleiche Struktur, neue optionale Felder |
+| Neutrale Zustände | für v4 erweitern | `StepResult` um `not-needed`, statt paralleler `Resolution` |
+| Falsches „Abendroutine erledigt“ beim Überspringen | Konflikt, behoben | `routineCompleted` |
+| Termine, Orte, Wege | neu nötig | `Commitment`, `Place`, `Leg` in `LocalData`, Kalender-Events bleiben getrennt |
+| Einmalige Weckzeit | für v4 erweitern | `wakeOverrides` im bestehenden Wecker-Spiegel |
+| Live-Verkehr, Geofencing | technisch begrenzt, optional | nicht umgesetzt, siehe unten |
+
+### Stand
+
+| Schritt | Status |
+|---|---|
+| A1 Heute anders, Undo, Änderungsliste | automatisch getestet (Vitest, E2E) |
+| A2 Grund nie Pflicht, abschaltbar, Text erst nach Vorschau | implementiert, Vorschau per E2E getestet |
+| A3 Neutrale Zustände, faires Spiel | automatisch getestet |
+| A4 Soziale Termine, offene Rückkehr, stille Freizeit | automatisch getestet |
+| A5 Tageszustände, Reihenfolge, Zurück zum Plan | automatisch getestet |
+| B1 Wege ohne Umweg, B2 Kundentermin, „Nur morgen“ | automatisch getestet |
+| B2 Gespeicherte Orte verwalten, Packlisten-Vorlagen | teilweise: Datenmodell und Planer fertig, **noch keine Eingabemaske** |
+| B3 Stufe 1: Schätzung und Maps-Link | automatisch getestet |
+| B3 Stufe 2: Live-Verkehr | **offen, braucht deine Entscheidung** (Google Routes ist kostenpflichtig, Key darf nicht ins APK) |
+| C1–C3 Rückwärtsplanung, Schlafhinweis, einmaliger Wecker | automatisch getestet, Wecker am Gerät **offen** |
+| C4 Länger wach, Freizeit ohne Pings | automatisch getestet |
+| C4 Eine einzelne selbst gesetzte Erinnerung am Abend | offen |
+| C5 Dusch-Regel und „für morgen schon erledigt“ | automatisch getestet |
+| D1 Wetter, D2 Packliste im Termin | Logik getestet, Abfrageformat einmal live geprüft, Datenanzeige nicht E2E-getestet |
+| E1 Bin los, Angekommen, Bin wieder da | implementiert |
+| E2 Geofencing | **offen**, bewusst nicht ohne Gerätetest und Berechtigungsentscheidung |
+| F2 Rückkehr-Abfrage, F3 Homeoffice-Vorlage, F4 eigene Puffer | implementiert |
+| F1 Zielkompass aus eigenen Zielen, F3 einmalige Erinnerung, F6 „Nicht vergessen“ | offen |
+| Durchgängig nur Gerät | **offen** |
+
 ## Nächster Schritt
 
 APK aufs Handy, Abschnitt „Wecker“ aus [GERAETETEST.md](GERAETETEST.md) durchgehen. Fehler dort haben Vorrang vor allem Weiteren.

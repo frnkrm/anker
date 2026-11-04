@@ -30,6 +30,17 @@ Gerät: ______ · Android/One UI: ______ · Datum: ______
 | 19 | Scanner nicht verfügbar, QR fehlt | Rechenaufgaben und Notfall-Stopp beenden den Wecker | |
 | 20 | Während des Klingelns App beenden, neu öffnen | Klingelseite erscheint wieder, kein falsches „wach“ | |
 
+## Einmalige Weckzeit und Termine
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 35 | Morgen Homeoffice wählen, „Einmalig um … wecken“ bestätigen | Diagnose zeigt diese Zeit, klingelt dazu, übermorgen wieder Standard | |
+| 36 | Einmalige Zeit zurücknehmen | Diagnose zeigt wieder den Standard | |
+| 37 | Während des Klingelns einen Termin eintragen | Klingeln läuft unverändert weiter, Folgetag stimmt | |
+| 38 | Termin mit Ort und Fahrzeit, App schließen | Meldungen „Bald fertig machen“ und „Losgehen“ zur richtigen Zeit, ohne Anlass oder Ort im Text | |
+| 39 | „Route öffnen“ | Google Maps öffnet mit dem Ziel | |
+| 40 | Länger wach „Weiß ich noch nicht“ | Keine PC-Stopp- oder Bett-Meldung, Wecker morgen bleibt | |
+
 ## Erinnerungen
 
 | # | Vorgehen | Erwartet | Ergebnis |
