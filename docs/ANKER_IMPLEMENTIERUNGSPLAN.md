@@ -2,7 +2,7 @@
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
 
-**Kein Punkt ist „am Gerät verifiziert“:** In dieser Arbeitsphase war kein Android-Gerät verbunden (`adb devices` leer).
+**Am Gerät verifiziert ist bisher nur eins:** Der Testalarm lässt den nächsten Hauptwecker unverändert (Punkt 3, Version 1.1.0-rc.1, vom Nutzer bestätigt). Alles andere ist dort offen.
 Grüne Tests und ein Build zeigen nur, dass die reine Logik stimmt und der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
 
 Branch: `entwicklung/anker-2` (nicht gepusht).

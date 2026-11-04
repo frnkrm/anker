@@ -1,9 +1,9 @@
 # Geräteprüfung
 
-Was nur auf einem echten Handy geprüft werden kann. Bisher ist **nichts** davon durchgeführt.
+Was nur auf einem echten Handy geprüft werden kann. Bisher ist nur Punkt 3 bestätigt, alle anderen Punkte sind offen.
 Trage Gerät, Android-Version, Datum und Ergebnis ein. Erst dann gilt ein Punkt als „am Gerät verifiziert“.
 
-Gerät: ______ · Android/One UI: ______ · Datum: ______
+Gerät: ______ · Android/One UI: ______ · Datum: 04.11.2026 · Version beim Test: 1.1.0-rc.1
 
 ## Wecker
 
@@ -11,7 +11,7 @@ Gerät: ______ · Android/One UI: ______ · Datum: ______
 |---|---|---|---|
 | 1 | Entsperrt, **Wecker testen** | Ton, Vibration, Klingelbildschirm, Frage „gut hörbar?“ | |
 | 2 | Test, sofort sperren | Ton, Vibration, Vollbild oder Meldung | |
-| 3 | Nach Test unter *So steht dein Wecker* nachsehen | Nächster Hauptwecker unverändert | |
+| 3 | Nach Test unter *So steht dein Wecker* nachsehen | Nächster Hauptwecker unverändert | Bestätigt vom Nutzer (1.1.0-rc.1), Zeit blieb gleich |
 | 4 | Nächsten Wecker auf in 3 Minuten stellen, einmal schlummern | Nach 5 Minuten wieder, kein zweites Schlummern, morgen geplant | |
 | 5 | Nicht reagieren, 30 Minuten warten, App nicht öffnen | Wird still, Diagnose zeigt morgen, klingelt morgen | |
 | 6 | Vorwecker an, ignorieren | Hauptwecker klingelt trotzdem, ersetzt den Vorwecker | |
