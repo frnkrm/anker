@@ -1,5 +1,22 @@
 # Patch Notes
 
+## Unveröffentlicht: Gleitzeit und Kundenarbeit
+
+Versionsnummer unverändert, **nicht auf einem echten Handy geprüft**.
+
+### Neu
+- **Gleitzeit:** spätester Beginn (Vorgabe 09:00, änderbar), Wunsch-Beginn, Netto-Soll und übliche Pause je Wochentag, auch ein eigener Freitag. Anker rät keine Werte.
+- **Arbeit starten, Pause, Feierabend:** freiwillig, höchstens zwei Tipps. Der Feierabend rückt mit der echten Pause in beide Richtungen.
+- **Nachtragen und korrigieren** ohne Timer, mit Rückgängig. Wochenblick nur auf Wunsch und ohne Wertung.
+- **Einsätze:** Wartung planen, Kundenproblem jetzt, Vor-Ort-Termin, Rufbereitschaft. Der freie Tag bleibt frei.
+- **Heute anders → Arbeit heute anders:** später anfangen, Pause, früher Schluss, länger, Ziel für heute. Nur dieser Tag.
+- **Hinweise** zu Pause, Ruhezeit und Sonntag, sachlich und abschaltbar. Nachricht zum Kopieren, Anker sendet nichts.
+
+### Behoben
+- **Homeoffice meldete „Losgehen“** und zählte „Pünktlich los“ als Ziel. Beides entfällt dort jetzt.
+- **Datenschutz:** Der Terminname stand in der Änderungsliste des Tages und damit im Sync, der Anlass stand im Widget und, beim Merken eines Gedankens, als Kontext im Sync. Alles drei ist nun allgemein gehalten. Bereits synchronisierte Einträge werden nicht rückwirkend geändert.
+- **Früher zurück** beendet nun auch den Termin im Plan, statt ihn bis zum geplanten Ende anzuzeigen.
+
 ## 1.2.0-rc.1 (2026-11-04), Vorabversion
 
 **Noch nicht auf einem echten Handy geprüft,** auch die Prüfung von 1.1.0-rc.1 steht noch aus.

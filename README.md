@@ -203,3 +203,7 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 - [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [ADHS-Designprinzipien](docs/ADHS_DESIGNPRINZIPIEN.md)
 - [Patch Notes](CHANGELOG.md): was sich in welcher Version geändert hat
 - [CLAUDE.md](CLAUDE.md): Architektur und Regeln für spätere Claude-Sessions
+
+## Gleitzeit
+
+Spätester Beginn, eigener Freitag, flexible Pausen und einzelne Kundeneinsätze am Wochenende, alles freiwillig und lokal: [docs/GLEITZEIT.md](docs/GLEITZEIT.md).

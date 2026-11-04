@@ -194,3 +194,7 @@ node scripts/gradle.mjs :app:testDebugUnitTest
 - **JUnit** deckt die reine Kotlin-Logik ab: Alarmarten, Folgetag, Schlummern, Zeitumstellung, Slots, Warteschlange.
 - **Playwright** prüft die wichtigsten Wege der Web-Version, auch die Druckansicht.
 - **Nicht automatisch getestet:** alles, was Android tatsächlich tut (PendingIntents, Klingeln, Vollbild, Benachrichtigungen, Druckdialog), SQLite auf Android, Supabase und Google. Der Android-Build zeigt nur, dass der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
+
+## Gleitzeit
+
+`src/core/worktime.ts` rechnet (Ist-Zeit, Prognose, Hinweise), `src/core/worktime.test.ts` enthält die Szenarien A bis L. Der Planer nutzt das über `PlanInput.sessions` und liefert `DayPlan.workInfo`. Oberfläche: `src/ui/components/WorkControls.tsx` (Startseite, „Heute anders“, Einsatz planen) und `src/ui/pages/WorkTime.tsx` (`/arbeitszeit`). Regeln: [GLEITZEIT.md](GLEITZEIT.md).

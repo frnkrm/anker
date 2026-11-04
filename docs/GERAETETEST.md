@@ -41,6 +41,17 @@ Gerät: ______ · Android/One UI: ______ · Datum: ______
 | 39 | „Route öffnen“ | Google Maps öffnet mit dem Ziel | |
 | 40 | Länger wach „Weiß ich noch nicht“ | Keine PC-Stopp- oder Bett-Meldung, Wecker morgen bleibt | |
 
+## Gleitzeit
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 41 | Homeoffice wählen, App bis zum Arbeitsbeginn offen und im Hintergrund | Keine Meldung „Losgehen“, ein Hinweis zehn Minuten vor deiner Grenze | |
+| 42 | Arbeit starten, App wischen und schließen, neu öffnen | Arbeit läuft weiter, Beginn unverändert | |
+| 43 | Pause starten, Handy sperren, 10 Minuten warten, entsperren | Pause läuft, Feierabend ist um 10 Minuten gewachsen | |
+| 44 | „Arbeit starten“ schnell doppelt tippen | Nur ein Eintrag unter Arbeitszeit | |
+| 45 | Einsatz für in 30 Minuten planen, App schließen | Eine Meldung vorab ohne Anlass und Ort, Widget zeigt nur „Termin“ | |
+| 46 | Arbeit laufen lassen, App-Update drüber installieren | Sitzung und Wecker bleiben | |
+
 ## Erinnerungen
 
 | # | Vorgehen | Erwartet | Ergebnis |

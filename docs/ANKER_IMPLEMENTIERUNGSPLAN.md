@@ -149,6 +149,37 @@ Vorrang hatte P0. Dessen Geräteprüfung steht noch aus, daher ist auch hier nic
 | F1 Zielkompass aus eigenen Zielen, F3 einmalige Erinnerung, F6 „Nicht vergessen“ | offen |
 | Durchgängig nur Gerät | **offen** |
 
+## v5: Gleitzeit und Kundenarbeit
+
+Eigenständiges Zusatzpaket. Regeln und Rechenwege: [GLEITZEIT.md](GLEITZEIT.md). Annahmen werden nicht geraten: Freitags-Soll, Wochenstunden, Vergütung und Betriebsregeln trägst du selbst ein oder sie bleiben offen.
+
+### Delta gegen den Stand von v4
+
+| Anforderung | Einordnung | Umsetzung |
+|---|---|---|
+| Wunsch-Beginn, Netto-Soll und Pause je Wochentag | schon vorhanden | `WorkDay.start`, `durationMin` (war schon netto), `pauseMin`. Keine zweite Tabelle |
+| Spätester Beginn | neu | `settings.flex.latestStart`, Vorgabe 09:00 aus deinem Auftrag |
+| Tagesabweichung | erweitern | `DayOverride` um `workStart`, `targetNetMin`, `pauseMin`, läuft über `adjustDay` |
+| Geplante Einsätze | erweitern | `Commitment` um `workKind`, kein zweites Terminmodell |
+| Ist-Zeiten | neu | `LocalData.workSessions`, lokal und ohne Sync, getrennt vom Plan |
+| Prognose Feierabend | neu | `src/core/worktime.ts`, vom Planer genutzt |
+| Hinweise zu Pause, Ruhezeit, Sonntag | neu | reine Informationen, abschaltbar, keine Rechtsauskunft |
+| Losgehen-Meldung im Homeoffice, Ziel „Pünktlich los“ im Homeoffice | Fehler aus 1.0, behoben | `plan.leave` bleibt im Homeoffice leer |
+| Heute anders, Termine, Wecker-Vorschlag, Nachrichtenentwurf | wiederverwendet | gleiche Abläufe, keine zweite Override-Engine |
+| Neue Berechtigungen, APIs, nativer Code | nicht nötig | keine |
+
+### Stand
+
+| Schritt | Status |
+|---|---|
+| Rechenkern, Szenarien A bis L | automatisch getestet (Vitest) |
+| Planer, nächste Aktion, Erinnerungen, Hinweise | automatisch getestet (Vitest) |
+| Start, Pause, Feierabend, Nachtragen, Sonntagseinsatz, Später anfangen | automatisch getestet (E2E), im Browser angesehen |
+| Einstellungen, Arbeitszeit-Seite | E2E und im Browser angesehen, nicht jeder Korrekturweg einzeln |
+| Abgleich mit deinem Arbeitgeber-Stempel, Feiertage, Bezahlregeln | bewusst nicht umgesetzt |
+| Packlisten und feste Orte für Einsätze | offen, gleiche Lücke wie in v4 |
+| Am Gerät | **offen**, Punkte 41 bis 46 in [GERAETETEST.md](GERAETETEST.md) |
+
 ## Nächster Schritt
 
 APK aufs Handy, Abschnitt „Wecker“ aus [GERAETETEST.md](GERAETETEST.md) durchgehen. Fehler dort haben Vorrang vor allem Weiteren.

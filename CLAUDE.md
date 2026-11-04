@@ -30,6 +30,7 @@ src/core/          Reine Logik, keine Seiteneffekte, vollständig getestet
   planner/         buildDayPlan(): Zeitleiste, Termine, Minimal-Versionen, „Ich mache länger“
   now.ts           nowView(): was der Tagesplan gerade vorsieht
   support.ts       nextAction(): genau eine Handlung inkl. Arbeit, Aufgaben, Wiedereinstieg; Modi, Puls
+  worktime.ts      Gleitzeit: Ist-Zeiten, Prognose Feierabend, Hinweise
   alarm.ts         Konfiguration für den nativen Wecker
   game/            Themen, XP/Level, Tagesziele je Stufe, Kapitel mit „Nie zweimal“ + Joker, Erfolge
   reminders/       buildReminders(): Erinnerungen mit Slot und Rang inkl. Eskalation/Ruhezeiten
@@ -80,6 +81,13 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Harte Termine nie selbst verschieben, Fahrzeiten und Rückkehr nie erfinden, Weckzeit nur nach Bestätigung und nur für einen Tag.
 - Termine und Orte nur in `LocalData`. Erinnerungstexte nennen weder Anlass noch Ort.
 - Änderungen über „Heute anders“ laufen durch `adjustDay`, damit sie rückgängig zu machen sind.
+
+## Gleitzeit (Regeln, Details in docs/GLEITZEIT.md)
+
+- Ist-Zeiten nur in `LocalData.workSessions`, geplante Einsätze als `Commitment.workKind`. Geplant wird nie zu gearbeitet, ohne dass der Nutzer startet oder nachträgt.
+- Soll, Freitag, Wochenstunden und Vergütung nie raten. `latestStart` ist eine Grenze, kein Ziel.
+- Keine Lohnaussagen, keine Rechtsauskunft, keine Aufforderung zum Nachholen. Hinweise bleiben abschaltbar (`flex.legalHints`).
+- Sitzungen beenden sich nie selbst und ändern weder Wecker noch Spielstand.
 
 ## Fallstricke
 

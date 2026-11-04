@@ -243,3 +243,21 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 - **Hartnäckig** bedeutet 3 Erinnerungen, nicht Dauerklingeln bis zur Bestätigung.
 - **Google-Anmeldung:** Sie gilt auf Handy und im Browser etwa eine Stunde. Danach bleiben die zuletzt geladenen Termine stehen, bis du dich unter *Kalender & Sync* neu verbindest.
 - **Fitnessstudio morgens** passt bei 8:00 Arbeitsbeginn rechnerisch nicht. Anker schlägt dann Training zu Hause vor.
+
+## Gleitzeit und Einsätze
+
+**Einstellen:** *Mehr → Einstellungen → Arbeit*. Dort stehen dein spätester Beginn und für jeden Wochentag Wunsch-Beginn, Soll netto und übliche Pause. Dein Freitag ist einfach der Eintrag „Freitag“.
+
+**Im Alltag** erscheint zur passenden Zeit auf der Startseite ein kleiner Bereich:
+
+- **Arbeit starten**, **Pause starten**, **Feierabend**. Alles freiwillig, ohne Erfassung rechnet Anker mit dem Plan.
+- **Längere Pause:** Beim Beenden rückt der Feierabend von selbst mit. Ohne Timer: *Heute anders → Arbeit heute anders → Pause heute*.
+- **Früher Schluss:** *Feierabend* tippen, oder *Heute anders → Arbeit heute anders → Heute früher Schluss*.
+- **Länger:** Weiterarbeiten genügt. Nach dem Feierabend: *Noch etwas arbeiten*.
+- **Später anfangen:** *Heute anders → Arbeit heute anders*. Liegt die Zeit nach deiner Grenze, sagt Anker das und bietet eine Nachricht zum Kopieren an.
+
+**Einsatz am Wochenende:** *Mehr → Arbeitszeit & Einsätze*. *Kundenproblem jetzt bearbeiten* startet sofort, *Einplanen* legt einen Einsatz für später an. Zur Zeit steht er auf der Startseite, mit *Einsatz starten* und *Einsatz beenden*. Der Tag bleibt ein freier Tag.
+
+**Nachtragen:** Unter *Arbeitszeit & Einsätze* trägst du Von, Bis und Pause von Hand ein oder korrigierst sie. Details: [GLEITZEIT.md](GLEITZEIT.md).
+
+Anker ist deine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.
