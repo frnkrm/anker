@@ -57,12 +57,22 @@ export function dayGoals(plan: DayPlan, log: DayLog | undefined, s: Settings): G
   }
   if (stage >= 3) {
     if (s.sport.days[weekday(date)] && plan.dayType !== 'vacation') {
-      goals.push({ key: 'gym', label: s.sport.kind === 'gym' ? 'Fitnessstudio' : 'Sport', met: !!log?.sport })
+      goals.push({ key: 'gym', label: s.sport.kind === 'gym' ? 'Fitnessstudio' : 'Sport', met: sportDone(plan, log, s) })
     }
     if (weekday(date) === s.prepDay) goals.push({ key: 'prepcook', label: 'Vorgekocht', met: !!log?.prepCooked })
     goals.push({ key: 'tidy', label: '10 Minuten aufräumen', met: !!log?.tidyDone || done(log, 'evening', (id) => isTidy(plan, id)) })
   }
   return goals
+}
+
+/** Ist das Training Teil der Morgenroutine? Dann zählt der Routine-Schritt als Sport (nicht beim Fitnessstudio). */
+export function sportInRoutine(s: Settings): boolean {
+  return s.sport.kind !== 'gym' && s.sport.time === 'morning'
+}
+
+/** Sport gilt als erledigt: von Hand, über Health Connect oder über den Trainings-Schritt der Morgenroutine. */
+export function sportDone(plan: DayPlan, log: DayLog | undefined, s: Settings): boolean {
+  return !!log?.sport || (sportInRoutine(s) && done(log, 'morning', (id) => isMovement(plan, id)))
 }
 
 function isMovement(plan: DayPlan, id: string) {

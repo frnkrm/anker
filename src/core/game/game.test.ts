@@ -107,6 +107,39 @@ describe('Tagesziele', () => {
   })
 })
 
+describe('Sport abhaken', () => {
+  const gymGoal = (st: Settings, log: DayLog | undefined) =>
+    dayGoals(buildDayPlan({ date: MON, settings: st }), log, st).find((g) => g.key === 'gym')!.met
+  const stage3 = (patch: Partial<Settings['sport']> = {}) => {
+    const st = s()
+    st.game.stage = 3
+    st.sport = { ...st.sport, ...patch }
+    return st
+  }
+  const log = (patch: Partial<DayLog>): DayLog => ({ date: MON, override: {}, steps: {}, ...patch })
+
+  it('offen, solange nichts abgehakt ist', () => {
+    expect(gymGoal(stage3(), log({}))).toBe(false)
+  })
+  it('von Hand und über Health Connect', () => {
+    expect(gymGoal(stage3({ kind: 'gym' }), log({ sport: 'manual' }))).toBe(true)
+    expect(gymGoal(stage3({ kind: 'gym' }), log({ sport: 'health' }))).toBe(true)
+  })
+  it('Training zu Hause am Morgen: Routine-Schritt zählt, auch als Minimal-Version', () => {
+    expect(gymGoal(stage3({ kind: 'home' }), log({ steps: { 'morning:move': 'done' } }))).toBe(true)
+    expect(gymGoal(stage3({ kind: 'run' }), log({ steps: { 'morning:move': 'minimal' } }))).toBe(true)
+  })
+  it('übersprungener Schritt zählt nicht', () => {
+    expect(gymGoal(stage3({ kind: 'home' }), log({ steps: { 'morning:move': 'skipped' } }))).toBe(false)
+  })
+  it('Fitnessstudio: Bewegung in der Routine ersetzt das Studio nicht', () => {
+    expect(gymGoal(stage3({ kind: 'gym' }), log({ steps: { 'morning:move': 'done' } }))).toBe(false)
+  })
+  it('Sport nach der Arbeit: Bewegung am Morgen zählt nicht', () => {
+    expect(gymGoal(stage3({ kind: 'home', time: 'afterWork' }), log({ steps: { 'morning:move': 'done' } }))).toBe(false)
+  })
+})
+
 describe('Kapitel: Regel „Nie zweimal“', () => {
   const start = '2026-11-02'
   const d = (i: number) => addDays(start, i)

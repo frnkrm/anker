@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
-import { theme } from '../../core/game'
+import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { nowView, type NowAction } from '../../core/now'
 import { fmtDuration, fmtTime, weekday, WEEKDAYS_LONG } from '../../core/time'
 import type { DayType, EveningPlan, PlannedStep } from '../../core/types'
 import { pushPcStop } from '../../platform/supabase'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
+import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TimeStepper } from '../components/ui'
@@ -89,6 +90,13 @@ export default function Now() {
         <Card className="mt-3">
           <Timeline plan={plan} log={log} m={m} compact />
         </Card>
+      )}
+
+      {/* Training in der Morgenroutine ist schon ein eigener Schritt, alles andere braucht hier den Knopf */}
+      {!sportInRoutine(st.settings) && !sportDone(plan, log, st.settings) && (
+        <div className="mt-4">
+          <SportToggle plan={plan} />
+        </div>
       )}
 
       <Extras date={date} />

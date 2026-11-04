@@ -14,9 +14,13 @@ object AnkerPrefs {
     fun alarmAt(ctx: Context): Long = prefs(ctx).getLong("alarmAt", 0L)
     fun alarmLabel(ctx: Context): String = prefs(ctx).getString("alarmLabel", "Aufstehen") ?: "Aufstehen"
     fun setAlarm(ctx: Context, at: Long, label: String) =
-        prefs(ctx).edit().putLong("alarmAt", at).putString("alarmLabel", label).putInt("snoozed", 0).apply()
+        prefs(ctx).edit().putLong("alarmAt", at).putString("alarmLabel", label).apply()
 
     fun clearAlarm(ctx: Context) = prefs(ctx).edit().putLong("alarmAt", 0L).apply()
+
+    fun snoozeAt(ctx: Context): Long = prefs(ctx).getLong("snoozeAt", 0L)
+    fun setSnooze(ctx: Context, at: Long) = prefs(ctx).edit().putLong("snoozeAt", at).apply()
+    fun clearSnooze(ctx: Context) = prefs(ctx).edit().putLong("snoozeAt", 0L).apply()
 
     fun isRinging(ctx: Context): Boolean = prefs(ctx).getBoolean("ringing", false)
     fun setRinging(ctx: Context, v: Boolean) = prefs(ctx).edit().putBoolean("ringing", v).apply()

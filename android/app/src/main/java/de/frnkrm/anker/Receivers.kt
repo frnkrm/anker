@@ -8,7 +8,13 @@ import androidx.core.content.ContextCompat
 /** Der Wecker-Zeitpunkt ist erreicht: Klingel-Dienst starten. */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
-        AnkerPrefs.clearAlarm(ctx)
+        if (intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZE, false)) {
+            AnkerPrefs.clearSnooze(ctx)
+        } else {
+            // Neuer Weckvorgang: Schlummern ist wieder einmal erlaubt
+            AnkerPrefs.clearAlarm(ctx)
+            AnkerPrefs.setSnoozed(ctx, 0)
+        }
         ContextCompat.startForegroundService(ctx, Intent(ctx, AlarmService::class.java))
     }
 }

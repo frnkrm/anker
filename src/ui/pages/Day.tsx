@@ -3,6 +3,7 @@ import { dayGoals } from '../../core/game'
 import { addDays, fmtTime, weekday, WEEKDAYS_LONG } from '../../core/time'
 import { usePlan, useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
+import { SportToggle } from '../components/SportToggle'
 import { Timeline } from '../components/Timeline'
 import { Card, Page, Segmented } from '../components/ui'
 
@@ -37,6 +38,7 @@ export default function Day() {
       <Card>
         <Timeline plan={plan} log={log} m={offset === 0 ? m : -1} />
       </Card>
+      {offset === 0 && <SportToggle plan={plan} />}
       {goals.length > 0 && (
         <Card>
           <h2 className="mb-2 font-semibold">Kernziele {offset === 0 ? 'heute' : ''}</h2>

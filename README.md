@@ -189,6 +189,8 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 - Sync (optional) nutzt last-write-wins pro Datensatz (`updated_at`).
 - Keine Werbung, kein Tracking, keine Analytics. Werbe-IDs aus Abhängigkeiten werden im Android-Manifest entfernt, das Facebook-SDK ist ausgeschlossen.
 
-## Projektstruktur
+## Dokumentation
 
-Siehe [CLAUDE.md](CLAUDE.md).
+- [Anleitung](docs/ANLEITUNG.md): Bedienung, Funktionen, bekannte Grenzen
+- [Struktur des Repositorys](docs/STRUKTUR.md): wo liegt was, wo ändere ich was
+- [CLAUDE.md](CLAUDE.md): Architektur und Regeln für spätere Claude-Sessions

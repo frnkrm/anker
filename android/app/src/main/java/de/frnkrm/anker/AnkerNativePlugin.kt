@@ -69,12 +69,10 @@ class AnkerNativePlugin : Plugin() {
     @PluginMethod
     fun stopAlarm(call: PluginCall) {
         AlarmService.stop(context)
+        AlarmScheduler.cancelSnooze(context)
         AnkerPrefs.setRinging(context, false)
         AnkerPrefs.setSnoozed(context, 0)
-        activity.runOnUiThread {
-            activity.setShowWhenLocked(false)
-            activity.setTurnScreenOn(false)
-        }
+        hideFromLockScreen()
         call.resolve()
     }
 
@@ -84,9 +82,16 @@ class AnkerNativePlugin : Plugin() {
         val minutes = call.getInt("minutes") ?: 5
         AlarmService.stop(context)
         AnkerPrefs.setSnoozed(context, 1)
-        val at = System.currentTimeMillis() + minutes * 60_000L
-        AlarmScheduler.setSystemAlarm(context, at)
+        AlarmScheduler.snooze(context, System.currentTimeMillis() + minutes * 60_000L)
+        hideFromLockScreen()
         ok(call, "ok" to true)
+    }
+
+    private fun hideFromLockScreen() {
+        activity.runOnUiThread {
+            activity.setShowWhenLocked(false)
+            activity.setTurnScreenOn(false)
+        }
     }
 
     @PluginMethod
