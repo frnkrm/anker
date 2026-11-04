@@ -281,9 +281,12 @@ function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomor
       <div className="flex items-center justify-between gap-2">
         <span>Ende</span>
         {end === undefined ? (
-          <Button size="sm" onClick={() => setEnd((time ?? 17 * 60) + 120)}>
-            Weiß ich noch nicht
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-muted">Noch offen</span>
+            <Button size="sm" onClick={() => setEnd((time ?? 17 * 60) + 120)}>
+              Eintragen
+            </Button>
+          </div>
         ) : (
           <div className="flex items-center gap-2">
             <TimeField label="Ende" value={end} onChange={setEnd} />
