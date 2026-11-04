@@ -193,4 +193,5 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 - [Anleitung](docs/ANLEITUNG.md): Bedienung, Funktionen, bekannte Grenzen
 - [Struktur des Repositorys](docs/STRUKTUR.md): wo liegt was, wo ändere ich was
+- [Patch Notes](CHANGELOG.md): was sich in welcher Version geändert hat
 - [CLAUDE.md](CLAUDE.md): Architektur und Regeln für spätere Claude-Sessions
