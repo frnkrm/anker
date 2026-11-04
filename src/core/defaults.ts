@@ -155,6 +155,11 @@ export function defaultSettings(today: string): Settings {
       medicationEnabled: false,
       medicationReminderAt: null,
     },
+    travel: { arrivalBufferMin: 10, prepMin: 15, homeOfficeStartupMin: 10, activationMin: 5 },
+    routineLinks: [],
+    askReason: true,
+    homeOfficeMessage: 'Bin heute im Homeoffice und ab [Uhrzeit] erreichbar.',
+    weather: { enabled: false, city: '', rules: { jacketBelowC: 12, rainAbovePct: 40 } },
     focus: { pulse: 'off', everyMin: 5, halfway: false, lastMinute: false },
     support: {
       gameVisible: true,
@@ -188,7 +193,7 @@ export function resetToSuggested(s: Settings): Settings {
 }
 
 export function emptyLocal(): LocalData {
-  return { work: [], handover: {}, meds: {} }
+  return { commitments: [], places: [], work: [], handover: {}, meds: {} }
 }
 
 /**
@@ -208,6 +213,8 @@ export function migrateSettings(s: Settings, today: string): Settings {
     alarm: { ...d.alarm, ...s.alarm },
     appearance: { ...d.appearance, ...s.appearance },
     focus: { ...d.focus, ...s.focus },
+    travel: { ...d.travel, ...s.travel },
+    weather: { ...d.weather, ...s.weather, rules: { ...d.weather.rules, ...s.weather?.rules } },
     support: {
       ...d.support,
       ...s.support,

@@ -26,9 +26,9 @@ export interface ReminderSpec {
 
 /** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
 export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
-  if (key === 'leave' || key === 'pcstop' || key === 'bed') return { slot: 1, rank: 4 }
+  if (key === 'leave' || key === 'pcstop' || key === 'bed' || key.startsWith('go:')) return { slot: 1, rank: 4 }
   if (key === 'leave-10' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
-  if (key === 'morning' || key === 'evening' || key === 'meds') return { slot: 0, rank: 2 }
+  if (key === 'morning' || key === 'evening' || key === 'meds' || key.startsWith('prep:')) return { slot: 0, rank: 2 }
   return { slot: 2, rank: 1 }
 }
 
@@ -103,15 +103,22 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       escalate: true,
     })
   }
-  if (!sick && !log?.pcOffAt) {
+  if (!sick && !log?.pcOffAt && !plan.openEnd) {
     out.push({ key: 'pcstop-15', at: plan.pcStop - 15, channel: 'sanft', title: 'In 15 Minuten PC-Stopp', body: `Um ${t(plan.pcStop)} ist Schluss. Runde in Ruhe beenden.`, escalate: false })
     out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Bildschirm aus, runterkommen. Gut gemacht heute.', escalate: true, hard: true })
   }
-  if (!log?.bedAt) {
+  if (!log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })
   }
   if (weekday(plan.date) === 6 && !sick) {
     out.push({ key: 'review', at: 19 * 60, channel: 'sanft', title: 'Wochenrückblick', body: '3 kurze Fragen, ohne Bewertung. 2 Minuten.', escalate: false })
+  }
+  // Wege zu Terminen. Texte allgemein, denn Ort und Anlass bleiben auf dem Gerät.
+  for (const l of plan.legs ?? []) {
+    const c = l.commitment
+    if (c.leftAt || c.arrivedAt || c.backAt) continue
+    if (l.prepStart !== undefined) out.push({ key: `prep:${c.id}`, at: l.prepStart, channel: 'sanft', title: 'Bald fertig machen', body: 'Dein Termin rückt näher.', escalate: false, hard: true })
+    if (l.leave !== undefined) out.push({ key: `go:${c.id}`, at: l.leave, channel: 'uebergang', title: `${t(l.leave)} – Losgehen`, body: `Dann bist du um ${t(c.start)} da.`, escalate: c.commitment === 'hard', hard: true })
   }
   if (s.alarm.medicationEnabled && s.alarm.medicationReminderAt !== null) {
     // Bewusst neutral: Sperrbildschirme sind öffentlich, und Anker ordnet nichts an
@@ -119,8 +126,11 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   }
   // Auf Kurs und überlastet: nur noch, was wirklich zählt
   const mode = log?.override.mode
-  if (mode === 'auf-kurs' || mode === 'ueberlastet') return out.filter((b) => b.hard || b.escalate)
-  return out
+  // In Freizeit und bei sozialen Terminen bleibt es still, außer dem, was du selbst fest eingeplant hast
+  const inQuiet = (b: Base) => !b.key.startsWith('go:') && !b.key.startsWith('prep:') && (plan.quiet ?? []).some(([a, e]) => b.at >= a && b.at < e)
+  const calm = out.filter((b) => !inQuiet(b))
+  if (mode === 'auf-kurs' || mode === 'ueberlastet') return calm.filter((b) => b.hard || b.escalate)
+  return calm
 }
 
 /** Alle Erinnerungs-Schlüssel, die für diese Tage noch gelten. Was fehlt, wird aus der Leiste geräumt. */

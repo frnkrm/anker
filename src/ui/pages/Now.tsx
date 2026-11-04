@@ -10,6 +10,7 @@ import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
+import { openRoute, TodayDifferent } from '../components/TodayDifferent'
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
 
@@ -27,6 +28,7 @@ export default function Now() {
   const [longer, setLonger] = useState(false)
   const [interrupted, setInterrupted] = useState(false)
   const [rescue, setRescue] = useState(false)
+  const [different, setDifferent] = useState(false)
   const [more, setMore] = useState(false)
   const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume }
   const v = nextAction(input)
@@ -67,9 +69,19 @@ export default function Now() {
         )}
       </section>
 
-      <button type="button" className="min-h-11 text-muted" aria-expanded={more} onClick={() => setMore(!more)}>
-        Mehr {more ? '▴' : '▾'}
-      </button>
+      {plan.conflicts?.map((x) => (
+        <Link key={x} to="/tag" className="mb-2 block rounded-2xl border border-warm px-4 py-3 text-warm">
+          {x} Ansehen
+        </Link>
+      ))}
+      <div className="flex gap-2">
+        <button type="button" className="min-h-11 flex-1 rounded-2xl border border-line" onClick={() => setDifferent(true)}>
+          Heute anders
+        </button>
+        <button type="button" className="min-h-11 flex-1 text-muted" aria-expanded={more} onClick={() => setMore(!more)}>
+          Mehr {more ? '▴' : '▾'}
+        </button>
+      </div>
 
       {more && (
         <div className="mt-2 space-y-3">
@@ -119,6 +131,7 @@ export default function Now() {
       )}
 
       <StuckSheet open={stuck} onClose={() => setStuck(false)} action={a} />
+      <TodayDifferent open={different} onClose={() => setDifferent(false)} date={date} m={m} action={a} />
       <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} date={date} />
       <InterruptSheet open={interrupted} onClose={() => setInterrupted(false)} action={a} />
       <Sheet open={rescue} onClose={() => setRescue(false)} title="Ab jetzt zählt nur das">
@@ -268,6 +281,58 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
           </div>
         </>
       )
+    case 'prep':
+    case 'go':
+      return (
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, leftAt: Date.now() })}>
+            Bin los
+          </Button>
+          <div className="flex gap-2">
+            {a.leg.commitment.address && (
+              <Button size="lg" className="flex-1" onClick={() => openRoute(a.leg.commitment.address!, a.leg.commitment.routeMode)}>
+                Route öffnen
+              </Button>
+            )}
+            {StuckButton}
+          </div>
+        </>
+      )
+    case 'underway':
+      return (
+        <Button variant="primary" size="xl" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, arrivedAt: Date.now() })}>
+          Ich bin angekommen
+        </Button>
+      )
+    case 'away':
+      return (
+        <Button size="lg" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, backAt: Date.now() })}>
+          Bin wieder da
+        </Button>
+      )
+    case 'return-check':
+      return (
+        <>
+          <Button
+            variant="primary"
+            size="xl"
+            className="w-full"
+            onClick={() => st.updateDay(date, (l) => ({ ...l, override: { ...l.override, backAt: Date.now() } }))}
+          >
+            Ja, bin zurück
+          </Button>
+          <Button variant="ghost" size="lg" className="w-full" onClick={() =>
+              st.adjustDay(date, 'Abendroutine: heute nicht nötig', (l) => ({
+                ...l,
+                override: { ...l.override, backAt: Date.now() },
+                steps: { ...l.steps, ...Object.fromEntries(st.settings.routines.evening.filter((x) => !l.steps[`evening:${x.id}`]).map((x) => [`evening:${x.id}`, 'not-needed' as const])) },
+              }))
+            }
+          >
+            Heute nicht mehr
+          </Button>
+        </>
+      )
     case 'leave':
       return (
         <>
@@ -394,6 +459,7 @@ function DaySheet({ open, onClose, date }: { open: boolean; onClose: () => void;
           />
           {type === 'sick' && <p className="text-sm text-muted">Krank-Modus: nur das Nötigste, kein Ziel, nichts geht verloren. Der Wecker pausiert an diesem Tag und klingelt danach wieder.</p>}
         </div>
+        {type === 'work' && (o.homeOffice ?? st.settings.work[weekday(date)]?.homeOffice) && <HomeOfficeInfo />}
         {type === 'work' && (
           <div className="flex items-center justify-between">
             <span>Homeoffice heute</span>
@@ -417,6 +483,27 @@ function DaySheet({ open, onClose, date }: { open: boolean; onClose: () => void;
         </Button>
       </div>
     </Sheet>
+  )
+}
+
+/** Nur eine Hilfe zum Kopieren: Anker sendet nichts und weiß nicht, ob du Homeoffice machen darfst. */
+function HomeOfficeInfo() {
+  const st = useApp()
+  const text = st.settings.homeOfficeMessage
+  return (
+    <div className="space-y-2 rounded-xl bg-surface-2 p-3">
+      <p className="text-sm text-muted">Musst du jemandem Bescheid geben? Das machst du selbst.</p>
+      <p>„{text}“</p>
+      <Button
+        size="sm"
+        onClick={async () => {
+          await navigator.clipboard?.writeText(text).catch(() => undefined)
+          st.showToast('Kopiert. Gesendet ist damit noch nichts.')
+        }}
+      >
+        Text kopieren
+      </Button>
+    </div>
   )
 }
 

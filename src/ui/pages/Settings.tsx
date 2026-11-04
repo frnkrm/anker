@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, resetToSuggested, sumMinutes } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtDuration, fmtTime, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
 import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineStep, Settings as S, SportKind, ThemeId } from '../../core/types'
+import { findCity } from '../../platform/weather'
 import { useApp } from '../../state/store'
 import { SortableList } from '../components/Sortable'
 import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
@@ -421,6 +423,80 @@ function Supports({ s, save }: { s: S; save: Save }) {
             ))}
         </Card>
       </Section>
+      <Section title="Wege und Übergänge" hint="Das sind echte Minuten: Parkplatz, Schuhe, Laptop-Start.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Ankunftspuffer</span>
+            <Stepper label="Ankunftspuffer" value={s.travel.arrivalBufferMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, arrivalBufferMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Fertig machen vor Terminen</span>
+            <Stepper label="Fertig machen" value={s.travel.prepMin} max={120} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, prepMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Rechnerstart im Homeoffice</span>
+            <Stepper label="Rechnerstart" value={s.travel.homeOfficeStartupMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, homeOfficeStartupMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Wach werden</span>
+            <Stepper label="Wach werden" value={s.travel.activationMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, activationMin: v } }))} />
+          </div>
+        </Card>
+      </Section>
+      <Section title="Abends schon erledigt" hint="Nur was du hier setzt, gilt. Der Morgenschritt entfällt dann, zählt dort aber nicht als erledigt.">
+        <Card className="space-y-2">
+          {s.routineLinks.map((l, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="flex-1">
+                {s.routines.evening.find((x) => x.id === l.eveningStepId)?.title ?? l.eveningStepId} → {s.routines.morning.find((x) => x.id === l.morningStepId)?.title ?? l.morningStepId}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => save((x) => ({ ...x, routineLinks: x.routineLinks.filter((_, j) => j !== i) }))}>
+                Entfernen
+              </Button>
+            </div>
+          ))}
+          <form
+            className="space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const f = new FormData(e.currentTarget)
+              const eveningStepId = String(f.get('evening'))
+              const morningStepId = String(f.get('morning'))
+              if (eveningStepId && morningStepId) save((x) => ({ ...x, routineLinks: [...x.routineLinks, { eveningStepId, morningStepId }] }))
+            }}
+          >
+            <select name="evening" aria-label="Abendschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.evening.map((x) => (
+                <option key={x.id} value={x.id}>
+                  Abends: {x.title}
+                </option>
+              ))}
+            </select>
+            <select name="morning" aria-label="Morgenschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.morning.map((x) => (
+                <option key={x.id} value={x.id}>
+                  Morgens nicht nötig: {x.title}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" size="sm">
+              Regel hinzufügen
+            </Button>
+          </form>
+        </Card>
+      </Section>
+      <Section title="Wetter" hint="Aus, bis du es einschaltest. Übertragen wird nur der Ort an Open-Meteo, keine Termine und kein GPS.">
+        <WeatherSettings s={s} save={save} />
+      </Section>
+      <Section title="Rückfrage und Homeoffice">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Beim Verschieben nach dem Grund fragen</span>
+            <Toggle label="Nach dem Grund fragen" checked={s.askReason} onChange={(v) => save((x) => ({ ...x, askReason: v }))} />
+          </div>
+          <TextInput aria-label="Homeoffice-Vorlage" value={s.homeOfficeMessage} onChange={(e) => save((x) => ({ ...x, homeOfficeMessage: e.target.value }))} />
+        </Card>
+      </Section>
       <Section title="Spiel" hint="XP zählen im Hintergrund weiter und sind beim Einschalten wieder da.">
         <Card className="flex items-center justify-between">
           <span>Spiel und Level anzeigen</span>
@@ -428,6 +504,49 @@ function Supports({ s, save }: { s: S; save: Save }) {
         </Card>
       </Section>
     </Page>
+  )
+}
+
+function WeatherSettings({ s, save }: { s: S; save: Save }) {
+  const w = s.weather
+  const [city, setCity] = useState(w.city)
+  const [msg, setMsg] = useState<string>()
+  const setW = (patch: Partial<S['weather']>) => save((x) => ({ ...x, weather: { ...x.weather, ...patch } }))
+  return (
+    <Card className="space-y-3">
+      <form
+        className="flex gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const found = await findCity(city)
+          if (found) {
+            setW({ enabled: true, city: found.name, lat: found.lat, lng: found.lng })
+            setMsg(`${found.name} eingestellt.`)
+          } else setMsg('Ort nicht gefunden oder Wetter gerade nicht erreichbar.')
+        }}
+      >
+        <TextInput aria-label="Ort für das Wetter" placeholder="Stadt" value={city} onChange={(e) => setCity(e.target.value)} />
+        <Button type="submit" disabled={!city.trim()}>
+          Einschalten
+        </Button>
+      </form>
+      {msg && <p className="text-sm text-muted">{msg}</p>}
+      {w.enabled && (
+        <>
+          <div className="flex items-center justify-between">
+            <span>Jacke unter</span>
+            <Stepper label="Jacke unter" value={w.rules.jacketBelowC} step={1} min={-10} max={30} unit="°C" onChange={(v) => setW({ rules: { ...w.rules, jacketBelowC: v } })} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Regenschutz ab</span>
+            <Stepper label="Regenschutz ab" value={w.rules.rainAbovePct} step={10} min={10} max={100} unit="%" onChange={(v) => setW({ rules: { ...w.rules, rainAbovePct: v } })} />
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => setW({ enabled: false })}>
+            Wetter ausschalten
+          </Button>
+        </>
+      )}
+    </Card>
   )
 }
 

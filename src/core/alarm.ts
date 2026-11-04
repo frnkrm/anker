@@ -11,6 +11,8 @@ export interface NativeAlarmConfig {
   wakeMinutes: number
   /** Tage ohne Wecker (als krank markiert) */
   skipDates: DateStr[]
+  /** Einmalige Weckzeiten, nur nach Bestätigung. Andere Tage bleiben beim Standard. */
+  wakeOverrides: Record<DateStr, number>
   preWakeEnabled: boolean
   preWakeLeadMinutes: number
   wakeCheckEnabled: boolean
@@ -23,10 +25,15 @@ export function buildAlarmConfig(s: Settings, days: Record<DateStr, DayLog | und
     .filter((l): l is DayLog => !!l && l.date >= today && l.override.dayType === 'sick')
     .map((l) => l.date)
     .sort()
+  const wakeOverrides: Record<DateStr, number> = {}
+  for (const l of Object.values(days)) {
+    if (l && l.date >= today && l.override.wakeOverride !== undefined) wakeOverrides[l.date] = l.override.wakeOverride
+  }
   return {
     enabled: s.alarm.enabled,
     wakeMinutes: s.anchor.wake,
     skipDates,
+    wakeOverrides,
     preWakeEnabled: s.alarm.preWakeEnabled,
     preWakeLeadMinutes: s.alarm.preWakeLeadMinutes,
     wakeCheckEnabled: s.alarm.wakeCheckEnabled,
@@ -43,7 +50,7 @@ export function nextAlarmTimes(c: NativeAlarmConfig, nowMs: number): { mainAt: n
   for (let i = 0; i <= 400; i++) {
     const d = addDays(start, i)
     if (skip.has(d)) continue
-    const at = zonedToUtc(d, c.wakeMinutes)
+    const at = zonedToUtc(d, c.wakeOverrides[d] ?? c.wakeMinutes)
     if (at > nowMs) {
       const pre = c.preWakeEnabled && c.preWakeLeadMinutes > 0 ? at - c.preWakeLeadMinutes * 60_000 : 0
       return { mainAt: at, preWakeAt: pre > nowMs ? pre : 0 }

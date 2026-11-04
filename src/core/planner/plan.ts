@@ -3,15 +3,18 @@ import { addDays, fmtTime, minutesOnPlanDay, weekday, type DateStr } from '../ti
 import type {
   Block,
   CalendarEvent,
+  Commitment,
   DayOverride,
   DayPlan,
   DayType,
   EveningPlan,
   HardTime,
+  Place,
   PlannedStep,
   RoutineStep,
   Settings,
 } from '../types'
+import { hardConflicts, legSpan, planLegs } from './adaptive'
 import { allMinimal, busyMinutes, fitSteps, minimalMinutes, placeAfter, totalMinutes } from './fit'
 
 export interface PlanInput {
@@ -19,6 +22,10 @@ export interface PlanInput {
   settings: Settings
   override?: DayOverride
   events?: CalendarEvent[]
+  commitments?: Commitment[]
+  places?: Place[]
+  /** Vom Vortag über eine gesetzte Regel versorgte Schritte */
+  covered?: string[]
 }
 
 const WEEKEND_EVENING_START = 18 * 60
@@ -75,9 +82,22 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   const blocks: Block[] = []
   const id = (k: string) => `${date}:${k}`
 
-  const wake = s.anchor.wake
-  const bed = asNight(s.bed)
-  const pcStop = Math.min(asNight(s.pcStop) + Math.min(15, o.pcStopExtendMin ?? 0), bed)
+  const wake = o.wakeOverride ?? s.anchor.wake
+  let bed = asNight(s.bed)
+  let pcStop = Math.min(asNight(s.pcStop) + Math.min(15, o.pcStopExtendMin ?? 0), bed)
+  const quiet: [number, number][] = []
+  // Länger wach ist eine freie Entscheidung: Die Grenzen rücken mit, ohne Warnung und ohne erfundenes Ende
+  const openEnd = o.lateUntil === 'open'
+  if (typeof o.lateUntil === 'number') {
+    const late = asNight(o.lateUntil)
+    if (late > pcStop) quiet.push([pcStop, late])
+    pcStop = Math.max(pcStop, late)
+    bed = Math.max(bed, late + Math.min(s.sleep.screenOffMin, 30))
+  } else if (openEnd) {
+    quiet.push([pcStop, 1440 + 4 * 60])
+    pcStop = 1440 + 4 * 60 - 1
+    bed = pcStop
+  }
 
   // Kalendertermine in Plan-Minuten umrechnen
   const allDay = (input.events ?? []).filter((e) => e.allDay)
@@ -111,16 +131,27 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   const w = s.work[wd]!
   const homeOffice = isWork && (o.homeOffice ?? w.homeOffice)
   const workStart = w.start
-  const leave = isWork ? (homeOffice ? workStart - 5 : workStart - s.commute.minutes - s.commute.bufferMin) : undefined
+  const officeLeave = isWork ? (homeOffice ? workStart - 5 : workStart - s.commute.minutes - s.commute.bufferMin) : undefined
+  let leaveOverride: number | undefined
 
-  let morningSteps = s.routines.morning.map((x) => ({ ...x }))
+  // Schon versorgte Schritte entfallen für heute. Sie gelten damit nicht als heute erledigt.
+  const covered = new Set([...(input.covered ?? []), ...(o.coveredSteps ?? [])].filter((k) => !o.uncoveredSteps?.includes(k)))
+  let morningSteps = s.routines.morning.filter((x) => !covered.has(`morning:${x.id}`)).map((x) => ({ ...x }))
+
+  // Wege und Termine dieses Tages
+  const officeOnsite = isWorkDayOnsite(dayType, o, w) && !(input.commitments ?? []).some((c) => c.replacesCommute && c.status !== 'cancelled')
+  const workEndBase = o.workEnd ?? w.start + w.durationMin + w.pauseMin
+  const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: w.start, end: workEndBase } : undefined })
+  const morningLeg = legs.find((l) => l.leave !== undefined && l.commitment.commitment === 'hard' && l.commitment.start < 12 * 60 && (dayType !== 'work' || l.commitment.replacesCommute || homeOffice || l.commitment.start < w.start))
+  if (morningLeg) leaveOverride = morningLeg.leave
   const sportToday = isSportDay(date, s) && dayType !== 'vacation'
   const morningSport = sportToday && s.sport.time === 'morning'
   let gymBlock: Block | undefined
 
+  const leave = leaveOverride ?? officeLeave
   let morningEnd = leave ?? wake + 180
   // Ein Termin vor dem Losgehen verkürzt das Morgenfenster
-  const earlyEvent = events.find((e) => e.start > wake && e.start < morningEnd)
+  const earlyEvent = morningLeg ? undefined : events.find((e) => e.start > wake && e.start < morningEnd)
   if (earlyEvent) morningEnd = earlyEvent.start
 
   if (morningSport) {
@@ -149,6 +180,8 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   const overloaded = o.mode === 'ueberlastet'
   if (overloaded) morningSteps = morningSteps.filter((x) => (x.tag && SICK_BASICS.has(x.tag)) || x.id === 'keys')
   const fit = low ? { steps: allMinimal(morningSteps), minimal: true, fits: true } : fitSteps(morningSteps, window)
+  // Morgenroutine bewusst später: gleicher Inhalt, spätere Zeit
+  const morningLater = typeof o.routineAt?.morning === 'number' ? o.routineAt.morning : undefined
   if (fit.minimal && !low) {
     notes.push(
       fit.fits
@@ -166,8 +199,8 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     id: id('morning'),
     kind: 'morning',
     title: 'Morgenroutine',
-    start: routineStart,
-    end: routineStart + mDur,
+    start: morningLater ?? routineStart,
+    end: (morningLater ?? routineStart) + mDur,
     routine: 'morning',
     steps: fit.steps,
     minimal: fit.minimal,
@@ -177,12 +210,15 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   let workEnd: number | undefined
   if (isWork) {
     workEnd = o.workEnd ?? workStart + w.durationMin + w.pauseMin
-    if (!homeOffice) {
+    if (!homeOffice && !morningLeg) {
       blocks.push({ id: id('commute'), kind: 'commute', title: 'Losgehen', start: leave!, end: workStart, hard: true })
     }
+    if (morningLeg && officeOnsite && !morningLeg.commitment.replacesCommute) notes.push('Der Weg vom Termin ins Büro ist nicht eingeplant.')
     blocks.push({ id: id('work'), kind: 'work', title: homeOffice ? 'Arbeit (Homeoffice)' : 'Arbeit', start: workStart, end: workEnd })
     home = workEnd
-    if (!homeOffice) {
+    // Geht es vom Büro direkt zum nächsten Termin, gibt es keinen Umweg über die Wohnung
+    const onwards = legs.some((l) => l.commitment.start >= workEnd! - 120 && l.toLabel)
+    if (!homeOffice && officeOnsite && !onwards) {
       blocks.push({ id: id('commute-home'), kind: 'commute', title: 'Heimweg', start: workEnd, end: workEnd + s.commute.minutes })
       home = workEnd + s.commute.minutes
     }
@@ -204,6 +240,17 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   let planDur = s.eveningDurations[plan]
   if (plan === 'sport') planDur = s.sport.durationMin + (s.sport.kind === 'gym' ? 2 * s.sport.gymWayMin : 0)
+  // Ein Termin am Abend ist der Abendplan
+  const eveningLegs = legs.filter((l) => l.commitment.start >= Math.min(home, 15 * 60))
+  if (eveningLegs.length && !o.evening) planDur = 0
+  for (const l of legs) {
+    const span = legSpan(l)
+    // „Bin wieder da“ beendet den Termin, auch wenn sein Ende vorher offen war
+    const back = l.commitment.backAt !== undefined ? minutesOnPlanDay(date, l.commitment.backAt) : undefined
+    busy.push([span.start, back ?? span.end ?? bed + 120])
+    // Soziale Zeit und Freizeit: keine Haushalts-Erinnerungen
+    if (l.commitment.context !== 'work' && l.commitment.context !== 'customer') quiet.push([span.start, back ?? span.end ?? 1440 + 4 * 60])
+  }
   const eveningEvent = events.find((e) => e.end > home && e.start < pcStop)
   if (plan === 'appointment' && eveningEvent) planDur = 0 // Der Termin selbst ist der Abendplan
 
@@ -232,7 +279,17 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     }
   }
 
-  const eFit = low ? { steps: allMinimal(eveningSteps), minimal: true, fits: true } : fitSteps(eveningSteps, routineWindow)
+  // Zeitpunkt der Abendroutine: nach dem Termin, zur gewählten Uhrzeit oder bei Rückkehr
+  const backAts = [...legs.map((l) => l.commitment.backAt), o.backAt].filter((x): x is number => x !== undefined).map((x) => minutesOnPlanDay(date, x))
+  const backAt = backAts.length ? Math.max(...backAts) : undefined
+  const lastLeg = eveningLegs[eveningLegs.length - 1]
+  const lastSpan = lastLeg ? legSpan(lastLeg) : undefined
+  const eveningAt = o.routineAt?.evening
+  const waitsForReturn = backAt === undefined && (eveningAt === 'return' || (!!lastSpan && lastSpan.end === undefined))
+  let afterReturn = backAt ?? (lastSpan?.end !== undefined ? lastSpan.end : undefined)
+  if (typeof eveningAt === 'number') afterReturn = Math.max(afterReturn ?? 0, asNight(eveningAt))
+  const lateReturn = afterReturn !== undefined && afterReturn + routineFull > asNight(s.bed)
+  const eFit = low || lateReturn ? { steps: allMinimal(eveningSteps), minimal: true, fits: true } : fitSteps(eveningSteps, routineWindow)
   let cursor = home
   if (plan === 'appointment' && eveningEvent) cursor = Math.max(cursor, eveningEvent.end)
   if (planDur > 0) {
@@ -241,26 +298,46 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     cursor = pStart + planDur
   }
   const rDur = totalMinutes(eFit.steps)
+  if (afterReturn !== undefined) cursor = Math.max(cursor, afterReturn)
   let rStart = placeAfter(cursor, rDur, busy)
-  if (rStart + rDur > pcStop) {
+  if (afterReturn === undefined && rStart + rDur > pcStop) {
     rStart = Math.max(cursor, pcStop - rDur)
     notes.push('Die Abendroutine rutscht heute nah an den PC-Stopp. Direkt danach Bildschirm aus.')
   }
-  blocks.push({
-    id: id('evening-routine'),
-    kind: 'evening-routine',
-    title: 'Abendroutine',
-    start: rStart,
-    end: rStart + rDur,
-    routine: 'evening',
-    steps: eFit.steps,
-    minimal: eFit.minimal,
-  })
-  if (pcStop - (rStart + rDur) >= 5) {
-    blocks.push({ id: id('free'), kind: 'free', title: 'Freizeit – zocken erlaubt', start: rStart + rDur, end: pcStop })
+  if (waitsForReturn) {
+    if (!o.routineAt?.evening && !lastSpan) notes.push('Abendroutine wartet, bis du zurück bist.')
+  } else {
+    blocks.push({
+      id: id('evening-routine'),
+      kind: 'evening-routine',
+      title: 'Abendroutine',
+      start: rStart,
+      end: rStart + rDur,
+      routine: 'evening',
+      steps: eFit.steps,
+      minimal: eFit.minimal,
+    })
+    // Spät zurück: Bett rückt nach hinten, statt Schritte in die Nacht zu stapeln
+    if (rStart + rDur > bed) bed = rStart + rDur
+    if (rStart + rDur > pcStop && afterReturn !== undefined) pcStop = Math.min(bed, rStart + rDur)
   }
-  blocks.push({ id: id('pc-stop'), kind: 'pc-stop', title: 'PC aus, runterkommen', start: pcStop, end: bed, hard: true })
-  blocks.push({ id: id('bed'), kind: 'bed', title: 'Ab ins Bett', start: bed, end: bed, hard: true })
+  const freeFrom = waitsForReturn ? cursor : rStart + rDur
+  if (!waitsForReturn && pcStop - freeFrom >= 5) {
+    blocks.push({ id: id('free'), kind: 'free', title: 'Freizeit – zocken erlaubt', start: freeFrom, end: pcStop })
+  }
+  if (!openEnd) {
+    blocks.push({ id: id('pc-stop'), kind: 'pc-stop', title: 'PC aus, runterkommen', start: pcStop, end: bed, hard: true })
+    blocks.push({ id: id('bed'), kind: 'bed', title: 'Ab ins Bett', start: bed, end: bed, hard: true })
+  }
+
+  // Termine, Vorbereitung und Wege als eigene Blöcke
+  for (const l of legs) {
+    const c = l.commitment
+    if (l.prepStart !== undefined) blocks.push({ id: `prep:${c.id}`, kind: 'prep', title: `Fertig machen: ${c.label}`, start: l.prepStart, end: l.leave ?? c.start })
+    if (l.leave !== undefined) blocks.push({ id: `travel:${c.id}`, kind: 'travel', title: `Weg: ${l.fromLabel} → ${l.toLabel}`, start: l.leave, end: c.start, hard: c.commitment === 'hard' })
+    blocks.push({ id: `commitment:${c.id}`, kind: 'commitment', title: c.label, start: c.start, end: c.end ?? c.start + 1, hard: c.commitment === 'hard' })
+    if (l.travelOpen) notes.push(`Fahrzeit zu „${c.label}“ fehlt noch.`)
+  }
 
   for (const e of events) {
     if (e.end > pcStop && e.start < bed + 120) notes.push(`Termin ${eventLabel(e)} geht über den PC-Stopp hinaus.`)
@@ -269,10 +346,25 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   }
 
   const hardTimes: HardTime[] = [{ key: 'wake', label: 'Aufstehen', at: wake }]
-  if (isWork && !homeOffice && leave !== undefined) hardTimes.push({ key: 'leave', label: 'Losgehen', at: leave })
-  hardTimes.push({ key: 'pc-stop', label: 'PC-Stopp', at: pcStop }, { key: 'bed', label: 'Bett', at: bed })
+  if (morningLeg) hardTimes.push({ key: 'leave', label: `Los: ${morningLeg.commitment.label}`, at: morningLeg.leave! })
+  else if (isWork && !homeOffice && leave !== undefined) hardTimes.push({ key: 'leave', label: 'Losgehen', at: leave })
+  for (const l of legs) {
+    if (l !== morningLeg && l.leave !== undefined && l.commitment.commitment === 'hard') hardTimes.push({ key: 'commitment', label: `Los: ${l.commitment.label}`, at: l.leave })
+  }
+  if (!openEnd) hardTimes.push({ key: 'pc-stop', label: 'PC-Stopp', at: pcStop }, { key: 'bed', label: 'Bett', at: bed })
+  hardTimes.sort((a, b) => a.at - b.at)
 
-  return finish({ date, dayType, homeOffice, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave })
+  const conflicts = hardConflicts(legs)
+  if (officeOnsite) {
+    const clash = legs.find((l) => l.commitment.commitment === 'hard' && !l.commitment.replacesCommute && l.commitment.start < workEnd! && (l.commitment.end ?? l.commitment.start) > workStart && l !== morningLeg && l.commitment.context !== 'work')
+    if (clash) conflicts.push(`„${clash.commitment.label}“ liegt in deiner Arbeitszeit.`)
+  }
+
+  return finish({ date, dayType, homeOffice, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave, legs, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
+}
+
+function isWorkDayOnsite(dayType: DayType, o: DayOverride, w: Settings['work'][number]): boolean {
+  return dayType === 'work' && !(o.homeOffice ?? w.homeOffice)
 }
 
 function eveningTitle(p: EveningPlan): string {
@@ -304,7 +396,7 @@ function order(b: Block): number {
 /** Der Block, der zum Zeitpunkt `m` läuft (Termine haben Vorrang). */
 export function currentBlock(plan: DayPlan, m: number): Block | undefined {
   const running = plan.blocks.filter((b) => b.start <= m && m < b.end)
-  return running.find((b) => b.kind === 'event') ?? running.find((b) => b.kind !== 'pc-stop') ?? running[0]
+  return running.find((b) => b.kind === 'event' || b.kind === 'commitment' || b.kind === 'travel') ?? running.find((b) => b.kind !== 'pc-stop') ?? running[0]
 }
 
 export function nextBlock(plan: DayPlan, m: number): Block | undefined {

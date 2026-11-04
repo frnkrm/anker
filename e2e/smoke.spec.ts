@@ -84,6 +84,57 @@ test('Arbeit: Titel genügt, Inhalte bleiben nach dem Neuladen', async ({ page }
   await page.getByRole('button', { name: 'Weiter' }).click()
 })
 
+test('Heute anders: Termin, Routine wartet, Spiel ohne falsches Erledigt, Rückgängig', async ({ page }) => {
+  // Montag im Homeoffice-Fall des Auftrags: heute 17 Uhr Film, Ende offen
+  await page.clock.setFixedTime(new Date('2026-11-02T12:00:00+01:00'))
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter' }).click()
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
+
+  await page.getByRole('button', { name: /Arbeitstag/ }).click()
+  await page.getByRole('radio', { name: 'Ja' }).click()
+  await expect(page.getByText(/Gesendet|Das machst du selbst/)).toBeVisible()
+  await page.getByRole('button', { name: 'Fertig' }).click()
+
+  await page.getByRole('button', { name: 'Heute anders' }).click()
+  await page.getByRole('button', { name: /etwas anderes vor/ }).click()
+  await page.getByRole('textbox', { name: 'Was hast du vor?' }).fill('Film bei einer Freundin ab 17 Uhr')
+  await page.getByRole('textbox', { name: 'Ort' }).fill('Bei Lena')
+  // Vorschau zuerst: Anfahrt unklar wird benannt, nichts wird erfunden
+  await expect(page.getByText(/Heute 17:00, .*Anfahrt unklar, Ende offen/)).toBeVisible()
+  await page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten' }).fill('20')
+  await page.getByRole('button', { name: 'So übernehmen' }).click()
+  await expect(page.getByText(/heute läuft es anders/)).toBeVisible()
+
+  await page.goto('/tag')
+  await expect(page.getByText('Zuhause → Bei Lena', { exact: false }).first()).toBeVisible()
+  await expect(page.getByText(/los um 16:30/)).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Abendroutine' })).toHaveCount(0)
+  await expect(page.getByText(/verpasst|versagt|Rückstand/)).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Heute anders' }).click()
+  await page.getByRole('button', { name: 'Zurück zum ursprünglichen Plan' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Abendroutine' })).toHaveCount(1)
+  await page.reload()
+  await expect(page.getByText(/los um 16:30/)).toHaveCount(0)
+})
+
+test('Länger wach: Folgen stehen sachlich da, Plan rückt mit', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-02T20:00:00+01:00'))
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter' }).click()
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await page.getByRole('button', { name: 'Heute anders' }).click()
+  await page.getByRole('button', { name: 'Länger wach bleiben' }).click()
+  await page.getByRole('button', { name: 'Weiß ich noch nicht' }).click()
+  await expect(page.getByText(/Wecker morgen um .* bleibt gestellt/)).toBeVisible()
+  await page.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect(page.getByText(/Der Abend gehört dir/)).toBeVisible()
+  await expect(page.getByText(/PC-Stopp \d/)).toHaveCount(0)
+})
+
 test('Druckansicht zeigt genau das Gewählte, ohne Navigation', async ({ page }) => {
   await page.goto('/start')
   await page.getByRole('button', { name: 'Weiter' }).click()

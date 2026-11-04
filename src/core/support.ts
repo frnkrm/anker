@@ -3,7 +3,7 @@
 
 import { nowView, type NowAction, type NowView } from './now'
 import { fmtTime, minutesOnPlanDay, type DateStr } from './time'
-import type { DayLog, DayPlan, InboxItem, Meal, ResumePoint, Settings, SupportMode, WorkTask } from './types'
+import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkTask } from './types'
 
 export const MODE_LABEL: Record<SupportMode, string> = {
   normal: 'Normal',
@@ -105,6 +105,11 @@ export type NextAction =
   | { type: 'task'; title: string; sub?: string; task: InboxItem }
   | { type: 'resume'; title: string; sub?: string; resume: ResumePoint }
   | { type: 'arrival'; title: string; sub?: string; index: number; total: number; meal?: string }
+  | { type: 'prep'; title: string; sub?: string; leg: Leg }
+  | { type: 'go'; title: string; sub?: string; leg: Leg }
+  | { type: 'underway'; title: string; sub?: string; leg: Leg }
+  | { type: 'away'; title: string; sub?: string; leg: Leg }
+  | { type: 'return-check'; title: string; sub?: string }
 
 export interface NextView extends Omit<NowView, 'action'> {
   action: NextAction
@@ -135,6 +140,16 @@ export function nextAction(i: NextInput): NextView {
   const view = (action: NextAction, reason?: string): NextView => ({ ...base, action, reason })
   const a = base.action
   const hardReason = base.hard && base.hard.at - i.m <= 60 && base.hard.at > i.m ? `Als Nächstes sinnvoll, weil um ${fmtTime(base.hard.at)} ${base.hard.label} ansteht.` : undefined
+
+  // Schlafen und Aufwachen gehen immer vor
+  if (a.type === 'sleep' || a.type === 'wake') return view(a)
+
+  // Ein Termin läuft oder steht an: Er bestimmt den Moment, ohne weitere Fragen
+  const leg = legAction(i.plan, i.m)
+  if (leg) return view(leg.action, leg.reason)
+  if (i.plan.pendingEvening && i.m >= (i.plan.workEnd ?? 18 * 60) && !i.log?.override.backAt && i.log?.override.routineAt?.evening === 'return') {
+    return view({ type: 'return-check', title: 'Bist du wieder zuhause?', sub: 'Dann schauen wir, was heute noch sinnvoll ist.' })
+  }
 
   // 1. Feste Zeiten, Termine und der Weg zur Arbeit: nie überlagern, schon gar nicht während der Fahrt
   if (FIXED.includes(a.type)) return view(a)
@@ -182,6 +197,34 @@ export function nextAction(i: NextInput): NextView {
 
   // 5. Routine, 7. Pause oder Freizeit. Beides ist in Ordnung.
   return view(a, a.type === 'step' ? hardReason : undefined)
+}
+
+function legSub(l: Leg): string | undefined {
+  const parts: string[] = []
+  if (l.travelMin) parts.push(`Fahrt etwa ${l.travelMin} min (deine Schätzung)`)
+  if (l.travelOpen) parts.push('Fahrzeit noch offen')
+  if (l.items.length) parts.push(l.items.slice(0, 3).join(', '))
+  return parts.join(' · ') || undefined
+}
+
+/** Was ein Termin gerade verlangt. Undefined, wenn keiner dran ist. Das Ende wird nie erfunden. */
+function legAction(plan: DayPlan, m: number): { action: NextAction; reason?: string } | undefined {
+  for (const l of plan.legs ?? []) {
+    const c = l.commitment
+    if (c.backAt !== undefined) continue
+    const startsAt = l.prepStart ?? l.leave ?? c.start
+    if (m < startsAt) continue
+    const ended = c.end !== undefined && m >= c.end + (l.returnMin ?? 0)
+    if (ended) continue
+    if (m >= c.start || c.arrivedAt) {
+      if (l.toLabel && c.leftAt && !c.arrivedAt && m < c.start + 60) return { action: { type: 'underway', title: `Unterwegs zu ${c.label}`, leg: l } }
+      return { action: { type: 'away', title: c.label, sub: c.end !== undefined ? `Bis ${fmtTime(c.end)}` : 'Melde dich einfach, wenn du wieder da bist.', leg: l } }
+    }
+    if (c.leftAt) return { action: { type: 'underway', title: `Unterwegs zu ${c.label}`, sub: `Um ${fmtTime(c.start)} dort`, leg: l } }
+    if (l.leave !== undefined && m >= l.leave) return { action: { type: 'go', title: `Los zu ${c.label}`, sub: legSub(l), leg: l }, reason: `Dann bist du um ${fmtTime(c.start)} da.` }
+    return { action: { type: 'prep', title: `Fertig machen für ${c.label}`, sub: legSub(l), leg: l }, reason: l.leave !== undefined ? `Um ${fmtTime(l.leave)} solltest du los.` : `Um ${fmtTime(c.start)} geht es los.` }
+  }
+  return undefined
 }
 
 function arrivalStep(i: NextInput): NextAction | undefined {
@@ -241,6 +284,7 @@ export function stuckLadder(a: NextAction): { text: string; seconds: number }[] 
     ]
   }
   if (a.type === 'arrival') return [{ text: a.title, seconds: 120 }, { text: 'Steh auf.', seconds: 30 }]
+  if (a.type === 'prep' || a.type === 'go') return [{ text: 'Zieh die Schuhe an.', seconds: 120 }, { text: 'Nimm den Schlüssel in die Hand.', seconds: 30 }]
   return [
     { text: GENERIC_STEP[a.type] ?? GENERIC_STEP.info!, seconds: 120 },
     { text: SMALLER[a.type] ?? SMALLER.info!, seconds: 30 },

@@ -25,8 +25,9 @@ export function useToday(tick = 15_000): { date: string; plan: DayPlan; log: Day
   const settings = useApp((s) => s.settings)
   const days = useApp((s) => s.days)
   const events = useApp((s) => s.events)
+  const local = useApp((s) => s.local)
   const date = today()
-  const plan = planFor(date, { settings, days, events })
+  const plan = planFor(date, { settings, days, events, local })
   return { date, plan, log: days[date] ?? emptyLog(date), m: minutesOnPlanDay(date, now), now }
 }
 
@@ -42,5 +43,6 @@ export function usePlan(date: string): DayPlan {
   const settings = useApp((s) => s.settings)
   const days = useApp((s) => s.days)
   const events = useApp((s) => s.events)
-  return planFor(date, { settings, days, events })
+  const local = useApp((s) => s.local)
+  return planFor(date, { settings, days, events, local })
 }

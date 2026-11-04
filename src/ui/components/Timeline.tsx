@@ -13,13 +13,20 @@ const KIND_ICON: Partial<Record<Block['kind'], string>> = {
   'pc-stop': '🔌',
   bed: '🛏️',
   event: '📅',
+  commitment: '📍',
+  prep: '🎒',
+  travel: '🧭',
   rest: '🛋️',
   day: '🌤️',
 }
 
 function blockDone(b: Block, log: DayLog | undefined): boolean {
   if (!log) return false
-  if (b.steps?.length) return b.steps.every((s) => log.steps[`${b.routine}:${s.id}`])
+  // Nur echte Handlungen bekommen einen Haken, bewusst Entfallenes nicht
+  if (b.steps?.length) {
+    const results = b.steps.map((s) => log.steps[`${b.routine}:${s.id}`])
+    return results.every(Boolean) && results.some((v) => v === 'done' || v === 'minimal')
+  }
   if (b.kind === 'wake') return !!log.wakeAt
   if (b.kind === 'commute' && b.title === 'Losgehen') return !!log.leftAt
   if (b.kind === 'pc-stop') return !!log.pcOffAt

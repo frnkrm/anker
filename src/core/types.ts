@@ -102,6 +102,15 @@ export interface Settings {
   game: { stage: 1 | 2 | 3; startDate: DateStr }
   integrations: { healthConnect: boolean; googleCalendar: boolean; writeCalendar: boolean; sync: boolean }
   alarm: AlarmPreferences
+  /** Eigene Minuten für Wege und Übergänge */
+  travel: { arrivalBufferMin: number; prepMin: number; homeOfficeStartupMin: number; activationMin: number }
+  /** Ausdrücklich gesetzt: Ist der Abendschritt erledigt, ist der Morgenschritt am Folgetag nicht nötig */
+  routineLinks: { eveningStepId: string; morningStepId: string }[]
+  /** Nach dem Grund fragen, wenn etwas verschoben wird (nie Pflicht) */
+  askReason: boolean
+  homeOfficeMessage: string
+  /** Wetter ist aus, bis ein Ort gewählt wurde. Übertragen wird nur dieser Ort. */
+  weather: { enabled: boolean; city: string; lat?: number; lng?: number; rules: { jacketBelowC: number; rainAbovePct: number } }
   focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
   support: {
     /** Spiel, XP und Level anzeigen */
@@ -115,7 +124,8 @@ export interface Settings {
   suggestions: { id: string; text: string; createdAt: DateStr }[]
 }
 
-export type StepResult = 'done' | 'minimal' | 'skipped'
+/** done und minimal sind echte Handlungen. skipped und not-needed sind wertungsfrei und nie „erledigt“. */
+export type StepResult = 'done' | 'minimal' | 'skipped' | 'not-needed'
 
 export interface DayOverride {
   dayType?: DayType
@@ -129,6 +139,21 @@ export interface DayOverride {
   mode?: SupportMode
   /** „Tag neu sortieren“: Rest des Tages in kleinen Versionen */
   light?: boolean
+  /** Einmalige Weckzeit für diesen Tag, nach Bestätigung. Ändert nie den Standard. */
+  wakeOverride?: number
+  /** Länger wach: bis zu dieser Zeit (Plan-Minuten) oder offen */
+  lateUntil?: number | 'open'
+  /** Routine später: Uhrzeit oder „wenn ich zurück bin“ */
+  routineAt?: Partial<Record<RoutineId, number | 'return'>>
+  /** „Wieder zuhause“ gemeldet (UTC ms), ohne dass ein Termin dazugehört */
+  backAt?: number
+  /** Schritte, die an diesem Tag schon anderweitig versorgt sind, z. B. "morning:shower" */
+  coveredSteps?: string[]
+  /** Regel für diesen Tag übersteuern */
+  uncoveredSteps?: string[]
+  /** Der Tag lief bewusst anders: zählt nicht als verfehlt */
+  adjusted?: boolean
+  reason?: string
 }
 
 export interface DayLog {
@@ -152,6 +177,10 @@ export interface DayLog {
   awarded?: string[]
   /** Erledigte Ankommen-Schritte (Index) */
   arrival?: number[]
+  /** Stand vor dem ersten „Heute anders“, für „Zurück zum ursprünglichen Plan“ */
+  before?: { override: DayOverride; steps: Record<string, StepResult> }
+  /** Kurze Liste, was heute geändert wurde */
+  changes?: string[]
 }
 
 export interface CalendarEvent {
@@ -163,6 +192,9 @@ export interface CalendarEvent {
 }
 
 export type BlockKind =
+  | 'commitment'
+  | 'prep'
+  | 'travel'
   | 'wake'
   | 'morning'
   | 'sport'
@@ -194,7 +226,7 @@ export interface Block {
 }
 
 export interface HardTime {
-  key: 'wake' | 'leave' | 'pc-stop' | 'bed'
+  key: 'wake' | 'leave' | 'pc-stop' | 'bed' | 'commitment'
   label: string
   at: number
 }
@@ -212,6 +244,16 @@ export interface DayPlan {
   bed: number
   wake: number
   leave?: number
+  /** Wege und Termine des Tages */
+  legs?: Leg[]
+  /** Abendroutine wartet auf „Wieder zuhause“ */
+  pendingEvening?: boolean
+  /** Zeiträume ohne Haushalts-Erinnerungen (Freizeit, soziale Termine) */
+  quiet?: [number, number][]
+  /** Länger wach ohne festes Ende: keine erfundene Bettzeit */
+  openEnd?: boolean
+  /** Echte Konflikte, immer sichtbar */
+  conflicts?: string[]
 }
 
 export interface InboxItem {
@@ -251,10 +293,78 @@ export interface ResumePoint {
   at: number
 }
 
+export type CommitmentKind = 'hard' | 'soft' | 'optional'
+export type EventContext = 'work' | 'customer' | 'social' | 'personal' | 'other'
+export type RouteMode = 'driving' | 'transit' | 'cycling' | 'walking' | 'none'
+
+/** Gespeicherter Ort. Bleibt auf dem Gerät. */
+export interface Place {
+  id: string
+  label: string
+  address?: string
+  travelFromHomeMin?: number
+  /** Fahrzeit von anderen Orten, Schlüssel = Orts-ID oder "office" */
+  travelFrom?: Record<string, number>
+  items?: string[]
+}
+
+/** Ein konkreter Termin an einem Tag. Liegt nur auf dem Gerät und geht nie in Sync oder Kalender. */
+export interface Commitment {
+  id: string
+  date: DateStr
+  label: string
+  context: EventContext
+  commitment: CommitmentKind
+  /** Plan-Minuten des Tages */
+  start: number
+  /** Ohne Angabe bleibt das Ende offen, es wird keine Rückkehr erfunden */
+  end?: number
+  placeId?: string
+  placeLabel?: string
+  address?: string
+  routeMode?: RouteMode
+  /** Von dir geschätzte Fahrzeit. Fehlt sie, bleibt sie offen. */
+  travelMin?: number
+  travelHomeMin?: number
+  arrivalBufferMin?: number
+  prepMin?: number
+  items?: string[]
+  /** Ersetzt den Weg ins Büro an diesem Tag */
+  replacesCommute?: boolean
+  thenTo?: 'home' | 'next'
+  status?: 'planned' | 'cancelled'
+  leftAt?: number
+  arrivedAt?: number
+  backAt?: number
+}
+
+/** Berechneter Weg zu einem Termin */
+export interface Leg {
+  commitment: Commitment
+  fromLabel: string
+  toLabel?: string
+  travelMin?: number
+  /** Ort bekannt, Fahrzeit nicht. Dann gibt es keine errechnete Abfahrt. */
+  travelOpen: boolean
+  leave?: number
+  prepStart?: number
+  items: string[]
+  returnMin?: number
+}
+
+export interface WeatherCache {
+  key: string
+  fetchedAt: number
+  hours: { date: string; minutes: number; tempC: number; apparentC: number; rainPct: number; windKmh: number }[]
+}
+
 export type MedsStatus = 'taken' | 'not-taken' | 'unsure'
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, Einnahmeprotokoll, Wiedereinstieg. */
 export interface LocalData {
+  commitments: Commitment[]
+  places: Place[]
+  weather?: WeatherCache
   work: WorkTask[]
   resume?: ResumePoint
   handover: Record<DateStr, { open: string; next: string }>

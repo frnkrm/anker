@@ -88,6 +88,10 @@ export async function drainActions() {
 export async function applyAction(a: ReminderActionInfo) {
   const st = useApp.getState()
   const { key, date } = a
+  if (key.startsWith('go:') && a.action === 'done') {
+    const id = key.slice(3)
+    return st.saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.id === id ? { ...c, leftAt: a.at } : c)) }))
+  }
   if (a.action === 'done') {
     if (key === 'leave') return st.mark(date, 'leftAt', a.at)
     if (key === 'pcstop') return st.mark(date, 'pcOffAt', a.at)

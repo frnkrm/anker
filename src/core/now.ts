@@ -39,6 +39,16 @@ export function openSteps(plan: DayPlan, log: DayLog | undefined, r: RoutineId):
   return (b?.steps ?? []).filter((s) => !log?.steps[stepKey(r, s.id)])
 }
 
+/** Wurde die Routine wirklich gemacht? Weggelassene und bewusst entfallene Schritte zählen nicht als Handlung. */
+export function routineCompleted(plan: DayPlan, log: DayLog | undefined, r: RoutineId): boolean {
+  const b = plan.blocks.find((x) => x.routine === r)
+  if (!b?.steps?.length || openSteps(plan, log, r).length) return false
+  return b.steps.some((s) => {
+    const v = log?.steps[stepKey(r, s.id)]
+    return v === 'done' || v === 'minimal'
+  })
+}
+
 export function routineDone(plan: DayPlan, log: DayLog | undefined, r: RoutineId): boolean {
   const b = plan.blocks.find((x) => x.routine === r)
   return !!b?.steps?.length && openSteps(plan, log, r).length === 0
@@ -73,7 +83,7 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   const t = fmtTime
   const sick = plan.dayType === 'sick'
 
-  if (m < plan.wake - 30 || m >= plan.bed + 120) {
+  if (m < plan.wake - 30 || (!plan.openEnd && m >= plan.bed + 120)) {
     return view(m >= plan.bed ? { type: 'night', title: 'Gute Nacht', sub: 'Schlaf ist heute dein wichtigster Schritt.' } : { type: 'sleep', title: 'Schlafen', sub: `Aufstehen um ${t(plan.wake)}` })
   }
   if (!log?.wakeAt && !sick && m < plan.wake + 120) {
@@ -82,8 +92,9 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
 
   // Morgen: bis zum Losgehen (bzw. Ende Morgenblock + 30 min am freien Tag)
   const morning = plan.blocks.find((b) => b.routine === 'morning')
-  const morningUntil = plan.leave ?? (morning ? morning.end + 30 : plan.wake)
-  if (m < morningUntil) {
+  const later = morning !== undefined && morning.start > plan.wake + 1 && !plan.blocks.some((b) => b.kind === 'sport')
+  const morningUntil = later ? morning!.end + 30 : (plan.leave ?? (morning ? morning.end + 30 : plan.wake))
+  if (m < morningUntil && (!later || m >= morning!.start)) {
     const a = stepAction(plan, log, 'morning')
     if (a) return view(a)
   }
@@ -92,15 +103,15 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   }
 
   const evening = plan.blocks.find((b) => b.routine === 'evening')
-  if (evening && m >= evening.start && m < plan.pcStop + 30) {
+  if (evening && m >= evening.start && m < Math.max(plan.pcStop + 30, evening.end + 30)) {
     const a = stepAction(plan, log, 'evening')
     if (a) return view(a)
   }
 
-  if (m >= plan.bed) {
+  if (m >= plan.bed && !plan.openEnd) {
     return view(log?.bedAt ? { type: 'night', title: 'Gute Nacht', sub: 'Morgen früh klingelt der Anker.' } : { type: 'bed', title: 'Ab ins Bett', sub: 'Handy weg, Licht aus.' })
   }
-  if (m >= plan.pcStop && !sick) {
+  if (m >= plan.pcStop && !sick && !plan.openEnd) {
     return view(log?.pcOffAt ? { type: 'info', title: 'Runterkommen', sub: `Bett um ${t(plan.bed)}. Lesen, Musik, Dehnen.` } : { type: 'pcoff', title: 'PC aus', sub: 'Bildschirme aus, der Tag ist geschafft.' })
   }
 

@@ -87,5 +87,7 @@ export function dayStatus(plan: DayPlan, log: DayLog | undefined, s: Settings, i
   if (plan.dayType === 'sick') return 'neutral'
   const goals = dayGoals(plan, log, s)
   if (goals.every((g) => g.met)) return 'success'
+  // Bewusst anders entschieden: zählt weder dafür noch dagegen
+  if (log?.override.adjusted && isPast) return 'neutral'
   return isPast ? 'missed' : 'open'
 }

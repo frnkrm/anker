@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
-import { activePlanDate, routineDone, stepKey } from '../core/now'
+import { activePlanDate, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
 import { addDays, minutesOnPlanDay, todayBerlin, type DateStr } from '../core/time'
 import type {
   CalendarEvent,
+  Commitment,
   DayLog,
   DayOverride,
   DayPlan,
@@ -70,6 +71,11 @@ interface AppState {
   /** Aufgabe aus der Inbox erledigen (dieselbe Aufgabe überall) oder zurücknehmen */
   setInboxDone(id: string, done: boolean): Promise<void>
   setAlarmStatus(a: AlarmStatus): void
+  /** Änderung über „Heute anders“: merkt den Ausgangsstand, damit alles rückgängig zu machen ist */
+  adjustDay(date: DateStr, label: string, fn: (log: DayLog) => DayLog): Promise<void>
+  /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
+  restoreDay(date: DateStr): Promise<void>
+  saveCommitment(c: Commitment): Promise<void>
   importRecords(recs: Rec[]): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
@@ -101,12 +107,22 @@ export function emptyLog(date: DateStr): DayLog {
 
 const planCache = new Map<string, { key: unknown[]; plan: DayPlan }>()
 
-export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events'> = useApp.getState()): DayPlan {
+/** Vom Vortag versorgte Schritte, nur über ausdrücklich gesetzte Regeln. */
+function coveredBy(date: DateStr, st: Pick<AppState, 'settings' | 'days'>): string {
+  const prev = st.days[addDays(date, -1)]
+  return st.settings.routineLinks
+    .filter((l) => ['done', 'minimal'].includes(prev?.steps[`evening:${l.eveningStepId}`] ?? ''))
+    .map((l) => `morning:${l.morningStepId}`)
+    .join(',')
+}
+
+export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events' | 'local'> = useApp.getState()): DayPlan {
   const override = st.days[date]?.override
-  const key = [st.settings, override, st.events]
+  const covered = coveredBy(date, st)
+  const key = [st.settings, override, st.events, st.local.commitments, st.local.places, covered]
   const hit = planCache.get(date)
   if (hit && hit.key.every((k, i) => k === key[i])) return hit.plan
-  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events) })
+  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events), commitments: st.local.commitments.filter((c) => c.date === date), places: st.local.places, covered: covered ? covered.split(',') : undefined })
   planCache.set(date, { key, plan })
   return plan
 }
@@ -165,7 +181,7 @@ export const useApp = create<AppState>()((set, get) => ({
     let log = fn(structuredClone(st.days[date] ?? emptyLog(date)))
     const plan = planFor(date, { ...st, days: { ...st.days, [date]: log } })
     // Abendroutine komplett → Zeitpunkt merken
-    if (!log.eveningRoutineDoneAt && routineDone(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
+    if (!log.eveningRoutineDoneAt && routineCompleted(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
     const a = applyAwards(plan, log, st.game, st.settings)
     log = a.log
     set({ days: { ...st.days, [date]: log }, game: a.game })
@@ -316,6 +332,30 @@ export const useApp = create<AppState>()((set, get) => ({
       else delete meds[date]
       return { ...l, meds }
     })
+  },
+
+  async adjustDay(date, label, fn) {
+    await get().updateDay(date, (log) => {
+      const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
+      const next = fn(log)
+      return { ...next, before, override: { ...next.override, adjusted: true }, changes: [...(log.changes ?? []), label] }
+    })
+  },
+
+  async restoreDay(date) {
+    await get().updateDay(date, (log) => {
+      if (!log.before) return log
+      const real = Object.fromEntries(Object.entries(log.steps).filter(([, v]) => v === 'done' || v === 'minimal'))
+      const restored: DayLog = { ...log, override: log.before.override, steps: { ...log.before.steps, ...real } }
+      delete restored.before
+      delete restored.changes
+      return restored
+    })
+    await get().saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.date === date && !c.arrivedAt ? { ...c, status: 'cancelled' as const } : c)) }))
+  },
+
+  async saveCommitment(c) {
+    await get().saveLocal((l) => ({ ...l, commitments: [...l.commitments.filter((x) => x.id !== c.id), c] }))
   },
 
   setAlarmStatus(a) {
