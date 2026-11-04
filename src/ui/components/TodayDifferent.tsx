@@ -10,8 +10,9 @@ import { isNative, safe } from '../../platform/native'
 import { pushPcStop } from '../../platform/supabase'
 import { planFor, useApp } from '../../state/store'
 import { Button, Card, Segmented, Sheet, TextInput, TimeField } from './ui'
+import { WorkDayForm } from './WorkControls'
 
-type View = 'menu' | 'event' | 'later' | 'not-needed' | 'late' | 'covered'
+type View = 'menu' | 'event' | 'later' | 'not-needed' | 'late' | 'covered' | 'work'
 
 const REASONS = ['Termin', 'Freunde', 'Zu müde', 'Später', 'Nicht nötig']
 
@@ -76,6 +77,9 @@ export function TodayDifferent({ open, onClose, date, m, action, isTomorrow = fa
     <div className="space-y-2">
       <Button size="lg" className="w-full !justify-start" onClick={() => setView('event')}>
         {isTomorrow ? 'Ich habe morgen einen Termin' : 'Ich habe heute etwas anderes vor'}
+      </Button>
+      <Button size="lg" className="w-full !justify-start" onClick={() => setView('work')}>
+        {isTomorrow ? 'Arbeit an diesem Tag anders' : 'Arbeit heute anders'}
       </Button>
       {!isTomorrow && (
         <>
@@ -206,6 +210,7 @@ export function TodayDifferent({ open, onClose, date, m, action, isTomorrow = fa
           </button>
         )}
         {view === 'menu' && menu}
+        {view === 'work' && <WorkDayForm date={date} m={m} isTomorrow={isTomorrow} onDone={finish} />}
         {view === 'event' && <EventForm date={date} isTomorrow={isTomorrow} reason={reason} onDone={finish} />}
         {view === 'later' && later}
         {view === 'not-needed' && notNeeded}
@@ -261,7 +266,7 @@ function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomor
       ...(replaces ? { replacesCommute: true } : {}),
     }
     await st.saveCommitment(c)
-    await st.adjustDay(date, `${label} um ${fmtTime(time)}`, (l) => ({ ...l, override: reason ? { ...l.override, reason } : l.override }))
+    await st.adjustDay(date, `Termin um ${fmtTime(time)}`, (l) => ({ ...l, override: reason ? { ...l.override, reason } : l.override }))
     onDone('Okay, heute läuft es anders. Ich passe den Rest an.')
   }
 

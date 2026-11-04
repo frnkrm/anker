@@ -13,6 +13,7 @@ import { StuckSheet } from '../components/Stuck'
 import { openRoute, TodayDifferent } from '../components/TodayDifferent'
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
+import { WorkBar } from '../components/WorkControls'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
 
@@ -30,7 +31,7 @@ export default function Now() {
   const [rescue, setRescue] = useState(false)
   const [different, setDifferent] = useState(false)
   const [more, setMore] = useState(false)
-  const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume }
+  const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions }
   const v = nextAction(input)
   const a = v.action
   const mode = currentMode(log)
@@ -69,6 +70,7 @@ export default function Now() {
         )}
       </section>
 
+      <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
       {plan.conflicts?.map((x) => (
         <Link key={x} to="/tag" className="mb-2 block rounded-2xl border border-warm px-4 py-3 text-warm">
           {x} Ansehen
@@ -310,6 +312,58 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
           Bin wieder da
         </Button>
       )
+    case 'work-break':
+      return (
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.workBreakEnd()}>
+            Pause beenden
+          </Button>
+          <Button variant="ghost" size="lg" className="w-full" onClick={() => st.workStop()}>
+            {a.session.kind === 'regular' ? 'Feierabend' : 'Einsatz beenden'}
+          </Button>
+        </>
+      )
+    case 'work-stale':
+      return (
+        <Link to="/arbeitszeit" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-6 text-center text-2xl font-semibold text-accent-ink">
+          Ende eintragen
+        </Link>
+      )
+    case 'einsatz-start': {
+      const c = a.leg.commitment
+      return (
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.workStart({ kind: c.workKind === 'oncall' || !c.workKind ? 'incident' : c.workKind, label: c.label, commitmentId: c.id })}>
+            Einsatz starten
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="lg" className="flex-1" onClick={() => st.saveCommitment({ ...c, status: 'cancelled' })}>
+              Entfällt
+            </Button>
+            {StuckButton}
+          </div>
+        </>
+      )
+    }
+    case 'einsatz-running':
+      return (
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => {
+            await st.workStop()
+            st.showToast('Gesichert. Der Rest des Tages gehört wieder dir.')
+          }}>
+            Einsatz beenden
+          </Button>
+          <div className="flex gap-2">
+            <Button size="lg" className="flex-1" onClick={() => st.workBreakStart()}>
+              Pause
+            </Button>
+            <Button size="lg" className="flex-1" onClick={onInterrupted}>
+              Ich wurde unterbrochen
+            </Button>
+          </div>
+        </>
+      )
     case 'return-check':
       return (
         <>
@@ -401,6 +455,7 @@ function InterruptSheet({ open, onClose, action: a }: { open: boolean; onClose: 
   const st = useApp()
   const [next, setNext] = useState('')
   const task = a.type === 'worktask' ? a.task : undefined
+  const einsatz = a.type === 'einsatz-running' ? a.title : undefined
   return (
     <Sheet open={open} onClose={onClose} title="Wo machst du weiter?">
       <form
@@ -412,6 +467,7 @@ function InterruptSheet({ open, onClose, action: a }: { open: boolean; onClose: 
             if (step) await st.saveLocal((l) => ({ ...l, work: l.work.map((w) => (w.id === task.id ? { ...w, nextStep: step } : w)) }))
             await st.setResume({ kind: 'work', title: task.title, nextStep: step || task.nextStep, refId: task.id, at: Date.now() })
           }
+          if (einsatz) await st.setResume({ kind: 'work', title: einsatz, nextStep: step || undefined, at: Date.now() })
           setNext('')
           onClose()
           st.showToast('Gemerkt. Du findest gleich hierher zurück.')

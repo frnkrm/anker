@@ -19,6 +19,7 @@ const Inbox = lazy(() => import('./ui/pages/Inbox'))
 const More = lazy(() => import('./ui/pages/More'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
 const Work = lazy(() => import('./ui/pages/Work'))
+const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
 const Check = lazy(() => import('./ui/pages/Check'))
 const PcStop = lazy(() => import('./ui/pages/PcStop'))
 const Connections = lazy(() => import('./ui/pages/Connections'))
@@ -116,6 +117,7 @@ export default function App() {
             <Route path="/fokus/:routine" element={<Focus />} />
             <Route path="/tag" element={<Day />} />
             <Route path="/arbeit" element={<Work />} />
+            <Route path="/arbeitszeit" element={<WorkTime />} />
             <Route path="/spiel" element={<Game />} />
             <Route path="/spiel/shop" element={<Shop />} />
             <Route path="/inbox" element={<Inbox />} />

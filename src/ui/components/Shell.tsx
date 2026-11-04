@@ -83,7 +83,7 @@ export function InboxSheet({ open, onClose }: { open: boolean; onClose: () => vo
     const a = nextNow().action
     const was = a.title
     // Gedanken werden synchronisiert, Arbeitsinhalte nicht: Der Hinweis erscheint, wird aber nicht gespeichert
-    const isWork = a.type === 'worktask' || (a.type === 'resume' && a.resume.kind === 'work')
+    const isWork = a.type === 'worktask' || (a.type === 'resume' && a.resume.kind === 'work') || ['einsatz-start', 'einsatz-running', 'prep', 'go', 'underway', 'away'].includes(a.type)
     const id = await add(text, isWork ? undefined : was)
     setText('')
     if (id) setSaved({ id, was })

@@ -56,7 +56,7 @@ export default function Settings() {
         </Section>
       )}
       <Section title="Dein Tag">
-        <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}`} to="/einstellungen/arbeit" />
+        <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}${s.flex.latestStart !== null ? ` · spätestens ${fmtTime(s.flex.latestStart)}` : ''}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
         <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · PC-Stopp ${fmtTime(s.pcStop)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Sport" sub={`${s.sport.days.filter(Boolean).length}× pro Woche`} to="/einstellungen/sport" />
@@ -81,9 +81,46 @@ export default function Settings() {
 
 function Work({ s, save }: { s: S; save: Save }) {
   const upd = (i: number, patch: Partial<S['work'][number]>) => save((x) => applySchedule({ ...x, work: x.work.map((w, j) => (j === i ? { ...w, ...patch } : w)) }))
+  const flex = (patch: Partial<S['flex']>) => save((x) => ({ ...x, flex: { ...x.flex, ...patch } }))
+  const others = s.work.filter((w, i) => i !== 4 && w.isWorkDay).map((w) => w.durationMin)
+  const friday = s.work[4]!
   return (
-    <Page title="Arbeit" back="/einstellungen">
-      <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Arbeitsbeginn.</p>
+    <Page title="Arbeit & Gleitzeit" back="/einstellungen">
+      <Section title="Gleitzeit">
+        <Card className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <span>Spätester Beginn</span>
+            {s.flex.latestStart !== null ? (
+              <div className="flex items-center gap-2">
+                <TimeField label="Spätester Arbeitsbeginn" value={s.flex.latestStart} onChange={(v) => flex({ latestStart: v })} />
+                <Button size="sm" variant="ghost" onClick={() => flex({ latestStart: null })}>
+                  Aus
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" onClick={() => flex({ latestStart: 9 * 60 })}>
+                Festlegen
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-muted">Eine Grenze, kein Ziel. Ein Kundentermin kann früher liegen. Sie zählt für den Beginn am Arbeitsort oder im Homeoffice.</p>
+          <div className="flex items-center justify-between gap-2">
+            <span>Arbeit, Pause und Feierabend auf der Startseite</span>
+            <Toggle label="Zeiten erfassen anbieten" checked={s.flex.tracking} onChange={(v) => flex({ tracking: v })} />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span>Hinweise zu Pausen, Ruhezeit und Sonntag</span>
+            <Toggle label="Hinweise zu Pausen und Ruhezeit" checked={s.flex.legalHints} onChange={(v) => flex({ legalHints: v })} />
+          </div>
+          <label className="block space-y-1">
+            <span>Nachricht, wenn es später wird</span>
+            <TextInput aria-label="Nachricht, wenn es später wird" value={s.flex.lateMessage} onChange={(e) => flex({ lateMessage: e.target.value })} />
+          </label>
+          <p className="text-sm text-muted">Die Nachricht kopierst du nur, Anker sendet nichts. Anker ist eine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.</p>
+        </Card>
+      </Section>
+      {friday.isWorkDay && others.length > 0 && friday.durationMin >= Math.min(...others) && <p className="px-1 text-muted">Ist dein Freitag kürzer? Trag unten dein echtes Soll ein. Anker rät keinen Wert.</p>}
+      <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Wunsch-Beginn.</p>
       {s.work.map((w, i) => (
         <Card key={i} className="space-y-3">
           <div className="flex items-center justify-between">
@@ -93,17 +130,18 @@ function Work({ s, save }: { s: S; save: Save }) {
           {w.isWorkDay && (
             <>
               <div className="flex items-center justify-between">
-                <span>Beginn</span>
+                <span>Wunsch-Beginn</span>
                 <TimeField label="Arbeitsbeginn" value={w.start} onChange={(v) => upd(i, { start: v })} />
               </div>
               <div className="flex items-center justify-between">
-                <span>Dauer</span>
-                <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.5} min={1} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
+                <span>Soll netto, ohne Pause</span>
+                <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.25} min={0.25} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
               </div>
               <div className="flex items-center justify-between">
-                <span>Pause</span>
-                <Stepper label="Pause" value={w.pauseMin} step={15} min={0} max={120} onChange={(v) => upd(i, { pauseMin: v })} />
+                <span>Übliche Pause</span>
+                <Stepper label="Pause" value={w.pauseMin} step={5} min={0} max={180} onChange={(v) => upd(i, { pauseMin: v })} />
               </div>
+              <p className="text-sm text-muted">Feierabend etwa {fmtTime(w.start + w.durationMin + w.pauseMin)}</p>
               <div className="flex items-center justify-between">
                 <span>Homeoffice</span>
                 <Toggle label="Homeoffice" checked={w.homeOffice} onChange={(v) => upd(i, { homeOffice: v })} />
