@@ -2,7 +2,7 @@
 
 Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sondern nur den nächsten Schritt machen.
 
-**Stand:** Der Android-Teil ist gebaut, aber auf Entwicklerseite noch nicht auf einem echten Handy getestet. Einschränkungen stehen [ganz unten](#bekannte-grenzen). Für die Einrichtung von APK, Supabase, Google und Netlify siehe [README](../README.md).
+**Stand 1.1.0-rc.1:** Der Android-Teil ist gebaut und seine Logik automatisch getestet, aber noch **nicht auf einem echten Handy geprüft**. Lass deshalb zusätzlich den Android-Wecker gestellt, bis du Anker selbst geprüft hast (Liste: [GERAETETEST.md](GERAETETEST.md)). Einschränkungen stehen [ganz unten](#bekannte-grenzen). Für die Einrichtung von APK, Supabase, Google und Netlify siehe [README](../README.md).
 
 ## Dein Tag mit Anker
 
@@ -10,7 +10,7 @@ Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sonder
 |---|---|
 | **Morgens** | Wecker klingelt, QR-Code im Bad scannen. Danach führt dich der Fokus-Modus durch die Morgenroutine. |
 | **Vor dem Losgehen** | Anker zeigt die Restzeit. Zur Losgeh-Zeit tippst du **„Bin los“**. |
-| **Arbeit** | Nichts zu tun. Wird es später: **„Ich mache heute länger“**. |
+| **Arbeit** | Anker zeigt deine wichtigste Aufgabe. **„Ich wurde unterbrochen“** merkt den nächsten Schritt. Wird es später: **„Heute länger“** unter *Mehr*. |
 | **Abends** | Erst Abendplan (Essen, Freunde, Sport), dann Abendroutine. |
 | **Danach** | Freizeit, zocken erlaubt, bis zum PC-Stopp. |
 | **PC-Stopp, Bett** | **„PC ist aus“**, später **„Ich liege im Bett“**. |
@@ -25,19 +25,38 @@ Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sonder
 Unten ist die Navigation: **Jetzt · Tag · 💭 · Spiel · Mehr**
 
 ### Jetzt
-- **Die eine Aktion**, groß, mit dem passenden Knopf.
-- **Countdown** zur nächsten festen Zeit, mit Balken.
-- **„Ich hänge fest“** zeigt den kleinstmöglichen Schritt und startet 2 Minuten Timer.
-- **„Tageslinie“** klappt den Tagesablauf auf.
-- **Knopf oben rechts** (z. B. „Arbeitstag ▾“): Tagesart, spontan Homeoffice, heutiger Abendplan.
+- **Die eine Aktion**, groß, mit einem Hauptknopf und höchstens zwei weiteren. Darüber in einem Satz, warum das gerade dran ist, wenn es dafür einen echten Grund gibt.
+- **Oben** die nächste feste Zeit mit dünnem Balken.
+- **„Ich hänge fest“:** ein Bildschirm mit einem winzigen Schritt und 2-Minuten-Ring (Starten, Geschafft, Etwas kleiner, Pause).
+- **„Mehr“** klappt Tageslinie, Fokus-Modus, Überspringen, Hinweise und „Tag neu sortieren“ auf.
+- **Knopf oben rechts** (z. B. „Arbeitstag ▾“): Unterstützung, Tagesart, spontan Homeoffice, Abendplan.
 
-Bei einem Routine-Schritt gibt es **„Erledigt“**, die kleine Version, **„Überspringen“** und den **Fokus-Modus** (nur dieser Schritt, im Vollbild, mit Countdown).
+**Was als Nächstes kommt, entscheidet eine feste Reihenfolge:** feste Zeiten und Termine, Arbeit mit naher Frist, wo du unterbrochen wurdest, heute Eingeplantes, Routine, dann Pause oder Freizeit. Auf dem Arbeitsweg unterbricht nichts.
+
+### Unterstützung wählen
+
+Oben rechts, gilt für heute, jederzeit änderbar. Es ist deine Wahl, Anker leitet sie nie aus Uhrzeit oder Medikamenten ab.
+
+| Modus | Was passiert |
+|---|---|
+| **Einfach anfangen** | Hauptknopf „2 Minuten anfangen“ |
+| **Wenig Energie** | Routinen sofort in kleinen Versionen |
+| **Überlastet** | Nur Zähne und Gesicht, keine zusätzlichen Aufgaben, Spiel ausgeblendet |
+| **Auf Kurs** | Nur noch wichtige Erinnerungen |
+
+Feste Zeiten ändern sich in keinem Modus.
+
+### Arbeit
+
+*Mehr → Arbeit.* Ein Titel genügt, oben steht die wichtigste Aufgabe, höchstens zwei weitere sind sichtbar. Unter *Details* gehen nächster Schritt, Schätzung und Frist. Vor einer Frist erinnert Anker am Vortag und eine Stunde vorher, ohne den Inhalt zu nennen. Abends notierst du in der Übergabe, wo du morgen weitermachst. **Arbeitsaufgaben bleiben auf dem Gerät** und werden nicht synchronisiert. Anker sendet nichts an Kollegen oder Vorgesetzte.
 
 ### Tag
 Der Ablauf für heute, morgen und übermorgen, dazu die heutigen Kernziele mit Häkchen.
 
 ### 💭 Gedanken
-Von fast überall in einer Zeile festhalten, ohne die Aufgabe zu verlassen. Abends gehst du sie unter **Mehr → Gedanken** durch: **Behalten**, **Morgen erledigen** oder **Löschen**.
+Von fast überall in einer Zeile festhalten. Danach zeigt Anker „Du warst bei: …“ und einen Knopf **Weiter**. Der Gedanke bleibt erst mal geparkt. Abends gehst du sie unter **Mehr → Gedanken** durch: **Behalten**, **Morgen erledigen**, **Arbeit** oder **Löschen**.
+
+**„Morgen erledigen“** erscheint am nächsten Tag unter **Tag** als flexible Aufgabe und nach Feierabend auf der Startseite. Es bleibt verschiebbar und wird nie zum festen Termin. Erledigt ist überall erledigt, unter *Gedanken* kannst du es zurücknehmen.
 
 ### Spiel
 Level, Kapitel, Stufe, Belohnungen, Heatmap, Abzeichen und Erfolge.
@@ -97,30 +116,41 @@ Unter *Einstellungen → Erinnerungen* wählst du die Stärke:
 | **Normal** | Einmal, nach 5 Minuten noch einmal |
 | **Hartnäckig** | Zusätzlich ein drittes Mal auf dem Wecker-Kanal |
 
-Wichtige Erinnerungen haben die Knöpfe **Erledigt**, **5 Min später** (höchstens 2×) und **Heute nicht**. In den Ruhezeiten kommen nur die festen Zeiten: Losgehen, PC-Stopp, Bett.
+Wichtige Erinnerungen haben die Knöpfe **Erledigt**, **5 Min später** (höchstens 2×) und **Heute nicht**. Sie wirken auch bei geschlossener App. In den Ruhezeiten kommen nur die festen Zeiten: Losgehen, PC-Stopp, Bett.
+
+**Höchstens drei** Anker-Meldungen stehen gleichzeitig in der Leiste: eine zur laufenden Aufgabe, eine zur nächsten festen Zeit, eine für den Rest. Eine Kleinigkeit verdrängt nie einen festen Termin. Klingelt der Wecker, bleibt der dritte Platz frei. Erledigtes verschwindet von selbst, nach 90 Minuten auch Unbeantwortetes.
+
+Anker plant **zwei Wochen voraus**, auch wenn du die App nicht öffnest. Kurz vor Ende kommt ein einzelner Hinweis, die App einmal zu öffnen. War das Handy lange aus, kommen keine alten Meldungen nach.
 
 ## Der Wecker
 
 1. *Mehr → Wecker & QR-Code → Drucken*, den Code im Bad aufhängen.
-2. **„Wecker testen“** antippen und das Handy sperren.
+2. **„Wecker testen“** antippen und das Handy sperren. Danach fragt Anker, ob du ihn gehört hast. Dein echter Wecker bleibt dabei gestellt.
 3. Morgens: Handy entsperren, **QR-Code scannen**.
 
 - **Schlummern:** einmal für 5 Minuten.
-- **Notfall ohne Code:** 3 Rechenaufgaben.
-- **Nach 30 Minuten** verstummt der Wecker von selbst.
+- **Anderen Weg wählen:** Rechenaufgaben (3, 5 oder 8) oder **Notfall-Stopp**: 10 Sekunden warten, einmal tippen. Kein Lesen, Rechnen oder Kamera nötig.
+- **Nach 30 Minuten** verstummt der Wecker von selbst. Der nächste Morgen ist dann schon geplant.
 - **Neuer Code:** Danach gilt der alte Ausdruck nicht mehr, also neu drucken.
 
-Der Wecker klingelt jeden Tag zur gleichen Zeit, auch am Wochenende und im Urlaub. An Tagen, die du als krank markierst, klingelt er nicht.
+Der Wecker plant sich selbst weiter, auch wenn die App zu ist. Er klingelt jeden Tag zur gleichen Zeit, auch am Wochenende und im Urlaub. An Tagen, die du als krank markierst, pausiert er, danach klingelt er wieder. War das Handy zur Weckzeit aus, klingelt er beim Einschalten noch, wenn seitdem höchstens 30 Minuten vergangen sind.
+
+**Optional, alle aus, bis du sie einschaltest:**
+- **Vorwecker:** früher und sanfter, Minuten frei wählbar. Der Hauptwecker klingelt immer, egal was du damit machst.
+- **Wachheits-Check:** einmal kurz nachfragen, keine Wiederholung.
+- **Privates Einnahmeprotokoll:** nur ein Notizbuch. „Einnahme bestätigt“, „Noch nicht“, „Unsicher“ sind getrennte Knöpfe. Das Beenden eines Weckers trägt nie etwas ein. Es bleibt auf dem Gerät, sagt dir nie, was du wann nehmen sollst, und zeigt keine Wirkung an. Das klärst du mit deiner Ärztin oder deinem Arzt.
+
+**So steht dein Wecker** (unter *Wecker* und im *Einrichtungs-Check*) zeigt, was Android tatsächlich meldet: nächster Wecker, letzter Test, Lautstärke, Bluetooth, Rechte, jeweils mit dem Weg in die richtige Einstellung. Anker ändert von sich aus weder Lautstärke noch „Nicht stören“, und die Lautstärketasten funktionieren normal.
 
 ## PC-Stopp
 
 Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtsklick auf `install.ps1` → **„Mit PowerShell ausführen“**.
 
-- Warnung etwa 15 und 5 Minuten vorher, dann fährt der PC herunter. **Ungespeichertes geht dabei verloren.**
-- Bis 6 Stunden nach der Stopp-Zeit fährt der PC auch nach einem Neustart wieder herunter.
+- Warnung etwa 15 und 5 Minuten vorher. Zur Stopp-Zeit kommt eine weitere Meldung, etwa 5 Minuten später fährt der PC ohne Zwang herunter. Programme mit ungespeicherter Arbeit können das aufhalten. **Speichere trotzdem rechtzeitig**, nicht jedes Programm fragt nach.
+- Bis 6 Stunden nach der Stopp-Zeit versucht er es auch nach einem Neustart wieder.
 - **Verlängerung:** einmal pro Abend um 15 Minuten. Beim PC kommt sie nur an, wenn Sync eingerichtet ist und du angemeldet bist.
 - **Ohne Sync** gilt die feste Zeit, die beim Herunterladen eingestellt war. Änderst du sie später, lade das Paket neu und installiere es erneut.
-- **Notfall:** `shutdown /a` in der Eingabeaufforderung bricht das Herunterfahren ab. Entfernen mit `uninstall.ps1`.
+- **Für heute aussetzen:** `pc-stop-abbrechen.ps1` mit PowerShell ausführen. Entfernen mit `uninstall.ps1`. Pakete von vor 1.1.0 fahren noch erzwungen herunter, also bitte neu herunterladen und installieren.
 
 ## Was Anker alles kann
 
@@ -136,7 +166,8 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | **Wochenrückblick** | 3 Fragen, die Änderung landet als Vorschlag in den Einstellungen |
 | **Belohnungen** | Eigene Belohnungen gegen XP einlösen |
 | **Widget** | Nächste Aktion, nächste feste Zeit, Knopf für Gedanken |
-| **Druckansicht** | A5-Checklisten für Badspiegel und Haustür, QR-Code |
+| **Druckansicht** | Morgen, Abend, beide, QR-Code oder Haustür, A5 oder A4, auf Android auch „Als PDF speichern“ im Systemdialog |
+| **Alltagshilfen** | Fokus-Puls, Abendmodus-Vorschlag, Ankommen nach der Arbeit, Spiel ausblenden (alles in den Einstellungen) |
 | **Kalender** | Google-Termine im Tagesplan, Routinen in eigenen Kalender schreiben, `.ics`-Export |
 | **Daten** | Läuft offline und ohne Konto, Sicherung als JSON, optionaler Sync |
 | **Anzeige** | Dunkel oder hell, Schriftgröße 80–160 % |
@@ -171,13 +202,17 @@ Alles änderbar unter *Mehr → Einstellungen*.
 
 Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Einstellungen → Schlaf & Anker*.
 
-**Achtung:** Änderst du Arbeit, Arbeitsweg, Schlafwerte, Sport oder die Morgenroutine, rechnet Anker Aufstehen, PC-Stopp und Bett automatisch neu. Von Hand gesetzte Zeiten werden dabei überschrieben, also stelle sie danach wieder ein.
+Änderst du Arbeit, Arbeitsweg, Schlafwerte, Sport oder die Morgenroutine, rechnet Anker Aufstehen, PC-Stopp und Bett neu. **Von Hand gesetzte Zeiten bleiben dabei stehen** und sind als „Von dir gesetzt“ markiert. Erst „Vorschlag übernehmen“ hebt das auf.
 
 ## Bekannte Grenzen
 
-- **App regelmäßig öffnen:** Erinnerungen sind immer nur für die nächsten 48 Stunden geplant, der Wecker nur für den nächsten Morgen. Nach zwei Tagen ohne Öffnen kommen keine Erinnerungen mehr.
-- **Wecker nach Ablauf:** Verstummt er nach 30 Minuten von selbst, wird der nächste erst beim nächsten Öffnen der App geplant.
-- **Geplante Gedanken:** „Morgen erledigen“ erscheint nur unter *Gedanken*, nicht im Tagesplan oder auf der Startseite.
+- **Kein Handy-Test bisher:** Wecker, Benachrichtigungen, Sperrbildschirm und Druckdialog sind nicht auf einem echten Gerät geprüft. Anker kann nicht garantieren, dass ein Wecker klingelt.
+- **Handy aus oder Neustart:** Vor dem ersten Entsperren nach einem Neustart kann die App nicht öffnen. Der Wecker soll trotzdem klingeln, und in der Meldung steht ein Knopf „Beenden“.
+- **Andere Zeitzone:** Anker rechnet immer in deutscher Zeit, auch auf Reisen.
+- **Kranktage und Änderungen** erreichen den Wecker erst, wenn die App sie gespeichert hat. Der Plan der nächsten zwei Wochen ändert sich nicht, solange die App zu ist.
+- **Fokus-Puls** läuft nur, solange der Fokus-Modus offen ist.
+- **Sync:** Arbeitsaufgaben und Einnahmeprotokoll bleiben auf dem Gerät. Tagesdaten wie Routinen, Gedanken und der gewählte Modus werden mitsynchronisiert, wenn du Sync eingerichtet hast.
+- **Sprache:** Gedanken lassen sich nur tippen, Spracheingabe gibt es nicht.
 - **Hartnäckig** bedeutet 3 Erinnerungen, nicht Dauerklingeln bis zur Bestätigung.
 - **Google-Anmeldung:** Sie gilt auf Handy und im Browser etwa eine Stunde. Danach bleiben die zuletzt geladenen Termine stehen, bis du dich unter *Kalender & Sync* neu verbindest.
 - **Fitnessstudio morgens** passt bei 8:00 Arbeitsbeginn rechnerisch nicht. Anker schlägt dann Training zu Hause vor.

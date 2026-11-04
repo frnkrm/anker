@@ -53,7 +53,10 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `time.ts` | Zeitrechnung für Europe/Berlin inklusive Sommerzeit |
 | `types.ts` | Alle Datentypen (`Settings`, `DayLog`, `DayPlan` …) |
 | `defaults.ts` | Standardwerte und Zeitvorschlag, rückwärts vom Arbeitsbeginn |
-| `now.ts` | „Was mache ich JETZT?“: wählt genau eine Aktion |
+| `now.ts` | Was der Tagesplan gerade vorsieht |
+| `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
+| `alarm.ts` | Konfiguration für den nativen Wecker |
+| `print.ts` | Was auf welchem Druckblatt steht |
 | `planner/plan.ts` | `buildDayPlan()`: die Zeitleiste eines Tages |
 | `planner/fit.ts` | Routinen ins Zeitfenster einpassen, Minimal-Versionen wählen |
 | `game/themes.ts` | Die fünf Themen mit Level-Namen und Abzeichen |
@@ -61,7 +64,7 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `game/evaluate.ts` | Kernziele je Stufe, Status eines Tages |
 | `game/chapter.ts` | Kapitel, Regel „Nie zweimal“, Joker |
 | `game/progress.ts` | Kapitel-Abschluss, Stufen-Angebot, Erfolge |
-| `reminders/build.ts` | Erinnerungen der nächsten 48 Stunden |
+| `reminders/build.ts` | Erinnerungen mit Slot und Rang, Zeitfenster frei wählbar |
 | `export/` | `.ics`, JSON-Sicherung, PC-Stopp-Skripte |
 
 **Zeiten:** Im Plan zählen Minuten ab lokaler Mitternacht (435 = 07:15, 1470 = 00:30 am Folgetag). In UTC wird nur an den Rändern umgerechnet: Benachrichtigungen, Kalender, Zeitstempel im Tageslog.
@@ -71,6 +74,8 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 Eine gemeinsame Schnittstelle (`types.ts`) mit drei Umsetzungen: `sqlite.ts` (Android), `dexie.ts` (Browser), `memory.ts` (Tests und Notlösung). `index.ts` wählt die passende aus.
 
 Alles liegt als gleichförmiger Datensatz vor: `{ collection, id, data, updated_at, deleted, dirty }`. Sammlungen: `settings`, `days`, `inbox`, `game`, `reviews`, `meta`. `merge.ts` enthält die Sync-Regel: Der neuere Stand gewinnt.
+
+**`meta` wird nicht synchronisiert.** Dort liegt `local` (`LocalData`): Arbeitsaufgaben, Übergabe, Wiedereinstieg, Einnahmeprotokoll. In der JSON-Sicherung ist es enthalten, darauf weist die Sicherungsseite hin.
 
 ## `src/state/` – der App-Zustand
 
@@ -83,8 +88,9 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | Datei | Aufgabe |
 |---|---|
 | `effects.ts` | Verbindet Planänderungen mit allen Extras |
-| `notifications.ts` | Erinnerungen und ihre Knöpfe |
-| `alarm.ts`, `native.ts` | Wecker und Brücke zum Kotlin-Plugin |
+| `notifications.ts` | Übergibt Erinnerungen an den nativen Teil, trägt Knopf-Aktionen im Store nach |
+| `alarm.ts` | Wecker-Konfiguration an Kotlin, Fehler landen sichtbar im Store (nicht über `safe()`) |
+| `native.ts` | Brücke zum Kotlin-Plugin |
 | `qr.ts`, `health.ts`, `files.ts` | QR-Scan, Health Connect, Dateien speichern oder teilen |
 | `supabase.ts`, `google.ts` | Sync und Login, PC-Stopp-Zeiten, Kalender |
 
@@ -98,6 +104,7 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 |---|---|---|
 | `Onboarding.tsx` | `/start` | Ersteinrichtung |
 | `Now.tsx` | `/` | Startseite „Jetzt“ |
+| `Work.tsx` | `/arbeit` | Arbeitsaufgaben, Übergabe, Vorlagen |
 | `Focus.tsx` | `/fokus/:routine` | Routine Schritt für Schritt |
 | `Day.tsx` | `/tag` | Tageslinie, Kernziele |
 | `Game.tsx`, `Shop.tsx` | `/spiel`, `/spiel/shop` | Level, Kapitel, Erfolge, Belohnungen |
@@ -119,8 +126,12 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 |---|---|
 | `MainActivity.kt` | Einstieg, Anzeige über dem Sperrbildschirm beim Klingeln |
 | `AnkerNativePlugin.kt` | Brücke zur Web-App, Gegenstück zu `src/platform/native.ts` |
-| `AlarmScheduler.kt`, `AlarmService.kt` | Wecker planen und klingeln lassen |
-| `Receivers.kt` | Weckzeit erreicht; Wiederherstellung nach Neustart |
+| `AlarmModel.kt` | Reine Wecker-Logik: Alarmarten, Planung, Zustandsübergänge (JUnit) |
+| `AlarmController.kt` | Einziger Besitzer des Weckerzustands, plant bei Android ein |
+| `AlarmService.kt` | Klingeln im Vordergrund, Zeitlimit, Ton-Rückfallkette |
+| `ReminderModel.kt` | Reine Slot- und Warteschlangenlogik (JUnit) |
+| `ReminderScheduler.kt` | Stellt Erinnerungen ohne JavaScript zu, Knöpfe in Meldungen |
+| `Receivers.kt` | Weckzeit erreicht; Abgleich nach Neustart, Update, Zeit- und Rechteänderung |
 | `AnkerWidget.kt` | Homescreen-Widget |
 | `AnkerPrefs.kt` | Kleiner Speicher für den nativen Teil |
 
@@ -145,7 +156,9 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 | Erinnerungstexte ändern | `src/core/reminders/build.ts` |
 | Farben ändern | `src/index.css` |
 | Eine neue Seite ergänzen | Datei in `src/ui/pages/`, Route in `src/App.tsx`, Link in `More.tsx` |
-| Wecker-Verhalten ändern | `android/…/AlarmService.kt`, `src/ui/pages/Alarm.tsx` |
+| Wecker-Regeln ändern | `android/…/AlarmModel.kt` samt Test, Anzeige in `src/ui/pages/Alarm.tsx` |
+| Was als Nächstes dran ist | `src/core/support.ts` |
+| Sichtbare Slots ändern | `slotFor` in `src/core/reminders/build.ts`, Regeln in `android/…/ReminderModel.kt` |
 
 ## Tests und Befehle
 
@@ -168,6 +181,11 @@ npm run build
 npm run android:debug
 ```
 
-- **Vitest** deckt `src/core/` und den Speicher ab (106 Tests in 7 Dateien).
-- **Playwright** prüft die wichtigsten Wege der Web-Version.
-- **Nicht automatisch getestet:** Kotlin-Code, Benachrichtigungen auf dem Gerät, SQLite auf Android, Supabase und Google. Der Android-Build zeigt nur, dass der Code kompiliert.
+```bash
+node scripts/gradle.mjs :app:testDebugUnitTest
+```
+
+- **Vitest** deckt `src/core/` und den Speicher ab.
+- **JUnit** deckt die reine Kotlin-Logik ab: Alarmarten, Folgetag, Schlummern, Zeitumstellung, Slots, Warteschlange.
+- **Playwright** prüft die wichtigsten Wege der Web-Version, auch die Druckansicht.
+- **Nicht automatisch getestet:** alles, was Android tatsächlich tut (PendingIntents, Klingeln, Vollbild, Benachrichtigungen, Druckdialog), SQLite auf Android, Supabase und Google. Der Android-Build zeigt nur, dass der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).

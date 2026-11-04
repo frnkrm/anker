@@ -1,5 +1,45 @@
 # Patch Notes
 
+## 1.1.0-rc.1 (2026-11-04), Vorabversion
+
+**Noch nicht auf einem echten Handy geprüft.** Logik per Unit-Tests geprüft, die APK ist gebaut. Lass den Android-Wecker zusätzlich gestellt, bis du [die Geräteprüfung](docs/GERAETETEST.md) durchlaufen hast.
+
+### Behoben
+- **„Wecker testen“ löscht den echten Wecker nicht mehr.** Der Test war derselbe Alarm wie der Hauptwecker, ersetzte ihn und setzte das Schlummern zurück.
+- **Der Test zählt nicht mehr als „aufgestanden“.**
+- **Der nächste Morgen plant sich selbst,** auch nach dem 30-Minuten-Ende und bei geschlossener App.
+- **Doppelte Signale erzeugen keine zweite Klingel,** das Zeitlimit übersteht einen Neustart der App.
+- **Erinnerungen laufen zwei Wochen weiter,** auch ohne die App zu öffnen, und bauen keinen Stau auf.
+- **Höchstens drei Anker-Meldungen in der Leiste,** feste Termine werden nicht von Kleinigkeiten verdrängt.
+- **Knöpfe in Meldungen wirken bei geschlossener App.**
+- **„Morgen erledigen“ erscheint jetzt wirklich** am richtigen Tag unter **Tag** und auf der Startseite.
+- **Von Hand gesetzte Zeiten bleiben stehen,** wenn Anker neu rechnet.
+- **PC-Stopp erzwingt nichts mehr:** Das frühere Herunterfahren mit Wartezeit schloss Programme laut Windows-Doku erzwungen. Jetzt gibt es 5 Minuten Schonfrist, ein Herunterfahren ohne Zwang und ein Skript zum Aussetzen. Dafür das Paket neu installieren.
+- **Drucken auf Android:** eigener Weg zum Systemdialog, der `window.print()` in der App nicht zuverlässig war.
+
+### Neu
+- **Startseite:** eine Hauptaktion, höchstens zwei weitere, Rest unter „Mehr“. Warum etwas dran ist, steht in einem Satz.
+- **Arbeit:** wichtigste Aufgabe statt „nichts zu tun“, „Ich wurde unterbrochen“, Fristen, Feierabend-Übergabe. Bleibt auf dem Gerät.
+- **Unterstützung wählen:** Einfach anfangen, Wenig Energie, Überlastet, Auf Kurs.
+- **Gedanken:** nach dem Speichern „Du warst bei …“ und zurück.
+- **„Ich hänge fest“:** ein Bildschirm, ein Schritt, 2-Minuten-Ring, „Etwas kleiner“.
+- **„Tag neu sortieren“:** höchstens drei Dinge ab jetzt, kleine Versionen für den Rest.
+- **Wecker:** optionaler Vorwecker und Wachheits-Check, Notfall-Stopp ohne Lesen und Rechnen, Diagnose mit echten Android-Werten.
+- **Privates Einnahmeprotokoll:** aus, bis du es einschaltest. Bleibt auf dem Gerät, nie automatisch, keine Wirkungsanzeige.
+- **Fokus-Puls** (aus), **Abendmodus-Vorschlag** (aus), **Ankommen nach der Arbeit** (aus), **Spiel ausblendbar**, **freiwillige 7- oder 14-Tage-Probe**.
+- **Druckauswahl:** Morgen, Abend, beide, QR-Code, Haustür, A5 oder A4.
+
+### Geändert
+- Fortschritt beim Fokus-Timer übersteht Pausieren und Neuöffnen.
+- Exakte Wecker: `USE_EXACT_ALARM`, `SCHEDULE_EXACT_ALARM` nur noch bis Android 12.
+
+### Daten
+Einstellungen, Routinen, Spielstand, Gedanken, QR-Code und Sicherungen aus 1.0.x bleiben erhalten. Neues ist standardmäßig aus.
+
+### Noch offen
+- Alle Punkte aus [GERAETETEST.md](docs/GERAETETEST.md), besonders Samsung, Sperrbildschirm, „Nicht stören“, Neustart und der gedruckte QR-Code.
+- Spracheingabe für Gedanken ist nicht umgesetzt. Das Widget zeigt keine Arbeitsaufgaben.
+
 ## 1.0.1 (2026-11-04)
 
 ### Behoben
