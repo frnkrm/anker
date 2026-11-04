@@ -9,6 +9,7 @@ import { installScanner, scannerReady } from '../../platform/qr'
 import { currentUser, supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
 import { Ampel, Button, Card, Page, Section } from '../components/ui'
+import { AlarmDiagnosis } from './Alarm'
 
 type State = 'ok' | 'warn' | 'off'
 interface Item {
@@ -111,6 +112,7 @@ export default function Check() {
 
   return (
     <Page title="Einrichtungs-Check" back="/mehr">
+      <AlarmDiagnosis />
       <Section title="Wichtig">{required.map(render)}</Section>
       <Section title="Empfohlen & optional" hint="Alles hier ist freiwillig. Anker funktioniert auch ohne.">
         {rest.map(render)}

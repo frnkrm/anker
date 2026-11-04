@@ -103,8 +103,20 @@ input[type='time']::-webkit-calendar-picker-indicator {
 
 /* Druckansicht */
 @media print {
-  @page { size: A5; margin: 10mm; }
-  body { background: #fff !important; color: #000 !important; }
+  html { font-size: 100%; }
+  html, body, #root, main { background: #fff !important; color: #000 !important; min-height: 0 !important; }
   .no-print { display: none !important; }
-  .print-page { break-after: page; color: #000; }
+  .print-page {
+    break-after: page;
+    break-inside: avoid;
+    color: #000;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .print-page:last-child { break-after: auto; }
+  .print-page [role='img'] { border-radius: 0; padding: 0; }
 }

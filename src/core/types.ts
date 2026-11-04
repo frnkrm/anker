@@ -41,8 +41,29 @@ export interface Meal {
   minutes: number
 }
 
+/** Selbst gewählter Unterstützungsmodus. Ein Nutzerwunsch, kein aus Medikation berechneter Zustand. */
+export type SupportMode = 'normal' | 'startschwierigkeit' | 'wenig-energie' | 'ueberlastet' | 'auf-kurs'
+export type FocusPulseMode = 'off' | 'gentle' | 'strong'
+
+export interface AlarmPreferences {
+  enabled: boolean
+  qrSecret: string
+  /** Optionaler Vorwecker, Standard aus. Die Minuten sind deine Wahl, kein Arzneimittelmodell. */
+  preWakeEnabled: boolean
+  preWakeLeadMinutes: number
+  /** Optionaler Wachheits-Check nach dem Beenden, Standard aus */
+  wakeCheckEnabled: boolean
+  wakeCheckDelayMinutes: number
+  /** Rechenaufgaben auf dem anderen Weg zum Beenden */
+  mathTasks: 3 | 5 | 8
+  /** Freiwilliges privates Einnahmeprotokoll, Standard aus. Bleibt auf dem Gerät. */
+  medicationEnabled: boolean
+  /** Eigene Erinnerungszeit (Plan-Minuten), null = keine */
+  medicationReminderAt: number | null
+}
+
 export interface Settings {
-  version: 1
+  version: number
   onboarded: boolean
   goal: MainGoal
   themeId: ThemeId
@@ -51,7 +72,13 @@ export interface Settings {
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
   sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number }
-  anchor: { wake: number; wakeToleranceMin: number; weekendToleranceMin: number }
+  anchor: {
+    wake: number
+    wakeToleranceMin: number
+    weekendToleranceMin: number
+    /** Von Hand gesetzte Zeiten werden beim automatischen Neurechnen nicht überschrieben */
+    manual?: { wake?: boolean; pcStop?: boolean; bed?: boolean }
+  }
   pcStop: number
   bed: number
   /** Bonus „früh im Bett“, wenn bis zu dieser Zeit im Bett. */
@@ -74,7 +101,16 @@ export interface Settings {
   eveningPrep: string[]
   game: { stage: 1 | 2 | 3; startDate: DateStr }
   integrations: { healthConnect: boolean; googleCalendar: boolean; writeCalendar: boolean; sync: boolean }
-  alarm: { enabled: boolean; qrSecret: string }
+  alarm: AlarmPreferences
+  focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
+  support: {
+    /** Spiel, XP und Level anzeigen */
+    gameVisible: boolean
+    /** Abends einen Modus vorschlagen (nur Vorschlag, nie automatisch) */
+    eveningPreset: { enabled: boolean; from: number; mode: SupportMode }
+    /** Freiwillige Ankommen-Schritte nach der Arbeit */
+    arrival: { enabled: boolean; steps: string[] }
+  }
   /** Vorschläge aus dem Wochenrückblick */
   suggestions: { id: string; text: string; createdAt: DateStr }[]
 }
@@ -89,6 +125,10 @@ export interface DayOverride {
   homeOffice?: boolean
   /** Verlängerung PC-Stopp in Minuten (max. 15) */
   pcStopExtendMin?: number
+  /** Unterstützungsmodus für diesen Tag */
+  mode?: SupportMode
+  /** „Tag neu sortieren“: Rest des Tages in kleinen Versionen */
+  light?: boolean
 }
 
 export interface DayLog {
@@ -110,6 +150,8 @@ export interface DayLog {
   dismissed?: string[]
   /** Bereits vergebene XP-Gründe, damit nichts doppelt zählt */
   awarded?: string[]
+  /** Erledigte Ankommen-Schritte (Index) */
+  arrival?: number[]
 }
 
 export interface CalendarEvent {
@@ -180,6 +222,45 @@ export interface InboxItem {
   /** Bei status 'task': für welchen Tag eingeplant */
   taskDate?: DateStr
   done?: boolean
+  doneAt?: number
+  /** Bei welchem Schritt der Gedanke kam */
+  captureContext?: string
+  /** Flexible Schätzung in Minuten, Standard 5 */
+  estimateMin?: number
+}
+
+/** Berufliche Aufgabe. Bleibt lokal auf dem Gerät und wird nicht synchronisiert. */
+export interface WorkTask {
+  id: string
+  title: string
+  nextStep?: string
+  estimateMin?: number
+  /** Feste Deadline (UTC ms), optional */
+  deadline?: number
+  done?: boolean
+  doneAt?: number
+  createdAt: number
+}
+
+/** „Hier mache ich weiter“. */
+export interface ResumePoint {
+  kind: 'work' | 'task' | 'step' | 'free'
+  title: string
+  nextStep?: string
+  refId?: string
+  at: number
+}
+
+export type MedsStatus = 'taken' | 'not-taken' | 'unsure'
+
+/** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, Einnahmeprotokoll, Wiedereinstieg. */
+export interface LocalData {
+  work: WorkTask[]
+  resume?: ResumePoint
+  handover: Record<DateStr, { open: string; next: string }>
+  /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */
+  meds: Record<DateStr, { status: MedsStatus; at: number }>
+  trial?: { startedAt: DateStr; days: 7 | 14; answers: Record<DateStr, 'ja' | 'teilweise' | 'nein' | 'uebersprungen'> }
 }
 
 export interface WeeklyReview {

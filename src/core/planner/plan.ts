@@ -144,8 +144,12 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   const routineStart = gymBlock ? gymBlock.end : wake
   const window = morningEnd - routineStart
-  const fit = fitSteps(morningSteps, window)
-  if (fit.minimal) {
+  // Wenig Energie, überlastet oder „Tag neu sortieren“: sofort die kleinen Versionen, ohne weitere Frage
+  const low = !!o.light || o.mode === 'wenig-energie' || o.mode === 'ueberlastet'
+  const overloaded = o.mode === 'ueberlastet'
+  if (overloaded) morningSteps = morningSteps.filter((x) => (x.tag && SICK_BASICS.has(x.tag)) || x.id === 'keys')
+  const fit = low ? { steps: allMinimal(morningSteps), minimal: true, fits: true } : fitSteps(morningSteps, window)
+  if (fit.minimal && !low) {
     notes.push(
       fit.fits
         ? earlyEvent
@@ -210,6 +214,8 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     eveningSteps = [...eveningSteps.slice(0, at + 1), { id: 'gymbag', title: 'Sporttasche packen', minutes: 3, tag: 'gymbag' }, ...eveningSteps.slice(at + 1)]
   }
 
+  if (overloaded) eveningSteps = eveningSteps.filter((x) => x.tag && SICK_BASICS.has(x.tag))
+
   const available = pcStop - home - busyMinutes(home, pcStop, busy)
   const routineFull = eveningSteps.reduce((sum, x) => sum + x.minutes, 0)
   const routineMin = minimalMinutes(eveningSteps)
@@ -226,7 +232,7 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     }
   }
 
-  const eFit = fitSteps(eveningSteps, routineWindow)
+  const eFit = low ? { steps: allMinimal(eveningSteps), minimal: true, fits: true } : fitSteps(eveningSteps, routineWindow)
   let cursor = home
   if (plan === 'appointment' && eveningEvent) cursor = Math.max(cursor, eveningEvent.end)
   if (planDur > 0) {

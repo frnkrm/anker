@@ -1,5 +1,5 @@
 import { useParams } from 'react-router'
-import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, sumMinutes } from '../../core/defaults'
+import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, resetToSuggested, sumMinutes } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtDuration, fmtTime, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
 import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineStep, Settings as S, SportKind, ThemeId } from '../../core/types'
@@ -144,7 +144,8 @@ function Commute({ s, save }: { s: S; save: Save }) {
 
 function Sleep({ s, save }: { s: S; save: Save }) {
   const sug = deriveSchedule(s)
-  const setSleep = (patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
+  const manual = s.anchor.manual ?? {}
+  const setSleep =(patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
   return (
     <Page title="Schlaf & Anker" back="/einstellungen">
       <Card className="space-y-4">
@@ -164,17 +165,20 @@ function Sleep({ s, save }: { s: S; save: Save }) {
       <Card className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="font-medium">Aufstehen (jeden Tag)</span>
-          <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v } }))} />
+          <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v, manual: { ...x.anchor.manual, wake: true } } }))} />
         </div>
+        <p className="-mt-2 text-sm text-muted">{manual.wake ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <div className="flex items-center justify-between">
           <span>PC-Stopp</span>
-          <TimeStepper label="PC-Stopp" value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v }))} />
+          <TimeStepper label="PC-Stopp" value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }))} />
         </div>
+        <p className="-mt-2 text-sm text-muted">{manual.pcStop ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <div className="flex items-center justify-between">
           <span>Bett</span>
-          <TimeStepper label="Bettzeit" value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v }))} />
+          <TimeStepper label="Bettzeit" value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }))} />
         </div>
-        <Button size="sm" onClick={() => save((x) => applySchedule(x))}>
+        <p className="-mt-2 text-sm text-muted">{manual.bed ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
+        <Button size="sm" onClick={() => save((x) => resetToSuggested(x))}>
           Vorschlag übernehmen ({fmtTime(sug.wake)} / {fmtTime(sug.pcStop)} / {fmtTime(sug.bed)})
         </Button>
       </Card>

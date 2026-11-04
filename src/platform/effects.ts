@@ -2,7 +2,7 @@ import { App } from '@capacitor/app'
 import { nowView } from '../core/now'
 import { addDays, fmtTime, minutesOnPlanDay, zonedToUtc } from '../core/time'
 import { onPlanChange, planFor, today, useApp } from '../state/store'
-import { scheduleNextAlarm } from './alarm'
+import { syncAlarm } from './alarm'
 import { syncWorkout } from './health'
 import { AnkerNative, isNative, safe } from './native'
 import { rescheduleAll, setupNotifications } from './notifications'
@@ -45,7 +45,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   started = true
   const run = async () => {
     await rescheduleAll()
-    await scheduleNextAlarm()
+    await syncAlarm()
     await updateWidget()
     if (extra.sync) await safe(extra.sync, undefined)
   }

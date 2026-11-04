@@ -1,4 +1,4 @@
-import type { EveningPlan, RoutineStep, Settings, WorkDay } from './types'
+import type { EveningPlan, LocalData, RoutineStep, Settings, WorkDay } from './types'
 import { roundDownTo } from './time'
 
 export const DEFAULT_MORNING: RoutineStep[] = [
@@ -109,7 +109,7 @@ export function defaultSettings(today: string): Settings {
     homeOffice: false,
   }))
   const s: Settings = {
-    version: 1,
+    version: 2,
     onboarded: false,
     goal: 'on-time-rested',
     themeId: 'seefahrt',
@@ -144,13 +144,80 @@ export function defaultSettings(today: string): Settings {
     eveningPrep: ['Kleidung rausgelegt', 'Tasche gepackt', 'Handy-Wecker geprüft'],
     game: { stage: 1, startDate: today },
     integrations: { healthConnect: false, googleCalendar: false, writeCalendar: false, sync: false },
-    alarm: { enabled: true, qrSecret: `ANKER-WACH-${randomId(16)}` },
+    alarm: {
+      enabled: true,
+      qrSecret: `ANKER-WACH-${randomId(16)}`,
+      preWakeEnabled: false,
+      preWakeLeadMinutes: 30,
+      wakeCheckEnabled: false,
+      wakeCheckDelayMinutes: 5,
+      mathTasks: 3,
+      medicationEnabled: false,
+      medicationReminderAt: null,
+    },
+    focus: { pulse: 'off', everyMin: 5, halfway: false, lastMinute: false },
+    support: {
+      gameVisible: true,
+      eveningPreset: { enabled: false, from: 18 * 60, mode: 'wenig-energie' },
+      arrival: { enabled: false, steps: ['Tasche ablegen', 'Wasser trinken, Essen prüfen', 'Eine kleine Sache erledigen'] },
+    },
     suggestions: [],
   }
   return applySchedule(s)
 }
 
+/** Rechnet Zeiten automatisch neu. Von Hand gesetzte Zeiten bleiben unangetastet. */
 export function applySchedule(s: Settings): Settings {
   const sug = deriveSchedule(s)
-  return { ...s, anchor: { ...s.anchor, wake: sug.wake }, pcStop: sug.pcStop, bed: sug.bed }
+  const m = s.anchor.manual ?? {}
+  const wake = m.wake ? s.anchor.wake : sug.wake
+  // Eine von Hand gesetzte Aufstehzeit bestimmt auch die automatisch gerechnete Bettzeit
+  const autoBed = roundDownTo(wake + 1440 - s.sleep.needMin - s.sleep.fallAsleepMin, 5)
+  const bed = m.bed ? s.bed : autoBed
+  return {
+    ...s,
+    anchor: { ...s.anchor, wake },
+    pcStop: m.pcStop ? s.pcStop : bed - s.sleep.screenOffMin,
+    bed,
+  }
+}
+
+/** Alle automatischen Vorschläge übernehmen, Handeinträge aufheben. */
+export function resetToSuggested(s: Settings): Settings {
+  return applySchedule({ ...s, anchor: { ...s.anchor, manual: {} } })
+}
+
+export function emptyLocal(): LocalData {
+  return { work: [], handover: {}, meds: {} }
+}
+
+/**
+ * Ergänzt, was in älteren Einstellungen fehlt (1.0.0, 1.0.1), ohne Vorhandenes zu verändern.
+ * Weicht eine gespeicherte Zeit vom Rechenwert ab, wurde sie von Hand gesetzt und bleibt künftig geschützt.
+ */
+export function migrateSettings(s: Settings, today: string): Settings {
+  const d = defaultSettings(today)
+  const merged: Settings = {
+    ...d,
+    ...s,
+    version: d.version,
+    sport: { ...d.sport, ...s.sport },
+    reminders: { ...d.reminders, ...s.reminders },
+    integrations: { ...d.integrations, ...s.integrations },
+    game: { ...d.game, ...s.game },
+    alarm: { ...d.alarm, ...s.alarm },
+    appearance: { ...d.appearance, ...s.appearance },
+    focus: { ...d.focus, ...s.focus },
+    support: {
+      ...d.support,
+      ...s.support,
+      eveningPreset: { ...d.support.eveningPreset, ...s.support?.eveningPreset },
+      arrival: { ...d.support.arrival, ...s.support?.arrival },
+    },
+  }
+  if (!s.anchor.manual && s.onboarded) {
+    const sug = deriveSchedule(merged)
+    merged.anchor = { ...merged.anchor, manual: { wake: s.anchor.wake !== sug.wake, pcStop: s.pcStop !== sug.pcStop, bed: s.bed !== sug.bed } }
+  }
+  return merged
 }

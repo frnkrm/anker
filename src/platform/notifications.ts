@@ -1,40 +1,33 @@
-import { LocalNotifications, type ActionPerformed } from '@capacitor/local-notifications'
-import { buildReminders, idsForKey, MAX_SNOOZE, snoozeId, type ReminderSpec } from '../core/reminders/build'
-import { addDays } from '../core/time'
+import { LocalNotifications } from '@capacitor/local-notifications'
+import { buildReminders, relevantReminderKeys, reopenHint } from '../core/reminders/build'
+import { addDays, zonedToUtc } from '../core/time'
 import type { DayLog } from '../core/types'
 import { planFor, today, useApp } from '../state/store'
-import { isNative, safe } from './native'
+import { AnkerNative, isNative, safe, type ReminderActionInfo } from './native'
 
-const ACTION_TYPE = 'anker-actions'
-const CHANNELS = {
-  wecker: { id: 'wecker', name: 'Wecker', importance: 5 as const, description: 'Aufstehen und dringende Erinnerungen' },
-  uebergang: { id: 'uebergang', name: 'Übergänge', importance: 4 as const, description: 'Losgehen, PC-Stopp, Bett' },
-  sanft: { id: 'sanft', name: 'Sanft', importance: 3 as const, description: 'Freundliche Hinweise' },
-}
+/** So weit legt die App Erinnerungen beim nativen Teil ab. Danach folgt ein einziger Hinweis. */
+export const HORIZON_DAYS = 14
 
 let setupDone = false
 
 export async function setupNotifications() {
   if (!isNative() || setupDone) return
   setupDone = true
+  await safe(cleanupLegacy, undefined)
   await safe(async () => {
-    for (const c of Object.values(CHANNELS)) {
-      await LocalNotifications.createChannel({ ...c, visibility: 1, vibration: true, lights: true })
-    }
-    await LocalNotifications.registerActionTypes({
-      types: [
-        {
-          id: ACTION_TYPE,
-          actions: [
-            { id: 'done', title: 'Erledigt' },
-            { id: 'snooze', title: '5 Min später' },
-            { id: 'skip', title: 'Heute nicht' },
-          ],
-        },
-      ],
-    })
-    await LocalNotifications.addListener('localNotificationActionPerformed', handleAction)
+    await AnkerNative.addListener('reminderAction', () => void drainActions())
   }, undefined)
+  await drainActions()
+}
+
+/** Bis 1.0.1 lagen Erinnerungen im Plugin. Einmal abräumen, sonst kämen sie doppelt und ohne Slot-Grenze. */
+async function cleanupLegacy() {
+  const pending = (await LocalNotifications.getPending()).notifications
+  if (pending.length) await LocalNotifications.cancel({ notifications: pending.map((n) => ({ id: n.id })) })
+  const delivered = (await LocalNotifications.getDeliveredNotifications()).notifications
+  // Eigene Slots und den laufenden Wecker nicht anfassen
+  const old = delivered.filter((n) => !(n.id >= 1001 && n.id <= 1003) && n.id !== 7001 && n.id !== 7002)
+  if (old.length) await LocalNotifications.removeDeliveredNotifications({ notifications: old })
 }
 
 export async function notificationPermission(): Promise<'granted' | 'denied' | 'prompt'> {
@@ -55,79 +48,51 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 export async function exactAlarmStatus(): Promise<'granted' | 'denied' | 'prompt'> {
   if (!isNative()) return 'denied'
-  return safe(async () => ((await LocalNotifications.checkExactNotificationSetting()).exact_alarm === 'granted' ? 'granted' : 'denied'), 'prompt' as 'granted' | 'denied' | 'prompt')
+  return safe(async () => ((await AnkerNative.getAlarmState()).exact ? 'granted' : 'denied'), 'prompt' as 'granted' | 'denied' | 'prompt')
 }
 
 export async function openExactAlarmSettings() {
-  if (isNative()) await safe(() => LocalNotifications.changeExactNotificationSetting(), undefined)
+  if (isNative()) await safe(() => AnkerNative.openExactAlarmSettings(), undefined)
 }
 
-/** Plant alle Erinnerungen der nächsten 48 h neu (App-Start, Planänderung, Geräte-Neustart). */
+/** Übergibt die Erinnerungen der nächsten zwei Wochen an den nativen Teil. */
 export async function rescheduleAll() {
   if (!isNative()) return
   await safe(async () => {
     const st = useApp.getState()
     if (!st.settings.onboarded) return
     const t = today()
-    const dates = [t, addDays(t, 1), addDays(t, 2)]
+    const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(t, i))
     const plans = dates.map((d) => planFor(d))
     const logs: Record<string, DayLog | undefined> = Object.fromEntries(dates.map((d) => [d, st.days[d]]))
-    const specs = buildReminders(plans, logs, st.settings, Date.now())
-
-    // Verschobene („5 Min später“) Erinnerungen bleiben stehen
-    const pending = (await LocalNotifications.getPending()).notifications.filter((n) => !(n.extra as { snoozes?: number } | undefined)?.snoozes)
-    if (pending.length) await LocalNotifications.cancel({ notifications: pending.map((n) => ({ id: n.id })) })
-    if (!specs.length) return
-    await LocalNotifications.schedule({ notifications: specs.map(toNotification) })
+    const now = Date.now()
+    const deadlines = st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! }))
+    const horizonEnd = zonedToUtc(dates[dates.length - 1]!, 18 * 60)
+    const specs = buildReminders(plans, logs, st.settings, now, horizonEnd - now, { deadlines })
+    const last = dates[dates.length - 1]!
+    const reminders = [...specs, reopenHint(horizonEnd, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact }))
+    const relevant = [
+      ...relevantReminderKeys(plans, logs, st.settings),
+      ...reminders.filter((r) => r.key.startsWith('deadline') || r.key === 'open-app').map((r) => `${r.date}|${r.key}`),
+    ]
+    await AnkerNative.syncReminders({ reminders, relevant })
   }, undefined)
 }
 
-function toNotification(r: ReminderSpec) {
-  return {
-    id: r.id,
-    title: r.title,
-    body: r.body,
-    channelId: r.channel,
-    schedule: { at: new Date(r.at), allowWhileIdle: true },
-    actionTypeId: r.actions ? ACTION_TYPE : undefined,
-    smallIcon: 'ic_stat_anker',
-    autoCancel: true,
-    extra: { key: r.key, date: r.date, title: r.title, body: r.body, channel: r.channel },
-  }
+/** Knöpfe in Meldungen wirken auch bei geschlossener App: Hier werden sie im Store nachgetragen. */
+async function drainActions() {
+  const { actions } = await safe(() => AnkerNative.drainReminderActions(), { actions: [] as ReminderActionInfo[] })
+  for (const a of actions) await applyAction(a)
 }
 
-async function handleAction(a: ActionPerformed) {
-  const extra = (a.notification.extra ?? {}) as { key?: string; date?: string; title?: string; body?: string; channel?: string; snoozes?: number }
-  const { key, date } = extra
-  if (!key || !date) return
+export async function applyAction(a: ReminderActionInfo) {
   const st = useApp.getState()
-  if (a.actionId === 'done') {
-    await LocalNotifications.cancel({ notifications: idsForKey(date, key).map((id) => ({ id })) })
-    if (key === 'leave') await st.mark(date, 'leftAt')
-    else if (key === 'pcstop') await st.mark(date, 'pcOffAt')
-    else if (key === 'bed') await st.mark(date, 'bedAt')
-    else if (key === 'evening') await st.mark(date, 'eveningRoutineDoneAt')
-    else await st.updateDay(date, (l) => ({ ...l, dismissed: [...(l.dismissed ?? []), key] }))
-  } else if (a.actionId === 'skip') {
-    await LocalNotifications.cancel({ notifications: idsForKey(date, key).map((id) => ({ id })) })
-    await st.updateDay(date, (l) => ({ ...l, dismissed: [...(l.dismissed ?? []), key] }))
-  } else if (a.actionId === 'snooze') {
-    const n = (extra.snoozes ?? 0) + 1
-    if (n > MAX_SNOOZE) return
-    await LocalNotifications.cancel({ notifications: idsForKey(date, key).map((id) => ({ id })) })
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: snoozeId(date, key, n),
-          title: extra.title ?? 'Erinnerung',
-          body: n === MAX_SNOOZE ? `${extra.body ?? ''} (letztes Mal verschoben)` : (extra.body ?? ''),
-          channelId: extra.channel ?? 'uebergang',
-          schedule: { at: new Date(Date.now() + 5 * 60_000), allowWhileIdle: true },
-          actionTypeId: n < MAX_SNOOZE ? ACTION_TYPE : undefined,
-          smallIcon: 'ic_stat_anker',
-          extra: { ...extra, snoozes: n },
-        },
-      ],
-    })
+  const { key, date } = a
+  if (a.action === 'done') {
+    if (key === 'leave') return st.mark(date, 'leftAt', a.at)
+    if (key === 'pcstop') return st.mark(date, 'pcOffAt', a.at)
+    if (key === 'bed') return st.mark(date, 'bedAt', a.at)
+    if (key === 'evening') return st.mark(date, 'eveningRoutineDoneAt', a.at)
   }
+  await st.updateDay(date, (l) => ({ ...l, dismissed: [...new Set([...(l.dismissed ?? []), key])] }))
 }

@@ -41,6 +41,26 @@ test('Onboarding und Hauptwege funktionieren', async ({ page }) => {
   await expect(page).toHaveURL(/\/$/)
 })
 
+test('Druckansicht zeigt genau das Gewählte, ohne Navigation', async ({ page }) => {
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter' }).click()
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await page.goto('/druck')
+  const sheets = page.locator('[data-sheet]')
+  await expect(sheets).toHaveCount(2)
+  await page.getByRole('radio', { name: 'Morgenroutine' }).click()
+  await expect(sheets).toHaveCount(1)
+  await expect(page.locator('[data-sheet="morning"]')).toBeVisible()
+  await page.getByRole('radio', { name: 'QR-Code' }).click()
+  await expect(page.locator('[data-sheet="qr"] svg')).toBeVisible()
+
+  await page.emulateMedia({ media: 'print' })
+  await expect(page.getByRole('button', { name: /Drucken oder als PDF/ })).toBeHidden()
+  await expect(page.locator('[data-sheet="qr"] svg')).toBeVisible()
+  const pdf = await page.pdf({ preferCSSPageSize: true })
+  expect(pdf.byteLength).toBeGreaterThan(1000)
+})
+
 test('Fokus-Modus zeigt immer nur einen Schritt', async ({ page }) => {
   await page.goto('/start')
   await page.getByRole('button', { name: 'Weiter' }).click()
