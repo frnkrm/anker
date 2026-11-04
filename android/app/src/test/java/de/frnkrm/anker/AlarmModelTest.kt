@@ -84,6 +84,16 @@ class AlarmModelTest {
     }
 
     @Test
+    fun tippAufVorweckerBeendetHauptweckerNicht() {
+        val now = at("2026-11-05", wake)
+        val main = AlarmMachine.fired(AlarmState(), AlarmKind.MAIN, now, now).state
+        assertEquals(AlarmKind.MAIN, AlarmMachine.stopped(main, "prewake", cfg, now).ringing)
+        assertEquals(AlarmKind.MAIN, AlarmMachine.stopped(main, "test", cfg, now).ringing)
+        assertEquals(AlarmKind.MAIN, AlarmMachine.stopped(main, "check", cfg, now).ringing)
+        assertNull(AlarmMachine.stopped(main, "emergency", cfg, now).ringing)
+    }
+
+    @Test
     fun testVerdraengtKlingelndenHauptweckerNicht() {
         val now = at("2026-11-05", wake)
         val main = AlarmMachine.fired(AlarmState(), AlarmKind.MAIN, now, now)

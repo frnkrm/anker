@@ -13,11 +13,12 @@ import org.json.JSONObject
 
 /**
  * Erinnerungen ohne laufendes JavaScript: Die App legt die Warteschlange für zwei Wochen ab,
- * Android weckt immer nur für den nächsten Eintrag. Ein einziger geplanter Alarm, keine Hintergrundschleife.
+ * Android weckt nur für den nächsten exakten und den nächsten ungenauen Eintrag. Keine Hintergrundschleife.
  * Betrifft nur Ankers eigene Meldungen, nie die anderer Apps.
  */
 object ReminderScheduler {
-    private const val REQUEST_TICK = 4800
+    private const val REQUEST_TICK_EXACT = 4800
+    private const val REQUEST_TICK_INEXACT = 4801
     const val ACTION_TICK = "de.frnkrm.anker.REMINDER_TICK"
     const val ACTION_DONE = "de.frnkrm.anker.REMINDER_DONE"
     const val ACTION_SNOOZE = "de.frnkrm.anker.REMINDER_SNOOZE"
@@ -137,28 +138,32 @@ object ReminderScheduler {
         saveSlots(ctx, loadSlots(ctx).filter { it.slot != ReminderLogic.SLOT_LATEST })
     }
 
-    private fun tickIntent(ctx: Context) = PendingIntent.getBroadcast(
-        ctx, REQUEST_TICK,
+    private fun tickIntent(ctx: Context, code: Int) = PendingIntent.getBroadcast(
+        ctx, code,
         Intent(ctx, ReminderReceiver::class.java).setAction(ACTION_TICK),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
+    /** Getrennt geplant: Eine ungenaue Erinnerung kann sich im Tiefschlaf verspäten, eine exakte darf das nicht erben. */
     private fun armNext(ctx: Context, q: List<ReminderEntry>) {
         val am = ctx.getSystemService(AlarmManager::class.java) ?: return
-        val next = q.firstOrNull()
-        val pi = tickIntent(ctx)
-        if (next == null) {
-            am.cancel(pi)
+        val exactPi = tickIntent(ctx, REQUEST_TICK_EXACT)
+        val inexactPi = tickIntent(ctx, REQUEST_TICK_INEXACT)
+        val exact = q.firstOrNull { it.exact }
+        val inexact = q.firstOrNull { !it.exact }
+        if (inexact != null) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, inexact.at, inexactPi) else am.cancel(inexactPi)
+        if (exact == null) {
+            am.cancel(exactPi)
             return
         }
         try {
-            if (next.exact && AlarmController.canExact(ctx)) {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next.at, pi)
+            if (AlarmController.canExact(ctx)) {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, exact.at, exactPi)
             } else {
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next.at, pi)
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, exact.at, exactPi)
             }
         } catch (_: SecurityException) {
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next.at, pi)
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, exact.at, exactPi)
         }
     }
 

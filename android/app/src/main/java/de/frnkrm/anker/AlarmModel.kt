@@ -95,6 +95,9 @@ object AlarmMachine {
     /** Bis zu dieser Verspätung wird ein verpasster Wecker nachgeholt (z. B. Handy war aus). */
     const val LATE_GRACE_MS = 30 * 60_000L
 
+    /** Wege ohne Prüfung. Sie gelten nur für Test, Vorwecker und Wachheits-Check. */
+    private val LIGHT_METHODS = setOf("test", "prewake", "check")
+
     private fun lastFired(s: AlarmState, k: AlarmKind) = when (k) {
         AlarmKind.MAIN -> s.lastMainFiredAt
         AlarmKind.PRE_WAKE -> s.lastPreWakeFiredAt
@@ -123,6 +126,9 @@ object AlarmMachine {
     /** Beenden per QR, Rechenaufgaben, Notfall-Stopp usw. Danach immer neu planen. */
     fun stopped(s: AlarmState, method: String, cfg: AlarmConfig?, now: Long): AlarmState {
         val kind = s.ringing ?: return s
+        // Wechsel vom Vorwecker zum Hauptwecker, während die Seite noch den alten Stand zeigt:
+        // Ein Tipp für den Vorwecker darf den Hauptwecker nicht beenden.
+        if ((kind == AlarmKind.MAIN || kind == AlarmKind.SNOOZE) && method in LIGHT_METHODS) return s
         val base = s.copy(ringing = null, ringStartedAt = 0, lastStopMethod = method, lastStopAt = now)
         return if (kind == AlarmKind.MAIN || kind == AlarmKind.SNOOZE) {
             val check = if (cfg?.wakeCheckEnabled == true) now + cfg.wakeCheckDelayMinutes * 60_000L else 0L

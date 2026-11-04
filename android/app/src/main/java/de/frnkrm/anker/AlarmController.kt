@@ -93,7 +93,7 @@ object AlarmController {
         if (AlarmMachine.ringExpired(s, now)) s = AlarmMachine.timedOut(s, now)
         val r = AlarmMachine.reconcile(s, AnkerPrefs.config(ctx), now)
         AnkerPrefs.saveState(ctx, r.state)
-        AnkerPrefs.setAlarmError(ctx, "")
+        if (AnkerPrefs.alarmError(ctx) == "exact_denied") AnkerPrefs.setAlarmError(ctx, "")
         AnkerPrefs.setLastReconcile(ctx, now, reason)
         arm(ctx, AlarmKind.MAIN, r.state.mainAt.takeIf { it > now } ?: 0)
         arm(ctx, AlarmKind.PRE_WAKE, r.state.preWakeAt)

@@ -136,7 +136,7 @@ object AnkerPrefs {
     fun setReminderLastShown(ctx: Context, date: String, key: String, json: String) {
         val p = prefs(ctx)
         val e = p.edit()
-        // Nur den aktuellen Tag und den Vortag aufheben
+        // Nur den aktuellen Tag aufheben
         p.all.keys.filter { it.startsWith("shown:") && !it.startsWith("shown:$date") }.forEach { e.remove(it) }
         e.putString("shown:$date|$key", json).apply()
     }

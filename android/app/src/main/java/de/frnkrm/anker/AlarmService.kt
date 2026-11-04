@@ -112,6 +112,7 @@ class AlarmService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        AnkerPrefs.setAlarmError(this, "")
         val now = System.currentTimeMillis()
         if (kind == null || AlarmMachine.ringExpired(s, now)) {
             AlarmController.timeout(this)
@@ -188,11 +189,11 @@ class AlarmService : Service() {
             stopSelf()
         }, remainingMs.coerceAtLeast(1000))
 
-        if (wakeLock?.isHeld != true) {
-            wakeLock = getSystemService(PowerManager::class.java)
-                ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "anker:alarm")
-                ?.apply { acquire(remainingMs.coerceAtLeast(1000) + 5000) }
-        }
+        // Bei einem Wechsel (Vorwecker zu Hauptwecker) gilt die neue, längere Laufzeit
+        wakeLock?.let { if (it.isHeld) it.release() }
+        wakeLock = getSystemService(PowerManager::class.java)
+            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "anker:alarm")
+            ?.apply { acquire(remainingMs.coerceAtLeast(1000) + 5000) }
         val am = getSystemService(AudioManager::class.java)
         focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(alarmAttributes()).build()
             .also { am?.requestAudioFocus(it) }
