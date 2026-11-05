@@ -13,6 +13,7 @@ Versionsnummer unverändert, **nicht auf einem echten Handy geprüft**.
 - **Hinweise** zu Pause, Ruhezeit und Sonntag, sachlich und abschaltbar. Nachricht zum Kopieren, Anker sendet nichts.
 
 ### Behoben
+- **Wecker bei Always-on-Display:** Es kam nur die Meldung, das Vollbild erst nach einem Tipp. Anker schaltet beim Klingeln jetzt den Bildschirm ein und stößt das Vollbild erneut an. Am Gerät noch nicht geprüft.
 - **Homeoffice meldete „Losgehen“** und zählte „Pünktlich los“ als Ziel. Beides entfällt dort jetzt.
 - **Datenschutz:** Der Terminname stand in der Änderungsliste des Tages und damit im Sync, der Anlass stand im Widget und, beim Merken eines Gedankens, als Kontext im Sync. Alles drei ist nun allgemein gehalten. Bereits synchronisierte Einträge werden nicht rückwirkend geändert.
 - **Früher zurück** beendet nun auch den Termin im Plan, statt ihn bis zum geplanten Ende anzuzeigen.

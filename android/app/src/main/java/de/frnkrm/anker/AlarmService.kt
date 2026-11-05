@@ -38,6 +38,8 @@ class AlarmService : Service() {
         private const val FALLBACK_CHANNEL = "anker_wecker_ersatz"
         const val NOTIFICATION_ID = 7001
         private const val FALLBACK_ID = 7002
+        /** Kurzlebige zweite Meldung, nur um das Vollbild nach dem Einschalten des Bildschirms erneut anzustoßen */
+        private const val WAKE_ID = 7003
 
         fun stop(ctx: Context) {
             try {
@@ -91,6 +93,7 @@ class AlarmService : Service() {
     private var tone: ToneGenerator? = null
     private var vibrator: Vibrator? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var screenLock: PowerManager.WakeLock? = null
     private var focus: AudioFocusRequest? = null
     private var activeKind: AlarmKind? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -125,6 +128,7 @@ class AlarmService : Service() {
             activeKind = kind
             stopSound()
             startRinging(kind, kind.timeoutMs - (now - s.ringStartedAt))
+            wakeScreen()
         }
         AnkerNativePlugin.notifyRinging()
         return START_STICKY
@@ -139,6 +143,49 @@ class AlarmService : Service() {
 
     private fun startInForeground(kind: AlarmKind): Boolean {
         ensureChannel(this)
+        val b = alarmNotification(kind)
+        return try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(NOTIFICATION_ID, b.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
+            } else {
+                startForeground(NOTIFICATION_ID, b.build())
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Bei Always-on-Display zeigen manche Geräte nur die Meldung, obwohl Vollbild erlaubt ist.
+     * Deshalb: Ist der Bildschirm aus oder im Always-on-Display, kurz einschalten und das Vollbild
+     * mit einer zweiten, kurzlebigen Meldung erneut anstoßen. Ändert weder Lautstärke noch Einstellungen.
+     * Ist der Bildschirm schon an, zeigt Android bewusst nur die Meldung oben, daran ändert Anker nichts.
+     */
+    private fun wakeScreen() {
+        val pm = getSystemService(PowerManager::class.java) ?: return
+        if (pm.isInteractive) return
+        try {
+            screenLock?.let { if (it.isHeld) it.release() }
+            @Suppress("DEPRECATION")
+            screenLock = pm.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+                "anker:screen",
+            ).apply { acquire(15_000) }
+        } catch (_: Exception) {
+            return
+        }
+        val kind = activeKind ?: return
+        handler.postDelayed({
+            if (activeKind == null) return@postDelayed
+            try {
+                getSystemService(NotificationManager::class.java)?.notify(WAKE_ID, alarmNotification(kind).setOngoing(false).setTimeoutAfter(15_000).build())
+            } catch (_: Exception) {
+            }
+        }, 700)
+    }
+
+    private fun alarmNotification(kind: AlarmKind): NotificationCompat.Builder {
         val open = Intent(this, MainActivity::class.java)
             .putExtra(EXTRA_ALARM, true)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -164,16 +211,7 @@ class AlarmService : Service() {
             )
             b.addAction(0, "Beenden", stop)
         }
-        return try {
-            if (Build.VERSION.SDK_INT >= 34) {
-                startForeground(NOTIFICATION_ID, b.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
-            } else {
-                startForeground(NOTIFICATION_ID, b.build())
-            }
-            true
-        } catch (_: Exception) {
-            false
-        }
+        return b
     }
 
     private fun alarmAttributes() = AudioAttributes.Builder()
@@ -260,6 +298,8 @@ class AlarmService : Service() {
         handler.removeCallbacksAndMessages(null)
         stopSound()
         wakeLock?.let { if (it.isHeld) it.release() }
+        screenLock?.let { if (it.isHeld) it.release() }
+        getSystemService(NotificationManager::class.java)?.cancel(WAKE_ID)
         super.onDestroy()
     }
 }
