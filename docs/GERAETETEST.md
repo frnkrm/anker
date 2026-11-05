@@ -12,12 +12,12 @@ Gerät: ______ · Android/One UI: ______ · Datum: 04.11.2026 · Version: Punkt 
 | 1 | Entsperrt, **Wecker testen** | Ton, Vibration, Klingelbildschirm, Frage „gut hörbar?“ | ok |
 | 2 | Test, sofort sperren | Ton, Vibration, Vollbild oder Meldung | ok |
 | 3 | Nach Test unter *So steht dein Wecker* nachsehen | Nächster Hauptwecker unverändert | Bestätigt vom Nutzer (1.1.0-rc.1), Zeit blieb gleich |
-| 4 | Nächsten Wecker auf in 3 Minuten stellen, einmal schlummern | Nach 5 Minuten wieder, kein zweites Schlummern, morgen geplant | Teilweise: 20:45 geklungen, Schlummern, 20:50 wieder. Kein Vollbild, erst nach Tipp auf die Meldung. „Morgen geplant“ nicht gemeldet |
+| 4 | Nächsten Wecker auf in 3 Minuten stellen, einmal schlummern | Nach 5 Minuten wieder, kein zweites Schlummern, morgen geplant | Teilweise: 20:45 geklungen, Schlummern, 20:50 wieder. Kein Vollbild, erst nach Tipp auf die Meldung. Ursache: Always-on-Display (siehe unten). „Morgen geplant“ nicht gemeldet |
 | 5 | Nicht reagieren, 30 Minuten warten, App nicht öffnen | Wird still, Diagnose zeigt morgen, klingelt morgen | Teilweise: Wird still. Diagnose und Klingeln am Folgetag nicht gemeldet |
 | 6 | Vorwecker an, ignorieren | Hauptwecker klingelt trotzdem, ersetzt den Vorwecker | |
 | 7 | Vorwecker beenden | Kein Eintrag im Einnahmeprotokoll | |
 | 8 | Wachheits-Check an, Wecker beenden | Fragt einmal nach, keine Kette | ok |
-| 9 | App wischen und schließen, Weckzeit abwarten | Klingelt | Offen: kein Vollbild. Ob er klingelte, ist nicht ausdrücklich gemeldet |
+| 9 | App wischen und schließen, Weckzeit abwarten | Klingelt | Kein Vollbild, Ursache Always-on-Display. Ob er klingelte, ist nicht ausdrücklich gemeldet |
 | 10 | Neustart, noch nicht entsperren, Weckzeit abwarten | Klingelt, Knopf „Beenden“ in der Meldung, oder Grenze notieren | |
 | 11 | Handy zur Weckzeit aus, 10 Minuten später einschalten | Klingelt verspätet einmal | |
 | 12 | App-Update drüber installieren | Wecker bleibt geplant | |
@@ -80,3 +80,7 @@ Gerät: ______ · Android/One UI: ______ · Datum: 04.11.2026 · Version: Punkt 
 | 32 | Fokus-Puls sanft, Handy in der Hand | Doppel-Vibration im Abstand | ok |
 | 33 | Datenbank-Update: Daten aus 1.0.1 prüfen | Routinen, Spielstand, Gedanken, QR-Code unverändert | ok |
 | 34 | Bildschirm mit Schrift 160 %, TalkBack | Bedienbar, Knöpfe vorgelesen | ok |
+
+## Befund Vollbild (05.11.2026)
+
+Bei eingeschaltetem **Always-on-Display** zeigt das Handy beim Klingeln nur die Meldung, das Vollbild erscheint erst nach einem Tipp darauf. Mit ausgeschaltetem Always-on-Display und gesperrtem Handy erscheint es von selbst. Die Diagnose stand dabei auf grün, die Freigabe für Vollbild war also da. Ton und Meldung kamen in beiden Fällen.
