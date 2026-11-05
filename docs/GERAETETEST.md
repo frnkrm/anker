@@ -85,9 +85,9 @@ Gerät: ______ · Android/One UI: ______ · Datum: 04.11.2026 · Version: Punkt 
 
 Bei eingeschaltetem **Always-on-Display** zeigt das Handy beim Klingeln nur die Meldung, das Vollbild erscheint erst nach einem Tipp darauf. Mit ausgeschaltetem Always-on-Display und gesperrtem Handy erscheint es von selbst. Die Diagnose stand dabei auf grün, die Freigabe für Vollbild war also da. Ton und Meldung kamen in beiden Fällen.
 
-**Versuch:** Ist der Bildschirm beim Klingeln aus oder im Always-on-Display, schaltet Anker ihn jetzt für 15 Sekunden ein und zeigt die Meldung kurz ein zweites Mal, damit Android das Vollbild öffnet. Noch nicht am Gerät geprüft.
+**Versuch:** Ist der Bildschirm beim Klingeln aus oder im Always-on-Display, schaltet Anker ihn jetzt für 15 Sekunden ein und zeigt die Meldung kurz ein zweites Mal, damit Android das Vollbild öffnet. Am Gerät bestätigt (47, 48).
 
 | # | Vorgehen | Erwartet | Ergebnis |
 |---|---|---|---|
-| 47 | Always-on-Display an, **Wecker testen**, sofort sperren, warten | Bildschirm geht an, Vollbild erscheint von selbst, keine doppelte Tonquelle | |
-| 48 | Dasselbe mit entsperrtem Handy in der Hand | Nur die Meldung oben, wie bisher | |
+| 47 | Always-on-Display an, **Wecker testen**, sofort sperren, warten | Bildschirm geht an, Vollbild erscheint von selbst, keine doppelte Tonquelle | ok (05.11.2026) |
+| 48 | Dasselbe mit entsperrtem Handy in der Hand | Nur die Meldung oben, wie bisher | ok (05.11.2026) |
