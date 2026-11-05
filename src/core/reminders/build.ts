@@ -1,4 +1,4 @@
-import { fmtTime, weekday, zonedToUtc } from '../time'
+import { fmtTime, utcToZoned, weekday, zonedToUtc } from '../time'
 import type { DayLog, DayPlan, ReminderIntensity, Settings } from '../types'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
@@ -16,6 +16,26 @@ export interface ReminderSpec {
   escalation: number
   /** Zeigt „Erledigt / 5 Min später / Heute nicht“ */
   actions: boolean
+  /** Sichtbarer Platz: 0 = Fokus, 1 = Harter Anker, 2 = Neueste */
+  slot: 0 | 1 | 2
+  /** Höher verdrängt niedriger, nie umgekehrt */
+  rank: number
+  /** Nur Zeitkritisches weckt exakt */
+  exact: boolean
+}
+
+/** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
+export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
+  if (key === 'leave' || key === 'latest-leave' || key === 'pcstop' || key === 'bed' || key.startsWith('go:')) return { slot: 1, rank: 4 }
+  if (key === 'leave-10' || key === 'latest-start' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
+  if (key === 'morning' || key === 'evening' || key === 'meds' || key.startsWith('prep:')) return { slot: 0, rank: 2 }
+  return { slot: 2, rank: 1 }
+}
+
+/** Zusätzliche Erinnerungen, die nicht aus dem Tagesplan stammen. */
+export interface ReminderExtras {
+  /** Berufliche Deadlines (UTC ms). Der Text bleibt absichtlich allgemein, auch auf dem Sperrbildschirm. */
+  deadlines?: { id: string; at: number }[]
 }
 
 interface Base {
@@ -59,9 +79,18 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
     const first = morning.steps[0]!
     out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: `Erster Schritt: ${first.useMinimal && first.minimal ? first.minimal.title : first.title}`, escalate: false })
   }
-  if (plan.leave !== undefined && !log?.leftAt) {
+  const wi = plan.workInfo
+  if (plan.leave !== undefined && !log?.leftAt && !wi?.started) {
     out.push({ key: 'leave-10', at: plan.leave - 10, channel: 'uebergang', title: `Noch 10 Minuten bis Losgehen`, body: `Um ${t(plan.leave)} geht's los. Schuhe, Schlüssel, Handy.`, escalate: false })
     out.push({ key: 'leave', at: plan.leave, channel: 'uebergang', title: `${t(plan.leave)} – Losgehen!`, body: 'Jetzt los, dann bist du entspannt pünktlich.', escalate: true, hard: true })
+  }
+  // Die eigene Grenze meldet sich je einmal, ohne Wiederholung und ohne Vorwurf
+  if (wi && !wi.started && !wi.fixedMorning && wi.latestStart !== undefined && wi.plannedStart <= wi.latestStart) {
+    if (wi.latestLeave !== undefined) {
+      if (!log?.leftAt && wi.latestLeave > (plan.leave ?? -1)) out.push({ key: 'latest-leave', at: wi.latestLeave, channel: 'uebergang', title: `${t(wi.latestLeave)} – Spätestens jetzt los`, body: `Dann schaffst du es bis ${t(wi.latestStart)}.`, escalate: false, hard: true })
+    } else {
+      out.push({ key: 'latest-start', at: wi.latestStart - 10, channel: 'sanft', title: `Um ${t(wi.latestStart)} ist deine Grenze`, body: 'Noch 10 Minuten bis dahin.', escalate: false, hard: true })
+    }
   }
   const gymbag = evening?.steps?.some((x) => x.tag === 'gymbag')
   if (!sick && gymbag && evening) {
@@ -83,17 +112,63 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       escalate: true,
     })
   }
-  if (!sick && !log?.pcOffAt) {
+  if (!sick && !log?.pcOffAt && !plan.openEnd) {
     out.push({ key: 'pcstop-15', at: plan.pcStop - 15, channel: 'sanft', title: 'In 15 Minuten PC-Stopp', body: `Um ${t(plan.pcStop)} ist Schluss. Runde in Ruhe beenden.`, escalate: false })
     out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Bildschirm aus, runterkommen. Gut gemacht heute.', escalate: true, hard: true })
   }
-  if (!log?.bedAt) {
+  if (!log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })
   }
   if (weekday(plan.date) === 6 && !sick) {
     out.push({ key: 'review', at: 19 * 60, channel: 'sanft', title: 'Wochenrückblick', body: '3 kurze Fragen, ohne Bewertung. 2 Minuten.', escalate: false })
   }
+  // Wege zu Terminen. Texte allgemein, denn Ort und Anlass bleiben auf dem Gerät.
+  for (const l of plan.legs ?? []) {
+    const c = l.commitment
+    if (c.leftAt || c.arrivedAt || c.backAt) continue
+    if (l.prepStart !== undefined) out.push({ key: `prep:${c.id}`, at: l.prepStart, channel: 'sanft', title: 'Bald fertig machen', body: 'Dein Termin rückt näher.', escalate: false, hard: true })
+    if (l.leave !== undefined) out.push({ key: `go:${c.id}`, at: l.leave, channel: 'uebergang', title: `${t(l.leave)} – Losgehen`, body: `Dann bist du um ${t(c.start)} da.`, escalate: c.commitment === 'hard', hard: true })
+  }
+  if (s.alarm.medicationEnabled && s.alarm.medicationReminderAt !== null) {
+    // Bewusst neutral: Sperrbildschirme sind öffentlich, und Anker ordnet nichts an
+    out.push({ key: 'meds', at: s.alarm.medicationReminderAt, channel: 'sanft', title: 'Deine private Erinnerung', body: 'Eintragen, wenn du magst.', escalate: false, hard: true })
+  }
+  // Auf Kurs und überlastet: nur noch, was wirklich zählt
+  const mode = log?.override.mode
+  // In Freizeit und bei sozialen Terminen bleibt es still, außer dem, was du selbst fest eingeplant hast
+  const inQuiet = (b: Base) => !b.key.startsWith('go:') && !b.key.startsWith('prep:') && (plan.quiet ?? []).some(([a, e]) => b.at >= a && b.at < e)
+  const calm = out.filter((b) => !inQuiet(b))
+  if (mode === 'auf-kurs' || mode === 'ueberlastet') return calm.filter((b) => b.hard || b.escalate)
+  return calm
+}
+
+/** Alle Erinnerungs-Schlüssel, die für diese Tage noch gelten. Was fehlt, wird aus der Leiste geräumt. */
+export function relevantReminderKeys(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings): string[] {
+  const out: string[] = []
+  for (const plan of plans) {
+    const dismissed = new Set(logs[plan.date]?.dismissed ?? [])
+    for (const b of baseReminders(plan, logs[plan.date], s)) {
+      if (!dismissed.has(b.key)) out.push(`${plan.date}|${b.key}`)
+    }
+  }
   return out
+}
+
+/** Hinweis kurz vor Ende der Vorausplanung, statt still zu verstummen. */
+export function reopenHint(horizonEnd: number, date: string): ReminderSpec {
+  return {
+    key: 'open-app',
+    date,
+    id: reminderId(`${date}|open-app`),
+    at: horizonEnd,
+    channel: 'sanft',
+    title: 'Anker einmal kurz öffnen',
+    body: 'Dann laufen deine Erinnerungen weiter. Sonst ist nichts zu tun.',
+    escalation: 0,
+    actions: false,
+    exact: false,
+    ...slotFor('open-app'),
+  }
 }
 
 function inQuiet(m: number, s: Settings): boolean {
@@ -106,9 +181,30 @@ function escalationSteps(intensity: ReminderIntensity): number {
   return intensity === 'gentle' ? 0 : intensity === 'normal' ? 1 : 2
 }
 
-/** Alle Erinnerungen der nächsten 48 h für die gegebenen Pläne. Reine Funktion. */
-export function buildReminders(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, nowMs: number): ReminderSpec[] {
+/** Alle Erinnerungen des Zeitfensters (Standard 48 h) für die gegebenen Pläne. Reine Funktion. */
+export function buildReminders(
+  plans: DayPlan[],
+  logs: Record<string, DayLog | undefined>,
+  s: Settings,
+  nowMs: number,
+  lookaheadMs = LOOKAHEAD_MS,
+  extras: ReminderExtras = {},
+): ReminderSpec[] {
   const out: ReminderSpec[] = []
+  for (const d of extras.deadlines ?? []) {
+    // Früh und ruhig: am Vortag und eine Stunde vorher
+    for (const [suffix, lead, title] of [
+      ['day', 24 * 3600_000, 'Morgen steht eine Deadline an'],
+      ['hour', 3600_000, 'In einer Stunde ist eine Deadline'],
+    ] as const) {
+      const at = d.at - lead
+      if (at <= nowMs || at > nowMs + lookaheadMs) continue
+      const key = `deadline-${suffix}:${d.id}`
+      const date = utcToZoned(d.at).date
+      if (logs[date]?.dismissed?.includes(key)) continue
+      out.push({ key, date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, ...slotFor(key) })
+    }
+  }
   const steps = escalationSteps(s.reminders.intensity)
   const gap = s.reminders.repeatAfterMin
   for (const plan of plans) {
@@ -121,13 +217,16 @@ export function buildReminders(plans: DayPlan[], logs: Record<string, DayLog | u
       for (let e = 0; e <= levels; e++) {
         const m = b.at + e * gap
         const at = zonedToUtc(plan.date, m)
-        if (at <= nowMs || at > nowMs + LOOKAHEAD_MS) continue
+        if (at <= nowMs || at > nowMs + lookaheadMs) continue
+        const channel: Channel = e === 2 ? 'wecker' : e === 1 && b.channel === 'sanft' ? 'uebergang' : b.channel
         out.push({
+          ...slotFor(b.key),
+          exact: channel !== 'sanft',
           key: b.key,
           date: plan.date,
           id: reminderId(`${plan.date}|${b.key}|${e}`),
           at,
-          channel: e === 2 ? 'wecker' : e === 1 && b.channel === 'sanft' ? 'uebergang' : b.channel,
+          channel,
           title: e === 0 ? b.title : `Noch offen: ${b.title.replace(/^\d\d:\d\d – /, '')}`,
           body: b.body,
           escalation: e,

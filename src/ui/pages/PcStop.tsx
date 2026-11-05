@@ -52,7 +52,7 @@ export default function PcStop() {
 
       <Section title="Windows einrichten">
         <Card className="space-y-3">
-          <p>Lädt ein kleines Paket für deinen PC: Warnung 15 und 5 Minuten vorher, dann fährt er herunter.</p>
+          <p>Lädt ein kleines Paket für deinen PC: Warnung 15 und 5 Minuten vorher, zur Stopp-Zeit noch 5 Minuten zum Speichern, dann fährt er ohne Zwang herunter. Programme mit offener Arbeit können das aufhalten, und ein Skript im Paket setzt den Stopp für heute aus.</p>
           <p className="text-sm text-muted">
             {user
               ? 'Mit der App verbunden: Verlängerungen kommen automatisch an.'

@@ -1,25 +1,31 @@
-import { addDays, zonedToUtc } from '../core/time'
-import { planFor, today, useApp } from '../state/store'
-import { AnkerNative, isNative, safe } from './native'
+import { buildAlarmConfig } from '../core/alarm'
+import { useApp, today } from '../state/store'
+import { AnkerNative, isNative, type AlarmStateInfo } from './native'
 
-/** Plant den nächsten Wecker (heute, falls noch nicht vorbei, sonst morgen). */
-export async function scheduleNextAlarm() {
+function statusFrom(st: AlarmStateInfo, enabled: boolean) {
+  if (!enabled) return { ok: true }
+  if (st.scheduledAt && st.mainConfirmed) {
+    return st.error === 'exact_denied'
+      ? { ok: false, scheduledAt: st.scheduledAt, message: 'Android erlaubt gerade keine exakten Wecker. Der Wecker kann sich verspäten.' }
+      : { ok: true, scheduledAt: st.scheduledAt }
+  }
+  return { ok: false, message: 'Der nächste Wecker ist von Android nicht bestätigt.' }
+}
+
+/**
+ * Überträgt die Konfiguration an den nativen Wecker. Der plant selbst, auch ohne geöffnete App.
+ * Kritisch und deshalb nicht über safe(): Ein Fehler wird im Store sichtbar und auf der Startseite gezeigt.
+ */
+export async function syncAlarm() {
   if (!isNative()) return
   const st = useApp.getState()
   if (!st.settings.onboarded) return
-  if (!st.settings.alarm.enabled) {
-    await safe(() => AnkerNative.cancelAlarm(), undefined)
-    return
-  }
-  const now = Date.now()
-  for (const d of [today(), addDays(today(), 1), addDays(today(), 2)]) {
-    const plan = planFor(d)
-    if (plan.dayType === 'sick') continue
-    const at = zonedToUtc(d, plan.wake)
-    if (at > now + 30_000) {
-      await safe(() => AnkerNative.scheduleAlarm({ at, label: 'Aufstehen – der Anker ruft' }), undefined)
-      return
-    }
+  try {
+    const state = await AnkerNative.syncAlarmConfig(buildAlarmConfig(st.settings, st.days, today()))
+    st.setAlarmStatus(statusFrom(state, st.settings.alarm.enabled))
+  } catch (e) {
+    console.warn('[Anker] Weckerplanung fehlgeschlagen')
+    st.setAlarmStatus({ ok: false, message: e instanceof Error && e.message ? e.message : 'Der Wecker konnte nicht geplant werden.' })
   }
 }
 

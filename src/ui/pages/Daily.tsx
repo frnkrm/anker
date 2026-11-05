@@ -4,6 +4,7 @@ import { randomId } from '../../core/defaults'
 import { routineBlock } from '../../core/planner'
 import { daysBetween, weekday, WEEKDAYS_LONG } from '../../core/time'
 import { planFor, today, useApp } from '../../state/store'
+import { WeatherCard } from '../components/WeatherCard'
 import { Button, Card, Page, Progress, Section, Stepper, TextInput } from '../components/ui'
 
 /** Essen: schnelle Gerichte, Würfeln, Vorkoch-Tag. */
@@ -162,6 +163,7 @@ export function Prep() {
 
   return (
     <Page title="Für morgen vorbereiten" back>
+      <WeatherCard />
       <Section>
         {items.map((x) => (
           <label key={x} className="flex min-h-16 items-center gap-4 rounded-2xl bg-surface px-4 text-lg">

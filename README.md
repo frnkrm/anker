@@ -32,6 +32,7 @@ npm run test:e2e     # Smoke-Test der Web-Version (Playwright)
 npm run lint
 npm run build        # Typecheck + Produktions-Build nach dist/
 npm run android:debug  # Web bauen, nach Android kopieren, Debug-APK bauen
+node scripts/gradle.mjs :app:testDebugUnitTest  # Kotlin-Logik (JUnit)
 ```
 
 Die Debug-APK liegt danach unter `android/app/build/outputs/apk/debug/app-debug.apk`.
@@ -159,7 +160,7 @@ In der App: **Mehr → Einrichtungs-Check**. Dort zeigen Ampeln, was eingerichte
 | Was | Warum | Pflicht? |
 |---|---|---|
 | Benachrichtigungen | Erinnerungen | ja |
-| Wecker & Erinnerungen (exakte Alarme) | Erinnerungen auf die Minute | ja |
+| Wecker & Erinnerungen (exakte Alarme) | Ab Android 13 fest erteilt, darunter hier erlauben | ja |
 | Vollbild-Benachrichtigungen | Wecker über dem Sperrbildschirm | empfohlen |
 | Akku: „Nicht optimiert“ | Samsung beendet sonst Hintergrund-Apps | empfohlen |
 | „Nie schlafende Apps“ | *Einstellungen → Akku → Hintergrund-Nutzungslimits → Nie schlafende Apps → Anker* | empfohlen |
@@ -172,19 +173,23 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 **Wecker-QR-Code:** *Mehr → Wecker & QR-Code → Drucken* (oder *Mehr → Druckansicht*), ausdrucken, im Bad aufhängen. Danach einmal **„Wecker testen“** antippen und Handy sperren.
 
+**Ausfallsicherheit:** Der Wecker plant sich nativ selbst weiter und übersteht Neustart, Update und geschlossene App. Das ist noch nicht auf einem echten Gerät geprüft: Lass den Android-Wecker zusätzlich gestellt, bis du [die Geräteprüfung](docs/GERAETETEST.md) durchlaufen hast. **Drucken:** Auf Android öffnet *Drucken oder als PDF speichern* den Systemdialog, im Browser `window.print()`.
+
 ### 9. PC-Stopp (Windows)
 
 1. In der App: **Mehr → PC-Stopp → Paket für Windows herunterladen** (am besten in der Web-Version direkt auf dem PC).
    Bist du unter *Kalender & Sync* angemeldet, enthält das Paket einen persönlichen Token, und Verlängerungen kommen automatisch an. Sonst gilt die feste Zeit.
 2. ZIP entpacken, **Rechtsklick auf `install.ps1` → „Mit PowerShell ausführen“**. Admin-Rechte sind nicht nötig.
-3. Die Aufgabe „Anker PC-Stopp“ läuft alle 5 Minuten und bei der Anmeldung: Warnung 15 und 5 Minuten vorher, dann wird heruntergefahren. Ohne Internet gilt die zuletzt bekannte Zeit.
-4. Notfall: `shutdown /a` bricht ein laufendes Herunterfahren ab. Entfernen mit `uninstall.ps1`.
+3. Die Aufgabe „Anker PC-Stopp“ läuft alle 5 Minuten und bei der Anmeldung: Warnung 15 und 5 Minuten vorher, Meldung zur Stopp-Zeit, etwa 5 Minuten später Herunterfahren ohne Zwang. Ohne Internet gilt die zuletzt bekannte Zeit.
+4. Für heute aussetzen: `pc-stop-abbrechen.ps1`. Entfernen mit `uninstall.ps1`.
 
 ---
 
 ## Datenschutz & Backup
 
 - Daten liegen lokal: SQLite auf Android, IndexedDB im Browser.
+- Termine, Orte, Arbeitsaufgaben und Einnahmeprotokoll werden nie synchronisiert.
+- **Externe Dienste:** Wetter (Open-Meteo, standardmäßig aus, überträgt nur den gewählten Ort) und der Maps-Link (Adresse erst beim Antippen). Beide kostenlos und ohne Key. Details: [Flexible Planung](docs/FLEXIBLE_PLANUNG.md).
 - **Mehr → Sicherung:** JSON-Export/-Import. Beim Import gewinnt pro Eintrag der neuere Stand.
 - Sync (optional) nutzt last-write-wins pro Datensatz (`updated_at`).
 - Keine Werbung, kein Tracking, keine Analytics. Werbe-IDs aus Abhängigkeiten werden im Android-Manifest entfernt, das Facebook-SDK ist ausgeschlossen.
@@ -193,5 +198,12 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 - [Anleitung](docs/ANLEITUNG.md): Bedienung, Funktionen, bekannte Grenzen
 - [Struktur des Repositorys](docs/STRUKTUR.md): wo liegt was, wo ändere ich was
+- [Flexible Planung](docs/FLEXIBLE_PLANUNG.md): Zustände, Wege, Schlaf, externe Dienste
+- [Geräteprüfung](docs/GERAETETEST.md): was auf dem Handy von Hand zu prüfen ist
+- [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [ADHS-Designprinzipien](docs/ADHS_DESIGNPRINZIPIEN.md)
 - [Patch Notes](CHANGELOG.md): was sich in welcher Version geändert hat
 - [CLAUDE.md](CLAUDE.md): Architektur und Regeln für spätere Claude-Sessions
+
+## Gleitzeit
+
+Spätester Beginn, eigener Freitag, flexible Pausen und einzelne Kundeneinsätze am Wochenende, alles freiwillig und lokal: [docs/GLEITZEIT.md](docs/GLEITZEIT.md).

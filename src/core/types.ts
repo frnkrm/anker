@@ -41,8 +41,29 @@ export interface Meal {
   minutes: number
 }
 
+/** Selbst gewählter Unterstützungsmodus. Ein Nutzerwunsch, kein aus Medikation berechneter Zustand. */
+export type SupportMode = 'normal' | 'startschwierigkeit' | 'wenig-energie' | 'ueberlastet' | 'auf-kurs'
+export type FocusPulseMode = 'off' | 'gentle' | 'strong'
+
+export interface AlarmPreferences {
+  enabled: boolean
+  qrSecret: string
+  /** Optionaler Vorwecker, Standard aus. Die Minuten sind deine Wahl, kein Arzneimittelmodell. */
+  preWakeEnabled: boolean
+  preWakeLeadMinutes: number
+  /** Optionaler Wachheits-Check nach dem Beenden, Standard aus */
+  wakeCheckEnabled: boolean
+  wakeCheckDelayMinutes: number
+  /** Rechenaufgaben auf dem anderen Weg zum Beenden */
+  mathTasks: 3 | 5 | 8
+  /** Freiwilliges privates Einnahmeprotokoll, Standard aus. Bleibt auf dem Gerät. */
+  medicationEnabled: boolean
+  /** Eigene Erinnerungszeit (Plan-Minuten), null = keine */
+  medicationReminderAt: number | null
+}
+
 export interface Settings {
-  version: 1
+  version: number
   onboarded: boolean
   goal: MainGoal
   themeId: ThemeId
@@ -51,7 +72,13 @@ export interface Settings {
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
   sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number }
-  anchor: { wake: number; wakeToleranceMin: number; weekendToleranceMin: number }
+  anchor: {
+    wake: number
+    wakeToleranceMin: number
+    weekendToleranceMin: number
+    /** Von Hand gesetzte Zeiten werden beim automatischen Neurechnen nicht überschrieben */
+    manual?: { wake?: boolean; pcStop?: boolean; bed?: boolean }
+  }
   pcStop: number
   bed: number
   /** Bonus „früh im Bett“, wenn bis zu dieser Zeit im Bett. */
@@ -74,12 +101,42 @@ export interface Settings {
   eveningPrep: string[]
   game: { stage: 1 | 2 | 3; startDate: DateStr }
   integrations: { healthConnect: boolean; googleCalendar: boolean; writeCalendar: boolean; sync: boolean }
-  alarm: { enabled: boolean; qrSecret: string }
+  alarm: AlarmPreferences
+  /** Gleitzeit. Wunsch-Beginn, Netto-Soll und Pause je Tag stehen in `work`. */
+  flex: {
+    /** Spätester normaler Arbeitsbeginn (Plan-Minuten), null = keine Grenze. Eine Grenze, kein Ziel. */
+    latestStart: number | null
+    /** Arbeit starten, Pause und Feierabend auf der Startseite anbieten. Erfassen bleibt freiwillig. */
+    tracking: boolean
+    /** Sachliche Hinweise zu Pausen, Ruhezeit und Sonntag */
+    legalHints: boolean
+    /** Entwurf zum Kopieren, Anker sendet nichts */
+    lateMessage: string
+  }
+  /** Eigene Minuten für Wege und Übergänge */
+  travel: { arrivalBufferMin: number; prepMin: number; homeOfficeStartupMin: number; activationMin: number }
+  /** Ausdrücklich gesetzt: Ist der Abendschritt erledigt, ist der Morgenschritt am Folgetag nicht nötig */
+  routineLinks: { eveningStepId: string; morningStepId: string }[]
+  /** Nach dem Grund fragen, wenn etwas verschoben wird (nie Pflicht) */
+  askReason: boolean
+  homeOfficeMessage: string
+  /** Wetter ist aus, bis ein Ort gewählt wurde. Übertragen wird nur dieser Ort. */
+  weather: { enabled: boolean; city: string; lat?: number; lng?: number; rules: { jacketBelowC: number; rainAbovePct: number } }
+  focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
+  support: {
+    /** Spiel, XP und Level anzeigen */
+    gameVisible: boolean
+    /** Abends einen Modus vorschlagen (nur Vorschlag, nie automatisch) */
+    eveningPreset: { enabled: boolean; from: number; mode: SupportMode }
+    /** Freiwillige Ankommen-Schritte nach der Arbeit */
+    arrival: { enabled: boolean; steps: string[] }
+  }
   /** Vorschläge aus dem Wochenrückblick */
   suggestions: { id: string; text: string; createdAt: DateStr }[]
 }
 
-export type StepResult = 'done' | 'minimal' | 'skipped'
+/** done und minimal sind echte Handlungen. skipped und not-needed sind wertungsfrei und nie „erledigt“. */
+export type StepResult = 'done' | 'minimal' | 'skipped' | 'not-needed'
 
 export interface DayOverride {
   dayType?: DayType
@@ -87,8 +144,31 @@ export interface DayOverride {
   /** „Ich mache heute länger“: neue Feierabendzeit */
   workEnd?: number
   homeOffice?: boolean
+  /** Nur dieser Tag: anderer Arbeitsbeginn, anderes Netto-Soll, andere Pause */
+  workStart?: number
+  targetNetMin?: number
+  pauseMin?: number
   /** Verlängerung PC-Stopp in Minuten (max. 15) */
   pcStopExtendMin?: number
+  /** Unterstützungsmodus für diesen Tag */
+  mode?: SupportMode
+  /** „Tag neu sortieren“: Rest des Tages in kleinen Versionen */
+  light?: boolean
+  /** Einmalige Weckzeit für diesen Tag, nach Bestätigung. Ändert nie den Standard. */
+  wakeOverride?: number
+  /** Länger wach: bis zu dieser Zeit (Plan-Minuten) oder offen */
+  lateUntil?: number | 'open'
+  /** Routine später: Uhrzeit oder „wenn ich zurück bin“ */
+  routineAt?: Partial<Record<RoutineId, number | 'return'>>
+  /** „Wieder zuhause“ gemeldet (UTC ms), ohne dass ein Termin dazugehört */
+  backAt?: number
+  /** Schritte, die an diesem Tag schon anderweitig versorgt sind, z. B. "morning:shower" */
+  coveredSteps?: string[]
+  /** Regel für diesen Tag übersteuern */
+  uncoveredSteps?: string[]
+  /** Der Tag lief bewusst anders: zählt nicht als verfehlt */
+  adjusted?: boolean
+  reason?: string
 }
 
 export interface DayLog {
@@ -110,6 +190,12 @@ export interface DayLog {
   dismissed?: string[]
   /** Bereits vergebene XP-Gründe, damit nichts doppelt zählt */
   awarded?: string[]
+  /** Erledigte Ankommen-Schritte (Index) */
+  arrival?: number[]
+  /** Stand vor dem ersten „Heute anders“, für „Zurück zum ursprünglichen Plan“ */
+  before?: { override: DayOverride; steps: Record<string, StepResult> }
+  /** Kurze Liste, was heute geändert wurde */
+  changes?: string[]
 }
 
 export interface CalendarEvent {
@@ -121,6 +207,10 @@ export interface CalendarEvent {
 }
 
 export type BlockKind =
+  | 'commitment'
+  | 'session'
+  | 'prep'
+  | 'travel'
   | 'wake'
   | 'morning'
   | 'sport'
@@ -139,6 +229,20 @@ export interface PlannedStep extends RoutineStep {
   useMinimal: boolean
 }
 
+/** Was der Planer zur Arbeit dieses Tages weiß. Prognose bleibt Prognose. */
+export interface WorkInfo {
+  plannedStart: number
+  targetNetMin: number
+  plannedBreakMin: number
+  latestStart?: number
+  latestLeave?: number
+  /** Ein fester Termin gibt den Morgen vor */
+  fixedMorning: boolean
+  /** Es läuft oder lief heute eine reguläre oder andere Arbeit */
+  started: boolean
+  closed: boolean
+}
+
 export interface Block {
   id: string
   kind: BlockKind
@@ -152,7 +256,7 @@ export interface Block {
 }
 
 export interface HardTime {
-  key: 'wake' | 'leave' | 'pc-stop' | 'bed'
+  key: 'wake' | 'leave' | 'pc-stop' | 'bed' | 'commitment'
   label: string
   at: number
 }
@@ -170,6 +274,18 @@ export interface DayPlan {
   bed: number
   wake: number
   leave?: number
+  /** Wege und Termine des Tages */
+  legs?: Leg[]
+  /** Abendroutine wartet auf „Wieder zuhause“ */
+  pendingEvening?: boolean
+  /** Zeiträume ohne Haushalts-Erinnerungen (Freizeit, soziale Termine) */
+  quiet?: [number, number][]
+  /** Länger wach ohne festes Ende: keine erfundene Bettzeit */
+  openEnd?: boolean
+  /** Echte Konflikte, immer sichtbar */
+  conflicts?: string[]
+  /** Nur an Arbeitstagen */
+  workInfo?: WorkInfo
 }
 
 export interface InboxItem {
@@ -180,6 +296,145 @@ export interface InboxItem {
   /** Bei status 'task': für welchen Tag eingeplant */
   taskDate?: DateStr
   done?: boolean
+  doneAt?: number
+  /** Bei welchem Schritt der Gedanke kam */
+  captureContext?: string
+  /** Flexible Schätzung in Minuten, Standard 5 */
+  estimateMin?: number
+}
+
+/** Berufliche Aufgabe. Bleibt lokal auf dem Gerät und wird nicht synchronisiert. */
+export interface WorkTask {
+  id: string
+  title: string
+  nextStep?: string
+  estimateMin?: number
+  /** Feste Deadline (UTC ms), optional */
+  deadline?: number
+  done?: boolean
+  doneAt?: number
+  createdAt: number
+}
+
+/** „Hier mache ich weiter“. */
+export interface ResumePoint {
+  kind: 'work' | 'task' | 'step' | 'free'
+  title: string
+  nextStep?: string
+  refId?: string
+  at: number
+}
+
+export type WorkSessionKind = 'regular' | 'maintenance' | 'incident' | 'onsite' | 'other'
+/** Geplanter Einsatz. Rufbereitschaft ist ausdrücklich keine Arbeitszeit, bis ein Einsatz läuft. */
+export type PlannedWorkKind = Exclude<WorkSessionKind, 'regular'> | 'oncall'
+
+export interface WorkBreak {
+  id: string
+  startAt: number
+  endAt?: number
+}
+
+/**
+ * Wirklich gearbeitete Zeit in UTC-ms, nie geplant. Lokal, kein Sync, keine Arbeitgeber-Zeiterfassung.
+ * Gehört ganz zu dem Plantag, an dem sie begann (Wechsel um 04:00), und wird nicht aufgeteilt.
+ */
+export interface WorkSession {
+  id: string
+  date: DateStr
+  kind: WorkSessionKind
+  startAt: number
+  endAt?: number
+  breaks: WorkBreak[]
+  label?: string
+  note?: string
+  commitmentId?: string
+  /** Nachgetragen oder korrigiert */
+  manual?: boolean
+}
+
+export type CommitmentKind = 'hard' | 'soft' | 'optional'
+export type EventContext = 'work' | 'customer' | 'social' | 'personal' | 'other'
+export type RouteMode = 'driving' | 'transit' | 'cycling' | 'walking' | 'none'
+
+/** Gespeicherter Ort. Bleibt auf dem Gerät. */
+export interface Place {
+  id: string
+  label: string
+  address?: string
+  travelFromHomeMin?: number
+  /** Fahrzeit von anderen Orten, Schlüssel = Orts-ID oder "office" */
+  travelFrom?: Record<string, number>
+  items?: string[]
+}
+
+/** Ein konkreter Termin an einem Tag. Liegt nur auf dem Gerät und geht nie in Sync oder Kalender. */
+export interface Commitment {
+  id: string
+  date: DateStr
+  label: string
+  context: EventContext
+  commitment: CommitmentKind
+  /** Plan-Minuten des Tages */
+  start: number
+  /** Ohne Angabe bleibt das Ende offen, es wird keine Rückkehr erfunden */
+  end?: number
+  placeId?: string
+  placeLabel?: string
+  address?: string
+  routeMode?: RouteMode
+  /** Von dir geschätzte Fahrzeit. Fehlt sie, bleibt sie offen. */
+  travelMin?: number
+  travelHomeMin?: number
+  arrivalBufferMin?: number
+  prepMin?: number
+  items?: string[]
+  /** Ersetzt den Weg ins Büro an diesem Tag */
+  replacesCommute?: boolean
+  /** Ist ein geplanter Arbeitseinsatz. Ändert den Wochenstandard nicht. */
+  workKind?: PlannedWorkKind
+  thenTo?: 'home' | 'next'
+  status?: 'planned' | 'cancelled'
+  leftAt?: number
+  arrivedAt?: number
+  backAt?: number
+}
+
+/** Berechneter Weg zu einem Termin */
+export interface Leg {
+  commitment: Commitment
+  fromLabel: string
+  toLabel?: string
+  travelMin?: number
+  /** Ort bekannt, Fahrzeit nicht. Dann gibt es keine errechnete Abfahrt. */
+  travelOpen: boolean
+  leave?: number
+  prepStart?: number
+  items: string[]
+  returnMin?: number
+}
+
+export interface WeatherCache {
+  key: string
+  fetchedAt: number
+  hours: { date: string; minutes: number; tempC: number; apparentC: number; rainPct: number; windKmh: number }[]
+}
+
+export type MedsStatus = 'taken' | 'not-taken' | 'unsure'
+
+/** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, Einnahmeprotokoll, Wiedereinstieg. */
+export interface LocalData {
+  commitments: Commitment[]
+  places: Place[]
+  weather?: WeatherCache
+  work: WorkTask[]
+  /** Erfasste Arbeitszeiten */
+  workSessions: WorkSession[]
+  resume?: ResumePoint
+  handover: Record<DateStr, { open: string; next: string }>
+  /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */
+  meds: Record<DateStr, { status: MedsStatus; at: number }>
+  trial?: { startedAt: DateStr; days: 7 | 14; answers: Record<DateStr, 'ja' | 'teilweise' | 'nein' | 'uebersprungen'> }
 }
 
 export interface WeeklyReview {

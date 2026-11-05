@@ -1,3 +1,4 @@
+export { hardConflicts, legSpan, mapsUrl, parseQuickTime, planLegs } from './adaptive'
 export * from './plan'
 export * from './fit'
 

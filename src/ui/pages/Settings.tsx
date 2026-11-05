@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useParams } from 'react-router'
-import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, sumMinutes } from '../../core/defaults'
+import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, resetToSuggested, sumMinutes } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtDuration, fmtTime, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
 import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineStep, Settings as S, SportKind, ThemeId } from '../../core/types'
+import { findCity } from '../../platform/weather'
 import { useApp } from '../../state/store'
 import { SortableList } from '../components/Sortable'
 import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
@@ -34,6 +36,8 @@ export default function Settings() {
       return <Reminders s={s} save={save} />
     case 'darstellung':
       return <Look s={s} save={save} />
+    case 'hilfen':
+      return <Supports s={s} save={save} />
   }
 
   const sug = deriveSchedule(s)
@@ -52,7 +56,7 @@ export default function Settings() {
         </Section>
       )}
       <Section title="Dein Tag">
-        <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}`} to="/einstellungen/arbeit" />
+        <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}${s.flex.latestStart !== null ? ` · spätestens ${fmtTime(s.flex.latestStart)}` : ''}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
         <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · PC-Stopp ${fmtTime(s.pcStop)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Sport" sub={`${s.sport.days.filter(Boolean).length}× pro Woche`} to="/einstellungen/sport" />
@@ -65,6 +69,7 @@ export default function Settings() {
       </Section>
       <Section title="App">
         <Row label="Erinnerungen" sub={{ gentle: 'Sanft', normal: 'Normal', persistent: 'Hartnäckig' }[s.reminders.intensity]} to="/einstellungen/erinnerungen" />
+        <Row label="Alltagshilfen" sub="Fokus-Puls, Abendmodus, Ankommen, Spiel" to="/einstellungen/hilfen" />
         <Row label="Darstellung & Thema" to="/einstellungen/darstellung" />
         <Row label="Belohnungen" to="/spiel/shop" />
         <Row label="Gerichte" to="/essen" />
@@ -76,9 +81,46 @@ export default function Settings() {
 
 function Work({ s, save }: { s: S; save: Save }) {
   const upd = (i: number, patch: Partial<S['work'][number]>) => save((x) => applySchedule({ ...x, work: x.work.map((w, j) => (j === i ? { ...w, ...patch } : w)) }))
+  const flex = (patch: Partial<S['flex']>) => save((x) => ({ ...x, flex: { ...x.flex, ...patch } }))
+  const others = s.work.filter((w, i) => i !== 4 && w.isWorkDay).map((w) => w.durationMin)
+  const friday = s.work[4]!
   return (
-    <Page title="Arbeit" back="/einstellungen">
-      <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Arbeitsbeginn.</p>
+    <Page title="Arbeit & Gleitzeit" back="/einstellungen">
+      <Section title="Gleitzeit">
+        <Card className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <span>Spätester Beginn</span>
+            {s.flex.latestStart !== null ? (
+              <div className="flex items-center gap-2">
+                <TimeField label="Spätester Arbeitsbeginn" value={s.flex.latestStart} onChange={(v) => flex({ latestStart: v })} />
+                <Button size="sm" variant="ghost" onClick={() => flex({ latestStart: null })}>
+                  Aus
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" onClick={() => flex({ latestStart: 9 * 60 })}>
+                Festlegen
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-muted">Eine Grenze, kein Ziel. Ein Kundentermin kann früher liegen. Sie zählt für den Beginn am Arbeitsort oder im Homeoffice.</p>
+          <div className="flex items-center justify-between gap-2">
+            <span>Arbeit, Pause und Feierabend auf der Startseite</span>
+            <Toggle label="Zeiten erfassen anbieten" checked={s.flex.tracking} onChange={(v) => flex({ tracking: v })} />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span>Hinweise zu Pausen, Ruhezeit und Sonntag</span>
+            <Toggle label="Hinweise zu Pausen und Ruhezeit" checked={s.flex.legalHints} onChange={(v) => flex({ legalHints: v })} />
+          </div>
+          <label className="block space-y-1">
+            <span>Nachricht, wenn es später wird</span>
+            <TextInput aria-label="Nachricht, wenn es später wird" value={s.flex.lateMessage} onChange={(e) => flex({ lateMessage: e.target.value })} />
+          </label>
+          <p className="text-sm text-muted">Die Nachricht kopierst du nur, Anker sendet nichts. Anker ist eine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.</p>
+        </Card>
+      </Section>
+      {friday.isWorkDay && others.length > 0 && friday.durationMin >= Math.min(...others) && <p className="px-1 text-muted">Ist dein Freitag kürzer? Trag unten dein echtes Soll ein. Anker rät keinen Wert.</p>}
+      <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Wunsch-Beginn.</p>
       {s.work.map((w, i) => (
         <Card key={i} className="space-y-3">
           <div className="flex items-center justify-between">
@@ -88,17 +130,18 @@ function Work({ s, save }: { s: S; save: Save }) {
           {w.isWorkDay && (
             <>
               <div className="flex items-center justify-between">
-                <span>Beginn</span>
+                <span>Wunsch-Beginn</span>
                 <TimeField label="Arbeitsbeginn" value={w.start} onChange={(v) => upd(i, { start: v })} />
               </div>
               <div className="flex items-center justify-between">
-                <span>Dauer</span>
-                <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.5} min={1} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
+                <span>Soll netto, ohne Pause</span>
+                <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.25} min={0.25} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
               </div>
               <div className="flex items-center justify-between">
-                <span>Pause</span>
-                <Stepper label="Pause" value={w.pauseMin} step={15} min={0} max={120} onChange={(v) => upd(i, { pauseMin: v })} />
+                <span>Übliche Pause</span>
+                <Stepper label="Pause" value={w.pauseMin} step={5} min={0} max={180} onChange={(v) => upd(i, { pauseMin: v })} />
               </div>
+              <p className="text-sm text-muted">Feierabend etwa {fmtTime(w.start + w.durationMin + w.pauseMin)}</p>
               <div className="flex items-center justify-between">
                 <span>Homeoffice</span>
                 <Toggle label="Homeoffice" checked={w.homeOffice} onChange={(v) => upd(i, { homeOffice: v })} />
@@ -144,7 +187,8 @@ function Commute({ s, save }: { s: S; save: Save }) {
 
 function Sleep({ s, save }: { s: S; save: Save }) {
   const sug = deriveSchedule(s)
-  const setSleep = (patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
+  const manual = s.anchor.manual ?? {}
+  const setSleep =(patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
   return (
     <Page title="Schlaf & Anker" back="/einstellungen">
       <Card className="space-y-4">
@@ -164,17 +208,20 @@ function Sleep({ s, save }: { s: S; save: Save }) {
       <Card className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="font-medium">Aufstehen (jeden Tag)</span>
-          <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v } }))} />
+          <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v, manual: { ...x.anchor.manual, wake: true } } }))} />
         </div>
+        <p className="-mt-2 text-sm text-muted">{manual.wake ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <div className="flex items-center justify-between">
           <span>PC-Stopp</span>
-          <TimeStepper label="PC-Stopp" value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v }))} />
+          <TimeStepper label="PC-Stopp" value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }))} />
         </div>
+        <p className="-mt-2 text-sm text-muted">{manual.pcStop ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <div className="flex items-center justify-between">
           <span>Bett</span>
-          <TimeStepper label="Bettzeit" value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v }))} />
+          <TimeStepper label="Bettzeit" value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }))} />
         </div>
-        <Button size="sm" onClick={() => save((x) => applySchedule(x))}>
+        <p className="-mt-2 text-sm text-muted">{manual.bed ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
+        <Button size="sm" onClick={() => save((x) => resetToSuggested(x))}>
           Vorschlag übernehmen ({fmtTime(sug.wake)} / {fmtTime(sug.pcStop)} / {fmtTime(sug.bed)})
         </Button>
       </Card>
@@ -342,6 +389,202 @@ function Reminders({ s, save }: { s: S; save: Save }) {
         <p className="text-sm text-muted">Harte Zeiten (Losgehen, PC-Stopp, Bett) kommen trotzdem.</p>
       </Card>
     </Page>
+  )
+}
+
+/** Alles hier ist freiwillig und aus, bis du es einschaltest (außer dem Spiel, das schon da war). */
+function Supports({ s, save }: { s: S; save: Save }) {
+  const f = s.focus
+  const setFocus = (patch: Partial<S['focus']>) => save((x) => ({ ...x, focus: { ...x.focus, ...patch } }))
+  const sup = s.support
+  const setSup = (patch: Partial<S['support']>) => save((x) => ({ ...x, support: { ...x.support, ...patch } }))
+  return (
+    <Page title="Alltagshilfen" back="/einstellungen">
+      <Section title="Fokus-Puls" hint="Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.">
+        <Card className="space-y-3">
+          <Segmented<S['focus']['pulse']>
+            label="Fokus-Puls"
+            value={f.pulse}
+            options={[
+              { value: 'off', label: 'Aus' },
+              { value: 'gentle', label: 'Sanft' },
+              { value: 'strong', label: 'Deutlich' },
+            ]}
+            onChange={(v) => setFocus({ pulse: v })}
+          />
+          {f.pulse !== 'off' && (
+            <>
+              <Segmented<number>
+                label="Abstand"
+                value={f.everyMin}
+                options={[
+                  { value: 2, label: 'Alle 2 Minuten' },
+                  { value: 5, label: 'Alle 5 Minuten' },
+                ]}
+                onChange={(v) => setFocus({ everyMin: v as 2 | 5 })}
+              />
+              <div className="flex items-center justify-between">
+                <span>Zur Hälfte des Schritts</span>
+                <Toggle label="Zur Hälfte" checked={f.halfway} onChange={(v) => setFocus({ halfway: v })} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Eine Minute vor Ende</span>
+                <Toggle label="Eine Minute vor Ende" checked={f.lastMinute} onChange={(v) => setFocus({ lastMinute: v })} />
+              </div>
+            </>
+          )}
+        </Card>
+      </Section>
+      <Section title="Abendmodus" hint="Nur ein Vorschlag auf der Startseite. Du entscheidest mit einem Tipp.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Abends vorschlagen</span>
+            <Toggle label="Abendmodus vorschlagen" checked={sup.eveningPreset.enabled} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, enabled: v } })} />
+          </div>
+          {sup.eveningPreset.enabled && (
+            <div className="flex items-center justify-between">
+              <span>Ab</span>
+              <TimeField label="Abendmodus ab" value={sup.eveningPreset.from} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, from: v } })} />
+            </div>
+          )}
+        </Card>
+      </Section>
+      <Section title="Ankommen nach der Arbeit" hint="Zwei bis drei kurze Schritte, bevor der Abend beginnt.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Einschalten</span>
+            <Toggle label="Ankommen" checked={sup.arrival.enabled} onChange={(v) => setSup({ arrival: { ...sup.arrival, enabled: v } })} />
+          </div>
+          {sup.arrival.enabled &&
+            sup.arrival.steps.map((step, i) => (
+              <TextInput key={i} aria-label={`Schritt ${i + 1}`} value={step} onChange={(e) => setSup({ arrival: { ...sup.arrival, steps: sup.arrival.steps.map((x, j) => (j === i ? e.target.value : x)) } })} />
+            ))}
+        </Card>
+      </Section>
+      <Section title="Wege und Übergänge" hint="Das sind echte Minuten: Parkplatz, Schuhe, Laptop-Start.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Ankunftspuffer</span>
+            <Stepper label="Ankunftspuffer" value={s.travel.arrivalBufferMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, arrivalBufferMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Fertig machen vor Terminen</span>
+            <Stepper label="Fertig machen" value={s.travel.prepMin} max={120} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, prepMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Rechnerstart im Homeoffice</span>
+            <Stepper label="Rechnerstart" value={s.travel.homeOfficeStartupMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, homeOfficeStartupMin: v } }))} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Wach werden</span>
+            <Stepper label="Wach werden" value={s.travel.activationMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, activationMin: v } }))} />
+          </div>
+        </Card>
+      </Section>
+      <Section title="Abends schon erledigt" hint="Nur was du hier setzt, gilt. Der Morgenschritt entfällt dann, zählt dort aber nicht als erledigt.">
+        <Card className="space-y-2">
+          {s.routineLinks.map((l, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="flex-1">
+                {s.routines.evening.find((x) => x.id === l.eveningStepId)?.title ?? l.eveningStepId} → {s.routines.morning.find((x) => x.id === l.morningStepId)?.title ?? l.morningStepId}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => save((x) => ({ ...x, routineLinks: x.routineLinks.filter((_, j) => j !== i) }))}>
+                Entfernen
+              </Button>
+            </div>
+          ))}
+          <form
+            className="space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const f = new FormData(e.currentTarget)
+              const eveningStepId = String(f.get('evening'))
+              const morningStepId = String(f.get('morning'))
+              if (eveningStepId && morningStepId) save((x) => ({ ...x, routineLinks: [...x.routineLinks, { eveningStepId, morningStepId }] }))
+            }}
+          >
+            <select name="evening" aria-label="Abendschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.evening.map((x) => (
+                <option key={x.id} value={x.id}>
+                  Abends: {x.title}
+                </option>
+              ))}
+            </select>
+            <select name="morning" aria-label="Morgenschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.morning.map((x) => (
+                <option key={x.id} value={x.id}>
+                  Morgens nicht nötig: {x.title}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" size="sm">
+              Regel hinzufügen
+            </Button>
+          </form>
+        </Card>
+      </Section>
+      <Section title="Wetter" hint="Aus, bis du es einschaltest. Übertragen wird nur der Ort an Open-Meteo, keine Termine und kein GPS.">
+        <WeatherSettings s={s} save={save} />
+      </Section>
+      <Section title="Rückfrage und Homeoffice">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Beim Verschieben nach dem Grund fragen</span>
+            <Toggle label="Nach dem Grund fragen" checked={s.askReason} onChange={(v) => save((x) => ({ ...x, askReason: v }))} />
+          </div>
+          <TextInput aria-label="Homeoffice-Vorlage" value={s.homeOfficeMessage} onChange={(e) => save((x) => ({ ...x, homeOfficeMessage: e.target.value }))} />
+        </Card>
+      </Section>
+      <Section title="Spiel" hint="XP zählen im Hintergrund weiter und sind beim Einschalten wieder da.">
+        <Card className="flex items-center justify-between">
+          <span>Spiel und Level anzeigen</span>
+          <Toggle label="Spiel anzeigen" checked={sup.gameVisible} onChange={(v) => setSup({ gameVisible: v })} />
+        </Card>
+      </Section>
+    </Page>
+  )
+}
+
+function WeatherSettings({ s, save }: { s: S; save: Save }) {
+  const w = s.weather
+  const [city, setCity] = useState(w.city)
+  const [msg, setMsg] = useState<string>()
+  const setW = (patch: Partial<S['weather']>) => save((x) => ({ ...x, weather: { ...x.weather, ...patch } }))
+  return (
+    <Card className="space-y-3">
+      <form
+        className="flex gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const found = await findCity(city)
+          if (found) {
+            setW({ enabled: true, city: found.name, lat: found.lat, lng: found.lng })
+            setMsg(`${found.name} eingestellt.`)
+          } else setMsg('Ort nicht gefunden oder Wetter gerade nicht erreichbar.')
+        }}
+      >
+        <TextInput aria-label="Ort für das Wetter" placeholder="Stadt" value={city} onChange={(e) => setCity(e.target.value)} />
+        <Button type="submit" disabled={!city.trim()}>
+          Einschalten
+        </Button>
+      </form>
+      {msg && <p className="text-sm text-muted">{msg}</p>}
+      {w.enabled && (
+        <>
+          <div className="flex items-center justify-between">
+            <span>Jacke unter</span>
+            <Stepper label="Jacke unter" value={w.rules.jacketBelowC} step={1} min={-10} max={30} unit="°C" onChange={(v) => setW({ rules: { ...w.rules, jacketBelowC: v } })} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Regenschutz ab</span>
+            <Stepper label="Regenschutz ab" value={w.rules.rainAbovePct} step={10} min={10} max={100} unit="%" onChange={(v) => setW({ rules: { ...w.rules, rainAbovePct: v } })} />
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => setW({ enabled: false })}>
+            Wetter ausschalten
+          </Button>
+        </>
+      )}
+    </Card>
   )
 }
 

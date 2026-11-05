@@ -1,22 +1,36 @@
 import { create } from 'zustand'
-import { defaultSettings, randomId } from '../core/defaults'
+import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
-import { activePlanDate, routineDone, stepKey } from '../core/now'
+import { activePlanDate, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
 import { addDays, minutesOnPlanDay, todayBerlin, type DateStr } from '../core/time'
 import type {
   CalendarEvent,
+  Commitment,
   DayLog,
   DayOverride,
   DayPlan,
   GameState,
   InboxItem,
+  LocalData,
+  MedsStatus,
+  ResumePoint,
   RoutineId,
   Settings,
   StepResult,
   WeeklyReview,
+  WorkSession,
+  WorkSessionKind,
 } from '../core/types'
+import { endBreak, startBreak, startSession, stopSession } from '../core/worktime'
 import { getRepository, type Rec, type Repository } from '../data'
+
+export interface AlarmStatus {
+  ok: boolean
+  /** Alltagssprache, falls etwas nicht stimmt */
+  message?: string
+  scheduledAt?: number
+}
 
 export interface Celebration {
   kind: 'level' | 'chapter' | 'achievement' | 'xp' | 'restart' | 'stage'
@@ -32,8 +46,14 @@ interface AppState {
   inbox: InboxItem[]
   reviews: WeeklyReview[]
   events: CalendarEvent[]
+  /** Nur auf diesem Gerät: Arbeit, Einnahmeprotokoll, Wiedereinstieg. Wird nicht synchronisiert. */
+  local: LocalData
   celebrations: Celebration[]
   toast?: string
+  /** Was Android zuletzt zur Weckerplanung gemeldet hat. Nicht gespeichert. */
+  alarmStatus?: AlarmStatus
+  /** Stand vor der letzten Korrektur an Arbeitszeiten, für „Rückgängig“. Nicht gespeichert. */
+  workUndo?: WorkSession[]
 
   load(): Promise<void>
   saveSettings(fn: (s: Settings) => Settings): Promise<void>
@@ -41,7 +61,7 @@ interface AppState {
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   setOverride(date: DateStr, patch: Partial<DayOverride>): Promise<void>
-  addInbox(text: string): Promise<void>
+  addInbox(text: string, context?: string): Promise<string | undefined>
   updateInbox(id: string, patch: Partial<InboxItem>): Promise<void>
   removeInbox(id: string): Promise<void>
   saveReview(r: WeeklyReview): Promise<void>
@@ -49,6 +69,27 @@ interface AppState {
   setGame(fn: (g: GameState) => GameState): Promise<void>
   evaluateProgress(): Promise<void>
   setEvents(e: CalendarEvent[]): Promise<void>
+  saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
+  setResume(r: ResumePoint | undefined): Promise<void>
+  /** Nur nach einer bewussten Eingabe aufrufen, nie aus Wecker-Ereignissen. */
+  setMeds(date: DateStr, status: MedsStatus | undefined): Promise<void>
+  /** Aufgabe aus der Inbox erledigen (dieselbe Aufgabe überall) oder zurücknehmen */
+  setInboxDone(id: string, done: boolean): Promise<void>
+  setAlarmStatus(a: AlarmStatus): void
+  /** Änderung über „Heute anders“: merkt den Ausgangsstand, damit alles rückgängig zu machen ist */
+  adjustDay(date: DateStr, label: string, fn: (log: DayLog) => DayLog): Promise<void>
+  /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
+  restoreDay(date: DateStr): Promise<void>
+  saveCommitment(c: Commitment): Promise<void>
+  /** Arbeit starten. Läuft schon etwas, bleibt es dabei. */
+  workStart(i?: { kind?: WorkSessionKind; label?: string; commitmentId?: string; at?: number }): Promise<void>
+  /** Beendet, was läuft. Mehrfaches Tippen ändert nichts. */
+  workStop(at?: number): Promise<void>
+  workBreakStart(at?: number): Promise<void>
+  workBreakEnd(at?: number): Promise<void>
+  /** Nachtragen oder korrigieren, mit Rückgängig */
+  editWork(fn: (list: WorkSession[]) => WorkSession[]): Promise<void>
+  undoWork(): Promise<void>
   importRecords(recs: Rec[]): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
@@ -80,12 +121,26 @@ export function emptyLog(date: DateStr): DayLog {
 
 const planCache = new Map<string, { key: unknown[]; plan: DayPlan }>()
 
-export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events'> = useApp.getState()): DayPlan {
+/** Vom Vortag versorgte Schritte, nur über ausdrücklich gesetzte Regeln. */
+function coveredBy(date: DateStr, st: Pick<AppState, 'settings' | 'days'>): string {
+  const prev = st.days[addDays(date, -1)]
+  return st.settings.routineLinks
+    .filter((l) => ['done', 'minimal'].includes(prev?.steps[`evening:${l.eveningStepId}`] ?? ''))
+    .map((l) => `morning:${l.morningStepId}`)
+    .join(',')
+}
+
+export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events' | 'local'> = useApp.getState()): DayPlan {
   const override = st.days[date]?.override
-  const key = [st.settings, override, st.events]
+  const covered = coveredBy(date, st)
+  const sessions = st.local.workSessions
+  // Laufende Arbeit: Die Prognose hängt von der Uhr ab, also je Minute neu
+  const nowMs = Date.now()
+  const minute = sessions.some((x) => x.endAt === undefined) ? Math.floor(nowMs / 60_000) : 0
+  const key = [st.settings, override, st.events, st.local.commitments, st.local.places, covered, sessions, minute]
   const hit = planCache.get(date)
   if (hit && hit.key.every((k, i) => k === key[i])) return hit.plan
-  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events) })
+  const plan = buildDayPlan({ date, settings: st.settings, override, events: eventsFor(date, st.events), commitments: st.local.commitments.filter((c) => c.date === date), places: st.local.places, covered: covered ? covered.split(',') : undefined, sessions, nowMs })
   planCache.set(date, { key, plan })
   return plan
 }
@@ -113,6 +168,7 @@ export const useApp = create<AppState>()((set, get) => ({
   inbox: [],
   reviews: [],
   events: [],
+  local: emptyLocal(),
   celebrations: [],
 
   async load() {
@@ -125,7 +181,8 @@ export const useApp = create<AppState>()((set, get) => ({
     const inbox = await repo.list<InboxItem>('inbox')
     const reviews = await repo.list<WeeklyReview>('reviews')
     const events = (await repo.get<CalendarEvent[]>('meta', 'events')) ?? []
-    set({ settings: migrateSettings(settings, t), game, days, inbox, reviews, events, ready: true })
+    const local = { ...emptyLocal(), ...(await repo.get<LocalData>('meta', 'local')) }
+    set({ settings: migrateSettings(settings, t), game, days, inbox, reviews, events, local, ready: true })
     if (settings.onboarded) await get().evaluateProgress()
     changed()
   },
@@ -142,18 +199,21 @@ export const useApp = create<AppState>()((set, get) => ({
     let log = fn(structuredClone(st.days[date] ?? emptyLog(date)))
     const plan = planFor(date, { ...st, days: { ...st.days, [date]: log } })
     // Abendroutine komplett → Zeitpunkt merken
-    if (!log.eveningRoutineDoneAt && routineDone(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
+    if (!log.eveningRoutineDoneAt && routineCompleted(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
     const a = applyAwards(plan, log, st.game, st.settings)
     log = a.log
     set({ days: { ...st.days, [date]: log }, game: a.game })
     await repo.put('days', date, log)
     if (a.gained) {
       await repo.put('game', 'main', a.game)
-      get().celebrate({ kind: 'xp', title: `+${a.gained} ${theme(st.settings.themeId).xpWord}` })
-      const t = theme(st.settings.themeId)
-      const lb = levelFor(st.game.xp, t)
-      const la = levelFor(a.game.xp, t)
-      if (la.level > lb.level) get().celebrate({ kind: 'level', title: `Level ${la.level}`, text: t.levelUp(la.name) })
+      // XP zählen weiter, aber bei Überlastung oder abgeschaltetem Spiel erscheint nichts davon
+      if (st.settings.support.gameVisible && log.override.mode !== 'ueberlastet') {
+        get().celebrate({ kind: 'xp', title: `+${a.gained} ${theme(st.settings.themeId).xpWord}` })
+        const t = theme(st.settings.themeId)
+        const lb = levelFor(st.game.xp, t)
+        const la = levelFor(a.game.xp, t)
+        if (la.level > lb.level) get().celebrate({ kind: 'level', title: `Level ${la.level}`, text: t.levelUp(la.name) })
+      }
     }
     changed()
   },
@@ -175,11 +235,12 @@ export const useApp = create<AppState>()((set, get) => ({
     await get().updateDay(date, (log) => ({ ...log, override: { ...log.override, ...patch } }))
   },
 
-  async addInbox(text) {
-    const item: InboxItem = { id: randomId(), text: text.trim(), createdAt: Date.now(), status: 'open' }
-    if (!item.text) return
+  async addInbox(text, context) {
+    const item: InboxItem = { id: randomId(), text: text.trim(), createdAt: Date.now(), status: 'open', ...(context ? { captureContext: context } : {}) }
+    if (!item.text) return undefined
     set({ inbox: [...get().inbox, item] })
     await repo.put('inbox', item.id, item)
+    return item.id
   },
 
   async updateInbox(id, patch) {
@@ -187,6 +248,13 @@ export const useApp = create<AppState>()((set, get) => ({
     set({ inbox })
     const item = inbox.find((x) => x.id === id)
     if (item) await repo.put('inbox', id, item)
+    // Eingeplante Aufgaben gehören zum Tagesplan
+    changed()
+  },
+
+  async setInboxDone(id, done) {
+    await get().updateInbox(id, { done, doneAt: done ? Date.now() : undefined })
+    changed()
   },
 
   async removeInbox(id) {
@@ -259,6 +327,93 @@ export const useApp = create<AppState>()((set, get) => ({
     changed()
   },
 
+  async saveLocal(fn) {
+    const local = fn(get().local)
+    set({ local })
+    await repo.put('meta', 'local', local)
+    changed()
+  },
+
+  async setResume(r) {
+    await get().saveLocal((l) => {
+      const next = { ...l }
+      if (r) next.resume = r
+      else delete next.resume
+      return next
+    })
+  },
+
+  async setMeds(date, status) {
+    await get().saveLocal((l) => {
+      const meds = { ...l.meds }
+      if (status) meds[date] = { status, at: Date.now() }
+      else delete meds[date]
+      return { ...l, meds }
+    })
+  },
+
+  async adjustDay(date, label, fn) {
+    await get().updateDay(date, (log) => {
+      const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
+      const next = fn(log)
+      return { ...next, before, override: { ...next.override, adjusted: true }, changes: [...(log.changes ?? []), label] }
+    })
+  },
+
+  async restoreDay(date) {
+    await get().updateDay(date, (log) => {
+      if (!log.before) return log
+      const real = Object.fromEntries(Object.entries(log.steps).filter(([, v]) => v === 'done' || v === 'minimal'))
+      const restored: DayLog = { ...log, override: log.before.override, steps: { ...log.before.steps, ...real } }
+      delete restored.before
+      delete restored.changes
+      return restored
+    })
+    await get().saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.date === date && !c.arrivedAt && !l.workSessions.some((x) => x.commitmentId === c.id) ? { ...c, status: 'cancelled' as const } : c)) }))
+  },
+
+  async saveCommitment(c) {
+    await get().saveLocal((l) => ({ ...l, commitments: [...l.commitments.filter((x) => x.id !== c.id), c] }))
+  },
+
+  async workStart(i = {}) {
+    const at = i.at ?? Date.now()
+    await get().saveLocal((l) => ({ ...l, workSessions: startSession(l.workSessions, { id: randomId(), date: today(), at, kind: i.kind, label: i.label, commitmentId: i.commitmentId }) }))
+  },
+
+  async workStop(at = Date.now()) {
+    await get().saveLocal((l) => {
+      const open = l.workSessions.find((x) => x.endAt === undefined)
+      // Ein Einsatz ohne Weg ist mit dem Beenden abgeschlossen. Vor Ort folgt noch „Bin wieder da“.
+      const commitments = open?.commitmentId ? l.commitments.map((c) => (c.id === open.commitmentId && c.routeMode === 'none' ? { ...c, backAt: at } : c)) : l.commitments
+      return { ...l, commitments, workSessions: stopSession(l.workSessions, at) }
+    })
+  },
+
+  async workBreakStart(at = Date.now()) {
+    await get().saveLocal((l) => ({ ...l, workSessions: startBreak(l.workSessions, randomId(), at) }))
+  },
+
+  async workBreakEnd(at = Date.now()) {
+    await get().saveLocal((l) => ({ ...l, workSessions: endBreak(l.workSessions, at) }))
+  },
+
+  async editWork(fn) {
+    set({ workUndo: get().local.workSessions })
+    await get().saveLocal((l) => ({ ...l, workSessions: fn(l.workSessions) }))
+  },
+
+  async undoWork() {
+    const before = get().workUndo
+    if (!before) return
+    set({ workUndo: undefined })
+    await get().saveLocal((l) => ({ ...l, workSessions: before }))
+  },
+
+  setAlarmStatus(a) {
+    set({ alarmStatus: a })
+  },
+
   async importRecords(recs) {
     const n = await repo.merge(recs)
     if (n) await get().load()
@@ -278,12 +433,6 @@ export const useApp = create<AppState>()((set, get) => ({
     }, 2500)
   },
 }))
-
-/** Ergänzt Felder, die in älteren gespeicherten Einstellungen fehlen. */
-function migrateSettings(s: Settings, t: DateStr): Settings {
-  const d = defaultSettings(t)
-  return { ...d, ...s, sport: { ...d.sport, ...s.sport }, reminders: { ...d.reminders, ...s.reminders }, integrations: { ...d.integrations, ...s.integrations }, game: { ...d.game, ...s.game }, alarm: { ...d.alarm, ...s.alarm }, appearance: { ...d.appearance, ...s.appearance } }
-}
 
 export function repository(): Repository {
   return repo

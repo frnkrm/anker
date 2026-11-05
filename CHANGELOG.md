@@ -1,5 +1,87 @@
 # Patch Notes
 
+## Unveröffentlicht: Gleitzeit und Kundenarbeit
+
+Versionsnummer unverändert, **nicht auf einem echten Handy geprüft**.
+
+### Neu
+- **Gleitzeit:** spätester Beginn (Vorgabe 09:00, änderbar), Wunsch-Beginn, Netto-Soll und übliche Pause je Wochentag, auch ein eigener Freitag. Anker rät keine Werte.
+- **Arbeit starten, Pause, Feierabend:** freiwillig, höchstens zwei Tipps. Der Feierabend rückt mit der echten Pause in beide Richtungen.
+- **Nachtragen und korrigieren** ohne Timer, mit Rückgängig. Wochenblick nur auf Wunsch und ohne Wertung.
+- **Einsätze:** Wartung planen, Kundenproblem jetzt, Vor-Ort-Termin, Rufbereitschaft. Der freie Tag bleibt frei.
+- **Heute anders → Arbeit heute anders:** später anfangen, Pause, früher Schluss, länger, Ziel für heute. Nur dieser Tag.
+- **Hinweise** zu Pause, Ruhezeit und Sonntag, sachlich und abschaltbar. Nachricht zum Kopieren, Anker sendet nichts.
+
+### Behoben
+- **Wecker bei Always-on-Display:** Es kam nur die Meldung, das Vollbild erst nach einem Tipp. Anker schaltet beim Klingeln jetzt den Bildschirm ein und stößt das Vollbild erneut an. Am Gerät bestätigt.
+- **Homeoffice meldete „Losgehen“** und zählte „Pünktlich los“ als Ziel. Beides entfällt dort jetzt.
+- **Datenschutz:** Der Terminname stand in der Änderungsliste des Tages und damit im Sync, der Anlass stand im Widget und, beim Merken eines Gedankens, als Kontext im Sync. Alles drei ist nun allgemein gehalten. Bereits synchronisierte Einträge werden nicht rückwirkend geändert.
+- **Früher zurück** beendet nun auch den Termin im Plan, statt ihn bis zum geplanten Ende anzuzeigen.
+
+## 1.2.0-rc.1 (2026-11-04), Vorabversion
+
+**Noch nicht auf einem echten Handy geprüft,** auch die Prüfung von 1.1.0-rc.1 steht noch aus.
+
+### Neu
+- **Heute anders:** etwas anderes vor, Routine später, heute nicht nötig, länger wach, Plan ab jetzt neu. Mit Änderungsliste und „Zurück zum ursprünglichen Plan“.
+- **Termine und Wege:** Freunde, Kunden und eigene Termine mit Uhrzeit, optional Ort, Fahrzeit und Ende. Der Weg startet am letzten bekannten Ort, ohne Umweg über die Wohnung. Die Rückkehr wird nicht erfunden.
+- **Unterwegs:** Fertigmachen, Bin los, Ich bin angekommen, Bin wieder da, Route in Google Maps.
+- **Morgen rückwärts geplant:** Vorschlag für eine einmalige Weckzeit, nur nach Bestätigung. Der Standard bleibt.
+- **Schlaf:** sachlicher Hinweis zur erwarteten Schlafzeit, keine Bewertung.
+- **Abends schon erledigt:** Morgenschritt entfällt, gilt dort aber nicht als erledigt.
+- **Wetter für morgen** (aus, bis du es einschaltest), **Homeoffice-Text zum Kopieren**, eigene Puffer für Wege.
+
+### Behoben
+- **Überspringen galt als „Abendroutine erledigt“.** Das Kernziel ließ sich so ohne echte Handlung erreichen. Jetzt zählt nur, was du wirklich gemacht hast.
+- **Haken in der Tageslinie** erscheinen nur noch bei wirklich Gemachtem.
+
+### Geändert
+- **Ein bewusst geänderter Tag zählt nie als verfehlt** und kostet im Kapitel nichts. Alte Tage bleiben, wie sie sind.
+
+### Noch offen
+- Live-Verkehrsdaten und Ankunftserkennung per Standort sind nicht umgesetzt.
+- Orte lassen sich noch nicht als feste Liste speichern. Zielkompass, „Nicht vergessen“-Liste und eine selbst gesetzte einzelne Abend-Erinnerung fehlen noch.
+
+## 1.1.0-rc.1 (2026-11-04), Vorabversion
+
+**Noch nicht auf einem echten Handy geprüft.** Logik per Unit-Tests geprüft, die APK ist gebaut. Lass den Android-Wecker zusätzlich gestellt, bis du [die Geräteprüfung](docs/GERAETETEST.md) durchlaufen hast.
+
+### Behoben
+- **„Wecker testen“ löscht den echten Wecker nicht mehr.** Der Test war derselbe Alarm wie der Hauptwecker, ersetzte ihn und setzte das Schlummern zurück.
+- **Der Test zählt nicht mehr als „aufgestanden“.**
+- **Der nächste Morgen plant sich selbst,** auch nach dem 30-Minuten-Ende und bei geschlossener App.
+- **Doppelte Signale erzeugen keine zweite Klingel,** das Zeitlimit übersteht einen Neustart der App.
+- **Erinnerungen laufen zwei Wochen weiter,** auch ohne die App zu öffnen, und bauen keinen Stau auf.
+- **Höchstens drei Anker-Meldungen in der Leiste,** feste Termine werden nicht von Kleinigkeiten verdrängt.
+- **Knöpfe in Meldungen wirken bei geschlossener App.**
+- **„Morgen erledigen“ erscheint jetzt wirklich** am richtigen Tag unter **Tag** und auf der Startseite.
+- **Von Hand gesetzte Zeiten bleiben stehen,** wenn Anker neu rechnet.
+- **PC-Stopp erzwingt nichts mehr:** Das frühere Herunterfahren mit Wartezeit schloss Programme laut Windows-Doku erzwungen. Jetzt gibt es 5 Minuten Schonfrist, ein Herunterfahren ohne Zwang und ein Skript zum Aussetzen. Dafür das Paket neu installieren.
+- **Drucken auf Android:** eigener Weg zum Systemdialog, der `window.print()` in der App nicht zuverlässig war.
+
+### Neu
+- **Startseite:** eine Hauptaktion, höchstens zwei weitere, Rest unter „Mehr“. Warum etwas dran ist, steht in einem Satz.
+- **Arbeit:** wichtigste Aufgabe statt „nichts zu tun“, „Ich wurde unterbrochen“, Fristen, Feierabend-Übergabe. Bleibt auf dem Gerät.
+- **Unterstützung wählen:** Einfach anfangen, Wenig Energie, Überlastet, Auf Kurs.
+- **Gedanken:** nach dem Speichern „Du warst bei …“ und zurück.
+- **„Ich hänge fest“:** ein Bildschirm, ein Schritt, 2-Minuten-Ring, „Etwas kleiner“.
+- **„Tag neu sortieren“:** höchstens drei Dinge ab jetzt, kleine Versionen für den Rest.
+- **Wecker:** optionaler Vorwecker und Wachheits-Check, Notfall-Stopp ohne Lesen und Rechnen, Diagnose mit echten Android-Werten.
+- **Privates Einnahmeprotokoll:** aus, bis du es einschaltest. Bleibt auf dem Gerät, nie automatisch, keine Wirkungsanzeige.
+- **Fokus-Puls** (aus), **Abendmodus-Vorschlag** (aus), **Ankommen nach der Arbeit** (aus), **Spiel ausblendbar**, **freiwillige 7- oder 14-Tage-Probe**.
+- **Druckauswahl:** Morgen, Abend, beide, QR-Code, Haustür, A5 oder A4.
+
+### Geändert
+- Fortschritt beim Fokus-Timer übersteht Pausieren und Neuöffnen.
+- Exakte Wecker: `USE_EXACT_ALARM`, `SCHEDULE_EXACT_ALARM` nur noch bis Android 12.
+
+### Daten
+Einstellungen, Routinen, Spielstand, Gedanken, QR-Code und Sicherungen aus 1.0.x bleiben erhalten. Neues ist standardmäßig aus.
+
+### Noch offen
+- Alle Punkte aus [GERAETETEST.md](docs/GERAETETEST.md), besonders Samsung, Sperrbildschirm, „Nicht stören“, Neustart und der gedruckte QR-Code.
+- Spracheingabe für Gedanken ist nicht umgesetzt. Das Widget zeigt keine Arbeitsaufgaben.
+
 ## 1.0.1 (2026-11-04)
 
 ### Behoben

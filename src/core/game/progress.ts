@@ -51,7 +51,7 @@ function streak(c: ProgressContext, key: Goal['key'], n: number): boolean {
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first-step', title: 'Erster Schritt', description: 'Den ersten Routine-Schritt erledigt.', check: (c) => c.logs.some((l) => Object.values(l.steps).some((v) => v !== 'skipped')) },
+  { id: 'first-step', title: 'Erster Schritt', description: 'Den ersten Routine-Schritt erledigt.', check: (c) => c.logs.some((l) => Object.values(l.steps).some((v) => v === 'done' || v === 'minimal')) },
   { id: 'wake-5', title: 'Frühaufsteher', description: '5× in Folge pünktlich aufgestanden.', check: (c) => streak(c, 'wake', 5) },
   { id: 'punctual-5', title: 'Pünktlich wie die Bahn (fast)', description: '5× in Folge pünktlich losgegangen.', check: (c) => streak(c, 'leave', 5) },
   { id: 'pcstop-7', title: 'Feierabend für den PC', description: '7× in Folge den PC-Stopp eingehalten.', check: (c) => streak(c, 'pcstop', 7) },

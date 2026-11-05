@@ -3,7 +3,78 @@ import { defaultSettings } from '../defaults'
 import { buildDayPlan } from '../planner'
 import { zonedToUtc } from '../time'
 import type { Settings } from '../types'
-import { buildReminders, idsForKey, reminderId } from './build'
+import { buildReminders, idsForKey, relevantReminderKeys, reminderId, reopenHint, slotFor } from './build'
+
+describe('Slots und lange Vorausplanung', () => {
+  const now = zonedToUtc('2026-11-02', 5 * 60)
+  const plansFor = (s: Settings, n: number) => Array.from({ length: n }, (_, i) => buildDayPlan({ date: `2026-11-${String(2 + i).padStart(2, '0')}`, settings: s }))
+
+  it('harte Zeiten vor Aufgaben vor Kleinigkeiten', () => {
+    expect(slotFor('leave')).toEqual({ slot: 1, rank: 4 })
+    expect(slotFor('morning').slot).toBe(0)
+    expect(slotFor('review').slot).toBe(2)
+    expect(slotFor('leave').rank).toBeGreaterThan(slotFor('morning').rank)
+    expect(slotFor('morning').rank).toBeGreaterThan(slotFor('review').rank)
+  })
+
+  it('nach drei Tagen ohne Öffnen sind Erinnerungen weiter geplant, ohne alte nachzuholen', () => {
+    const s = defaultSettings('2026-11-01')
+    const r = buildReminders(plansFor(s, 14), {}, s, now, 14 * 24 * 3600_000)
+    const threeDaysLater = now + 3 * 24 * 3600_000
+    expect(r.some((x) => x.key === 'leave' && x.at > threeDaysLater)).toBe(true)
+    expect(r.every((x) => x.at > now)).toBe(true)
+  })
+
+  it('nur Zeitkritisches weckt exakt', () => {
+    const s = defaultSettings('2026-11-01')
+    const r = buildReminders(plansFor(s, 2), {}, s, now)
+    expect(r.find((x) => x.key === 'leave')!.exact).toBe(true)
+    expect(r.find((x) => x.key === 'morning')!.exact).toBe(false)
+  })
+
+  it('Erledigtes ist nicht mehr relevant und wird aus der Leiste geräumt', () => {
+    const s = defaultSettings('2026-11-01')
+    const plans = plansFor(s, 1)
+    const date = plans[0]!.date
+    expect(relevantReminderKeys(plans, {}, s)).toContain(`${date}|leave`)
+    const logs = { [date]: { date, override: {}, steps: {}, leftAt: now, dismissed: ['bed'] } }
+    const after = relevantReminderKeys(plans, logs, s)
+    expect(after).not.toContain(`${date}|leave`)
+    expect(after).not.toContain(`${date}|bed`)
+  })
+
+  it('Deadline: früh, ruhig und ohne Arbeitsinhalt im Text', () => {
+    const s = defaultSettings('2026-11-01')
+    const at = now + 48 * 3600_000
+    const r = buildReminders([], {}, s, now, 7 * 24 * 3600_000, { deadlines: [{ id: 'x', at }] })
+    expect(r.map((x) => x.at).sort()).toEqual([at - 24 * 3600_000, at - 3600_000])
+    expect(r.every((x) => x.slot === 1 && !x.body.includes('x'))).toBe(true)
+  })
+
+  it('Deadline-Erinnerung bleibt nach „Erledigt“ weg', () => {
+    const s = defaultSettings('2026-11-01')
+    const at = zonedToUtc('2026-11-06', 720)
+    const logs = { '2026-11-06': { date: '2026-11-06', override: {}, steps: {}, dismissed: ['deadline-hour:x'] } }
+    const r = buildReminders([], logs, s, now, 7 * 24 * 3600_000, { deadlines: [{ id: 'x', at }] })
+    expect(r.map((x) => x.key)).toEqual(['deadline-day:x'])
+  })
+
+  it('auf Kurs: nur noch, was zählt', () => {
+    const s = defaultSettings('2026-11-01')
+    const plans = plansFor(s, 1)
+    const date = plans[0]!.date
+    const r = buildReminders(plans, { [date]: { date, override: { mode: 'auf-kurs' }, steps: {} } }, s, now)
+    expect(r.some((x) => x.key === 'morning')).toBe(false)
+    expect(r.some((x) => x.key === 'leave')).toBe(true)
+  })
+
+  it('Hinweis vor dem Ende der Vorausplanung', () => {
+    const h = reopenHint(now, '2026-11-15')
+    expect(h.channel).toBe('sanft')
+    expect(h.slot).toBe(2)
+    expect(h.exact).toBe(false)
+  })
+})
 
 const MON = '2026-11-02'
 const TUE = '2026-11-03'

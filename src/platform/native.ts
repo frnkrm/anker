@@ -1,17 +1,99 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
+import type { NativeAlarmConfig } from '../core/alarm'
+
+export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
+
+export interface AlarmStateInfo {
+  ringing: boolean
+  kind?: AlarmKindWire | null
+  scheduledAt?: number | null
+  preWakeAt?: number | null
+  snoozeAt?: number | null
+  wakeCheckAt?: number | null
+  testAt?: number | null
+  snoozed: number
+  /** Android hat einen PendingIntent für den Hauptwecker */
+  mainConfirmed?: boolean
+  preWakeConfirmed?: boolean
+  exact?: boolean
+  error?: string
+}
+
+export interface AlarmDiagnostics extends AlarmStateInfo {
+  systemNextAt?: number | null
+  notificationsEnabled: boolean
+  channelImportance: number
+  channelBypassDnd: boolean
+  /** NotificationManager.INTERRUPTION_FILTER_*: 1 = alles erlaubt */
+  interruptionFilter: number
+  dndAccess: boolean
+  fullScreen: boolean
+  batteryIgnored: boolean
+  powerSave: boolean
+  alarmVolume: number
+  alarmVolumeMax: number
+  bluetooth: boolean
+  wired: boolean
+  audioOk: boolean
+  testResult: '' | 'scheduled' | 'rang' | 'heard' | 'not-heard' | 'failed'
+  testResultAt: number
+  lastStopMethod: string
+  lastStopAt: number
+  lastTimeoutAt: number
+  missedMainAt: number
+  lastReconcileAt: number
+  lastReconcileReason: string
+  reminderQueue: number
+  reminderHorizon: number
+  remindersVisible: number
+  sdk: number
+  device: string
+}
+
+export interface NativeReminder {
+  key: string
+  date: string
+  at: number
+  channel: string
+  title: string
+  body: string
+  actions: boolean
+  slot: number
+  rank: number
+  exact: boolean
+}
+
+export interface ReminderActionInfo {
+  action: 'done' | 'skip'
+  key: string
+  date: string
+  at: number
+}
 
 /** Eigenes Kotlin-Plugin (android/app/src/main/java/.../AnkerNativePlugin.kt). */
 export interface AnkerNativePlugin {
-  /** Wecker zur festen Zeit (AlarmManager.setAlarmClock, Vollbild-Alarm) */
-  scheduleAlarm(o: { at: number; label: string }): Promise<void>
-  cancelAlarm(): Promise<void>
-  /** Klingeln beenden (nach QR-Scan oder Rechenaufgaben) */
-  stopAlarm(): Promise<void>
-  /** Einmal 5 Minuten schlummern. ok=false, wenn schon geschlummert wurde. */
+  /** Konfiguration für den nativen Wecker. Kotlin plant damit jeden nächsten Morgen selbst. */
+  syncAlarmConfig(c: NativeAlarmConfig): Promise<AlarmStateInfo>
+  getAlarmState(): Promise<AlarmStateInfo>
+  /** Klingeln beenden. method erscheint nur in der eigenen Diagnose. */
+  stopAlarm(o: { method: string }): Promise<AlarmStateInfo>
+  /** Einmal schlummern. ok=false, wenn schon geschlummert wurde oder es kein Hauptwecker ist. */
   snoozeAlarm(o: { minutes: number }): Promise<{ ok: boolean }>
-  getAlarmState(): Promise<{ ringing: boolean; scheduledAt?: number; snoozed: number }>
+  /** Eigener Alarm, berührt weder Hauptwecker noch Vorwecker noch Schlummer-Regel */
+  testAlarm(o: { seconds: number }): Promise<{ at: number }>
+  confirmTest(o: { heard: boolean }): Promise<void>
+  playTestTone(): Promise<{ ok: boolean }>
+  getAlarmDiagnostics(): Promise<AlarmDiagnostics>
+  syncReminders(o: { reminders: NativeReminder[]; relevant: string[] }): Promise<void>
+  drainReminderActions(): Promise<{ actions: ReminderActionInfo[] }>
+  /** Öffnet den Android-Druckdialog. opened=false, wenn das System ihn nicht zeigen konnte. */
+  printPage(o: { jobName: string; size: 'A5' | 'A4' }): Promise<{ opened: boolean }>
+  vibratePulse(o: { strength: 'gentle' | 'strong' }): Promise<void>
   canUseFullScreenIntent(): Promise<{ granted: boolean }>
   openFullScreenIntentSettings(): Promise<void>
+  openExactAlarmSettings(): Promise<void>
+  openAlarmChannelSettings(): Promise<void>
+  openFocusSettings(): Promise<void>
   isIgnoringBatteryOptimizations(): Promise<{ granted: boolean }>
   openBatteryOptimizationSettings(): Promise<void>
   hasDndAccess(): Promise<{ granted: boolean }>
@@ -20,23 +102,37 @@ export interface AnkerNativePlugin {
   /** Einträge: ab `at` (UTC ms) zeigt das Widget diesen Text. */
   updateWidget(o: { entries: { at: number; action: string; sub: string; hardLabel: string; hardTime: string }[] }): Promise<void>
   isWidgetPlaced(): Promise<{ placed: boolean }>
-  addListener(event: 'alarmRinging', fn: () => void): Promise<PluginListenerHandle>
+  addListener(event: 'alarmRinging' | 'reminderAction', fn: () => void): Promise<PluginListenerHandle>
 }
 
+// Im Web gibt es keinen Wecker: nur still antworten, nie so tun, als wäre etwas geplant
 const web: Partial<AnkerNativePlugin> = {
-  async scheduleAlarm() {},
-  async cancelAlarm() {},
-  async stopAlarm() {},
-  async snoozeAlarm() {
-    return { ok: true }
+  async syncAlarmConfig() {
+    return { ringing: false, snoozed: 0 }
   },
   async getAlarmState() {
     return { ringing: false, snoozed: 0 }
+  },
+  async stopAlarm() {
+    return { ringing: false, snoozed: 0 }
+  },
+  async snoozeAlarm() {
+    return { ok: false }
+  },
+  async drainReminderActions() {
+    return { actions: [] }
+  },
+  async syncReminders() {},
+  async vibratePulse({ strength }) {
+    navigator.vibrate?.(strength === 'strong' ? [140, 120, 140] : [60, 120, 60])
   },
   async canUseFullScreenIntent() {
     return { granted: false }
   },
   async openFullScreenIntentSettings() {},
+  async openExactAlarmSettings() {},
+  async openAlarmChannelSettings() {},
+  async openFocusSettings() {},
   async isIgnoringBatteryOptimizations() {
     return { granted: false }
   },

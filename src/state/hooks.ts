@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { nextAction, type NextView } from '../core/support'
 import { minutesOnPlanDay } from '../core/time'
 import type { DayLog, DayPlan } from '../core/types'
 import { emptyLog, planFor, today, useApp } from './store'
@@ -24,14 +25,24 @@ export function useToday(tick = 15_000): { date: string; plan: DayPlan; log: Day
   const settings = useApp((s) => s.settings)
   const days = useApp((s) => s.days)
   const events = useApp((s) => s.events)
+  const local = useApp((s) => s.local)
   const date = today()
-  const plan = planFor(date, { settings, days, events })
+  const plan = planFor(date, { settings, days, events, local })
   return { date, plan, log: days[date] ?? emptyLog(date), m: minutesOnPlanDay(date, now), now }
+}
+
+/** Was gerade dran ist, außerhalb von React gelesen (z. B. beim Speichern eines Gedankens). */
+export function nextNow(): NextView {
+  const st = useApp.getState()
+  const date = today()
+  const now = Date.now()
+  return nextAction({ plan: planFor(date), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
 }
 
 export function usePlan(date: string): DayPlan {
   const settings = useApp((s) => s.settings)
   const days = useApp((s) => s.days)
   const events = useApp((s) => s.events)
-  return planFor(date, { settings, days, events })
+  const local = useApp((s) => s.local)
+  return planFor(date, { settings, days, events, local })
 }

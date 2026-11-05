@@ -4,6 +4,8 @@ export default function More() {
   return (
     <Page title="Mehr">
       <Section title="Alltag">
+        <Row label="💼 Arbeit" to="/arbeit" />
+        <Row label="⏱️ Arbeitszeit & Einsätze" to="/arbeitszeit" />
         <Row label="🍳 Essen & Vorkochen" to="/essen" />
         <Row label="🧹 Aufräumen (10 Minuten)" to="/aufraeumen" />
         <Row label="🎒 Abend-Vorbereitung" to="/vorbereitung" />
