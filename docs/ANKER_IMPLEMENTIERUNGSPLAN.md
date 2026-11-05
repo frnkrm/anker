@@ -2,7 +2,7 @@
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
 
-**Am Gerät verifiziert ist bisher nur eins:** Der Testalarm lässt den nächsten Hauptwecker unverändert (Punkt 3, Version 1.1.0-rc.1, vom Nutzer bestätigt). Alles andere ist dort offen.
+**Am Gerät geprüft (04.11.2026, vom Nutzer gemeldet):** Wecker 1–3, 8, 14–16, 18, 19, einmalige Weckzeit und Termine 36, 38–40, Erinnerungen 22, 23, Druck 27–30, Alltag 31–34, Gleitzeit 43, 45. **Offen oder auffällig:** Vollbild erscheint bei 4 und 9 nicht von selbst, 4 und 5 nur teilweise gemeldet, die übrigen Punkte noch nicht getestet. Einzelheiten in [GERAETETEST.md](GERAETETEST.md).
 Grüne Tests und ein Build zeigen nur, dass die reine Logik stimmt und der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
 
 Branch: `entwicklung/anker-2` (nicht gepusht).
