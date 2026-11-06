@@ -3,6 +3,15 @@ import { useApp } from '../state/store'
 import { sb, supabaseConfigured } from './supabase'
 
 type Issue = 'not-configured' | 'signed-out' | 'consent' | 'daily-limit' | 'offline' | 'invalid-response' | 'cancelled' | 'timeout'
+type Purpose = 'ai' | 'routes'
+const generations: Record<Purpose, number> = { ai: 0, routes: 0 }
+const running = new Map<AbortController, Purpose>()
+
+/** Widerruf beendet auch Anfragen, die gerade noch auf ihre Anmeldung warten. */
+export function cancelAssistanceRequests(purpose?: Purpose): void {
+  for (const key of purpose ? [purpose] : ['ai', 'routes'] as const) generations[key]++
+  for (const [controller, key] of running) if (!purpose || purpose === key) controller.abort()
+}
 export class AssistanceError extends Error {
   constructor(readonly issue: Issue) {
     super({
@@ -18,7 +27,7 @@ export class AssistanceError extends Error {
   }
 }
 
-async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, allowed?: () => boolean): Promise<unknown> {
+async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, allowed?: () => boolean, purpose?: Purpose): Promise<unknown> {
   const client = sb()
   const base = import.meta.env.VITE_SUPABASE_URL as string | undefined
   if (!supabaseConfigured || !client || !base) throw new AssistanceError('not-configured')
@@ -26,6 +35,7 @@ async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, al
   if (error || !data.session?.access_token) throw new AssistanceError('signed-out')
   if (allowed && !allowed()) throw new AssistanceError('consent')
   const controller = new AbortController()
+  if (purpose) running.set(controller, purpose)
   let timedOut = false
   const cancel = () => controller.abort()
   externalSignal?.addEventListener('abort', cancel, { once: true })
@@ -48,6 +58,7 @@ async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, al
     if (error instanceof AssistanceError) throw error
     throw new AssistanceError(controller.signal.aborted ? timedOut ? 'timeout' : 'cancelled' : 'offline')
   } finally {
+    running.delete(controller)
     clearTimeout(timeout)
     externalSignal?.removeEventListener('abort', cancel)
   }
@@ -67,9 +78,11 @@ export async function assistantCapabilities(signal?: AbortSignal): Promise<Assis
 export async function requestAssistance(input: AssistantRequest, signal?: AbortSignal): Promise<AssistantResult> {
   if (!validAssistantRequest(input)) throw new AssistanceError('invalid-response')
   const purpose = input.kind === 'steps' ? 'ai' : 'routes'
-  if (!assistanceAllowed(useApp.getState().local.assistance, purpose)) throw new AssistanceError('consent')
-  const result = await invoke(input, signal, () => assistanceAllowed(useApp.getState().local.assistance, purpose))
-  if (!assistanceAllowed(useApp.getState().local.assistance, purpose)) throw new AssistanceError('consent')
+  const generation = generations[purpose]
+  const allowed = () => generation === generations[purpose] && assistanceAllowed(useApp.getState().local.assistance, purpose)
+  if (!allowed()) throw new AssistanceError('consent')
+  const result = await invoke(input, signal, allowed, purpose)
+  if (!allowed()) throw new AssistanceError('consent')
   if (!validAssistantResult(result) || result.kind !== input.kind || result.revision !== input.revision) throw new AssistanceError('invalid-response')
   return result
 }

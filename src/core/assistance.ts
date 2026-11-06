@@ -1,3 +1,4 @@
+import type { InboxItem, TaskRef, WorkTask } from './types'
 export * from '../../supabase/functions/_shared/assistanceProtocol'
 
 export const ASSISTANCE_NOTICE_VERSION = 1
@@ -33,4 +34,11 @@ export function assistanceRevision(value: unknown): string {
   let hash = 2166136261
   for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619)
   return `request:${(hash >>> 0).toString(16)}`
+}
+
+export interface TaskSuggestionExpectation { revision: string; purpose: 'ai' }
+
+/** Exakter lokaler Snapshot für die atomare Übernahme; dieser Text wird nicht übertragen. */
+export function taskAssistanceRevision(ref: TaskRef, task: InboxItem | WorkTask): string {
+  return JSON.stringify([ref.kind, ref.id, task])
 }

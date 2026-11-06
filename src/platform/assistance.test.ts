@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AssistancePreferences } from '../core/assistance'
-import { assistantCapabilities, requestAssistance } from './assistance'
+import { assistantCapabilities, cancelAssistanceRequests, requestAssistance } from './assistance'
 
 const context = vi.hoisted(() => ({ profile: undefined as AssistancePreferences | undefined, token: true, sessionDelay: undefined as Promise<void> | undefined }))
 vi.mock('../state/store', () => ({ useApp: { getState: () => ({ local: { assistance: context.profile } }) } }))
@@ -64,6 +64,34 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     const requesting = requestAssistance(input, controller.signal)
     await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
     controller.abort(); finish(Response.json(result))
+    await expect(requesting).rejects.toMatchObject({ issue: 'cancelled' })
+  })
+  it('bricht bei Widerruf auf Anmeldung wartende Anfragen ab, auch wenn die lokale Speicherung noch läuft', async () => {
+    let release!: () => void
+    context.sessionDelay = new Promise<void>((resolve) => { release = resolve })
+    const fetcher = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetcher)
+    const requesting = requestAssistance(input)
+    cancelAssistanceRequests('ai')
+    release()
+    await expect(requesting).rejects.toMatchObject({ issue: 'consent' })
+    expect(fetcher).not.toHaveBeenCalled()
+    // Neue bewusste Anfragen nach einer weiterhin bestehenden/erneuten Freigabe bleiben möglich.
+    vi.stubGlobal('fetch', async () => Response.json(result))
+    expect(await requestAssistance(input)).toEqual(result)
+  })
+  it('bricht nur den widerrufenen Zweck ab und verwirft eine späte Antwort', async () => {
+    let finish!: (response: Response) => void
+    const fetcher = vi.fn<typeof fetch>(() => new Promise<Response>((resolve) => { finish = resolve }))
+    vi.stubGlobal('fetch', fetcher)
+    const requesting = requestAssistance(input)
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
+    cancelAssistanceRequests('routes')
+    const signal = fetcher.mock.calls[0]![1]!.signal!
+    expect(signal.aborted).toBe(false)
+    cancelAssistanceRequests('ai')
+    expect(signal.aborted).toBe(true)
+    finish(Response.json(result))
     await expect(requesting).rejects.toMatchObject({ issue: 'cancelled' })
   })
   it('weist falsche Revisionen und beschädigte Vorschläge zurück', async () => {

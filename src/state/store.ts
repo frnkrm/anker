@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
 import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { eveningLocalFields } from '../core/evening'
@@ -84,14 +85,14 @@ interface AppState {
   saveCaptureDraft(text: string, context?: ResumePoint): Promise<void>
   addWorkTask(title: string): Promise<string | undefined>
   moveWorkTaskToTop(id: string): Promise<void>
-  updateTask(ref: TaskRef, patch: Partial<TaskFields> & { text?: string; title?: string; taskDate?: DateStr }): Promise<void>
+  updateTask(ref: TaskRef, patch: Partial<TaskFields> & { text?: string; title?: string; taskDate?: DateStr }, expected?: TaskSuggestionExpectation): Promise<void>
   setTaskState(ref: TaskRef, state: TaskState): Promise<void>
   completeTask(ref: TaskRef, done: boolean, minimal?: boolean, confirmedMinutes?: number): Promise<void>
   removeTask(ref: TaskRef): Promise<void>
   startTaskFocus(ref: TaskRef, minutes?: number): Promise<void>
   pauseTaskFocus(ref: TaskRef, nextStep?: string, note?: string): Promise<void>
   setTaskPartDone(ref: TaskRef, partId: string, done: boolean): Promise<void>
-  replaceTaskParts(ref: TaskRef, parts: TaskPart[]): Promise<void>
+  replaceTaskParts(ref: TaskRef, parts: TaskPart[], expected?: TaskSuggestionExpectation): Promise<void>
   moveInboxToWork(id: string): Promise<void>
   linkInbox(id: string, ref: TaskRef): Promise<void>
   setTaskLearning(enabled: boolean): Promise<void>
@@ -286,11 +287,14 @@ function completeTaskData(ref: TaskRef, task: InboxItem | WorkTask, data: TaskDa
   }
 }
 
-function editTask(ref: TaskRef, edit: (task: InboxItem | WorkTask, data: TaskData) => void): Promise<void> {
+function editTask(ref: TaskRef, edit: (task: InboxItem | WorkTask, data: TaskData) => void, required = false): Promise<void> {
   if (!validTaskRef(ref)) return Promise.reject(new Error('Die Aufgabenreferenz ist ungültig.'))
   return editTaskData((data) => {
     const task = resolveTask(ref, data.inbox, data.local.work)
-    if (!task) return
+    if (!task) {
+      if (required) throw new Error('Die Aufgabe ist nicht mehr vorhanden. Es wurde nichts übernommen.')
+      return
+    }
     edit(task, data)
     if (!validTaskFields(task)) throw new Error('Die Aufgabenangaben sind ungültig. Deine bisherigen Daten bleiben erhalten.')
   })
@@ -575,15 +579,18 @@ export const useApp = create<AppState>()((set, get) => ({
     })
   },
 
-  updateTask(ref, patch) {
+  updateTask(ref, patch, expected) {
     return editTask(ref, (task, data) => {
+      if (expected && (expected.purpose !== 'ai' || !assistanceAllowed(data.local.assistance, 'ai'))) throw new Error('Die KI-Freigabe ist ausgeschaltet. Es wurde nichts übernommen.')
+      if (expected && taskAssistanceRevision(ref, task) !== expected.revision) throw new Error('Die Aufgabe hat sich geändert. Prüfe den Vorschlag erneut; es wurde nichts übernommen.')
+      if (expected && !taskIsOpen(task)) throw new Error('Die Aufgabe ist nicht mehr offen. Es wurde nichts übernommen.')
       const { text, title, taskDate, ...fields } = patch
       if (fields.subtasks) {
         // Eine neue Detailtiefe kann echte Teilabschlüsse niemals unbemerkt entfernen.
         const done = task.subtasks?.filter((part) => part.doneAt !== undefined) ?? []
         fields.subtasks = [...fields.subtasks.map((part) => {
           const previous = done.find((old) => old.id === part.id)
-          return previous ? { ...part, doneAt: previous.doneAt } : part
+          return previous ? expected ? previous : { ...part, doneAt: previous.doneAt } : part
         }), ...done.filter((part) => !fields.subtasks!.some((next) => next.id === part.id))]
       }
       Object.assign(task, fields)
@@ -601,7 +608,7 @@ export const useApp = create<AppState>()((set, get) => ({
       if (patch.state && patch.state !== 'active' && focusedOn(data.local, ref) && data.local.focus) {
         data.local.focus.timer = pauseCountdown(data.local.focus.timer, Date.now())
       }
-    })
+    }, !!expected)
   },
 
   setTaskState(ref, state) {
@@ -655,9 +662,9 @@ export const useApp = create<AppState>()((set, get) => ({
     })
   },
 
-  replaceTaskParts(ref, parts) {
+  replaceTaskParts(ref, parts, expected) {
     if (!validTaskParts(parts)) return Promise.reject(new Error('Die Teilschritte sind ungültig.'))
-    return get().updateTask(ref, { subtasks: parts })
+    return get().updateTask(ref, { subtasks: parts }, expected)
   },
 
   moveInboxToWork(id) {
