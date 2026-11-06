@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { buildIcs } from '../../core/export/ics'
 import { saveFile } from '../../platform/files'
 import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
-import { currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
+import { cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
 import { Button, Card, Page, Section, TextInput, Toggle } from '../components/ui'
 
@@ -17,6 +17,8 @@ export default function Connections() {
   const calendar = st.local.extras?.calendar
   const mounted = useRef(true)
   const googleIntent = useRef(0)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const syncPending = useRef(false)
 
   useEffect(() => {
     mounted.current = true
@@ -30,6 +32,12 @@ export default function Connections() {
     const version = ++googleIntent.current
     return () => mounted.current && googleIntent.current === version
   }
+  const syncAction = async (action: () => Promise<void>) => {
+    if (syncPending.current) return
+    syncPending.current = true; setSyncBusy(true)
+    try { await action() } catch { setMsg('Die Änderung konnte nicht gespeichert werden. Deine lokalen Daten bleiben erhalten.') }
+    finally { syncPending.current = false; setSyncBusy(false) }
+  }
 
   return (
     <Page title="Kalender & Sync" back="/mehr">
@@ -37,21 +45,33 @@ export default function Connections() {
 
       <Section title="Sync zwischen Handy und PC">
         <Card className="space-y-3">
+          <p className="text-sm text-muted">Nur nach deiner Wahl: Einstellungen, persönliche Tagesdaten, Gedanken und Spielstand gehen an deinen Supabase-Server. Arbeitsaufgaben, Arbeitszeiten, Einnahme- und Schlafprotokoll, Orte, Kalendercache, QR-Geheimnis und Gerätefreigaben bleiben lokal. Als Arbeit erfasste oder mit Arbeit verknüpfte Gedanken bleiben ebenfalls lokal; freie Texte werden nicht automatisch nach Inhalten sortiert.</p>
           {!supabaseConfigured && <p className="text-muted">Nicht konfiguriert. Anleitung im README (Supabase).</p>}
           {supabaseConfigured && user && (
             <>
               <p>Angemeldet als {user.email}</p>
               <p className="text-sm text-muted">{lastSync ? `Zuletzt synchronisiert: ${new Date(lastSync).toLocaleString('de-DE')}` : 'Noch nicht synchronisiert.'}</p>
+              <div className="flex flex-wrap items-center justify-between gap-3"><span>Automatisch synchronisieren</span><fieldset disabled={syncBusy && !integ.sync}><Toggle label="Automatischer Sync" checked={integ.sync} onChange={(enabled) => {
+                if (!enabled) {
+                  cancelSyncRequests()
+                  void setInteg({ sync: false }).then(() => setMsg('Automatischer Sync ist ausgeschaltet. Deine lokalen Daten bleiben erhalten.')).catch(() => setMsg('Der Sync wurde angehalten. Der Schalter konnte noch nicht gespeichert werden; versuche es erneut.'))
+                  return
+                }
+                void syncAction(async () => {
+                  await setInteg({ sync: enabled })
+                  const result = await syncNow({ manual: true }); setLastSync(result.lastSync); setMsg(result.error ?? 'Automatischer Sync ist eingeschaltet.')
+                })
+              }} /></fieldset></div>
               <div className="flex gap-2">
                 <Button
+                  disabled={syncBusy}
                   variant="primary"
                   className="flex-1"
-                  onClick={async () => {
-                    const r = await syncNow()
+                  onClick={() => void syncAction(async () => {
+                    const r = await syncNow({ manual: true })
                     setLastSync(r.lastSync)
                     setMsg(r.error ? `Sync gerade nicht möglich: ${r.error}` : 'Synchronisiert.')
-                    if (!r.error) await setInteg({ sync: true })
-                  }}
+                  })}
                 >
                   Jetzt synchronisieren
                 </Button>

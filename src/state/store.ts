@@ -146,7 +146,7 @@ interface AppState {
   editWork(fn: (list: WorkSession[]) => WorkSession[]): Promise<void>
   undoWork(): Promise<void>
   importRecords(recs: Rec[]): Promise<number>
-  mergeRecords(recs: Rec[], dirty?: boolean): Promise<number>
+  mergeRecords(recs: Rec[], dirty?: boolean, accepted?: () => boolean): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
   showToast(t: string): void
@@ -1140,16 +1140,19 @@ export const useApp = create<AppState>()((set, get) => ({
     return get().mergeRecords(recs, true)
   },
 
-  mergeRecords(recs, dirty = false) {
+  mergeRecords(recs, dirty = false, accepted = () => true) {
     return atomic(async () => {
+      if (!accepted()) return 0
       const checked = validatedRecords(recs)
       // Vorschau erst in der Schreibbarriere gegen den wirklich aktuellen Bestand berechnen.
       const current = await repo.all()
+      if (!accepted()) return 0
       const prepared = previewImport(checked, current).records
       const canonical = canonicalWeatherImport(prepared, current)
       const snapshot = [...new Map([...current, ...canonical].map((record) => [key(record), record])).values()]
       const projection = await readAppData(false, snapshot)
       if (projection.needsWeatherMigration) throw new Error('Die Wetterdaten konnten nicht vollständig für den Import vorbereitet werden. Es wurde nichts importiert.')
+      if (!accepted()) return 0
       const count = await repo.merge(canonical, { dirty })
       // Bevor die nächste lokale Detailänderung beginnt, muss sie die übernommenen Daten sehen.
       if (count) {

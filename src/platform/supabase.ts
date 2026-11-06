@@ -6,7 +6,7 @@ import { buildPcStopCommands, pcStopPublicationText, type PcStopPublication } fr
 import { planFor, repository, today, useApp } from '../state/store'
 import { isNative, safe } from './native'
 import { pullRecords } from './syncPull'
-import { weatherRecordForSync } from '../core/weatherProfile'
+import { localBusinessNote, recordForSync } from '../core/syncPrivacy'
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -39,8 +39,14 @@ export async function sendMagicLink(email: string): Promise<string | null> {
 }
 
 export async function signOut() {
+  cancelSyncRequests()
   await safe(async () => void (await sb()?.auth.signOut()), undefined)
 }
+
+let syncGeneration = 0
+let syncBlocked = false
+/** Sofortiger Stopp, auch wenn das Speichern des ausgeschalteten Schalters noch wartet. */
+export function cancelSyncRequests(): void { syncGeneration++; syncBlocked = true }
 
 /** Magic-Link-Rückkehr in die Android-App (de.frnkrm.anker://login?code=…). */
 export function listenForAuthLinks() {
@@ -69,34 +75,56 @@ interface SyncMeta {
   lastSync?: number
   error?: string
 }
+const SYNC_ERROR = 'Die Verbindung konnte nicht abgeschlossen werden. Deine lokalen Daten bleiben erhalten.'
+const syncMeta = (value: SyncMeta): SyncMeta => ({ ...value, ...(value.error ? { error: SYNC_ERROR } : {}) })
 
 /** Lädt geänderte Datensätze hoch und holt neue vom Server (last-write-wins pro Datensatz). */
-export async function syncNow(): Promise<SyncMeta> {
+export async function syncNow(options: { manual?: boolean } = {}): Promise<SyncMeta> {
+  if (options.manual) syncBlocked = false
+  const generation = syncGeneration
+  const accepted = () => !syncBlocked && generation === syncGeneration && (options.manual === true || useApp.getState().settings.integrations.sync === true)
+  const stopped = (meta: SyncMeta): SyncMeta => options.manual ? { ...meta, error: 'Sync wurde beendet. Deine lokalen Daten bleiben erhalten.' } : meta
+  if (!accepted()) return {}
   const c = sb()
   const repo = repository()
-  if (!c || !repo) return {}
+  if (!c || !repo) return options.manual ? { error: SYNC_ERROR } : {}
   const user = await currentUser()
-  if (!user) return {}
-  const meta = (await repo.get<SyncMeta>('meta', 'sync')) ?? {}
+  if (!user || !accepted()) return options.manual ? { error: SYNC_ERROR } : {}
+  const meta = syncMeta((await repo.get<SyncMeta>('meta', 'sync')) ?? {})
   try {
+    if (!accepted()) return stopped(meta)
     // Push: lokale Änderungen (ohne gerätespezifische Meta-Daten)
-    const dirty = (await repo.dirty()).filter((r) => r.collection !== 'meta')
-    if (dirty.length) {
+    const dirty = await repo.dirty()
+    if (!accepted()) return stopped(meta)
+    const projected = dirty.flatMap((record) => { const next = recordForSync(record); return next ? [next] : [] })
+    if (projected.length) {
       const { error } = await c.rpc('upsert_records', {
-        recs: dirty.map(weatherRecordForSync).map((r) => ({ collection: r.collection, id: r.id, data: r.data, updated_at: r.updated_at, deleted: r.deleted })),
+        recs: projected.map((r) => ({ collection: r.collection, id: r.id, data: r.data, updated_at: r.updated_at, deleted: r.deleted })),
       })
       if (error) throw error
-      await repo.markClean(dirty)
+      if (!accepted()) return stopped(meta)
+      await repo.markClean(projected)
     }
+    if (!accepted()) return stopped(meta)
     // Pull: alle Seiten, auch bei mehr als 1000 Datensätzen mit demselben Zeitstempel.
-    const pulled = await pullRecords(c, { merge: (records) => useApp.getState().mergeRecords(records.map(weatherRecordForSync)) }, meta.cursor)
+    const pulled = await pullRecords(c, { merge: (records) => {
+      if (!accepted()) return Promise.resolve(0)
+      const privateIds = new Set(useApp.getState().inbox.filter((note) => localBusinessNote(note)).map((note) => note.id))
+      const incoming = records.flatMap((record) => {
+        if (record.collection === 'inbox' && privateIds.has(record.id)) return []
+        const next = recordForSync(record); return next ? [next] : []
+      })
+      return useApp.getState().mergeRecords(incoming, false, accepted)
+    } }, meta.cursor, accepted)
+    if (!accepted()) return stopped(meta)
     const next: SyncMeta = { cursor: pulled.cursor, lastSync: Date.now() }
     await repo.put('meta', 'sync', next)
     if (pulled.changed) await useApp.getState().load()
     await pushPcStop()
     return next
-  } catch (e) {
-    const next = { ...meta, error: String((e as Error).message ?? e) }
+  } catch {
+    if (!accepted()) return stopped(meta)
+    const next = { ...meta, error: SYNC_ERROR }
     await safe(() => repo.put('meta', 'sync', next), undefined)
     return next
   }
@@ -156,5 +184,5 @@ export async function createPcStopToken(): Promise<string | null> {
 }
 
 export async function syncStatus(): Promise<SyncMeta> {
-  return (await repository()?.get<SyncMeta>('meta', 'sync')) ?? {}
+  return syncMeta((await repository()?.get<SyncMeta>('meta', 'sync')) ?? {})
 }

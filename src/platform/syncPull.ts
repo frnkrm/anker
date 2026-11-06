@@ -21,11 +21,13 @@ export async function pullRecords(
   client: SupabaseClient,
   repo: Pick<Repository, 'merge'>,
   cursor?: string,
+  accepted: () => boolean = () => true,
 ): Promise<{ cursor?: string; changed: number }> {
   let after: RemoteRecord | undefined
   const records: Rec[] = []
   let nextCursor = cursor
   for (;;) {
+    if (!accepted()) throw new Error('Sync wurde beendet.')
     let query = client.from('records')
       .select('collection,id,data,updated_at,deleted,server_updated_at')
       .order('server_updated_at')
@@ -44,6 +46,7 @@ export async function pullRecords(
       ].join(','))
     }
     const { data, error } = await query
+    if (!accepted()) throw new Error('Sync wurde beendet.')
     if (error) throw error
     const rows = (data ?? []) as RemoteRecord[]
     const last = rows.at(-1)
@@ -57,6 +60,7 @@ export async function pullRecords(
       nextCursor = last!.server_updated_at
     }
     if (rows.length < PAGE_SIZE) {
+      if (!accepted()) throw new Error('Sync wurde beendet.')
       const changed = records.length ? await repo.merge(records) : 0
       return { cursor: nextCursor, changed }
     }

@@ -13,7 +13,7 @@ vi.mock('../state/store', () => ({
   repository: () => context.repo,
   today: () => '2026-11-05',
   planFor: () => ({ pcStop: 1200 }),
-  useApp: { getState: () => ({ load: context.load, days: {}, mergeRecords: (records: Rec[]) => context.repo!.merge(records) }) },
+  useApp: { getState: () => ({ load: context.load, days: {}, inbox: [], settings: { integrations: { sync: true } }, mergeRecords: (records: Rec[]) => context.repo!.merge(records) }) },
 }))
 vi.mock('./native', () => ({
   isNative: () => false,
@@ -60,8 +60,8 @@ it('übernimmt exakt 1000 Datensätze erst nach der leeren Schlussseite und läd
   await context.repo.put('meta', 'sync', { cursor: before, lastSync: 123 })
   const { syncNow } = await import('./supabase')
 
-  expect(await syncNow()).toEqual({ cursor: before, lastSync: 123, error: 'connection lost' })
-  expect(await context.repo.get('meta', 'sync')).toEqual({ cursor: before, lastSync: 123, error: 'connection lost' })
+  expect(await syncNow()).toEqual({ cursor: before, lastSync: 123, error: 'Die Verbindung konnte nicht abgeschlossen werden. Deine lokalen Daten bleiben erhalten.' })
+  expect(await context.repo.get('meta', 'sync')).toEqual({ cursor: before, lastSync: 123, error: 'Die Verbindung konnte nicht abgeschlossen werden. Deine lokalen Daten bleiben erhalten.' })
   expect(await context.repo.list('inbox')).toHaveLength(0)
   expect(context.load).not.toHaveBeenCalled()
 
