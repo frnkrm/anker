@@ -8,6 +8,7 @@ import { syncAlarm } from './alarm'
 import { syncWorkout } from './health'
 import { AnkerNative, isNative, safe } from './native'
 import { drainActions, rescheduleAll, setupNotifications } from './notifications'
+import { refreshRouteEstimates } from './traffic'
 
 const reconcileWidget = coalesceAsync(async () => {
   if (!isNative()) return
@@ -103,6 +104,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   const optionalEffects = coalesceAsync(async () => {
     await attempt('Training', () => syncWorkout(today()))
     await attempt('Fortschritt', () => useApp.getState().evaluateProgress())
+    await attempt('Fahrtschätzung', refreshRouteEstimates)
     if (extra.sync) await attempt('Optionale Verbindung', extra.sync)
   })
   const request = () => {
@@ -123,5 +125,9 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
     }).catch(() => { console.warn('[Anker] Rückkehr in die App konnte noch nicht beobachtet werden.') })
   }
   // Gleiche Queue auch für den Widget-Takt; ohne neue Planänderung ist kein voller Abgleich nötig.
-  setInterval(() => void localEffects().catch(() => console.warn('[Anker] Widget wird beim nächsten Anlass erneut versucht.')), 5 * 60_000)
+  setInterval(() => {
+    void localEffects().catch(() => console.warn('[Anker] Widget wird beim nächsten Anlass erneut versucht.'))
+    // Prüft nur diskrete noch offene Gelegenheiten. Keine Anfrage bei jedem Takt.
+    void attempt('Fahrtschätzung', refreshRouteEstimates)
+  }, 5 * 60_000)
 }

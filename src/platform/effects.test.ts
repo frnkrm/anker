@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   changed: undefined as (() => void) | undefined,
   resumed: undefined as ((state: { isActive: boolean }) => void) | undefined,
   subscribe: vi.fn(), addListener: vi.fn(), setup: vi.fn(), drain: vi.fn(), schedule: vi.fn(), alarm: vi.fn(), workout: vi.fn(),
-  widget: vi.fn<AnkerNativePlugin['updateWidget']>(),
+  widget: vi.fn<AnkerNativePlugin['updateWidget']>(), traffic: vi.fn(),
 }))
 vi.mock('../state/store', () => ({
   useApp: { getState: () => mocks.state },
@@ -22,6 +22,7 @@ vi.mock('@capacitor/app', () => ({ App: { addListener: (event: string, callback:
 vi.mock('./notifications', () => ({ setupNotifications: () => mocks.setup(), drainActions: () => mocks.drain(), rescheduleAll: () => mocks.schedule() }))
 vi.mock('./alarm', () => ({ syncAlarm: () => mocks.alarm() }))
 vi.mock('./health', () => ({ syncWorkout: (date: string) => mocks.workout(date) }))
+vi.mock('./traffic', () => ({ refreshRouteEstimates: () => mocks.traffic() }))
 vi.mock('./native', () => ({
   isNative: () => true,
   AnkerNative: { updateWidget: (options: Parameters<AnkerNativePlugin['updateWidget']>[0]) => mocks.widget(options) },
@@ -38,11 +39,11 @@ beforeEach(() => {
   vi.resetModules()
   vi.useFakeTimers()
   vi.setSystemTime(zonedToUtc('2026-11-02', 15 * 60))
-  for (const fn of [mocks.subscribe, mocks.addListener, mocks.setup, mocks.drain, mocks.schedule, mocks.alarm, mocks.workout, mocks.widget]) fn.mockReset()
+  for (const fn of [mocks.subscribe, mocks.addListener, mocks.setup, mocks.drain, mocks.schedule, mocks.alarm, mocks.workout, mocks.widget, mocks.traffic]) fn.mockReset()
   mocks.changed = undefined; mocks.resumed = undefined
   mocks.addListener.mockResolvedValue({ remove: async () => undefined })
   mocks.setup.mockResolvedValue(undefined); mocks.drain.mockResolvedValue(undefined); mocks.schedule.mockResolvedValue(undefined)
-  mocks.alarm.mockResolvedValue(undefined); mocks.workout.mockResolvedValue(undefined); mocks.widget.mockResolvedValue(undefined)
+  mocks.alarm.mockResolvedValue(undefined); mocks.workout.mockResolvedValue(undefined); mocks.widget.mockResolvedValue(undefined); mocks.traffic.mockResolvedValue(undefined)
   mocks.state = {
     settings: { ...defaultSettings('2026-11-02'), onboarded: true }, days: {}, inbox: [], events: [], local: emptyLocal(),
     evaluateProgress: vi.fn(async () => undefined), setAlarmStatus: vi.fn(),
@@ -121,11 +122,12 @@ describe('Ein sequenzierter lokaler Abgleich bei Start, Änderung und Resume', (
     expect(mocks.subscribe).toHaveBeenCalledTimes(1)
     expect(mocks.addListener).toHaveBeenCalledTimes(1)
     expect(mocks.setup).toHaveBeenCalledTimes(1)
-    mocks.schedule.mockClear(); mocks.alarm.mockClear(); mocks.widget.mockClear()
+    mocks.schedule.mockClear(); mocks.alarm.mockClear(); mocks.widget.mockClear(); mocks.traffic.mockClear()
     await vi.advanceTimersByTimeAsync(5 * 60_000)
     expect(mocks.widget).toHaveBeenCalledTimes(1)
     expect(mocks.schedule).not.toHaveBeenCalled()
     expect(mocks.alarm).not.toHaveBeenCalled()
+    expect(mocks.traffic).toHaveBeenCalledTimes(1)
   })
 })
 

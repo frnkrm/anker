@@ -5,7 +5,7 @@ export const ASSISTANCE_NOTICE_VERSION = 1
 export interface AssistanceConsent { enabled: boolean; at: number; version: 1 }
 export interface AssistancePreferences {
   ai?: AssistanceConsent
-  routes?: AssistanceConsent & { automatic?: boolean }
+  routes?: AssistanceConsent & { automatic?: boolean; changeThresholdMin?: number }
   /** Technische Abrufgrenzen, keine Route/Adresse oder Bewegungsbiografie. */
   routeChecks?: Record<string, { at: number; revision: string }>
 }
@@ -18,7 +18,8 @@ export function validAssistancePreferences(value: unknown): value is AssistanceP
   for (const purpose of ['ai', 'routes']) {
     const consent = value[purpose]
     if (consent !== undefined && (!object(consent) || typeof consent.enabled !== 'boolean' || consent.version !== 1 || !timestamp(consent.at)
-      || (consent.automatic !== undefined && typeof consent.automatic !== 'boolean'))) return false
+      || (consent.automatic !== undefined && typeof consent.automatic !== 'boolean')
+      || (consent.changeThresholdMin !== undefined && (typeof consent.changeThresholdMin !== 'number' || !Number.isInteger(consent.changeThresholdMin) || consent.changeThresholdMin < 1 || consent.changeThresholdMin > 120)))) return false
   }
   return value.routeChecks === undefined || (object(value.routeChecks) && Object.entries(value.routeChecks).length <= 100
     && Object.values(value.routeChecks).every((entry) => object(entry) && timestamp(entry.at) && typeof entry.revision === 'string'))
