@@ -45,6 +45,8 @@ import type {
 } from '../core/types'
 import { assertWorkChanges, endBreak, startBreak, startSession, stopSession } from '../core/worktime'
 import { validCommitment, validPlace } from '../core/travel'
+import { migrateWeatherState } from '../core/weatherProfile'
+import { key } from '../data/merge'
 import { getRepository, type Rec, type Repository } from '../data'
 import type { RepositoryWrite } from '../data/types'
 
@@ -382,8 +384,8 @@ export function statusOf(date: DateStr, st = useApp.getState()): DayStatus {
   return dayStatus(plan, st.days[date], st.settings, date < t)
 }
 
-/** Gemeinsame Projektion nach Load, Import und Sync; innerhalb einer Schreibbarriere ohne erneutes Warten lesbar. */
-async function readAppData() {
+/** Import/Sync besitzen bereits die Schreibbarriere. Load liest zunächst ohne Writes. */
+async function readAppData(commitMigration = true) {
   const t = today()
   const settings = (await repo.get<Settings>('settings', 'main')) ?? defaultSettings(t)
   const game = (await repo.get<GameState>('game', 'main')) ?? initialGame(t)
@@ -402,7 +404,37 @@ async function readAppData() {
     : !!resolveTask(focus.target, inbox, local.work) && taskIsOpen(resolveTask(focus.target, inbox, local.work)!)
   if (local.focus && !relevant(local.focus)) local.focus = undefined
   local.focusHistory = local.focusHistory?.filter(relevant)
-  return { settings: migrateSettings(settings, t), game, days, inbox, reviews, events, local }
+  const weather = migrateWeatherState(migrateSettings(settings, t), local)
+  if (weather.changed && commitMigration) await repo.putMany([
+    { collection: 'settings', id: 'main', data: weather.settings },
+    { collection: 'meta', id: 'local', data: weather.local },
+  ])
+  return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !commitMigration }
+}
+
+/** Die bestehende E09-Vorschau hat LWW und fehlende Privatfelder bereits aufgelöst.
+ * Wetterkanonisierung gehört vor dieselbe Merge-Transaktion, damit ein Import nie halb migriert ist. */
+function canonicalWeatherImport(prepared: Rec[], current: Rec[]): Rec[] {
+  const combined = new Map([...current, ...prepared].map((record) => [key(record), record]))
+  const settingsRecord = combined.get('settings/main')
+  const localRecord = combined.get('meta/local')
+  const settings = migrateSettings(settingsRecord && !settingsRecord.deleted ? settingsRecord.data as Settings : defaultSettings(today()), today())
+  const local = { ...emptyLocal(), ...(localRecord && !localRecord.deleted ? localRecord.data as LocalData : {}) }
+  const weather = migrateWeatherState(settings, local)
+  if (!weather.changed) return prepared
+  const next = new Map(prepared.map((record) => [key(record), record]))
+  const replace = (collection: 'settings' | 'meta', id: string, data: unknown) => {
+    // Auch ein frisch übernommener/weit in die Zukunft datierter Altbestand muss
+    // die zusammengehörige kanonische Version im selben LWW-Batch erhalten.
+    const updated_at = Math.max(Date.now(), combined.get(`${collection}/${id}`)?.updated_at ?? 0) + 1
+    if (!Number.isFinite(new Date(updated_at).getTime())) throw new Error('Der Datenzeitpunkt dieser Sicherung lässt sich nicht sicher migrieren. Es wurde nichts importiert.')
+    next.set(`${collection}/${id}`, { collection, id, data, updated_at, deleted: false })
+  }
+  replace('settings', 'main', weather.settings)
+  // Ein expliziter privater Löschrecord bleibt ein Löschrecord; keine Wiederbelebung
+  // aus alten Settings-Ortsfeldern. Ein fehlender lokaler Record darf additiv entstehen.
+  if (!prepared.some((record) => record.collection === 'meta' && record.id === 'local' && record.deleted)) replace('meta', 'local', weather.local)
+  return validatedRecords([...next.values()])
 }
 
 export const useApp = create<AppState>()((set, get) => ({
@@ -422,13 +454,16 @@ export const useApp = create<AppState>()((set, get) => ({
     for (;;) {
       const before = get()
       await persistence
-      const loaded = await readAppData()
+      const { data: loaded, needsWeatherMigration } = await readAppData(false)
       const current = get()
       // Read again after concurrent edits settle: keep optimistic changes visible while also
       // picking up newly synced records instead of hiding an entire changed collection.
       const conflicted = (Object.keys(loaded) as (keyof typeof loaded)[]).some((field) => current[field] !== before[field])
       if (conflicted) continue
-      set({ ...loaded, ready: true })
+      if (needsWeatherMigration) {
+        // Nach dem optimistischen Lesen unter derselben UI-Schreibsperre neu lesen.
+        await atomic(async () => { set({ ...(await readAppData()).data, ready: true }) })
+      } else set({ ...loaded, ready: true })
       if (get().settings.onboarded) await get().evaluateProgress()
       changed()
       return
@@ -1099,11 +1134,12 @@ export const useApp = create<AppState>()((set, get) => ({
     return atomic(async () => {
       const checked = validatedRecords(recs)
       // Vorschau erst in der Schreibbarriere gegen den wirklich aktuellen Bestand berechnen.
-      const prepared = previewImport(checked, await repo.all()).records
-      const count = await repo.merge(prepared, { dirty })
+      const current = await repo.all()
+      const prepared = previewImport(checked, current).records
+      const count = await repo.merge(canonicalWeatherImport(prepared, current), { dirty })
       // Bevor die nächste lokale Detailänderung beginnt, muss sie die übernommenen Daten sehen.
       if (count) {
-        set(await readAppData())
+        set((await readAppData()).data)
         changed()
       }
       return count

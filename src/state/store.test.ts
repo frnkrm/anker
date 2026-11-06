@@ -5,6 +5,8 @@ import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
 import { buildReminders } from '../core/reminders/build'
 import { zonedToUtc } from '../core/time'
+import type { LocalData, Settings } from '../core/types'
+import type { Rec } from '../data/types'
 import { planFor, useApp } from './store'
 
 const storage = vi.hoisted(() => ({ repo: undefined as Repository | undefined }))
@@ -286,5 +288,182 @@ describe('Sicherungsimport', () => {
     }
     await useApp.getState().load()
     expect(useApp.getState().settings.homeOfficeMessage).toBe('Mein gespeicherter Text')
+  })
+})
+
+describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
+  const legacyWeather = { enabled: true, city: 'Bewusst gewählter Altort', lat: 0, lng: 13.42, rules: { jacketBelowC: 7, rainAbovePct: 60 } }
+  const oldSettings = () => ({ version: 1, onboarded: false, weather: structuredClone(legacyWeather) })
+  const oldLocal = (): LocalData => ({ ...emptyLocal(), places: [{ id: 'private', label: 'Privater Ort', latitude: 48, longitude: 11 }],
+    meds: { '2026-11-02': { status: 'taken', at: 100 } }, workSessions: [{ id: 'work', date: '2026-11-02', kind: 'regular', startAt: 100, endAt: 200, breaks: [] }] })
+  const backup = (local = oldLocal()) => parseBackup(JSON.stringify(makeBackup([
+    { collection: 'settings', id: 'main', data: oldSettings(), updated_at: Date.now() + 10_000, deleted: false },
+    { collection: 'meta', id: 'local', data: local, updated_at: Date.now() + 10_000, deleted: false },
+  ])))
+  const expected = { enabled: true, city: legacyWeather.city, lat: 0, lng: legacyWeather.lng, revision: 'legacy-weather' }
+
+  it('importiert ein echtes Altbackup, committet Ort und bereinigte Settings gemeinsam und bleibt nach Reload lokal', async () => {
+    const records = backup(); const before = structuredClone(records)
+    const put = vi.spyOn(storage.repo!, 'putMany')
+    const merge = vi.spyOn(storage.repo!, 'merge')
+    expect(await useApp.getState().importRecords(records)).toBe(2)
+    expect(records).toEqual(before)
+    expect(put).not.toHaveBeenCalled()
+    expect(merge).toHaveBeenCalledTimes(1)
+    expect(merge.mock.calls[0]![0].map(({ collection, id }) => `${collection}/${id}`)).toEqual(['settings/main', 'meta/local'])
+    const saved = (await storage.repo!.get<LocalData>('meta', 'local'))!
+    expect(saved.weatherProfile).toEqual(expected)
+    expect(saved.places).toEqual(oldLocal().places)
+    expect(saved.meds).toEqual(oldLocal().meds)
+    expect(saved.workSessions).toEqual(oldLocal().workSessions)
+    const settings = (await storage.repo!.get<Settings>('settings', 'main'))!
+    expect(settings.weather).toEqual({ enabled: false, city: '', rules: legacyWeather.rules })
+    expect(settings.anchor.wake).toBeTypeOf('number')
+    const shared = (await storage.repo!.all()).filter((record) => record.collection !== 'meta')
+    expect(JSON.stringify(shared)).not.toContain(legacyWeather.city)
+    expect(JSON.stringify(shared)).not.toContain('13.42')
+    await useApp.getState().load()
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect(useApp.getState().settings.weather).toEqual(settings.weather)
+    expect(put).not.toHaveBeenCalled()
+    const exported = parseBackup(JSON.stringify(makeBackup(await storage.repo!.all())))
+    expect((exported.find((record) => record.collection === 'meta' && record.id === 'local')!.data as LocalData).weatherProfile).toEqual(expected)
+  })
+
+  it('bewahrt ein schon vorhandenes lokales Profil auch beim Altbackup mit eigenem meta/local', async () => {
+    const chosen = { enabled: false, city: 'Inzwischen bewusst gewählter Ort', lat: 52, lng: 10, revision: 'local-choice' }
+    await useApp.getState().saveLocal((local) => ({ ...local, weatherProfile: chosen }))
+    await useApp.getState().importRecords(backup())
+    await useApp.getState().load()
+    expect(useApp.getState().local.weatherProfile).toEqual(chosen)
+    expect(await storage.repo!.get<Settings>('settings', 'main')).toMatchObject({ weather: { enabled: false, city: '' } })
+    expect((await storage.repo!.get<LocalData>('meta', 'local'))!.weatherProfile).toEqual(chosen)
+  })
+
+  it('übernimmt ein ausdrücklich vorhandenes neues Backup-Profil und erfindet bei frischen Daten keinen Ort', async () => {
+    expect(useApp.getState().local.weatherProfile).toBeUndefined()
+    const put = vi.spyOn(storage.repo!, 'putMany')
+    await useApp.getState().load()
+    expect(put).not.toHaveBeenCalled()
+    await useApp.getState().saveLocal((local) => ({ ...local, weatherProfile: { enabled: true, city: 'Bisheriger Ort', lat: 52, lng: 10 } }))
+    const restored = { enabled: false, city: 'Expliziter Sicherungsort', lat: 50, lng: 9 }
+    await useApp.getState().importRecords(backup({ ...oldLocal(), weatherProfile: restored }))
+    expect(useApp.getState().local.weatherProfile).toEqual(restored)
+  })
+
+  it('veröffentlicht bei fehlgeschlagenem kanonischem Importbatch weder Disk-Teilerfolg noch bereinigtes RAM', async () => {
+    const records = backup().map((record) => ({ ...record, updated_at: 1 })); const before = useApp.getState()
+    const diskBefore = await storage.repo!.all()
+    vi.spyOn(storage.repo!, 'merge').mockRejectedValueOnce(new Error('Migration disk full'))
+    await expect(useApp.getState().importRecords(records)).rejects.toThrow('Migration disk full')
+    expect(useApp.getState().local).toBe(before.local)
+    expect(useApp.getState().settings).toBe(before.settings)
+    expect(await storage.repo!.all()).toEqual(diskBefore)
+    expect(await useApp.getState().importRecords(records)).toBe(2)
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect((await storage.repo!.get<Settings>('settings', 'main'))!.weather).toEqual({ enabled: false, city: '', rules: legacyWeather.rules })
+    await useApp.getState().load()
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+  })
+
+  it('lässt einen fehlgeschlagenen ersten Load unpubliziert und migriert bei erneutem Laden vollständig', async () => {
+    await storage.repo!.merge(backup())
+    const before = useApp.getState()
+    useApp.setState({ ready: false })
+    const batch = vi.spyOn(storage.repo!, 'putMany').mockRejectedValueOnce(new Error('Load disk full'))
+    await expect(useApp.getState().load()).rejects.toThrow('Load disk full')
+    expect(useApp.getState().ready).toBe(false)
+    expect(useApp.getState().local).toBe(before.local)
+    expect(useApp.getState().settings).toBe(before.settings)
+    await useApp.getState().load()
+    expect(useApp.getState().ready).toBe(true)
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect(batch).toHaveBeenCalledTimes(2)
+    for (const [records] of batch.mock.calls) expect(records.map(({ collection, id }) => `${collection}/${id}`)).toEqual(['settings/main', 'meta/local'])
+  })
+
+  it('verliert bei einem Settings-only-Altbackup keine vorhandenen lokalen Daten', async () => {
+    await useApp.getState().saveLocal(() => oldLocal())
+    const records = backup().filter((record) => record.collection === 'settings')
+    expect(await useApp.getState().importRecords(records)).toBe(2)
+    expect(useApp.getState().local).toMatchObject({ ...oldLocal(), weatherProfile: expected })
+    expect(await storage.repo!.get<LocalData>('meta', 'local')).toMatchObject({ ...oldLocal(), weatherProfile: expected })
+  })
+
+  it('erweckt einen ausdrücklich importierten privaten Löschrecord nicht aus Legacy-Settings wieder', async () => {
+    await useApp.getState().saveLocal(() => oldLocal())
+    const records = backup().map((record) => record.collection === 'meta' ? { ...record, deleted: true, data: null } : record)
+    expect(await useApp.getState().importRecords(records)).toBe(2)
+    await useApp.getState().load()
+    expect(await storage.repo!.get('meta', 'local')).toBeUndefined()
+    expect(useApp.getState().local.weatherProfile).toBeUndefined()
+    expect((await storage.repo!.all()).find((record) => record.collection === 'meta' && record.id === 'local')?.deleted).toBe(true)
+  })
+
+  it('liest beim Migrationscommit nach einem parallelen lokalen Edit erneut den aktuellen Stand', async () => {
+    await storage.repo!.merge(backup())
+    useApp.setState({ local: oldLocal() })
+    const read = storage.repo!.get.bind(storage.repo!)
+    const reached = deferred(); const release = deferred()
+    let first = true
+    vi.spyOn(storage.repo!, 'get').mockImplementation(async (collection, id) => {
+      const result = await read(collection, id)
+      if (first && collection === 'meta' && id === 'local') { first = false; reached.resolve(); await release.promise }
+      return result
+    })
+    const loading = useApp.getState().load()
+    await reached.promise
+    await useApp.getState().saveLocal((local) => ({ ...local, weatherProfile: { enabled: false, city: 'Wahl während Laden', lat: 53, lng: 11 }, handover: { '2026-11-02': { open: 'Neue private Notiz', next: 'Datei öffnen' } } }))
+    release.resolve(); await loading
+    expect(useApp.getState().local.weatherProfile?.city).toBe('Wahl während Laden')
+    expect(useApp.getState().local.handover['2026-11-02']?.open).toBe('Neue private Notiz')
+    expect(useApp.getState().local.meds).toEqual(oldLocal().meds)
+    expect(useApp.getState().local.workSessions).toEqual(oldLocal().workSessions)
+    expect(await read('meta', 'local')).toEqual(useApp.getState().local)
+  })
+
+  it('hält nach begonnenem Migrationsbatch Settings- und lokale Eingaben bis zum Commit geordnet', async () => {
+    await storage.repo!.merge(backup())
+    useApp.setState({ local: oldLocal() })
+    const put = storage.repo!.putMany.bind(storage.repo!)
+    const reached = deferred(); const release = deferred()
+    let first = true
+    vi.spyOn(storage.repo!, 'putMany').mockImplementation(async (records) => {
+      if (first) { first = false; reached.resolve(); await release.promise }
+      await put(records)
+    })
+    const loading = useApp.getState().load(); await reached.promise
+    expect(useApp.getState().local.weatherProfile).toBeUndefined()
+    const edit = useApp.getState().saveLocal((local) => ({ ...local, weatherProfile: { enabled: false, city: 'Neu nach Migration', lat: 54, lng: 12 } }))
+    const settings = useApp.getState().saveSettings((value) => ({ ...value, homeOfficeMessage: 'Neue Einstellungsnotiz' }))
+    release.resolve(); await Promise.all([loading, edit, settings])
+    await useApp.getState().load()
+    expect(useApp.getState().local.weatherProfile?.city).toBe('Neu nach Migration')
+    expect(useApp.getState().settings.homeOfficeMessage).toBe('Neue Einstellungsnotiz')
+    expect(useApp.getState().settings.weather).toEqual({ enabled: false, city: '', rules: legacyWeather.rules })
+    expect(useApp.getState().local.meds).toEqual(oldLocal().meds)
+    expect(useApp.getState().local.workSessions).toEqual(oldLocal().workSessions)
+  })
+
+  it('berechnet Importmigration nach einem bereits wartenden aktuellen Profil-Edit aus dem frischen E09-Bestand', async () => {
+    const put = storage.repo!.put.bind(storage.repo!)
+    const reached = deferred(); const release = deferred()
+    vi.spyOn(storage.repo!, 'put').mockImplementationOnce(async (...args) => { reached.resolve(); await release.promise; await put(...args) })
+    const chosen = { enabled: false, city: 'Neue lokale Wahl vor Import', lat: 51, lng: 8 }
+    const saving = useApp.getState().saveLocal((local) => ({ ...local, weatherProfile: chosen }))
+    await reached.promise
+    const importing = useApp.getState().importRecords(backup())
+    release.resolve(); await saving; await importing
+    expect(useApp.getState().local.weatherProfile).toEqual(chosen)
+    expect((await storage.repo!.get<LocalData>('meta', 'local'))!.weatherProfile).toEqual(chosen)
+    expect((await storage.repo!.get<Settings>('settings', 'main'))!.weather.city).toBe('')
+  })
+
+  it('migriert einen übernommenen Settingsrecord innerhalb der vorhandenen Sync-Barriere ohne deadlock', async () => {
+    const record: Rec = { collection: 'settings', id: 'main', data: oldSettings(), updated_at: Date.now() + 10_000, deleted: false }
+    expect(await useApp.getState().mergeRecords([record])).toBe(2)
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect((await storage.repo!.get<Settings>('settings', 'main'))!.weather.city).toBe('')
+    expect((await storage.repo!.get<LocalData>('meta', 'local'))!.weatherProfile).toEqual(expected)
   })
 })
