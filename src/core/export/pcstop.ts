@@ -43,14 +43,30 @@ function Show-Toast([string]$title, [string]$text) {
   } catch { }
 }
 
+function Read-AnkerTimestamp($value) {
+  # ConvertFrom-Json/Invoke-RestMethod können ISO-Strings bereits als DateTime liefern.
+  # Nur datierte Werte mit Zeitzone normalisieren; freie Texte nie in Hostkultur deuten.
+  if ($value -is [datetime]) {
+    if ($value.Kind -eq [DateTimeKind]::Unspecified) { return $null }
+    $value = $value.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
+  }
+  elseif ($value -is [datetimeoffset]) {
+    $value = $value.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
+  }
+  if ($value -isnot [string] -or $value -notmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$') { return $null }
+  try {
+    return [datetimeoffset]::Parse($value, [System.Globalization.CultureInfo]::InvariantCulture)
+  } catch { return $null }
+}
+
 function Test-AnkerCommand($command) {
   if (-not $command -or $command.version -ne 2 -or $command.date -ne $ankerDate -or -not $command.revision) { return $false }
   try {
-    if ([datetimeoffset]::Parse($command.validUntil) -le $ankerNow) { return $false }
+    $validUntil = Read-AnkerTimestamp $command.validUntil
+    if (-not $validUntil -or $validUntil -le $ankerNow) { return $false }
     if ($command.mode -eq 'paused') { return -not $command.stopAt }
     if ($command.mode -ne 'scheduled' -or -not $command.stopAt) { return $false }
-    $null = [datetimeoffset]::Parse($command.stopAt)
-    return $true
+    return $null -ne (Read-AnkerTimestamp $command.stopAt)
   } catch { return $false }
 }
 
@@ -75,6 +91,7 @@ if (-not $ankerCommand -and (Test-Path $ankerCacheFile)) {
 }
 if ($ankerCommand -and $ankerCommand.mode -eq 'paused') {
   $ankerState.Remove('down')
+  $ankerState.Remove('downAt')
   $ankerState.Remove('w15')
   $ankerState.Remove('w5')
   $ankerState | ConvertTo-Json | Set-Content $ankerStateFile -Encoding UTF8
@@ -83,7 +100,8 @@ if ($ankerCommand -and $ankerCommand.mode -eq 'paused') {
 
 $ankerTarget = $null
 if ($ankerCommand) {
-  try { $ankerTarget = [datetimeoffset]::Parse($ankerCommand.stopAt) } catch { return }
+  $ankerTarget = Read-AnkerTimestamp $ankerCommand.stopAt
+  if (-not $ankerTarget) { return }
 }
 elseif ($ankerCfg.offlinePolicy -eq 'fixed-time' -or (-not $ankerCfg.endpoint -and -not $ankerCfg.offlinePolicy)) {
   # Nur ausdrücklich gewählte feste Offlinezeit, niemals gestrige Uhrzeit erneut aus einem Cache ableiten.
@@ -108,11 +126,15 @@ elseif ($ankerLeft -le 5 -and $ankerLeft -gt 0 -and $ankerState['w5'] -ne $anker
   $ankerState['w5'] = $ankerTag
 }
 elseif ($ankerLeft -le 0 -and $ankerLeft -gt -360) {
-  if ($ankerState['down'] -ne $ankerTag) {
-    Show-Toast 'PC-Stopp: jetzt speichern' 'In etwa 5 Minuten folgt der nächste Lauf. Abbrechen: pc-stop-abbrechen.ps1'
+  $ankerWarnedAt = Read-AnkerTimestamp $ankerState['downAt']
+  # Auch Anmeldung/Neustart und unmittelbar folgende Läufe müssen fünf Minuten lassen.
+  # Alte Marker ohne Zeitstempel und eine zurückgestellte Uhr beginnen eine neue Schonfrist.
+  if ($ankerState['down'] -ne $ankerTag -or -not $ankerWarnedAt -or $ankerWarnedAt -gt $ankerNow) {
+    Show-Toast 'PC-Stopp: jetzt speichern' 'Frühestens in 5 Minuten beim nächsten Lauf. Abbrechen: pc-stop-abbrechen.ps1'
     $ankerState['down'] = $ankerTag
+    $ankerState['downAt'] = $ankerNow.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
   }
-  else {
+  elseif (($ankerNow - $ankerWarnedAt).TotalMinutes -ge 5) {
     # Ohne Zwang und ohne verzögerte shutdown-Option. Ungespeicherte Programme können das aufhalten.
     & shutdown.exe /s /t 0 /c "Anker: PC-Stopp"
   }
