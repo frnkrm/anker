@@ -75,6 +75,12 @@ export class SqliteRepository implements Repository {
   async put<T>(c: Collection, id: string, data: T) {
     await this.upsert({ collection: c, id, data, updated_at: Date.now(), deleted: false, dirty: 1 })
   }
+  async putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]) {
+    await this.db.executeSet(records.map((r) => ({
+      statement: 'INSERT OR REPLACE INTO records (collection, id, data, updated_at, deleted, dirty) VALUES (?, ?, ?, ?, ?, ?)',
+      values: [r.collection, r.id, JSON.stringify(r.data ?? null), Date.now(), 0, 1],
+    })), true)
+  }
   async remove(c: Collection, id: string) {
     const cur = await this.row(c, id)
     await this.upsert({ collection: c, id, data: cur?.data ?? null, updated_at: Date.now(), deleted: true, dirty: 1 })

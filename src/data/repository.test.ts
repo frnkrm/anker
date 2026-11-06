@@ -67,5 +67,36 @@ for (const [name, make] of impls) {
       await r.markClean([d!])
       expect(await r.dirty()).toHaveLength(0)
     })
+
+    it('speichert Wirkung und Receipt mit dem zugehörigen Spielstand zusammen', async () => {
+      const r = await fresh()
+      await r.putMany([
+        { collection: 'days', id: 'd1', data: { bedAt: 1, reminderReceipts: ['action'] } },
+        { collection: 'game', id: 'main', data: { xp: 10 } },
+      ])
+      expect(await r.get('days', 'd1')).toEqual({ bedAt: 1, reminderReceipts: ['action'] })
+      expect(await r.get('game', 'main')).toEqual({ xp: 10 })
+      expect(await r.dirty()).toHaveLength(2)
+    })
   })
 }
+
+it('Dexie rollt die gesamte Erinnerungstransaktion bei einem ungültigen zweiten Datensatz zurück', async () => {
+  const r = new DexieRepository()
+  await r.init(); await r.clear()
+  await expect(r.putMany([
+    { collection: 'days', id: 'd1', data: { bedAt: 1, reminderReceipts: ['action'] } },
+    { collection: 'game', id: 'main', data: () => 'not cloneable' },
+  ])).rejects.toThrow()
+  expect(await r.all()).toEqual([])
+})
+
+it('Memory lässt bei einem fehlgeschlagenen Batch keine teilweise gespeicherte Wirkung zurück', async () => {
+  let calls = 0
+  const r = new MemoryRepository(() => { if (++calls === 2) throw new Error('clock failed'); return calls })
+  await expect(r.putMany([
+    { collection: 'days', id: 'd1', data: { bedAt: 1 } },
+    { collection: 'game', id: 'main', data: { xp: 10 } },
+  ])).rejects.toThrow('clock failed')
+  expect(await r.all()).toEqual([])
+})

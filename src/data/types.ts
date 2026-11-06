@@ -17,6 +17,8 @@ export interface Repository {
   get<T>(c: Collection, id: string): Promise<T | undefined>
   list<T>(c: Collection): Promise<T[]>
   put<T>(c: Collection, id: string, data: T): Promise<void>
+  /** One local transaction: effects and their acknowledgement receipt commit together. */
+  putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]): Promise<void>
   remove(c: Collection, id: string): Promise<void>
   all(): Promise<Rec[]>
   dirty(): Promise<Rec[]>

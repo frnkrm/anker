@@ -6,6 +6,7 @@ import { deviceTestsFromLocal, validDeviceTests } from '../core/deviceTests'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
 import { activePlanDate, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
+import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
 import { addDays, minutesOnPlanDay, todayBerlin, type DateStr } from '../core/time'
 import type {
@@ -62,6 +63,7 @@ interface AppState {
   updateDay(date: DateStr, fn: (log: DayLog) => DayLog): Promise<void>
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
+  applyReminderAction(action: ReminderAction): Promise<ReminderApplyResult>
   setOverride(date: DateStr, patch: Partial<DayOverride>): Promise<void>
   addInbox(text: string, context?: string): Promise<string | undefined>
   parkThought(text: string, reviewAt: number, notify?: boolean): Promise<string | undefined>
@@ -108,10 +110,14 @@ interface AppState {
 let repo: Repository
 // SQLite writes and reloads must observe the same order as the optimistic store updates.
 let persistence: Promise<void> = Promise.resolve()
-function persist(write: () => Promise<void>): Promise<void> {
+function persist<T>(write: () => Promise<T>): Promise<T> {
   const next = persistence.then(write)
-  persistence = next.catch(() => undefined)
+  persistence = next.then(() => undefined, () => undefined)
   return next
+}
+let pendingReminderAction: Promise<void> | undefined
+async function waitForReminderActions() {
+  while (pendingReminderAction) await pendingReminderAction
 }
 const listeners = new Set<() => void>()
 let changeTimer: ReturnType<typeof setTimeout> | undefined
@@ -188,6 +194,7 @@ export const useApp = create<AppState>()((set, get) => ({
   celebrations: [],
 
   async load() {
+    if (pendingReminderAction) await waitForReminderActions()
     repo = await getRepository()
     for (;;) {
       const before = get()
@@ -216,6 +223,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async saveSettings(fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     const settings = fn(get().settings)
     set({ settings })
     await persist(() => repo.put('settings', 'main', settings))
@@ -223,6 +231,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async updateDay(date, fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     const st = get()
     let log = fn(structuredClone(st.days[date] ?? emptyLog(date)))
     const plan = planFor(date, { ...st, days: { ...st.days, [date]: log } })
@@ -249,6 +258,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setStep(date, r, stepId, result) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateDay(date, (log) => {
       const k = stepKey(r, stepId)
       if (result) log.steps[k] = result
@@ -258,14 +268,72 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async mark(date, field, at = Date.now()) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateDay(date, (log) => ({ ...log, [field]: at }))
   },
 
+  applyReminderAction(action) {
+    // During this short database transaction normal mutations wait, so a concurrent UI edit
+    // cannot overwrite an unacknowledged effect or capture a receipt from a failed write.
+    const task = (pendingReminderAction ?? Promise.resolve()).then(() => persist(async (): Promise<ReminderApplyResult> => {
+      if (!validReminderAction(action)) return 'obsolete'
+      const localEffect = action.action === 'done' && (action.key.startsWith('go:') || /^deadline-(day|hour):/.test(action.key))
+      const stored = localEffect ? await repo.get<LocalData>('meta', 'local') : await repo.get<DayLog>('days', action.date)
+      if (stored?.reminderReceipts?.includes(action.id)) return 'duplicate'
+      const st = get()
+      const extras = { deadlines: st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! })), thoughtReviews: st.inbox, tomorrowSteps: st.local.tomorrowSteps }
+      const plans = [-1, 0, 1].map((offset) => planFor(addDays(action.date, offset), st))
+      if (!currentReminderAction(action, plans, st.days, st.settings, extras, Date.now())) return 'obsolete'
+
+      if (localEffect) {
+        const local = structuredClone(st.local)
+        if (action.key.startsWith('go:')) {
+          const item = local.commitments.find((c) => c.id === action.key.slice(3) && c.date === action.date)
+          if (!item || item.leftAt !== undefined || item.arrivedAt !== undefined || item.backAt !== undefined) return 'obsolete'
+          item.leftAt = action.at
+        } else {
+          const item = local.work.find((w) => w.id === action.key.replace(/^deadline-(day|hour):/, ''))
+          if (!item || item.done || item.doneAt !== undefined) return 'obsolete'
+          item.done = true; item.doneAt = action.at
+        }
+        local.reminderReceipts = withReminderReceipt(local.reminderReceipts, action.id)
+        await repo.putMany([{ collection: 'meta', id: 'local', data: local }])
+        set({ local }); changed()
+        return 'applied'
+      }
+
+      const log = structuredClone(st.days[action.date] ?? emptyLog(action.date))
+      const field = ({ leave: 'leftAt', pcstop: 'pcOffAt', bed: 'bedAt', evening: 'eveningRoutineDoneAt' } as const)[action.key as 'leave' | 'pcstop' | 'bed' | 'evening']
+      if (action.action === 'done' && field) {
+        if (log[field] !== undefined) return 'obsolete'
+        log[field] = action.at
+      } else {
+        if (log.dismissed?.includes(action.key)) return 'obsolete'
+        log.dismissed = [...(log.dismissed ?? []), action.key]
+      }
+      log.reminderReceipts = withReminderReceipt(log.reminderReceipts, action.id)
+      const award = applyAwards(planFor(action.date, st), log, st.game, st.settings)
+      const records: Pick<Rec, 'collection' | 'id' | 'data'>[] = [{ collection: 'days', id: action.date, data: award.log }]
+      if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
+      await repo.putMany(records)
+      set({ days: { ...get().days, [action.date]: award.log }, game: award.game })
+      if (award.gained && st.settings.support.gameVisible && log.override.mode !== 'ueberlastet') get().celebrate({ kind: 'xp', title: `+${award.gained} ${theme(st.settings.themeId).xpWord}` })
+      changed()
+      return 'applied'
+    }))
+    const barrier = task.then(() => undefined, () => undefined)
+    pendingReminderAction = barrier
+    void barrier.then(() => { if (pendingReminderAction === barrier) pendingReminderAction = undefined })
+    return task
+  },
+
   async setOverride(date, patch) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateDay(date, (log) => ({ ...log, override: { ...log.override, ...patch } }))
   },
 
   async addInbox(text, context) {
+    if (pendingReminderAction) await waitForReminderActions()
     const item: InboxItem = { id: randomId(), text: text.trim(), createdAt: Date.now(), status: 'open', ...(context ? { captureContext: context } : {}) }
     if (!item.text) return undefined
     set({ inbox: [...get().inbox, item] })
@@ -274,6 +342,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async parkThought(text, reviewAt, notify = false) {
+    if (pendingReminderAction) await waitForReminderActions()
     const trimmed = text.trim()
     if (!trimmed) return undefined
     const nowMs = Date.now()
@@ -287,6 +356,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async updateInbox(id, patch) {
+    if (pendingReminderAction) await waitForReminderActions()
     const inbox = get().inbox.map((x) => (x.id === id ? { ...x, ...patch } : x))
     set({ inbox })
     const item = inbox.find((x) => x.id === id)
@@ -296,17 +366,20 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setInboxDone(id, done) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateInbox(id, { done, doneAt: done ? Date.now() : undefined })
     changed()
   },
 
   async removeInbox(id) {
+    if (pendingReminderAction) await waitForReminderActions()
     set({ inbox: get().inbox.filter((x) => x.id !== id) })
     await persist(() => repo.remove('inbox', id))
     changed()
   },
 
   async saveReview(r) {
+    if (pendingReminderAction) await waitForReminderActions()
     const first = get().reviews.length === 0
     const before = get().reviews.find((x) => x.id === r.id)
     set({ reviews: [...get().reviews.filter((x) => x.id !== r.id), r] })
@@ -321,6 +394,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async redeem(rewardId) {
+    if (pendingReminderAction) await waitForReminderActions()
     const st = get()
     const reward = st.settings.rewards.find((x) => x.id === rewardId)
     if (!reward || st.game.xp - st.game.spent < reward.price) return false
@@ -335,12 +409,14 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setGame(fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     const game = fn(get().game)
     set({ game })
     await persist(() => repo.put('game', 'main', game))
   },
 
   async evaluateProgress() {
+    if (pendingReminderAction) await waitForReminderActions()
     const st = get()
     const t = today()
     const th = theme(st.settings.themeId)
@@ -366,12 +442,14 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setEvents(events) {
+    if (pendingReminderAction) await waitForReminderActions()
     set({ events })
     await persist(() => repo.put('meta', 'events', events))
     changed()
   },
 
   async saveLocal(fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     const local = fn(get().local)
     set({ local })
     await persist(() => repo.put('meta', 'local', local))
@@ -379,6 +457,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async saveDeviceTests(fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     const previous = get().local.deviceTests
     const local = { ...get().local, deviceTests: fn(deviceTestsFromLocal(get().local)) }
     if (!validDeviceTests(local.deviceTests)) throw new Error('Die Testangaben sind ungültig.')
@@ -393,6 +472,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setResume(r) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => {
       const next = { ...l }
       if (r) next.resume = r
@@ -402,6 +482,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async saveTomorrowStep(title, nextStep, resumeAt, remind = false) {
+    if (pendingReminderAction) await waitForReminderActions()
     const trimmedTitle = title.trim()
     const trimmedStep = nextStep.trim()
     if (!trimmedTitle || !trimmedStep) return undefined
@@ -413,17 +494,20 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async finishTomorrowStep(id) {
+    if (pendingReminderAction) await waitForReminderActions()
     if (!get().local.tomorrowSteps.some((step) => step.id === id && step.doneAt === undefined)) return
     const doneAt = Date.now()
     await get().saveLocal((local) => ({ ...local, tomorrowSteps: local.tomorrowSteps.map((step) => step.id === id && step.doneAt === undefined ? { ...step, doneAt } : step) }))
   },
 
   async removeTomorrowStep(id) {
+    if (pendingReminderAction) await waitForReminderActions()
     if (!get().local.tomorrowSteps.some((step) => step.id === id)) return
     await get().saveLocal((local) => ({ ...local, tomorrowSteps: local.tomorrowSteps.filter((step) => step.id !== id) }))
   },
 
   async saveSleepEntry(date, entry) {
+    if (pendingReminderAction) await waitForReminderActions()
     const normalized = validateSleepEntry(date, entry)
     await get().saveLocal((local) => {
       const sleepDiary = { ...local.sleepDiary }
@@ -434,6 +518,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async removeSleepEntry(date) {
+    if (pendingReminderAction) await waitForReminderActions()
     if (!Object.hasOwn(get().local.sleepDiary, date)) return
     await get().saveLocal((local) => {
       const sleepDiary = { ...local.sleepDiary }
@@ -443,6 +528,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async setMeds(date, status) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => {
       const meds = { ...l.meds }
       if (status) meds[date] = { status, at: Date.now() }
@@ -452,6 +538,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async adjustDay(date, label, fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateDay(date, (log) => {
       const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
       const next = fn(log)
@@ -460,6 +547,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async restoreDay(date) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().updateDay(date, (log) => {
       if (!log.before) return log
       const real = Object.fromEntries(Object.entries(log.steps).filter(([, v]) => v === 'done' || v === 'minimal'))
@@ -472,15 +560,18 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async saveCommitment(c) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => ({ ...l, commitments: [...l.commitments.filter((x) => x.id !== c.id), c] }))
   },
 
   async workStart(i = {}) {
+    if (pendingReminderAction) await waitForReminderActions()
     const at = i.at ?? Date.now()
     await get().saveLocal((l) => ({ ...l, workSessions: startSession(l.workSessions, { id: randomId(), date: today(), at, kind: i.kind, label: i.label, commitmentId: i.commitmentId }) }))
   },
 
   async workStop(at = Date.now()) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => {
       const open = l.workSessions.find((x) => x.endAt === undefined)
       // Ein Einsatz ohne Weg ist mit dem Beenden abgeschlossen. Vor Ort folgt noch „Bin wieder da“.
@@ -490,19 +581,23 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async workBreakStart(at = Date.now()) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => ({ ...l, workSessions: startBreak(l.workSessions, randomId(), at) }))
   },
 
   async workBreakEnd(at = Date.now()) {
+    if (pendingReminderAction) await waitForReminderActions()
     await get().saveLocal((l) => ({ ...l, workSessions: endBreak(l.workSessions, at) }))
   },
 
   async editWork(fn) {
+    if (pendingReminderAction) await waitForReminderActions()
     set({ workUndo: get().local.workSessions })
     await get().saveLocal((l) => ({ ...l, workSessions: fn(l.workSessions) }))
   },
 
   async undoWork() {
+    if (pendingReminderAction) await waitForReminderActions()
     const before = get().workUndo
     if (!before) return
     set({ workUndo: undefined })
@@ -514,6 +609,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async importRecords(recs) {
+    if (pendingReminderAction) await waitForReminderActions()
     await persistence
     const n = await repo.merge(recs, { dirty: true })
     if (n) await get().load()

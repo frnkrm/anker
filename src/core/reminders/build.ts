@@ -1,7 +1,21 @@
-import { fmtTime, utcToZoned, weekday, zonedToUtc } from '../time'
+import { fmtTime, minutesOnPlanDay, utcToZoned, weekday, zonedToUtc } from '../time'
 import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowStep } from '../types'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
+
+export interface ReminderPolicy {
+  quietStart: number
+  quietEnd: number
+  ranges: { from: number; to: number }[]
+}
+
+export function reminderPolicy(plans: DayPlan[], s: Settings): ReminderPolicy {
+  return {
+    quietStart: s.reminders.quietStart,
+    quietEnd: s.reminders.quietEnd,
+    ranges: plans.flatMap((plan) => (plan.quiet ?? []).map(([from, to]) => ({ from: zonedToUtc(plan.date, from), to: zonedToUtc(plan.date, to) }))),
+  }
+}
 
 export interface ReminderSpec {
   /** Stabiler Schlüssel innerhalb eines Tages, z. B. "leave" */
@@ -22,6 +36,12 @@ export interface ReminderSpec {
   rank: number
   /** Nur Zeitkritisches weckt exakt */
   exact: boolean
+  /** Stable logical plan version; snooze and escalation keep this version. */
+  revision: string
+  /** Distinguishes this delivery from older buttons of the same logical reminder. */
+  token: string
+  /** Explicit time-critical anchors may interrupt focus and quiet hours. */
+  critical: boolean
 }
 
 /** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
@@ -40,6 +60,8 @@ export interface ReminderExtras {
   thoughtReviews?: InboxItem[]
   /** Lokale nächste Schritte; erledigte oder abgewählte Einträge werden entfernt. */
   tomorrowSteps?: TomorrowStep[]
+  /** Optional current focus session. Native receives the same limit for closed-app delivery. */
+  focusUntil?: number
 }
 
 interface PrivateReminder {
@@ -76,6 +98,22 @@ interface Base {
   hard?: boolean
 }
 
+/** Opaque deterministic version; no private text crosses the native boundary through it. */
+export function reminderRevision(value: unknown): string {
+  const text = JSON.stringify(value)
+  let a = 2166136261
+  let b = 3339675911
+  for (let i = 0; i < text.length; i++) {
+    a = Math.imul(a ^ text.charCodeAt(i), 16777619)
+    b = Math.imul(b ^ text.charCodeAt(i), 2246822519)
+  }
+  return `r2-${(a >>> 0).toString(16).padStart(8, '0')}${(b >>> 0).toString(16).padStart(8, '0')}`
+}
+
+export function reminderDeliveryToken(revision: string, at: number, escalation = 0): string {
+  return `${revision}:${at}:${escalation}`
+}
+
 export const MAX_SNOOZE = 2
 const LOOKAHEAD_MS = 48 * 3600_000
 
@@ -104,8 +142,7 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   const evening = plan.blocks.find((b) => b.routine === 'evening')
 
   if (!sick && morning?.steps?.length && !Object.keys(log?.steps ?? {}).some((k) => k.startsWith('morning:'))) {
-    const first = morning.steps[0]!
-    out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: `Erster Schritt: ${first.useMinimal && first.minimal ? first.minimal.title : first.title}`, escalate: false })
+    out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: 'Dein nächster Schritt steht in Anker bereit.', escalate: false })
   }
   const wi = plan.workInfo
   if (plan.leave !== undefined && !log?.leftAt && !wi?.started) {
@@ -135,7 +172,7 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       key: 'evening',
       at: evening.start,
       channel: 'uebergang',
-      title: sick ? `${t(evening.start)} – Zähne und Gesicht` : `${t(evening.start)} – ${what}, dann darfst du zocken`,
+      title: sick ? `${t(evening.start)} – Zähne und Gesicht` : `${t(evening.start)} – ${what}`,
       body: sick ? 'Nur das Nötigste, dann ausruhen.' : `Dauert etwa ${evening.end - evening.start} Minuten.`,
       escalate: true,
     })
@@ -166,32 +203,62 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
     // Bewusst neutral: Sperrbildschirme sind öffentlich, und Anker ordnet nichts an
     out.push({ key: 'meds', at: s.alarm.medicationReminderAt, channel: 'sanft', title: 'Deine private Erinnerung', body: 'Eintragen, wenn du magst.', escalate: false, hard: true })
   }
-  // Auf Kurs und überlastet: nur noch, was wirklich zählt
-  const mode = log?.override.mode
-  // In Freizeit und bei sozialen Terminen bleibt es still, außer dem, was du selbst fest eingeplant hast
-  const inQuiet = (b: Base) => !b.key.startsWith('go:') && !b.key.startsWith('prep:') && (plan.quiet ?? []).some(([a, e]) => b.at >= a && b.at < e)
-  const calm = out.filter((b) => !inQuiet(b))
-  if (mode === 'auf-kurs' || mode === 'ueberlastet') return calm.filter((b) => b.hard || b.escalate || b.key === 'wind-down')
-  return calm
+  return out
 }
 
-/** Alle Erinnerungs-Schlüssel, die für diese Tage noch gelten. Was fehlt, wird aus der Leiste geräumt. */
-export function relevantReminderKeys(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, extras: ReminderExtras = {}): string[] {
-  const out: string[] = []
+/** Evaluate each actual delivery, including repetitions, against the current context. */
+export function reminderAllowed(plan: DayPlan | undefined, log: DayLog | undefined, s: Settings, at: number, critical: boolean, key: string, extras: ReminderExtras = {}, policy?: ReminderPolicy): boolean {
+  const local = utcToZoned(at)
+  const m = plan ? minutesOnPlanDay(plan.date, at) : local.minutes
+  // Leisure/film windows still keep explicitly selected routes and private reminders, never household nudges.
+  const selected = key.startsWith('go:') || key.startsWith('prep:')
+  const inPlanQuiet = policy ? policy.ranges.some((r) => at >= r.from && at < r.to) : plan && (plan.quiet ?? []).some(([a, e]) => m >= a && m < e)
+  if (!selected && inPlanQuiet) return false
+  if (!critical && (inQuiet(local.minutes, s) || (extras.focusUntil ?? 0) > at)) return false
+  if (!critical && (log?.override.mode === 'auf-kurs' || log?.override.mode === 'ueberlastet') && key !== 'wind-down') return false
+  // No routine household hints while a known journey is in progress.
+  if (!critical && plan?.blocks.some((b) => ['travel', 'commute'].includes(b.kind) && m >= b.start && m < b.end)) return false
+  return true
+}
+
+function baseRevision(plan: DayPlan, log: DayLog | undefined, s: Settings, b: Base): string {
+  return reminderRevision([plan.date, b, plan.quiet, log?.override.mode, s.reminders, s.routines, s.alarm.medicationReminderAt])
+}
+
+/** Authoritative logical versions, including already delivered reminders and snoozed entries. */
+export function reminderRevisions(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, extras: ReminderExtras = {}): Record<string, string> {
+  const out: Record<string, string> = {}
+  const policy = reminderPolicy(plans, s)
   for (const plan of plans) {
-    const dismissed = new Set(logs[plan.date]?.dismissed ?? [])
-    for (const b of baseReminders(plan, logs[plan.date], s)) {
-      if (!dismissed.has(b.key)) out.push(`${plan.date}|${b.key}`)
+    const log = logs[plan.date]
+    for (const b of baseReminders(plan, log, s)) {
+      const levels = b.escalate ? escalationSteps(s.reminders.intensity) : 0
+      const allowed = Array.from({ length: levels + 1 }, (_, e) => zonedToUtc(plan.date, b.at + e * s.reminders.repeatAfterMin)).some((at) => reminderAllowed(plan, log, s, at, !!b.hard, b.key, extras, policy))
+      if (log?.dismissed?.includes(b.key) || !allowed) continue
+      out[`${plan.date}|${b.key}`] = baseRevision(plan, log, s, b)
     }
   }
   for (const reminder of privateReminders(extras)) {
-    if (!logs[reminder.date]?.dismissed?.includes(reminder.key)) out.push(`${reminder.date}|${reminder.key}`)
+    if (!logs[reminder.date]?.dismissed?.includes(reminder.key) && reminderAllowed(undefined, logs[reminder.date], s, reminder.at, false, reminder.key, extras, policy)) out[`${reminder.date}|${reminder.key}`] = reminderRevision(reminder)
+  }
+  for (const deadline of extras.deadlines ?? []) {
+    const date = utcToZoned(deadline.at).date
+    for (const [suffix, lead] of [['day', 24 * 3600_000], ['hour', 3600_000]] as const) {
+      const key = `deadline-${suffix}:${deadline.id}`
+      if (!logs[date]?.dismissed?.includes(key) && reminderAllowed(undefined, logs[date], s, deadline.at - lead, true, key, extras, policy)) out[`${date}|${key}`] = reminderRevision([date, key, deadline.at])
+    }
   }
   return out
 }
 
+/** Alle Erinnerungs-Schlüssel, die für diese Tage noch gelten. Was fehlt, wird aus der Leiste geräumt. */
+export function relevantReminderKeys(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, extras: ReminderExtras = {}): string[] {
+  return Object.keys(reminderRevisions(plans, logs, s, extras))
+}
+
 /** Hinweis kurz vor Ende der Vorausplanung, statt still zu verstummen. */
 export function reopenHint(horizonEnd: number, date: string): ReminderSpec {
+  const revision = reminderRevision([date, 'open-app', horizonEnd])
   return {
     key: 'open-app',
     date,
@@ -203,6 +270,9 @@ export function reopenHint(horizonEnd: number, date: string): ReminderSpec {
     escalation: 0,
     actions: false,
     exact: false,
+    revision,
+    token: reminderDeliveryToken(revision, horizonEnd),
+    critical: false,
     ...slotFor('open-app'),
   }
 }
@@ -227,6 +297,8 @@ export function buildReminders(
   extras: ReminderExtras = {},
 ): ReminderSpec[] {
   const out: ReminderSpec[] = []
+  const revisions = reminderRevisions(plans, logs, s, extras)
+  const policy = reminderPolicy(plans, s)
   for (const d of extras.deadlines ?? []) {
     // Früh und ruhig: am Vortag und eine Stunde vorher
     for (const [suffix, lead, title] of [
@@ -238,13 +310,16 @@ export function buildReminders(
       const key = `deadline-${suffix}:${d.id}`
       const date = utcToZoned(d.at).date
       if (logs[date]?.dismissed?.includes(key)) continue
-      out.push({ key, date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, ...slotFor(key) })
+      if (!reminderAllowed(undefined, logs[date], s, at, true, key, extras, policy)) continue
+      const revision = revisions[`${date}|${key}`]!
+      out.push({ key, date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, revision, token: reminderDeliveryToken(revision, at), critical: true, ...slotFor(key) })
     }
   }
   for (const reminder of privateReminders(extras)) {
-    if (reminder.at <= nowMs || reminder.at > nowMs + lookaheadMs || inQuiet(utcToZoned(reminder.at).minutes, s)) continue
+    if (reminder.at <= nowMs || reminder.at > nowMs + lookaheadMs || !reminderAllowed(undefined, logs[reminder.date], s, reminder.at, false, reminder.key, extras, policy)) continue
     if (logs[reminder.date]?.dismissed?.includes(reminder.key)) continue
-    out.push({ ...reminder, id: reminderId(`${reminder.date}|${reminder.key}|0`), channel: 'sanft', escalation: 0, actions: false, exact: false, ...slotFor(reminder.key) })
+    const revision = revisions[`${reminder.date}|${reminder.key}`]!
+    out.push({ ...reminder, id: reminderId(`${reminder.date}|${reminder.key}|0`), channel: 'sanft', escalation: 0, actions: false, exact: false, revision, token: reminderDeliveryToken(revision, reminder.at), critical: false, ...slotFor(reminder.key) })
   }
   const steps = escalationSteps(s.reminders.intensity)
   const gap = s.reminders.repeatAfterMin
@@ -253,12 +328,13 @@ export function buildReminders(
     const dismissed = new Set(log?.dismissed ?? [])
     for (const b of baseReminders(plan, log, s)) {
       if (dismissed.has(b.key)) continue
-      if (!b.hard && inQuiet(b.at, s)) continue
       const levels = b.escalate ? steps : 0
       for (let e = 0; e <= levels; e++) {
         const m = b.at + e * gap
         const at = zonedToUtc(plan.date, m)
         if (at <= nowMs || at > nowMs + lookaheadMs) continue
+        if (!reminderAllowed(plan, log, s, at, !!b.hard, b.key, extras, policy)) continue
+        const revision = baseRevision(plan, log, s, b)
         const channel: Channel = e === 2 ? 'wecker' : e === 1 && b.channel === 'sanft' ? 'uebergang' : b.channel
         out.push({
           ...slotFor(b.key),
@@ -272,6 +348,9 @@ export function buildReminders(
           body: b.body,
           escalation: e,
           actions: b.escalate || b.key === 'leave-10' || b.key === 'pcstop-15',
+          revision,
+          token: reminderDeliveryToken(revision, at, e),
+          critical: !!b.hard,
         })
       }
     }

@@ -101,7 +101,8 @@ describe('buildReminders', () => {
     const { s, plans } = setup()
     const r = buildReminders(plans, {}, s, now)
     const evening = r.find((x) => x.key === 'evening' && x.escalation === 0 && x.date === MON)!
-    expect(evening.title).toMatch(/^\d\d:\d\d – .*Gesicht.*dann darfst du zocken$/)
+    expect(evening.title).toMatch(/^\d\d:\d\d – .*Gesicht.*Zähne$/)
+    expect(evening.title).not.toContain('darfst')
     expect(r.find((x) => x.key === 'leave' && x.date === MON)!.title).toBe('07:15 – Losgehen!')
   })
 

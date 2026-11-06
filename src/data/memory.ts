@@ -17,6 +17,11 @@ export class MemoryRepository implements Repository {
   async put<T>(c: Collection, id: string, data: T) {
     this.map.set(key({ collection: c, id }), { collection: c, id, data, updated_at: this.now(), deleted: false, dirty: 1 })
   }
+  async putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]) {
+    const next = new Map(this.map)
+    for (const r of records) next.set(key(r), { ...r, updated_at: this.now(), deleted: false, dirty: 1 })
+    this.map = next
+  }
   async remove(c: Collection, id: string) {
     const k = key({ collection: c, id })
     const r = this.map.get(k)

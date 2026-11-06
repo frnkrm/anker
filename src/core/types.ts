@@ -194,6 +194,8 @@ export interface DayLog {
   prepChecklist?: string[]
   /** Erinnerungs-Schlüssel, die für heute mit „Heute nicht“ abgelehnt wurden */
   dismissed?: string[]
+  /** Bounded opaque receipts, committed with the corresponding reminder action. */
+  reminderReceipts?: string[]
   /** Bereits vergebene XP-Gründe, damit nichts doppelt zählt */
   awarded?: string[]
   /** Erledigte Ankommen-Schritte (Index) */
@@ -479,6 +481,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Receipts for reminder actions affecting local commitments. No private notification text. */
+  reminderReceipts?: string[]
   deviceTests?: DeviceTestProgress
   commitments: Commitment[]
   places: Place[]

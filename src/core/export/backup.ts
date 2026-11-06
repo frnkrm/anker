@@ -2,6 +2,7 @@ import type { Collection, Rec } from '../../data/types'
 import { defaultSettings } from '../defaults'
 import { validEveningLocal } from '../evening'
 import { validDeviceTests } from '../deviceTests'
+import { validReminderReceipts } from '../reminders/actions'
 import { COLLECTIONS } from '../../data/types'
 
 export interface Backup {
@@ -35,6 +36,9 @@ export function parseBackup(text: string): Rec[] {
       typeof r.deleted === 'boolean',
   )
   for (const record of records) {
+    if (!record.deleted && (record.collection === 'days' || (record.collection === 'meta' && record.id === 'local')) && object(record.data) && !validReminderReceipts(record.data.reminderReceipts)) {
+      throw new Error('Die Sicherung enthält ungültige Erinnerungsbestätigungen. Es wurde nichts importiert.')
+    }
     if (!record.deleted && record.collection === 'settings' && !validSettings(record.data)) {
       throw new Error('Die Sicherung enthält ungültige Einstellungen. Es wurde nichts importiert.')
     }

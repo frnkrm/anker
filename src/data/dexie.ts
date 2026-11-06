@@ -28,6 +28,11 @@ export class DexieRepository implements Repository {
   async put<T>(c: Collection, id: string, data: T) {
     await this.db.records.put({ collection: c, id, data, updated_at: Date.now(), deleted: false, dirty: 1 })
   }
+  async putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]) {
+    await this.db.transaction('rw', this.db.records, async () => {
+      await this.db.records.bulkPut(records.map((r) => ({ ...r, updated_at: Date.now(), deleted: false, dirty: 1 })))
+    })
+  }
   async remove(c: Collection, id: string) {
     const cur = await this.db.records.get([c, id])
     await this.db.records.put({ collection: c, id, data: cur?.data ?? null, updated_at: Date.now(), deleted: true, dirty: 1 })

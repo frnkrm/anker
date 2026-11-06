@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { NativeAlarmConfig } from '../core/alarm'
+import type { ReminderAction } from '../core/reminders/actions'
+import type { ReminderPolicy } from '../core/reminders/build'
 
 export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
 
@@ -73,14 +75,13 @@ export interface NativeReminder {
   slot: number
   rank: number
   exact: boolean
+  revision: string
+  token: string
+  critical: boolean
+  ruleId?: string
 }
 
-export interface ReminderActionInfo {
-  action: 'done' | 'skip'
-  key: string
-  date: string
-  at: number
-}
+export type ReminderActionInfo = ReminderAction
 
 /** Eigenes Kotlin-Plugin (android/app/src/main/java/.../AnkerNativePlugin.kt). */
 export interface AnkerNativePlugin {
@@ -99,8 +100,10 @@ export interface AnkerNativePlugin {
   confirmTest(o: { heard: boolean }): Promise<void>
   playTestTone(): Promise<{ ok: boolean }>
   getAlarmDiagnostics(): Promise<AlarmDiagnostics>
-  syncReminders(o: { reminders: NativeReminder[]; relevant: string[] }): Promise<void>
+  syncReminders(o: { reminders: NativeReminder[]; relevant: string[]; revisions: Record<string, string>; policy?: ReminderPolicy }): Promise<void>
   drainReminderActions(): Promise<{ actions: ReminderActionInfo[] }>
+  ackReminderActions(o: { ids: string[] }): Promise<void>
+  setReminderFocus(o: { until: number }): Promise<void>
   /** Öffnet den Android-Druckdialog. opened=false, wenn das System ihn nicht zeigen konnte. */
   printPage(o: { jobName: string; size: 'A5' | 'A4' }): Promise<{ opened: boolean }>
   vibratePulse(o: { strength: 'gentle' | 'strong' }): Promise<void>
@@ -137,6 +140,8 @@ const web: Partial<AnkerNativePlugin> = {
   async drainReminderActions() {
     return { actions: [] }
   },
+  async ackReminderActions() {},
+  async setReminderFocus() {},
   async syncReminders() {},
   async vibratePulse({ strength }) {
     navigator.vibrate?.(strength === 'strong' ? [140, 120, 140] : [60, 120, 60])

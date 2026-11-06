@@ -1,5 +1,6 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
-import { buildReminders, relevantReminderKeys, reopenHint } from '../core/reminders/build'
+import { buildReminders, reminderPolicy, reminderRevisions, reopenHint } from '../core/reminders/build'
+import { validReminderAction } from '../core/reminders/actions'
 import { addDays, zonedToUtc } from '../core/time'
 import type { DayLog } from '../core/types'
 import { planFor, today, useApp } from '../state/store'
@@ -73,33 +74,48 @@ export async function rescheduleAll() {
     const extras = { deadlines, thoughtReviews: st.inbox, tomorrowSteps: st.local.tomorrowSteps }
     const specs = buildReminders(plans, logs, st.settings, now, horizonEnd - now, extras)
     const last = dates[dates.length - 1]!
-    const reminders = [...specs, reopenHint(horizonEnd, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact }))
-    const relevant = [
-      ...relevantReminderKeys(plans, logs, st.settings, extras),
-      ...reminders.filter((r) => r.key.startsWith('deadline') || r.key === 'open-app').map((r) => `${r.date}|${r.key}`),
-    ]
-    await AnkerNative.syncReminders({ reminders, relevant })
+    const reminders = [...specs, reopenHint(horizonEnd, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }))
+    const revisions = reminderRevisions(plans, logs, st.settings, extras)
+    for (const r of reminders.filter((r) => r.key === 'open-app')) revisions[`${r.date}|${r.key}`] = r.revision
+    await AnkerNative.syncReminders({ reminders, relevant: Object.keys(revisions), revisions, policy: reminderPolicy(plans, st.settings) })
   }, undefined)
 }
 
 /** Knöpfe in Meldungen wirken auch bei geschlossener App: Hier werden sie im Store nachgetragen. */
-export async function drainActions() {
-  const { actions } = await safe(() => AnkerNative.drainReminderActions(), { actions: [] as ReminderActionInfo[] })
-  for (const a of actions) await applyAction(a)
+let activeDrain: Promise<void> | undefined
+
+export function drainActions(): Promise<void> {
+  if (activeDrain) return activeDrain
+  const task = (async () => {
+    for (;;) {
+      const { actions } = await AnkerNative.drainReminderActions()
+      if (!actions.length) return
+      const ids: string[] = []
+      let failure: unknown
+      let legacy = false
+      for (const a of actions) {
+        const id = a?.id
+        if (typeof id !== 'string' || !id || id.length > 256) { legacy = true; continue }
+        if (!validReminderAction(a)) { ids.push(id); legacy = true; continue }
+        try {
+          await applyAction(a)
+          ids.push(a.id)
+        } catch (error) { failure = error; break }
+      }
+      if (ids.length) await AnkerNative.ackReminderActions({ ids })
+      if (legacy) useApp.getState().showToast('Eine ältere Rückmeldung konnte nicht sicher zugeordnet werden. Bitte prüfe den Eintrag in Anker.')
+      if (failure) throw failure
+      // Unknown legacy records without an ID need native migration; never spin or apply them blindly.
+      if (!ids.length || legacy) return
+    }
+  })().catch((error: unknown) => {
+    console.warn('[Anker] Erinnerungsrückmeldung bleibt zur erneuten Verarbeitung erhalten.', error)
+    useApp.getState().showToast('Deine Rückmeldung konnte noch nicht gespeichert werden. Anker versucht es beim nächsten Öffnen erneut.')
+  }).finally(() => { if (activeDrain === task) activeDrain = undefined })
+  activeDrain = task
+  return task
 }
 
 export async function applyAction(a: ReminderActionInfo) {
-  const st = useApp.getState()
-  const { key, date } = a
-  if (key.startsWith('go:') && a.action === 'done') {
-    const id = key.slice(3)
-    return st.saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.id === id ? { ...c, leftAt: a.at } : c)) }))
-  }
-  if (a.action === 'done') {
-    if (key === 'leave') return st.mark(date, 'leftAt', a.at)
-    if (key === 'pcstop') return st.mark(date, 'pcOffAt', a.at)
-    if (key === 'bed') return st.mark(date, 'bedAt', a.at)
-    if (key === 'evening') return st.mark(date, 'eveningRoutineDoneAt', a.at)
-  }
-  await st.updateDay(date, (l) => ({ ...l, dismissed: [...new Set([...(l.dismissed ?? []), key])] }))
+  return useApp.getState().applyReminderAction(a)
 }
