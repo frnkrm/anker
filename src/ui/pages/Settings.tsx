@@ -124,6 +124,7 @@ function Work({ s, save }: { s: S; save: Save }) {
             <TextInput aria-label="Nachricht, wenn es später wird" value={s.flex.lateMessage} onChange={(e) => flex({ lateMessage: e.target.value })} />
           </label>
           <p className="text-sm text-muted">Die Nachricht kopierst du nur, Anker sendet nichts. Anker ist eine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.</p>
+          <p className="text-sm text-muted">Pausen- und Ruhehinweise sind allgemeine Orientierung. Betriebliche Ausnahmen und die aktuelle Rechtslage musst du selbst prüfen; ein Hinweis erteilt keine Freigabe für Arbeit.</p>
         </Card>
       </Section>
       <Section title="Nach Feierabend">
@@ -162,6 +163,14 @@ function Work({ s, save }: { s: S; save: Save }) {
                 <span>Homeoffice</span>
                 <Toggle label="Homeoffice" checked={w.homeOffice} onChange={(v) => upd(i, { homeOffice: v })} />
               </div>
+              <details className="space-y-3">
+                <summary className="min-h-11 py-2 text-muted">Weitere Wochenwerte</summary>
+                <label className="block space-y-1"><span>Spätester Beginn an diesem Wochentag</span><select aria-label={`${WEEKDAYS_LONG[i]} Startgrenze`} value={w.latestStart === undefined ? 'inherit' : w.latestStart === null ? 'off' : 'custom'} onChange={(event) => upd(i, { latestStart: event.target.value === 'inherit' ? undefined : event.target.value === 'off' ? null : s.flex.latestStart ?? w.start })} className="min-h-12 w-full rounded-xl bg-surface-2 px-3"><option value="inherit">Globale Grenze verwenden</option><option value="off">Keine Grenze an diesem Tag</option><option value="custom">Eigene Grenze</option></select></label>
+                {typeof w.latestStart === 'number' && <TimeField label={`${WEEKDAYS_LONG[i]} spätester Beginn`} value={w.latestStart} onChange={(value) => upd(i, { latestStart: value })} />}
+                <div className="flex flex-wrap items-center justify-between gap-2"><span>Freiwilliger Feierabendwunsch</span><Toggle label={`${WEEKDAYS_LONG[i]} Feierabendwunsch`} checked={w.endPreference !== undefined} onChange={(enabled) => upd(i, { endPreference: enabled ? w.start + w.durationMin + w.pauseMin : undefined })} /></div>
+                {w.endPreference !== undefined && <TimeField label={`${WEEKDAYS_LONG[i]} Feierabendwunsch Uhrzeit`} value={w.endPreference} onChange={(value) => upd(i, { endPreference: value })} />}
+                <p className="text-sm text-muted">Der Endwunsch ist vom Nettoziel getrennt. Tatsächlich gearbeitete Zeit entsteht nur durch deine Erfassung; Tagesänderungen überschreiben nicht diese Wochenwerte.</p>
+              </details>
             </>
           )}
         </Card>

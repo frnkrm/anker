@@ -7,6 +7,7 @@ import { dayActual, dayBalance, latestInfo, nextObligation, overLatest, startRis
 import { safe } from '../../platform/native'
 import { planFor, useApp } from '../../state/store'
 import { Button, Segmented, Stepper, TextInput, TimeField } from './ui'
+import { useTaskAction } from './TaskDetails'
 
 export function useCopy() {
   const toast = useApp((s) => s.showToast)
@@ -47,11 +48,13 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
   // Eine offene Sitzung von früher klärt die Hauptaktion zuerst
   if (st.local.workSessions.some((x) => x.endAt === undefined && x.date !== date)) return null
 
+  if (actual.unconfirmed) return <div className={box} data-testid="workbar"><p>Einige Arbeitszeiten sind noch unbestätigt.</p><Link to="/arbeitszeit" className="flex min-h-11 items-center text-accent">Arbeitszeiten prüfen</Link></div>
+
   if (actual.open) {
     const over = actual.netMin - (wi?.targetNetMin ?? 0)
     return (
       <div className={box} data-testid="workbar">
-        <p>{over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend etwa ${fmtTime(plan.workEnd ?? m)}`}</p>
+        <p>{over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend ${wi?.forecastLowerBound ? 'frühestens' : 'etwa'} ${fmtTime(wi?.forecastEnd ?? plan.workEnd ?? m)}`}</p>
         <div className="flex gap-2">
           <Button className="flex-1" onClick={() => st.workBreakStart()}>
             Pause starten
@@ -143,7 +146,8 @@ export function WorkDayForm({ date, m, isTomorrow, onDone }: { date: string; m: 
   const actual = dayActual(st.local.workSessions, date, Date.now())
   const tracked = actual.sessions.length > 0
   const [start, setStart] = useState(wi?.plannedStart ?? 9 * 60)
-  const latest = latestInfo(st.settings, plan.homeOffice)
+  const [endWish, setEndWish] = useState(wi?.endPreference ?? plan.workEnd ?? m)
+  const latest = latestInfo(st.settings, plan.homeOffice, date, st.days[date]?.override)
   const adjust = (label: string, patch: DayLog['override']) => st.adjustDay(date, label, (l) => ({ ...l, override: { ...l.override, ...patch } }))
 
   const emergency = !isTomorrow && (
@@ -251,6 +255,13 @@ export function WorkDayForm({ date, m, isTomorrow, onDone }: { date: string; m: 
         </Button>
       )}
 
+      <details className="space-y-3">
+        <summary className="min-h-11 py-2 text-muted">Weitere Arbeitszeiten nur für diesen Tag</summary>
+        <div className="flex flex-wrap items-center justify-between gap-2"><span>Feierabendwunsch</span><TimeField label="Feierabendwunsch heute" value={endWish} onChange={setEndWish} /><Button size="sm" onClick={async () => { await adjust(`Feierabendwunsch ${fmtTime(endWish)}`, { workEnd: endWish }); onDone('Dein Tageswunsch ist gespeichert. Er bucht keine Arbeitszeit.') }}>Endwunsch übernehmen</Button></div>
+        <label className="block space-y-1"><span>Spätester Beginn heute</span><select aria-label="Startgrenze heute" value={st.days[date]?.override.latestStart === undefined ? 'inherit' : st.days[date]?.override.latestStart === null ? 'off' : 'custom'} onChange={(event) => adjust('Startgrenze für diesen Tag', { latestStart: event.target.value === 'inherit' ? undefined : event.target.value === 'off' ? null : latest?.latestStart ?? 9 * 60 })} className="min-h-12 w-full rounded-xl bg-surface-2 px-3"><option value="inherit">Wochenprofil verwenden</option><option value="off">Heute keine Grenze</option><option value="custom">Heute eigene Grenze</option></select></label>
+        {typeof st.days[date]?.override.latestStart === 'number' && <TimeField label="Eigene Startgrenze heute" value={st.days[date]!.override.latestStart!} onChange={(value) => adjust('Startgrenze für diesen Tag', { latestStart: value })} />}
+      </details>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span>Ziel netto</span>
         <Stepper label="Netto-Ziel heute" value={wi.targetNetMin / 60} step={0.25} min={0} max={14} unit="h" onChange={(v) => adjust(`Ziel ${v} h`, { targetNetMin: Math.round(v * 60) })} />
@@ -280,9 +291,10 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
   const [minutes, setMinutes] = useState(90)
   const [place, setPlace] = useState('')
   const [travel, setTravel] = useState<number>()
+  const { busy, error, run } = useTaskAction()
   const k = PLAN_KINDS.find((x) => x.value === kind)!
   const onsite = kind === 'onsite'
-  const save = async () => {
+  const save = () => run(async () => {
     const label = title.trim() || k.title
     const c: Commitment = {
       id: randomId(),
@@ -294,15 +306,15 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
       end: start + minutes,
       status: 'planned',
       workKind: kind,
-      ...(onsite && place.trim() ? { placeLabel: place.trim(), address: place.trim(), ...(travel !== undefined ? { travelMin: travel } : {}) } : { routeMode: 'none' as const, prepMin: kind === 'oncall' ? 0 : 15 }),
+      ...(onsite ? { ...(place.trim() ? { placeLabel: place.trim(), address: place.trim() } : {}), ...(travel !== undefined ? { travelMin: travel } : {}) } : { routeMode: 'none' as const, prepMin: kind === 'oncall' ? 0 : 15 }),
     }
     await st.saveCommitment(c)
     await st.adjustDay(date, `Einsatz um ${fmtTime(start)}`, (l) => l)
     setTitle('')
     onDone('Eingeplant. Der Rest des Tages bleibt, wie er ist.')
-  }
+  })
   return (
-    <div className="space-y-3">
+    <fieldset disabled={busy} className="min-w-0 space-y-3">
       <Segmented<PlannedWorkKind> label="Art des Einsatzes" value={kind} options={PLAN_KINDS.map((x) => ({ value: x.value, label: x.label }))} onChange={setKind} />
       <TextInput aria-label="Worum geht es?" placeholder={`${k.title} (Titel freiwillig)`} value={title} onChange={(e) => setTitle(e.target.value)} />
       <label className="flex items-center justify-between gap-2">
@@ -330,10 +342,11 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
       )}
       {kind === 'oncall' && <p className="text-sm text-muted">Rufbereitschaft zählt hier nicht als gearbeitete Zeit. Wie sie rechtlich gilt, entscheidet Anker nicht. Läuft ein Einsatz, startest du ihn selbst.</p>}
       {st.settings.flex.legalHints && weekday(date) === 6 && <p className="text-sm text-muted">{SUNDAY_HINT}</p>}
-      <Button variant="primary" size="lg" className="w-full" onClick={save}>
+      <Button disabled={busy} variant="primary" size="lg" className="w-full" onClick={save}>
         Einplanen
       </Button>
-    </div>
+      {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+    </fieldset>
   )
 }
 

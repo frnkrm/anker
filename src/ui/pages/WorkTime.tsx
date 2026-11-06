@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import { fromBerlinDateTimeInput, toBerlinDateTimeInput } from '../../core/evening'
 import { randomId } from '../../core/defaults'
 import { SESSION_LABEL } from '../../core/support'
-import { addDays, fmtDuration, fmtTime, weekday, WEEKDAYS } from '../../core/time'
-import type { WorkSession, WorkSessionKind } from '../../core/types'
-import { balanceText, dayActual, dayBalance, manualSession, weekSummary, workRule } from '../../core/worktime'
+import { addDays, daysBetween, fmtDuration, fmtTime, weekday, WEEKDAYS, zonedToUtc } from '../../core/time'
+import type { WorkBreak, WorkSession, WorkSessionKind } from '../../core/types'
+import { balanceText, dayActual, dayBalance, manualSession, staleSession, weekSummary, workRule } from '../../core/worktime'
 import { useNow, useToday } from '../../state/hooks'
-import { planFor, useApp } from '../../state/store'
+import { planFor, today as currentDay, useApp } from '../../state/store'
 import { Button, Card, Page, Section, Segmented, TextInput, TimeField } from '../components/ui'
-import { fieldToMs, msToField, PlanWorkForm, WorkHints } from '../components/WorkControls'
+import { msToField, PlanWorkForm, WorkHints } from '../components/WorkControls'
+import { useTaskAction } from '../components/TaskDetails'
 
 /** Arbeitszeit: freiwillig, lokal, für dich. Keine offizielle Zeiterfassung, nichts geht an Dritte. */
 export default function WorkTime() {
@@ -15,11 +17,13 @@ export default function WorkTime() {
   const { date: today, plan } = useToday()
   const now = useNow(30_000)
   const [offset, setOffset] = useState(0)
+  const action = useTaskAction()
   const date = addDays(today, offset)
   const dayPlan = offset === 0 ? plan : planFor(date)
   const actual = dayActual(st.local.workSessions, date, now)
   const target = dayPlan.workInfo?.targetNetMin ?? 0
   const openHere = st.local.workSessions.find((x) => x.endAt === undefined)
+  const staleOpen = !!openHere && !!staleSession([openHere], today, now)
   const planned = st.local.commitments.filter((c) => c.workKind && c.status !== 'cancelled' && c.date >= today && !st.local.workSessions.some((x) => x.commitmentId === c.id)).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)
 
   return (
@@ -34,39 +38,53 @@ export default function WorkTime() {
         ]}
         onChange={setOffset}
       />
+      <label className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <span>Anderen Arbeitstag ansehen</span>
+        <input type="date" aria-label="Arbeitstag auswählen" value={date} max={today} className="min-h-12 min-w-0 max-w-full rounded-xl bg-surface-2 px-3" onChange={(event) => {
+          const chosen = event.target.value
+          if (chosen && chosen <= today) setOffset(daysBetween(today, chosen))
+        }} />
+      </label>
 
       <Card className="space-y-2">
         {actual.sessions.length === 0 ? (
           <p className="text-muted">Nichts erfasst. Das ist in Ordnung{dayPlan.workInfo ? `, der Plan rechnet mit Feierabend ${fmtTime(dayPlan.workEnd ?? 0)}` : ''}.</p>
+        ) : actual.unconfirmed ? (
+          <p role="status" className="text-muted">Diese Zeiten sind noch unbestätigt. Bitte prüfe die offenen oder widersprüchlichen Einträge unten. Sie zählen nicht als bestätigter Wochensaldo.</p>
         ) : (
           <>
             <Line label="Gearbeitet" value={fmtDuration(actual.netMin)} />
             <Line label="Pausen" value={fmtDuration(actual.breakMin)} />
-            {actual.open && dayPlan.workEnd !== undefined && <Line label="Feierabend etwa" value={fmtTime(dayPlan.workEnd)} />}
+            {actual.open && dayPlan.workInfo?.forecastEnd !== undefined && <Line label={dayPlan.workInfo.forecastLowerBound ? 'Feierabend frühestens' : 'Feierabend etwa'} value={fmtTime(dayPlan.workInfo.forecastEnd)} />}
+            {dayPlan.workInfo?.forecastLowerBound && <p className="text-sm text-muted">Vorläufig: Das Ende deiner Pause ist noch offen. Eine Endschätzung kannst du unten bei der Pause eintragen.</p>}
+            {dayPlan.workInfo?.endPreference !== undefined && <Line label="Dein Feierabendwunsch" value={fmtTime(dayPlan.workInfo.endPreference)} />}
             {!actual.open && <p className="pt-1">{dayBalance(actual, target).text}.</p>}
           </>
         )}
         {offset === 0 && (
           <div className="flex flex-wrap gap-2 pt-1">
+            {staleOpen && <p className="text-sm text-muted">Bestätige zuerst unten das tatsächliche Ende des älteren Abschnitts.</p>}
             {!openHere && (
-              <Button variant="primary" onClick={() => st.workStart()}>
+              <Button variant="primary" disabled={action.busy} onClick={() => action.run(() => st.workStart())}>
                 Arbeit starten
               </Button>
             )}
-            {openHere && !openHere.breaks.some((b) => b.endAt === undefined) && <Button onClick={() => st.workBreakStart()}>Pause starten</Button>}
-            {openHere?.breaks.some((b) => b.endAt === undefined) && (
-              <Button variant="primary" onClick={() => st.workBreakEnd()}>
+            {openHere && !staleOpen && !openHere.breaks.some((b) => b.endAt === undefined) && <Button disabled={action.busy} onClick={() => action.run(() => st.workBreakStart())}>Pause starten</Button>}
+            {!staleOpen && openHere?.breaks.some((b) => b.endAt === undefined) && (
+              <Button variant="primary" disabled={action.busy} onClick={() => action.run(() => st.workBreakEnd())}>
                 Pause beenden
               </Button>
             )}
-            {openHere && <Button onClick={() => st.workStop()}>{openHere.kind === 'regular' ? 'Feierabend' : 'Einsatz beenden'}</Button>}
+            {openHere && !staleOpen && <Button disabled={action.busy} onClick={() => action.run(() => st.workStop())}>{openHere.kind === 'regular' ? 'Feierabend' : 'Einsatz beenden'}</Button>}
           </div>
         )}
       </Card>
+      {action.error && <p role="alert" className="text-warm">{action.error}</p>}
+      {actual.issues.map((issue) => <p role="status" key={issue.key} className="text-sm text-warm">{issue.text}</p>)}
       <WorkHints date={date} now={now} />
 
       {st.workUndo && (
-        <Button onClick={() => st.undoWork()}>Letzte Korrektur rückgängig</Button>
+        <Button disabled={action.busy} onClick={() => action.run(() => st.undoWork())}>Letzte Korrektur rückgängig</Button>
       )}
 
       {actual.sessions.length > 0 && (
@@ -85,7 +103,7 @@ export default function WorkTime() {
         ))}
 
       <Section title="Nachtragen" hint="Auch ohne Timer. Eine Endzeit vor dem Beginn liegt nach Mitternacht.">
-        <ManualForm date={date} />
+        <ManualForm key={date} date={date} />
       </Section>
 
       <Section title="Einsatz">
@@ -97,11 +115,11 @@ export default function WorkTime() {
               {c.date} {fmtTime(c.start)} · {c.label}
             </span>
             {c.date === today && !openHere && (
-              <Button size="sm" onClick={() => st.workStart({ kind: c.workKind === 'oncall' || !c.workKind ? 'incident' : c.workKind, label: c.label, commitmentId: c.workKind === 'oncall' ? undefined : c.id })}>
+              <Button size="sm" disabled={action.busy} onClick={() => action.run(() => st.workStart({ kind: c.workKind === 'oncall' || !c.workKind ? 'incident' : c.workKind, label: c.label, commitmentId: c.workKind === 'oncall' ? undefined : c.id }))}>
                 Starten
               </Button>
             )}
-            <Button size="sm" variant="ghost" onClick={() => st.saveCommitment({ ...c, status: 'cancelled' })}>
+            <Button size="sm" variant="ghost" disabled={action.busy} onClick={() => action.run(() => st.saveCommitment({ ...c, status: 'cancelled' }))}>
               Entfällt
             </Button>
           </Card>
@@ -133,65 +151,85 @@ function Line({ label, value }: { label: string; value: string }) {
 function EmergencyForm() {
   const st = useApp()
   const [label, setLabel] = useState('')
-  return (
-    <Card className="space-y-2">
-      <TextInput aria-label="Was ist los?" placeholder="Kurzer Titel (freiwillig)" value={label} onChange={(e) => setLabel(e.target.value)} />
-      <Button
-        size="lg"
-        className="w-full"
-        onClick={async () => {
-          await st.workStart({ kind: 'incident', label: label.trim() || undefined })
-          setLabel('')
-        }}
-      >
-        Kundenproblem jetzt bearbeiten
-      </Button>
-    </Card>
-  )
+  const { busy, error, run } = useTaskAction()
+  return <Card className="space-y-2">
+    <TextInput disabled={busy} aria-label="Was ist los?" placeholder="Kurzer Titel (freiwillig)" value={label} onChange={(event) => setLabel(event.target.value)} />
+    <Button disabled={busy} size="lg" className="w-full" onClick={() => run(async () => {
+      await st.workStart({ kind: 'incident', label: label.trim() || undefined })
+      setLabel('')
+    })}>Kundenproblem jetzt bearbeiten</Button>
+    {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+  </Card>
+}
+
+/** Bei Korrektur eines vorhandenen Nachtintervalls bleibt dessen tatsächlicher Kalendertag erhalten. */
+function correctedTime(date: string, originalAt: number, clockMinute: number): number {
+  const day = Math.floor(msToField(date, originalAt) / 1440)
+  return zonedToUtc(date, day * 1440 + clockMinute)
 }
 
 function SessionCard({ session: x, date }: { session: WorkSession; date: string }) {
   const st = useApp()
-  const patch = (fn: (s: WorkSession) => WorkSession) => st.editWork((list) => list.map((y) => (y.id === x.id ? { ...fn(y), manual: true } : y)))
-  return (
-    <Card className="space-y-2">
+  const { busy, error, message, run } = useTaskAction()
+  const stale = !!staleSession([x], currentDay(), Date.now())
+  const [confirmedEnd, setConfirmedEnd] = useState('')
+  const patch = (fn: (session: WorkSession) => WorkSession) => run(() => st.editWork((list) => list.map((session) => session.id === x.id ? { ...fn(session), manual: true } : session)), 'Korrektur gespeichert.')
+  return <Card className="space-y-2">
+    <fieldset disabled={busy} className="min-w-0 space-y-2">
       <p className="font-medium">{x.label?.trim() || SESSION_LABEL[x.kind]}</p>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span>Beginn</span>
-        <TimeField label="Beginn" value={msToField(date, x.startAt)} onChange={(m) => patch((s) => ({ ...s, startAt: fieldToMs(date, m) }))} />
+        <TimeField label="Beginn" value={msToField(date, x.startAt)} onChange={(minute) => patch((session) => ({ ...session, startAt: correctedTime(date, session.startAt, minute) }))} />
       </div>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span>Ende</span>
-        {x.endAt !== undefined ? (
-          <TimeField label="Ende" value={msToField(date, x.endAt)} onChange={(m) => patch((s) => ({ ...s, endAt: Math.max(s.startAt, fieldToMs(date, m)) }))} />
-        ) : (
-          <Button size="sm" onClick={() => patch((s) => ({ ...s, endAt: Math.max(s.startAt, Date.now()), breaks: s.breaks.map((b) => (b.endAt === undefined ? { ...b, endAt: Date.now() } : b)) }))}>
-            Läuft noch, jetzt beenden
-          </Button>
-        )}
+        {x.endAt !== undefined ? <TimeField label="Ende" value={msToField(date, x.endAt)} onChange={(minute) => patch((session) => ({ ...session, endAt: correctedTime(date, session.endAt!, minute) }))} />
+          : !stale && <Button size="sm" onClick={() => patch((session) => ({ ...session, endAt: Date.now(), breaks: session.breaks.map((pause) => pause.endAt === undefined ? { ...pause, endAt: Date.now() } : pause) }))}>Läuft noch, jetzt beenden</Button>}
       </div>
-      {x.breaks.map((b) => (
-        <div key={b.id} className="flex flex-wrap items-center justify-between gap-2">
+      {stale && <div className="space-y-2 rounded-xl bg-surface-2 p-3">
+        <p className="text-sm text-muted">Dieser Abschnitt ist ungewöhnlich lange offen. Bestätige dein tatsächliches Ende; die ganze Zwischenzeit gilt noch nicht als geprüft.</p>
+        <label className="block space-y-1"><span>Tatsächliches Ende (Berliner Zeit)</span><input type="datetime-local" aria-label="Tatsächliches Ende bestätigen" value={confirmedEnd} onChange={(event) => setConfirmedEnd(event.target.value)} className="min-h-12 min-w-0 w-full rounded-xl bg-surface px-3" /></label>
+        <Button size="sm" onClick={() => patch((session) => {
+          const endAt = fromBerlinDateTimeInput(confirmedEnd)
+          if (!Number.isFinite(endAt)) throw new Error('Wähle dein tatsächliches Enddatum und die Uhrzeit.')
+          return { ...session, endAt, breaks: session.breaks.map((pause) => pause.endAt === undefined ? { ...pause, endAt } : pause) }
+        })}>Endzeit speichern</Button>
+      </div>}
+      {x.breaks.map((pause) => <div key={pause.id} className="space-y-2 rounded-xl border border-line p-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Pause</span>
-          <TimeField label="Pause von" value={msToField(date, b.startAt)} onChange={(m) => patch((s) => ({ ...s, breaks: s.breaks.map((y) => (y.id === b.id ? { ...y, startAt: fieldToMs(date, m) } : y)) }))} />
-          {b.endAt !== undefined && <TimeField label="Pause bis" value={msToField(date, b.endAt)} onChange={(m) => patch((s) => ({ ...s, breaks: s.breaks.map((y) => (y.id === b.id ? { ...y, endAt: Math.max(y.startAt, fieldToMs(date, m)) } : y)) }))} />}
-          <Button size="sm" variant="ghost" onClick={() => patch((s) => ({ ...s, breaks: s.breaks.filter((y) => y.id !== b.id) }))}>
-            Entfernen
-          </Button>
+          <TimeField label="Pause von" value={msToField(date, pause.startAt)} onChange={(minute) => patch((session) => ({ ...session, breaks: session.breaks.map((part) => part.id === pause.id ? { ...part, startAt: correctedTime(date, part.startAt, minute) } : part) }))} />
+          {pause.endAt !== undefined && <TimeField label="Pause bis" value={msToField(date, pause.endAt)} onChange={(minute) => patch((session) => ({ ...session, breaks: session.breaks.map((part) => part.id === pause.id ? { ...part, endAt: correctedTime(date, part.endAt!, minute) } : part) }))} />}
+          <Button size="sm" variant="ghost" onClick={() => patch((session) => ({ ...session, breaks: session.breaks.filter((part) => part.id !== pause.id) }))}>Entfernen</Button>
         </div>
-      ))}
+        {pause.endAt === undefined && <PauseEstimate session={x} pause={pause} />}
+      </div>)}
       <div className="flex flex-wrap gap-2">
-        {x.endAt !== undefined && (
-          <Button size="sm" onClick={() => patch((s) => ({ ...s, breaks: [...s.breaks, { id: randomId(), startAt: s.startAt, endAt: Math.min(s.endAt!, s.startAt + 30 * 60_000) }] }))}>
-            Pause hinzufügen
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={() => st.editWork((list) => list.filter((y) => y.id !== x.id))}>
-          Eintrag löschen
-        </Button>
+        {x.endAt !== undefined && <Button size="sm" onClick={() => patch((session) => ({ ...session, breaks: [...session.breaks, { id: randomId(), startAt: session.startAt, endAt: Math.min(session.endAt!, session.startAt + 30 * 60_000) }] }))}>Pause hinzufügen</Button>}
+        <Button size="sm" variant="ghost" onClick={() => run(() => st.editWork((list) => list.filter((session) => session.id !== x.id)))}>Eintrag löschen</Button>
       </div>
-    </Card>
-  )
+    </fieldset>
+    {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+    {message && <p role="status" className="text-sm text-muted">{message}</p>}
+  </Card>
+}
+
+function PauseEstimate({ session, pause }: { session: WorkSession; pause: WorkBreak }) {
+  const st = useApp()
+  const { busy, error, run } = useTaskAction()
+  const [estimate, setEstimate] = useState(pause.expectedEndAt === undefined ? '' : toBerlinDateTimeInput(pause.expectedEndAt))
+  const save = (clear = false) => run(async () => {
+    const expectedEndAt = clear || !estimate ? undefined : fromBerlinDateTimeInput(estimate)
+    if (expectedEndAt !== undefined && (!Number.isFinite(expectedEndAt) || expectedEndAt <= Date.now())) throw new Error('Wähle eine künftige Endschätzung oder lasse sie offen.')
+    await st.editWork((list) => list.map((item) => item.id === session.id ? { ...item, breaks: item.breaks.map((part) => part.id === pause.id ? { ...part, expectedEndAt } : part) } : item))
+    if (clear) setEstimate('')
+  })
+  return <div className="space-y-2">
+    <label className="block space-y-1"><span className="text-sm text-muted">Voraussichtlich zurück (freiwillig)</span><input type="datetime-local" aria-label="Pause voraussichtlich bis" value={estimate} onChange={(event) => setEstimate(event.target.value)} className="min-h-12 min-w-0 w-full rounded-xl bg-surface-2 px-2" /></label>
+    <div className="flex flex-wrap gap-2"><Button disabled={busy} size="sm" onClick={() => save()}>Endschätzung merken</Button>{pause.expectedEndAt !== undefined && <Button disabled={busy} size="sm" variant="ghost" onClick={() => save(true)}>Ende offen lassen</Button>}</div>
+    <p className="text-xs text-muted">Nur für die Prognose. Die Pause endet erst, wenn du sie selbst beendest.</p>
+    {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+  </div>
 }
 
 const MANUAL_KINDS: { value: WorkSessionKind; label: string }[] = [
@@ -210,8 +248,10 @@ function ManualForm({ date }: { date: string }) {
   const [withBreak, setWithBreak] = useState(false)
   const [from, setFrom] = useState(12 * 60)
   const [to, setTo] = useState(13 * 60)
+  const { busy, error, run } = useTaskAction()
   return (
     <Card className="space-y-3">
+      <fieldset disabled={busy} className="min-w-0 space-y-3">
       <Segmented<WorkSessionKind> label="Art" value={kind} options={MANUAL_KINDS} onChange={setKind} />
       <div className="flex items-center justify-between gap-2">
         <span>Von</span>
@@ -233,13 +273,17 @@ function ManualForm({ date }: { date: string }) {
       )}
       <Button
         className="w-full"
-        onClick={async () => {
+        disabled={busy}
+        onClick={() => run(async () => {
+          if (start === end) throw new Error('Beginn und Ende sind gleich. Prüfe die tatsächlichen Zeiten.')
           await st.editWork((list) => [...list, manualSession(randomId(), date, start, end, withBreak ? [{ start: from, end: to }] : [], kind)])
           st.showToast('Nachgetragen.')
-        }}
+        })}
       >
         Eintragen
       </Button>
+      </fieldset>
+      {error && <p role="alert" className="text-sm text-warm">{error}</p>}
     </Card>
   )
 }
@@ -251,7 +295,7 @@ function Week({ today, now }: { today: string; now: number }) {
   const rows = Array.from({ length: 7 }, (_, n) => {
     const date = addDays(monday, n)
     const a = dayActual(st.local.workSessions, date, now)
-    return { date, targetMin: date <= today ? (planFor(date).workInfo?.targetNetMin ?? 0) : 0, netMin: a.sessions.length ? a.netMin : undefined }
+    return { date, targetMin: date <= today ? (planFor(date).workInfo?.targetNetMin ?? 0) : 0, netMin: a.sessions.length && !a.unconfirmed ? a.netMin : undefined, unconfirmed: a.unconfirmed }
   })
   const w = weekSummary(rows)
   return (
@@ -260,7 +304,7 @@ function Week({ today, now }: { today: string; now: number }) {
         <div key={r.date} className="flex justify-between tabular-nums">
           <span className="text-muted">{WEEKDAYS[n]}</span>
           <span>
-            {r.netMin !== undefined ? fmtDuration(r.netMin) : '–'} {r.targetMin ? `von ${fmtDuration(r.targetMin)}` : ''}
+            {r.unconfirmed ? 'unbestätigt' : r.netMin !== undefined ? fmtDuration(r.netMin) : '–'} {r.targetMin ? `von ${fmtDuration(r.targetMin)}` : ''}
           </span>
         </div>
       ))}

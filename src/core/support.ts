@@ -189,7 +189,7 @@ export function nextAction(i: NextInput): NextView {
   const actual = dayActual(sessions, i.plan.date, i.nowMs)
   if (actual.open && actual.openBreak) {
     const since = fmtTime(minutesOnPlanDay(i.plan.date, actual.openBreak.startAt))
-    return view({ type: 'work-break', title: 'Pause läuft', sub: i.plan.workEnd !== undefined ? `Seit ${since} · Feierabend gerade etwa ${fmtTime(i.plan.workEnd)}` : `Seit ${since}`, session: actual.open })
+    return view({ type: 'work-break', title: 'Pause läuft', sub: i.plan.workEnd !== undefined ? `Seit ${since} · Feierabend ${i.plan.workInfo?.forecastLowerBound ? 'frühestens' : 'gerade etwa'} ${fmtTime(i.plan.workInfo?.forecastEnd ?? i.plan.workEnd)}` : `Seit ${since}`, session: actual.open })
   }
   if (actual.open && actual.open.kind !== 'regular') {
     return view({ type: 'einsatz-running', title: actual.open.label?.trim() || SESSION_LABEL[actual.open.kind], sub: `Läuft seit ${fmtTime(minutesOnPlanDay(i.plan.date, actual.open.startAt))}`, session: actual.open })

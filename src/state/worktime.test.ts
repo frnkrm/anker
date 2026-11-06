@@ -47,4 +47,44 @@ describe('E05: Korrigieren und Rücknahme ohne Zeitverlust', () => {
     expect(app().local.workSessions).toEqual(started)
     expect(app().local.workSessions.some((s) => s.endAt === undefined)).toBe(true)
   })
+
+  it('erhält bei fehlgeschlagener Rücknahme sowohl den zuletzt gespeicherten Stand als auch Undo', async () => {
+    await app().editWork(() => [manualSession('first', date, 480, 720, [])])
+    const sessions = structuredClone(app().local.workSessions)
+    const undo = structuredClone(app().workUndo)
+    vi.spyOn(storage.repo!, 'put').mockRejectedValueOnce(new Error('Speicher voll'))
+    await expect(app().undoWork()).rejects.toThrow('Speicher voll')
+    expect(app().local.workSessions).toEqual(sessions)
+    expect(app().workUndo).toEqual(undo)
+    await app().undoWork()
+    expect(app().local.workSessions).toEqual([])
+  })
+
+  it('prüft die Revision auch nach anderweitig übernommenen Arbeitszeiten', async () => {
+    await app().editWork(() => [manualSession('first', date, 480, 720, [])])
+    await app().saveLocal((local) => ({ ...local, workSessions: [...local.workSessions, manualSession('imported', date, 780, 900, [])] }))
+    await expect(app().undoWork()).rejects.toThrow('neueren Zeiten bleiben erhalten')
+    expect(app().local.workSessions.map((s) => s.id)).toEqual(['first', 'imported'])
+  })
+
+  it('erlaubt die Korrektur eines importierten Alt-Konflikts ohne stilles Entfernen des anderen Eintrags', async () => {
+    const before = [manualSession('a', date, 480, 720, []), manualSession('b', date, 660, 840, [])]
+    await storage.repo!.put('meta', 'local', { ...emptyLocal(), workSessions: before })
+    await app().load()
+    await app().editWork((list) => list.map((s) => s.id === 'b' ? { ...s, startAt: zonedToUtc(date, 690) } : s))
+    expect(app().local.workSessions).toHaveLength(2)
+    await expect(app().editWork((list) => list.map((s) => s.id === 'b' ? { ...s, startAt: zonedToUtc(date, 600) } : s))).rejects.toThrow('überschneiden')
+    await app().editWork((list) => list.map((s) => s.id === 'b' ? { ...s, startAt: zonedToUtc(date, 720) } : s))
+    await app().load()
+    expect(app().local.workSessions.map((s) => s.id)).toEqual(['a', 'b'])
+    expect(app().local.workSessions[1]?.startAt).toBe(zonedToUtc(date, 720))
+  })
+
+  it('erzeugt beim Mehrfachtipp auf denselben Nachtrag keine zweite Ausführung', async () => {
+    const data = manualSession('first', date, 480, 720, [])
+    const writes = await Promise.allSettled([app().editWork((list) => [...list, data]), app().editWork((list) => [...list, { ...data, id: 'second' }])])
+    expect(writes.map((result) => result.status)).toEqual(['fulfilled', 'rejected'])
+    await app().load()
+    expect(app().local.workSessions).toEqual([data])
+  })
 })

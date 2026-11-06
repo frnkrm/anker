@@ -58,13 +58,15 @@ export interface WorkIssue {
   /** Stabiler Vergleich erlaubt die Korrektur eines Altproblems, ohne andere alte Angaben zu löschen. */
   key: string
   sessionIds: string[]
+  /** Ausmaß des Konflikts; eine schrittweise Korrektur darf ihn verkleinern, aber nicht vergrößern. */
+  magnitude: number
   text: string
 }
 
 /** Keine stillen Korrekturen: Vorhandene widersprüchliche Angaben bleiben für die Bearbeitung erhalten. */
 export function workSessionIssues(list: readonly WorkSession[], nowMs: number): WorkIssue[] {
   const issues: WorkIssue[] = []
-  const add = (code: string, ids: string[], message: string, part = '') => issues.push({ key: [code, ...[...ids].sort(), part].join('|'), sessionIds: ids, text: message })
+  const add = (code: string, ids: string[], message: string, part = '', magnitude = 0) => issues.push({ key: [code, ...[...ids].sort(), part].join('|'), sessionIds: ids, magnitude, text: message })
   const ids = new Set<string>()
   const valid = list.filter((session) => {
     const id = session?.id
@@ -75,38 +77,49 @@ export function workSessionIssues(list: readonly WorkSession[], nowMs: number): 
     if (ids.has(session.id)) add('duplicate', [session.id], 'Zwei Arbeitszeiteinträge haben dieselbe Kennung. Bitte korrigiere die doppelten Angaben.')
     ids.add(session.id)
     const end = session.endAt ?? nowMs
-    if (end < session.startAt) add('order', [session.id], 'Das Arbeitsende liegt vor dem Beginn. Bitte prüfe beide Zeiten.')
-    if (nowMs > 0 && (session.startAt > nowMs || (session.endAt !== undefined && session.endAt > nowMs))) add('future', [session.id], 'Diese Arbeitszeit liegt noch in der Zukunft. Plane einen Einsatz, statt ihn als gearbeitet einzutragen.')
+    if (end < session.startAt) add('order', [session.id], 'Das Arbeitsende liegt vor dem Beginn. Bitte prüfe beide Zeiten.', '', session.startAt - end)
+    if (nowMs > 0 && (session.startAt > nowMs || (session.endAt !== undefined && session.endAt > nowMs))) add('future', [session.id], 'Diese Arbeitszeit liegt noch in der Zukunft. Plane einen Einsatz, statt ihn als gearbeitet einzutragen.', '', Math.max(session.startAt, session.endAt ?? 0) - nowMs)
     const pauseIds = new Set<string>()
     const pauses = session.breaks.map((pause) => ({ pause, end: pause.endAt ?? end }))
     if (session.breaks.filter((pause) => pause.endAt === undefined).length > 1) add('open-breaks', [session.id], 'Mehrere Pausen sind gleichzeitig offen. Bitte bestätige die passenden Endzeiten.')
     for (const { pause, end: pauseEnd } of pauses) {
       if (pauseIds.has(pause.id)) add('duplicate-break', [session.id], 'Eine Pause ist doppelt enthalten. Bitte prüfe die Angaben.', pause.id)
       pauseIds.add(pause.id)
-      if (pauseEnd < pause.startAt) add('break-order', [session.id], 'Das Pausenende liegt vor dem Pausenbeginn. Bitte prüfe beide Zeiten.', pause.id)
-      if (pause.startAt < session.startAt || pauseEnd > end || pause.startAt > end || (session.endAt !== undefined && pause.endAt === undefined)) add('break-outside', [session.id], 'Die Pause liegt nicht vollständig innerhalb dieses Arbeitsabschnitts. Bitte korrigiere die Zeiten.', pause.id)
-      if (nowMs > 0 && (pause.startAt > nowMs || (pause.endAt !== undefined && pause.endAt > nowMs))) add('future-break', [session.id], 'Diese Pause liegt noch in der Zukunft. Eine Endschätzung ist noch keine erfasste Pause.', pause.id)
-      if (pause.expectedEndAt !== undefined && pause.expectedEndAt < pause.startAt) add('estimate', [session.id], 'Die geschätzte Rückkehr liegt vor dem Pausenbeginn.', pause.id)
+      if (pauseEnd < pause.startAt) add('break-order', [session.id], 'Das Pausenende liegt vor dem Pausenbeginn. Bitte prüfe beide Zeiten.', pause.id, pause.startAt - pauseEnd)
+      if (pause.startAt < session.startAt || pauseEnd > end || pause.startAt > end || (session.endAt !== undefined && pause.endAt === undefined)) add('break-outside', [session.id], 'Die Pause liegt nicht vollständig innerhalb dieses Arbeitsabschnitts. Bitte korrigiere die Zeiten.', pause.id, Math.max(1, session.startAt - pause.startAt, pauseEnd - end, pause.startAt - end))
+      if (nowMs > 0 && (pause.startAt > nowMs || (pause.endAt !== undefined && pause.endAt > nowMs))) add('future-break', [session.id], 'Diese Pause liegt noch in der Zukunft. Eine Endschätzung ist noch keine erfasste Pause.', pause.id, Math.max(pause.startAt, pause.endAt ?? 0) - nowMs)
+      if (pause.expectedEndAt !== undefined && pause.expectedEndAt < pause.startAt) add('estimate', [session.id], 'Die geschätzte Rückkehr liegt vor dem Pausenbeginn.', pause.id, pause.startAt - pause.expectedEndAt)
     }
     for (let a = 0; a < pauses.length; a++) for (let b = a + 1; b < pauses.length; b++) {
       const x = pauses[a]!; const y = pauses[b]!
-      if (Math.min(x.end, y.end) > Math.max(x.pause.startAt, y.pause.startAt)) add('overlap-break', [session.id], 'Zwei Pausen überschneiden sich. Bitte prüfe beide Angaben.', [x.pause.id, y.pause.id].sort().join(':'))
+      if (Math.min(x.end, y.end) > Math.max(x.pause.startAt, y.pause.startAt)) add('overlap-break', [session.id], 'Zwei Pausen überschneiden sich. Bitte prüfe beide Angaben.', [x.pause.id, y.pause.id].sort().join(':'), Math.min(x.end, y.end) - Math.max(x.pause.startAt, y.pause.startAt))
     }
   }
   const open = valid.filter((session) => session.endAt === undefined)
   if (open.length > 1) add('open-work', open.map((session) => session.id), 'Mehrere Arbeitsabschnitte sind offen. Bitte bestätige ihre tatsächlichen Endzeiten.')
-  for (let a = 0; a < valid.length; a++) for (let b = a + 1; b < valid.length; b++) {
-    const x = valid[a]!; const y = valid[b]!
-    if (Math.min(x.endAt ?? nowMs, y.endAt ?? nowMs) > Math.max(x.startAt, y.startAt)) add('overlap-work', [x.id, y.id], 'Zwei Arbeitsabschnitte überschneiden sich. Bitte korrigiere die Zeiten; Anker löscht keinen Eintrag von selbst.')
+  const chronological = [...valid].sort((a, b) => a.startAt - b.startAt)
+  for (let a = 0; a < chronological.length; a++) for (let b = a + 1; b < chronological.length; b++) {
+    const x = chronological[a]!; const y = chronological[b]!
+    if (y.startAt >= (x.endAt ?? nowMs)) break
+    if (Math.min(x.endAt ?? nowMs, y.endAt ?? nowMs) > Math.max(x.startAt, y.startAt)) add('overlap-work', [x.id, y.id], 'Zwei Arbeitsabschnitte überschneiden sich. Bitte korrigiere die Zeiten; Anker löscht keinen Eintrag von selbst.', '', Math.min(x.endAt ?? nowMs, y.endAt ?? nowMs) - Math.max(x.startAt, y.startAt))
   }
   return issues
 }
 
 /** Neue Konflikte zurückweisen, die schrittweise Korrektur alter Konflikte aber zulassen. */
 export function assertWorkChanges(before: readonly WorkSession[], after: readonly WorkSession[], nowMs: number): void {
-  const previous = new Set(workSessionIssues(before, nowMs).map((issue) => issue.key))
-  const introduced = workSessionIssues(after, nowMs).find((issue) => !previous.has(issue.key))
-  if (introduced) throw new Error(introduced.text)
+  const previous = new Map<string, { count: number; magnitude: number }>()
+  for (const issue of workSessionIssues(before, nowMs)) {
+    const old = previous.get(issue.key)
+    previous.set(issue.key, { count: (old?.count ?? 0) + 1, magnitude: Math.max(old?.magnitude ?? 0, issue.magnitude) })
+  }
+  const counts = new Map<string, number>()
+  for (const issue of workSessionIssues(after, nowMs)) {
+    const count = (counts.get(issue.key) ?? 0) + 1
+    counts.set(issue.key, count)
+    const old = previous.get(issue.key)
+    if (!old || count > old.count || issue.magnitude > old.magnitude) throw new Error(issue.text)
+  }
 }
 
 export interface DayActual {
@@ -132,9 +145,11 @@ export interface DayActual {
 
 /** Alles, was an einem Plantag wirklich erfasst wurde. Offene Abschnitte laufen bis `nowMs`. */
 export function dayActual(all: WorkSession[], date: DateStr, nowMs: number): DayActual {
-  const sessions = all.filter((x) => validWorkSession(x) && x.date === date).sort((a, b) => a.startAt - b.startAt)
+  const sessions = all.filter((x) => x?.date === date && validWorkSession(x)).sort((a, b) => a.startAt - b.startAt)
   const selected = new Set(sessions.map((session) => session.id))
-  const issues = workSessionIssues(all, nowMs).filter((issue) => issue.sessionIds.some((id) => selected.has(id)))
+  // Für künftige/leere Plantage keine gesamte Historie paarweise prüfen. Reale Überschneidungen über Mitternacht bleiben erkennbar.
+  const related = sessions.length ? all.filter((session) => session && (selected.has(session.id) || sessions.some((other) => Math.min(session.endAt ?? nowMs, other.endAt ?? nowMs) > Math.max(session.startAt, other.startAt)))) : []
+  const issues = workSessionIssues(related, nowMs).filter((issue) => issue.sessionIds.some((id) => selected.has(id)))
   const unconfirmed = issues.length > 0 || sessions.some((session) => session.endAt === undefined && (session.date < utcToZoned(nowMs).date && minutesOnPlanDay(session.date, nowMs) >= 1440 + 240 || nowMs - session.startAt > 16 * 60 * MIN))
   const work = normalizeIntervals(sessions.map((x) => [x.startAt, Math.max(x.startAt, x.endAt ?? nowMs)]))
   const rawBreaks = normalizeIntervals(sessions.flatMap((x) => x.breaks.map((b): Interval => [b.startAt, Math.max(b.startAt, b.endAt ?? nowMs)])))
@@ -354,7 +369,7 @@ export function nextObligation(plan: DayPlan, date: DateStr): NextObligation | u
 
 /** Sachliche Hinweise zu einem Tag. Aus, wenn du sie abschaltest. Entscheidet nichts und ändert nichts. */
 export function workHints(i: { settings: Settings; actual: DayActual; next?: NextObligation }): string[] {
-  if (!i.settings.flex.legalHints || !i.actual.sessions.length) return []
+  if (!i.settings.flex.legalHints || !i.actual.sessions.length || i.actual.unconfirmed) return []
   const out: string[] = []
   const pause = breakHint(i.actual.netMin, i.actual.countedBreakMin)
   if (pause) out.push(pause)
