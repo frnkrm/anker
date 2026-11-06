@@ -399,6 +399,8 @@ test('Abschlussstationen führen begleitet durch vorhandene Bereiche und starten
     [92, 'Testaufgabe bewusst wählen', /\/arbeit$/],
     [93, 'Lokalen Plan ohne Dienst öffnen', /\/tag$/],
     [94, 'Kalender und Integrationen öffnen', /\/verbindungen$/],
+    [95, 'Morgenroutine sortieren', /\/einstellungen\/morgenroutine$/],
+    [95, 'Abendroutine sortieren', /\/einstellungen\/abendroutine$/],
     [95, 'Darstellung und Eingabe öffnen', /\/einstellungen\/darstellung$/],
   ]
   for (const [id, label, destination] of destinations) {

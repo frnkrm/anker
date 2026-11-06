@@ -18,11 +18,16 @@ export function useTaskAction() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const run = async (action: () => Promise<unknown>, success = '') => {
-    if (pending.current) return
+  const run = async (action: () => Promise<unknown>, success = '', throwOnError = false) => {
+    if (pending.current) {
+      if (throwOnError) throw new Error('Eine Änderung wird noch gespeichert.')
+      return
+    }
     pending.current = true
     setBusy(true); setError(''); setMessage('')
     try { await action(); setMessage(success) } catch (cause) {
+      // SortableList bestätigt selbst erst nach erfolgreicher Speicherung.
+      if (throwOnError) throw cause
       setError(cause instanceof Error ? cause.message : 'Die Änderung konnte nicht sicher gespeichert werden. Bitte versuche es erneut.')
     } finally { pending.current = false; setBusy(false) }
   }
@@ -160,7 +165,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
       <TaskAssistance taskRef={taskRef} task={task} depth={depth} />
       {preview && <div className="space-y-2 rounded-xl bg-surface-2 p-3"><p className="text-sm text-muted">Lokaler Vorschlag aus Vorlagen. Du kannst die offenen Schritte danach bearbeiten; erledigte Teile bleiben erhalten.</p><ol className="list-decimal space-y-1 pl-5">{preview.map((part) => <li key={part.id} className="break-words">{part.doneAt !== undefined ? '✓ ' : ''}{part.title}</li>)}</ol><div className="flex flex-wrap gap-2"><Button size="sm" disabled={busy} onClick={() => run(async () => { await st.replaceTaskParts(taskRef, preview); setPreview(undefined) }, 'Schritte gespeichert.')}>Vorschlag übernehmen</Button><Button size="sm" variant="ghost" onClick={() => setPreview(undefined)}>Verwerfen</Button></div></div>}
       <fieldset disabled={busy} className="min-w-0">
-        <SortableList items={parts} onChange={(next) => void run(() => st.replaceTaskParts(taskRef, next))} render={(part, index) => <div className="space-y-2">
+        <SortableList items={parts} onChange={(next) => run(() => st.replaceTaskParts(taskRef, next), '', true)} render={(part, index) => <div className="space-y-2">
           <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={part.doneAt !== undefined} aria-label={`Teilschritt ${part.title} erledigt`} onChange={(event) => void run(() => st.setTaskPartDone(taskRef, part.id, event.target.checked))} /><span className="break-words">{part.title}</span></label>
           {part.doneAt === undefined && <form className="space-y-2" onSubmit={(event) => {
             event.preventDefault()

@@ -1,11 +1,13 @@
 import { useParams } from 'react-router'
+import { useState } from 'react'
 import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, resetToSuggested, sumMinutes } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtDuration, fmtTime, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
+import { moveById } from '../../core/sortable'
 import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineStep, Settings as S, SportKind, ThemeId } from '../../core/types'
 import { WeatherSettings } from '../components/WeatherSettings'
 import { useApp } from '../../state/store'
-import { SortableList } from '../components/Sortable'
+import { SortableList, type MoveResult } from '../components/Sortable'
 import { ExtraControls } from '../components/ExtraControls'
 import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
@@ -31,9 +33,9 @@ export default function Settings() {
     case 'abendmodus':
       return <EveningMode s={s} save={save} />
     case 'morgenroutine':
-      return <RoutineEditor s={s} save={save} r="morning" />
+      return <RoutineEditor s={s} save={st.saveSettings} r="morning" />
     case 'abendroutine':
-      return <RoutineEditor s={s} save={save} r="evening" />
+      return <RoutineEditor s={s} save={st.saveSettings} r="evening" />
     case 'erinnerungen':
       return <Reminders s={s} save={save} />
     case 'darstellung':
@@ -345,32 +347,58 @@ function Evenings({ s, save }: { s: S; save: Save }) {
   )
 }
 
-function RoutineEditor({ s, save, r }: { s: S; save: Save; r: RoutineId }) {
+function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promise<void>; r: RoutineId }) {
   const steps = s.routines[r]
-  const set = (next: RoutineStep[]) => save((x) => (r === 'morning' ? applySchedule({ ...x, routines: { ...x.routines, morning: next } }) : { ...x, routines: { ...x.routines, evening: next } }))
-  const upd = (id: string, patch: Partial<RoutineStep>) => set(steps.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  const [error, setError] = useState('')
+  // Erst in der bestehenden Schreibwarteschlange auf den aktuellen Schritten arbeiten.
+  // Ein Drag-Schnappschuss darf keine neueren Texte/Zeilen zurücksetzen.
+  const set = (update: (current: RoutineStep[]) => RoutineStep[]) => save((x) => {
+    const next = { ...x, routines: { ...x.routines, [r]: update(x.routines[r]) } }
+    return r === 'morning' ? applySchedule(next) : next
+  })
+  const edit = (update: (current: RoutineStep[]) => RoutineStep[]) => {
+    setError('')
+    void set(update).catch(() => setError('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.'))
+  }
+  const upd = (id: string, patch: Partial<RoutineStep>) => edit((current) => current.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  const move = async (sourceId: string, targetId: string): Promise<MoveResult> => {
+    let result: MoveResult = null
+    await set((current) => {
+      const next = moveById(current, sourceId, targetId)
+      if (next !== current) result = { from: current.findIndex((step) => step.id === sourceId), to: current.findIndex((step) => step.id === targetId) }
+      return next
+    })
+    return result
+  }
   return (
     <Page title={r === 'morning' ? 'Morgenroutine' : 'Abendroutine'} back="/einstellungen">
       <p className="px-1 text-muted">
-        {fmtDuration(sumMinutes(steps))} · Ziehen am Griff ⋮⋮ zum Sortieren. Die Minimal-Version zählt genauso.
+        {fmtDuration(sumMinutes(steps))} · Am Griff ⋮⋮ halten und ziehen oder mit ▲/▼ sortieren. Die Minimal-Version zählt genauso.
       </p>
+      {error && <p role="alert" className="text-sm text-warm">{error}</p>}
       <SortableList
         items={steps}
-        onChange={set}
+        onMove={move}
         render={(x) => (
           <div className="space-y-2 py-1">
             <TextInput aria-label="Schritt" value={x.title} onChange={(e) => upd(x.id, { title: e.target.value })} />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Stepper label="Dauer" value={x.minutes} step={1} min={1} max={120} onChange={(v) => upd(x.id, { minutes: v })} />
-              <button type="button" className="min-h-10 px-2 text-sm text-muted" onClick={() => set(steps.filter((y) => y.id !== x.id))}>
+              <button type="button" className="min-h-10 px-2 text-sm text-muted" onClick={() => edit((current) => current.filter((y) => y.id !== x.id))}>
                 Entfernen
               </button>
             </div>
-            <TextInput aria-label="Minimal-Version" placeholder="Minimal-Version, z. B. 1 Liegestütz" value={x.minimal?.title ?? ''} onChange={(e) => upd(x.id, { minimal: e.target.value ? { title: e.target.value, minutes: x.minimal?.minutes ?? 1 } : undefined })} />
+            <TextInput aria-label="Minimal-Version" placeholder="Minimal-Version, z. B. 1 Liegestütz" value={x.minimal?.title ?? ''} onChange={(e) => {
+              const title = e.target.value
+              edit((current) => current.map((step) => step.id === x.id ? { ...step, minimal: title ? { title, minutes: step.minimal?.minutes ?? 1 } : undefined } : step))
+            }} />
           </div>
         )}
       />
-      <Button className="w-full" onClick={() => set([...steps, { id: randomId(8), title: 'Neuer Schritt', minutes: 5 }])}>
+      <Button className="w-full" onClick={() => {
+        const step = { id: randomId(8), title: 'Neuer Schritt', minutes: 5 }
+        edit((current) => [...current, step])
+      }}>
         + Schritt hinzufügen
       </Button>
     </Page>
