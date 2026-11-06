@@ -280,6 +280,12 @@ Code `82450dc`/`b41f6c6`/`f877be2`: bestehendes Intervallmodell und Wochenprofil
 
 Frischer integrierter Stand:572 Vitest/49 Dateien, Lint/Typecheck grün (`e04-e09/e05-integrated-*`). Frischer Produktionsbrowser:19/19 E05-/bestehende Smoke-Fälle grün (`e05-browser.log`); der zusätzliche gefundene Nachtschicht-Kontextfehler nach04:00 wird vor dem Gesamtabschluss ebenfalls integriert und gezielt geprüft. Echte Arbeitszeitbedienung auf dem Galaxy bleibt wie beauftragt offen. Nächste Integration E06.
 
+### E06 – integrierte lokale Orte, Wege und Morgenbedarf
+
+Code `3313fe5` bis `5bdd3cf` plus bestätigter Weckvertrag ausE04. Lokale Orte besitzen getrennte Zweckfreigaben, unbekannt/Remote/Zuhause/vorOrt sind ausdrücklich verschieden. Tatsächliche Ortsfolgen berücksichtigen bestätigte Rückkehr und direkte Weiterfahrt; unbekannte Dauer bleibt offen. Harte Kalender-/Kundentermine einschließlich Remote und früher Termine gehen in denselben rückwärts gerechneten Morgenbedarf ein; Zusatzvorbereitung wird nur auf ausdrückliche Wahl als bereits enthalten behandelt. Kein zweiter Planer. Gemeinsame Termin-/Einsatzfelder, explizite Kalenderquellverknüpfung gegen Dubletten, Maps bleibt manuell. Jetzt-Aktionen markieren Ist-Zeiten atomar anhand der aktuellen Instanz. Weckvorschläge werden nur bewusst übernommen; Android-Erfolg erst nach nativer Bestätigung und mit geschützter Rücknahme bei Fehlern.
+
+**Automatisch geprüft:**603 Vitest/52 Dateien, Lint/Typecheck,6/6 frische Produktionsbrowserfälle (4 Orte/Termine/Morgen/Maps plus2 Nachtschichten;35,3s,0Skip). `e04-e09/e06-*`. Zusätzlich PC-Nachbesserung `9683370`: echte fünf Minuten Schonfrist nach tatsächlicher Warnung, strikte ISO-Stempel, Pause/Legacy/Uhrrücksprung geprüft.19/19 isolierte PowerShell7.5.4-Fälle und4 Exportparser grün (`pc-proof-approved.log`); CI erhält eigenen verpflichtenden `test:pc`-Schritt. Das ist Linux-Scriptlogik mit simulierten Systemaktionen, keine Windows-/Abschaltbestätigung. Alle neuen Android-Geräteabläufe bleiben offen. Nächste Integration E07.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`

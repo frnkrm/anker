@@ -15,7 +15,8 @@
     "android:sync": "npm run build && cap sync android",
     "android:debug": "npm run android:sync && node scripts/gradle.mjs assembleDebug",
     "android:release": "npm run android:sync && node scripts/gradle.mjs assembleRelease",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "test:pc": "node scripts/test-pc-stop.mjs"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",

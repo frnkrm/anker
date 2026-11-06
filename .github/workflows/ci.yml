@@ -17,6 +17,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - name: PC-Stopp mit PowerShell prüfen
+        run: npm run test:pc
       - run: npm run build
       - name: Playwright-Browser installieren
         run: npx playwright install --with-deps chromium

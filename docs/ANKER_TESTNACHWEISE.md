@@ -281,3 +281,7 @@ FL07/Q40: Regelquelle, echte Vorabendhandlung und heutiges uncoveredSteps im Bro
 ## E05 – Arbeitszeit,06.11.2026
 
 Integriert `82450dc`/`b41f6c6`/`f877be2`: Lint/Typecheck,572 Vitest/49 Dateien,19/19 Playwright gegen frischen Produktionsbuild (System-Chromium155,4213,1,1min,0Skip/Flaky). Neue8 Arbeitszeitfälle plus11 bestehende Smoke-Fälle. Nachtragkonflikt, atomare Rücknahme, offene Pause/Endschätzung, individuelle Wochenwerte, Nachtdatum und manuelle Altzeit geprüft. Logs `/workspace/.cache/anker/e04-e09/e05-integrated-*`, `e05-browser*`. Weitere echte reguläre Nachtschicht-Kontextregression ist getrennt behoben und folgt vor Abschluss. Keine neuen Geräteergebnisse.
+
+## E06 – gemeinsame lokale Wege/Morgenplanung
+
+603 Vitest/52Dateien, Lint/Typecheck grün; frischer Produktionsbuild4213/System-Chromium155:6/6PW,0Skip,35,3s (`e04-e09/e06-*`). Vier neue lokale Reise-/Morgenfälle und zwei echte über04:00 fortgesetzte Nachtkontexte; keine Hardwareausführung. PC-Script2 zusätzlich mit echter PowerShell7.5.4 unter Linux,19/19 Fälle plus4 Parser grün (`pc-proof-approved.log` und `pc-proof/anker-pc-stop-yyZ2u0`). Vorher13/15 beim alten Script, danach19/19 einschließlich neuer Randfälle; native Windows-Scheduler/Toast/Shutdown ausdrücklich offen.
