@@ -21,14 +21,24 @@ export default function Connections() {
   const syncPending = useRef(false)
   const syncMounted = useRef(false)
   const syncIntent = useRef(0)
+  const syncEnabling = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     const intent = syncIntent
+    const enabling = syncEnabling
     mounted.current = true
     syncMounted.current = true
     void currentUser().then((value) => { if (syncMounted.current) setUser(value) })
     void syncStatus().then((s) => { if (syncMounted.current) setLastSync(s.lastSync) })
-    return () => { mounted.current = false; syncMounted.current = false; intent.current++ }
+    return () => {
+      mounted.current = false; syncMounted.current = false; intent.current++
+      if (enabling.current !== undefined) {
+        cancelSyncRequests()
+        // Ein bereits laufender DB-Write lässt sich nicht zurücknehmen; das gewünschte Aus folgt in derselben Queue.
+        void useApp.getState().saveSettings((settings) => ({ ...settings, integrations: { ...settings.integrations, sync: false } }))
+          .catch(() => useApp.getState().showToast('Sync ist angehalten. Der ausgeschaltete Schalter konnte noch nicht gespeichert werden; bitte prüfe ihn beim nächsten Öffnen.'))
+      }
+    }
   }, [])
 
   const setInteg = (patch: Partial<typeof integ>, accept = () => true) => st.saveSettings((s) => accept() ? ({ ...s, integrations: { ...s.integrations, ...patch } }) : s)
@@ -59,13 +69,16 @@ export default function Connections() {
               <div className="flex flex-wrap items-center justify-between gap-3"><span>Automatisch synchronisieren</span><fieldset disabled={syncBusy && !integ.sync}><Toggle label="Automatischer Sync" checked={integ.sync} onChange={(enabled) => {
                 const intent = ++syncIntent.current
                 if (!enabled) {
+                  syncEnabling.current = undefined
                   cancelSyncRequests()
                   void setInteg({ sync: false }).then(() => setMsg('Automatischer Sync ist ausgeschaltet. Deine lokalen Daten bleiben erhalten.')).catch(() => setMsg('Der Sync wurde angehalten. Der Schalter konnte noch nicht gespeichert werden; versuche es erneut.'))
                   return
                 }
+                syncEnabling.current = intent
                 void syncAction(async () => {
                   // Dieser Callback läuft erst innerhalb der zentralen Schreibbarriere.
-                  await st.saveSettings((settings) => syncCurrent(intent) ? { ...settings, integrations: { ...settings.integrations, sync: true } } : settings)
+                  try { await st.saveSettings((settings) => syncCurrent(intent) ? { ...settings, integrations: { ...settings.integrations, sync: true } } : settings) }
+                  finally { if (syncEnabling.current === intent) syncEnabling.current = undefined }
                   if (!syncCurrent(intent)) return
                   const result = await syncNow({ manual: true }); setLastSync(result.lastSync); setMsg(result.error ?? 'Automatischer Sync ist eingeschaltet.')
                 })
@@ -87,6 +100,7 @@ export default function Connections() {
                   variant="ghost"
                   onClick={async () => {
                     syncIntent.current++
+                    syncEnabling.current = undefined
                     await signOut()
                     await setInteg({ sync: false })
                     setUser(null)

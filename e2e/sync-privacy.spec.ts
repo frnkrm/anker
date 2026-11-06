@@ -56,15 +56,17 @@ test('Automatischer Sync lässt sich während einer wartenden Serverantwort sofo
   expect((await settings(page))?.integrations.sync).toBe(false)
 })
 
-test('Ein hinter einem Arbeits-Write wartendes Einschalten verliert bei Seitenwechsel seine Freigabe', async ({ page }) => {
+for (const barrier of ['Arbeits-Write', 'Settings-Write']) test(`Ein wartendes Einschalten verliert bei Seitenwechsel seine Freigabe: ${barrier}`, async ({ page }) => {
   await installAssistanceBackend(page)
   const uploads: unknown[] = []
   await page.route(`${assistanceHost}/rest/v1/rpc/upsert_records`, async (route) => { uploads.push(route.request().postDataJSON()); await route.fulfill({ json: null }) })
   await page.route(`${assistanceHost}/rest/v1/records**`, async (route) => { await route.fulfill({ json: [] }) })
   await onboard(page)
-  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await page.getByRole('link', { name: /💼 Arbeit/ }).click()
-  await page.getByRole('textbox', { name: 'Neue Aufgabe', exact: true }).fill('Lokale Testaufgabe für Schreibbarriere')
+  if (barrier === 'Arbeits-Write') {
+    await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+    await page.getByRole('link', { name: /💼 Arbeit/ }).click()
+    await page.getByRole('textbox', { name: 'Neue Aufgabe', exact: true }).fill('Lokale Testaufgabe für Schreibbarriere')
+  }
   // Der Test hält eine echte IDB-Transaktion. Die folgende Arbeitsaktion belegt dadurch Store.atomic.
   await page.evaluate(() => {
     const state = window as unknown as { holdAnkerWrite: boolean; ankerWriteHeld?: boolean }
@@ -81,10 +83,12 @@ test('Ein hinter einem Arbeits-Write wartendes Einschalten verliert bei Seitenwe
     }
   })
   await expect.poll(() => page.evaluate(() => (window as unknown as { ankerWriteHeld?: boolean }).ankerWriteHeld)).toBe(true)
-  await page.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
+  if (barrier === 'Arbeits-Write') await page.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
   try {
-    await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-    await page.getByRole('link', { name: /Kalender.*Sync/ }).click()
+    if (barrier === 'Arbeits-Write') {
+      await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+      await page.getByRole('link', { name: /Kalender.*Sync/ }).click()
+    }
     await page.getByRole('switch', { name: 'Automatischer Sync', exact: true }).click()
     await page.getByRole('link', { name: 'Tag', exact: true }).click()
   } finally {
