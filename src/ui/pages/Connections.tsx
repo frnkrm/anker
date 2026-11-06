@@ -19,12 +19,16 @@ export default function Connections() {
   const googleIntent = useRef(0)
   const [syncBusy, setSyncBusy] = useState(false)
   const syncPending = useRef(false)
+  const syncMounted = useRef(false)
+  const syncIntent = useRef(0)
 
   useEffect(() => {
+    const intent = syncIntent
     mounted.current = true
-    void currentUser().then(setUser)
-    void syncStatus().then((s) => setLastSync(s.lastSync))
-    return () => { mounted.current = false }
+    syncMounted.current = true
+    void currentUser().then((value) => { if (syncMounted.current) setUser(value) })
+    void syncStatus().then((s) => { if (syncMounted.current) setLastSync(s.lastSync) })
+    return () => { mounted.current = false; syncMounted.current = false; intent.current++ }
   }, [])
 
   const setInteg = (patch: Partial<typeof integ>, accept = () => true) => st.saveSettings((s) => accept() ? ({ ...s, integrations: { ...s.integrations, ...patch } }) : s)
@@ -32,6 +36,7 @@ export default function Connections() {
     const version = ++googleIntent.current
     return () => mounted.current && googleIntent.current === version
   }
+  const syncCurrent = (intent: number) => syncMounted.current && syncIntent.current === intent
   const syncAction = async (action: () => Promise<void>) => {
     if (syncPending.current) return
     syncPending.current = true; setSyncBusy(true)
@@ -52,13 +57,16 @@ export default function Connections() {
               <p>Angemeldet als {user.email}</p>
               <p className="text-sm text-muted">{lastSync ? `Zuletzt synchronisiert: ${new Date(lastSync).toLocaleString('de-DE')}` : 'Noch nicht synchronisiert.'}</p>
               <div className="flex flex-wrap items-center justify-between gap-3"><span>Automatisch synchronisieren</span><fieldset disabled={syncBusy && !integ.sync}><Toggle label="Automatischer Sync" checked={integ.sync} onChange={(enabled) => {
+                const intent = ++syncIntent.current
                 if (!enabled) {
                   cancelSyncRequests()
                   void setInteg({ sync: false }).then(() => setMsg('Automatischer Sync ist ausgeschaltet. Deine lokalen Daten bleiben erhalten.')).catch(() => setMsg('Der Sync wurde angehalten. Der Schalter konnte noch nicht gespeichert werden; versuche es erneut.'))
                   return
                 }
                 void syncAction(async () => {
-                  await setInteg({ sync: enabled })
+                  // Dieser Callback läuft erst innerhalb der zentralen Schreibbarriere.
+                  await st.saveSettings((settings) => syncCurrent(intent) ? { ...settings, integrations: { ...settings.integrations, sync: true } } : settings)
+                  if (!syncCurrent(intent)) return
                   const result = await syncNow({ manual: true }); setLastSync(result.lastSync); setMsg(result.error ?? 'Automatischer Sync ist eingeschaltet.')
                 })
               }} /></fieldset></div>
@@ -78,6 +86,7 @@ export default function Connections() {
                 <Button
                   variant="ghost"
                   onClick={async () => {
+                    syncIntent.current++
                     await signOut()
                     await setInteg({ sync: false })
                     setUser(null)
