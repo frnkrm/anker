@@ -46,9 +46,12 @@ export const validTravelMode = (value: unknown): value is AssistantTravelMode =>
 const stamp = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) && Number.isFinite(Date.parse(value))
 
 export function validRoutePoint(value: unknown): value is RoutePoint {
-  return record(value) && (boundedText(value.address, 300)
-    || (typeof value.latitude === 'number' && Number.isFinite(value.latitude) && Math.abs(value.latitude) <= 90
-      && typeof value.longitude === 'number' && Number.isFinite(value.longitude) && Math.abs(value.longitude) <= 180))
+  if (!record(value)) return false
+  // Eine Adresse und Koordinaten sind alternative Darstellungen, keine Fallback-Felder.
+  // Sonst könnte die Koordinatenprüfung einen ungültigen address-Wert freigeben.
+  if ('address' in value) return boundedText(value.address, 300) && !('latitude' in value) && !('longitude' in value)
+  return typeof value.latitude === 'number' && Number.isFinite(value.latitude) && Math.abs(value.latitude) <= 90
+    && typeof value.longitude === 'number' && Number.isFinite(value.longitude) && Math.abs(value.longitude) <= 180
 }
 
 export function validAssistantRequest(value: unknown): value is AssistantRequest {

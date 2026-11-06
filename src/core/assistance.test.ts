@@ -95,6 +95,62 @@ describe('Optionale echte Backendadapter mit geschlossener Daten- und Kostengren
       expect(body.arrivalTime).toBeUndefined()
     }
   })
+  it.each(['before-auth', 'after-auth', 'after-budget'] as const)('beendet abgebrochene Anfragen %s vor dem nächsten kostenrelevanten Schritt', async (when) => {
+    const abort = new AbortController()
+    const fetcher = vi.fn<typeof fetch>(async (url) => {
+      if (String(url).endsWith('/auth/v1/user')) {
+        if (when === 'after-auth') abort.abort()
+        return Response.json({ id: 'owner' })
+      }
+      if (String(url).includes('/rpc/')) {
+        if (when === 'after-budget') abort.abort()
+        return Response.json(true)
+      }
+      return Response.json({ choices: [{ message: { content: JSON.stringify({ steps: [{ title: 'Ein kleiner Schritt' }] }) } }] })
+    })
+    if (when === 'before-auth') abort.abort()
+    const handler = createAssistantHandler(config, { fetch: fetcher, now: () => now })
+    const response = await handler(new Request(request(steps), { signal: abort.signal }))
+    expect(response.status).toBe(499)
+    expect(fetcher.mock.calls).toHaveLength(when === 'before-auth' ? 0 : when === 'after-auth' ? 1 : 2)
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes('api.openai.com'))).toBe(false)
+  })
+  it('weist mehrdeutige Routenpunkte ab, bevor private Zusatzwerte an Google gelangen', async () => {
+    for (const address of [{ unexpected: 'synthetic-private-extra' }, 'x'.repeat(301), 'Unklarer zweiter Zielwert']) {
+      const input = { ...route, origin: { address, latitude: 52, longitude: 13 } }
+      const { handler, fetcher } = harness()
+      expect(validAssistantRequest(input)).toBe(false)
+      expect((await handler(request(input))).status).toBe(400)
+      expect(fetcher.mock.calls).toHaveLength(1)
+    }
+  })
+  it('bricht das tatsächliche Providersignal ab und verwirft selbst eine danach verspätete Antwort', async () => {
+    const abort = new AbortController()
+    let providerSignal: AbortSignal | undefined
+    let release!: (response: Response) => void
+    const fetcher = vi.fn<typeof fetch>(async (url, init) => {
+      if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: 'owner' })
+      if (String(url).includes('/rpc/')) return Response.json(true)
+      providerSignal = init?.signal ?? undefined
+      return new Promise<Response>((resolve) => { release = resolve })
+    })
+    const handler = createAssistantHandler(config, { fetch: fetcher, now: () => now })
+    const pending = handler(new Request(request(steps), { signal: abort.signal }))
+    await vi.waitFor(() => expect(providerSignal).toBeDefined())
+    abort.abort()
+    expect(providerSignal?.aborted).toBe(true)
+    release(Response.json({ choices: [{ message: { content: JSON.stringify({ steps: [{ title: 'Nicht mehr übernehmen' }] }) } }] }))
+    expect((await pending).status).toBe(499)
+  })
+  it('überträgt bei einem Koordinatenpunkt nur die validierten ausgewählten Werte', async () => {
+    const { handler, fetcher } = harness()
+    const response = await handler(request({ ...route, origin: { latitude: 52, longitude: 13, privateExtra: 'synthetic-not-selected' } }))
+    expect(response.status).toBe(200)
+    const provider = fetcher.mock.calls.find(([url]) => String(url).includes('routes.googleapis.com'))!
+    const body = JSON.parse(String(provider[1]?.body)) as { origin: unknown }
+    expect(body.origin).toEqual({ location: { latLng: { latitude: 52, longitude: 13 } } })
+    expect(String(provider[1]?.body)).not.toContain('synthetic-not-selected')
+  })
   it('holt nur Fähigkeiten beim expliziten Verbindungscheck, ohne Inhalte oder Budgetverbrauch', async () => {
     const { handler, fetcher } = harness()
     expect(await (await handler(request(undefined, undefined, 'GET'))).json()).toMatchObject({ ai: { configured: true }, routes: { configured: true } })
