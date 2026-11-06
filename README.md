@@ -2,7 +2,7 @@
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
-**E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün:780 Logik-/137 Browser-/87 native Modelltests und19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.
+**E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün: 780 Logik-/139 Browser-/87 native Modelltests und19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.
 
 - **Android-App** (Capacitor) und **Web-Version/PWA** (Netlify, für den PC) aus derselben Codebasis
 - **Offline zuerst:** Alles Wichtige läuft ohne Konto, ohne Server, ohne Internet
@@ -238,3 +238,5 @@ Spätester Beginn, eigener Freitag, flexible Pausen und einzelne Kundeneinsätze
 `npm run test:pc` benötigt zusätzlich PowerShell (`pwsh` im PATH oder `PWSH_PATH` mit absolutem Programmpfad). Der eigene CI-Schritt führt die exportierten Scripts mit simulierten Uhrzeiten/Systemaktionen unter PowerShell aus. Eine fehlende Laufzeit bricht diesen Befehl ab; `npm test` bleibt der normale Logiklauf. Windows-Aufgabenplanung, Toasts und echte Abschaltung werden dadurch nicht geprüft.
 
 Maschinenlesbarer Softwarestand: [E04–E09-Softwarebeleg](docs/E04_E09_SOFTWARENACHWEIS.json).
+
+[Gemeinsames E04–E09-Update mit automatischem Windows-Download und lokaler Signierung](docs/UPDATE_E04_E09.md) · [CI21:139 Browserfälle grün](https://github.com/frnkrm/anker/actions/runs/42289520357).
