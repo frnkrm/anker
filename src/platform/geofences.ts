@@ -4,14 +4,8 @@ import { currentGeofenceSuggestion, geofenceSnapshot, geofenceSuggestions, remov
 import { onPlanChange, useApp } from '../state/store'
 import { AnkerNative, isNative } from './native'
 
-/** Struktureller Vertrag, bis die gemeinsame Bridge dieselben Coretypen exportiert. */
-interface GeofenceBridge {
-  syncGeofences(snapshot: GeofenceSnapshot): Promise<unknown>
-  getGeofenceState(): Promise<unknown>
-  ackGeofenceSuggestions(options: { ids: string[] }): Promise<void>
-  requestGeofencePermission(options: { kind: 'foreground' | 'background' }): Promise<unknown>
-}
-const bridge = AnkerNative as unknown as GeofenceBridge
+// TS und Kotlin verwenden den gemeinsamen, bereits validierten nativen Wirevertrag.
+const bridge = AnkerNative
 export interface GeofenceViewState extends GeofenceStatus { suggestions: GeofenceSuggestion[] }
 const INITIAL: GeofenceViewState = { registered: 0, fineGranted: false, backgroundGranted: false, suggestions: [], available: false }
 let status: GeofenceViewState = INITIAL

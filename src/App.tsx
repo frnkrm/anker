@@ -7,6 +7,7 @@ import { AnkerNative, isNative, safe } from './platform/native'
 import { nativeDestination } from './platform/links'
 import { listenForAuthLinks, syncNow } from './platform/supabase'
 import { useApp } from './state/store'
+import { useGeofenceLifecycle } from './state/useGeofences'
 import { InboxSheet, Shell } from './ui/components/Shell'
 import Now from './ui/pages/Now'
 
@@ -101,6 +102,11 @@ function QuickThought() {
   return <InboxSheet open onClose={() => nav('/', { replace: true })} />
 }
 
+function GeofenceLifecycle() {
+  useGeofenceLifecycle()
+  return null
+}
+
 function Home() {
   const onboarded = useApp((s) => s.settings.onboarded)
   return onboarded ? <Now /> : <Navigate to="/start" replace />
@@ -138,6 +144,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <NativeBridge />
+      <GeofenceLifecycle />
       <Shell>
         <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>
           <Routes>
