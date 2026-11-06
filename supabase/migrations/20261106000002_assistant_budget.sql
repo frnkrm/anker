@@ -19,10 +19,10 @@ declare
   day_limit integer;
   accepted integer;
 begin
-  if actor is null or request_kind not in ('steps', 'route') then return false; end if;
+  if actor is null or request_kind is null or request_kind not in ('steps', 'route') then return false; end if;
   day_limit := case when request_kind = 'steps' then 8 else 6 end;
   -- Nur technische Kostenbegrenzung,14 Tage Aufbewahrung, keine Nutzungs-/Symptomanalyse.
-  delete from public.assistant_usage where user_id = actor and budget_date < current_day - 14;
+  delete from public.assistant_usage where user_id = actor and budget_date <= current_day - 14;
   insert into public.assistant_usage as usage(user_id, budget_date, kind, used)
     values (actor, current_day, request_kind, 1)
     on conflict (user_id, budget_date, kind) do update set used = usage.used + 1

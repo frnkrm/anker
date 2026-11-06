@@ -274,6 +274,12 @@ Integrierte Codecommits `7603162` (PC-Protokoll), `5710282`/`96837ad` (atomare T
 
 **Offen:** tatsächlicher Windows2-Scriptlauf/Systemaufgabe, Serverfunktionsversion2, PC-Empfang und alle neuen Android-Gerätetests. Keine Tests vom Nutzer verlangt. Nächster Integrationsschritt E05; Codes in getrennten Worktrees bleiben Vorarbeit bis Übernahme/Prüfung.
 
+### E05 – integrierte Arbeitszeit und sichere Korrekturen
+
+Code `82450dc`/`b41f6c6`/`f877be2`: bestehendes Intervallmodell und Wochenprofil erweitert, kein zweites Zeiterfassungsmodell. Laufende Pause zeigt eine untere Grenze oder ausdrücklich gewählte Endschätzung; Restarbeit beginnt nicht in der Vergangenheit. Widersprüchliche Nachträge werden sichtbar abgelehnt. Korrektur und Rücknahme sind atomar; eine spätere echte Buchung macht eine alte Rücknahme ungültig. Tagesabhängige Startgrenze und Feierabendwunsch bleiben optional, vorhandene Sollzeiten/Freitagwerte unverändert. Historische Tage und Nachtschichten sind ausdrücklich auswählbar, Endkorrekturen behalten den tatsächlichen Folgetag. Lange offene Abschnitte verlangen ein bestätigtes tatsächliches Ende. Einsatzänderung und Tagesplan verwenden dieselbe Rücknahme.
+
+Frischer integrierter Stand:572 Vitest/49 Dateien, Lint/Typecheck grün (`e04-e09/e05-integrated-*`). Frischer Produktionsbrowser:19/19 E05-/bestehende Smoke-Fälle grün (`e05-browser.log`); der zusätzliche gefundene Nachtschicht-Kontextfehler nach04:00 wird vor dem Gesamtabschluss ebenfalls integriert und gezielt geprüft. Echte Arbeitszeitbedienung auf dem Galaxy bleibt wie beauftragt offen. Nächste Integration E06.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
