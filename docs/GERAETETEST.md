@@ -142,3 +142,11 @@ Auch diese Fälle bleiben bis zum eigenen Versuch offen. Für Nacht-, Neustart- 
 | 72 | Lange Routine mit langem Einzeltext, gleichen Titeln und Umlauten in A5 und A4 drucken bzw. PDF öffnen | Alle Schritte lesbar und vollständig, mehrere Seiten erlaubt, keine abgeschnittenen Zeilen, keine Navigation oder Feierdialoge | |
 | 73 | Auf Android PDF-Datei ohne eingerichteten Druckdienst erstellen; Teilen oder Druckdialog auch abbrechen | Nutzbare PDF-Datei als Alternative, verständliche Meldung; Abbruch wird nicht als Druck- oder Versandbestätigung angezeigt | |
 | 74 | Aus Morgen-/Abendroutine direkt drucken; QR-Auswahl öffnen und echten Ausdruck scannen | Richtige Vorauswahl, bestehender QR bleibt unverändert; ausreichender weißer Rand und echter Scan möglich. PDF-Vorschau allein bestätigt den Scan nicht | |
+
+## Android-Systemleisten
+
+Der gemeldete Fehler betrifft die Android-Leiste mit Uhr und Akku oben. Der neue Abstandsschutz wird erst nach diesem Versuch auf dem Galaxy als geprüft geführt. Alle Schritte sind freiwillig; die Testseite ändert keine Android-Systemeinstellung.
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 75 | Jetzt mit Testbegleitung, Fokus und Darstellung öffnen; Hoch- und Querformat prüfen. Falls genutzt, Android-Gesten und Drei-Tasten-Navigation vergleichen. Ein Eingabefeld mit Tastatur öffnen und diese wieder schließen | Uhr/Akku, Kameraaussparung und untere Systemnavigation verdecken keine App-Inhalte oder Knöpfe; Testbegleitung und erste Überschrift bleiben getrennt sichtbar, keine doppelten großen Ränder. Eingabe bleibt mit Tastatur erreichbar; nach Schließen stimmen Abstände weiter. Teilprüfungen getrennt notieren | |

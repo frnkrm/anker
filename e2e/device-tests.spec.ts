@@ -1,6 +1,9 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
+import { migrateSettings } from '../src/core/defaults'
+import type { LocalData, Settings } from '../src/core/types'
+import { storedRecord } from './helpers/storage'
 
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-05T18:00:00+01:00'))
@@ -27,22 +30,22 @@ test('Testseite beginnt offen und speichert ausschließlich bewusst berichtete B
   await onboard(page)
   await page.goto('/mehr')
   await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
   await page.getByLabel('Test auswählen', { exact: true }).selectOption('3')
   await expect(page.getByRole('heading', { name: 'Test 3 · Wecker', exact: true })).toBeVisible()
   await page.getByLabel('Testbeobachtung').fill('Plan angesehen, Ton am Handy noch offen')
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
   await expect(page.getByRole('status')).toContainText('Deine Rückmeldung wurde gespeichert: Teilweise.')
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await page.reload()
   await expect(page.getByLabel('Testbeobachtung')).toHaveValue('Plan angesehen, Ton am Handy noch offen')
   await expect(page.getByText(/Dein Browserbericht: Teilweise/)).toBeVisible()
   await page.getByRole('button', { name: '✓ Hat geklappt', exact: true }).click()
-  await expect(page.getByText(/1 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/1 von 75 im Browser/)).toBeVisible()
   await expect(page.getByText(/Dieser Versuch braucht ein echtes Android-Gerät/)).toBeVisible()
   await page.getByRole('button', { name: 'Diesen Test wieder öffnen', exact: true }).click()
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await page.reload()
   await expect(page.getByText(/Dein Browserbericht/)).toHaveCount(0)
 })
@@ -61,7 +64,7 @@ test('Test begleitet direkt zur Einstellung und zurück, ohne selbst eine Zeit u
   await expect(page.getByRole('heading', { name: /Test 62 ·/ })).toBeVisible()
   await expect(page.getByLabel('Testbeobachtung')).toHaveValue('Meine Notiz vor dem Einstellungswechsel')
   await expect(page.getByLabel('Testgerät')).toHaveValue('Eigenes Testgerät')
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await page.getByRole('button', { name: 'Testbegleitung pausieren', exact: true }).click()
   await expect(page.getByRole('status')).toHaveText('Testbegleitung pausiert. Deine Ergebnisse bleiben gespeichert.')
   await page.goto('/einstellungen/schlaf')
@@ -116,7 +119,7 @@ test('Testauswahl zeigt neue Weckfensterpunkte und nicht relevant zählt nicht a
   await page.getByRole('button', { name: 'Weckfenster prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Test 53 ·/ })).toBeVisible()
   await page.getByRole('button', { name: 'Für mich nicht relevant', exact: true }).click()
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await page.getByRole('button', { name: 'Nächster Test', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Test 54 ·/ })).toBeVisible()
 })
@@ -190,11 +193,74 @@ test('E02-Prüfwege führen zu Erinnerungen und Papier und bleiben bis zur Rück
   await page.getByRole('button', { name: 'Erinnerungen einstellen', exact: true }).click()
   await expect(page).toHaveURL(/\/einstellungen\/erinnerungen$/)
   await page.getByRole('link', { name: 'Zurück zu Test 66', exact: true }).click()
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
   await page.getByLabel('Test auswählen', { exact: true }).selectOption('73')
   await expect(page.getByRole('heading', { name: 'Test 73 · E02: Erinnerungen und Papier', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Druckauswahl öffnen', exact: true }).click()
   await expect(page).toHaveURL(/\/druck$/)
   await page.getByRole('link', { name: 'Zurück zu Test 73', exact: true }).click()
-  await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
+})
+
+test('Systemleistenprüfung führt zu Jetzt, Fokus und Eingabe; Browseransichten bleiben ohne Gerätehaken', async ({ page }) => {
+  await onboard(page)
+  const before = await storedRecord<Settings>(page, 'settings', 'main')
+  expect(before).toBeDefined()
+  // Ein erneutes Laden ergänzt regulär die bisher fehlenden manuellen Zeitflags.
+  const expectedSettings = migrateSettings(before!, '2026-11-05')
+  // Prüft ausgelieferte Seiten und den nutzbaren Browserbereich, keine Android-WindowInsets oder echte Tastatur.
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /viewport-fit=contain/)
+  await page.goto('/geraetetest')
+  await page.getByRole('button', { name: 'Systemleisten prüfen', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Test 75 · Android-Systemleisten', exact: true })).toBeVisible()
+  await expect(page.getByText('Dieser Versuch braucht ein echtes Android-Gerät. Ein Ergebnis im Browser bestätigt ihn dafür nicht.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Druckauswahl öffnen', exact: true })).toHaveCount(0)
+
+  const headerBelowBanner = async () => {
+    await page.evaluate(() => window.scrollTo(0, 0))
+    const banner = page.getByRole('complementary', { name: 'Testbegleitung' })
+    await expect(banner).toBeVisible()
+    await expect(page.locator('main header').first()).toBeVisible()
+    const bounds = await page.evaluate(() => {
+      const banner = document.querySelector('aside[aria-label="Testbegleitung"]')!.getBoundingClientRect()
+      const header = document.querySelector('main header')!.getBoundingClientRect()
+      return { top: banner.top, left: banner.left, right: banner.right, bannerBottom: banner.bottom, headerTop: header.top, headerBottom: header.bottom, width: innerWidth, height: innerHeight }
+    })
+    expect(bounds.top).toBeGreaterThanOrEqual(0)
+    expect(bounds.left).toBeGreaterThanOrEqual(0)
+    expect(bounds.right).toBeLessThanOrEqual(bounds.width)
+    expect(bounds.headerTop).toBeGreaterThanOrEqual(bounds.bannerBottom)
+    expect(bounds.headerBottom).toBeLessThanOrEqual(bounds.height)
+  }
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport)
+    await page.getByRole('button', { name: 'Jetzt mit Testbegleitung öffnen', exact: true }).click()
+    await expect(page).toHaveURL(/\/$/)
+    await headerBelowBanner()
+    const navigation = await page.getByRole('navigation', { name: 'Hauptnavigation' }).boundingBox()
+    expect(navigation).not.toBeNull()
+    expect(navigation!.y + navigation!.height).toBeLessThanOrEqual(viewport.height)
+    await page.getByRole('link', { name: 'Zurück zu Test 75', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Test 75 · Android-Systemleisten', exact: true })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Fokus-Modus öffnen', exact: true }).click()
+    await expect(page).toHaveURL(/\/fokus\/morning$/)
+    await headerBelowBanner()
+    await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0)
+    await page.getByRole('link', { name: 'Zurück zu Test 75', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Test 75 · Android-Systemleisten', exact: true })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Schrift & Tastatur prüfen', exact: true }).click()
+    await expect(page).toHaveURL(/\/einstellungen\/darstellung$/)
+    const input = page.getByRole('spinbutton', { name: 'Schriftgröße', exact: true })
+    await expect(input).toBeEditable()
+    await input.focus()
+    await expect(input).toBeFocused()
+    await page.getByRole('link', { name: 'Zurück zu Test 75', exact: true }).click()
+    await expect(page.getByText(/0 von 75 im Browser/)).toBeVisible()
+    await expect(page.getByText(/Dein Browserbericht:/)).toHaveCount(0)
+  }
+  await expect.poll(() => storedRecord<Settings>(page, 'settings', 'main')).toEqual(expectedSettings)
+  expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[75]).toBeUndefined()
 })

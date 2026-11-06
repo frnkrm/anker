@@ -14,9 +14,10 @@ import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75])
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (id === 75) return [{ label: 'Jetzt mit Testbegleitung öffnen', to: '/' }, { label: 'Fokus-Modus öffnen', to: '/fokus/morning' }, { label: 'Schrift & Tastatur prüfen', to: '/einstellungen/darstellung' }]
   if (id >= 72) return [{ label: 'Druckauswahl öffnen', to: '/druck' }, { label: 'Morgenroutine öffnen', to: '/fokus/morning' }, { label: 'Abendroutine öffnen', to: '/fokus/evening' }]
   if (id >= 66) return [{ label: 'Erinnerungen einstellen', to: '/einstellungen/erinnerungen' }, { label: 'Tagesplan öffnen', to: '/tag' }, { label: 'Weckerstatus und Messung öffnen', to: '/wecker' }, ...(id === 69 ? [{ label: 'Morgenfokus öffnen', to: '/fokus/morning' }] : [])]
   if (id === 64) return [{ label: 'Mehr öffnen', to: '/mehr' }, { label: 'Tag öffnen', to: '/tag' }, { label: 'Wecker öffnen', to: '/wecker' }]
@@ -41,6 +42,7 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (id === 75) return ['Öffne zuerst „Jetzt mit Testbegleitung“. Prüfe oben Uhr und Akku sowie den Knopf „Zurück zu Test 75“. Öffne danach den Fokus-Modus; dafür musst du keinen Routineschritt erledigen.', 'Drehe das Handy ins Querformat und zurück. Vergleiche bei Bedarf Gesten- und Drei-Tasten-Navigation in den Android-Einstellungen; stelle danach deine übliche Navigation wieder her.', 'Öffne „Schrift & Tastatur prüfen“, tippe in das Schriftgrößenfeld und schließe die Tastatur wieder. Du brauchst keinen Wert zu ändern. Notiere obere und untere Abstände sowie Tastatur und Drehung getrennt; ungeprüfte Teile bleiben offen.']
   if (id === 71) return ['Lies den Android-Stand ein und öffne den Weckerstatus. Die gespeicherten Basisregeln gelten nach dem genauen Tagesvorrat; neue spontane Änderungen kennt Android erst nach erneutem Öffnen.', 'Der vollständige Langzeittest braucht echte Zeit ohne Appöffnung. Notiere den Beginn und halte einen unabhängigen Wecker bereit. Nur die angezeigte Regelzahl zu prüfen ist „Teilweise“, kein Zustellnachweis.']
   if (id >= 72) return ['Öffne die Druckauswahl oder den direkten Link aus deiner Routine. Wähle nur den gewünschten Inhalt und A5 oder A4.', 'PDF-Datei auf Android und Systemdruck sind getrennte Wege. Öffne die Datei und prüfe alle Seiten; ein geöffneter Dialog oder abgebrochenes Teilen gilt nicht als gedruckt.', 'QR-Code nach Möglichkeit wirklich auf Papier scannen. Deine Einstellungen und der QR-Wert werden durch die Auswahl nicht geändert.']
   if (id >= 66) return ['Notiere vorher deine eigenen Zeiten und Optionen. Die Knöpfe unten führen direkt zu Erinnerungen, Tagesplan und Weckerstatus.', 'Führe den beschriebenen Ablauf mit einer bewusst gewählten Erinnerung aus. Der separate Testalarm prüft nur den Alarm und kann keine Aufgaben-Erledigung simulieren.', 'Stelle anschließend deine eigenen Einstellungen wieder her. Notiere, welchen Teil du tatsächlich beobachtet hast; nichts wird automatisch als bestanden eingetragen.']
@@ -88,6 +90,7 @@ export default function DeviceTests() {
         <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66) }}>Erinnerungen & Druck prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(53) }}>Weckfenster prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62) }}>Zeiteingabe prüfen</Button>
+        <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75) }}>Systemleisten prüfen</Button>
       </div>
       <label className="block space-y-1"><span>Bereich</span><select aria-label="Testbereich" className={SELECT_CLASS} value={group} onChange={(e) => { setGroup(e.target.value); setParams({}) }}>
         {['Alle', ...new Set(catalog.map((test) => test.group))].map((name) => <option key={name}>{name}</option>)}
