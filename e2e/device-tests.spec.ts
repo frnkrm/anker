@@ -319,6 +319,7 @@ test('Gemeinsamer Abschlusslauf bündelt genau zehn freiwillige Stationen und er
   await page.goto('/geraetetest?fall=3')
   await page.getByLabel('Testbeobachtung').fill('Einzeltest bleibt erhalten')
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[3]).toMatchObject({ note: 'Einzeltest bleibt erhalten', result: 'partial' })
   await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 86 · Gemeinsamer Abschlusslauf: E04–E09', exact: true })).toBeVisible()
   await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
@@ -328,7 +329,8 @@ test('Gemeinsamer Abschlusslauf bündelt genau zehn freiwillige Stationen und er
   await page.getByLabel('Test auswählen', { exact: true }).selectOption('95')
   await expect(page.getByRole('button', { name: 'Nächster Test', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
-  await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
+  // Teilweise erhöht den Bestanden-Zähler nicht. Er war schon vor diesem Speichervorgang bei 0.
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
   await page.reload()
   await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
   const local = await storedRecord<LocalData>(page, 'meta', 'local')
@@ -337,6 +339,48 @@ test('Gemeinsamer Abschlusslauf bündelt genau zehn freiwillige Stationen und er
   await expect(page.getByRole('button', { name: 'Erster Weckertest', exact: true })).toHaveCount(0)
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await expect(page.getByRole('button', { name: 'Erster Weckertest', exact: true })).toBeVisible()
+})
+
+test('Ein wartender Bericht wird erst nach echter IDB-Persistenz als gespeichert bestätigt und übersteht dann Reload', async ({ page }) => {
+  await onboard(page)
+  await page.goto('/geraetetest?fall=3')
+  await page.getByLabel('Testbeobachtung').fill('Alter Einzelbericht bleibt')
+  await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[3]).toMatchObject({ result: 'partial', note: 'Alter Einzelbericht bleibt' })
+  await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
+  await page.getByLabel('Test auswählen', { exact: true }).selectOption('95')
+  // Echte IndexedDB-Schreibbarriere, keine verzögerte Produktfunktion oder feste Wartezeit.
+  await page.evaluate(() => new Promise<void>((resolve, reject) => {
+    const state = window as unknown as { holdDeviceReportWrite: boolean }
+    state.holdDeviceReportWrite = true
+    const open = indexedDB.open('anker')
+    open.onerror = () => reject(open.error)
+    open.onsuccess = () => {
+      const db = open.result
+      const transaction = db.transaction('records', 'readwrite')
+      transaction.oncomplete = () => db.close()
+      const records = transaction.objectStore('records')
+      const keep = () => {
+        const read = records.get(['meta', 'local'])
+        read.onsuccess = () => { if (state.holdDeviceReportWrite) keep() }
+      }
+      keep(); resolve()
+    }
+  }))
+  try {
+    await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Teilweise', exact: true })).toBeDisabled()
+    await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
+    await expect(page.getByText('Deine Rückmeldung wurde gespeichert: Teilweise.', { exact: true })).toHaveCount(0)
+  } finally {
+    await page.evaluate(() => { (window as unknown as { holdDeviceReportWrite: boolean }).holdDeviceReportWrite = false })
+  }
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
+  await expect(page.getByText('Deine Rückmeldung wurde gespeichert: Teilweise.', { exact: true })).toBeVisible()
+  await page.reload()
+  const local = await storedRecord<LocalData>(page, 'meta', 'local')
+  expect(local?.deviceTests?.reports[3]).toMatchObject({ result: 'partial', note: 'Alter Einzelbericht bleibt' })
+  expect(local?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
 })
 
 test('Abschlussstationen führen begleitet durch vorhandene Bereiche und starten selbst keine Alltagsaktion', async ({ page }) => {
