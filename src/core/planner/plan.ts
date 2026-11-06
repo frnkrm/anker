@@ -460,7 +460,7 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
 }
 
 function commitmentHardTime(leg: Leg): HardTime {
-  return { key: 'commitment', label: leg.leave === undefined ? leg.commitment.label : `Los: ${leg.commitment.label}`, at: leg.leave ?? leg.commitment.start }
+  return { key: 'commitment', label: leg.leave === undefined ? 'Termin' : `Los: ${leg.commitment.label}`, at: leg.leave ?? leg.commitment.start }
 }
 
 /** Gleiche Termin-/Wegdarstellung für reguläre, freie und entlastete Tage. */

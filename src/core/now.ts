@@ -151,7 +151,8 @@ export function widgetEntry(at: number, v: WidgetView) {
     at,
     action: label ?? (privateBlock ? 'Termin' : unknown ? 'Anker öffnen' : v.action.title),
     sub: label || privateBlock || unknown ? '' : (v.action.sub ?? ''),
-    hardLabel: v.hard?.key === 'commitment' || v.hard?.label.startsWith('Los:') ? 'Losgehen' : (v.hard?.label ?? ''),
+    hardLabel: v.hard?.key === 'commitment' ? (v.hard.label.startsWith('Los:') ? 'Losgehen' : 'Termin')
+      : v.hard?.label.startsWith('Los:') ? 'Losgehen' : (v.hard?.label ?? ''),
     hardTime: v.hard ? fmtTime(v.hard.at) : '',
   }
 }
