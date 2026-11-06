@@ -459,6 +459,38 @@ describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
     expect((await storage.repo!.get<Settings>('settings', 'main'))!.weather.city).toBe('')
   })
 
+  it('braucht nach Importcommit keine fehleranfälligen DB-Reads und erhält den ganzen Import beim nächsten Taskedit', async () => {
+    const imported = { ...oldLocal(), work: [{ id: 'imported-work', title: 'Importierte Arbeit', createdAt: 100 }] }
+    const records = [...backup(imported), { collection: 'inbox' as const, id: 'imported-note', data: { id: 'imported-note', text: 'Importierte Notiz', status: 'open', createdAt: 100 }, updated_at: Date.now() + 10_000, deleted: false }]
+    const repo = storage.repo!
+    const merge = repo.merge.bind(repo); const read = repo.get.bind(repo); const list = repo.list.bind(repo)
+    let committed = false
+    let readsAfterCommit = 0
+    vi.spyOn(repo, 'merge').mockImplementation(async (...args) => { const count = await merge(...args); committed = true; return count })
+    vi.spyOn(repo, 'get').mockImplementation(async (...args) => {
+      if (committed) { readsAfterCommit++; throw new Error('DB read failed after commit') }
+      return read(...args)
+    })
+    vi.spyOn(repo, 'list').mockImplementation(async (...args) => {
+      if (committed) { readsAfterCommit++; throw new Error('DB list failed after commit') }
+      return list(...args)
+    })
+    expect(await useApp.getState().importRecords(records)).toBe(3)
+    expect(readsAfterCommit).toBe(0)
+    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    await useApp.getState().updateTask({ kind: 'work', id: 'imported-work' }, { title: 'Bewusst bearbeitet', nextStep: 'Datei öffnen' })
+    const saved = (await read<LocalData>('meta', 'local'))!
+    expect(saved.work[0]).toMatchObject({ id: 'imported-work', title: 'Bewusst bearbeitet', nextStep: 'Datei öffnen' })
+    expect(saved.meds).toEqual(imported.meds)
+    expect(saved.places).toEqual(imported.places)
+    expect(saved.workSessions).toEqual(imported.workSessions)
+    expect(saved.weatherProfile).toEqual(expected)
+    expect((await read<Settings>('settings', 'main'))!.weather.city).toBe('')
+    expect(await read('inbox', 'imported-note')).toMatchObject({ text: 'Importierte Notiz' })
+    expect(useApp.getState().inbox).toContainEqual(expect.objectContaining({ id: 'imported-note', text: 'Importierte Notiz' }))
+    expect(readsAfterCommit).toBe(0)
+  })
+
   it('migriert einen übernommenen Settingsrecord innerhalb der vorhandenen Sync-Barriere ohne deadlock', async () => {
     const record: Rec = { collection: 'settings', id: 'main', data: oldSettings(), updated_at: Date.now() + 10_000, deleted: false }
     expect(await useApp.getState().mergeRecords([record])).toBe(2)

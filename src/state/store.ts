@@ -48,7 +48,7 @@ import { validCommitment, validPlace } from '../core/travel'
 import { migrateWeatherState } from '../core/weatherProfile'
 import { key } from '../data/merge'
 import { getRepository, type Rec, type Repository } from '../data'
-import type { RepositoryWrite } from '../data/types'
+import type { Collection, RepositoryWrite } from '../data/types'
 
 export type AlarmStatus = AlarmPlanningStatus
 
@@ -384,17 +384,27 @@ export function statusOf(date: DateStr, st = useApp.getState()): DayStatus {
   return dayStatus(plan, st.days[date], st.settings, date < t)
 }
 
-/** Import/Sync besitzen bereits die Schreibbarriere. Load liest zunächst ohne Writes. */
-async function readAppData(commitMigration = true) {
+/** Gleiche Normalisierung für DB-Load und die temporäre, rein lesende Importprojektion. */
+async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
+  const records = snapshot && new Map(snapshot.map((record) => [key(record), record]))
+  const source: Pick<Repository, 'get' | 'list'> = records ? {
+    async get<T>(collection: Collection, id: string) {
+      const record = records.get(`${collection}/${id}`)
+      return record && !record.deleted ? record.data as T : undefined
+    },
+    async list<T>(collection: Collection) {
+      return [...records.values()].filter((record) => record.collection === collection && !record.deleted).map((record) => record.data as T)
+    },
+  } : repo
   const t = today()
-  const settings = (await repo.get<Settings>('settings', 'main')) ?? defaultSettings(t)
-  const game = (await repo.get<GameState>('game', 'main')) ?? initialGame(t)
+  const settings = (await source.get<Settings>('settings', 'main')) ?? defaultSettings(t)
+  const game = (await source.get<GameState>('game', 'main')) ?? initialGame(t)
   const days: Record<string, DayLog> = {}
-  for (const d of await repo.list<DayLog>('days')) days[d.date] = d
-  const inbox = (await repo.list<InboxItem>('inbox')).map(normaliseTask)
-  const reviews = await repo.list<WeeklyReview>('reviews')
-  const events = (await repo.get<CalendarEvent[]>('meta', 'events')) ?? []
-  const savedLocal = await repo.get<LocalData>('meta', 'local')
+  for (const d of await source.list<DayLog>('days')) days[d.date] = d
+  const inbox = (await source.list<InboxItem>('inbox')).map(normaliseTask)
+  const reviews = await source.list<WeeklyReview>('reviews')
+  const events = (await source.get<CalendarEvent[]>('meta', 'events')) ?? []
+  const savedLocal = await source.get<LocalData>('meta', 'local')
   const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...recoveryFields(savedLocal), deviceTests: deviceTestsFromLocal(savedLocal) }
   if (!validPlanUndo(local.planUndo)) local.planUndo = undefined
   local.work = local.work.map(normaliseTask)
@@ -405,11 +415,12 @@ async function readAppData(commitMigration = true) {
   if (local.focus && !relevant(local.focus)) local.focus = undefined
   local.focusHistory = local.focusHistory?.filter(relevant)
   const weather = migrateWeatherState(migrateSettings(settings, t), local)
-  if (weather.changed && commitMigration) await repo.putMany([
+  const persistMigration = commitMigration && snapshot === undefined
+  if (weather.changed && persistMigration) await repo.putMany([
     { collection: 'settings', id: 'main', data: weather.settings },
     { collection: 'meta', id: 'local', data: weather.local },
   ])
-  return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !commitMigration }
+  return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !persistMigration }
 }
 
 /** Die bestehende E09-Vorschau hat LWW und fehlende Privatfelder bereits aufgelöst.
@@ -1125,9 +1136,8 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async importRecords(recs) {
-    const n = await get().mergeRecords(recs, true)
-    if (n) await get().load()
-    return n
+    // mergeRecords veröffentlicht bereits die gemeinsam vorbereitete Projektion.
+    return get().mergeRecords(recs, true)
   },
 
   mergeRecords(recs, dirty = false) {
@@ -1136,10 +1146,15 @@ export const useApp = create<AppState>()((set, get) => ({
       // Vorschau erst in der Schreibbarriere gegen den wirklich aktuellen Bestand berechnen.
       const current = await repo.all()
       const prepared = previewImport(checked, current).records
-      const count = await repo.merge(canonicalWeatherImport(prepared, current), { dirty })
+      const canonical = canonicalWeatherImport(prepared, current)
+      const snapshot = [...new Map([...current, ...canonical].map((record) => [key(record), record])).values()]
+      const projection = await readAppData(false, snapshot)
+      if (projection.needsWeatherMigration) throw new Error('Die Wetterdaten konnten nicht vollständig für den Import vorbereitet werden. Es wurde nichts importiert.')
+      const count = await repo.merge(canonical, { dirty })
       // Bevor die nächste lokale Detailänderung beginnt, muss sie die übernommenen Daten sehen.
       if (count) {
-        set((await readAppData()).data)
+        // Nach dem Commit nur publizieren: kein fallibler DB-Read und kein weiterer Write.
+        set(projection.data)
         changed()
       }
       return count
