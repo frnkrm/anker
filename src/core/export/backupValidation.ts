@@ -1,6 +1,8 @@
 import { COLLECTIONS, type Rec } from '../../data/types'
 import { defaultSettings } from '../defaults'
 import { validDeviceTests } from '../deviceTests'
+import { validAssistancePreferences } from '../assistance'
+import { validPackingLocal } from '../packing'
 import { validEveningLocal } from '../evening'
 import { validExtrasLocal, validExtrasSettings } from '../extras'
 import { validPlanUndo } from '../flexible'
@@ -46,6 +48,7 @@ export function validSettings(value: unknown): boolean {
     ...sample,
     anchor: { ...sample.anchor, manual: { wake: false, pcStop: false, bed: false } },
     flex: { ...sample.flex, latestStart: null },
+    work: [{ isWorkDay: false, start: 0, durationMin: 0, pauseMin: 0, homeOffice: false }],
     routines: { morning: [step], evening: [step] },
     routineLinks: [{ eveningStepId: '', morningStepId: '' }],
     suggestions: [{ id: '', text: '', createdAt: '' }],
@@ -116,7 +119,8 @@ function validInbox(value: unknown, id: string): boolean {
 
 function validLocal(value: unknown): boolean {
   if (!object(value) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
-    || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras)) return false
+    || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)) return false
+  if (object(value.planUndo) && !Object.values(value.planUndo).every((entry) => object(entry) && validPlanningLocal({ commitments: entry.commitments }))) return false
   if (!optional(value, 'workSessions', (v) => Array.isArray(v) && v.every(validWorkSession))) return false
   if (!optional(value, 'handover', (v) => object(v) && Object.entries(v).every(([day, entry]) => date(day) && object(entry) && text(entry.open) && text(entry.next)))) return false
   if (!optional(value, 'meds', (v) => object(v) && Object.entries(v).every(([day, entry]) => date(day) && object(entry) && timestamp(entry.at) && choice(entry.status, ['taken', 'not-taken', 'unsure'])))) return false

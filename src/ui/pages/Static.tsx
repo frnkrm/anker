@@ -1,8 +1,9 @@
 import { Browser } from '@capacitor/browser'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { makeBackup, parseBackup } from '../../core/export/backup'
 import { routineCoverage } from '../../core/flexible'
+import { COMPLETE_BACKUP, makeBackup, parseBackup, previewImport, type BackupSelection, type ImportPreview } from '../../core/export/backup'
+import type { Rec } from '../../data/types'
 import { printSheets, preparePrintSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
 import { pickTextFile, saveFile, shareLocalFile } from '../../platform/files'
 import { AnkerNative, isNative, safe } from '../../platform/native'
@@ -113,39 +114,81 @@ function AskSomeone() {
 export function Backup() {
   const st = useApp()
   const [msg, setMsg] = useState<string>()
+  const [error, setError] = useState<string>()
+  const [selection, setSelection] = useState<BackupSelection>({ ...COMPLETE_BACKUP })
+  const [candidate, setCandidate] = useState<{ records: Rec[]; preview: ImportPreview }>()
+  const [busy, setBusy] = useState(false)
+  const pending = useRef(false)
+  const run = async (action: () => Promise<void>) => {
+    if (pending.current) return
+    pending.current = true; setBusy(true); setMsg(undefined); setError(undefined)
+    try { await action() }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Die Datei konnte noch nicht verarbeitet werden.') }
+    finally { pending.current = false; setBusy(false) }
+  }
+  const groups: { key: keyof BackupSelection; label: string }[] = [
+    { key: 'work', label: 'Arbeitsaufgaben, Arbeitszeiten und Übergaben' },
+    { key: 'health', label: 'Einnahme- und freiwilliges Schlafprotokoll' },
+    { key: 'places', label: 'Orte, Termine, Wetterort und Packlisten' },
+    { key: 'deviceTests', label: 'Testberichte und Testnotizen' },
+  ]
   return (
     <Page title="Sicherung" back="/mehr">
       <p className="px-1 text-muted">Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
-      <p className="px-1 text-sm text-muted">Die Datei ist nicht verschlüsselt und enthält auch Arbeitsaufgaben und, falls genutzt, dein Einnahmeprotokoll. Teile sie nicht unbedacht.</p>
+      <p className="px-1 text-sm text-muted">Sicherungen sind nicht verschlüsselt. Eine vollständige Sicherung enthält auch Arbeitsaufgaben und private Protokolle. Du kannst unten bewusst Bereiche weglassen.</p>
+      <details className="rounded-2xl border border-line bg-surface p-4">
+        <summary className="min-h-11 py-2">Was soll die Sicherung enthalten?</summary>
+        <fieldset disabled={busy} className="space-y-2">
+          <legend className="sr-only">Sensible Bereiche auswählen</legend>
+          <p className="text-sm text-muted">Standardmäßig alles. Du kannst diese Bereiche bewusst weglassen. Freitexte können weiterhin persönliche Angaben enthalten.</p>
+          {groups.map((group) => <label key={group.key} className="flex min-h-11 items-center gap-3">
+            <input type="checkbox" checked={selection[group.key]} onChange={(event) => setSelection((before) => ({ ...before, [group.key]: event.target.checked }))} />
+            <span>{group.label}</span>
+          </label>)}
+        </fieldset>
+      </details>
       <Button
         variant="primary"
         size="lg"
         className="w-full"
-        onClick={async () => {
-          const b = makeBackup(await repository().all())
+        disabled={busy}
+        onClick={() => void run(async () => {
+          const b = makeBackup(await repository().all(), new Date(), selection)
           await saveFile(`anker-sicherung-${today()}.json`, JSON.stringify(b, null, 1), 'application/json')
-          setMsg('Sicherung erstellt.')
-        }}
+          setMsg(isNative() ? 'Sicherungsdatei erstellt. Prüfe im gewählten Speicherort, ob du sie aufbewahrt hast.' : 'Download angefordert. Bewahre die Sicherungsdatei an einem eigenen Speicherort auf.')
+        })}
       >
         Sicherung exportieren
       </Button>
       <Button
         size="lg"
         className="w-full"
-        onClick={async () => {
+        disabled={busy}
+        onClick={() => void run(async () => {
+          setCandidate(undefined)
           const text = await pickTextFile()
           if (!text) return
-          try {
-            const n = await st.importRecords(parseBackup(text))
-            setMsg(n ? `${n} Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
-          } catch (e) {
-            setMsg((e as Error).message)
-          }
-        }}
+          const records = parseBackup(text)
+          setCandidate({ records, preview: previewImport(records, await repository().all()) })
+        })}
       >
         Sicherung importieren
       </Button>
-      {msg && <p className="px-1 text-muted">{msg}</p>}
+      {candidate && <Card className="space-y-3">
+        <h2 className="font-semibold">Vor dem Import prüfen</h2>
+        <p>{candidate.preview.incoming} Einträge gelesen · {candidate.preview.changed} neuere Änderungen · {candidate.preview.skipped} ältere oder gleiche Versionen bleiben unangetastet.</p>
+        {candidate.preview.deletions > 0 && <p className="text-sm text-muted">Enthält {candidate.preview.deletions} ausdrücklich gelöschte Datensätze.</p>}
+        {candidate.preview.sensitive.length > 0 && <p className="text-sm text-muted">Private Bereiche in der Datei: {candidate.preview.sensitive.join(', ')}.</p>}
+        <p className="text-sm text-muted">Ausgelassene Bereiche einer Teilsicherung bleiben auf diesem Gerät erhalten. Beim Import werden neuere Änderungen nochmals geprüft.</p>
+        <Button variant="primary" disabled={busy || candidate.preview.changed === 0} onClick={() => void run(async () => {
+          const n = await st.importRecords(candidate.records)
+          setCandidate(undefined)
+          setMsg(n ? `${n} Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
+        })}>Jetzt importieren</Button>
+        <Button variant="ghost" disabled={busy} onClick={() => setCandidate(undefined)}>Abbrechen</Button>
+      </Card>}
+      {msg && <p role="status" className="px-1 text-muted">{msg}</p>}
+      {error && <p role="alert" className="px-1 text-warm">{error}</p>}
     </Page>
   )
 }

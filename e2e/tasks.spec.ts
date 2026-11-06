@@ -129,6 +129,8 @@ test('Altbackup bleibt nach echter Offline-Migration, Nichtnutzung und Arbeits-U
   const file = page.waitForEvent('filechooser')
   await page.getByRole('button', { name: 'Sicherung importieren', exact: true }).click()
   await (await file).setFiles({ name: 'anker-altbestand.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(makeBackup(records))) })
+  await expect(page.getByRole('heading', { name: 'Vor dem Import prüfen', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Jetzt importieren', exact: true }).click()
   await expect(page.getByText('3 Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.', { exact: true })).toBeVisible()
   await expect.poll(async () => (await local(page))?.work[0]?.title).toBe('Alter Arbeitsauftrag')
   expect((await local(page))?.deviceTests?.reports['1']).toEqual(report)

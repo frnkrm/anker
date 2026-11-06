@@ -41,8 +41,9 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
       if (!selection.health) data = without(data, ['meds', 'sleepDiary'])
       if (!selection.deviceTests) data = without(data, ['deviceTests'])
       if (!selection.places) {
-        data = without(data, ['places', 'commitments', 'planUndo', 'weather', 'weatherProfile', 'routeProfile', 'routeEstimates'])
+        data = without(data, ['places', 'commitments', 'planUndo', 'weather', 'weatherProfile', 'packTemplates', 'routeProfile', 'routeEstimates'])
         if (object(data.extras)) data = { ...data, extras: without(data.extras, ['geofences', 'ownCalendar']) }
+        if (object(data.assistance)) data = { ...data, assistance: without(data.assistance, ['routeChecks']) }
       }
       if (!selection.work) {
         data = without(data, ['work', 'workSessions', 'handover'])

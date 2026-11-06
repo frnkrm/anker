@@ -34,14 +34,19 @@ export async function saveFile(name: string, content: string | Uint8Array, mime:
 
 /** Lässt den Nutzer eine Textdatei auswählen (Backup-Import). */
 export function pickTextFile(accept = '.json,application/json'): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = accept
+    input.style.display = 'none'
+    const finish = (text: string | null) => { input.remove(); resolve(text) }
+    input.addEventListener('cancel', () => finish(null), { once: true })
     input.onchange = async () => {
       const f = input.files?.[0]
-      resolve(f ? await f.text() : null)
+      try { finish(f ? await f.text() : null) }
+      catch { input.remove(); reject(new Error('Die ausgewählte Datei konnte nicht gelesen werden. Es wurde nichts importiert.')) }
     }
+    document.body.appendChild(input)
     input.click()
   })
 }

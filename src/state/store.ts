@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
 import { validCalendarStatus, type CalendarStatus } from '../core/extras'
+import { previewImport, validatedRecords } from '../core/export/backup'
 import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { eveningLocalFields } from '../core/evening'
@@ -1096,7 +1097,10 @@ export const useApp = create<AppState>()((set, get) => ({
 
   mergeRecords(recs, dirty = false) {
     return atomic(async () => {
-      const count = await repo.merge(recs, { dirty })
+      const checked = validatedRecords(recs)
+      // Vorschau erst in der Schreibbarriere gegen den wirklich aktuellen Bestand berechnen.
+      const prepared = previewImport(checked, await repo.all()).records
+      const count = await repo.merge(prepared, { dirty })
       // Bevor die nächste lokale Detailänderung beginnt, muss sie die übernommenen Daten sehen.
       if (count) {
         set(await readAppData())

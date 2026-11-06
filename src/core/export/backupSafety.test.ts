@@ -75,6 +75,26 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(parse([deleted])).toEqual([deleted])
   })
 
+  it('prüft auch Rücknahme-Snapshots vollständig, bevor ein alter Termin später wieder eingesetzt wird', () => {
+    const commitment = { id: 'c', date, label: 'Termin', context: 'personal', commitment: 'hard', start: 600 }
+    const planUndo = { [date]: { at, commitments: [commitment] } }
+    expect(parse([record('meta', 'local', { planUndo })])).toHaveLength(1)
+    for (const patch of [{ end: 'offen' }, { end: 500 }, { travelMin: -1 }, { routeMode: 'falsch' }, { preparedItems: [42] }]) {
+      expect(() => parse([record('meta', 'local', { planUndo: { [date]: { at, commitments: [{ ...commitment, ...patch }] } } })])).toThrow('lokale Planungs- oder Arbeitsdaten')
+    }
+  })
+
+  it('prüft vorhandene optionale Freigaben und Packlisten ohne sie alten Sicherungen vorzuschreiben', () => {
+    for (const assistance of [null, { ai: { enabled: 'ja', at, version: 1 } }, { routes: { enabled: true, at, version: 2 } }, { routeChecks: { c: { at: -1, revision: 'r' } } }]) {
+      expect(() => parse([record('meta', 'local', { assistance })])).toThrow()
+    }
+    for (const packTemplates of [[{}], [{ id: 'p', label: 'Test', context: 'customer', items: [42] }]]) {
+      expect(() => parse([record('meta', 'local', { packTemplates })])).toThrow()
+    }
+    const assistance = { ai: { enabled: false, at, version: 1 } }
+    expect(parse([record('meta', 'local', { assistance })])[0]?.data).toEqual({ assistance })
+  })
+
   it('Vollbackup bleibt unabhängig von Sensitivitätsoptionen als vollständiger Roundtrip verfügbar', () => {
     const local = { ...emptyLocal(), meds: { [date]: { status: 'taken' as const, at } }, work: [{ id: 'w', title: 'Privat', createdAt: at }] }
     const records = [record('meta', 'local', local)]
@@ -84,7 +104,10 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
   it('lässt ausgeschlossene sensible Gruppen wirklich aus und verändert die Quelldaten nicht', () => {
     const local = { ...emptyLocal(), meds: { [date]: { status: 'taken' as const, at } }, work: [{ id: 'w', title: 'Kundengeheimnis', createdAt: at }],
       places: [{ id: 'p', label: 'Privater Ort', address: 'Geheime Adresse' }], deviceTests: { reports: {} },
-      resume: { kind: 'work' as const, title: 'Kundengeheimnis', at } }
+      resume: { kind: 'work' as const, title: 'Kundengeheimnis', at },
+      captureDraft: { id: 'draft', text: 'Kundengeheimnis', updatedAt: at, context: { kind: 'work' as const, title: 'Kundengeheimnis', at } },
+      packTemplates: [{ id: 'pack', label: 'Kundengeheimnis', context: 'customer', items: ['Geheime Adresse'] }],
+      assistance: { ai: { enabled: false, at, version: 1 }, routeChecks: { 'private-route': { at, revision: 'revision' } } } }
     const note = { id: 'note', text: 'Notiz behalten', createdAt: at, status: 'kept', linkedTo: { kind: 'work', id: 'w' } }
     const records = [record('meta', 'local', local), record('inbox', 'note', note)]
     const snapshot = structuredClone(records)
@@ -93,6 +116,9 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(text).not.toContain('Kundengeheimnis')
     expect(text).not.toContain('Geheime Adresse')
     expect(text).not.toContain('"meds"')
+    expect(text).not.toContain('private-route')
+    expect(text).not.toContain('captureDraft')
+    expect((backup.records[0]!.data as Record<string, unknown>).assistance).toEqual({ ai: { enabled: false, at, version: 1 } })
     expect((backup.records[0]!.data as Record<string, unknown>).deviceTests).toBeUndefined()
     expect(parseBackup(text)[1]?.data).toEqual({ id: 'note', text: 'Notiz behalten', createdAt: at, status: 'kept' })
     expect(records).toEqual(snapshot)
@@ -121,5 +147,14 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(preview.records.find((r) => r.id === 'n')?.data).toMatchObject({ text: 'Neu' })
     latest.data = { changedOutside: true }
     expect(preview.records.find((r) => r.id === 'n')?.data).toMatchObject({ text: 'Neu' })
+  })
+
+  it('ersetzt bewusst übermittelte Listen vollständig und ergänzt nur ausgelassene Objektfelder', () => {
+    const before = record('meta', 'local', { work: [{ id: 'alt', title: 'Alt', createdAt: 1 }], handover: { [date]: { open: 'Behalten', next: 'Öffnen' } } })
+    const incoming = { ...record('meta', 'local', { work: [] }), updated_at: at + 1 }
+    expect(previewImport([incoming], [before]).records[0]?.data).toEqual({ work: [], handover: { [date]: { open: 'Behalten', next: 'Öffnen' } } })
+    const settings = record('settings', 'main', { version: 1, onboarded: true, alarm: { enabled: true, qrSecret: 'BEHALTEN' } })
+    const partial = { ...record('settings', 'main', { version: 1, onboarded: true, alarm: { enabled: false } }), updated_at: at + 1 }
+    expect(previewImport([partial], [settings]).records[0]?.data).toEqual({ version: 1, onboarded: true, alarm: { enabled: false, qrSecret: 'BEHALTEN' } })
   })
 })
