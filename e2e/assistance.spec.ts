@@ -5,7 +5,8 @@ import { installAssistanceBackend, startAssistanceServer } from './helpers/assis
 import { storedRecord } from './helpers/storage'
 
 let server: Awaited<ReturnType<typeof startAssistanceServer>>
-test.beforeAll(async () => { server = await startAssistanceServer() })
+// Der zusätzliche Produktionsbuild gehört zum Fixture-Setup, nicht zur Interaktionsfrist.
+test.beforeAll(async () => { test.setTimeout(120_000); server = await startAssistanceServer() })
 test.afterAll(async () => { await server?.close() })
 const local = (page: Page) => storedRecord<LocalData>(page, 'meta', 'local')
 async function onboard(page: Page) {

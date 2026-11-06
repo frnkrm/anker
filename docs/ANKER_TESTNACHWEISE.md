@@ -289,3 +289,7 @@ Integriert `82450dc`/`b41f6c6`/`f877be2`: Lint/Typecheck,572 Vitest/49 Dateien,1
 ## E07/E08 – gemeinsame optionale Bedienwege
 
 Wetter/Packen6/6PW inkl Großschrift, Stadtwechsel/fehlendeDaten/Offline. Danach integrierter E08-Stand689Vitest/65Dateien+Lint/Typecheck;18/18frischeProduktions-PW,0Skip,1,1min (4Extras,2Geofences,6KI,6Traffic). KontrollierteAnbieter-HTTP/Androidbrücken, keinEchtanbieter/Hardware. Logs `e04-e09/e07-*`, `e08-*`. Native isoliert87JUnit+Compile `e08/android-final.log`; finalerRootstandwirdnochgebaut. OffeneRepro-ReviewfixeswerdenalszusätzlicheAbschlussänderungengeführt.
+
+## E09 – integriertes Zwischengate
+
+725Vitest/71Dateien, Typecheck/Lint grün.27/27frischeProduktions-PW auf4213/System-Chromium155,0Skip,1,4min:Backupvorschau/PartialImport,Storagefehler/Retry/Weckernotfall,A11yundTestseite. Logs `/workspace/.cache/anker/e04-e09/e09-*`. WeitereReviewfixesundQ84sindnochinArbeit, finaleGesamtprüfungfolgt. NeueGeräteberichtebleibenoffen.

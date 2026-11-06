@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: 'e2e',
+  workers: process.env.CI ? 2 : undefined,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
   use: {
