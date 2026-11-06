@@ -23,6 +23,7 @@ import type {
   GameState,
   InboxItem,
   LocalData,
+  Place,
   MedsStatus,
   ResumePoint,
   RoutineId,
@@ -40,6 +41,7 @@ import type {
   WorkTask,
 } from '../core/types'
 import { assertWorkChanges, endBreak, startBreak, startSession, stopSession } from '../core/worktime'
+import { validCommitment, validPlace } from '../core/travel'
 import { getRepository, type Rec, type Repository } from '../data'
 import type { RepositoryWrite } from '../data/types'
 
@@ -123,6 +125,9 @@ interface AppState {
   saveCommitment(c: Commitment): Promise<void>
   /** Bewusste Terminplanung mit privater atomarer Rücknahmebasis. */
   adjustCommitment(c: Commitment, label: string, reason?: string): Promise<void>
+  markCommitment(id: string, field: 'leftAt' | 'arrivedAt' | 'backAt', at?: number): Promise<void>
+  savePlace(place: Place): Promise<void>
+  removePlace(id: string): Promise<void>
   /** Arbeit starten. Läuft schon etwas, bleibt es dabei. */
   workStart(i?: { kind?: WorkSessionKind; label?: string; commitmentId?: string; at?: number }): Promise<void>
   /** Beendet, was läuft. Mehrfaches Tippen ändert nichts. */
@@ -957,14 +962,42 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async saveCommitment(c) {
+    if (!validCommitment(c)) throw new Error('Prüfe Datum, Uhrzeit und die freiwilligen Angaben zum Termin. Deine bisherigen Daten bleiben erhalten.')
     if (pendingAtomicAction) await waitForAtomicActions()
     await get().saveLocal((local) => ({ ...local, commitments: [...local.commitments.filter((commitment) => commitment.id !== c.id), c] }))
   },
 
   adjustCommitment(c, label, reason) {
+    if (!validCommitment(c)) return Promise.reject(new Error('Prüfe die Angaben zum Termin. Es wurde nichts geändert.'))
     return editDayPlan(c.date, label, (log, local) => {
       local.commitments = [...local.commitments.filter((commitment) => commitment.id !== c.id), structuredClone(c)]
       return reason ? { ...log, override: { ...log.override, reason } } : log
+    })
+  },
+
+  async markCommitment(id, field, at = Date.now()) {
+    if (!['leftAt', 'arrivedAt', 'backAt'].includes(field) || !Number.isFinite(at) || at < 0) throw new Error('Der Zeitpunkt ist ungültig.')
+    await get().saveLocal((local) => ({ ...local, commitments: local.commitments.map((commitment) => commitment.id === id && commitment.status !== 'cancelled' ? { ...commitment, [field]: commitment[field] ?? at } : commitment) }))
+  },
+
+  async savePlace(place) {
+    if (!validPlace(place)) throw new Error('Prüfe die Angaben zum Ort. Koordinaten und Wegzeiten dürfen offen bleiben.')
+    await get().saveLocal((local) => ({ ...local, places: [...local.places.filter((old) => old.id !== place.id), structuredClone(place)] }))
+  },
+
+  async removePlace(id) {
+    await get().saveLocal((local) => {
+      const place = local.places.find((candidate) => candidate.id === id)
+      if (!place) return local
+      return {
+        ...local,
+        places: local.places.filter((candidate) => candidate.id !== id),
+        commitments: local.commitments.map((commitment) => ({
+          ...commitment,
+          ...(commitment.placeId === id ? { placeId: undefined, placeLabel: commitment.placeLabel || place.label, address: commitment.address || place.address, items: commitment.items ?? place.items } : {}),
+          ...(commitment.originPlaceId === id ? { originPlaceId: 'unknown' } : {}),
+        })),
+      }
     })
   },
 
