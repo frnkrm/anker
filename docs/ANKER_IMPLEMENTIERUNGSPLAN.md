@@ -101,7 +101,7 @@ Status: **V** vorhanden und im genannten automatischen Umfang geprüft · **U** 
 | E01 Wecker | sichere Delta-Umsetzung implementiert;340 Vitest-/29 Browser-/50 JUnit-Tests bestanden, Lint/Typecheck/Build bestanden. Details im Etappenergebnis und Testprotokoll. Geräte-Gate offen; keine neue Android-API-/Berechtigungsstrategie |
 | E02 Erinnerungen/Druck | implementiert; aktuelle Nachweise und Hardwaregrenzen im E02-Ergebnis unten. NO-01–05/PR-01–03 im vorhandenen Modell integriert,74 geführte Gerätefälle insgesamt |
 | E03 Zustände/Tasks/Recovery | implementiert und automatisch geprüft:499 Logik-/59 Browser-/73 Kotlinfälle, Release-APK rc.5/Code7; Remote-CI18 grün auf main5c898a8. Geführte G76–G85 ergänzt; echte Android-Prüfungen offen. Keine Freigabe aus einem Browsermock abgeleitet; Details unten |
-| E04 Flexible Planung/Spiel | danach: Nichtnutzung ohne Kapitelverlust, freie Verlängerung/PC-Zustand; Fortschritt bewahren |
+| E04 Flexible Planung/Spiel | integriert und automatisch geprüft: atomare private Undo-Basis, echte Ist-Handlungen erhalten, freie Verlängerung/PC-Pause, Fokus→Heute anders, Tages-Coverage und Tagesdruck. Integrierter Stand550 Unit/29 gezielte Browserfälle; Windows/Server/Handy offen |
 | E05 Arbeit | danach: Intervallkonflikte/Restprognose, Wochenprofil |
 | E06 lokale Wege/Schlaf | danach: unklare Orte/Bedarf/Material, keine erfundenen Daten |
 | E07 Wetter/Provider | externe Quellen und ggf. notwendige Entscheidung, offline Teilaufgaben möglich |
@@ -263,6 +263,16 @@ Baseline `59c530f8f012587d6d1533ad26227342dc60d875`, sauberer Hauptbaum, App rc.
 | E09 Qualität/UX/IN-06 | beschädigte Sicherung kann teilweise importieren, Speicherinitfehler wird still RAM. Export sensible Gruppen, Tastatur/Touch/Kontrast/ReducedMotion, Zielgrund/Erprobung unvollständig | kompatible Vorabvalidierung/Importvorschau, sichtbarer Speicherfehler+Retry, Datenschutzprojektion, A11y, höchstens drei lokale Lernpunkte, gemeinsame Regression und maximal zehn geführte Gerätestationen |
 
 Vor UI-Arbeit mitgeteilt: Heute anders auch im Routinefokus; seltene Wege unter Weitere Möglichkeiten. Arbeitsdetails bleiben Arbeit & Gleitzeit, Wetter-/Packdetails Vorbereitung, keine neue Hauptnavigation pro Feature. Alle Geräteberichte bleiben erhalten; keine automatische Erledigung oder Testhäkchen. Aktueller Schritt: E04 vertikal implementieren; spätere Änderungen noch nicht als integriert/geprüft zählen.
+
+### E04 – integriertes Ergebnis
+
+Integrierte Codecommits `7603162` (PC-Protokoll), `5710282`/`96837ad` (atomare Tagesrücknahme und Ist-Erhalt), `7213062` (Bedienung/Tagesdruck); kleiner gemeinsamer Weckbestätigungsvertrag `311783c` als notwendige sichere Voraussetzung aus E06. Unabhängige Vorarbeit `af29472` (Zielgrund) und `6edb46d` (geschlossene Providerbasis) ebenfalls enthalten, keine reale Anbieteraktivierung.
+
+**Implementiert:** nur zum Tages-Undo gehörende private Baseline in meta/local, gemeinsam mit Tageslog transaktional; vorhandene Termine und echte Fahrt/Ankunft/Arbeit/Stepabschlüsse erhalten. Wiederholte freie +30/+60/Uhrzeit/offene Abende, neue PC-Aufträge scheduled/paused mit stabiler Revision und Berliner Plantag. Kein03:59-Scheinauftrag/kein behaupteter PC-Empfang; Windows-Paket2 bewahrt heutige Pause offline, setzt alte Cache-Uhrzeit nicht auf neue Tage und bietet datumsgebundenen Abbruch ohneZwang. Neue Windows-/Serverversion für den Protokollweg nötig; kein Deployment ausgeführt. Heute anders auch im Fokus, drei Hauptwege und übrige Details; Öffnen erledigt nichts, Anwenden pausiert passend. Quellen der Vorabendabdeckung sichtbar und nur für heute übersteuerbar. Tagesinstanzdruck verwendet denselben Plan/Log, Vorlage bleibt wählbar. Rückfrage später erfindet keine Rückkehr. Spielrückmeldungen passiv statt blockierend; Nichtnutzungsverlust seitE03 bereits entfernt.
+
+**Automatisch geprüft:**550 Vitest/47 Dateien, Lint/Typecheck grün im Integrationsbaum. Frischer Produktionsbrowser auf4213/System-Chromium155:29/29,0 Skips/Flaky (1,3min), darunter alle8 neuen E04-Fälle, neue Zielnotiz und bestehende Abend-/Druck-/Native-Navigations-/Recoveryregressionen. Rotnachweise:4 ursprüngliche Undo-Risiken,1 später bestätigter Schritt,3 PC-Publishfehler. Logs `e04-e09/e04-integrated-*` und `e04-browser*`; unabhängige E04-Belege unter `e04/`.
+
+**Offen:** tatsächlicher Windows2-Scriptlauf/Systemaufgabe, Serverfunktionsversion2, PC-Empfang und alle neuen Android-Gerätetests. Keine Tests vom Nutzer verlangt. Nächster Integrationsschritt E05; Codes in getrennten Worktrees bleiben Vorarbeit bis Übernahme/Prüfung.
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
