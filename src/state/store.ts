@@ -125,6 +125,8 @@ interface AppState {
   saveCommitment(c: Commitment): Promise<void>
   /** Bewusste Terminplanung mit privater atomarer Rücknahmebasis. */
   adjustCommitment(c: Commitment, label: string, reason?: string): Promise<void>
+  /** Planfelder auf dem neuesten Termin ändern; verspätete Vorschläge vor dem Schreiben verwerfen. */
+  updateCommitment(id: string, patch: Partial<Omit<Commitment, 'id' | 'date'>>, label?: string, accept?: () => boolean): Promise<void>
   markCommitment(id: string, field: 'leftAt' | 'arrivedAt' | 'backAt', at?: number): Promise<void>
   savePlace(place: Place): Promise<void>
   removePlace(id: string): Promise<void>
@@ -295,8 +297,9 @@ function editTask(ref: TaskRef, edit: (task: InboxItem | WorkTask, data: TaskDat
 }
 
 /** Planänderung und private Rücknahmebasis werden gemeinsam gespeichert, ohne echte Handlungen zu erfinden. */
-function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: LocalData) => DayLog): Promise<void> {
+function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: LocalData) => DayLog, accept?: () => boolean): Promise<void> {
   return atomic(async () => {
+    if (accept && !accept()) throw new Error('Dieser Vorschlag passt nicht mehr zum aktuellen Plan. Bitte prüfe den Termin erneut.')
     const st = useApp.getState()
     const local = structuredClone(st.local)
     let log = structuredClone(st.days[date] ?? emptyLog(date))
@@ -970,9 +973,28 @@ export const useApp = create<AppState>()((set, get) => ({
   adjustCommitment(c, label, reason) {
     if (!validCommitment(c)) return Promise.reject(new Error('Prüfe die Angaben zum Termin. Es wurde nichts geändert.'))
     return editDayPlan(c.date, label, (log, local) => {
+      if (c.source && c.status !== 'cancelled' && local.commitments.some((other) => other.id !== c.id && other.date === c.date && other.status !== 'cancelled' && other.source?.provider === c.source!.provider && other.source.id === c.source!.id)) {
+        throw new Error('Dieser Kalendertermin ist bereits verbunden. Bearbeite den vorhandenen Termin, statt eine zweite Fahrt anzulegen.')
+      }
       local.commitments = [...local.commitments.filter((commitment) => commitment.id !== c.id), structuredClone(c)]
       return reason ? { ...log, override: { ...log.override, reason } } : log
     })
+  },
+
+  updateCommitment(id, patch, label = 'Termin angepasst', accept) {
+    const initial = get().local.commitments.find((commitment) => commitment.id === id)
+    if (!initial) return Promise.reject(new Error('Dieser Termin ist nicht mehr vorhanden.'))
+    return editDayPlan(initial.date, label, (log, local) => {
+      const current = local.commitments.find((commitment) => commitment.id === id)
+      if (!current || current.date !== initial.date) throw new Error('Der Termin wurde inzwischen geändert. Bitte öffne ihn erneut.')
+      const next = { ...current, ...structuredClone(patch), id: current.id, date: current.date }
+      if (!validCommitment(next)) throw new Error('Prüfe die Angaben zum Termin. Es wurde nichts geändert.')
+      if (next.source && next.status !== 'cancelled' && local.commitments.some((other) => other.id !== id && other.date === next.date && other.status !== 'cancelled' && other.source?.provider === next.source!.provider && other.source.id === next.source!.id)) {
+        throw new Error('Dieser Kalendertermin ist bereits verbunden. Es wurde keine zweite Fahrt angelegt.')
+      }
+      local.commitments = local.commitments.map((commitment) => commitment.id === id ? next : commitment)
+      return log
+    }, accept)
   },
 
   async markCommitment(id, field, at = Date.now()) {

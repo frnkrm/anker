@@ -77,4 +77,45 @@ describe('Lokale Orte und unverfälschte Terminaktionen', () => {
     await app().load()
     expect(app().local.commitments).toHaveLength(1)
   })
+
+  it('verbindet dieselbe Kalenderquelle auch aus zwei Formularen nur einmal', async () => {
+    const c = commitment({ source: { provider: 'google', id: 'event-one' } })
+    const results = await Promise.allSettled([app().adjustCommitment(c, 'Termin'), app().adjustCommitment({ ...c, id: 'second' }, 'Termin')])
+    expect(results.map((result) => result.status)).toEqual(['fulfilled', 'rejected'])
+    expect(app().local.commitments).toHaveLength(1)
+    expect(app().local.commitments[0]?.id).toBe(c.id)
+  })
+
+  it('prüft einen verspäteten Vorschlag erst innerhalb der Schreibbarriere und lässt Bestand und Undo unverändert', async () => {
+    await app().saveCommitment(commitment({ travelMin: 30 }))
+    const before = structuredClone(app().local)
+    const writes = vi.spyOn(storage.repo!, 'putMany')
+    let release!: () => void
+    let reached!: () => void
+    const waiting = new Promise<void>((resolve) => { release = resolve })
+    const began = new Promise<void>((resolve) => { reached = resolve })
+    const original = storage.repo!.put.bind(storage.repo!)
+    vi.spyOn(storage.repo!, 'put').mockImplementationOnce(async (...args) => { reached(); await waiting; await original(...args) })
+    let current = true
+    const first = app().saveLocal((local) => local)
+    await began
+    const applying = app().updateCommitment('customer', { travelMin: 60 }, 'Fahrzeit übernommen', () => current)
+    const rejected = expect(applying).rejects.toThrow('passt nicht mehr')
+    current = false; release()
+    await first; await rejected
+    expect(app().local).toEqual(before)
+    expect(app().days[date]).toBeUndefined()
+    expect(writes).not.toHaveBeenCalled()
+  })
+
+  it('patcht Planfelder ohne zwischenzeitliche Ankunft, Material oder stabile Referenzen zu verlieren', async () => {
+    await app().saveCommitment(commitment({ travelMin: 30, items: ['Laptop'] }))
+    const arriving = app().markCommitment('customer', 'arrivedAt', at)
+    const editing = app().updateCommitment('customer', { travelMin: 45 }, 'Bewusst neue Fahrzeit')
+    await Promise.all([arriving, editing])
+    expect(app().local.commitments[0]).toMatchObject({ id: 'customer', date, travelMin: 45, items: ['Laptop'], arrivedAt: at })
+    await app().load()
+    expect(app().local.commitments[0]).toMatchObject({ travelMin: 45, arrivedAt: at })
+    expect(app().local.workSessions).toEqual([])
+  })
 })
