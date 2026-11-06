@@ -46,12 +46,21 @@ export async function signOut() {
 export function listenForAuthLinks() {
   if (!isNative() || !supabaseConfigured) return
   void App.addListener('appUrlOpen', async ({ url }) => {
-    const code = new URL(url).searchParams.get('code')
-    if (code) {
-      await safe(async () => void (await sb()!.auth.exchangeCodeForSession(code)), undefined)
-      useApp.getState().showToast('Angemeldet. Sync läuft.')
-      await syncNow()
-    }
+    let code: string | null
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== `${APP_ID}:` || parsed.hostname !== 'login' || (parsed.pathname !== '' && parsed.pathname !== '/')) return
+      code = parsed.searchParams.get('code')
+    } catch { return }
+    if (!code) return
+    const signedIn = await safe(async () => {
+      const result = await sb()!.auth.exchangeCodeForSession(code)
+      return !result.error
+    }, false)
+    if (!signedIn) { useApp.getState().showToast('Die Anmeldung hat nicht geklappt. Deine lokalen Daten bleiben erhalten.'); return }
+    const syncEnabled = useApp.getState().settings.integrations.sync
+    useApp.getState().showToast(syncEnabled ? 'Angemeldet. Sync läuft.' : 'Angemeldet. Automatischer Sync bleibt ausgeschaltet.')
+    if (syncEnabled) await syncNow()
   })
 }
 

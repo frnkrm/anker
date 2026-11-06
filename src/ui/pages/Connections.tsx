@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { buildIcs } from '../../core/export/ics'
 import { saveFile } from '../../platform/files'
-import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
+import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
 import { currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
 import { Button, Card, Page, Section, TextInput, Toggle } from '../components/ui'
@@ -13,7 +13,8 @@ export default function Connections() {
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState<string>()
   const [lastSync, setLastSync] = useState<number>()
-  const [gConnected, setGConnected] = useState(googleConnected())
+  const gConnected = googleConnected()
+  const calendar = st.local.extras?.calendar
 
   useEffect(() => {
     void currentUser().then(setUser)
@@ -80,6 +81,9 @@ export default function Connections() {
 
       <Section title="Google Kalender">
         <Card className="space-y-3">
+          <p className="text-sm text-muted">Freiwillig: Google erhält deine Anmeldung und den Kalenderzugriff. Gelesene Termine werden lokal für deinen Tagesplan gespeichert. Du kannst den Zugriff hier trennen; ohne Verbindung bleibt Anker nutzbar.</p>
+          {calendar && <p role="status" className="text-sm text-muted">{calendar.state === 'ready' ? 'Termine aktuell eingelesen.' : calendar.state === 'stale' ? 'Letzter Kalenderstand: gerade nicht aktualisierbar. Die gespeicherten Termine bleiben sichtbar.' : calendar.issue === 'auth' ? 'Google-Anmeldung fehlt oder ist abgelaufen. Bitte bewusst neu verbinden.' : calendar.state === 'error' ? 'Kalender gerade nicht erreichbar. Lokale Planung bleibt nutzbar.' : 'Google-Kalender derzeit getrennt.'}{calendar.fetchedAt ? ` Letzter erfolgreicher Abruf: ${new Date(calendar.fetchedAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}.` : ''}</p>}
+
           {!googleConfigured ? (
             <p className="text-muted">Nicht konfiguriert. Anleitung im README (Google Cloud).</p>
           ) : gConnected ? (
@@ -90,30 +94,38 @@ export default function Connections() {
                   label="Termine lesen"
                   checked={integ.googleCalendar}
                   onChange={async (v) => {
+                    invalidateCalendarRequests()
                     await setInteg({ googleCalendar: v })
                     if (v) await refreshCalendar()
                     else await st.setEvents([])
                   }}
                 />
               </div>
+              <p className="text-sm text-muted">Schreiben ist eine eigene Wahl: Beim Einschalten wird ein zusätzlicher Zugriff auf von Anker erstellte Kalender angefragt. Google erhält dafür deine Routinentitel und Zeiten. Fremde Termine werden nicht geändert.</p>
               <div className="flex items-center justify-between">
-                <span>Routinen in Kalender „Anker“ schreiben</span>
+                <span>Routinen in einen eigenen Kalender „Anker“ schreiben</span>
                 <Toggle
                   label="Routinen schreiben"
                   checked={integ.writeCalendar}
                   onChange={async (v) => {
+                    invalidateCalendarRequests()
+                    if (v && !googleWriteAuthorized() && !await connectGoogle(true)) { setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt. Es wurde nichts eingeschaltet.'); return }
                     await setInteg({ writeCalendar: v })
                     if (v) setMsg((await writeAnkerBlocks()) ? 'Kalender „Anker“ aktualisiert.' : 'Schreiben hat nicht geklappt.')
                   }}
                 />
               </div>
+              {integ.writeCalendar && !googleWriteAuthorized() && <Button onClick={async () => {
+                if (!await connectGoogle(true)) { setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt.'); return }
+                setMsg(await writeAnkerBlocks() ? 'Eigener Anker-Kalender aktualisiert.' : 'Schreiben hat nicht geklappt. Lokale Planung bleibt erhalten.')
+              }}>Schreibfreigabe bewusst erneuern</Button>}
               <Button
                 variant="ghost"
                 onClick={async () => {
                   await disconnectGoogle()
-                  setGConnected(false)
                   await setInteg({ googleCalendar: false, writeCalendar: false })
                   await st.setEvents([])
+                  await st.saveLocal((local) => ({ ...local, extras: { ...local.extras, calendar: { ...local.extras?.calendar, state: 'disconnected', checkedAt: Date.now() } } }))
                 }}
               >
                 Google trennen
@@ -125,7 +137,6 @@ export default function Connections() {
               className="w-full"
               onClick={async () => {
                 const ok = await connectGoogle()
-                setGConnected(ok)
                 if (ok) {
                   await setInteg({ googleCalendar: true })
                   await refreshCalendar()
