@@ -2,7 +2,7 @@
 
 ## Gesamtauftrag v6: Baseline und aktueller Fortschritt
 
-**Aktuell06.11.2026:** E03 ist implementiert und im automatischen Umfang geprüft (499 Logik-/58 Browser-/73 Kotlin-Tests, App1.2.0-rc.4/Code6). Neue Geräteprüfungen G76–G85 bleiben offen. Die folgende E00-Matrix dokumentiert die unveränderte Baseline; die Etappenberichte darunter halten den aktuellen Fortschritt fest. Dieser Abschnitt hat Vorrang vor den historischen Fortschrittsangaben weiter unten. Quelle: [öffentliche technische Fassung des vollständig gelesenen Gesamtauftrags](auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md). Neue direkte Nutzerwünsche: geführte Testseite, direkt bearbeitbare Uhrzeiten und Dauern. Bestehende Abendhilfen und das experimentelle Weckfenster bleiben erhalten.
+**Aktuell06.11.2026:** E03 ist implementiert und im automatischen Umfang geprüft (499 Logik-/58 Browser-/73 Kotlin-Tests, initiale App1.2.0-rc.4/Code6). Remote-CI17 deckte danach die unten dokumentierte Puls-Navigationsrace auf; Korrektur rc.5/Code7 mit499 Logik- und8 gezielten Fokusprüfungen grün, vollständiger Nachlauf/CI noch offen. Neue Geräteprüfungen G76–G85 bleiben offen. Die folgende E00-Matrix dokumentiert die unveränderte Baseline; die Etappenberichte darunter halten den aktuellen Fortschritt fest. Dieser Abschnitt hat Vorrang vor den historischen Fortschrittsangaben weiter unten. Quelle: [öffentliche technische Fassung des vollständig gelesenen Gesamtauftrags](auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md). Neue direkte Nutzerwünsche: geführte Testseite, direkt bearbeitbare Uhrzeiten und Dauern. Bestehende Abendhilfen und das experimentelle Weckfenster bleiben erhalten.
 
 **E00 abgeschlossen:** tatsächlicher Branch `work`, HEAD `38da41ef78a68f3d5d9ea25e73e1d4cf946b9d36`, Ursprung `github.com/frnkrm/anker`, App `1.2.0-rc.1`. Vorhandene Änderungen und unversionierte Dateien sind Teil der Baseline, nicht zurückgesetzt. Kein Claude-Prozess festgestellt; nur der Hauptagent schreibt, Unteragent prüft lesend. Keine geltenden `AGENTS.md`/`AGENTS.override.md` an den übergeordneten oder relevanten Projektpfaden gefunden. `CLAUDE.md`, Projektanleitung, Struktur, Changelog, Plan und Fach­dokumentation gelesen.
 
@@ -217,7 +217,7 @@ Nutzer bestätigt Überlagerung durch Uhr-/Akku-Leiste. `viewport-fit=contain` u
 
 **Geräterückmeldung06.11.2026:** Nutzer bestätigt **„oben frei“** nach der Bitte zum ersten Sichttest auf Jetzt. Der gemeldete obere Überlagerungsfehler ist damit am Galaxy nicht mehr sichtbar; G75 bleibt als Teilprüfung geführt. Fokus, Tastatur, Rotation, Kameraaussparung und untere Systemnavigation sind nicht bestätigt. Installierte Buildkennung und Windows-Ausführung wurden nicht unabhängig ausgelesen. Der Bericht erfordert kein weiteres Update und ändert keine lokalen App-Häkchen oder Nutzerdaten. Nächste Produktetappe bleibt E03.
 
-## E03 – umgesetzt und automatisch geprüft (06.11.2026)
+## E03 – initial umgesetzt und lokal automatisch geprüft (06.11.2026)
 
 Ausdrückliche Freigabe „du kannst gerne schon mal mit E03 beginnen“. Startstand `34f8a87`, sauberer Hauptbaum; Entwicklungsbranch `entwicklung/anker-e03`. Quellsnapshot `/workspace/.cache/anker/e03/baseline-source.tar.gz`, SHA256 `8543d35dfe82701a5d493aad4676f0b6fb335d35092da8fdd4854c3e626f75a8`. Baseline376 Logik-/40 Browserfälle, App rc.3/Code5. Hauptagent schrieb allein im Integrationsbaum; Teilagenten ausschließlich in getrennten Worktrees. Bestehende Datenmodelle und Claude-Änderungen wiederverwendet, privates Original unverändert und ausgeschlossen.
 
@@ -238,6 +238,12 @@ Ausdrückliche Freigabe „du kannst gerne schon mal mit E03 beginnen“. Starts
 **Update:** App1.2.0-rc.4/Code6; Quellkennung `e4541ce7f2587af4796541c6da5d81396a5542819106b79ff75759ec8a37bb2e`. SDK-freie Signierhilfe unverändert, kein Nutzerschlüssel verwendet. Paket- und Prüfdetails im E03-Abschnitt der [Testnachweise](ANKER_TESTNACHWEISE.md).
 
 **Statusgrenzen:** E03 implementiert und automatisch getestet; noch keine neue echte Android-Prüfung. G75 hat weiterhin ausschließlich die frühere obere Anzeige bestätigt. Fokus-Resume nach echter Prozessbeendigung, Hardwarepulse, native SQLite-Laufzeit, Widgets und sämtliche G76–G85 bleiben am Galaxy offen. Keine KI oder produktiven externen Dienste aktiviert; kein Release/Tag. Main-Übernahme und GitHub-CI werden nach Durchführung unten mit tatsächlichen IDs ergänzt. Nächste Produktetappe ist E04, hier nicht begonnen.
+
+### E03-Nachbesserung nach Remote-CI17
+
+Main `5e46b17` und initiales Update rc.4/Code6: lokal499/58/73 grün, aber [GitHub-CI17](https://github.com/frnkrm/anker/actions/runs/42254106105)57/58 rot. Ausschließlich der verspätete native Puls schlug fehl: URL bereits verlassen, React-Komponente vor dem Unmount noch aktiv. Keine Erwartungen abgeschwächt. Neuer deterministischer Plattformtest hält diesen Übergang fest und liefert am Altcode reproduzierbar1 statt0 Pulse. `useFocusPulse` bindet jetzt den gerenderten Routerpfad und vergleicht die Browseradresse vor und nach asynchronen Aufrufen. Session-/Off-/Alarm-/Sichtbarkeits-/Restzeitprüfungen bleiben.
+
+Korrigierter Stand rc.5/Code7: Lint/Typecheck/499 Logikfälle und alle8 Recovery-Browserfälle grün, einschließlich altem Fehlerfall und neuem Übergangstest. Vollständiger59-Fälle-Lauf, neuer Android-Build und Remote-CI werden anschließend mit tatsächlichen Ergebnissen ergänzt. Der initiale rc.4-Nachweis bleibt als Verlauf erhalten; keine neue Geräteprüfung behauptet.
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 

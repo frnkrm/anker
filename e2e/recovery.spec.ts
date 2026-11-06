@@ -266,3 +266,23 @@ test('Verspätete native Pulsantwort bleibt nach Verlassen des Fokus ohne Vibrat
   await expect.poll(() => page.evaluate(() => (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.pending)).toBe(0)
   expect(await pulseCount(page)).toBe(0)
 })
+
+test('Begonnene Navigation verwirft den alten Puls schon vor dem React-Unmount', async ({ page }) => {
+  await pulseBridge(page)
+  await page.evaluate(() => { (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.hold = true })
+  await page.clock.setFixedTime(new Date(START + 120_000))
+  await expect.poll(async () => (await focus(page)).timer.pulseCheckpointMs).toBe(120_000)
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.pending)).toBeGreaterThan(0)
+  // React Router kann die Adresse bereits ändern, während die alte Ansicht während einer Transition noch steht.
+  // Diese bewusste Plattformsimulation hält genau dieses Zwischenstadium fest.
+  await page.evaluate(() => history.pushState(null, '', '/'))
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true })).toBeVisible()
+  await page.evaluate(() => {
+    const probe = (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe
+    probe.hold = false
+    for (const release of probe.release.splice(0)) release()
+  })
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.pending)).toBe(0)
+  expect(await pulseCount(page)).toBe(0)
+})

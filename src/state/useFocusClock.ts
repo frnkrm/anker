@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router'
 import { checkpointPulse, elapsedMs, pulseMark, remainingMs, type CountdownState, type FocusSession } from '../core/focus'
 import { inQuietHours } from '../core/support'
 import { minutesOnPlanDay } from '../core/time'
@@ -31,6 +32,9 @@ export function useFocusClock(timer?: CountdownState, active = true): number {
 
 /** Gemeinsame Pulse und E02-Ruhespiegelung; niemals Abschluss oder Arbeitszeit daraus ableiten. */
 export function useFocusPulse(session?: FocusSession, suppliedNow?: number): void {
+  // Bei einer Router-Transition kann die URL bereits wechseln, bevor diese Ansicht unmountet.
+  // An den gerenderten Fokuspfad binden, nicht an eine erst später gelesene Browseradresse.
+  const sourcePath = useLocation().pathname
   const ownNow = useFocusClock(suppliedNow === undefined ? session?.timer : undefined, suppliedNow === undefined)
   const now = suppliedNow ?? ownNow
   const config = useApp((state) => state.settings.focus)
@@ -67,21 +71,21 @@ export function useFocusPulse(session?: FocusSession, suppliedNow?: number): voi
     }
     const previous = last.current.elapsed
     last.current.elapsed = elapsed
-    const blocked = document.visibilityState !== 'visible' || inQuietHours(minutesOnPlanDay(today(), now), useApp.getState().settings)
+    const blocked = window.location.pathname !== sourcePath || document.visibilityState !== 'visible' || inQuietHours(minutesOnPlanDay(today(), now), useApp.getState().settings)
     const mark = pulseMark(session.timer, config, now, previous, blocked)
     if (mark === undefined || !isNative()) return
     const sessionId = session.id
     void safe(async () => {
       await useApp.getState().updateFocus(sessionId, (current) => ({ ...current, timer: checkpointPulse(current.timer, mark) }))
-      if (liveSession.current !== sessionId) return
+      if (liveSession.current !== sessionId || window.location.pathname !== sourcePath) return
       const alarm = await AnkerNative.getAlarmState()
       const state = useApp.getState()
       const current = state.local.focus
       const at = Date.now()
-      if (liveSession.current !== sessionId || alarm.ringing || document.visibilityState !== 'visible' || state.settings.focus.pulse === 'off'
+      if (liveSession.current !== sessionId || window.location.pathname !== sourcePath || alarm.ringing || document.visibilityState !== 'visible' || state.settings.focus.pulse === 'off'
         || current?.id !== sessionId || current.timer.status !== 'running' || remainingMs(current.timer, at) === 0
         || inQuietHours(minutesOnPlanDay(today(), at), state.settings)) return
       await AnkerNative.vibratePulse({ strength: state.settings.focus.pulse === 'strong' ? 'strong' : 'gentle' })
     }, undefined)
-  }, [session, now, config, quiet])
+  }, [session, now, config, quiet, sourcePath])
 }
