@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { randomId } from '../../core/defaults'
 import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, weekday, zonedToUtc } from '../../core/time'
 import type { Commitment, DayLog, DayPlan, PlannedWorkKind } from '../../core/types'
-import { dayActual, dayBalance, latestInfo, nextObligation, overLatest, startRisk, SUNDAY_HINT, withUsualBreak, workHints } from '../../core/worktime'
+import { currentWorkActual, dayActual, dayBalance, latestInfo, nextObligation, overLatest, startRisk, SUNDAY_HINT, withUsualBreak, workHints } from '../../core/worktime'
 import { safe } from '../../platform/native'
 import { planFor, useApp } from '../../state/store'
 import { Button, Segmented, Stepper, TextInput, TimeField } from './ui'
@@ -39,22 +39,19 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
   const st = useApp()
   const copy = useCopy()
   if (!st.settings.flex.tracking) return null
-  const actual = dayActual(st.local.workSessions, date, now)
+  const actual = currentWorkActual(st.local.workSessions, date, now)
   const wi = plan.workInfo
   const box = 'mb-3 space-y-2 rounded-2xl border border-line px-4 py-3'
 
   // Pause und Einsätze sind gerade die Hauptaktion
   if (actual.open && (actual.openBreak || actual.open.kind !== 'regular')) return null
-  // Eine offene Sitzung von früher klärt die Hauptaktion zuerst
-  if (st.local.workSessions.some((x) => x.endAt === undefined && x.date !== date)) return null
-
   if (actual.unconfirmed) return <div className={box} data-testid="workbar"><p>Einige Arbeitszeiten sind noch unbestätigt.</p><Link to="/arbeitszeit" className="flex min-h-11 items-center text-accent">Arbeitszeiten prüfen</Link></div>
 
   if (actual.open) {
     const over = actual.netMin - (wi?.targetNetMin ?? 0)
     return (
       <div className={box} data-testid="workbar">
-        <p>{over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend ${wi?.forecastLowerBound ? 'frühestens' : 'etwa'} ${fmtTime(wi?.forecastEnd ?? plan.workEnd ?? m)}`}</p>
+        <p>{actual.open.date !== date ? `Arbeit läuft seit ${fmtTime(minutesOnPlanDay(actual.open.date, actual.open.startAt))}.` : over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend ${wi?.forecastLowerBound ? 'frühestens' : 'etwa'} ${fmtTime(wi?.forecastEnd ?? plan.workEnd ?? m)}`}</p>
         <div className="flex gap-2">
           <Button className="flex-1" onClick={() => st.workBreakStart()}>
             Pause starten

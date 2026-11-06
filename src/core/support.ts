@@ -4,7 +4,7 @@
 import { nowView, type NowAction, type NowView } from './now'
 import { fmtTime, minutesOnPlanDay, type DateStr } from './time'
 import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkSession, WorkSessionKind, WorkTask } from './types'
-import { dayActual, staleSession } from './worktime'
+import { currentWorkActual, staleSession } from './worktime'
 import { usableResume } from './recovery'
 import { taskIsActionable, taskIsOpen, taskNextStep, taskPriority } from './tasks'
 
@@ -172,30 +172,35 @@ export function nextAction(i: NextInput): NextView {
   const base = nowView(i.plan, i.log, i.m)
   const mode = currentMode(i.log)
   const view = (action: NextAction, reason?: string): NextView => ({ ...base, action, reason })
-  const a = base.action
+  let a = base.action
   const hardReason = base.hard && base.hard.at - i.m <= 60 && base.hard.at > i.m ? `Als Nächstes sinnvoll, weil um ${fmtTime(base.hard.at)} ${base.hard.label} ansteht.` : undefined
 
-  // Schlafen und Aufwachen gehen immer vor
-  if (a.type === 'sleep' || a.type === 'wake') return view(a)
+  const sessions = i.sessions ?? []
+  const actual = currentWorkActual(sessions, i.plan.date, i.nowMs)
+  // Ein geplanter Schlaf-/Aufstehhinweis beendet keinen bewusst gestarteten Abschnitt.
+  // Ein wirklich klingelnder Wecker wird weiterhin vom nativen Alarmzustand angezeigt.
+  const running = actual.unconfirmed ? undefined : actual.open
+  const leg = legAction(i.plan, i.m, sessions)
+  if (leg?.action.type === 'go') return view(leg.action, leg.reason)
+  if ((a.type === 'sleep' || a.type === 'wake') && !running) return view(a)
 
   // Eine vergessene Sitzung wird angesprochen, aber nie selbst beendet: Das Ende kennst nur du
-  const sessions = i.sessions ?? []
   const stale = staleSession(sessions, i.plan.date, i.nowMs)
   if (stale) return view({ type: 'work-stale', title: 'Läuft deine Arbeit noch?', sub: `Gestartet um ${fmtTime(minutesOnPlanDay(stale.date, stale.startAt))}. Trag einfach das Ende ein.`, session: stale })
 
   // Ein Termin läuft oder steht an: Er bestimmt den Moment, ohne weitere Fragen
-  const leg = legAction(i.plan, i.m, sessions)
-  if (leg?.action.type === 'go') return view(leg.action, leg.reason)
-  const actual = dayActual(sessions, i.plan.date, i.nowMs)
   if (actual.open && actual.openBreak) {
     const since = fmtTime(minutesOnPlanDay(i.plan.date, actual.openBreak.startAt))
-    return view({ type: 'work-break', title: 'Pause läuft', sub: i.plan.workEnd !== undefined ? `Seit ${since} · Feierabend ${i.plan.workInfo?.forecastLowerBound ? 'frühestens' : 'gerade etwa'} ${fmtTime(i.plan.workInfo?.forecastEnd ?? i.plan.workEnd)}` : `Seit ${since}`, session: actual.open })
+    return view({ type: 'work-break', title: 'Pause läuft', sub: actual.open.date === i.plan.date && i.plan.workEnd !== undefined ? `Seit ${since} · Feierabend ${i.plan.workInfo?.forecastLowerBound ? 'frühestens' : 'gerade etwa'} ${fmtTime(i.plan.workInfo?.forecastEnd ?? i.plan.workEnd)}` : `Seit ${since}`, session: actual.open })
   }
   if (actual.open && actual.open.kind !== 'regular') {
     return view({ type: 'einsatz-running', title: actual.open.label?.trim() || SESSION_LABEL[actual.open.kind], sub: `Läuft seit ${fmtTime(minutesOnPlanDay(i.plan.date, actual.open.startAt))}`, session: actual.open })
   }
   if (leg) return view(leg.action, leg.reason)
-  if (i.plan.pendingEvening && i.m >= (i.plan.workEnd ?? 18 * 60) && !i.log?.override.backAt && i.log?.override.routineAt?.evening === 'return') {
+  if (running && a.type !== 'leave' && base.block?.kind !== 'event' && base.block?.kind !== 'commute') {
+    a = { type: 'work', title: 'Arbeit läuft', sub: `Seit ${fmtTime(minutesOnPlanDay(running.date, running.startAt))}` }
+  }
+  if (!actual.open && i.plan.pendingEvening && i.m >= (i.plan.workEnd ?? 18 * 60) && !i.log?.override.backAt && i.log?.override.routineAt?.evening === 'return') {
     return i.log.override.returnCheckAfter !== undefined && i.m < i.log.override.returnCheckAfter
       ? view({ type: 'return-later', title: 'Dein Abend bleibt offen', sub: 'Die Routine wartet. Sag Bescheid, wenn du zurück bist.' })
       : view({ type: 'return-check', title: 'Bist du wieder zuhause?', sub: 'Dann schauen wir, was heute noch sinnvoll ist.' })
@@ -270,7 +275,7 @@ function taskContextFits(i: NextInput, task: InboxItem | WorkTask): boolean {
   if (!task.context || task.context === 'any') return true
   if (i.context && i.context !== 'any') return i.context === task.context
   const working = i.plan.blocks.some((block) => block.kind === 'work' && block.start <= i.m && i.m < block.end)
-    || !!dayActual(i.sessions ?? [], i.plan.date, i.nowMs).open
+    || !!currentWorkActual(i.sessions ?? [], i.plan.date, i.nowMs).open
   return working && (task.context === 'work' || (task.context === 'home' && i.plan.homeOffice))
 }
 

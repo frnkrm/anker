@@ -174,6 +174,12 @@ export function dayActual(all: WorkSession[], date: DateStr, nowMs: number): Day
   }
 }
 
+/** Nur der aktuelle Bedienkontext folgt einer offenen Nachtschicht; Tages- und Wochensummen bleiben bei ihrem Datum. */
+export function currentWorkActual(all: WorkSession[], date: DateStr, nowMs: number): DayActual {
+  const openSession = all.find((session) => validWorkSession(session) && session.endAt === undefined && session.startAt <= nowMs)
+  return dayActual(all, openSession?.date ?? date, nowMs)
+}
+
 export interface WorkDayRule {
   /** Wunsch-Beginn für heute, Plan-Minuten */
   plannedStart: number
@@ -315,9 +321,9 @@ export function needsWorkConfirmation(session: WorkSession, nowMs: number): bool
   return session.endAt === undefined && nowMs - session.startAt > 16 * 60 * MIN
 }
 
-/** Sitzung, die vergessen wurde: läuft seit einem früheren Plantag oder ungewöhnlich lange. Nie still schließen. */
-export function staleSession(list: WorkSession[], date: DateStr, nowMs: number): WorkSession | undefined {
-  return list.find((x) => x.endAt === undefined && (x.date < date || nowMs - x.startAt > 16 * 60 * MIN))
+/** Ungewöhnlich lange offene Sitzung. Ein reiner Plantagwechsel verlangt noch keine Endkorrektur. */
+export function staleSession(list: WorkSession[], _date: DateStr, nowMs: number): WorkSession | undefined {
+  return list.find((session) => needsWorkConfirmation(session, nowMs))
 }
 
 // ---------- Hinweise. Sachlich, abschaltbar, keine Rechtsauskunft ----------
