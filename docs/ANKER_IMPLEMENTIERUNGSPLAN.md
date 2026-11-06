@@ -209,6 +209,8 @@ Der native Snapshot-Abgleich wird serialisiert und fasst schnelle Änderungen zu
 
 Nächster Nutzerschritt: Download prüfen, entpacken und lokal mit dem vorhandenen Schlüssel signieren; die erzeugte `Anker-E02-Update.apk` über die bestehende App installieren. Danach zuerst Daten und G64 prüfen, dann **Gemeinsam testen → Erinnerungen & Druck prüfen**. Neue Gerätebeobachtungen erst nach tatsächlichem Bericht eintragen. Die private Auftragskopie ist weiterhin bytegleich und ignoriert.
 
+**CI-Nachprüfung,06.11.2026:** Remote-Lauf13 auf main ist im kombinierten Playwright-Schritt fehlgeschlagen; alle vorhergehenden Checks erfolgreich. Bereits Läufe7–12 zeigen dieselbe Schrittgrenze, also vor E02. Die konkrete Fehlermeldung ist ohne GitHub-Anmeldung noch nicht verfügbar. Lokal erneut39/39 Browserfälle erfolgreich (abweichendes System-Chromium). Installations-/Testschritte getrennt und Fehlerannotation/-berichte ergänzt, ohne Prüfungen abzuschwächen; nächsten Remote-Lauf auswerten. Details und Grenzen im Abschnitt „CI-Untersuchung nach E02“ der [Testnachweise](ANKER_TESTNACHWEISE.md). App-/APK-Stand unverändert, nächste Produktetappe bleibt E03.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
