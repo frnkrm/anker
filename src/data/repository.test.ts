@@ -43,6 +43,21 @@ for (const [name, make] of impls) {
       expect(await r.dirty()).toHaveLength(0)
     })
 
+    it('merkt neuere Sicherungsimporte für den Sync vor, ohne ältere lokale Daten zu überschreiben', async () => {
+      const r = await fresh()
+      await r.put('inbox', 'x', { text: 'lokal' })
+      const local = (await r.all())[0]!
+      await r.markClean([local])
+      expect(await r.merge([{ ...local, data: { text: 'älter' }, updated_at: local.updated_at - 1 }], { dirty: true })).toBe(0)
+      expect(await r.dirty()).toHaveLength(0)
+      expect(await r.merge([{ ...local, data: { text: 'importiert' }, updated_at: local.updated_at + 1 }], { dirty: true })).toBe(1)
+      const dirty = await r.dirty()
+      expect(dirty).toHaveLength(1)
+      expect(dirty[0]!.data).toEqual({ text: 'importiert' })
+      await r.markClean(dirty)
+      expect(await r.dirty()).toHaveLength(0)
+    })
+
     it('markClean nur, wenn sich der Datensatz nicht inzwischen geändert hat', async () => {
       const r = await fresh()
       await r.put('days', 'x', 1)

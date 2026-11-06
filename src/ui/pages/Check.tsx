@@ -8,7 +8,7 @@ import { exactAlarmStatus, notificationPermission, openExactAlarmSettings, reque
 import { installScanner, scannerReady } from '../../platform/qr'
 import { currentUser, supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
-import { Ampel, Button, Card, Page, Section } from '../components/ui'
+import { Ampel, Button, Card, Page, Row, Section } from '../components/ui'
 import { AlarmDiagnosis } from './Alarm'
 
 type State = 'ok' | 'warn' | 'off'
@@ -112,6 +112,7 @@ export default function Check() {
 
   return (
     <Page title="Einrichtungs-Check" back="/mehr">
+      <Row label="Gemeinsam testen" sub="Schritt für Schritt ausprobieren und selbst abhaken" to="/geraetetest" />
       <AlarmDiagnosis />
       <Section title="Wichtig">{required.map(render)}</Section>
       <Section title="Empfohlen & optional" hint="Alles hier ist freiwillig. Anker funktioniert auch ohne.">

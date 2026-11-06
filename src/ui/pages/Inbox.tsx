@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
 import { addDays } from '../../core/time'
+import { openThoughts, reviewDue } from '../../core/evening'
 import { routineBlock } from '../../core/planner'
 import { planFor, today, useApp } from '../../state/store'
+import { useNow } from '../../state/hooks'
+import { ParkedThoughts } from '../components/EveningTools'
 import { InboxSheet } from '../components/Shell'
 import { Button, Card, Page, Section } from '../components/ui'
 
 /** Gedanken-Inbox mit 2-Minuten-Durchsicht: behalten, einplanen, löschen. */
 export default function Inbox() {
   const st = useApp()
+  const now = useNow(1000)
   const d = today()
-  const open = st.inbox.filter((x) => x.status === 'open').sort((a, b) => a.createdAt - b.createdAt)
+  const open = openThoughts(st.inbox, now).sort((a, b) => a.createdAt - b.createdAt)
+  const parked = st.inbox.filter((x) => x.status === 'open' && Number.isFinite(new Date(x.reviewAt ?? NaN).getTime()) && x.reviewAt! > now).sort((a, b) => a.reviewAt! - b.reviewAt!)
   const tasks = st.inbox.filter((x) => x.status === 'task' && !x.done)
   const doneToday = st.inbox.filter((x) => x.status === 'task' && x.done && x.doneAt && Date.now() - x.doneAt < 24 * 3600_000)
   const kept = st.inbox.filter((x) => x.status === 'kept')
@@ -51,6 +56,7 @@ export default function Inbox() {
         {open.map((x) => (
           <Card key={x.id}>
             <p className="mb-3 text-lg">{x.text}</p>
+            {reviewDue(x, now) && <p className="mb-3 text-sm text-muted">Für jetzt wieder vorgelegt. Du entscheidest, was daraus wird.</p>}
             <div className="flex gap-2">
               <Button size="sm" className="flex-1" onClick={() => st.updateInbox(x.id, { status: 'kept' })}>
                 Behalten
@@ -77,6 +83,12 @@ export default function Inbox() {
           </Card>
         ))}
       </Section>
+
+      {parked.length > 0 && (
+        <Section title="Für später geparkt" hint="Bis zur gewählten Zeit ruht die Idee. Du kannst sie früher ansehen.">
+          <ParkedThoughts items={parked} now={now} />
+        </Section>
+      )}
 
       {tasks.length > 0 && (
         <Section title="Eingeplant">

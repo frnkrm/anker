@@ -1,8 +1,12 @@
 import { create } from 'zustand'
+import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
+import { eveningLocalFields } from '../core/evening'
+import { deviceTestsFromLocal, validDeviceTests } from '../core/deviceTests'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
 import { activePlanDate, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
+import { validateSleepEntry } from '../core/sleepDiary'
 import { addDays, minutesOnPlanDay, todayBerlin, type DateStr } from '../core/time'
 import type {
   CalendarEvent,
@@ -10,6 +14,7 @@ import type {
   DayLog,
   DayOverride,
   DayPlan,
+  DeviceTestProgress,
   GameState,
   InboxItem,
   LocalData,
@@ -17,7 +22,9 @@ import type {
   ResumePoint,
   RoutineId,
   Settings,
+  SleepDiaryEntry,
   StepResult,
+  TomorrowStep,
   WeeklyReview,
   WorkSession,
   WorkSessionKind,
@@ -25,12 +32,7 @@ import type {
 import { endBreak, startBreak, startSession, stopSession } from '../core/worktime'
 import { getRepository, type Rec, type Repository } from '../data'
 
-export interface AlarmStatus {
-  ok: boolean
-  /** Alltagssprache, falls etwas nicht stimmt */
-  message?: string
-  scheduledAt?: number
-}
+export type AlarmStatus = AlarmPlanningStatus
 
 export interface Celebration {
   kind: 'level' | 'chapter' | 'achievement' | 'xp' | 'restart' | 'stage'
@@ -62,6 +64,7 @@ interface AppState {
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   setOverride(date: DateStr, patch: Partial<DayOverride>): Promise<void>
   addInbox(text: string, context?: string): Promise<string | undefined>
+  parkThought(text: string, reviewAt: number, notify?: boolean): Promise<string | undefined>
   updateInbox(id: string, patch: Partial<InboxItem>): Promise<void>
   removeInbox(id: string): Promise<void>
   saveReview(r: WeeklyReview): Promise<void>
@@ -70,7 +73,13 @@ interface AppState {
   evaluateProgress(): Promise<void>
   setEvents(e: CalendarEvent[]): Promise<void>
   saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
+  saveDeviceTests(fn: (progress: DeviceTestProgress) => DeviceTestProgress): Promise<void>
   setResume(r: ResumePoint | undefined): Promise<void>
+  saveTomorrowStep(title: string, nextStep: string, resumeAt: number, remind?: boolean): Promise<string | undefined>
+  finishTomorrowStep(id: string): Promise<void>
+  removeTomorrowStep(id: string): Promise<void>
+  saveSleepEntry(date: DateStr, entry: SleepDiaryEntry): Promise<void>
+  removeSleepEntry(date: DateStr): Promise<void>
   /** Nur nach einer bewussten Eingabe aufrufen, nie aus Wecker-Ereignissen. */
   setMeds(date: DateStr, status: MedsStatus | undefined): Promise<void>
   /** Aufgabe aus der Inbox erledigen (dieselbe Aufgabe überall) oder zurücknehmen */
@@ -97,6 +106,13 @@ interface AppState {
 }
 
 let repo: Repository
+// SQLite writes and reloads must observe the same order as the optimistic store updates.
+let persistence: Promise<void> = Promise.resolve()
+function persist(write: () => Promise<void>): Promise<void> {
+  const next = persistence.then(write)
+  persistence = next.catch(() => undefined)
+  return next
+}
 const listeners = new Set<() => void>()
 let changeTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -173,24 +189,36 @@ export const useApp = create<AppState>()((set, get) => ({
 
   async load() {
     repo = await getRepository()
-    const t = today()
-    const settings = (await repo.get<Settings>('settings', 'main')) ?? defaultSettings(t)
-    const game = (await repo.get<GameState>('game', 'main')) ?? initialGame(t)
-    const days: Record<string, DayLog> = {}
-    for (const d of await repo.list<DayLog>('days')) days[d.date] = d
-    const inbox = await repo.list<InboxItem>('inbox')
-    const reviews = await repo.list<WeeklyReview>('reviews')
-    const events = (await repo.get<CalendarEvent[]>('meta', 'events')) ?? []
-    const local = { ...emptyLocal(), ...(await repo.get<LocalData>('meta', 'local')) }
-    set({ settings: migrateSettings(settings, t), game, days, inbox, reviews, events, local, ready: true })
-    if (settings.onboarded) await get().evaluateProgress()
-    changed()
+    for (;;) {
+      const before = get()
+      await persistence
+      const t = today()
+      const settings = (await repo.get<Settings>('settings', 'main')) ?? defaultSettings(t)
+      const game = (await repo.get<GameState>('game', 'main')) ?? initialGame(t)
+      const days: Record<string, DayLog> = {}
+      for (const d of await repo.list<DayLog>('days')) days[d.date] = d
+      const inbox = await repo.list<InboxItem>('inbox')
+      const reviews = await repo.list<WeeklyReview>('reviews')
+      const events = (await repo.get<CalendarEvent[]>('meta', 'events')) ?? []
+      const savedLocal = await repo.get<LocalData>('meta', 'local')
+      const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), deviceTests: deviceTestsFromLocal(savedLocal) }
+      const loaded = { settings: migrateSettings(settings, t), game, days, inbox, reviews, events, local }
+      const current = get()
+      // Read again after concurrent edits settle: keep optimistic changes visible while also
+      // picking up newly synced records instead of hiding an entire changed collection.
+      const conflicted = (Object.keys(loaded) as (keyof typeof loaded)[]).some((field) => current[field] !== before[field])
+      if (conflicted) continue
+      set({ ...loaded, ready: true })
+      if (get().settings.onboarded) await get().evaluateProgress()
+      changed()
+      return
+    }
   },
 
   async saveSettings(fn) {
     const settings = fn(get().settings)
     set({ settings })
-    await repo.put('settings', 'main', settings)
+    await persist(() => repo.put('settings', 'main', settings))
     changed()
   },
 
@@ -203,9 +231,11 @@ export const useApp = create<AppState>()((set, get) => ({
     const a = applyAwards(plan, log, st.game, st.settings)
     log = a.log
     set({ days: { ...st.days, [date]: log }, game: a.game })
-    await repo.put('days', date, log)
+    await persist(async () => {
+      await repo.put('days', date, log)
+      if (a.gained) await repo.put('game', 'main', a.game)
+    })
     if (a.gained) {
-      await repo.put('game', 'main', a.game)
       // XP zählen weiter, aber bei Überlastung oder abgeschaltetem Spiel erscheint nichts davon
       if (st.settings.support.gameVisible && log.override.mode !== 'ueberlastet') {
         get().celebrate({ kind: 'xp', title: `+${a.gained} ${theme(st.settings.themeId).xpWord}` })
@@ -239,7 +269,20 @@ export const useApp = create<AppState>()((set, get) => ({
     const item: InboxItem = { id: randomId(), text: text.trim(), createdAt: Date.now(), status: 'open', ...(context ? { captureContext: context } : {}) }
     if (!item.text) return undefined
     set({ inbox: [...get().inbox, item] })
-    await repo.put('inbox', item.id, item)
+    await persist(() => repo.put('inbox', item.id, item))
+    return item.id
+  },
+
+  async parkThought(text, reviewAt, notify = false) {
+    const trimmed = text.trim()
+    if (!trimmed) return undefined
+    const nowMs = Date.now()
+    if (!Number.isFinite(reviewAt) || !Number.isFinite(new Date(reviewAt).getTime()) || reviewAt <= nowMs) throw new Error('Wähle einen Zeitpunkt in der Zukunft.')
+    const item: InboxItem = { id: randomId(), text: trimmed, createdAt: nowMs, status: 'open', reviewAt, reviewNotify: notify }
+    // Ein Datensatz statt erst Anlegen und dann Ergänzen: Die Wiedervorlage ist ab dem ersten Speichern vollständig.
+    set({ inbox: [...get().inbox, item] })
+    await persist(() => repo.put('inbox', item.id, item))
+    changed()
     return item.id
   },
 
@@ -247,7 +290,7 @@ export const useApp = create<AppState>()((set, get) => ({
     const inbox = get().inbox.map((x) => (x.id === id ? { ...x, ...patch } : x))
     set({ inbox })
     const item = inbox.find((x) => x.id === id)
-    if (item) await repo.put('inbox', id, item)
+    if (item) await persist(() => repo.put('inbox', id, item))
     // Eingeplante Aufgaben gehören zum Tagesplan
     changed()
   },
@@ -259,14 +302,15 @@ export const useApp = create<AppState>()((set, get) => ({
 
   async removeInbox(id) {
     set({ inbox: get().inbox.filter((x) => x.id !== id) })
-    await repo.remove('inbox', id)
+    await persist(() => repo.remove('inbox', id))
+    changed()
   },
 
   async saveReview(r) {
     const first = get().reviews.length === 0
     const before = get().reviews.find((x) => x.id === r.id)
     set({ reviews: [...get().reviews.filter((x) => x.id !== r.id), r] })
-    await repo.put('reviews', r.id, r)
+    await persist(() => repo.put('reviews', r.id, r))
     if (r.change.trim() && r.change.trim() !== before?.change.trim()) {
       await get().saveSettings((s) => ({
         ...s,
@@ -293,7 +337,7 @@ export const useApp = create<AppState>()((set, get) => ({
   async setGame(fn) {
     const game = fn(get().game)
     set({ game })
-    await repo.put('game', 'main', game)
+    await persist(() => repo.put('game', 'main', game))
   },
 
   async evaluateProgress() {
@@ -323,15 +367,29 @@ export const useApp = create<AppState>()((set, get) => ({
 
   async setEvents(events) {
     set({ events })
-    await repo.put('meta', 'events', events)
+    await persist(() => repo.put('meta', 'events', events))
     changed()
   },
 
   async saveLocal(fn) {
     const local = fn(get().local)
     set({ local })
-    await repo.put('meta', 'local', local)
+    await persist(() => repo.put('meta', 'local', local))
     changed()
+  },
+
+  async saveDeviceTests(fn) {
+    const previous = get().local.deviceTests
+    const local = { ...get().local, deviceTests: fn(deviceTestsFromLocal(get().local)) }
+    if (!validDeviceTests(local.deviceTests)) throw new Error('Die Testangaben sind ungültig.')
+    set({ local })
+    // This changes no plan, alarm or domain result. Do not trigger alarm/sync reconciliation.
+    try {
+      await persist(() => repo.put('meta', 'local', local))
+    } catch (error) {
+      if (get().local.deviceTests === local.deviceTests) set({ local: { ...get().local, deviceTests: previous } })
+      throw error
+    }
   },
 
   async setResume(r) {
@@ -340,6 +398,47 @@ export const useApp = create<AppState>()((set, get) => ({
       if (r) next.resume = r
       else delete next.resume
       return next
+    })
+  },
+
+  async saveTomorrowStep(title, nextStep, resumeAt, remind = false) {
+    const trimmedTitle = title.trim()
+    const trimmedStep = nextStep.trim()
+    if (!trimmedTitle || !trimmedStep) return undefined
+    const nowMs = Date.now()
+    if (!Number.isFinite(resumeAt) || !Number.isFinite(new Date(resumeAt).getTime()) || resumeAt <= nowMs) throw new Error('Wähle einen Zeitpunkt in der Zukunft.')
+    const step: TomorrowStep = { id: randomId(), title: trimmedTitle, nextStep: trimmedStep, resumeAt, createdAt: nowMs, remind }
+    await get().saveLocal((local) => ({ ...local, tomorrowSteps: [...local.tomorrowSteps, step] }))
+    return step.id
+  },
+
+  async finishTomorrowStep(id) {
+    if (!get().local.tomorrowSteps.some((step) => step.id === id && step.doneAt === undefined)) return
+    const doneAt = Date.now()
+    await get().saveLocal((local) => ({ ...local, tomorrowSteps: local.tomorrowSteps.map((step) => step.id === id && step.doneAt === undefined ? { ...step, doneAt } : step) }))
+  },
+
+  async removeTomorrowStep(id) {
+    if (!get().local.tomorrowSteps.some((step) => step.id === id)) return
+    await get().saveLocal((local) => ({ ...local, tomorrowSteps: local.tomorrowSteps.filter((step) => step.id !== id) }))
+  },
+
+  async saveSleepEntry(date, entry) {
+    const normalized = validateSleepEntry(date, entry)
+    await get().saveLocal((local) => {
+      const sleepDiary = { ...local.sleepDiary }
+      if (Object.keys(normalized).length) sleepDiary[date] = normalized
+      else delete sleepDiary[date]
+      return { ...local, sleepDiary }
+    })
+  },
+
+  async removeSleepEntry(date) {
+    if (!Object.hasOwn(get().local.sleepDiary, date)) return
+    await get().saveLocal((local) => {
+      const sleepDiary = { ...local.sleepDiary }
+      delete sleepDiary[date]
+      return { ...local, sleepDiary }
     })
   },
 
@@ -415,7 +514,8 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async importRecords(recs) {
-    const n = await repo.merge(recs)
+    await persistence
+    const n = await repo.merge(recs, { dirty: true })
     if (n) await get().load()
     return n
   },

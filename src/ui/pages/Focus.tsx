@@ -81,7 +81,13 @@ export default function Focus() {
             ? plan.leave !== undefined
               ? `Losgehen um ${fmtTime(plan.leave)}.`
               : 'Genieß den Tag.'
-            : `Jetzt Freizeit bis ${fmtTime(plan.pcStop)}.`}
+            : plan.openEnd
+              ? 'Für heute ist hier nichts mehr offen.'
+              : m >= plan.bed
+                ? 'Jetzt ist Zeit fürs Bett.'
+                : m >= plan.pcStop
+                  ? `Zeit zum Runterkommen. Bett um ${fmtTime(plan.bed)}.`
+                  : `Jetzt Freizeit bis ${fmtTime(plan.pcStop)}.`}
         </p>
         <Button variant="primary" size="xl" className="mt-10 w-full" onClick={() => nav('/')}>
           Weiter

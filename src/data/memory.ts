@@ -28,12 +28,12 @@ export class MemoryRepository implements Repository {
   async dirty() {
     return [...this.map.values()].filter((r) => r.dirty)
   }
-  async merge(recs: Rec[]) {
+  async merge(recs: Rec[], { dirty = false }: { dirty?: boolean } = {}) {
     let n = 0
     for (const r of recs) {
       const k = key(r)
       if (remoteWins(this.map.get(k), r)) {
-        this.map.set(k, { ...r, dirty: 0 })
+        this.map.set(k, { ...r, dirty: dirty ? 1 : 0 })
         n++
       }
     }

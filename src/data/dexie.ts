@@ -38,13 +38,13 @@ export class DexieRepository implements Repository {
   async dirty() {
     return this.db.records.where('dirty').equals(1).toArray()
   }
-  async merge(recs: Rec[]) {
+  async merge(recs: Rec[], { dirty = false }: { dirty?: boolean } = {}) {
     let n = 0
     await this.db.transaction('rw', this.db.records, async () => {
       for (const r of recs) {
         const cur = await this.db.records.get([r.collection, r.id])
         if (remoteWins(cur, r)) {
-          await this.db.records.put({ ...r, dirty: 0 })
+          await this.db.records.put({ ...r, dirty: dirty ? 1 : 0 })
           n++
         }
       }

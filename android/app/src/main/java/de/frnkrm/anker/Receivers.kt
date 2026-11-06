@@ -16,7 +16,13 @@ class AlarmReceiver : BroadcastReceiver() {
             AlarmController.stop(ctx, "locked")
             return
         }
-        val kind = action?.removePrefix(AlarmController.ACTION_FIRE_PREFIX)?.let { AlarmKind.of(it) } ?: AlarmKind.MAIN
+        if (action == null) {
+            // Ein alter Alarm ohne Action darf nur über den migrierten, gespeicherten Termin
+            // nachgeholt werden; niemals aus einer leeren Nachricht einen Hauptwecker erfinden.
+            AlarmController.reconcile(ctx, "legacy-fire")
+            return
+        }
+        val kind = AlarmKind.fromFireAction(action) ?: return
         AlarmController.onFire(ctx, kind, intent.getLongExtra(AlarmController.EXTRA_AT, 0L))
     }
 }
@@ -28,8 +34,12 @@ class AlarmReceiver : BroadcastReceiver() {
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
-        val boot = intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED
-        AlarmController.reconcile(ctx, if (boot) "boot" else "system")
+        val reason = when (intent.action) {
+            Intent.ACTION_LOCKED_BOOT_COMPLETED -> "locked-boot"
+            Intent.ACTION_BOOT_COMPLETED -> "boot"
+            else -> "system"
+        }
+        AlarmController.reconcile(ctx, reason)
         ReminderScheduler.reconcile(ctx)
         // Beim gesperrten Start ist der normale Speicher des Widgets noch nicht bereit
         if (intent.action != Intent.ACTION_LOCKED_BOOT_COMPLETED) AnkerWidget.refreshAll(ctx)

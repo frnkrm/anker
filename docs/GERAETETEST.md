@@ -3,7 +3,9 @@
 Was nur auf einem echten Handy geprüft werden kann. Ergebnisse vom 04.11.2026, gemeldet vom Nutzer. Leere Zeilen sind offen.
 Trage Gerät, Android-Version, Datum und Ergebnis ein. Erst dann gilt ein Punkt als „am Gerät verifiziert“.
 
-Gerät: ______ · Android/One UI: ______ · Datum: 04.11.2026 · Version: Punkt 3 mit 1.1.0-rc.1, der Rest mit 1.2.0-rc.1 inklusive Gleitzeit
+Neue Prüfungen kannst du in der App unter **Mehr → Gemeinsam testen** einzeln durchführen und mit deiner Beobachtung speichern. Die Seite öffnet die passenden Einstellungen und übernimmt diese historischen Ergebnisse nicht als neue Häkchen. Browserberichte bleiben als Browserberichte gekennzeichnet. Alle früheren Ergebnisse unten gelten für den damals genannten Build.
+
+Gerät: Samsung Galaxy S26 Ultra (Nutzerangabe vom 05.11.2026) · Android/One UI: „neueste Versionen“ laut Nutzer, genaue Versionsnummern noch offen · Datum: 04.11.2026 · Version: Punkt 3 mit 1.1.0-rc.1, der Rest mit 1.2.0-rc.1 inklusive Gleitzeit
 
 ## Wecker
 
@@ -91,3 +93,32 @@ Bei eingeschaltetem **Always-on-Display** zeigt das Handy beim Klingeln nur die 
 |---|---|---|---|
 | 47 | Always-on-Display an, **Wecker testen**, sofort sperren, warten | Bildschirm geht an, Vollbild erscheint von selbst, keine doppelte Tonquelle | ok (05.11.2026) |
 | 48 | Dasselbe mit entsperrtem Handy in der Hand | Nur die Meldung oben, wie bisher | ok (05.11.2026) |
+
+## Neue Abendhilfen und experimentelles Aktivitäts-Weckfenster
+
+Noch nicht auf dem Galaxy S26 Ultra geprüft. Mikrofon- und Bewegungsverhalten lassen sich nicht aus den automatischen Tests ableiten.
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 49 | Gedanke für später, „Einmal erinnern“, App schließen | Ein allgemeiner Hinweis; Tipp öffnet Gedanken, auch nach Kaltstart | |
+| 50 | Privaten nächsten Schritt mit Erinnerung speichern, App schließen | Hinweis ohne Inhalt, Tipp öffnet Abend & morgen; Notiz bleibt über Tage erhalten | |
+| 51 | Sanften Übergang einschalten, Zeitpunkt abwarten | Ein sanfter Hinweis, keine PC-Stopp-/Bett-Wiederholungen; feste Weckzeit unverändert | |
+| 52 | Schlafzeiten eintragen, neu öffnen, korrigieren und löschen | Nur eingegebene Werte, korrekte Nachtzuordnung, keine Spielmeldungen auf den ruhigen Seiten | |
+| 53 | Weckfenster aktivieren, Mikrofon ablehnen | Keine Messung, verständlicher Fehler, fester Wecker weiter geplant | |
+| 54 | Messung am Abend starten, Handy sperren | Dienst zeigt „Vorbereitet“; Mikrofon und Sensoren werden erst im Fenster ausgewertet | |
+| 55 | Im Fenster auf der Matratze ruhig liegen, dann mehrfach bewegen und Geräusche machen | Status und etwaigen frühen Alarm beobachten; daraus keine bestätigte Schlafphase ableiten | |
+| 56 | Keine verwertbaren Signale bzw. Mikrofon währenddessen blockieren | Fester Wecker klingelt zur eingestellten Zeit | |
+| 57 | Frühen Alarm ignorieren/Timeout abwarten; einmal schlummern | Feste Absicherung bleibt; kein zusätzlicher Schlummerdurchgang | |
+| 58 | Frühen Alarm per QR/Rechnen/Notfall beenden | Keine zweite Hauptweckung zur ursprünglichen Zeit; nächster Tag geplant | |
+| 59 | Messung beenden, Weckzeit ändern, App-Prozess beenden bzw. Handy neu starten | Messung endet/ist als unterbrochen sichtbar; kein heimlicher Mikrofon-Neustart, fester Wecker bleibt unabhängig | |
+
+## Neue Weckerkorrekturen und Testbedienung
+
+Implementiert und automatisch geprüft heißt nicht am Galaxy geprüft. Für Test60/61 eine zusätzliche unabhängige Weckung beibehalten und anschließend eigene Einstellungen zurücksetzen. Die Testseite verändert diese Einstellungen nicht automatisch.
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 60 | Hauptwecker auf in 3 Minuten stellen, dann vor dem Klingeln auf später ändern oder ausschalten, alten Zeitpunkt abwarten | Kein Klingeln zur verworfenen Zeit; aktueller Termin bzw. ausgeschalteter Zustand bleibt bestehen | |
+| 61 | Hauptwecker einmal schlummern, währenddessen Wecker ausschalten; Schlummerzeit und erneutes Öffnen abwarten | Kein nachgeholtes Schlummern; nächster Hauptwecker erst wieder nach bewusstem Einschalten | |
+| 62 | Unter Schlaf & Anker PC-Stopp direkt auf 20:00 und Bett auf 00:30 setzen; Fahrzeit direkt eingeben; App neu öffnen | Eingaben bleiben, Nacht 00:30 gehört zum Folgekalendertag; keine vielen Plus-/Minus-Tipps nötig; danach eigene Werte zurückstellen | |
+| 63 | Einen Test bewusst als teilweise speichern, App neu öffnen, Einstellungen über Testlink öffnen und zurückkehren | Ergebnis mit Datum/Version bleibt; kein Test wird automatisch bestanden, kein Routine-Haken und keine XP entstehen | |

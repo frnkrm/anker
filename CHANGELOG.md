@@ -1,5 +1,15 @@
 # Patch Notes
 
+## Unveröffentlicht: E00-Audit und erste E01-Verbesserungen
+
+Versionsnummer unverändert. Automatische Nachweise und Grenzen in [ANKER_TESTNACHWEISE.md](docs/ANKER_TESTNACHWEISE.md); diese Änderungen sind **noch nicht auf dem Galaxy geprüft**, kein Release/APK.
+
+- **Gemeinsam testen:** eigene Seite mit63 geführten Versuchen, direkten Einstellungswegen, Rückkehrbanner, lokalen Notizentwürfen und bewusst gespeicherten Berichten. Browser und Android sowie unterschiedliche Codestände bleiben unterscheidbar. Keine Punkte oder Alltags-Erledigungen für Test-Häkchen. Alte Geräteberichte werden nicht automatisch übernommen.
+- **Zeiten direkt eingeben:** Uhrzeiten zwischen +/- antippen, Dauern als Zahl bearbeiten. Leere Zahleneingaben setzen nichts auf0. Nachtzeiten und manuell gewählte Zeiten bleiben auch in der Ersteinrichtung geschützt.
+- **Wecker:** Bereits unterwegs befindliche, inzwischen verworfene/verschobene Signale werden abgewehrt. Ein deaktivierter Wecker holt kein fälliges Schlummern nach. Feste Absicherung des experimentellen Weckfensters bleibt erhalten.
+- **Diagnose:** ungenaue Planung und gemeldete Fehler sind kein grüner Erfolg. Hinterlegte Planung bestätigt keine Hörbarkeit; für ausgelassene Termine wird keine Ursache erfunden.
+- **Audit:** aktuellen Code statt historischer Version ausgewertet,71 Anforderungs-IDs im vorhandenen Plan zugeordnet, vorherige Änderungen gesichert und erhalten.
+
 ## Unveröffentlicht: Gleitzeit und Kundenarbeit
 
 Versionsnummer unverändert, **nicht auf einem echten Handy geprüft**.

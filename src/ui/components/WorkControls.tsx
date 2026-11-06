@@ -251,7 +251,7 @@ export function WorkDayForm({ date, m, isTomorrow, onDone }: { date: string; m: 
         </Button>
       )}
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span>Ziel netto</span>
         <Stepper label="Netto-Ziel heute" value={wi.targetNetMin / 60} step={0.25} min={0} max={14} unit="h" onChange={(v) => adjust(`Ziel ${v} h`, { targetNetMin: Math.round(v * 60) })} />
       </div>
@@ -313,7 +313,7 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
         <span>Beginn</span>
         <TimeField label="Beginn des Einsatzes" value={start} onChange={setStart} />
       </div>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span>Voraussichtlich</span>
         <Stepper label="Dauer des Einsatzes" value={minutes} step={15} min={15} max={720} onChange={setMinutes} />
       </div>

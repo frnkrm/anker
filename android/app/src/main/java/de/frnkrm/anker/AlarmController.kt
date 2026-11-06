@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 
 /**
@@ -13,7 +14,7 @@ import androidx.core.content.ContextCompat
  * und vor dem ersten Entsperren funktionieren.
  */
 object AlarmController {
-    const val ACTION_FIRE_PREFIX = "de.frnkrm.anker.ALARM_FIRE."
+    const val ACTION_FIRE_PREFIX = AlarmKind.FIRE_ACTION_PREFIX
     const val EXTRA_AT = "anker_at"
 
     private fun fireIntent(ctx: Context, kind: AlarmKind, at: Long): Intent =
@@ -58,7 +59,7 @@ object AlarmController {
         }
     }
 
-    /** Sichtbare Prüfung: Liegt bei Android wirklich ein PendingIntent für diese Alarmart? */
+    /** Ein PendingIntent-Token existiert. Das bestätigt weder Zustellung noch Hörbarkeit. */
     fun isArmed(ctx: Context, kind: AlarmKind): Boolean = existing(ctx, kind) != null
 
     /** Von früheren Versionen gesetzte Alarme (ohne Action) entfernen und den alten Stand übernehmen. */
@@ -87,12 +88,17 @@ object AlarmController {
     @Synchronized
     fun reconcile(ctx: Context, reason: String) {
         migrateLegacy(ctx)
-        var s = AnkerPrefs.loadState(ctx)
+        val before = AnkerPrefs.loadState(ctx)
+        var s = before
         val now = System.currentTimeMillis()
-        if (reason == "boot" && s.ringing != null) s = s.copy(ringing = null, ringStartedAt = 0)
+        if (reason == "boot" || reason == "locked-boot") {
+            val bootCount = Settings.Global.getInt(ctx.contentResolver, Settings.Global.BOOT_COUNT, -1).takeIf { it >= 0 }
+            s = AlarmMachine.booted(s, bootCount, reason == "locked-boot")
+        }
         if (AlarmMachine.ringExpired(s, now)) s = AlarmMachine.timedOut(s, now)
         val r = AlarmMachine.reconcile(s, AnkerPrefs.config(ctx), now)
         AnkerPrefs.saveState(ctx, r.state)
+        if (before.ringing != null && AlarmMachine.shouldStopRingingService(r.state)) AlarmService.stop(ctx)
         if (AnkerPrefs.alarmError(ctx) == "exact_denied") AnkerPrefs.setAlarmError(ctx, "")
         AnkerPrefs.setLastReconcile(ctx, now, reason)
         arm(ctx, AlarmKind.MAIN, r.state.mainAt.takeIf { it > now } ?: 0)
@@ -107,8 +113,9 @@ object AlarmController {
     @Synchronized
     fun onFire(ctx: Context, kind: AlarmKind, at: Long) {
         val now = System.currentTimeMillis()
-        val d = AlarmMachine.fired(state(ctx), kind, at, now)
+        val d = AlarmMachine.firedScheduled(state(ctx), kind, at, now)
         AnkerPrefs.saveState(ctx, d.state)
+        if (d.ring && kind == AlarmKind.MAIN) SmartWakeService.stopIfRunning("Der feste Hauptwecker übernimmt.")
         if (d.ring) startRinging(ctx)
         reconcile(ctx, "fired")
     }
@@ -125,10 +132,22 @@ object AlarmController {
     }
 
     @Synchronized
+    fun trySmartWake(ctx: Context, targetAt: Long): Boolean {
+        val now = System.currentTimeMillis()
+        val decision = AlarmMachine.smartFired(state(ctx), AnkerPrefs.config(ctx), targetAt, now)
+        if (!decision.ring) return false
+        AnkerPrefs.saveState(ctx, decision.state)
+        startRinging(ctx)
+        reconcile(ctx, "smart-fired")
+        return true
+    }
+
+    @Synchronized
     fun stop(ctx: Context, method: String) {
         val now = System.currentTimeMillis()
-        AnkerPrefs.saveState(ctx, AlarmMachine.stopped(state(ctx), method, AnkerPrefs.config(ctx), now))
-        AlarmService.stop(ctx)
+        val next = AlarmMachine.stopped(state(ctx), method, AnkerPrefs.config(ctx), now)
+        AnkerPrefs.saveState(ctx, next)
+        if (AlarmMachine.shouldStopRingingService(next)) AlarmService.stop(ctx)
         reconcile(ctx, "stopped")
     }
 
@@ -143,7 +162,9 @@ object AlarmController {
 
     @Synchronized
     fun timeout(ctx: Context) {
-        AnkerPrefs.saveState(ctx, AlarmMachine.timedOut(state(ctx), System.currentTimeMillis()))
+        val next = AlarmMachine.timedOut(state(ctx), System.currentTimeMillis())
+        AnkerPrefs.saveState(ctx, next)
+        if (AlarmMachine.shouldStopRingingService(next)) AlarmService.stop(ctx)
         reconcile(ctx, "timeout")
     }
 
@@ -165,5 +186,6 @@ object AlarmController {
     fun syncConfig(ctx: Context, cfg: AlarmConfig) {
         AnkerPrefs.setConfig(ctx, cfg)
         reconcile(ctx, "config")
+        SmartWakeService.planChanged()
     }
 }

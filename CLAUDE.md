@@ -4,6 +4,13 @@ Persönliche ADHS-Alltags-App (Deutsch). Android via Capacitor 8 + Web/PWA via N
 Leitlinien: eine nächste Aktion groß, keine Schuld-Sprache, kein Rot für Verpasstes, Offline-Kern,
 alle Online-Extras optional und still bei Fehlern.
 
+## Fortsetzung
+
+- Zuerst `docs/ANKER_IMPLEMENTIERUNGSPLAN.md` und `docs/ANKER_TESTNACHWEISE.md` lesen; danach den tatsächlich aktuellen Code prüfen.
+- Technischer Gesamtauftrag: `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md`. Das private Original ist bewusst nicht Teil des öffentlichen Repositorys.
+- Bestehende Modelle und Nutzerdaten erhalten; neue Funktionen auf den vorhandenen Planer/Store aufbauen.
+- Implementiert, automatisch geprüft und am echten Android-Gerät geprüft getrennt ausweisen. Das Aktivitäts-Weckfenster bleibt ohne Gerätebeleg experimentell.
+
 ## Befehle
 
 ```bash

@@ -185,8 +185,12 @@ export function nextAction(i: NextInput): NextView {
   if (base.block?.kind === 'event' || base.block?.kind === 'commute') return view(a)
   if (i.plan.dayType === 'sick') return view(a, hardReason)
 
+  // Freiwilliger Feierabend-Schutz: laufende Einsätze bleiben bedienbar, private Aufgaben unverändert.
+  const quietWork = i.settings.support.workAfterHoursQuiet && !actual.open
+    && (actual.closed || i.plan.workInfo?.closed || i.plan.workEnd === undefined || i.m >= i.plan.workEnd)
+
   // 2. Berufliche Aufgabe mit echter Deadline-Gefahr
-  const risky = openWork(i.work).find((w) => {
+  const risky = quietWork ? undefined : openWork(i.work).find((w) => {
     const r = deadlineRisk(w, i.nowMs)
     return r === 'soon' || r === 'past'
   })
@@ -197,7 +201,7 @@ export function nextAction(i: NextInput): NextView {
 
   // 3. Begonnene Aufgabe wieder aufnehmen
   const r = i.resume
-  if (r && i.nowMs - r.at <= RESUME_MAX_MS && minutesOnPlanDay(i.plan.date, r.at) >= 0) {
+  if (r && !(quietWork && r.kind === 'work') && i.nowMs - r.at <= RESUME_MAX_MS && minutesOnPlanDay(i.plan.date, r.at) >= 0) {
     return view({ type: 'resume', title: r.nextStep?.trim() || r.title, sub: r.nextStep ? `Du warst bei: ${r.title}` : 'Hier warst du', resume: r }, 'Du warst gerade dabei.')
   }
 

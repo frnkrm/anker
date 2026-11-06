@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildAlarmConfig, nextAlarmTimes } from './alarm'
+import { alarmPlanningStatus, buildAlarmConfig, nextAlarmTimes } from './alarm'
 import { applySchedule, defaultSettings, migrateSettings, resetToSuggested } from './defaults'
 import { activePlanDate } from './now'
 import { buildReminders } from './reminders/build'
@@ -8,6 +8,25 @@ import { todayBerlin, zonedToUtc } from './time'
 import type { Settings } from './types'
 
 const s = () => defaultSettings('2026-11-01')
+
+describe('Ehrliche Weckerplanung (AL-07 / Q09)', () => {
+  const state = { scheduledAt: 1000, mainConfirmed: true, exact: true }
+  it('zeigt weder ungenaue Planung noch einen Fehler als Erfolg', () => {
+    for (const patch of [{ exact: false }, { error: 'exact_denied' }, { error: 'ring_start_failed' }, { error: 'foreground_denied' }, { error: 'unknown' }]) {
+      expect(alarmPlanningStatus({ ...state, ...patch }, true).ok).toBe(false)
+    }
+  })
+  it('trennt hinterlegte Planung von tatsächlicher Zustellung und Hörbarkeit', () => {
+    expect(alarmPlanningStatus(state, true)).toMatchObject({ ok: true, scheduledAt: 1000 })
+    expect(alarmPlanningStatus(state, true).message).toMatch(/prüfst du mit einem Test/)
+    for (const patch of [{ scheduledAt: 0 }, { scheduledAt: NaN }, { mainConfirmed: false }, { exact: undefined }]) {
+      expect(alarmPlanningStatus({ ...state, ...patch }, true).ok).toBe(false)
+    }
+  })
+  it('erzeugt für bewusst ausgeschalteten Hauptwecker keinen Alarmfehler', () => {
+    expect(alarmPlanningStatus({ ...state, error: 'exact_denied' }, false)).toMatchObject({ ok: true, message: 'Der Hauptwecker ist ausgeschaltet.' })
+  })
+})
 
 describe('native Wecker-Konfiguration', () => {
   it('überspringt kranke Tage, nur ab heute und nur diese', () => {

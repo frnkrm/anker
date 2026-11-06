@@ -1,6 +1,7 @@
 package de.frnkrm.anker
 
 import android.app.AlarmManager
+import android.Manifest
 import android.app.NotificationManager
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -23,16 +24,20 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
+import com.getcapacitor.PermissionState
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.Permission
+import com.getcapacitor.annotation.PermissionCallback
 import org.json.JSONArray
 import java.lang.ref.WeakReference
 
 /** Brücke zwischen der Web-App und dem nativen Teil: Wecker, Erinnerungen, Widget, Druck, Einstellungen. */
-@CapacitorPlugin(name = "AnkerNative")
+@CapacitorPlugin(name = "AnkerNative", permissions = [Permission(alias = "smartAudio", strings = [Manifest.permission.RECORD_AUDIO])])
 class AnkerNativePlugin : Plugin() {
     companion object {
         private var instance: WeakReference<AnkerNativePlugin>? = null
@@ -89,6 +94,8 @@ class AnkerNativePlugin : Plugin() {
                 wakeCheckEnabled = call.getBoolean("wakeCheckEnabled") ?: false,
                 wakeCheckDelayMinutes = call.getInt("wakeCheckDelayMinutes") ?: 5,
                 label = call.getString("label") ?: "Aufstehen",
+                smartWakeEnabled = call.getBoolean("smartWakeEnabled") ?: false,
+                smartWakeWindowMinutes = (call.getInt("smartWakeWindowMinutes") ?: 45).coerceIn(5, 90),
             )
             AlarmController.syncConfig(context, cfg)
             call.resolve(stateObject())
@@ -124,9 +131,41 @@ class AnkerNativePlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getSmartWakeState(call: PluginCall) { call.resolve(SmartWakeService.status(context)) }
+
+    @PluginMethod
+    fun startSmartWake(call: PluginCall) {
+        if (getPermissionState("smartAudio") != PermissionState.GRANTED) {
+            requestPermissionForAlias("smartAudio", call, "startSmartWakePermitted")
+        } else startSmartWakePermitted(call)
+    }
+
+    @PermissionCallback
+    private fun startSmartWakePermitted(call: PluginCall) {
+        if (getPermissionState("smartAudio") != PermissionState.GRANTED) { call.reject("Ohne Mikrofonfreigabe startet die kombinierte Messung nicht. Der feste Wecker bleibt gestellt."); return }
+        try {
+            val cfg = AnkerPrefs.config(context)
+            val state = AlarmController.state(context)
+            if (cfg?.enabled != true || !cfg.smartWakeEnabled || state.mainAt <= System.currentTimeMillis() || state.ringing != null || !AlarmController.canExact(context)) {
+                call.reject("Aktiviere das Weckfenster und einen bestätigten exakten Hauptwecker, bevor du startest."); return
+            }
+            if (activity.isFinishing || activity.isDestroyed) { call.reject("Bitte starte die Messung bei geöffneter App."); return }
+            ContextCompat.startForegroundService(context, Intent(context, SmartWakeService::class.java)
+                .setAction(SmartWakeService.ACTION_START).putExtra("targetAt", state.mainAt).putExtra("minutes", cfg.smartWakeWindowMinutes))
+            call.resolve()
+        } catch (_: Exception) { call.reject("Android hat den Messstart nicht erlaubt. Öffne die App und versuche es erneut. Der feste Wecker bleibt gestellt.") }
+    }
+
+    @PluginMethod
+    fun stopSmartWake(call: PluginCall) {
+        SmartWakeService.stopIfRunning("Messung beendet. Der feste Wecker bleibt gestellt.")
+        call.resolve()
+    }
+
+    @PluginMethod
     fun stopAlarm(call: PluginCall) {
         AlarmController.stop(context, call.getString("method") ?: "qr")
-        hideFromLockScreen()
+        if (AlarmMachine.shouldStopRingingService(AlarmController.state(context))) hideFromLockScreen()
         call.resolve(stateObject())
     }
 

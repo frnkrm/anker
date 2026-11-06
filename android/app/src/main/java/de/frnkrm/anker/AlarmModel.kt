@@ -19,7 +19,10 @@ enum class AlarmKind(val wire: String, val requestCode: Int, val rank: Int, val 
     TEST("test", 4716, 1, 2 * 60_000L);
 
     companion object {
+        const val FIRE_ACTION_PREFIX = "de.frnkrm.anker.ALARM_FIRE."
         fun of(wire: String?): AlarmKind? = entries.firstOrNull { it.wire == wire }
+        fun fromFireAction(action: String?): AlarmKind? =
+            action?.takeIf { it.startsWith(FIRE_ACTION_PREFIX) }?.removePrefix(FIRE_ACTION_PREFIX)?.let { of(it) }
     }
 }
 
@@ -35,11 +38,19 @@ data class AlarmConfig(
     val wakeCheckEnabled: Boolean = false,
     val wakeCheckDelayMinutes: Int = 5,
     val label: String = "Aufstehen",
+    val smartWakeEnabled: Boolean = false,
+    val smartWakeWindowMinutes: Int = 45,
 )
 
 data class NextAlarms(val mainAt: Long, val preWakeAt: Long)
 
 data class AlarmState(
+    /** Android-Startzähler: gesperrter Start und späteres Entsperren gehören zum selben Start. */
+    val bootCount: Int = -1,
+    /** Vorgezogener Hauptwecker: die feste Zeit bleibt bis zur bewussten Bestätigung erhalten. */
+    val smartTargetAt: Long = 0,
+    val smartTriggeredAt: Long = 0,
+    val smartConfirmedAt: Long = 0,
     val ringing: AlarmKind? = null,
     val ringStartedAt: Long = 0,
     val mainAt: Long = 0,
@@ -73,7 +84,9 @@ object AlarmPlanner {
     fun toUtc(date: LocalDate, minutes: Int): Long {
         val base = date.plusDays(Math.floorDiv(minutes, 1440).toLong())
         val m = Math.floorMod(minutes, 1440)
-        return ZonedDateTime.of(base, LocalTime.of(m / 60, m % 60), ZONE).toInstant().toEpochMilli()
+        // Die doppelte Herbst-Stunde nutzt wie core/time.ts das spätere Vorkommen.
+        return ZonedDateTime.of(base, LocalTime.of(m / 60, m % 60), ZONE)
+            .withLaterOffsetAtOverlap().toInstant().toEpochMilli()
     }
 
     /** Nächster Hauptwecker samt Vorwecker. mainAt = 0, wenn der Wecker aus ist. */
@@ -100,6 +113,20 @@ object AlarmMachine {
     /** Wege ohne Prüfung. Sie gelten nur für Test, Vorwecker und Wachheits-Check. */
     private val LIGHT_METHODS = setOf("test", "prewake", "check")
 
+    /**
+     * Nur beim ersten Signal eines tatsächlichen Geräteneustarts ist alter Klingelzustand veraltet.
+     * BOOT_COMPLETED nach dem Entsperren darf einen bei LOCKED_BOOT_COMPLETED nachgeholten Wecker
+     * nicht löschen. Ohne verfügbaren Systemzähler ist nur das gesperrte Startsignal ein Reset.
+     */
+    fun booted(s: AlarmState, bootCount: Int?, lockedBoot: Boolean): AlarmState {
+        val newBoot = if (bootCount != null) bootCount != s.bootCount else lockedBoot
+        return s.copy(
+            bootCount = bootCount ?: s.bootCount,
+            ringing = if (newBoot) null else s.ringing,
+            ringStartedAt = if (newBoot) 0 else s.ringStartedAt,
+        )
+    }
+
     private fun lastFired(s: AlarmState, k: AlarmKind) = when (k) {
         AlarmKind.MAIN -> s.lastMainFiredAt
         AlarmKind.PRE_WAKE -> s.lastPreWakeFiredAt
@@ -108,13 +135,27 @@ object AlarmMachine {
         AlarmKind.WAKE_CHECK -> s.lastWakeCheckFiredAt
     }
 
+    /** Cancelled or replaced occurrences may already be in flight; only the current one can fire. */
+    fun firedScheduled(s: AlarmState, kind: AlarmKind, at: Long, now: Long): FireDecision {
+        val expected = when (kind) {
+            AlarmKind.MAIN -> s.mainAt
+            AlarmKind.PRE_WAKE -> s.preWakeAt
+            AlarmKind.SNOOZE -> s.snoozeAt
+            AlarmKind.TEST -> s.testAt
+            AlarmKind.WAKE_CHECK -> s.wakeCheckAt
+        }
+        if (at <= 0 || at != expected) return FireDecision(s, false)
+        return fired(s, kind, at, now)
+    }
+
     /** Ein Alarm ist fällig. Doppelte Broadcasts klingeln nicht zweimal, Höherrangiges wird nie verdrängt. */
     fun fired(s: AlarmState, kind: AlarmKind, at: Long, now: Long): FireDecision {
+        if (kind == AlarmKind.MAIN && at > 0 && at == s.smartConfirmedAt) return FireDecision(s, false)
         if (at > 0 && at <= lastFired(s, kind)) return FireDecision(s, false)
         val stamp = if (at > 0) at else now
         val marked = when (kind) {
             // Nur ein echter Hauptwecker gibt das Schlummern wieder frei
-            AlarmKind.MAIN -> s.copy(mainAt = 0, lastMainFiredAt = stamp, snoozeUsed = false, wakeCheckAt = 0)
+            AlarmKind.MAIN -> s.copy(mainAt = 0, lastMainFiredAt = stamp, snoozeUsed = if (s.smartTargetAt == stamp) s.snoozeUsed else false, wakeCheckAt = 0)
             AlarmKind.PRE_WAKE -> s.copy(preWakeAt = 0, lastPreWakeFiredAt = stamp)
             AlarmKind.SNOOZE -> s.copy(snoozeAt = 0, lastSnoozeFiredAt = stamp)
             AlarmKind.TEST -> s.copy(testAt = 0, lastTestFiredAt = stamp, testResult = "rang", testResultAt = now)
@@ -134,10 +175,27 @@ object AlarmMachine {
         val base = s.copy(ringing = null, ringStartedAt = 0, lastStopMethod = method, lastStopAt = now)
         return if (kind == AlarmKind.MAIN || kind == AlarmKind.SNOOZE) {
             val check = if (cfg?.wakeCheckEnabled == true) now + cfg.wakeCheckDelayMinutes * 60_000L else 0L
-            base.copy(snoozeAt = 0, wakeCheckAt = check)
+            base.copy(snoozeAt = 0, wakeCheckAt = check, smartConfirmedAt = if (s.smartTriggeredAt > 0) s.smartTargetAt else s.smartConfirmedAt)
         } else {
             base
         }
+    }
+
+    /**
+     * Der Dienst darf nur ohne klingelnden Zustand enden. Auch beim Empfang eines verzögerten
+     * Stopp-Intents neu prüfen: Inzwischen kann der Hauptwecker den Vorwecker ersetzt haben.
+     */
+    fun shouldStopRingingService(s: AlarmState): Boolean = s.ringing == null
+
+    /** Frühes Klingeln verbraucht den festen Wecker nicht. Nur eine echte Bestätigung tut das. */
+    fun smartFired(s: AlarmState, cfg: AlarmConfig?, targetAt: Long, now: Long): FireDecision {
+        if (cfg?.enabled != true || !cfg.smartWakeEnabled || targetAt <= 0 || s.mainAt != targetAt || s.ringing != null) return FireDecision(s, false)
+        if (s.smartTargetAt == targetAt && s.smartTriggeredAt > 0) return FireDecision(s, false)
+        val from = targetAt - cfg.smartWakeWindowMinutes.coerceIn(5, 90) * 60_000L
+        if (now < from || now >= targetAt) return FireDecision(s, false)
+        val early = fired(s.copy(smartTargetAt = targetAt, smartTriggeredAt = now), AlarmKind.MAIN, now, now)
+        // Auch ein Prozessabbruch direkt nach diesem Speichern darf den festen Zeitpunkt nicht verlieren.
+        return early.copy(state = early.state.copy(mainAt = targetAt))
     }
 
     /** Höchstens einmal schlummern, und nur beim Hauptwecker. */
@@ -167,13 +225,16 @@ object AlarmMachine {
         var state = s
         var late: AlarmKind? = null
 
+        // Auch ein Abbruch zwischen bestätigtem Stoppen und Neuplanen darf keinen zweiten Alarm nachholen.
+        if (state.mainAt > 0 && state.mainAt == state.smartConfirmedAt) state = state.copy(mainAt = 0, preWakeAt = 0)
+
         val missedMain = state.mainAt in 1..now && state.lastMainFiredAt < state.mainAt
         if (missedMain) {
             if (cfg?.enabled != false && now - state.mainAt <= LATE_GRACE_MS) late = AlarmKind.MAIN
             else state = state.copy(missedMainAt = state.mainAt, mainAt = 0)
         }
         if (state.snoozeAt in 1..now) {
-            if (late == null && now - state.snoozeAt <= LATE_GRACE_MS) late = AlarmKind.SNOOZE
+            if (cfg?.enabled != false && late == null && now - state.snoozeAt <= LATE_GRACE_MS) late = AlarmKind.SNOOZE
             else state = state.copy(snoozeAt = 0)
         }
         if (state.preWakeAt in 1..now) state = state.copy(preWakeAt = 0)
@@ -184,7 +245,8 @@ object AlarmMachine {
 
         if (cfg != null) {
             if (late != AlarmKind.MAIN) {
-                val next = AlarmPlanner.next(cfg, now)
+                var next = AlarmPlanner.next(cfg, now)
+                if (next.mainAt > 0 && next.mainAt == state.smartConfirmedAt) next = AlarmPlanner.next(cfg, maxOf(now, state.smartConfirmedAt))
                 state = state.copy(mainAt = next.mainAt, preWakeAt = next.preWakeAt)
             }
             if (!cfg.enabled) state = state.copy(snoozeAt = 0, wakeCheckAt = 0)

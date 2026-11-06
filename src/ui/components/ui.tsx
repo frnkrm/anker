@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { fmtTime, parseTime } from '../../core/time'
@@ -115,35 +115,51 @@ export function TimeField({ value, onChange, label }: { value: number; onChange:
         const m = parseTime(e.target.value)
         if (!Number.isNaN(m)) onChange(m)
       }}
-      className="min-h-12 rounded-xl bg-surface-2 px-3 text-lg tabular-nums"
+      className="min-h-12 min-w-0 max-w-full rounded-xl bg-surface-2 px-2 text-lg tabular-nums"
     />
   )
 }
 
 export function Stepper({ value, onChange, step = 5, min = 0, max = 600, unit = 'min', label }: { value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number; unit?: string; label: string }) {
+  // Incomplete typing stays local; an empty field must never save an accidental zero.
+  const [draft, setDraft] = useState<string>()
+  const commit = () => {
+    if (draft !== undefined && draft.trim() !== '') {
+      const next = Number(draft)
+      if (Number.isFinite(next)) onChange(Math.min(max, Math.max(min, step >= 1 ? Math.round(next) : next)))
+    }
+    setDraft(undefined)
+  }
   return (
-    <div className="flex items-center gap-1" aria-label={label}>
-      <button type="button" aria-label={`${label} verringern`} onClick={() => onChange(Math.max(min, value - step))} className="h-11 w-11 rounded-xl bg-surface-2 text-xl">
+    <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1" role="group" aria-label={`${label} ändern`}>
+      <button type="button" aria-label={`${label} verringern`} onClick={() => onChange(Math.max(min, value - step))} className="h-[44px] w-[44px] rounded-xl bg-surface-2 text-xl">
         −
       </button>
-      <span className="min-w-16 text-center tabular-nums">
-        {value} {unit}
-      </span>
-      <button type="button" aria-label={`${label} erhöhen`} onClick={() => onChange(Math.min(max, value + step))} className="h-11 w-11 rounded-xl bg-surface-2 text-xl">
+      <input type="number" inputMode={step < 1 ? 'decimal' : 'numeric'} aria-label={label} min={min} max={max} step="any"
+        value={draft ?? value} onFocus={() => setDraft(String(value))} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+        className="min-h-11 w-[72px] min-w-0 rounded-xl bg-surface-2 px-1 text-center tabular-nums" />
+      <span className="text-sm text-muted">{unit}</span>
+      <button type="button" aria-label={`${label} erhöhen`} onClick={() => onChange(Math.min(max, value + step))} className="h-[44px] w-[44px] rounded-xl bg-surface-2 text-xl">
         +
       </button>
     </div>
   )
 }
 
-export function TimeStepper({ value, onChange, label }: { value: number; onChange: (m: number) => void; label: string }) {
+export function TimeStepper({ value, onChange, label, night = false }: { value: number; onChange: (m: number) => void; label: string; night?: boolean }) {
+  const set = (minutes: number) => {
+    const wall = ((minutes % 1440) + 1440) % 1440
+    // Same convention as the planner: 00:30 at night is 1470, not a previous morning.
+    onChange(night && wall < 720 ? wall + 1440 : wall)
+  }
   return (
-    <div className="flex items-center gap-1" aria-label={label}>
-      <button type="button" aria-label={`${label} früher`} onClick={() => onChange(value - 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
+    <div className="flex max-w-full flex-wrap items-center justify-end gap-1" role="group" aria-label={`${label} ändern`}>
+      <button type="button" aria-label={`${label} früher`} onClick={() => set(value - 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
         −
       </button>
-      <span className="min-w-20 text-center text-2xl font-semibold tabular-nums">{fmtTime(value)}</span>
-      <button type="button" aria-label={`${label} später`} onClick={() => onChange(value + 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
+      <TimeField label={label} value={value} onChange={set} />
+      <button type="button" aria-label={`${label} später`} onClick={() => set(value + 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
         +
       </button>
     </div>

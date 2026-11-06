@@ -56,6 +56,7 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `now.ts` | Was der Tagesplan gerade vorsieht |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
 | `alarm.ts` | Konfiguration für den nativen Wecker |
+| `deviceTests.ts` | Liest Prüfschritte aus der Geräte-Dokumentation, validiert manuelle Berichte und trennt Plattform/Codestand |
 | `planner/adaptive.ts` | Wege und Termine, Konflikte, Maps-Link |
 | `sleep.ts` | Späteste Weckzeit, Schlafhinweis, Weckvorschlag |
 | `weather.ts` | Wetterhinweis für die Zeit draußen |
@@ -118,6 +119,7 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `Settings.tsx` | `/einstellungen/:section` | Alle Einstellungen |
 | `Alarm.tsx` | `/wecker`, `/wecker/klingelt` | Wecker einrichten, Klingel-Bildschirm |
 | `Check.tsx` | `/check` | Einrichtungs-Check |
+| `DeviceTests.tsx` | `/geraetetest` | Ein Versuch nach dem anderen, Einstellungswege, lokaler Nutzerbericht/Entwurf, Testexport |
 | `PcStop.tsx` | `/pc-stopp` | PC-Stopp und Windows-Paket |
 | `Connections.tsx` | `/verbindungen` | Sync, Google, `.ics` |
 | `Static.tsx` | `/hilfe`, `/backup`, `/druck` | Hilfe, Sicherung, Druckansicht |
@@ -166,6 +168,8 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 | Sichtbare Slots ändern | `slotFor` in `src/core/reminders/build.ts`, Regeln in `android/…/ReminderModel.kt` |
 
 ## Tests und Befehle
+
+`vite.config.ts` liefert den virtuellen Testkatalog direkt aus `GERAETETEST.md`, ausschließlich ID, Bereich, Vorgehen und Erwartung. Historische Ergebniszellen/Geräte-Metadaten werden nicht gebündelt. Eine Quellkennung aus Produktionsdateien identifiziert auch noch unveröffentlichte Stände mit gleicher Versionsnummer. Testberichte liegen in `LocalData.deviceTests` (`meta/local`). `saveDeviceTests` nutzt die bestehende Schreibqueue und löst keinen Plan-/Weckerabgleich aus; Entwürfe sind kein Ergebnis und bringen keine XP.
 
 ```bash
 npm run dev

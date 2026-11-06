@@ -27,6 +27,10 @@ object AnkerPrefs {
     /** commit statt apply: Receiver dürfen nach onReceive jederzeit beendet werden. */
     fun saveState(ctx: Context, s: AlarmState) {
         val o = JSONObject()
+            .put("bootCount", s.bootCount)
+            .put("smartTargetAt", s.smartTargetAt)
+            .put("smartTriggeredAt", s.smartTriggeredAt)
+            .put("smartConfirmedAt", s.smartConfirmedAt)
             .put("ringing", s.ringing?.wire ?: "")
             .put("ringStartedAt", s.ringStartedAt)
             .put("mainAt", s.mainAt)
@@ -54,6 +58,10 @@ object AnkerPrefs {
         return try {
             val o = JSONObject(raw)
             AlarmState(
+                bootCount = o.optInt("bootCount", -1),
+                smartTargetAt = o.optLong("smartTargetAt"),
+                smartTriggeredAt = o.optLong("smartTriggeredAt"),
+                smartConfirmedAt = o.optLong("smartConfirmedAt"),
                 ringing = AlarmKind.of(o.optString("ringing")),
                 ringStartedAt = o.optLong("ringStartedAt"),
                 mainAt = o.optLong("mainAt"),
@@ -90,6 +98,8 @@ object AnkerPrefs {
             .put("wakeCheckEnabled", c.wakeCheckEnabled)
             .put("wakeCheckDelayMinutes", c.wakeCheckDelayMinutes)
             .put("label", c.label)
+            .put("smartWakeEnabled", c.smartWakeEnabled)
+            .put("smartWakeWindowMinutes", c.smartWakeWindowMinutes)
         prefs(ctx).edit().putString("alarmConfig", o.toString()).commit()
     }
 
@@ -110,6 +120,8 @@ object AnkerPrefs {
                 wakeCheckEnabled = o.optBoolean("wakeCheckEnabled"),
                 wakeCheckDelayMinutes = o.optInt("wakeCheckDelayMinutes", 5),
                 label = o.optString("label", "Aufstehen"),
+                smartWakeEnabled = o.optBoolean("smartWakeEnabled", false),
+                smartWakeWindowMinutes = o.optInt("smartWakeWindowMinutes", 45),
             )
         } catch (_: Exception) {
             null

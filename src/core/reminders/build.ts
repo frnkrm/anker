@@ -1,5 +1,5 @@
 import { fmtTime, utcToZoned, weekday, zonedToUtc } from '../time'
-import type { DayLog, DayPlan, ReminderIntensity, Settings } from '../types'
+import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowStep } from '../types'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
 
@@ -36,6 +36,34 @@ export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
 export interface ReminderExtras {
   /** Berufliche Deadlines (UTC ms). Der Text bleibt absichtlich allgemein, auch auf dem Sperrbildschirm. */
   deadlines?: { id: string; at: number }[]
+  /** Nur offene, ausdrücklich zur Erinnerung ausgewählte Gedanken. Inhalte bleiben privat. */
+  thoughtReviews?: InboxItem[]
+  /** Lokale nächste Schritte; erledigte oder abgewählte Einträge werden entfernt. */
+  tomorrowSteps?: TomorrowStep[]
+}
+
+interface PrivateReminder {
+  key: string
+  date: string
+  at: number
+  title: string
+  body: string
+}
+
+/** Dieselben offenen Einträge gelten auch nach ihrer Uhrzeit weiter, ohne erneut zu erinnern. */
+function privateReminders(extras: ReminderExtras): PrivateReminder[] {
+  const out: PrivateReminder[] = []
+  for (const item of extras.thoughtReviews ?? []) {
+    if (item.status !== 'open' || item.done || item.doneAt !== undefined || !item.reviewNotify || !Number.isFinite(item.reviewAt) || !Number.isFinite(new Date(item.reviewAt!).getTime())) continue
+    const at = item.reviewAt!
+    out.push({ key: `thought-review:${item.id}`, date: utcToZoned(at).date, at, title: 'Ein Gedanke liegt für dich bereit', body: 'Wenn es passt, kannst du ihn in Anker wieder ansehen.' })
+  }
+  for (const step of extras.tomorrowSteps ?? []) {
+    if (step.doneAt !== undefined || !step.remind || !Number.isFinite(step.resumeAt) || !Number.isFinite(new Date(step.resumeAt).getTime())) continue
+    const at = step.resumeAt
+    out.push({ key: `tomorrow-step:${step.id}`, date: utcToZoned(at).date, at, title: 'Dein nächster Schritt liegt bereit', body: 'Öffne Anker, wenn du damit weitermachen möchtest.' })
+  }
+  return out
 }
 
 interface Base {
@@ -112,11 +140,16 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       escalate: true,
     })
   }
-  if (!sick && !log?.pcOffAt && !plan.openEnd) {
+  if (s.support.windDown.enabled && !log?.bedAt) {
+    // Eine Uhrzeit nach Mitternacht gehört noch zum Abend dieses Plantags.
+    const at = s.support.windDown.at < 4 * 60 ? s.support.windDown.at + 1440 : s.support.windDown.at
+    out.push({ key: 'wind-down', at, channel: 'sanft', title: 'Zeit für deinen Abendübergang', body: 'Wenn es für dich passt, öffne Anker für deine gewählte ruhige Aktivität.', escalate: false })
+  }
+  if (!s.support.windDown.enabled && !sick && !log?.pcOffAt && !plan.openEnd) {
     out.push({ key: 'pcstop-15', at: plan.pcStop - 15, channel: 'sanft', title: 'In 15 Minuten PC-Stopp', body: `Um ${t(plan.pcStop)} ist Schluss. Runde in Ruhe beenden.`, escalate: false })
     out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Bildschirm aus, runterkommen. Gut gemacht heute.', escalate: true, hard: true })
   }
-  if (!log?.bedAt && !plan.openEnd) {
+  if (!s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })
   }
   if (weekday(plan.date) === 6 && !sick) {
@@ -138,18 +171,21 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   // In Freizeit und bei sozialen Terminen bleibt es still, außer dem, was du selbst fest eingeplant hast
   const inQuiet = (b: Base) => !b.key.startsWith('go:') && !b.key.startsWith('prep:') && (plan.quiet ?? []).some(([a, e]) => b.at >= a && b.at < e)
   const calm = out.filter((b) => !inQuiet(b))
-  if (mode === 'auf-kurs' || mode === 'ueberlastet') return calm.filter((b) => b.hard || b.escalate)
+  if (mode === 'auf-kurs' || mode === 'ueberlastet') return calm.filter((b) => b.hard || b.escalate || b.key === 'wind-down')
   return calm
 }
 
 /** Alle Erinnerungs-Schlüssel, die für diese Tage noch gelten. Was fehlt, wird aus der Leiste geräumt. */
-export function relevantReminderKeys(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings): string[] {
+export function relevantReminderKeys(plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, extras: ReminderExtras = {}): string[] {
   const out: string[] = []
   for (const plan of plans) {
     const dismissed = new Set(logs[plan.date]?.dismissed ?? [])
     for (const b of baseReminders(plan, logs[plan.date], s)) {
       if (!dismissed.has(b.key)) out.push(`${plan.date}|${b.key}`)
     }
+  }
+  for (const reminder of privateReminders(extras)) {
+    if (!logs[reminder.date]?.dismissed?.includes(reminder.key)) out.push(`${reminder.date}|${reminder.key}`)
   }
   return out
 }
@@ -204,6 +240,11 @@ export function buildReminders(
       if (logs[date]?.dismissed?.includes(key)) continue
       out.push({ key, date, id: reminderId(`${d.id}|${suffix}`), at, channel: 'uebergang', title, body: 'Öffne Anker, dort steht dein nächster Schritt.', escalation: 0, actions: true, exact: true, ...slotFor(key) })
     }
+  }
+  for (const reminder of privateReminders(extras)) {
+    if (reminder.at <= nowMs || reminder.at > nowMs + lookaheadMs || inQuiet(utcToZoned(reminder.at).minutes, s)) continue
+    if (logs[reminder.date]?.dismissed?.includes(reminder.key)) continue
+    out.push({ ...reminder, id: reminderId(`${reminder.date}|${reminder.key}|0`), channel: 'sanft', escalation: 0, actions: false, exact: false, ...slotFor(reminder.key) })
   }
   const steps = escalationSteps(s.reminders.intensity)
   const gap = s.reminders.repeatAfterMin

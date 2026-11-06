@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 import { theme as getTheme } from '../../core/game'
 import { addDays } from '../../core/time'
 import { nextNow } from '../../state/hooks'
@@ -26,11 +26,19 @@ const FULLSCREEN = ['/fokus', '/wecker/klingelt', '/start', '/druck']
 export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
   const full = FULLSCREEN.some((p) => loc.pathname.startsWith(p))
+  const activeTest = useApp((s) => s.local.deviceTests?.activeId)
+  const quietPage = activeTest !== undefined || ['/abend', '/schlaf', '/einstellungen/abenduebergang', '/geraetetest'].includes(loc.pathname)
   // Spiel ausblenden, wenn abgeschaltet oder überlastet. Es läuft im Hintergrund unverändert weiter.
   const gameVisible = useApp((s) => s.settings.support.gameVisible && s.days[today()]?.override.mode !== 'ueberlastet')
   const right = TABS.slice(2).filter((t) => gameVisible || t.to !== '/spiel')
   return (
     <>
+      {activeTest !== undefined && !['/geraetetest', '/wecker/klingelt', '/druck', '/start'].includes(loc.pathname) && (
+        <aside aria-label="Testbegleitung" className="no-print mx-auto flex max-w-xl flex-wrap items-center gap-2 px-4 pt-2">
+          <Link to={`/geraetetest?fall=${activeTest}`} className="flex min-h-11 items-center rounded-xl bg-surface-2 px-3 text-accent">Zurück zu Test {activeTest}</Link>
+          <Button size="sm" variant="ghost" onClick={() => void useApp.getState().saveDeviceTests((p) => ({ ...p, activeId: undefined })).catch(() => useApp.getState().showToast('Die Testpause konnte nicht gespeichert werden.'))}>Testbegleitung pausieren</Button>
+        </aside>
+      )}
       <main>{children}</main>
       {!full && (
         <nav aria-label="Hauptnavigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur safe-bottom no-print">
@@ -45,7 +53,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </nav>
       )}
-      <Celebrations />
+      {!quietPage && <Celebrations />}
       <Toast />
     </>
   )

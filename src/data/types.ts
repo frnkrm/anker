@@ -20,8 +20,8 @@ export interface Repository {
   remove(c: Collection, id: string): Promise<void>
   all(): Promise<Rec[]>
   dirty(): Promise<Rec[]>
-  /** Übernimmt Datensätze (Sync/Import) nach last-write-wins. Gibt die Anzahl übernommener zurück. */
-  merge(recs: Rec[]): Promise<number>
+  /** Übernimmt neuere Datensätze. Importierte lokale Änderungen bleiben mit dirty für den Sync vorgemerkt. */
+  merge(recs: Rec[], options?: { dirty?: boolean }): Promise<number>
   markClean(recs: Pick<Rec, 'collection' | 'id' | 'updated_at'>[]): Promise<void>
   clear(): Promise<void>
 }

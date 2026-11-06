@@ -2,9 +2,9 @@ import { App } from '@capacitor/app'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { APP_ID } from '../../app.config'
 import { addDays, fmtTime, zonedToUtc } from '../core/time'
-import type { Rec } from '../data'
 import { planFor, repository, today, useApp } from '../state/store'
 import { isNative, safe } from './native'
+import { pullRecords } from './syncPull'
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -77,16 +77,11 @@ export async function syncNow(): Promise<SyncMeta> {
       if (error) throw error
       await repo.markClean(dirty)
     }
-    // Pull: alles seit dem letzten Cursor
-    let q = c.from('records').select('collection,id,data,updated_at,deleted,server_updated_at').order('server_updated_at').limit(1000)
-    if (meta.cursor) q = q.gt('server_updated_at', meta.cursor)
-    const { data, error } = await q
-    if (error) throw error
-    const rows = (data ?? []) as (Rec & { server_updated_at: string })[]
-    const n = rows.length ? await repo.merge(rows.map(({ server_updated_at: _s, ...r }) => ({ ...r, updated_at: Number(r.updated_at) }))) : 0
-    const next: SyncMeta = { cursor: rows.at(-1)?.server_updated_at ?? meta.cursor, lastSync: Date.now() }
+    // Pull: alle Seiten, auch bei mehr als 1000 Datensätzen mit demselben Zeitstempel.
+    const pulled = await pullRecords(c, repo, meta.cursor)
+    const next: SyncMeta = { cursor: pulled.cursor, lastSync: Date.now() }
     await repo.put('meta', 'sync', next)
-    if (n) await useApp.getState().load()
+    if (pulled.changed) await useApp.getState().load()
     await pushPcStop()
     return next
   } catch (e) {

@@ -15,3 +15,6 @@ android/local.properties
 android/app/src/main/assets/public
 android/capacitor-cordova-android-plugins
 .idea
+
+# Private original instructions; publish only the generalized technical version.
+/docs/auftraege/ANKER_CODEX_MASTERPROMPT_v6_Gesamtauftrag.md

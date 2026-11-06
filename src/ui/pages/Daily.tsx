@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router'
 import { randomId } from '../../core/defaults'
 import { routineBlock } from '../../core/planner'
 import { daysBetween, weekday, WEEKDAYS_LONG } from '../../core/time'
+import { remainingSec } from '../../core/support'
+import { useNow } from '../../state/hooks'
 import { planFor, today, useApp } from '../../state/store'
 import { WeatherCard } from '../components/WeatherCard'
 import { Button, Card, Page, Progress, Section, Stepper, TextInput } from '../components/ui'
@@ -48,7 +50,7 @@ export function Food() {
         ))}
         <Card className="space-y-3">
           <TextInput value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Neues Gericht" />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Stepper label="Kochzeit" value={min} min={5} max={120} onChange={setMin} />
             <Button
               variant="primary"
@@ -67,27 +69,52 @@ export function Food() {
   )
 }
 
+function readTidyStart(date: string): number | null {
+  try {
+    const raw = localStorage.getItem(`anker.tidy.${date}`)
+    const at = raw === null ? NaN : Number(raw)
+    return Number.isFinite(at) && at > 0 ? at : null
+  } catch {
+    return null
+  }
+}
+
 /** Aufräumen: 10-Minuten-Timer mit rotierenden Zonen. */
 export function Tidy() {
   const st = useApp()
   const nav = useNavigate()
+  const now = useNow(1000)
   const d = today()
   const zones = st.settings.tidyZones
   const zone = zones.length ? zones[Math.abs(daysBetween(st.settings.game.startDate, d)) % zones.length] : 'Wohnung'
-  const [left, setLeft] = useState<number | null>(null)
+  const [timer, setTimer] = useState(() => ({ date: d, at: readTidyStart(d) }))
   const [newZone, setNewZone] = useState('')
   const total = 600
+  const startedAt = timer.date === d ? timer.at : null
+  const left = startedAt === null ? null : Math.min(total, remainingSec(startedAt, total, now))
 
   useEffect(() => {
-    if (left === null || left <= 0) return
-    const id = setTimeout(() => setLeft(left - 1), 1000)
-    return () => clearTimeout(id)
-  }, [left])
+    setTimer({ date: d, at: readTidyStart(d) })
+  }, [d])
+
+  const start = () => {
+    const at = Date.now()
+    try {
+      // Pro Plantag nur den aktuellen Timer behalten; Wiederöffnen setzt ihn nicht zurück.
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('anker.tidy.')) localStorage.removeItem(key)
+      }
+      localStorage.setItem(`anker.tidy.${d}`, String(at))
+    } catch { /* Ohne lokalen Speicher läuft der Timer für die geöffnete Seite weiter. */ }
+    setTimer({ date: d, at })
+  }
 
   const finish = async () => {
     await st.updateDay(d, (l) => ({ ...l, tidyDone: true }))
     const step = routineBlock(planFor(d), 'evening')?.steps?.find((x) => x.tag === 'tidy')
-    if (step) await st.setStep(d, 'evening', step.id, left && left > 0 ? 'minimal' : 'done')
+    const remaining = startedAt === null ? total : remainingSec(startedAt, total, Date.now())
+    if (step) await st.setStep(d, 'evening', step.id, remaining > 0 ? 'minimal' : 'done')
+    try { localStorage.removeItem(`anker.tidy.${d}`) } catch { /* Lokaler Speicher ist optional. */ }
     st.showToast('Aufgeräumt. Sieht gut aus!')
     nav(-1)
   }
@@ -103,7 +130,7 @@ export function Tidy() {
         <Progress value={left === null ? 0 : 1 - left / total} />
         <div className="mt-5 space-y-2">
           {left === null ? (
-            <Button variant="primary" size="xl" className="w-full" onClick={() => setLeft(total)}>
+            <Button variant="primary" size="xl" className="w-full" onClick={start}>
               10 Minuten starten
             </Button>
           ) : (

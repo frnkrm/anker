@@ -28,6 +28,8 @@ export default function Settings() {
       return <Sport s={s} save={save} />
     case 'abende':
       return <Evenings s={s} save={save} />
+    case 'abendmodus':
+      return <EveningMode s={s} save={save} />
     case 'morgenroutine':
       return <RoutineEditor s={s} save={save} r="morning" />
     case 'abendroutine':
@@ -58,18 +60,23 @@ export default function Settings() {
       <Section title="Dein Tag">
         <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}${s.flex.latestStart !== null ? ` · spätestens ${fmtTime(s.flex.latestStart)}` : ''}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
-        <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · PC-Stopp ${fmtTime(s.pcStop)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Sport" sub={`${s.sport.days.filter(Boolean).length}× pro Woche`} to="/einstellungen/sport" />
+      </Section>
+      <Section title="Abend & Schlaf">
+        <Row label="Sanfter Abendübergang" sub="Eigene ruhige Tätigkeit und ein freiwilliger Hinweis" to="/einstellungen/abenduebergang" />
+        <Row label="Schlafüberblick" sub="Freiwillige Einträge, nur auf diesem Gerät" to="/schlaf" />
+        <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · PC-Stopp ${fmtTime(s.pcStop)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Abendpläne" to="/einstellungen/abende" />
+        <Row label="Abendroutine" sub={`${s.routines.evening.length} Schritte · ${fmtDuration(sumMinutes(s.routines.evening))}`} to="/einstellungen/abendroutine" />
+        <Row label="Abendmodus" sub="Freiwilliger Vorschlag auf der Startseite" to="/einstellungen/abendmodus" />
       </Section>
       {sug.wake !== s.anchor.wake && <p className="px-1 text-sm text-muted">Hinweis: Rechnerisch wäre {fmtTime(sug.wake)} die passende Aufstehzeit.</p>}
       <Section title="Routinen">
         <Row label="Morgenroutine" sub={`${s.routines.morning.length} Schritte · ${fmtDuration(sumMinutes(s.routines.morning))}`} to="/einstellungen/morgenroutine" />
-        <Row label="Abendroutine" sub={`${s.routines.evening.length} Schritte · ${fmtDuration(sumMinutes(s.routines.evening))}`} to="/einstellungen/abendroutine" />
       </Section>
       <Section title="App">
         <Row label="Erinnerungen" sub={{ gentle: 'Sanft', normal: 'Normal', persistent: 'Hartnäckig' }[s.reminders.intensity]} to="/einstellungen/erinnerungen" />
-        <Row label="Alltagshilfen" sub="Fokus-Puls, Abendmodus, Ankommen, Spiel" to="/einstellungen/hilfen" />
+        <Row label="Alltagshilfen" sub="Fokus-Puls, Ankommen, Spiel" to="/einstellungen/hilfen" />
         <Row label="Darstellung & Thema" to="/einstellungen/darstellung" />
         <Row label="Belohnungen" to="/spiel/shop" />
         <Row label="Gerichte" to="/essen" />
@@ -119,6 +126,15 @@ function Work({ s, save }: { s: S; save: Save }) {
           <p className="text-sm text-muted">Die Nachricht kopierst du nur, Anker sendet nichts. Anker ist eine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.</p>
         </Card>
       </Section>
+      <Section title="Nach Feierabend">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <span>Arbeitsaufgaben nach Feierabend ruhigstellen</span>
+            <Toggle label="Arbeitsaufgaben nach Feierabend ruhigstellen" checked={s.support.workAfterHoursQuiet} onChange={(v) => save((x) => ({ ...x, support: { ...x.support, workAfterHoursQuiet: v } }))} />
+          </div>
+          <p className="text-sm text-muted">Auf der Startseite haben Abend und Erholung Vorrang. Arbeitsaufgaben bleiben unter Arbeit erreichbar; Fristmeldungen bleiben unverändert. Laufende Arbeit wird dadurch nicht beendet.</p>
+        </Card>
+      </Section>
       {friday.isWorkDay && others.length > 0 && friday.durationMin >= Math.min(...others) && <p className="px-1 text-muted">Ist dein Freitag kürzer? Trag unten dein echtes Soll ein. Anker rät keinen Wert.</p>}
       <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Wunsch-Beginn.</p>
       {s.work.map((w, i) => (
@@ -133,11 +149,11 @@ function Work({ s, save }: { s: S; save: Save }) {
                 <span>Wunsch-Beginn</span>
                 <TimeField label="Arbeitsbeginn" value={w.start} onChange={(v) => upd(i, { start: v })} />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>Soll netto, ohne Pause</span>
                 <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.25} min={0.25} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>Übliche Pause</span>
                 <Stepper label="Pause" value={w.pauseMin} step={5} min={0} max={180} onChange={(v) => upd(i, { pauseMin: v })} />
               </div>
@@ -160,11 +176,11 @@ function Commute({ s, save }: { s: S; save: Save }) {
   return (
     <Page title="Arbeitsweg" back="/einstellungen">
       <Card className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Dauer</span>
           <Stepper label="Fahrzeit" value={c.minutes} max={180} onChange={(v) => set({ minutes: v })} />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Puffer</span>
           <Stepper label="Puffer" value={c.bufferMin} max={60} onChange={(v) => set({ bufferMin: v })} />
         </div>
@@ -191,34 +207,35 @@ function Sleep({ s, save }: { s: S; save: Save }) {
   const setSleep =(patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
   return (
     <Page title="Schlaf & Anker" back="/einstellungen">
+      <p className="px-1 text-sm text-muted">Tippe eine Uhrzeit oder Zahl direkt an, um sie einzugeben. Plus und Minus ändern sie in kleinen Schritten. Dauern werden beim Verlassen des Feldes übernommen.</p>
       <Card className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Schlafbedarf</span>
           <Stepper label="Schlafbedarf" value={s.sleep.needMin / 60} step={0.5} min={5} max={10} unit="h" onChange={(v) => setSleep({ needMin: Math.round(v * 60) })} />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Einschlafzeit</span>
           <Stepper label="Einschlafzeit" value={s.sleep.fallAsleepMin} max={60} onChange={(v) => setSleep({ fallAsleepMin: v })} />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Bildschirm aus vor dem Bett</span>
           <Stepper label="Bildschirm aus" value={s.sleep.screenOffMin} max={120} onChange={(v) => setSleep({ screenOffMin: v })} />
         </div>
       </Card>
       <Card className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-medium">Aufstehen (jeden Tag)</span>
           <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v, manual: { ...x.anchor.manual, wake: true } } }))} />
         </div>
         <p className="-mt-2 text-sm text-muted">{manual.wake ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>PC-Stopp</span>
-          <TimeStepper label="PC-Stopp" value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }))} />
+          <TimeStepper label="PC-Stopp" night value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }))} />
         </div>
         <p className="-mt-2 text-sm text-muted">{manual.pcStop ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Bett</span>
-          <TimeStepper label="Bettzeit" value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }))} />
+          <TimeStepper label="Bettzeit" night value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }))} />
         </div>
         <p className="-mt-2 text-sm text-muted">{manual.bed ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <Button size="sm" onClick={() => save((x) => resetToSuggested(x))}>
@@ -226,11 +243,11 @@ function Sleep({ s, save }: { s: S; save: Save }) {
         </Button>
       </Card>
       <Card className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Toleranz Aufstehen</span>
           <Stepper label="Toleranz Aufstehen" value={s.anchor.wakeToleranceMin} max={60} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wakeToleranceMin: v } }))} />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Toleranz Wochenende</span>
           <Stepper label="Toleranz Wochenende" value={s.anchor.weekendToleranceMin} step={15} max={180} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, weekendToleranceMin: v } }))} />
         </div>
@@ -274,12 +291,12 @@ function Sport({ s, save }: { s: S; save: Save }) {
           ]}
           onChange={(v) => set({ time: v })}
         />
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Dauer</span>
           <Stepper label="Dauer" value={s.sport.durationMin} min={5} max={180} onChange={(v) => set({ durationMin: v })} />
         </div>
         {s.sport.kind === 'gym' && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Weg zum Studio</span>
             <Stepper label="Weg zum Studio" value={s.sport.gymWayMin} max={60} onChange={(v) => set({ gymWayMin: v })} />
           </div>
@@ -304,7 +321,7 @@ function Evenings({ s, save }: { s: S; save: Save }) {
       <Section title="Dauer">
         <Card className="space-y-3">
           {keys.map((k) => (
-            <div key={k} className="flex items-center justify-between">
+            <div key={k} className="flex flex-wrap items-center justify-between gap-2">
               <span>{EVENING_LABELS[k]}</span>
               <Stepper label={`Dauer ${EVENING_LABELS[k]}`} value={s.eveningDurations[k]} step={15} min={15} max={360} onChange={(v) => save((x) => ({ ...x, eveningDurations: { ...x.eveningDurations, [k]: v } }))} />
             </div>
@@ -333,7 +350,7 @@ function RoutineEditor({ s, save, r }: { s: S; save: Save; r: RoutineId }) {
         render={(x) => (
           <div className="space-y-2 py-1">
             <TextInput aria-label="Schritt" value={x.title} onChange={(e) => upd(x.id, { title: e.target.value })} />
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Stepper label="Dauer" value={x.minutes} step={1} min={1} max={120} onChange={(v) => upd(x.id, { minutes: v })} />
               <button type="button" className="min-h-10 px-2 text-sm text-muted" onClick={() => set(steps.filter((y) => y.id !== x.id))}>
                 Entfernen
@@ -371,7 +388,7 @@ function Reminders({ s, save }: { s: S; save: Save }) {
           {r.intensity === 'normal' && 'Erinnerung, nach ein paar Minuten noch einmal.'}
           {r.intensity === 'persistent' && 'Erinnerung, Wiederholung, dann mit Ton und Vibration, bis du bestätigst.'}
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Wiederholen nach</span>
           <Stepper label="Wiederholen nach" value={r.repeatAfterMin} step={1} min={2} max={30} onChange={(v) => set({ repeatAfterMin: v })} />
         </div>
@@ -388,6 +405,29 @@ function Reminders({ s, save }: { s: S; save: Save }) {
         </div>
         <p className="text-sm text-muted">Harte Zeiten (Losgehen, PC-Stopp, Bett) kommen trotzdem.</p>
       </Card>
+    </Page>
+  )
+}
+
+function EveningMode({ s, save }: { s: S; save: Save }) {
+  const preset = s.support.eveningPreset
+  const setPreset = (patch: Partial<typeof preset>) => save((x) => ({ ...x, support: { ...x.support, eveningPreset: { ...x.support.eveningPreset, ...patch } } }))
+  return (
+    <Page title="Abendmodus" back="/einstellungen">
+      <Section hint="Nur ein Vorschlag auf der Startseite. Du entscheidest mit einem Tipp.">
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Abends vorschlagen</span>
+            <Toggle label="Abendmodus vorschlagen" checked={preset.enabled} onChange={(v) => setPreset({ enabled: v })} />
+          </div>
+          {preset.enabled && (
+            <div className="flex items-center justify-between">
+              <span>Ab</span>
+              <TimeField label="Abendmodus ab" value={preset.from} onChange={(v) => setPreset({ from: v })} />
+            </div>
+          )}
+        </Card>
+      </Section>
     </Page>
   )
 }
@@ -435,20 +475,6 @@ function Supports({ s, save }: { s: S; save: Save }) {
           )}
         </Card>
       </Section>
-      <Section title="Abendmodus" hint="Nur ein Vorschlag auf der Startseite. Du entscheidest mit einem Tipp.">
-        <Card className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span>Abends vorschlagen</span>
-            <Toggle label="Abendmodus vorschlagen" checked={sup.eveningPreset.enabled} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, enabled: v } })} />
-          </div>
-          {sup.eveningPreset.enabled && (
-            <div className="flex items-center justify-between">
-              <span>Ab</span>
-              <TimeField label="Abendmodus ab" value={sup.eveningPreset.from} onChange={(v) => setSup({ eveningPreset: { ...sup.eveningPreset, from: v } })} />
-            </div>
-          )}
-        </Card>
-      </Section>
       <Section title="Ankommen nach der Arbeit" hint="Zwei bis drei kurze Schritte, bevor der Abend beginnt.">
         <Card className="space-y-3">
           <div className="flex items-center justify-between">
@@ -463,19 +489,19 @@ function Supports({ s, save }: { s: S; save: Save }) {
       </Section>
       <Section title="Wege und Übergänge" hint="Das sind echte Minuten: Parkplatz, Schuhe, Laptop-Start.">
         <Card className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Ankunftspuffer</span>
             <Stepper label="Ankunftspuffer" value={s.travel.arrivalBufferMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, arrivalBufferMin: v } }))} />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Fertig machen vor Terminen</span>
             <Stepper label="Fertig machen" value={s.travel.prepMin} max={120} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, prepMin: v } }))} />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Rechnerstart im Homeoffice</span>
             <Stepper label="Rechnerstart" value={s.travel.homeOfficeStartupMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, homeOfficeStartupMin: v } }))} />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Wach werden</span>
             <Stepper label="Wach werden" value={s.travel.activationMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, activationMin: v } }))} />
           </div>
@@ -571,11 +597,11 @@ function WeatherSettings({ s, save }: { s: S; save: Save }) {
       {msg && <p className="text-sm text-muted">{msg}</p>}
       {w.enabled && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Jacke unter</span>
             <Stepper label="Jacke unter" value={w.rules.jacketBelowC} step={1} min={-10} max={30} unit="°C" onChange={(v) => setW({ rules: { ...w.rules, jacketBelowC: v } })} />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Regenschutz ab</span>
             <Stepper label="Regenschutz ab" value={w.rules.rainAbovePct} step={10} min={10} max={100} unit="%" onChange={(v) => setW({ rules: { ...w.rules, rainAbovePct: v } })} />
           </div>
@@ -596,7 +622,7 @@ function Look({ s, save }: { s: S; save: Save }) {
           <span>Dunkles Design</span>
           <Toggle label="Dunkles Design" checked={s.appearance.dark} onChange={(v) => save((x) => ({ ...x, appearance: { ...x.appearance, dark: v } }))} />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>Schriftgröße</span>
           <Stepper label="Schriftgröße" value={Math.round(s.appearance.fontScale * 100)} step={10} min={80} max={160} unit="%" onChange={(v) => save((x) => ({ ...x, appearance: { ...x.appearance, fontScale: v / 100 } }))} />
         </div>

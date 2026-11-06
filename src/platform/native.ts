@@ -3,6 +3,16 @@ import type { NativeAlarmConfig } from '../core/alarm'
 
 export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
 
+export interface SmartWakeState {
+  active: boolean
+  phase: 'idle' | 'waiting' | 'measuring' | 'triggered' | 'finished' | 'stopped' | 'interrupted' | 'error'
+  message: string
+  targetAt: number
+  windowAt: number
+  hasMotion: boolean
+  microphoneGranted: boolean
+}
+
 export interface AlarmStateInfo {
   ringing: boolean
   kind?: AlarmKindWire | null
@@ -75,6 +85,9 @@ export interface AnkerNativePlugin {
   /** Konfiguration für den nativen Wecker. Kotlin plant damit jeden nächsten Morgen selbst. */
   syncAlarmConfig(c: NativeAlarmConfig): Promise<AlarmStateInfo>
   getAlarmState(): Promise<AlarmStateInfo>
+  getSmartWakeState(): Promise<SmartWakeState>
+  startSmartWake(): Promise<void>
+  stopSmartWake(): Promise<void>
   /** Klingeln beenden. method erscheint nur in der eigenen Diagnose. */
   stopAlarm(o: { method: string }): Promise<AlarmStateInfo>
   /** Einmal schlummern. ok=false, wenn schon geschlummert wurde oder es kein Hauptwecker ist. */

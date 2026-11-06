@@ -42,9 +42,17 @@ object ReminderLogic {
 
     fun notificationId(slot: Int) = FIRST_NOTIFICATION_ID + slot
 
-    /** Neue Planung aus der App. Verschobene Erinnerungen bleiben erhalten. */
-    fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, now: Long): List<ReminderEntry> {
-        val snoozed = old.filter { it.snoozes > 0 && it.at > now }
+    /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
+    fun tapDestination(key: String): String? = when {
+        key == "wind-down" -> "evening"
+        key.startsWith("thought-review:") && key.length > "thought-review:".length -> "thoughts"
+        key.startsWith("tomorrow-step:") && key.length > "tomorrow-step:".length -> "evening"
+        else -> null
+    }
+
+    /** Neue Planung aus der App. Nur weiterhin relevante verschobene Erinnerungen bleiben erhalten. */
+    fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long): List<ReminderEntry> {
+        val snoozed = old.filter { it.snoozes > 0 && it.at > now && "${it.date}|${it.key}" in relevant }
         val snoozedKeys = snoozed.map { it.date to it.key }.toSet()
         return (snoozed + incoming.filter { it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
     }

@@ -106,7 +106,7 @@ export default function Work() {
                 <div className="space-y-3">
                   <TextInput aria-label="Titel" value={w.title} onChange={(e) => update(w.id, { title: e.target.value })} />
                   <TextInput aria-label="Nächster Schritt" placeholder="Nächster Schritt, z. B. Tabelle öffnen" value={w.nextStep ?? ''} onChange={(e) => update(w.id, { nextStep: e.target.value })} />
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span>Geschätzt</span>
                     <Stepper label="Schätzung" value={w.estimateMin ?? 30} step={5} min={5} max={480} onChange={(v) => update(w.id, { estimateMin: v })} />
                   </div>

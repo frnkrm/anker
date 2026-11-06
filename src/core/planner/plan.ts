@@ -158,7 +158,7 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   const plannedStart = firstCustomer ?? rule.plannedStart
   const firstRegular = actual.sessions.find((x) => x.kind === 'regular')
   const workStart = firstRegular ? minutesOnPlanDay(date, firstRegular.startAt) : plannedStart
-  const officeLeave = isWork ? (homeOffice ? plannedStart - 5 : plannedStart - s.commute.minutes - s.commute.bufferMin) : undefined
+  const officeLeave = isWork ? (homeOffice ? plannedStart - s.travel.homeOfficeStartupMin : plannedStart - s.commute.minutes - s.commute.bufferMin) : undefined
   const sportToday = isSportDay(date, s) && dayType !== 'vacation'
   const morningSport = sportToday && s.sport.time === 'morning'
   let gymBlock: Block | undefined

@@ -65,7 +65,7 @@ export default function Onboarding() {
             </div>
           </Card>
           <Card className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-lg">Fahrzeit</span>
               <Stepper label="Fahrzeit" value={s.commute.minutes} min={0} max={180} onChange={(v) => patch((x) => ({ ...x, commute: { ...x.commute, minutes: v } }))} />
             </div>
@@ -105,10 +105,10 @@ export default function Onboarding() {
             <p className="mt-1 text-lg text-muted">Rückwärts gerechnet ab {fmtTime(workStart)}. Passt das?</p>
           </div>
           <Card className="space-y-4">
-            <Line label="Aufstehen (jeden Tag)" value={s.anchor.wake} onChange={(v) => patch((x) => ({ ...x, anchor: { ...x.anchor, wake: v } }), false)} />
+            <Line label="Aufstehen (jeden Tag)" value={s.anchor.wake} onChange={(v) => patch((x) => ({ ...x, anchor: { ...x.anchor, wake: v, manual: { ...x.anchor.manual, wake: true } } }), false)} />
             <p className="-mt-2 text-sm text-muted">Losgehen um {fmtTime(sug.leave)}</p>
-            <Line label="PC-Stopp" value={s.pcStop} onChange={(v) => patch((x) => ({ ...x, pcStop: v }), false)} />
-            <Line label="Bett" value={s.bed} onChange={(v) => patch((x) => ({ ...x, bed: v }), false)} />
+            <Line label="PC-Stopp" night value={s.pcStop} onChange={(v) => patch((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }), false)} />
+            <Line label="Bett" night value={s.bed} onChange={(v) => patch((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }), false)} />
             <p className="text-sm text-muted">Für 8 Stunden Schlaf. Du kannst später in kleinen Schritten anpassen.</p>
           </Card>
           <div>
@@ -147,11 +147,11 @@ export default function Onboarding() {
   )
 }
 
-function Line({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function Line({ label, value, onChange, night = false }: { label: string; value: number; onChange: (v: number) => void; night?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="text-lg">{label}</span>
-      <TimeStepper label={label} value={value} onChange={onChange} />
+      <TimeStepper label={label} value={value} onChange={onChange} night={night} />
     </div>
   )
 }

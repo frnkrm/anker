@@ -21,6 +21,62 @@ class AlarmModelTest {
     }
 
     @Test
+    fun nurExpliziteBekannteFireActionsSindWecksignale() {
+        for (kind in AlarmKind.entries) assertEquals(kind, AlarmKind.fromFireAction(AlarmKind.FIRE_ACTION_PREFIX + kind.wire))
+        for (action in listOf(null, "", "main", "other.main", AlarmKind.FIRE_ACTION_PREFIX, AlarmKind.FIRE_ACTION_PREFIX + "unknown")) {
+            assertNull(AlarmKind.fromFireAction(action))
+        }
+    }
+
+    private fun scheduled(kind: AlarmKind, at: Long): AlarmState = when (kind) {
+        AlarmKind.MAIN -> AlarmState(mainAt = at)
+        AlarmKind.SNOOZE -> AlarmState(snoozeAt = at, snoozeUsed = true)
+        AlarmKind.PRE_WAKE -> AlarmState(preWakeAt = at)
+        AlarmKind.TEST -> AlarmState(testAt = at)
+        AlarmKind.WAKE_CHECK -> AlarmState(wakeCheckAt = at)
+    }
+
+    @Test
+    fun alteOderFehlendeSignaleAendernKeineAktuelleAlarmart() {
+        val old = at("2026-11-05", wake)
+        val replacement = old + 50 * 60_000L
+        for (kind in AlarmKind.entries) {
+            val state = scheduled(kind, replacement)
+            for (stamp in listOf(old, 0L, -1L)) {
+                val result = AlarmMachine.firedScheduled(state, kind, stamp, old)
+                assertFalse(result.ring)
+                assertEquals(state, result.state)
+            }
+            val cancelled = scheduled(kind, 0)
+            assertEquals(FireDecision(cancelled, false), AlarmMachine.firedScheduled(cancelled, kind, old, old))
+        }
+    }
+
+    @Test
+    fun aktuellerTerminKlingeltEinmalUndVerzoegertesDuplikatBleibtStill() {
+        val now = at("2026-11-05", wake)
+        for (kind in AlarmKind.entries) {
+            val first = AlarmMachine.firedScheduled(scheduled(kind, now), kind, now, now)
+            assertTrue(first.ring)
+            val stopped = AlarmMachine.stopped(first.state, "emergency", cfg, now + 1000)
+            val duplicate = AlarmMachine.firedScheduled(stopped, kind, now, now + 2000)
+            assertFalse(duplicate.ring)
+            assertEquals(stopped, duplicate.state)
+        }
+    }
+
+    @Test
+    fun abgleichHoltFaelligesSchlummernEinmalNach() {
+        val now = at("2026-11-05", wake + 5)
+        val reconciled = AlarmMachine.reconcile(AlarmState(snoozeAt = now - 1000, snoozeUsed = true), cfg, now)
+        assertEquals(AlarmKind.SNOOZE, reconciled.fireLate)
+        val fired = AlarmMachine.firedScheduled(reconciled.state, AlarmKind.SNOOZE, reconciled.state.snoozeAt, now)
+        assertTrue(fired.ring)
+        assertTrue(fired.state.snoozeUsed)
+        assertNull(AlarmMachine.reconcile(fired.state, cfg, now + 1).fireLate)
+    }
+
+    @Test
     fun naechsterWeckerHeuteOderMorgen() {
         assertEquals(at("2026-11-04", wake), AlarmPlanner.next(cfg, at("2026-11-04", 300)).mainAt)
         assertEquals(at("2026-11-05", wake), AlarmPlanner.next(cfg, at("2026-11-04", wake)).mainAt)
@@ -61,6 +117,13 @@ class AlarmModelTest {
     fun zeitInDerSommerzeitLueckeRutschtNachVorn() {
         // Gleiches Ergebnis wie zonedToUtc in src/core/time.ts (siehe alarm.test.ts)
         assertEquals(Instant.parse("2026-03-29T01:30:00Z").toEpochMilli(), at("2026-03-29", 150))
+    }
+
+    @Test
+    fun doppelteHerbstStundeNutztWieWebDasSpaetereVorkommen() {
+        assertEquals(Instant.parse("2026-10-25T01:30:00Z").toEpochMilli(), at("2026-10-25", 150))
+        val c = cfg.copy(wakeMinutes = 150)
+        assertEquals(at("2026-10-25", 150), AlarmPlanner.next(c, Instant.parse("2026-10-25T00:45:00Z").toEpochMilli()).mainAt)
     }
 
     @Test
@@ -110,6 +173,31 @@ class AlarmModelTest {
     }
 
     @Test
+    fun abgelehnterLeichterStoppDarfAuchDenKlingeldienstNichtBeenden() {
+        val now = at("2026-11-05", wake)
+        for (kind in listOf(AlarmKind.MAIN, AlarmKind.SNOOZE)) {
+            val ringing = AlarmMachine.fired(AlarmState(), kind, now, now).state
+            for (method in listOf("prewake", "test", "check")) {
+                val after = AlarmMachine.stopped(ringing, method, cfg, now + 1)
+                assertEquals(ringing, after)
+                assertFalse(AlarmMachine.shouldStopRingingService(after))
+            }
+            assertTrue(AlarmMachine.shouldStopRingingService(AlarmMachine.stopped(ringing, "qr", cfg, now + 1)))
+        }
+    }
+
+    @Test
+    fun verzoegerterStoppIntentDarfNeuenHauptweckerNichtStilllegen() {
+        val now = at("2026-11-05", wake)
+        val pre = AlarmMachine.fired(AlarmState(), AlarmKind.PRE_WAKE, now - 1000, now - 1000).state
+        val stopped = AlarmMachine.stopped(pre, "prewake", cfg, now - 1)
+        assertTrue(AlarmMachine.shouldStopRingingService(stopped))
+        // Der Stopp-Intent wird erst nach dem Hauptwecker-Start vom Dienst empfangen.
+        val main = AlarmMachine.fired(stopped, AlarmKind.MAIN, now, now).state
+        assertFalse(AlarmMachine.shouldStopRingingService(main))
+    }
+
+    @Test
     fun testVerdraengtKlingelndenHauptweckerNicht() {
         val now = at("2026-11-05", wake)
         val main = AlarmMachine.fired(AlarmState(), AlarmKind.MAIN, now, now)
@@ -151,6 +239,7 @@ class AlarmModelTest {
         val t = now + AlarmKind.MAIN.timeoutMs
         assertTrue(AlarmMachine.ringExpired(main.state, t))
         val out = AlarmMachine.timedOut(main.state, t)
+        assertTrue(AlarmMachine.shouldStopRingingService(out))
         val r = AlarmMachine.reconcile(out, cfg, t)
         assertNull(r.fireLate)
         assertEquals(at("2026-11-06", wake), r.state.mainAt)
@@ -180,10 +269,48 @@ class AlarmModelTest {
     }
 
     @Test
+    fun entsperrenNachGesperrtemStartBeendetNachgeholtenWeckerNicht() {
+        val mainAt = at("2026-11-05", wake)
+        val now = mainAt + 10 * 60_000L
+        val old = AlarmState(bootCount = 4, ringing = AlarmKind.TEST, ringStartedAt = mainAt - 60_000, mainAt = mainAt)
+        val booted = AlarmMachine.booted(old, 5, lockedBoot = true)
+        assertNull(booted.ringing)
+        assertEquals(0L, booted.ringStartedAt)
+        val due = AlarmMachine.reconcile(booted, cfg, now)
+        assertEquals(AlarmKind.MAIN, due.fireLate)
+        val ringing = AlarmMachine.firedScheduled(due.state, AlarmKind.MAIN, due.state.mainAt, now).state
+        val unlocked = AlarmMachine.booted(ringing, 5, lockedBoot = false)
+        assertEquals(ringing, unlocked)
+        assertFalse(AlarmMachine.shouldStopRingingService(unlocked))
+        // Auch eine doppelte Zustellung im selben Start lässt den neuen Wecker bestehen.
+        assertEquals(ringing, AlarmMachine.booted(ringing, 5, lockedBoot = true))
+        assertNull(AlarmMachine.booted(ringing, 6, lockedBoot = false).ringing)
+    }
+
+    @Test
+    fun ohneStartzaehlerSetztNurDasGesperrteStartsignalKlingelnZurueck() {
+        val main = AlarmState(ringing = AlarmKind.MAIN, ringStartedAt = 1234)
+        assertNull(AlarmMachine.booted(main, null, lockedBoot = true).ringing)
+        assertEquals(main, AlarmMachine.booted(main, null, lockedBoot = false))
+    }
+
+    @Test
     fun abgeschalteterWeckerPlantNichts() {
         val r = AlarmMachine.reconcile(AlarmState(mainAt = 5, snoozeAt = 0), cfg.copy(enabled = false), 10_000)
         assertEquals(0L, r.state.mainAt)
         assertNull(r.fireLate)
+    }
+
+    @Test
+    fun abgeschalteterWeckerHoltAuchFaelligesSchlummernNichtNach() {
+        val now = at("2026-11-05", wake + 5)
+        val state = AlarmState(mainAt = now + 86_400_000L, snoozeAt = now - 1000, wakeCheckAt = now + 1000, snoozeUsed = true)
+        val result = AlarmMachine.reconcile(state, cfg.copy(enabled = false), now)
+        assertNull(result.fireLate)
+        assertEquals(0L, result.state.mainAt)
+        assertEquals(0L, result.state.snoozeAt)
+        assertEquals(0L, result.state.wakeCheckAt)
+        assertTrue(result.state.snoozeUsed)
     }
 
     @Test

@@ -101,12 +101,12 @@ class AlarmService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) {
+        val s = AlarmController.state(this)
+        if (intent?.action == ACTION_STOP && AlarmMachine.shouldStopRingingService(s)) {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return START_NOT_STICKY
         }
-        val s = AlarmController.state(this)
         val kind = s.ringing
         // startForeground immer zuerst: Android beendet die App sonst nach startForegroundService
         if (!startInForeground(kind ?: AlarmKind.MAIN)) {

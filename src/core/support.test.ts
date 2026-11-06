@@ -5,7 +5,7 @@ import { buildDayPlan } from './planner'
 import { buildReminders } from './reminders/build'
 import { deadlineRisk, inQuietHours, isBehind, nextAction, pulseDue, remainingSec, rescueItems, stuckLadder, suggestedMode, suggestMeal, suggestTaskWindow, tasksFor, topWork, type NextInput } from './support'
 import { addDays, zonedToUtc } from './time'
-import type { DayLog, DayOverride, InboxItem, Settings, WorkTask } from './types'
+import type { DayLog, DayOverride, InboxItem, Settings, WorkSession, WorkTask } from './types'
 
 const MON = '2026-11-02'
 const s = defaultSettings('2026-11-01')
@@ -102,6 +102,66 @@ describe('nextAction', () => {
     const old = [task({ taskDate: MON }), task({ id: 't2', taskDate: addDays(MON, 1) })]
     const v = nextAction({ plan: later, log: undefined, m: later.wake + 200, nowMs: zonedToUtc(later.date, later.wake + 200), settings: s, inbox: old, work: [] })
     expect(JSON.stringify(v)).not.toMatch(/verpasst|überfällig|rückstand|versäumt/i)
+  })
+})
+
+describe('Freiwilliger Feierabend-Schutz', () => {
+  const quiet = (): Settings => ({ ...s, support: { ...s.support, workAfterHoursQuiet: true } })
+  const eveningMinute = plan.blocks.find((b) => b.routine === 'evening')!.start + 1
+  const urgent = (m: number) => work({ deadline: zonedToUtc(MON, m - 5) })
+
+  it('ist standardmäßig aus und lässt die bisherige Deadline-Priorität bestehen', () => {
+    expect(s.support.workAfterHoursQuiet).toBe(false)
+    expect(nextAction(input({ m: eveningMinute, work: [urgent(eveningMinute)] })).action.type).toBe('worktask')
+  })
+
+  it('lässt eine berufliche Deadline nach Feierabend die Abendroutine nicht verdrängen', () => {
+    const v = nextAction(input({ settings: quiet(), m: eveningMinute, work: [urgent(eveningMinute)] }))
+    expect(v.action).toMatchObject({ type: 'step', routine: 'evening' })
+  })
+
+  it('stellt nur berufliche Wiedereinstiege ruhig, private bleiben möglich', () => {
+    const at = zonedToUtc(MON, eveningMinute - 5)
+    const resume = { kind: 'work' as const, title: 'Bericht', at }
+    expect(nextAction(input({ m: eveningMinute, resume })).action.type).toBe('resume')
+    expect(nextAction(input({ settings: quiet(), m: eveningMinute, resume })).action.type).toBe('step')
+    expect(nextAction(input({ settings: quiet(), m: eveningMinute, resume: { ...resume, kind: 'task' } })).action.type).toBe('resume')
+  })
+
+  it('lässt berufliche Aufgaben während der geplanten Arbeit unverändert', () => {
+    const m = 10 * 60
+    expect(nextAction(input({ settings: quiet(), m, work: [urgent(m)] })).action.type).toBe('worktask')
+  })
+
+  it('lässt weiterlaufende Arbeit auch nach dem geplanten Ende bedienbar', () => {
+    const m = 19 * 60
+    const sessions: WorkSession[] = [{ id: 'work', date: MON, kind: 'regular', startAt: zonedToUtc(MON, 8 * 60), breaks: [] }]
+    const p = buildDayPlan({ date: MON, settings: quiet(), override: { homeOffice: true }, sessions, nowMs: zonedToUtc(MON, m) })
+    expect(nextAction(input({ plan: p, settings: quiet(), m, sessions, work: [urgent(m)] })).action.type).toBe('worktask')
+  })
+
+  it('lässt einen laufenden Arbeitseinsatz am Abend unverändert', () => {
+    const m = 19 * 60
+    const sessions: WorkSession[] = [{ id: 'call', date: MON, kind: 'incident', startAt: zonedToUtc(MON, m - 5), breaks: [] }]
+    expect(nextAction(input({ settings: quiet(), m, sessions, work: [urgent(m)] })).action.type).toBe('einsatz-running')
+  })
+
+  it('richtet sich nach einem tatsächlich früher erfassten Feierabend', () => {
+    const m = 13 * 60
+    const sessions: WorkSession[] = [{ id: 'work', date: MON, kind: 'regular', startAt: zonedToUtc(MON, 8 * 60), endAt: zonedToUtc(MON, 12 * 60), breaks: [] }]
+    const p = buildDayPlan({ date: MON, settings: quiet(), sessions, nowMs: zonedToUtc(MON, m) })
+    expect(nextAction(input({ plan: p, settings: quiet(), m, sessions, work: [urgent(m)] })).action.type).not.toBe('worktask')
+  })
+
+  it('lässt private Aufgaben nach Feierabend verfügbar', () => {
+    const v = nextAction(input({ settings: quiet(), m: eveningMinute, work: [urgent(eveningMinute)], inbox: [task()] }))
+    expect(v.action.type).toBe('task')
+  })
+
+  it('lässt feste Termine und Losgehen unverändert', () => {
+    const m = 19 * 60
+    const p = buildDayPlan({ date: MON, settings: quiet(), commitments: [{ id: 'a', date: MON, label: 'Besuch', context: 'personal', commitment: 'hard', status: 'planned', start: m + 10, end: m + 60, placeLabel: 'Freunde', travelMin: 0 }] })
+    expect(nextAction(input({ plan: p, settings: quiet(), m, work: [urgent(m)] })).action.type).toBe('go')
   })
 })
 

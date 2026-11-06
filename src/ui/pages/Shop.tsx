@@ -38,7 +38,7 @@ export default function Shop() {
       <Section title="Eigene Belohnung">
         <Card className="space-y-3">
           <TextInput value={title} onChange={(e) => setTitle(e.target.value)} placeholder="z. B. Neues Spiel kaufen" />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Preis</span>
             <Stepper label="Preis" value={price} step={100} min={100} max={20000} unit={t.xpWord} onChange={setPrice} />
           </div>

@@ -2,7 +2,7 @@
 
 Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sondern nur den nächsten Schritt machen.
 
-**Stand 1.1.0-rc.1:** Der Android-Teil ist gebaut und seine Logik automatisch getestet, aber noch **nicht auf einem echten Handy geprüft**. Lass deshalb zusätzlich den Android-Wecker gestellt, bis du Anker selbst geprüft hast (Liste: [GERAETETEST.md](GERAETETEST.md)). Einschränkungen stehen [ganz unten](#bekannte-grenzen). Für die Einrichtung von APK, Supabase, Google und Netlify siehe [README](../README.md).
+**Aktueller Entwicklungsstand:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; Ergebnisse und offene Punkte stehen in [GERAETETEST.md](GERAETETEST.md). Neue Weckerkorrekturen und das experimentelle Weckfenster sind noch nicht auf diesem Gerät bestätigt. Lass für die Prüfung einen unabhängigen Wecker gestellt. Unter **Mehr → Gemeinsam testen** führt dich die App durch die Versuche. Für APK, Supabase, Google und Netlify siehe [README](../README.md).
 
 ## Dein Tag mit Anker
 
@@ -10,7 +10,7 @@ Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sonder
 |---|---|
 | **Morgens** | Wecker klingelt, QR-Code im Bad scannen. Danach führt dich der Fokus-Modus durch die Morgenroutine. |
 | **Vor dem Losgehen** | Anker zeigt die Restzeit. Zur Losgeh-Zeit tippst du **„Bin los“**. |
-| **Arbeit** | Anker zeigt deine wichtigste Aufgabe. **„Ich wurde unterbrochen“** merkt den nächsten Schritt. Wird es später: **„Heute länger“** unter *Mehr*. |
+| **Arbeit** | Anker zeigt deine wichtigste Aufgabe. **„Ich wurde unterbrochen“** merkt den nächsten Schritt. Wird es später: **„Heute länger“** unter *Plan & Optionen*. |
 | **Abends** | Erst Abendplan (Essen, Freunde, Sport), dann Abendroutine. |
 | **Danach** | Freizeit, zocken erlaubt, bis zum PC-Stopp. |
 | **PC-Stopp, Bett** | **„PC ist aus“**, später **„Ich liege im Bett“**. |
@@ -28,10 +28,12 @@ Unten ist die Navigation: **Jetzt · Tag · 💭 · Spiel · Mehr**
 - **Die eine Aktion**, groß, mit einem Hauptknopf und höchstens zwei weiteren. Darüber in einem Satz, warum das gerade dran ist, wenn es dafür einen echten Grund gibt.
 - **Oben** die nächste feste Zeit mit dünnem Balken.
 - **„Ich hänge fest“:** ein Bildschirm mit einem winzigen Schritt und 2-Minuten-Ring (Starten, Geschafft, Etwas kleiner, Pause).
-- **„Mehr“** klappt Tageslinie, Fokus-Modus, Überspringen, Hinweise und „Tag neu sortieren“ auf.
+- **„Plan & Optionen“** klappt Tageslinie, Fokus-Modus, Überspringen, Hinweise und „Tag neu sortieren“ auf. **Mehr** in der Navigation öffnet die weiteren Bereiche der App.
 - **Knopf oben rechts** (z. B. „Arbeitstag ▾“): Unterstützung, Tagesart, spontan Homeoffice, Abendplan.
 
 **Was als Nächstes kommt, entscheidet eine feste Reihenfolge:** feste Zeiten und Termine, Arbeit mit naher Frist, wo du unterbrochen wurdest, heute Eingeplantes, Routine, dann Pause oder Freizeit. Auf dem Arbeitsweg unterbricht nichts.
+
+Unter **Einstellungen → Arbeit & Gleitzeit → Nach Feierabend** kannst du **Arbeitsaufgaben nach Feierabend ruhigstellen** einschalten. Der Schalter ist zunächst aus. Eingeschaltet haben auf der Startseite Abend und Erholung Vorrang; Arbeitsaufgaben bleiben unter **Arbeit** erreichbar. Fristmeldungen bleiben unverändert, und eine laufende Arbeitssitzung wird dadurch nicht beendet.
 
 ### Heute anders
 
@@ -191,7 +193,8 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | **Belohnungen** | Eigene Belohnungen gegen XP einlösen |
 | **Widget** | Nächste Aktion, nächste feste Zeit, Knopf für Gedanken |
 | **Druckansicht** | Morgen, Abend, beide, QR-Code oder Haustür, A5 oder A4, auf Android auch „Als PDF speichern“ im Systemdialog |
-| **Alltagshilfen** | Fokus-Puls, Abendmodus-Vorschlag, Ankommen nach der Arbeit, Spiel ausblenden (alles in den Einstellungen) |
+| **Abend & Schlaf** | Schlaf & Anker, Abendpläne, Abendroutine und der freiwillige Abendmodus-Vorschlag sind in den Einstellungen zusammengefasst. |
+| **Alltagshilfen** | Fokus-Puls, Ankommen nach der Arbeit, Spiel ausblenden (alles in den Einstellungen) |
 | **Kalender** | Google-Termine im Tagesplan, Routinen in eigenen Kalender schreiben, `.ics`-Export |
 | **Daten** | Läuft offline und ohne Konto, Sicherung als JSON, optionaler Sync |
 | **Anzeige** | Dunkel oder hell, Schriftgröße 80–160 % |
@@ -230,7 +233,7 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 
 ## Bekannte Grenzen
 
-- **Kein Handy-Test bisher:** Wecker, Benachrichtigungen, Sperrbildschirm und Druckdialog sind nicht auf einem echten Gerät geprüft. Anker kann nicht garantieren, dass ein Wecker klingelt.
+- **Gerätetests gelten für ihren jeweiligen Stand:** Es gibt frühere Nutzerberichte zu Wecker, Erinnerungen und Druck. Neue Änderungen erfordern erneute Prüfung; eine erfolgreiche Planung oder ein Logiktest bestätigt keine zukünftige Hörbarkeit.
 - **Handy aus oder Neustart:** Vor dem ersten Entsperren nach einem Neustart kann die App nicht öffnen. Der Wecker soll trotzdem klingeln, und in der Meldung steht ein Knopf „Beenden“.
 - **Andere Zeitzone:** Anker rechnet immer in deutscher Zeit, auch auf Reisen.
 - **Kranktage und Änderungen** erreichen den Wecker erst, wenn die App sie gespeichert hat. Der Plan der nächsten zwei Wochen ändert sich nicht, solange die App zu ist.
@@ -261,3 +264,27 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 **Nachtragen:** Unter *Arbeitszeit & Einsätze* trägst du Von, Bis und Pause von Hand ein oder korrigierst sie. Details: [GLEITZEIT.md](GLEITZEIT.md).
 
 Anker ist deine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.
+
+## Abendhilfen und Aktivitäts-Weckfenster
+
+Unter **Mehr → Abend & morgen** liegen Ideen für später und private nächste Schritte. Unter **Einstellungen → Abend & Schlaf** findest du den freiwilligen sanften Übergang und den Schlafüberblick. Alle vier Hilfen sind in [Abend & morgen](ABEND_UND_WECKFENSTER.md) beschrieben.
+
+Das experimentelle **Aktivitäts-Weckfenster** findest du unter **Wecker & QR-Code**. Es kombiniert Bewegungs- und Geräuschaktivität in einem selbst gewählten Zeitraum vor dem festen Wecker. Jede Nacht bewusst starten; keine Schlafphasenmessung und keine gespeicherten Tonaufnahmen. Die feste Zeit bleibt bis zum bestätigten Beenden eines frühen Alarms abgesichert. Ablauf und Grenzen stehen ebenfalls in der [Anleitung zum Weckfenster](ABEND_UND_WECKFENSTER.md).
+
+## Gemeinsam testen
+
+**Mehr → Gemeinsam testen**, alternativ über **Einrichtungs-Check** oder **Wecker gemeinsam testen**. Alle63 Punkte stammen aus derselben gepflegten Geräteprüfliste; historische Ergebniszellen werden nicht in die App übernommen.
+
+1. Wähle einen Bereich oder starte mit **Erster Weckertest**. Es ist immer ein Versuch mit Vorgehen und Erwartung sichtbar.
+2. Die Knöpfe öffnen direkt die passende App-Einstellung. Das Banner **Zurück zu Test…** bringt dich wieder zurück. Notiz, Gerät und Systemversion bleiben beim Verlassen des Feldes als lokaler Entwurf erhalten.
+3. Auf Android kannst du den **Android-Stand lesen** und bei passenden Fällen den vorhandenen separaten Testalarm starten. Das ist keine automatische Erfolgsmeldung. Schlummern, Folgetag und Neustart brauchen die ausdrücklich beschriebenen Hauptweckertests.
+4. Melde bewusst **Hat geklappt**, **Teilweise**, **Problem** oder **Für mich nicht relevant**. Datum, Plattform, Appversion/Build und Codestand werden dazu gespeichert. Ein Android-Bericht bleibt dein Gerätebericht, ein Browserbericht bestätigt keine Android-Funktion.
+5. Du kannst einzelne Berichte wieder öffnen, die Begleitung pausieren oder nur die Testberichte als JSON exportieren. Der Export wird erst auf deinen Tipp zum Download/Teilen angeboten. Senden entscheidest du selbst.
+
+Die Testseite ändert selbst keine Alltags-Häkchen, XP oder Weckregeln. Benötigt ein Versuch andere Zeiten oder Systemoptionen, änderst du sie bewusst in den verlinkten Einstellungen und stellst danach deine Werte wieder her. Testberichte und Entwürfe liegen im vorhandenen lokalen Speicher, ohne Sync, und sind in deiner JSON-Sicherung enthalten. Berichte zu einem anderen Codestand bleiben erhalten und zählen für den neuen Stand als offen. Vollständige Geräteprüfung der neuen Etappe steht noch aus.
+
+## Uhrzeiten und Dauern schneller eingeben
+
+Tippe die Uhrzeit zwischen Minus und Plus an und gib zum Beispiel **20:00** direkt ein oder nutze die Uhrzeitauswahl deines Handys. Das gilt auch in der Ersteinrichtung. PC-Stopp und Bett um **00:30** gehören weiterhin zur folgenden Nacht. Manuell eingegebene Ankerzeiten bleiben beim späteren Neuberechnen geschützt.
+
+Dauern lassen sich ebenfalls direkt als Zahl eingeben, etwa **45min** Fahrzeit oder **7,5h** Schlafbedarf. Verlasse das Feld oder bestätige mit Enter, um zu übernehmen. Ein leeres Feld setzt den gespeicherten Wert nicht auf0; vorhandene Mindest-/Höchstwerte gelten weiter. Plus und Minus bleiben für kleine Änderungen erhalten.

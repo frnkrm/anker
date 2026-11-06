@@ -17,7 +17,28 @@ export interface NativeAlarmConfig {
   preWakeLeadMinutes: number
   wakeCheckEnabled: boolean
   wakeCheckDelayMinutes: number
+  smartWakeEnabled: boolean
+  smartWakeWindowMinutes: number
   label: string
+}
+
+export interface AlarmPlanningStatus {
+  ok: boolean
+  message?: string
+  scheduledAt?: number
+}
+
+/** Planning evidence only: a token and exact permission never prove future delivery or sound. */
+export function alarmPlanningStatus(state: { scheduledAt?: number | null; mainConfirmed?: boolean; exact?: boolean; error?: string }, enabled: boolean): AlarmPlanningStatus {
+  if (!enabled) return { ok: true, message: 'Der Hauptwecker ist ausgeschaltet.' }
+  const scheduledAt = state.scheduledAt && Number.isFinite(state.scheduledAt) && state.scheduledAt > 0 ? state.scheduledAt : undefined
+  if (state.error === 'exact_denied' || state.exact === false) {
+    return { ok: false, scheduledAt, message: 'Android erlaubt gerade keine exakten Wecker. Der Wecker kann sich verspäten.' }
+  }
+  if (state.error) return { ok: false, scheduledAt, message: 'Android hat einen Fehler beim Planen oder Starten des Weckers gemeldet. Öffne die Diagnose und teste den Ton.' }
+  if (!scheduledAt || !state.mainConfirmed) return { ok: false, scheduledAt, message: 'Für den nächsten Hauptwecker ist keine aktuelle Planung hinterlegt.' }
+  if (state.exact !== true) return { ok: false, scheduledAt, message: 'Die Freigabe für exakte Wecker konnte nicht geprüft werden.' }
+  return { ok: true, scheduledAt, message: 'Planung hinterlegt. Ob Ton und Vollbild auf deinem Handy funktionieren, prüfst du mit einem Test.' }
 }
 
 export function buildAlarmConfig(s: Settings, days: Record<DateStr, DayLog | undefined>, today: DateStr): NativeAlarmConfig {
@@ -38,6 +59,8 @@ export function buildAlarmConfig(s: Settings, days: Record<DateStr, DayLog | und
     preWakeLeadMinutes: s.alarm.preWakeLeadMinutes,
     wakeCheckEnabled: s.alarm.wakeCheckEnabled,
     wakeCheckDelayMinutes: s.alarm.wakeCheckDelayMinutes,
+    smartWakeEnabled: s.alarm.smartWake.enabled,
+    smartWakeWindowMinutes: s.alarm.smartWake.windowMinutes,
     label: 'Aufstehen',
   }
 }

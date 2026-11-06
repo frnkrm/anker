@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import org.json.JSONArray
 import org.json.JSONObject
@@ -81,7 +82,7 @@ object ReminderScheduler {
     @Synchronized
     fun sync(ctx: Context, incoming: List<ReminderEntry>, relevant: Set<String>) {
         val now = System.currentTimeMillis()
-        val q = ReminderLogic.replace(loadQueue(ctx), incoming, now)
+        val q = ReminderLogic.replace(loadQueue(ctx), incoming, relevant, now)
         saveQueue(ctx, q)
         val nm = ctx.getSystemService(NotificationManager::class.java)
         val slots = loadSlots(ctx)
@@ -189,9 +190,15 @@ object ReminderScheduler {
 
     private fun post(ctx: Context, e: ReminderEntry, slot: Int) {
         ensureChannels(ctx)
+        val launch = Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        ReminderLogic.tapDestination(e.key)?.let { destination ->
+            launch.action = Intent.ACTION_VIEW
+            launch.data = Uri.parse("${ctx.packageName}://$destination")
+        }
+        // Ziel gehört zur PendingIntent-Identität: ein neuer Slot-Inhalt darf keine alte Zielseite erben.
         val open = PendingIntent.getActivity(
             ctx, 4950 + slot,
-            Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            launch,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val b = NotificationCompat.Builder(ctx, e.channel)

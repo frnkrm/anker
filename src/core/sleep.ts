@@ -34,9 +34,13 @@ export function morningNeed(plan: DayPlan, s: Settings): MorningNeed | undefined
     }
   }
   if (readyAt === undefined) return undefined
-  const steps = plan.blocks.find((b) => b.routine === 'morning')?.steps ?? []
-  const full = steps.reduce((sum, x) => sum + (x.useMinimal && x.minimal ? x.minimal.minutes : x.minutes), 0)
-  const minimal = steps.reduce((sum, x) => sum + (x.minimal?.minutes ?? x.minutes), 0)
+  const morning = plan.blocks.find((b) => b.routine === 'morning')
+  const steps = morning?.steps ?? []
+  const sportMin = plan.blocks
+    .filter((b) => b.kind === 'sport' && morning && b.end <= morning.start)
+    .reduce((sum, b) => sum + b.end - b.start, 0)
+  const full = sportMin + steps.reduce((sum, x) => sum + x.minutes, 0)
+  const minimal = sportMin + steps.reduce((sum, x) => sum + (x.minimal?.minutes ?? x.minutes), 0)
   return {
     label,
     readyAt,

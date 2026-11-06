@@ -60,6 +60,8 @@ export interface AlarmPreferences {
   medicationEnabled: boolean
   /** Eigene Erinnerungszeit (Plan-Minuten), null = keine */
   medicationReminderAt: number | null
+  /** Freiwilliges Aktivitäts-Weckfenster. Jede Nacht bewusst starten; keine Schlafphasenmessung. */
+  smartWake: { enabled: boolean; windowMinutes: number }
 }
 
 export interface Settings {
@@ -124,12 +126,16 @@ export interface Settings {
   weather: { enabled: boolean; city: string; lat?: number; lng?: number; rules: { jacketBelowC: number; rainAbovePct: number } }
   focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
   support: {
+    /** Berufliche Aufgaben und Wiedereinstiege nach Feierabend auf der Startseite ruhigstellen */
+    workAfterHoursQuiet: boolean
     /** Spiel, XP und Level anzeigen */
     gameVisible: boolean
     /** Abends einen Modus vorschlagen (nur Vorschlag, nie automatisch) */
     eveningPreset: { enabled: boolean; from: number; mode: SupportMode }
     /** Freiwillige Ankommen-Schritte nach der Arbeit */
     arrival: { enabled: boolean; steps: string[] }
+    /** Ein selbst gewählter ruhiger Übergang. Verändert weder Wecker noch Plan. */
+    windDown: { enabled: boolean; at: number; activity: string }
   }
   /** Vorschläge aus dem Wochenrückblick */
   suggestions: { id: string; text: string; createdAt: DateStr }[]
@@ -301,6 +307,10 @@ export interface InboxItem {
   captureContext?: string
   /** Flexible Schätzung in Minuten, Standard 5 */
   estimateMin?: number
+  /** Selbst gewählter Wiedervorlagezeitpunkt (UTC ms). Wird niemals von selbst zur Aufgabe. */
+  reviewAt?: number
+  /** Freiwillige Erinnerung zur Wiedervorlage, ohne Gedankeninhalt auf dem Sperrbildschirm. */
+  reviewNotify?: boolean
 }
 
 /** Berufliche Aufgabe. Bleibt lokal auf dem Gerät und wird nicht synchronisiert. */
@@ -323,6 +333,25 @@ export interface ResumePoint {
   nextStep?: string
   refId?: string
   at: number
+}
+
+/** Privater nächster Schritt. Bleibt bis zur bewussten Erledigung oder Löschung auf diesem Gerät. */
+export interface TomorrowStep {
+  id: string
+  title: string
+  nextStep: string
+  /** Selbst gewählter Zeitpunkt (UTC ms), ab dem der Schritt wieder sichtbar wird. */
+  resumeAt: number
+  createdAt: number
+  doneAt?: number
+  remind: boolean
+}
+
+/** Freiwillige Eingaben in UTC ms, keine automatisch erfassten Schlafdaten. */
+export interface SleepDiaryEntry {
+  sleepyAt?: number
+  bedAt?: number
+  wakeAt?: number
 }
 
 export type WorkSessionKind = 'regular' | 'maintenance' | 'incident' | 'onsite' | 'other'
@@ -422,8 +451,35 @@ export interface WeatherCache {
 
 export type MedsStatus = 'taken' | 'not-taken' | 'unsure'
 
-/** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, Einnahmeprotokoll, Wiedereinstieg. */
+export type DeviceTestResult = 'passed' | 'partial' | 'failed' | 'not-applicable'
+/** A conscious user's observation, never a result inferred from a successful API call. */
+export interface DeviceTestReport {
+  result: DeviceTestResult
+  note: string
+  at: number
+  platform: 'android' | 'web'
+  device: string
+  os: string
+  appVersion: string
+  build: string
+  suiteVersion: string
+  /** Unreleased builds can share version numbers; preserve older reports without treating them as current. */
+  buildFingerprint?: string
+}
+
+export interface DeviceTestProgress {
+  reports: Record<string, DeviceTestReport>
+  drafts?: Record<string, { note: string; device: string; os: string }>
+  activeId?: number
+  device?: string
+  os?: string
+  /** Read-only comparison around the isolated test alarm, no restoration of alarm settings. */
+  alarmBefore?: { at: number; mainAt: number; preWakeAt: number; snoozed: number }
+}
+
+/** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  deviceTests?: DeviceTestProgress
   commitments: Commitment[]
   places: Place[]
   weather?: WeatherCache
@@ -431,6 +487,9 @@ export interface LocalData {
   /** Erfasste Arbeitszeiten */
   workSessions: WorkSession[]
   resume?: ResumePoint
+  tomorrowSteps: TomorrowStep[]
+  /** Nächte nach Datum; weder Wecker noch Tagespunkte tragen hier etwas ein. */
+  sleepDiary: Record<DateStr, SleepDiaryEntry>
   handover: Record<DateStr, { open: string; next: string }>
   /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */
   meds: Record<DateStr, { status: MedsStatus; at: number }>

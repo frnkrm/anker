@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
+import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, type NextAction } from '../../core/support'
 import { addDays, fmtDuration, fmtTime, weekday } from '../../core/time'
@@ -37,6 +38,7 @@ export default function Now() {
   const mode = currentMode(log)
   const suggestion = suggestedMode(st.settings, log, m)
   const behind = isBehind(plan, log, m)
+  const readyToReview = st.inbox.filter((item) => reviewDue(item, now)).length + pendingTomorrowSteps(st.local.tomorrowSteps, now).length
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-32 safe-top">
@@ -71,6 +73,11 @@ export default function Now() {
       </section>
 
       <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
+      {readyToReview > 0 && !['sleep', 'night', 'bed', 'wake'].includes(a.type) && (
+        <Link to="/abend" className="mb-3 block rounded-2xl border border-line px-4 py-3 text-muted">
+          Für später gemerkt · {readyToReview} zum Ansehen
+        </Link>
+      )}
       {plan.conflicts?.map((x) => (
         <Link key={x} to="/tag" className="mb-2 block rounded-2xl border border-warm px-4 py-3 text-warm">
           {x} Ansehen
@@ -81,12 +88,15 @@ export default function Now() {
           Heute anders
         </button>
         <button type="button" className="min-h-11 flex-1 text-muted" aria-expanded={more} onClick={() => setMore(!more)}>
-          Mehr {more ? '▴' : '▾'}
+          Plan & Optionen {more ? '▴' : '▾'}
         </button>
       </div>
 
       {more && (
         <div className="mt-2 space-y-3">
+          <Link to="/abend" className="flex min-h-12 items-center justify-center rounded-2xl border border-line">
+            Abend & morgen
+          </Link>
           {plan.notes.length > 0 && (
             <div className="space-y-1 px-1 text-sm text-muted">
               {plan.notes.map((n) => (
@@ -576,7 +586,7 @@ function LongerSheet({ open, onClose, current, onSave }: { open: boolean; onClos
         ))}
       </div>
       <div className="mb-5 flex justify-center">
-        <TimeStepper label="Feierabend" value={end} onChange={setEnd} />
+        <TimeStepper label="Feierabend" night value={end} onChange={setEnd} />
       </div>
       <Button variant="primary" size="lg" className="w-full" onClick={() => onSave(end)}>
         Übernehmen

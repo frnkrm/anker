@@ -28,6 +28,9 @@ describe('zonedToUtc', () => {
   it('Zeitumstellung im Oktober: 06:00 am 25.10.2026 = 05:00 UTC', () => {
     expect(zonedToUtc('2026-10-25', 360)).toBe(Date.UTC(2026, 9, 25, 5))
   })
+  it('doppelte Stunde im Oktober: nimmt die zweite 02:30 wie der native Wecker', () => {
+    expect(zonedToUtc('2026-10-25', 150)).toBe(Date.UTC(2026, 9, 25, 1, 30))
+  })
   it('Minuten > 1440 landen am Folgetag', () => {
     expect(utcToZoned(zonedToUtc('2026-11-02', 1470))).toEqual({ date: '2026-11-03', minutes: 30 })
   })

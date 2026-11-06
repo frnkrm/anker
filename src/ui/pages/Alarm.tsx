@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { STOP_METHOD_LABEL } from '../../core/alarm'
+import { alarmPlanningStatus, STOP_METHOD_LABEL } from '../../core/alarm'
 import { randomId } from '../../core/defaults'
 import { fmtTime, todayBerlin, utcToZoned } from '../../core/time'
 import type { AlarmPreferences, MedsStatus } from '../../core/types'
@@ -9,6 +9,7 @@ import { AnkerNative, isNative, safe, type AlarmDiagnostics, type AlarmKindWire 
 import { scanQr } from '../../platform/qr'
 import { today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
+import { SmartWake } from '../components/SmartWake'
 import { Ampel, Button, Card, Page, Row, Section, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
 
 export function fmtDateTime(ms: number): string {
@@ -48,6 +49,7 @@ function DiagRow({ state, label, hint, action, run }: { state: 'ok' | 'warn' | '
 
 /** Was Android gerade tatsächlich meldet. Nur auf dem Handy verfügbar. */
 export function AlarmDiagnosis() {
+  const enabled = useApp((s) => s.settings.alarm.enabled)
   const [d, setD] = useState<AlarmDiagnostics>()
   const [failed, setFailed] = useState(false)
   const load = useCallback(() => {
@@ -73,22 +75,24 @@ export function AlarmDiagnosis() {
 
   const quietVolume = d.alarmVolume <= Math.ceil(d.alarmVolumeMax * 0.3)
   const dndOn = d.interruptionFilter !== 1
+  const planning = alarmPlanningStatus(d, enabled)
+  const preWakePlanning = alarmPlanningStatus({ scheduledAt: d.preWakeAt, mainConfirmed: d.preWakeConfirmed, exact: d.exact, error: d.error }, enabled)
   return (
     <Section title="So steht dein Wecker" hint="Alle Werte kommen direkt von Android.">
       <DiagRow
-        state={d.scheduledAt && d.mainConfirmed ? 'ok' : 'warn'}
+        state={!enabled ? 'off' : planning.ok ? 'ok' : 'warn'}
         label={d.scheduledAt ? `Nächster Hauptwecker: ${fmtDateTime(d.scheduledAt)}` : 'Kein Hauptwecker geplant'}
-        hint={d.scheduledAt ? (d.mainConfirmed ? 'Von Android bestätigt.' : 'Von Android nicht bestätigt.') : undefined}
+        hint={planning.message}
       />
-      <DiagRow state={d.preWakeAt ? 'ok' : 'off'} label={d.preWakeAt ? `Vorwecker: ${fmtDateTime(d.preWakeAt)}` : 'Vorwecker: aus oder heute schon vorbei'} hint={d.preWakeAt && !d.preWakeConfirmed ? 'Von Android nicht bestätigt.' : undefined} />
-      {d.missedMainAt > 0 && <DiagRow state="warn" label={`Einmal nicht geklingelt: ${fmtDateTime(d.missedMainAt)}`} hint="Das Handy war vermutlich aus. Danach wurde normal weitergeplant." />}
+      <DiagRow state={d.preWakeAt ? (preWakePlanning.ok ? 'ok' : 'warn') : 'off'} label={d.preWakeAt ? `Vorwecker: ${fmtDateTime(d.preWakeAt)}` : 'Vorwecker: aus oder heute schon vorbei'} hint={d.preWakeAt ? preWakePlanning.message : undefined} />
+      {d.missedMainAt > 0 && <DiagRow state="warn" label={`Termin nicht regulär ausgelöst: ${fmtDateTime(d.missedMainAt)}`} hint="Die Ursache ist unbekannt. Danach wurde weitergeplant; prüfe die aktuelle Planung und den Testton." />}
       <DiagRow state={d.testResult === 'heard' ? 'ok' : 'warn'} label="Letzter Test" hint={`${TEST_LABEL[d.testResult] ?? ''}${d.testResultAt ? ` (${fmtDateTime(d.testResultAt)})` : ''}`} />
       <DiagRow state={quietVolume ? 'warn' : 'ok'} label={`Wecker-Lautstärke: ${d.alarmVolume} von ${d.alarmVolumeMax}`} hint={quietVolume ? 'Das ist leise. Stelle sie mit den Lauter-Tasten höher, während ein Testton läuft. Anker ändert sie nicht von selbst.' : undefined} action="Testton" run={() => void AnkerNative.playTestTone()} />
       {(d.bluetooth || d.wired) && <DiagRow state="warn" label={d.bluetooth ? 'Bluetooth-Audio verbunden' : 'Kopfhörer verbunden'} hint="Der Ton kann dort zusätzlich oder statt am Handy zu hören sein. Mach einen Test mit deiner üblichen Nacht-Einstellung." />}
       {!d.audioOk && <DiagRow state="warn" label="Beim letzten Klingeln gab es keinen Ton" hint="Nur die Vibration lief. Prüfe den Wecker-Ton in den Android-Einstellungen." />}
       <DiagRow state={d.notificationsEnabled ? 'ok' : 'warn'} label="Benachrichtigungen" hint={d.notificationsEnabled ? undefined : 'Ohne sie siehst du die Wecker-Meldung nicht.'} action={d.notificationsEnabled ? undefined : 'Öffnen'} run={() => void AnkerNative.openAppSettings()} />
       <DiagRow state={d.exact ? 'ok' : 'warn'} label="Exakte Wecker" hint={d.exact ? undefined : 'Ohne dieses Recht kann sich der Wecker verspäten.'} action={d.exact ? undefined : 'Erlauben'} run={() => void AnkerNative.openExactAlarmSettings()} />
-      <DiagRow state={d.fullScreen ? 'ok' : 'warn'} label="Vollbild über dem Sperrbildschirm" hint={d.fullScreen ? undefined : 'Sonst erscheint nur eine Meldung. Der Ton läuft trotzdem.'} action={d.fullScreen ? undefined : 'Erlauben'} run={() => void AnkerNative.openFullScreenIntentSettings()} />
+      <DiagRow state={d.fullScreen ? 'ok' : 'warn'} label="Vollbild über dem Sperrbildschirm" hint={d.fullScreen ? undefined : 'Sonst erscheint nur eine Meldung. Teste den Ton unabhängig davon.'} action={d.fullScreen ? undefined : 'Erlauben'} run={() => void AnkerNative.openFullScreenIntentSettings()} />
       <DiagRow
         state={dndOn && !d.dndAccess ? 'warn' : d.dndAccess ? 'ok' : 'off'}
         label={dndOn ? '„Nicht stören“ ist gerade an' : '„Nicht stören“ ist gerade aus'}
@@ -121,6 +125,7 @@ export function AlarmSetup() {
 
   return (
     <Page title="Wecker" back="/mehr">
+      <Row label="Wecker gemeinsam testen" sub="Geführte Schritte, direkter Teststart und deine Beobachtung" to="/geraetetest" />
       <Card className="flex items-center gap-3">
         <div className="flex-1">
           <p className="text-lg font-medium">Aufstehen um {fmtTime(s.anchor.wake)}</p>
@@ -129,17 +134,18 @@ export function AlarmSetup() {
         <Toggle label="Wecker" checked={a.enabled} onChange={(v) => set({ enabled: v })} />
       </Card>
 
+      <SmartWake />
       <Section title="Optional">
         <Card className="space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <p className="font-medium">Vorwecker</p>
-              <p className="text-sm text-muted">Ein früherer, sanfter Ton. Der Hauptwecker klingelt immer, egal was du damit machst.</p>
+              <p className="text-sm text-muted">Ein früherer, sanfter Ton. Der Hauptwecker bleibt unabhängig davon geplant.</p>
             </div>
             <Toggle label="Vorwecker" checked={a.preWakeEnabled} onChange={(v) => set({ preWakeEnabled: v })} />
           </div>
           {a.preWakeEnabled && (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span>Wie lange vorher</span>
               <Stepper label="Vorwecker Minuten" value={a.preWakeLeadMinutes} step={5} min={5} max={120} onChange={(v) => set({ preWakeLeadMinutes: v })} />
             </div>
@@ -154,7 +160,7 @@ export function AlarmSetup() {
             <Toggle label="Wachheits-Check" checked={a.wakeCheckEnabled} onChange={(v) => set({ wakeCheckEnabled: v })} />
           </div>
           {a.wakeCheckEnabled && (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span>Nach</span>
               <Stepper label="Wachheits-Check Minuten" value={a.wakeCheckDelayMinutes} step={1} min={3} max={10} onChange={(v) => set({ wakeCheckDelayMinutes: v })} />
             </div>

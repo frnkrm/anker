@@ -87,11 +87,11 @@ export class SqliteRepository implements Repository {
     const res = await this.db.query('SELECT * FROM records WHERE dirty = 1', [])
     return ((res.values ?? []) as Row[]).map(toRec)
   }
-  async merge(recs: Rec[]) {
+  async merge(recs: Rec[], { dirty = false }: { dirty?: boolean } = {}) {
     let n = 0
     for (const r of recs) {
       if (remoteWins(await this.row(r.collection, r.id), r)) {
-        await this.upsert({ ...r, dirty: 0 })
+        await this.upsert({ ...r, dirty: dirty ? 1 : 0 })
         n++
       }
     }

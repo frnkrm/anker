@@ -64,15 +64,18 @@ export async function rescheduleAll() {
     const t = today()
     const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(t, i))
     const plans = dates.map((d) => planFor(d))
-    const logs: Record<string, DayLog | undefined> = Object.fromEntries(dates.map((d) => [d, st.days[d]]))
+    // Auch ältere offene Gedanken behalten ihre Dismissals und ihre sichtbare Meldung,
+    // bis sie in der Inbox erledigt, anders einsortiert oder abgewählt werden.
+    const logs: Record<string, DayLog | undefined> = st.days
     const now = Date.now()
     const deadlines = st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! }))
     const horizonEnd = zonedToUtc(dates[dates.length - 1]!, 18 * 60)
-    const specs = buildReminders(plans, logs, st.settings, now, horizonEnd - now, { deadlines })
+    const extras = { deadlines, thoughtReviews: st.inbox, tomorrowSteps: st.local.tomorrowSteps }
+    const specs = buildReminders(plans, logs, st.settings, now, horizonEnd - now, extras)
     const last = dates[dates.length - 1]!
     const reminders = [...specs, reopenHint(horizonEnd, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact }))
     const relevant = [
-      ...relevantReminderKeys(plans, logs, st.settings),
+      ...relevantReminderKeys(plans, logs, st.settings, extras),
       ...reminders.filter((r) => r.key.startsWith('deadline') || r.key === 'open-app').map((r) => `${r.date}|${r.key}`),
     ]
     await AnkerNative.syncReminders({ reminders, relevant })

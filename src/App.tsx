@@ -1,10 +1,10 @@
 import { App as CapApp } from '@capacitor/app'
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
-import { APP_ID } from '../app.config'
 import { startEffects } from './platform/effects'
 import { refreshCalendar, writeAnkerBlocks } from './platform/google'
 import { AnkerNative, isNative, safe } from './platform/native'
+import { nativeDestination } from './platform/links'
 import { listenForAuthLinks, syncNow } from './platform/supabase'
 import { useApp } from './state/store'
 import { InboxSheet, Shell } from './ui/components/Shell'
@@ -17,10 +17,14 @@ const Game = lazy(() => import('./ui/pages/Game'))
 const Shop = lazy(() => import('./ui/pages/Shop'))
 const Inbox = lazy(() => import('./ui/pages/Inbox'))
 const More = lazy(() => import('./ui/pages/More'))
+const Evening = lazy(() => import('./ui/pages/Evening'))
+const SleepDiary = lazy(() => import('./ui/pages/SleepDiary'))
+const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
 const Work = lazy(() => import('./ui/pages/Work'))
 const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
 const Check = lazy(() => import('./ui/pages/Check'))
+const DeviceTests = lazy(() => import('./ui/pages/DeviceTests'))
 const PcStop = lazy(() => import('./ui/pages/PcStop'))
 const Connections = lazy(() => import('./ui/pages/Connections'))
 const Food = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Food })))
@@ -51,18 +55,34 @@ function NativeBridge() {
   const nav = useNavigate()
   useEffect(() => {
     if (!isNative()) return
+    let active = true
+    let alarmVersion = 0
+    const open = async (url?: string) => {
+      const version = alarmVersion
+      const ringing = await safe(async () => (await AnkerNative.getAlarmState()).ringing, undefined)
+      if (!active || version !== alarmVersion) return
+      if (ringing) nav('/wecker/klingelt')
+      else if (url) {
+        const destination = nativeDestination(url)
+        if (destination) nav(destination)
+      }
+    }
+    void open()
     void safe(async () => {
-      if ((await AnkerNative.getAlarmState()).ringing) nav('/wecker/klingelt')
+      const launch = await safe(() => CapApp.getLaunchUrl(), undefined)
+      if (launch?.url) await open(launch.url)
     }, undefined)
     const subs = [
-      AnkerNative.addListener('alarmRinging', () => nav('/wecker/klingelt')),
-      CapApp.addListener('appUrlOpen', ({ url }) => {
-        if (url.startsWith(`${APP_ID}://inbox`)) nav('/gedanke')
-        else if (url.startsWith(`${APP_ID}://alarm`)) nav('/wecker/klingelt')
-        else if (url.startsWith(`${APP_ID}://now`)) nav('/')
+      AnkerNative.addListener('alarmRinging', () => {
+        alarmVersion++
+        nav('/wecker/klingelt')
       }),
+      CapApp.addListener('appUrlOpen', ({ url }) => void open(url)),
     ]
-    return () => subs.forEach((p) => void p.then((h) => h.remove()))
+    return () => {
+      active = false
+      subs.forEach((p) => void p.then((h) => h.remove()))
+    }
   }, [nav])
   return null
 }
@@ -123,6 +143,9 @@ export default function App() {
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/gedanke" element={<QuickThought />} />
             <Route path="/mehr" element={<More />} />
+            <Route path="/abend" element={<Evening />} />
+            <Route path="/schlaf" element={<SleepDiary />} />
+            <Route path="/einstellungen/abenduebergang" element={<WindDown />} />
             <Route path="/einstellungen" element={<Settings />} />
             <Route path="/einstellungen/:section" element={<Settings />} />
             <Route path="/essen" element={<Food />} />
@@ -130,6 +153,7 @@ export default function App() {
             <Route path="/vorbereitung" element={<Prep />} />
             <Route path="/rueckblick" element={<Review />} />
             <Route path="/check" element={<Check />} />
+            <Route path="/geraetetest" element={<DeviceTests />} />
             <Route path="/wecker" element={<AlarmSetup />} />
             <Route path="/wecker/klingelt" element={<AlarmRinging />} />
             <Route path="/pc-stopp" element={<PcStop />} />

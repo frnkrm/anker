@@ -154,6 +154,7 @@ export function defaultSettings(today: string): Settings {
       mathTasks: 3,
       medicationEnabled: false,
       medicationReminderAt: null,
+      smartWake: { enabled: false, windowMinutes: 45 },
     },
     // 09:00 stammt aus deinem Auftrag und ist änderbar. Freitag, Wochenstunden und Vergütung werden nicht geraten.
     flex: { latestStart: 9 * 60, tracking: true, legalHints: true, lateMessage: 'Ich starte heute etwas später und bin ab [Uhrzeit] da.' },
@@ -165,8 +166,10 @@ export function defaultSettings(today: string): Settings {
     focus: { pulse: 'off', everyMin: 5, halfway: false, lastMinute: false },
     support: {
       gameVisible: true,
+      workAfterHoursQuiet: false,
       eveningPreset: { enabled: false, from: 18 * 60, mode: 'wenig-energie' },
       arrival: { enabled: false, steps: ['Tasche ablegen', 'Wasser trinken, Essen prüfen', 'Eine kleine Sache erledigen'] },
+      windDown: { enabled: false, at: 21 * 60, activity: 'Lesen oder ruhige Musik' },
     },
     suggestions: [],
   }
@@ -195,7 +198,7 @@ export function resetToSuggested(s: Settings): Settings {
 }
 
 export function emptyLocal(): LocalData {
-  return { commitments: [], places: [], work: [], workSessions: [], handover: {}, meds: {} }
+  return { commitments: [], places: [], work: [], workSessions: [], tomorrowSteps: [], sleepDiary: {}, handover: {}, meds: {} }
 }
 
 /**
@@ -208,11 +211,16 @@ export function migrateSettings(s: Settings, today: string): Settings {
     ...d,
     ...s,
     version: d.version,
+    commute: { ...d.commute, ...s.commute },
+    sleep: { ...d.sleep, ...s.sleep },
+    anchor: { ...d.anchor, ...s.anchor },
+    routines: { ...d.routines, ...s.routines },
+    eveningDurations: { ...d.eveningDurations, ...s.eveningDurations },
     sport: { ...d.sport, ...s.sport },
     reminders: { ...d.reminders, ...s.reminders },
     integrations: { ...d.integrations, ...s.integrations },
     game: { ...d.game, ...s.game },
-    alarm: { ...d.alarm, ...s.alarm },
+    alarm: { ...d.alarm, ...s.alarm, smartWake: { ...d.alarm.smartWake, ...s.alarm?.smartWake } },
     appearance: { ...d.appearance, ...s.appearance },
     focus: { ...d.focus, ...s.focus },
     travel: { ...d.travel, ...s.travel },
@@ -223,11 +231,12 @@ export function migrateSettings(s: Settings, today: string): Settings {
       ...s.support,
       eveningPreset: { ...d.support.eveningPreset, ...s.support?.eveningPreset },
       arrival: { ...d.support.arrival, ...s.support?.arrival },
+      windDown: { ...d.support.windDown, ...s.support?.windDown },
     },
   }
-  if (!s.anchor.manual && s.onboarded) {
+  if (!merged.anchor.manual && s.onboarded) {
     const sug = deriveSchedule(merged)
-    merged.anchor = { ...merged.anchor, manual: { wake: s.anchor.wake !== sug.wake, pcStop: s.pcStop !== sug.pcStop, bed: s.bed !== sug.bed } }
+    merged.anchor = { ...merged.anchor, manual: { wake: merged.anchor.wake !== sug.wake, pcStop: merged.pcStop !== sug.pcStop, bed: merged.bed !== sug.bed } }
   }
   return merged
 }

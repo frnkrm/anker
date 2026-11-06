@@ -1,11 +1,44 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
+import { readFileSync, readdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
+import { parseDeviceTestCatalog } from './src/core/deviceTests'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+/** Stable source identity even while an unreleased package version is unchanged. No user data. */
+function appSourceFingerprint(): string {
+  const root = fileURLToPath(new URL('.', import.meta.url))
+  const hash = createHash('sha256')
+  const visit = (path: string) => {
+    for (const entry of readdirSync(root + path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
+      const file = `${path}/${entry.name}`
+      if (entry.isDirectory()) visit(file)
+      else if (/\.(ts|tsx|css|kt)$/.test(file) && !/\.test\.|\.d\.ts$/.test(file)) hash.update(file).update('\0').update(readFileSync(root + file)).update('\0')
+    }
+  }
+  visit('src')
+  visit('android/app/src/main/java/de/frnkrm/anker')
+  for (const path of ['package.json', 'package-lock.json', 'vite.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
+  hash.update(JSON.stringify(parseDeviceTestCatalog(readFileSync(root + 'docs/GERAETETEST.md', 'utf8'))))
+  return hash.digest('hex')
+}
+
 export default defineConfig({
   plugins: [
+    {
+      name: 'anker-device-test-catalog',
+      resolveId(id) { if (id === 'virtual:anker-device-tests') return '\0anker-device-tests' },
+      load(id) {
+        if (id !== '\0anker-device-tests') return
+        const path = fileURLToPath(new URL('./docs/GERAETETEST.md', import.meta.url))
+        this.addWatchFile(path)
+        // Ship instructions only. Personal historical results stay in the source document.
+        return `export const BUILD_FINGERPRINT = ${JSON.stringify(appSourceFingerprint())}; export default ${JSON.stringify(parseDeviceTestCatalog(readFileSync(path, 'utf8')))}`
+      },
+    },
     react(),
     tailwindcss(),
     VitePWA({

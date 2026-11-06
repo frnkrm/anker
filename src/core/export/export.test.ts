@@ -52,6 +52,48 @@ describe('Backup', () => {
     const parsed = parseBackup(JSON.stringify(makeBackup(recs)))
     expect(parsed).toEqual([{ collection: 'inbox', id: 'a', data: { t: 1 }, updated_at: 5, deleted: false }])
   })
+  it('weist vorhandene Einstellungen mit falschen Datentypen vollständig zurück', () => {
+    for (const data of [null, {}, { version: 1, onboarded: true, anchor: null }, { version: 1, onboarded: true, work: [] }, { version: 1, onboarded: true, routines: { morning: 'falsch' } }]) {
+      const text = JSON.stringify(makeBackup([{ collection: 'settings', id: 'main', data, updated_at: 1, deleted: false }]))
+      expect(() => parseBackup(text)).toThrow('ungültige Einstellungen')
+    }
+    const settings = defaultSettings('2026-11-02')
+    const invalidWindow = structuredClone(settings)
+    invalidWindow.alarm.smartWake = { enabled: true, windowMinutes: 0 }
+    expect(() => parseBackup(JSON.stringify(makeBackup([{ collection: 'settings', id: 'main', data: invalidWindow, updated_at: 1, deleted: false }])))).toThrow('ungültige Einstellungen')
+    settings.flex.latestStart = null
+    settings.alarm.medicationReminderAt = 480
+    expect(parseBackup(JSON.stringify(makeBackup([{ collection: 'settings', id: 'main', data: settings, updated_at: 1, deleted: false }])))).toHaveLength(1)
+  })
+
+  it('weist unvollständige Einträge vorhandener Listen und ungültige manuelle Anker zurück', () => {
+    const base = { version: 1, onboarded: true }
+    const malformed = [
+      { work: Array.from({ length: 7 }, () => ({})) },
+      { routines: { morning: [{}] } },
+      { routines: { morning: [{ id: 'water', title: 'Wasser' }] } },
+      { routines: { morning: [{ id: 'water', title: 'Wasser', minutes: 1, minimal: {} }] } },
+      { rewards: [{}] },
+      { meals: [{}] },
+      { suggestions: [{}] },
+      { routineLinks: [{}] },
+      { anchor: { manual: 'falsch' } },
+      { anchor: { manual: { wake: 'falsch' } } },
+    ]
+    for (const fields of malformed) {
+      const text = JSON.stringify(makeBackup([{ collection: 'settings', id: 'main', data: { ...base, ...fields }, updated_at: 1, deleted: false }]))
+      expect(() => parseBackup(text)).toThrow('ungültige Einstellungen')
+    }
+    const valid = {
+      ...base,
+      routines: { morning: [{ id: 'water', title: 'Wasser', minutes: 1 }] },
+      anchor: { manual: { wake: true } },
+      routineLinks: [{ eveningStepId: 'prep', morningStepId: 'dress' }],
+      suggestions: [{ id: 'a', text: 'Kleiner anfangen', createdAt: '2026-11-02' }],
+    }
+    expect(parseBackup(JSON.stringify(makeBackup([{ collection: 'settings', id: 'main', data: valid, updated_at: 1, deleted: false }])))).toHaveLength(1)
+  })
+
   it('verständliche Fehler', () => {
     expect(() => parseBackup('kein json')).toThrow('kein gültiges JSON')
     expect(() => parseBackup('{"app":"x"}')).toThrow('keine Anker-Sicherung')

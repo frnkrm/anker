@@ -12,6 +12,26 @@ class ReminderModelTest {
         ReminderEntry(key, "2026-11-04", at, "sanft", key, "", true, slot, rank, true, snoozes)
 
     @Test
+    fun abenderinnerungenOeffnenDenAbendbereich() {
+        assertEquals("evening", ReminderLogic.tapDestination("wind-down"))
+        assertEquals("evening", ReminderLogic.tapDestination("tomorrow-step:private-id"))
+    }
+
+    @Test
+    fun gedankenerinnerungenGebenNurDasAllgemeineZielWeiter() {
+        assertEquals("thoughts", ReminderLogic.tapDestination("thought-review:private-id"))
+        assertEquals("thoughts", ReminderLogic.tapDestination("thought-review:anderer-gedanke"))
+        assertEquals("evening", ReminderLogic.tapDestination("tomorrow-step:anderer-schritt"))
+    }
+
+    @Test
+    fun nurVollstaendigeNeueErinnerungsschluesselBekommenEinZiel() {
+        for (key in listOf("morning", "evening", "leave", "go:termin", "wind-down:extra", "thought-review", "thought-review:", "tomorrow-step", "tomorrow-step:", "https://example.org")) {
+            assertNull(key, ReminderLogic.tapDestination(key))
+        }
+    }
+
+    @Test
     fun fuenfEreignisseErgebenHoechstensDreiSichtbare() {
         var slots = emptyList<SlotEntry>()
         val events = listOf(e("a", 0, 2), e("b", 1, 4), e("c", 2, 1), e("d", 0, 2), e("f", 2, 1))
@@ -39,9 +59,34 @@ class ReminderModelTest {
     @Test
     fun geplantesGehtBeimErsetzenNichtVerloren() {
         val snoozed = e("leave", 1, 4, now + 100, snoozes = 1)
-        val q = ReminderLogic.replace(listOf(snoozed, e("alt", 0, 2, now + 50)), listOf(e("leave", 1, 4, now + 5), e("neu", 0, 2, now + 9)), now)
+        val q = ReminderLogic.replace(listOf(snoozed, e("alt", 0, 2, now + 50)), listOf(e("leave", 1, 4, now + 5), e("neu", 0, 2, now + 9)), setOf("2026-11-04|leave", "2026-11-04|neu"), now)
         assertEquals(listOf("neu", "leave"), q.map { it.key })
         assertEquals(1, q.last().snoozes)
+    }
+
+    @Test
+    fun erledigteOderEntfernteVerschobeneErinnerungenKommenNichtZurueck() {
+        val snoozed = e("evening", 0, 2, now + 300_000, snoozes = 1)
+        val removedAppointment = e("go:termin", 1, 4, now + 300_000, snoozes = 1)
+        val q = ReminderLogic.replace(listOf(snoozed, removedAppointment), emptyList(), emptySet(), now)
+        assertTrue(q.isEmpty())
+        assertTrue(ReminderLogic.takeDue(q, now + 300_000).due.isEmpty())
+    }
+
+    @Test
+    fun relevanteVerschobeneErinnerungBleibtAuchOhneWeitereEskalationsstufe() {
+        val snoozed = e("evening", 0, 2, now + 300_000, snoozes = 1)
+        val q = ReminderLogic.replace(listOf(snoozed), emptyList(), setOf("2026-11-04|evening"), now)
+        assertEquals(listOf(snoozed), q)
+        assertEquals(listOf(snoozed), ReminderLogic.takeDue(q, now + 300_000).due)
+    }
+
+    @Test
+    fun relevanzUnterscheidetTageMitGleichemSchluessel() {
+        val old = e("evening", 0, 2, now + 300_000, snoozes = 1)
+        val nextDay = old.copy(date = "2026-11-05")
+        val q = ReminderLogic.replace(listOf(old, nextDay), emptyList(), setOf("2026-11-05|evening"), now)
+        assertEquals(listOf(nextDay), q)
     }
 
     @Test

@@ -1,16 +1,6 @@
-import { buildAlarmConfig } from '../core/alarm'
+import { alarmPlanningStatus, buildAlarmConfig } from '../core/alarm'
 import { useApp, today } from '../state/store'
-import { AnkerNative, isNative, type AlarmStateInfo } from './native'
-
-function statusFrom(st: AlarmStateInfo, enabled: boolean) {
-  if (!enabled) return { ok: true }
-  if (st.scheduledAt && st.mainConfirmed) {
-    return st.error === 'exact_denied'
-      ? { ok: false, scheduledAt: st.scheduledAt, message: 'Android erlaubt gerade keine exakten Wecker. Der Wecker kann sich verspäten.' }
-      : { ok: true, scheduledAt: st.scheduledAt }
-  }
-  return { ok: false, message: 'Der nächste Wecker ist von Android nicht bestätigt.' }
-}
+import { AnkerNative, isNative } from './native'
 
 /**
  * Überträgt die Konfiguration an den nativen Wecker. Der plant selbst, auch ohne geöffnete App.
@@ -22,7 +12,7 @@ export async function syncAlarm() {
   if (!st.settings.onboarded) return
   try {
     const state = await AnkerNative.syncAlarmConfig(buildAlarmConfig(st.settings, st.days, today()))
-    st.setAlarmStatus(statusFrom(state, st.settings.alarm.enabled))
+    st.setAlarmStatus(alarmPlanningStatus(state, st.settings.alarm.enabled))
   } catch (e) {
     console.warn('[Anker] Weckerplanung fehlgeschlagen')
     st.setAlarmStatus({ ok: false, message: e instanceof Error && e.message ? e.message : 'Der Wecker konnte nicht geplant werden.' })

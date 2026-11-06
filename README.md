@@ -37,6 +37,8 @@ node scripts/gradle.mjs :app:testDebugUnitTest  # Kotlin-Logik (JUnit)
 
 Die Debug-APK liegt danach unter `android/app/build/outputs/apk/debug/app-debug.apk`.
 
+**Fertiges Update lokal signieren:** Ein vorbereitetes Updatepaket kann mit `scripts/sign-local-update.mjs` signiert werden, ohne das Projekt unter Windows neu zu bauen. Im Paket liegen der Helfer als `signieren.mjs`, ein CMD-Starter, das unsignierte APK und `update-info.json` mit dessen Prüfsumme, Paket/Version und dem vorher bestätigten öffentlichen Zertifikatsfingerabdruck. Benötigt werden die vorhandenen Node-, Java- und Android-Buildwerkzeuge sowie der **bisherige** lokale Debugschlüssel. Der Helfer erzeugt keinen Schlüssel, überträgt nichts und installiert nichts. Er prüft die neue Signatur und, falls vorhanden, die alte lokale APK; Android prüft beim Installieren zusätzlich die Kompatibilität zur tatsächlich installierten App. Ein abweichendes Schlüsselpasswort wird lokal geklärt, nicht im Chat geteilt.
+
 Umgebungsvariablen: `.env.example` nach `.env` kopieren und ausfüllen. **Alle sind optional.** Ohne sie läuft Anker komplett offline.
 
 ---
@@ -173,7 +175,7 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 **Wecker-QR-Code:** *Mehr → Wecker & QR-Code → Drucken* (oder *Mehr → Druckansicht*), ausdrucken, im Bad aufhängen. Danach einmal **„Wecker testen“** antippen und Handy sperren.
 
-**Ausfallsicherheit:** Der Wecker plant sich nativ selbst weiter und übersteht Neustart, Update und geschlossene App. Das ist noch nicht auf einem echten Gerät geprüft: Lass den Android-Wecker zusätzlich gestellt, bis du [die Geräteprüfung](docs/GERAETETEST.md) durchlaufen hast. **Drucken:** Auf Android öffnet *Drucken oder als PDF speichern* den Systemdialog, im Browser `window.print()`.
+**Weckerprüfung:** Native Folgetage und Wiederherstellung sind implementiert; frühere Geräteberichte bestätigen nur die jeweils genannten Builds und Teilfälle. Neue Weckerkorrekturen und das Aktivitäts-Weckfenster bleiben geräteoffen. **Mehr → Gemeinsam testen** führt mit direkten Einstellungswegen durch [die Geräteprüfung](docs/GERAETETEST.md). Lass dabei einen unabhängigen Wecker gestellt. **Drucken:** Auf Android öffnet *Drucken oder als PDF speichern* den Systemdialog, im Browser `window.print()`.
 
 ### 9. PC-Stopp (Windows)
 
@@ -201,6 +203,7 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 - [Flexible Planung](docs/FLEXIBLE_PLANUNG.md): Zustände, Wege, Schlaf, externe Dienste
 - [Geräteprüfung](docs/GERAETETEST.md): was auf dem Handy von Hand zu prüfen ist
 - [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [ADHS-Designprinzipien](docs/ADHS_DESIGNPRINZIPIEN.md)
+- [Testnachweise](docs/ANKER_TESTNACHWEISE.md): aktueller E00-Stand, Regressionen und offene Gerätegrenzen
 - [Patch Notes](CHANGELOG.md): was sich in welcher Version geändert hat
 - [CLAUDE.md](CLAUDE.md): Architektur und Regeln für spätere Claude-Sessions
 
