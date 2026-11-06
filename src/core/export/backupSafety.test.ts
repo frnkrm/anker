@@ -11,6 +11,26 @@ const record = (collection: Collection, id: string, data: unknown): Rec => ({ co
 const parse = (records: unknown[]) => parseBackup(JSON.stringify({ app: 'anker', version: 1, exportedAt: new Date(at).toISOString(), records }))
 
 describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => {
+  it('lässt ausgeschlossene Geschäftsaufnahmen samt Rückkehr/Lernkopien weg und gibt Tombstones ohne Privatbody aus', () => {
+    const business = { id: 'business', text: 'GEHEIM-Geschäftsnotiz', status: 'task', createdAt: at, captureContext: 'Arbeit' }
+    const linked = { id: 'linked', text: 'GEHEIM-verknüpft', status: 'kept', createdAt: at, linkedTo: { kind: 'work', id: 'w' } }
+    const removed = { ...record('inbox', 'removed', { ...business, id: 'removed' }), deleted: true }
+    const privateRemoved = { ...record('inbox', 'deleted-private', { id: 'deleted-private', text: 'GEHEIM-gelöschter-Privatbody', status: 'open', createdAt: at }), deleted: true }
+    const privateNote = { id: 'private', text: 'Kunde als freies Wort ist keine Arbeitszuordnung', status: 'kept', createdAt: at }
+    const local = { resume: { kind: 'task', refId: business.id, title: business.text, at },
+      captureDraft: { id: 'draft', text: business.text, updatedAt: at, context: { kind: 'task', refId: business.id, title: business.text, at } },
+      taskLearning: { enabled: true, samples: [{ id: 'learned', key: `task:${business.id}`, label: business.text, at, minutes: 5, confirmed: true }] } }
+    const records = [record('inbox', business.id, business), record('inbox', linked.id, linked), removed, privateRemoved, record('inbox', privateNote.id, privateNote), record('meta', 'local', local)]
+    const before = structuredClone(records)
+    const partial = makeBackup(records, new Date(at), { work: false })
+    expect(JSON.stringify(partial)).not.toContain('GEHEIM')
+    expect(partial.records.some((record) => ['business', 'linked', 'removed'].includes(record.id))).toBe(false)
+    expect(partial.records.find((record) => record.id === 'deleted-private')).toMatchObject({ deleted: true, data: null })
+    expect(partial.records.find((record) => record.id === 'private')?.data).toEqual(privateNote)
+    expect(parseBackup(JSON.stringify(partial))).toEqual(partial.records)
+    expect(makeBackup(records, new Date(at)).records).toEqual(records)
+    expect(records).toEqual(before)
+  })
   it('verwirft einen gemischten Batch mit kaputtem Header statt nur seinen gültigen Teil zu übernehmen', () => {
     const valid = record('settings', 'main', { version: 1, onboarded: true })
     for (const broken of [null, {}, { ...valid, collection: 'unbekannt' }, { ...valid, id: '' }, { ...valid, updated_at: -1 }]) {
@@ -120,7 +140,7 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(text).not.toContain('captureDraft')
     expect((backup.records[0]!.data as Record<string, unknown>).assistance).toEqual({ ai: { enabled: false, at, version: 1 } })
     expect((backup.records[0]!.data as Record<string, unknown>).deviceTests).toBeUndefined()
-    expect(parseBackup(text)[1]?.data).toEqual({ id: 'note', text: 'Notiz behalten', createdAt: at, status: 'kept' })
+    expect(parseBackup(text)).toHaveLength(1) // Die ausdrücklich mit Arbeit verknüpfte Notiz bleibt als ganzer Record lokal.
     expect(records).toEqual(snapshot)
   })
 

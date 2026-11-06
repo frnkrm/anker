@@ -59,7 +59,7 @@ test('Ausgewählte Sicherung enthält keine ausgelassenen Arbeitsdaten und verä
   const before = await storedRecord<LocalData>(page, 'meta', 'local')
   await page.goto('/backup')
   await page.getByText('Was soll die Sicherung enthalten?', { exact: true }).click()
-  await page.getByRole('checkbox', { name: 'Arbeitsaufgaben, Arbeitszeiten und Übergaben', exact: true }).uncheck()
+  await page.getByRole('checkbox', { name: 'Arbeitsaufgaben, Arbeitszeiten, Übergaben und zugeordnete Gedanken', exact: true }).uncheck()
   await page.getByRole('checkbox', { name: 'Einnahme- und freiwilliges Schlafprotokoll', exact: true }).uncheck()
   const downloading = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Sicherung exportieren', exact: true }).click()

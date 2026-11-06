@@ -127,7 +127,7 @@ export function Backup() {
     finally { pending.current = false; setBusy(false) }
   }
   const groups: { key: keyof BackupSelection; label: string }[] = [
-    { key: 'work', label: 'Arbeitsaufgaben, Arbeitszeiten und Übergaben' },
+    { key: 'work', label: 'Arbeitsaufgaben, Arbeitszeiten, Übergaben und zugeordnete Gedanken' },
     { key: 'health', label: 'Einnahme- und freiwilliges Schlafprotokoll' },
     { key: 'places', label: 'Orte, Termine, Wetterort und Packlisten' },
     { key: 'deviceTests', label: 'Testberichte und Testnotizen' },

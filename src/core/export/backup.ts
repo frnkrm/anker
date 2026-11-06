@@ -1,5 +1,6 @@
 import { key, remoteWins } from '../../data/merge'
 import type { Rec } from '../../data/types'
+import { localBusinessNote } from '../syncPrivacy'
 import { object, validatedRecords } from './backupValidation'
 
 export { validatedRecords } from './backupValidation'
@@ -28,11 +29,16 @@ function without(value: Record<string, unknown>, keys: readonly string[]): Recor
 /** Weggelassene Gruppen fehlen wirklich; sie werden beim Import nicht als Löschauftrag ausgegeben. */
 export function selectBackupRecords(records: readonly Rec[], choice: Partial<BackupSelection> = {}): Rec[] {
   const selection = { ...COMPLETE_BACKUP, ...choice }
-  return records.filter((record) => selection.places || record.collection !== 'meta' || record.id !== 'events').map((record) => {
+  const businessIds = new Set(records.filter((record) => record.collection === 'inbox' && localBusinessNote(record.data)).map((record) => record.id))
+  const businessKeys = new Set([...businessIds].map((id) => `task:${id}`))
+  const workReference = (value: unknown): boolean => object(value) && (value.kind === 'work' || value.kind === 'task'
+    && businessIds.has(String(value.refId ?? value.id)))
+  return records.filter((record) => (selection.places || record.collection !== 'meta' || record.id !== 'events')
+    && (selection.work || record.collection !== 'inbox' || !businessIds.has(record.id))).map((record) => {
     const copy = structuredClone(record)
-    if (copy.deleted || !object(copy.data)) return copy
+    if (copy.deleted) return selection.work ? copy : { ...copy, data: null }
+    if (!object(copy.data)) return copy
     let data = copy.data
-    if (!selection.work && record.collection === 'inbox' && object(data.linkedTo) && data.linkedTo.kind === 'work') data = without(data, ['linkedTo'])
     if (record.collection === 'settings') {
       if (!selection.health && object(data.alarm)) data = { ...data, alarm: without(data.alarm, ['medicationEnabled', 'medicationReminderAt']) }
       if (!selection.places && object(data.weather)) data = { ...data, weather: without(data.weather, ['city', 'lat', 'lng', 'enabled']) }
@@ -47,11 +53,11 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
       }
       if (!selection.work) {
         data = without(data, ['work', 'workSessions', 'handover'])
-        if (object(data.resume) && data.resume.kind === 'work') data = without(data, ['resume'])
-        if (object(data.captureDraft) && object(data.captureDraft.context) && data.captureDraft.context.kind === 'work') data = without(data, ['captureDraft'])
-        if (object(data.focus) && object(data.focus.target) && data.focus.target.kind === 'work') data = without(data, ['focus'])
-        if (Array.isArray(data.focusHistory)) data = { ...data, focusHistory: data.focusHistory.filter((focus) => !object(focus) || !object(focus.target) || focus.target.kind !== 'work') }
-        if (object(data.taskLearning) && Array.isArray(data.taskLearning.samples)) data = { ...data, taskLearning: { ...data.taskLearning, samples: data.taskLearning.samples.filter((sample) => !object(sample) || typeof sample.key !== 'string' || !sample.key.startsWith('work:')) } }
+        if (workReference(data.resume)) data = without(data, ['resume'])
+        if (object(data.captureDraft) && workReference(data.captureDraft.context)) data = without(data, ['captureDraft'])
+        if (object(data.focus) && workReference(data.focus.target)) data = without(data, ['focus'])
+        if (Array.isArray(data.focusHistory)) data = { ...data, focusHistory: data.focusHistory.filter((focus) => !object(focus) || !workReference(focus.target)) }
+        if (object(data.taskLearning) && Array.isArray(data.taskLearning.samples)) data = { ...data, taskLearning: { ...data.taskLearning, samples: data.taskLearning.samples.filter((sample) => !object(sample) || typeof sample.key !== 'string' || !sample.key.startsWith('work:') && !businessKeys.has(sample.key)) } }
       }
     }
     return { ...copy, data }
