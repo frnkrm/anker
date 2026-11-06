@@ -38,9 +38,83 @@ function intersect(a: Interval[], b: Interval[]): Interval[] {
   return out
 }
 
+const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
+const timestamp = (value: unknown): value is number => typeof value === 'number' && value >= 0 && Number.isFinite(new Date(value).getTime())
+const text = (value: unknown): value is string => typeof value === 'string'
+const dateString = (value: unknown): value is DateStr => text(value) && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(new Date(value + 'T12:00:00Z').getTime()) && new Date(value + 'T12:00:00Z').toISOString().slice(0, 10) === value
+
+/** Formprüfung für Sicherungen. Fachliche Überschneidungen bleiben erhalten und werden separat benannt. */
+export function validWorkSession(value: unknown): value is WorkSession {
+  if (!object(value) || !text(value.id) || !value.id.trim() || !dateString(value.date)
+    || !['regular', 'maintenance', 'incident', 'onsite', 'other'].includes(String(value.kind)) || !timestamp(value.startAt)
+    || (value.endAt !== undefined && !timestamp(value.endAt)) || !Array.isArray(value.breaks)) return false
+  if (['label', 'note', 'commitmentId'].some((key) => value[key] !== undefined && !text(value[key]))) return false
+  if (value.manual !== undefined && typeof value.manual !== 'boolean') return false
+  return value.breaks.every((pause) => object(pause) && text(pause.id) && !!pause.id.trim() && timestamp(pause.startAt)
+    && (pause.endAt === undefined || timestamp(pause.endAt)) && (pause.expectedEndAt === undefined || timestamp(pause.expectedEndAt)))
+}
+
+export interface WorkIssue {
+  /** Stabiler Vergleich erlaubt die Korrektur eines Altproblems, ohne andere alte Angaben zu löschen. */
+  key: string
+  sessionIds: string[]
+  text: string
+}
+
+/** Keine stillen Korrekturen: Vorhandene widersprüchliche Angaben bleiben für die Bearbeitung erhalten. */
+export function workSessionIssues(list: readonly WorkSession[], nowMs: number): WorkIssue[] {
+  const issues: WorkIssue[] = []
+  const add = (code: string, ids: string[], message: string, part = '') => issues.push({ key: [code, ...[...ids].sort(), part].join('|'), sessionIds: ids, text: message })
+  const ids = new Set<string>()
+  const valid = list.filter((session) => {
+    const id = session?.id
+    if (!validWorkSession(session)) { add('shape', [typeof id === 'string' ? id : 'unbekannt'], 'Ein Arbeitszeiteintrag ist nicht vollständig lesbar. Die ursprünglichen Angaben bleiben erhalten.'); return false }
+    return true
+  })
+  for (const session of valid) {
+    if (ids.has(session.id)) add('duplicate', [session.id], 'Zwei Arbeitszeiteinträge haben dieselbe Kennung. Bitte korrigiere die doppelten Angaben.')
+    ids.add(session.id)
+    const end = session.endAt ?? nowMs
+    if (end < session.startAt) add('order', [session.id], 'Das Arbeitsende liegt vor dem Beginn. Bitte prüfe beide Zeiten.')
+    if (nowMs > 0 && (session.startAt > nowMs || (session.endAt !== undefined && session.endAt > nowMs))) add('future', [session.id], 'Diese Arbeitszeit liegt noch in der Zukunft. Plane einen Einsatz, statt ihn als gearbeitet einzutragen.')
+    const pauseIds = new Set<string>()
+    const pauses = session.breaks.map((pause) => ({ pause, end: pause.endAt ?? end }))
+    if (session.breaks.filter((pause) => pause.endAt === undefined).length > 1) add('open-breaks', [session.id], 'Mehrere Pausen sind gleichzeitig offen. Bitte bestätige die passenden Endzeiten.')
+    for (const { pause, end: pauseEnd } of pauses) {
+      if (pauseIds.has(pause.id)) add('duplicate-break', [session.id], 'Eine Pause ist doppelt enthalten. Bitte prüfe die Angaben.', pause.id)
+      pauseIds.add(pause.id)
+      if (pauseEnd < pause.startAt) add('break-order', [session.id], 'Das Pausenende liegt vor dem Pausenbeginn. Bitte prüfe beide Zeiten.', pause.id)
+      if (pause.startAt < session.startAt || pauseEnd > end || pause.startAt > end || (session.endAt !== undefined && pause.endAt === undefined)) add('break-outside', [session.id], 'Die Pause liegt nicht vollständig innerhalb dieses Arbeitsabschnitts. Bitte korrigiere die Zeiten.', pause.id)
+      if (nowMs > 0 && (pause.startAt > nowMs || (pause.endAt !== undefined && pause.endAt > nowMs))) add('future-break', [session.id], 'Diese Pause liegt noch in der Zukunft. Eine Endschätzung ist noch keine erfasste Pause.', pause.id)
+      if (pause.expectedEndAt !== undefined && pause.expectedEndAt < pause.startAt) add('estimate', [session.id], 'Die geschätzte Rückkehr liegt vor dem Pausenbeginn.', pause.id)
+    }
+    for (let a = 0; a < pauses.length; a++) for (let b = a + 1; b < pauses.length; b++) {
+      const x = pauses[a]!; const y = pauses[b]!
+      if (Math.min(x.end, y.end) > Math.max(x.pause.startAt, y.pause.startAt)) add('overlap-break', [session.id], 'Zwei Pausen überschneiden sich. Bitte prüfe beide Angaben.', [x.pause.id, y.pause.id].sort().join(':'))
+    }
+  }
+  const open = valid.filter((session) => session.endAt === undefined)
+  if (open.length > 1) add('open-work', open.map((session) => session.id), 'Mehrere Arbeitsabschnitte sind offen. Bitte bestätige ihre tatsächlichen Endzeiten.')
+  for (let a = 0; a < valid.length; a++) for (let b = a + 1; b < valid.length; b++) {
+    const x = valid[a]!; const y = valid[b]!
+    if (Math.min(x.endAt ?? nowMs, y.endAt ?? nowMs) > Math.max(x.startAt, y.startAt)) add('overlap-work', [x.id, y.id], 'Zwei Arbeitsabschnitte überschneiden sich. Bitte korrigiere die Zeiten; Anker löscht keinen Eintrag von selbst.')
+  }
+  return issues
+}
+
+/** Neue Konflikte zurückweisen, die schrittweise Korrektur alter Konflikte aber zulassen. */
+export function assertWorkChanges(before: readonly WorkSession[], after: readonly WorkSession[], nowMs: number): void {
+  const previous = new Set(workSessionIssues(before, nowMs).map((issue) => issue.key))
+  const introduced = workSessionIssues(after, nowMs).find((issue) => !previous.has(issue.key))
+  if (introduced) throw new Error(introduced.text)
+}
+
 export interface DayActual {
   /** Sitzungen dieses Plantags */
   sessions: WorkSession[]
+  issues: WorkIssue[]
+  /** Widersprüchliche oder ungewöhnlich lange offene Zeit ist keine geprüfte Mehrarbeit. */
+  unconfirmed: boolean
   grossMin: number
   /** Nur Pausen innerhalb der Arbeit */
   breakMin: number
@@ -58,7 +132,10 @@ export interface DayActual {
 
 /** Alles, was an einem Plantag wirklich erfasst wurde. Offene Abschnitte laufen bis `nowMs`. */
 export function dayActual(all: WorkSession[], date: DateStr, nowMs: number): DayActual {
-  const sessions = all.filter((x) => x.date === date).sort((a, b) => a.startAt - b.startAt)
+  const sessions = all.filter((x) => validWorkSession(x) && x.date === date).sort((a, b) => a.startAt - b.startAt)
+  const selected = new Set(sessions.map((session) => session.id))
+  const issues = workSessionIssues(all, nowMs).filter((issue) => issue.sessionIds.some((id) => selected.has(id)))
+  const unconfirmed = issues.length > 0 || sessions.some((session) => session.endAt === undefined && (session.date < utcToZoned(nowMs).date && minutesOnPlanDay(session.date, nowMs) >= 1440 + 240 || nowMs - session.startAt > 16 * 60 * MIN))
   const work = normalizeIntervals(sessions.map((x) => [x.startAt, Math.max(x.startAt, x.endAt ?? nowMs)]))
   const rawBreaks = normalizeIntervals(sessions.flatMap((x) => x.breaks.map((b): Interval => [b.startAt, Math.max(b.startAt, b.endAt ?? nowMs)])))
   const breaks = intersect(rawBreaks, work)
@@ -67,6 +144,8 @@ export function dayActual(all: WorkSession[], date: DateStr, nowMs: number): Day
   const breakMs = total(breaks)
   return {
     sessions,
+    issues,
+    unconfirmed,
     grossMin: Math.round(grossMs / MIN),
     breakMin: Math.round(breakMs / MIN),
     netMin: Math.round((grossMs - breakMs) / MIN),
@@ -85,6 +164,7 @@ export interface WorkDayRule {
   plannedStart: number
   targetNetMin: number
   plannedBreakMin: number
+  endPreference?: number
 }
 
 /** Tagesabweichung vor Wochenregel. Dass ein Termin den Beginn vorgeben kann, regelt der Planer. */
@@ -94,6 +174,7 @@ export function workRule(date: DateStr, s: Settings, o?: DayOverride, isWorkDay 
     plannedStart: o?.workStart ?? w.start,
     targetNetMin: isWorkDay ? (o?.targetNetMin ?? w.durationMin) : (o?.targetNetMin ?? 0),
     plannedBreakMin: o?.pauseMin ?? w.pauseMin,
+    endPreference: o?.workEnd ?? (w.endPreference === undefined ? undefined : w.endPreference < w.start ? w.endPreference + 1440 : w.endPreference),
   }
 }
 
@@ -103,23 +184,31 @@ export interface ForecastInput extends WorkDayRule {
   nowMs: number
 }
 
-/**
- * Voraussichtlicher Feierabend in Plan-Minuten.
- * Ohne Erfassung: Beginn + Soll + übliche Pause.
- * Mit laufender Arbeit: jetzt + restliches Soll, plus die übliche Pause, solange noch keine erfasst ist.
- * Ist eine Pause erfasst, zählt nur sie. So rückt der Feierabend in beide Richtungen.
- * Sitzungen, die nur ein Einsatz waren, verkürzen das restliche Soll.
- */
-export function forecastEnd(i: ForecastInput): number {
-  const { actual: a } = i
-  if (a.closed && a.lastEnd !== undefined) return minutesOnPlanDay(i.date, a.lastEnd)
-  const remaining = Math.max(0, i.targetNetMin - a.netMin)
-  if (a.open) {
-    const extra = a.breakCount > 0 || a.openBreak || remaining === 0 ? 0 : i.plannedBreakMin
-    return minutesOnPlanDay(i.date, i.nowMs + (remaining + extra) * MIN)
-  }
-  return i.plannedStart + remaining + i.plannedBreakMin
+export interface WorkForecast {
+  end: number
+  /** Ohne bekanntes Pausenende ist dies nur der früheste mögliche Wert. */
+  lowerBound: boolean
+  unconfirmed: boolean
 }
+
+/** Restarbeit beginnt nie vor jetzt; eine Endschätzung beendet keine laufende Pause. */
+export function workForecast(i: ForecastInput): WorkForecast {
+  const { actual: a } = i
+  if (a.closed && a.lastEnd !== undefined) return { end: minutesOnPlanDay(i.date, a.lastEnd), lowerBound: false, unconfirmed: a.unconfirmed }
+  const remaining = Math.max(0, i.targetNetMin - (a.unconfirmed ? 0 : a.netMin))
+  if (a.open) {
+    const unknownPause = !!a.openBreak && (a.openBreak.expectedEndAt === undefined || a.openBreak.expectedEndAt <= i.nowMs)
+    const resumeAt = Math.max(i.nowMs, a.openBreak?.expectedEndAt ?? i.nowMs)
+    const extra = a.breakCount > 0 || a.openBreak || remaining === 0 ? 0 : i.plannedBreakMin
+    return { end: minutesOnPlanDay(i.date, resumeAt + (remaining + extra) * MIN), lowerBound: unknownPause || a.unconfirmed, unconfirmed: a.unconfirmed }
+  }
+  const futureStart = a.sessions.length ? Math.max(i.plannedStart, minutesOnPlanDay(i.date, i.nowMs)) : i.plannedStart
+  const extra = a.breakCount > 0 || remaining === 0 ? 0 : i.plannedBreakMin
+  return { end: futureStart + remaining + extra, lowerBound: a.unconfirmed, unconfirmed: a.unconfirmed }
+}
+
+/** Kompatible Zahlenprojektion für bestehende Aufrufer; UI verwendet zusätzlich die Prognosemerkmale. */
+export function forecastEnd(i: ForecastInput): number { return workForecast(i).end }
 
 export interface DayBalance {
   netMin: number
@@ -284,8 +373,9 @@ export interface LatestInfo {
 }
 
 /** Rechnet die Grenze auf das Losgehen zurück: Fahrt und Puffer. Im Homeoffice gibt es keinen Weg. */
-export function latestInfo(s: Settings, homeOffice: boolean): LatestInfo | undefined {
-  const latestStart = s.flex.latestStart
+export function latestInfo(s: Settings, homeOffice: boolean, date?: DateStr, override?: DayOverride): LatestInfo | undefined {
+  const dayLimit = date ? s.work[weekday(date)]?.latestStart : undefined
+  const latestStart = override?.latestStart !== undefined ? override.latestStart : dayLimit !== undefined ? dayLimit : s.flex.latestStart
   if (latestStart === null) return undefined
   return homeOffice ? { latestStart } : { latestStart, latestLeave: latestStart - s.commute.minutes - s.commute.bufferMin }
 }

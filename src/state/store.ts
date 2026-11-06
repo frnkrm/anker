@@ -39,7 +39,7 @@ import type {
   WorkSessionKind,
   WorkTask,
 } from '../core/types'
-import { endBreak, startBreak, startSession, stopSession } from '../core/worktime'
+import { assertWorkChanges, endBreak, startBreak, startSession, stopSession } from '../core/worktime'
 import { getRepository, type Rec, type Repository } from '../data'
 import type { RepositoryWrite } from '../data/types'
 
@@ -66,7 +66,7 @@ interface AppState {
   /** Was Android zuletzt zur Weckerplanung gemeldet hat. Nicht gespeichert. */
   alarmStatus?: AlarmStatus
   /** Stand vor der letzten Korrektur an Arbeitszeiten, für „Rückgängig“. Nicht gespeichert. */
-  workUndo?: WorkSession[]
+  workUndo?: { before: WorkSession[]; revision: string }
 
   load(): Promise<void>
   saveSettings(fn: (s: Settings) => Settings): Promise<void>
@@ -201,6 +201,20 @@ function archivedFocus(data: TaskData, target: FocusTarget): FocusSession | unde
 function stampTaskChanges<T extends InboxItem | WorkTask>(before: readonly T[], after: T[]): void {
   const previous = new Map(before.map((task) => [task.id, task]))
   for (const task of after) if (JSON.stringify(previous.get(task.id)) !== JSON.stringify(task)) task.reminderRevision = randomId()
+}
+
+/** Arbeitsintervalle und ihre Rücknahme erst nach gemeinsam erfolgreichem Commit veröffentlichen. */
+function changeWork(edit: (local: LocalData) => LocalData, undoable = false): Promise<void> {
+  return atomic(async () => {
+    const before = useApp.getState()
+    const local = edit(structuredClone(before.local))
+    assertWorkChanges(before.local.workSessions, local.workSessions, Date.now())
+    if (JSON.stringify(local) === JSON.stringify(before.local)) return
+    const workUndo = undoable ? { before: structuredClone(before.local.workSessions), revision: JSON.stringify(local.workSessions) } : undefined
+    await repo.put('meta', 'local', local)
+    useApp.setState({ local, workUndo })
+    changed()
+  })
 }
 
 /** Alle zusammengehörigen Task-/Fokus-/Notizänderungen werden gemeinsam sichtbar und dauerhaft. */
@@ -955,43 +969,44 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   async workStart(i = {}) {
-    if (pendingAtomicAction) await waitForAtomicActions()
     const at = i.at ?? Date.now()
-    await get().saveLocal((l) => ({ ...l, workSessions: startSession(l.workSessions, { id: randomId(), date: today(), at, kind: i.kind, label: i.label, commitmentId: i.commitmentId }) }))
+    await changeWork((local) => ({ ...local, workSessions: startSession(local.workSessions, { id: randomId(), date: today(), at, kind: i.kind, label: i.label, commitmentId: i.commitmentId }) }))
   },
 
   async workStop(at = Date.now()) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    await get().saveLocal((l) => {
-      const open = l.workSessions.find((x) => x.endAt === undefined)
-      // Ein Einsatz ohne Weg ist mit dem Beenden abgeschlossen. Vor Ort folgt noch „Bin wieder da“.
-      const commitments = open?.commitmentId ? l.commitments.map((c) => (c.id === open.commitmentId && c.routeMode === 'none' ? { ...c, backAt: at } : c)) : l.commitments
-      return { ...l, commitments, workSessions: stopSession(l.workSessions, at) }
+    await changeWork((local) => {
+      const open = local.workSessions.find((session) => session.endAt === undefined)
+      const commitments = open?.commitmentId ? local.commitments.map((c) => (c.id === open.commitmentId && c.routeMode === 'none' ? { ...c, backAt: at } : c)) : local.commitments
+      return { ...local, commitments, workSessions: stopSession(local.workSessions, at) }
     })
   },
 
   async workBreakStart(at = Date.now()) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    await get().saveLocal((l) => ({ ...l, workSessions: startBreak(l.workSessions, randomId(), at) }))
+    await changeWork((local) => ({ ...local, workSessions: startBreak(local.workSessions, randomId(), at) }))
   },
 
   async workBreakEnd(at = Date.now()) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    await get().saveLocal((l) => ({ ...l, workSessions: endBreak(l.workSessions, at) }))
+    await changeWork((local) => ({ ...local, workSessions: endBreak(local.workSessions, at) }))
   },
 
   async editWork(fn) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    set({ workUndo: get().local.workSessions })
-    await get().saveLocal((l) => ({ ...l, workSessions: fn(l.workSessions) }))
+    await changeWork((local) => ({ ...local, workSessions: fn(local.workSessions) }), true)
   },
 
   async undoWork() {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    const before = get().workUndo
-    if (!before) return
-    set({ workUndo: undefined })
-    await get().saveLocal((l) => ({ ...l, workSessions: before }))
+    await atomic(async () => {
+      const state = get()
+      const undo = state.workUndo
+      if (!undo) return
+      if (JSON.stringify(state.local.workSessions) !== undo.revision) {
+        set({ workUndo: undefined })
+        throw new Error('Seit dieser Korrektur wurden Arbeitszeiten geändert. Deine neueren Zeiten bleiben erhalten; öffne den betreffenden Eintrag zum Korrigieren.')
+      }
+      const local = { ...state.local, workSessions: structuredClone(undo.before) }
+      await repo.put('meta', 'local', local)
+      set({ local, workUndo: undefined })
+      changed()
+    })
   },
 
   setAlarmStatus(a) {

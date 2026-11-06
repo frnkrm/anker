@@ -1,6 +1,6 @@
 import { EVENING_LABELS } from '../defaults'
 import { addDays, fmtTime, minutesOnPlanDay, weekday, type DateStr } from '../time'
-import { dayActual, forecastEnd, latestInfo, overLatest, workRule } from '../worktime'
+import { dayActual, workForecast, latestInfo, overLatest, workRule } from '../worktime'
 import type {
   Block,
   CalendarEvent,
@@ -151,12 +151,12 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   // Wege und Termine dieses Tages
   const officeOnsite = isWorkDayOnsite(dayType, o, w) && !(input.commitments ?? []).some((c) => c.replacesCommute && c.status !== 'cancelled')
-  const workEndBase = o.workEnd ?? rule.plannedStart + rule.targetNetMin + rule.plannedBreakMin
+  const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin + rule.plannedBreakMin
   const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: rule.plannedStart, end: workEndBase } : undefined })
   const morningLeg = legs.find((l) => l.leave !== undefined && l.commitment.commitment === 'hard' && l.commitment.start < 12 * 60 && (dayType !== 'work' || l.commitment.replacesCommute || homeOffice || l.commitment.start < rule.plannedStart))
   if (morningLeg) leaveOverride = morningLeg.leave
   // Bestätigter Kundentermin vor der eigenen Grenze: Die Arbeit beginnt dort, nicht zusätzlich woanders
-  const firstCustomer = morningLeg && morningLeg.commitment.replacesCommute && ['customer', 'work'].includes(morningLeg.commitment.context) && morningLeg.commitment.start <= Math.max(rule.plannedStart, s.flex.latestStart ?? 0) ? morningLeg.commitment.start : undefined
+  const firstCustomer = morningLeg && morningLeg.commitment.replacesCommute && ['customer', 'work'].includes(morningLeg.commitment.context) && morningLeg.commitment.start <= Math.max(rule.plannedStart, latestInfo(s, homeOffice, date, o)?.latestStart ?? 0) ? morningLeg.commitment.start : undefined
   const plannedStart = firstCustomer ?? rule.plannedStart
   const firstRegular = actual.sessions.find((x) => x.kind === 'regular')
   const workStart = firstRegular ? minutesOnPlanDay(date, firstRegular.startAt) : plannedStart
@@ -228,19 +228,26 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   let workInfo: WorkInfo | undefined
   if (isWork) {
     // Reales Ende vor gesetztem Ende vor Prognose. Eine laufende Arbeit endet nie in der Vergangenheit.
-    const forecast = forecastEnd({ ...rule, plannedStart, date, actual, nowMs })
-    workEnd = actual.closed ? forecast : (o.workEnd ?? forecast)
+    const forecast = workForecast({ ...rule, plannedStart, date, actual, nowMs })
+    workEnd = actual.closed ? forecast.end : (rule.endPreference ?? forecast.end)
     if (actual.open) workEnd = Math.max(workEnd, nowM)
-    const latest = latestInfo(s, homeOffice)
+    const latest = latestInfo(s, homeOffice, date, o)
     workInfo = {
       ...rule,
       plannedStart,
+      forecastEnd: forecast.end,
+      forecastLowerBound: forecast.lowerBound || undefined,
+      unconfirmed: forecast.unconfirmed || undefined,
+      endPreference: rule.endPreference,
       latestStart: latest?.latestStart,
       latestLeave: latest?.latestLeave,
       fixedMorning: !!morningLeg,
       started: !!firstRegular || !!actual.open,
       closed: actual.closed,
     }
+    if (forecast.unconfirmed) notes.push('Einige Arbeitszeiten sind noch unbestätigt. Prüfe sie in Arbeitszeit, bevor du daraus einen Saldo ableitest.')
+    else if (forecast.lowerBound) notes.push(`Feierabend frühestens ${fmtTime(forecast.end)}; das Ende der laufenden Pause ist noch offen.`)
+    if (rule.endPreference !== undefined && !actual.closed && forecast.end > rule.endPreference) notes.push(`Dein Feierabendwunsch ist ${fmtTime(rule.endPreference)}. Mit dem Nettoziel ergibt sich gerade ${fmtTime(forecast.end)}; du entscheidest über dein Tagesziel oder Ende.`)
     if (!morningLeg && overLatest(plannedStart, latest)) notes.push(`Heute beginnst du nach deiner Grenze ${fmtTime(latest!.latestStart)}. Prüf kurz, ob das so abgesprochen ist.`)
     const otherDays = s.work.filter((d, i) => i !== 4 && d.isWorkDay).map((d) => d.durationMin)
     if (wd === 4 && !actual.closed && otherDays.length && w.durationMin < Math.min(...otherDays)) notes.push(`Heute ist dein kürzerer Freitag. Geplanter Feierabend ${fmtTime(workEnd)}.`)
@@ -403,7 +410,7 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   hardTimes.sort((a, b) => a.at - b.at)
 
   const conflicts = hardConflicts(legs)
-  if (officeOnsite) {
+  if (isWork && !actual.closed) {
     const clash = legs.find((l) => l.commitment.commitment === 'hard' && !l.commitment.replacesCommute && l.commitment.start < workEnd! && (l.commitment.end ?? l.commitment.start) > workStart && l !== morningLeg && l.commitment.context !== 'work')
     if (clash) conflicts.push(`„${clash.commitment.label}“ liegt in deiner Arbeitszeit.`)
   }

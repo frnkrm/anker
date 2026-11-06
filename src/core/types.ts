@@ -21,6 +21,10 @@ export interface WorkDay {
   durationMin: number
   pauseMin: number
   homeOffice: boolean
+  /** Nicht gesetzt: globale Grenze; null: für diesen Wochentag keine Grenze. */
+  latestStart?: number | null
+  /** Freiwilliger Feierabendwunsch, keine Ist-Zeit und keine Erledigungsbestätigung. */
+  endPreference?: number
 }
 
 export type CommuteMode = 'auto' | 'oepnv' | 'rad' | 'fuss'
@@ -155,6 +159,7 @@ export interface DayOverride {
   /** Nur dieser Tag: anderer Arbeitsbeginn, anderes Netto-Soll, andere Pause */
   workStart?: number
   targetNetMin?: number
+  latestStart?: number | null
   pauseMin?: number
   /** Historische Verlängerung; neue freie Entscheidungen verwenden lateUntil. */
   pcStopExtendMin?: number
@@ -246,6 +251,11 @@ export interface WorkInfo {
   plannedStart: number
   targetNetMin: number
   plannedBreakMin: number
+  /** Rechnerische Prognose unabhängig vom freiwilligen Feierabendwunsch. */
+  forecastEnd?: number
+  forecastLowerBound?: boolean
+  unconfirmed?: boolean
+  endPreference?: number
   latestStart?: number
   latestLeave?: number
   /** Ein fester Termin gibt den Morgen vor */
@@ -417,6 +427,8 @@ export interface WorkBreak {
   id: string
   startAt: number
   endAt?: number
+  /** Nur eine freiwillige Schätzung; beendet die Pause nicht. */
+  expectedEndAt?: number
 }
 
 /**
