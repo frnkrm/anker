@@ -1,6 +1,7 @@
 import type { DateStr } from './time'
 import type { FocusSession, StuckSession } from './focus'
 import type { AssistancePreferences } from './assistance'
+import type { ExtraLocal, ExtraSettings } from './extras'
 
 export type StepTag = 'movement' | 'tidy' | 'face' | 'teeth' | 'prep' | 'inbox' | 'gymbag' | 'breakfast'
 
@@ -131,6 +132,7 @@ export interface Settings {
   /** Legacy-Ortsfelder werden lokal nach weatherProfile übernommen. Nur Kleidungsvorlieben bleiben im Settings-Sync. */
   weather: { enabled: boolean; city: string; lat?: number; lng?: number; rules: { jacketBelowC: number; rainAbovePct: number } }
   focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
+  extras?: ExtraSettings
   support: {
     /** Berufliche Aufgaben und Wiedereinstiege nach Feierabend auf der Startseite ruhigstellen */
     workAfterHoursQuiet: boolean
@@ -628,6 +630,7 @@ export interface LocalData {
   /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */
   meds: Record<DateStr, { status: MedsStatus; at: number }>
   trial?: { startedAt: DateStr; days: 7 | 14; answers: Record<DateStr, 'ja' | 'teilweise' | 'nein' | 'uebersprungen'> }
+  extras?: ExtraLocal
 }
 
 export interface WeeklyReview {

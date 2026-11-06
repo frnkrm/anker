@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
+import { validCalendarStatus, type CalendarStatus } from '../core/extras'
 import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { eveningLocalFields } from '../core/evening'
@@ -106,6 +107,7 @@ interface AppState {
   setGame(fn: (g: GameState) => GameState): Promise<void>
   evaluateProgress(): Promise<void>
   setEvents(e: CalendarEvent[]): Promise<void>
+  applyCalendarSnapshot(events: CalendarEvent[], status: CalendarStatus, accept: () => boolean): Promise<boolean>
   saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
   saveDeviceTests(fn: (progress: DeviceTestProgress) => DeviceTestProgress): Promise<void>
   setResume(r: ResumePoint | undefined): Promise<void>
@@ -842,6 +844,17 @@ export const useApp = create<AppState>()((set, get) => ({
       if (e.type === 'chapter-restarted') get().celebrate({ kind: 'restart', title: 'Neuer Anlauf', text: e.text })
       if (e.type === 'stage-offer') get().celebrate({ kind: 'stage', title: 'Nächste Stufe?', text: e.text })
     }
+    })
+  },
+
+  applyCalendarSnapshot(events, status, accept) {
+    return atomic(async () => {
+      if (!accept()) return false
+      if (!validCalendarStatus(status)) throw new Error('Der Kalenderstand ist ungültig.')
+      const local = { ...get().local, extras: { ...get().local.extras, calendar: status } }
+      await repo.putMany([{ collection: 'meta', id: 'events', data: events }, { collection: 'meta', id: 'local', data: local }])
+      set({ events, local }); changed()
+      return true
     })
   },
 
