@@ -35,15 +35,16 @@ async function init() {
   initialized = true
 }
 /** Nur auf bewussten Anmeldetipp; ein abgelaufener Zugang startet nie heimlich einen Login. */
-export async function connectGoogle(write = false): Promise<boolean> {
-  if (!CLIENT_ID) return false
+export async function connectGoogle(write = false, accept: () => boolean = () => true): Promise<boolean> {
+  if (!CLIENT_ID || !accept()) return false
   const generation = ++authGeneration
   invalidateCalendarRequests()
   return safe(async () => {
     await init()
+    if (generation !== authGeneration || !accept()) return false
     const requested = write ? [GOOGLE_READ_SCOPE, GOOGLE_WRITE_SCOPE] : [GOOGLE_READ_SCOPE]
     const response = await SocialLogin.login({ provider: 'google', options: { scopes: requested, prompt: 'consent' } })
-    if (generation !== authGeneration || response.provider !== 'google' || !('accessToken' in response.result)) return false
+    if (generation !== authGeneration || !accept() || response.provider !== 'google' || !('accessToken' in response.result)) return false
     const access = response.result.accessToken
     if (!access?.token || access.isExpired) return false
     const scopes = (access.permissions ?? requested).filter((scope) => !access.declinedPermissions?.includes(scope))

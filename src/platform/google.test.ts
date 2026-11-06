@@ -52,6 +52,18 @@ describe('Freiwilliger Googlezugriff ohne falsche Erfolge oder stille Datenverlu
     expect(await google.connectGoogle(true)).toBe(false)
     expect(google.googleWriteAuthorized()).toBe(false)
   })
+  it('übernimmt nach Verlassen des bewussten Anmeldewegs keine verspätete Freigabe', async () => {
+    let accept = true
+    context.login.mockImplementationOnce(async () => {
+      accept = false
+      return { provider: 'google', result: { accessToken: { token: 'late-token', permissions: [readScope, writeScope] }, profile: { id: 'person-1' } } }
+    })
+    const google = await import('./google')
+    expect(await google.connectGoogle(true, () => accept)).toBe(false)
+    expect(google.googleConnected()).toBe(false)
+    expect(google.googleWriteAuthorized()).toBe(false)
+    expect(values.has('anker.google')).toBe(false)
+  })
   it('bleibt bei abgeschaltetem Import auch mit vorhandenem Token vollständig offline', async () => {
     token(); const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
     expect(await (await import('./google')).refreshCalendar()).toBe(false)

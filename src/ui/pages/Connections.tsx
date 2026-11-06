@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { buildIcs } from '../../core/export/ics'
 import { saveFile } from '../../platform/files'
 import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
@@ -15,13 +15,21 @@ export default function Connections() {
   const [lastSync, setLastSync] = useState<number>()
   const gConnected = googleConnected()
   const calendar = st.local.extras?.calendar
+  const mounted = useRef(true)
+  const googleIntent = useRef(0)
 
   useEffect(() => {
+    mounted.current = true
     void currentUser().then(setUser)
     void syncStatus().then((s) => setLastSync(s.lastSync))
+    return () => { mounted.current = false }
   }, [])
 
-  const setInteg = (patch: Partial<typeof integ>) => st.saveSettings((s) => ({ ...s, integrations: { ...s.integrations, ...patch } }))
+  const setInteg = (patch: Partial<typeof integ>, accept = () => true) => st.saveSettings((s) => accept() ? ({ ...s, integrations: { ...s.integrations, ...patch } }) : s)
+  const beginGoogleIntent = () => {
+    const version = ++googleIntent.current
+    return () => mounted.current && googleIntent.current === version
+  }
 
   return (
     <Page title="Kalender & Sync" back="/mehr">
@@ -94,6 +102,7 @@ export default function Connections() {
                   label="Termine lesen"
                   checked={integ.googleCalendar}
                   onChange={async (v) => {
+                    googleIntent.current++
                     invalidateCalendarRequests()
                     await setInteg({ googleCalendar: v })
                     if (v) await refreshCalendar()
@@ -108,20 +117,26 @@ export default function Connections() {
                   label="Routinen schreiben"
                   checked={integ.writeCalendar}
                   onChange={async (v) => {
+                    const accept = beginGoogleIntent()
                     invalidateCalendarRequests()
-                    if (v && !googleWriteAuthorized() && !await connectGoogle(true)) { setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt. Es wurde nichts eingeschaltet.'); return }
-                    await setInteg({ writeCalendar: v })
+                    if (v && !googleWriteAuthorized() && !await connectGoogle(true, accept)) { if (accept()) setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt. Es wurde nichts eingeschaltet.'); return }
+                    if (v && !accept()) return
+                    await setInteg({ writeCalendar: v }, v ? accept : () => true)
+                    if (!accept()) return
                     if (v) setMsg((await writeAnkerBlocks()) ? 'Kalender „Anker“ aktualisiert.' : 'Schreiben hat nicht geklappt.')
                   }}
                 />
               </div>
               {integ.writeCalendar && !googleWriteAuthorized() && <Button onClick={async () => {
-                if (!await connectGoogle(true)) { setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt.'); return }
+                const accept = beginGoogleIntent()
+                if (!await connectGoogle(true, accept)) { if (accept()) setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt.'); return }
+                if (!accept()) return
                 setMsg(await writeAnkerBlocks() ? 'Eigener Anker-Kalender aktualisiert.' : 'Schreiben hat nicht geklappt. Lokale Planung bleibt erhalten.')
               }}>Schreibfreigabe bewusst erneuern</Button>}
               <Button
                 variant="ghost"
                 onClick={async () => {
+                  googleIntent.current++
                   await disconnectGoogle()
                   await setInteg({ googleCalendar: false, writeCalendar: false })
                   await st.setEvents([])
@@ -136,9 +151,12 @@ export default function Connections() {
               variant="primary"
               className="w-full"
               onClick={async () => {
-                const ok = await connectGoogle()
+                const accept = beginGoogleIntent()
+                const ok = await connectGoogle(false, accept)
+                if (!accept()) return
                 if (ok) {
-                  await setInteg({ googleCalendar: true })
+                  await setInteg({ googleCalendar: true }, accept)
+                  if (!accept()) return
                   await refreshCalendar()
                 } else setMsg('Google-Anmeldung hat nicht geklappt.')
               }}
