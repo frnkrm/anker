@@ -211,6 +211,10 @@ Nächster Nutzerschritt: Download prüfen, entpacken und lokal mit dem vorhanden
 
 **CI-Nachprüfung,06.11.2026, abgeschlossen:** Remote-Lauf13 scheiterte im kombinierten Playwright-Schritt; bereits Läufe7–12 zeigten dieselbe Grenze vor E02. Diagnose getrennt und öffentliche Fehlerannotation/-berichte ergänzt. Nachlauf14 liefert den konkreten Rotnachweis:33/39 bestanden, fünf voreilige Hard-Navigationen vor abgeschlossener Speicherung und ein Drucküberschriften-Überlauf. Speicherbedingungen in den Tests ergänzt (lokal5/5), Überschriften in der Druckansicht umbrechbar gemacht (Altcode bei320px rot, danach4/4 Druckfälle inklusive PDFs grün). Keine Erwartungen abgeschwächt oder Timeouts erhöht. **[Remote-Lauf15](https://github.com/frnkrm/anker/actions/runs/42152225401) auf main `e6e254b` vollständig erfolgreich,39/39 Browsertests und sämtliche übrigen Checks grün.** Details im Abschnitt „CI-Untersuchung nach E02“ der [Testnachweise](ANKER_TESTNACHWEISE.md). Ausgelieferte APK/Nutzerdaten unverändert; Web-Druckumbruch folgt im nächsten Appbuild, echte Android-Tests bleiben offen. Nächste Produktetappe bleibt E03.
 
+## Aktuelle Nachbesserung: Android-Systemleisten (06.11.2026)
+
+Nutzer bestätigt Überlagerung durch Uhr-/Akku-Leiste. `viewport-fit=contain` und synchroner SystemBars-Hinweis nutzen den bereits vorhandenen nativen Capacitor-Abstand für die gesamte App, einschließlich Testbegleitung und Fokus. Kein eigenes Insets-Modell, keine festen Pixelwerte, bestehende Tastaturbehandlung bleibt erhalten. Appversion1.2.0-rc.3/Code5; G75 ergänzt,75 geführte Fälle insgesamt. Implementiert, im Browser und statisch geprüft; die echte Systemleistenanzeige bleibt bis G75 am Gerät offen. APK und Remote-Nachweise folgen im Abschnitt „Android-Systemleisten“ der [Testnachweise](ANKER_TESTNACHWEISE.md). Nächste Produktetappe bleibt E03.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
