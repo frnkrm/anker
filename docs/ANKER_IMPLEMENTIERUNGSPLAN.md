@@ -152,6 +152,8 @@ Der Nutzer hat den öffentlichen Paket-Upload sowie Commit, Push und Merge aller
 
 Gerätetests, lokale Windows-Signierung und echte Installation sind weiterhin offen. Die öffentliche Integration des geprüften Codes ist keine Bestätigung produktiver Weckzuverlässigkeit.
 
+**Git-Integration abgeschlossen:** Appstand in Commit `ab686481641eab085ad844cd82ae9d45eaa6cfb7` auf `entwicklung/anker-e01` gesichert, gepusht und per Fast-forward in `main` übernommen. Der Remote-Abgleich bestätigt denselben Commit auf beiden Branches. Der Paketbranch bleibt separat auf `529d37590c14f4d1f26e53228a2a6481ab8a0b1d`. Arbeitsbaum nach der Integration sauber, privates Original weiterhin lokal und ignoriert. GitHub-CI für den veröffentlichten Stand ist gestartet; lokale Abschlussnachweise stehen oben, ein Remote-Erfolg wird nur nach tatsächlich abgeschlossenem Lauf behauptet.
+
 ---
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
