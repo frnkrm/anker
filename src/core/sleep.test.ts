@@ -22,6 +22,7 @@ describe('Morgenplanung im Homeoffice', () => {
   it('kürzt eine passende Routine ohne Rechnerstart-Puffer nicht', () => {
     const s = defaultSettings('2026-11-01')
     s.travel.homeOfficeStartupMin = 0
+    s.travel.activationMin = 0
     s.sport.days = s.sport.days.map(() => false)
     s.routines.morning = [{ id: 'prepare', title: 'Fertig machen', minutes: 60, minimal: { title: 'Kurz fertig machen', minutes: 10 } }]
     const p = buildDayPlan({ date: MON, settings: s, override: { homeOffice: true, wakeOverride: 7 * 60 } })

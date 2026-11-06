@@ -203,7 +203,7 @@ describe('T8 und T9 Rückkehr und Absage', () => {
     expect(next(back, 23 * 60 + 31, log({ leftAt: 1 })).action.type).toBe('step')
   })
   it('mit festem Ende kommt die Routine danach', () => {
-    const p = plan({ commitments: [c({ ...offen, end: 21 * 60 })] })
+    const p = plan({ commitments: [c({ ...offen, end: 21 * 60, travelHomeMin: 20 })] })
     expect(p.blocks.find((b) => b.routine === 'evening')!.start).toBeGreaterThanOrEqual(21 * 60 + 10)
   })
   it('Absage: Plan wie vorher, kein doppelter Satz', () => {

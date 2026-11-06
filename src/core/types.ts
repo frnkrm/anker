@@ -283,7 +283,18 @@ export interface HardTime {
   at: number
 }
 
+/** Abgeleitete harte Morgenpflicht aus derselben Tagesplanung; kein eigener persistierter Plan. */
+export interface MorningAnchor {
+  id: string
+  label: string
+  readyAt: number
+  prepMin: number
+  prepIncludesMorning?: boolean
+  uncertain?: boolean
+}
+
 export interface DayPlan {
+  morningAnchors?: MorningAnchor[]
   date: DateStr
   dayType: DayType
   homeOffice: boolean

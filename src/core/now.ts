@@ -92,7 +92,7 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
 
   // Morgen: bis zum Losgehen (bzw. Ende Morgenblock + 30 min am freien Tag)
   const morning = plan.blocks.find((b) => b.routine === 'morning')
-  const later = morning !== undefined && morning.start > plan.wake + 1 && !plan.blocks.some((b) => b.kind === 'sport')
+  const later = typeof log?.override.routineAt?.morning === 'number'
   const started = !!plan.workInfo?.started
   const readyAt = plan.homeOffice && plan.workInfo ? plan.workInfo.plannedStart : undefined
   const morningUntil = later ? morning!.end + 30 : (plan.leave ?? readyAt ?? (morning ? morning.end + 30 : plan.wake))

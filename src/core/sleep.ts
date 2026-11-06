@@ -1,7 +1,8 @@
 // Rechnet Morgen und Schlaf nachvollziehbar aus. Keine Schlaftherapie und keine Empfehlung, weniger zu schlafen.
 // Die Weckzeit ändert sich nur nach ausdrücklicher Bestätigung, Medikation spielt hier keine Rolle.
 
-import { fmtDuration, fmtTime, roundDownTo } from './time'
+import { fmtDuration, fmtTime, roundDownTo, zonedToUtc } from './time'
+import { additionalPreparation } from './morning'
 import type { DayPlan, Settings } from './types'
 
 export interface MorningNeed {
@@ -13,39 +14,31 @@ export interface MorningNeed {
   latestWake: number
   /** Späteste Weckzeit nur mit den kleinen Versionen */
   latestWakeMinimal: number
+  /** Unklarer Ort/Weg verhindert einen vermeintlich sicheren späteren Weckvorschlag. */
+  uncertain?: boolean
 }
 
 /** Späteste realistische Aufstehzeit. Ohne feste Verpflichtung am Morgen gibt es keine. */
 export function morningNeed(plan: DayPlan, s: Settings): MorningNeed | undefined {
-  const morningLeg = plan.legs?.find((l) => l.commitment.commitment === 'hard' && l.leave !== undefined && l.leave === plan.leave)
-  let readyAt: number | undefined
-  let label = ''
-  if (morningLeg) {
-    readyAt = morningLeg.leave
-    label = morningLeg.commitment.label
-  } else if (plan.dayType === 'work') {
-    const work = plan.blocks.find((b) => b.kind === 'work')
-    if (plan.homeOffice && work) {
-      readyAt = work.start - s.travel.homeOfficeStartupMin
-      label = 'Homeoffice'
-    } else if (plan.leave !== undefined) {
-      readyAt = plan.leave
-      label = 'Losgehen'
-    }
-  }
-  if (readyAt === undefined) return undefined
-  const morning = plan.blocks.find((b) => b.routine === 'morning')
+  const morning = plan.blocks.find((block) => block.routine === 'morning')
   const steps = morning?.steps ?? []
-  const sportMin = plan.blocks
-    .filter((b) => b.kind === 'sport' && morning && b.end <= morning.start)
-    .reduce((sum, b) => sum + b.end - b.start, 0)
-  const full = sportMin + steps.reduce((sum, x) => sum + x.minutes, 0)
-  const minimal = sportMin + steps.reduce((sum, x) => sum + (x.minimal?.minutes ?? x.minutes), 0)
+  const sportMin = plan.blocks.filter((block) => block.kind === 'sport' && morning && block.end <= morning.start).reduce((sum, block) => sum + block.end - block.start, 0)
+  const full = steps.reduce((sum, step) => sum + step.minutes, 0)
+  const minimal = steps.reduce((sum, step) => sum + (step.minimal?.minutes ?? step.minutes), 0)
+  const anchors = plan.morningAnchors ?? (plan.leave !== undefined ? [{ id: 'legacy', label: 'Losgehen', readyAt: plan.leave, prepMin: 0 }] : [])
+  if (!anchors.length) return undefined
+  const calculate = (routineMin: number) => anchors.map((anchor) => ({
+    anchor,
+    wake: roundDownTo(anchor.readyAt - additionalPreparation(anchor, routineMin) - routineMin - sportMin - s.travel.activationMin, 5),
+  })).sort((a, b) => a.wake - b.wake)[0]!
+  const normal = calculate(full)
+  const small = calculate(minimal)
   return {
-    label,
-    readyAt,
-    latestWake: roundDownTo(readyAt - full - s.travel.activationMin, 5),
-    latestWakeMinimal: roundDownTo(readyAt - minimal - s.travel.activationMin, 5),
+    label: normal.anchor.label,
+    readyAt: normal.anchor.readyAt,
+    latestWake: normal.wake,
+    latestWakeMinimal: small.wake,
+    uncertain: anchors.some((anchor) => anchor.uncertain) || undefined,
   }
 }
 
@@ -62,8 +55,8 @@ export function sleepOutlook(bedMin: number, wakeNextDay: number, s: Settings): 
   const sleepMin = Math.max(0, wakeNextDay + 1440 - bedMin - s.sleep.fallAsleepMin)
   const short = sleepMin < s.sleep.needMin
   const text = short
-    ? `Bis ${fmtTime(bedMin)} wach und um ${fmtTime(wakeNextDay)} aufstehen: etwa ${fmtDuration(sleepMin)} Schlaf. Das ist kürzer als deine gewünschten ${fmtDuration(s.sleep.needMin)}.`
-    : `Bis ${fmtTime(bedMin)} wach und um ${fmtTime(wakeNextDay)} aufstehen: etwa ${fmtDuration(sleepMin)} Schlaf.`
+    ? `Bis ${fmtTime(bedMin)} wach und um ${fmtTime(wakeNextDay)} aufstehen: etwa ${fmtDuration(sleepMin)} mögliche Schlafzeit. Das ist kürzer als deine gewünschten ${fmtDuration(s.sleep.needMin)}.`
+    : `Bis ${fmtTime(bedMin)} wach und um ${fmtTime(wakeNextDay)} aufstehen: etwa ${fmtDuration(sleepMin)} mögliche Schlafzeit.`
   return { sleepMin, short, text }
 }
 
@@ -77,9 +70,10 @@ export interface WakeProposal {
  * Vorschlag für eine einmalige Weckzeit. Nur ein Angebot: Anwenden erfordert eine Bestätigung,
  * Standardwecker und andere Tage bleiben unberührt. Undefined, wenn sich nichts ändern würde.
  */
-export function wakeProposal(tomorrow: DayPlan, s: Settings): WakeProposal | undefined {
+export function wakeProposal(tomorrow: DayPlan, s: Settings, nowMs?: number): WakeProposal | undefined {
   const need = morningNeed(tomorrow, s)
-  if (!need) return undefined
+  if (!need || need.uncertain || need.latestWake < 0 || need.latestWake >= 1440) return undefined
+  if (nowMs !== undefined && zonedToUtc(tomorrow.date, need.latestWake) <= nowMs) return undefined
   if (need.latestWake === tomorrow.wake) return undefined
   const later = need.latestWake > tomorrow.wake
   return {

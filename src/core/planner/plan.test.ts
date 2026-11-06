@@ -51,7 +51,8 @@ describe('Arbeitstag', () => {
   })
   it('Morgenroutine endet spätestens beim Losgehen', () => {
     expect(block(p, 'morning').end).toBeLessThanOrEqual(435)
-    expect(block(p, 'morning').minimal).toBe(false)
+    // Die separat konfigurierte Aktivierung benötigt zusätzlich Zeit; der alte Standard bleibt unverändert.
+    expect(block(p, 'morning').minimal).toBe(true)
   })
   it('Montag ist Sporttag: Training zu Hause ersetzt die Bewegung', () => {
     const move = block(p, 'morning').steps!.find((s) => s.tag === 'movement')!
@@ -68,8 +69,8 @@ describe('Arbeitstag', () => {
     expect(block(p, 'evening-routine').end).toBeLessThanOrEqual(block(p, 'free').start)
     expect(block(p, 'free').end).toBe(1285)
   })
-  it('keine Hinweise an einem normalen Tag', () => {
-    expect(p.notes).toEqual([])
+  it('benennt die knappe Morgenzeit, statt separate Aktivierung doppelt zu versprechen', () => {
+    expect(p.notes).toEqual(['Morgenroutine passt heute nur teilweise in Minimal-Version.'])
   })
 })
 

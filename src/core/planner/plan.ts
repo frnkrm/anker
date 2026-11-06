@@ -1,6 +1,7 @@
 import { EVENING_LABELS } from '../defaults'
 import { addDays, fmtTime, minutesOnPlanDay, weekday, type DateStr } from '../time'
 import { dayActual, workForecast, latestInfo, overLatest, workRule } from '../worktime'
+import { additionalPreparation, morningAnchors, routineDeadline } from '../morning'
 import type {
   Block,
   CalendarEvent,
@@ -109,8 +110,10 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   }
 
   // Kalendertermine in Plan-Minuten umrechnen
-  const allDay = (input.events ?? []).filter((e) => e.allDay)
-  const events: PlacedEvent[] = (input.events ?? [])
+  const linkedCalendarIds = new Set((input.commitments ?? []).filter((c) => c.source?.provider === 'google').map((c) => c.source!.id))
+  const calendarEvents = (input.events ?? []).filter((event) => !linkedCalendarIds.has(event.id))
+  const allDay = calendarEvents.filter((e) => e.allDay)
+  const events: PlacedEvent[] = calendarEvents
     .filter((e) => !e.allDay)
     .map((ev) => ({ ev, start: minutesOnPlanDay(date, ev.start), end: minutesOnPlanDay(date, ev.end) }))
     .filter((e) => e.end > 0 && e.start < bed + 120 && e.end > e.start)
@@ -151,33 +154,37 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   // Wege und Termine dieses Tages
   const officeOnsite = isWorkDayOnsite(dayType, o, w) && !(input.commitments ?? []).some((c) => c.replacesCommute && c.status !== 'cancelled')
-  const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin + rule.plannedBreakMin
-  const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: rule.plannedStart, end: workEndBase } : undefined })
+const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin + rule.plannedBreakMin
+  const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [], office: officeOnsite ? { start: rule.plannedStart, end: actual.closed && actual.lastEnd !== undefined ? minutesOnPlanDay(date, actual.lastEnd) : workEndBase } : undefined })
   const morningLeg = legs.find((l) => l.leave !== undefined && l.commitment.commitment === 'hard' && l.commitment.start < 12 * 60 && (dayType !== 'work' || l.commitment.replacesCommute || homeOffice || l.commitment.start < rule.plannedStart))
   if (morningLeg) leaveOverride = morningLeg.leave
   // Bestätigter Kundentermin vor der eigenen Grenze: Die Arbeit beginnt dort, nicht zusätzlich woanders
-  const firstCustomer = morningLeg && morningLeg.commitment.replacesCommute && ['customer', 'work'].includes(morningLeg.commitment.context) && morningLeg.commitment.start <= Math.max(rule.plannedStart, latestInfo(s, homeOffice, date, o)?.latestStart ?? 0) ? morningLeg.commitment.start : undefined
+  const customerReplacement = legs.find((leg) => leg.commitment.commitment === 'hard' && leg.commitment.replacesCommute && ['customer', 'work'].includes(leg.commitment.context) && leg.commitment.start < 12 * 60)
+  const firstCustomer = customerReplacement && customerReplacement.commitment.start <= Math.max(rule.plannedStart, latestInfo(s, homeOffice, date, o)?.latestStart ?? 0) ? customerReplacement.commitment.start : undefined
   const plannedStart = firstCustomer ?? rule.plannedStart
   const firstRegular = actual.sessions.find((x) => x.kind === 'regular')
   const workStart = firstRegular ? minutesOnPlanDay(date, firstRegular.startAt) : plannedStart
-  const officeLeave = isWork ? (homeOffice ? plannedStart - s.travel.homeOfficeStartupMin : plannedStart - s.commute.minutes - s.commute.bufferMin) : undefined
+  const officeLeave = isWork ? (homeOffice ? plannedStart - s.travel.homeOfficeStartupMin : officeOnsite ? plannedStart - s.commute.minutes - s.commute.bufferMin : undefined) : undefined
   const sportToday = isSportDay(date, s) && dayType !== 'vacation'
   const morningSport = sportToday && s.sport.time === 'morning'
   let gymBlock: Block | undefined
 
   const leave = leaveOverride ?? officeLeave
-  let morningEnd = leave ?? wake + 180
+  const anchors = morningAnchors({ date, settings: s, legs, events: calendarEvents, work: isWork && !customerReplacement && officeLeave !== undefined ? { readyAt: officeLeave, label: homeOffice ? 'Homeoffice' : 'Losgehen' } : undefined })
+  let fullMorningMin = morningSteps.reduce((sum, step) => sum + step.minutes, 0)
+  const deadline = routineDeadline(anchors, fullMorningMin)
+  let morningEnd = deadline ?? leave ?? wake + 180
   // Ein Termin vor dem Losgehen verkürzt das Morgenfenster
-  const earlyEvent = morningLeg ? undefined : events.find((e) => e.start > wake && e.start < morningEnd)
+  const earlyEvent = morningLeg ? undefined : events.find((e) => e.start > wake && e.start - s.travel.homeOfficeStartupMin <= morningEnd)
   if (earlyEvent) morningEnd = earlyEvent.start
 
   if (morningSport) {
     const moveIdx = morningSteps.findIndex((x) => x.tag === 'movement')
     if (s.sport.kind === 'gym') {
       const gymMin = s.sport.durationMin + 2 * s.sport.gymWayMin
-      const needed = gymMin + minimalMinutes(morningSteps)
+      const needed = s.travel.activationMin + gymMin + minimalMinutes(morningSteps)
       if (wake + needed <= morningEnd) {
-        gymBlock = { id: id('sport'), kind: 'sport', title: 'Fitnessstudio', start: wake + 5, end: wake + 5 + gymMin }
+        gymBlock = { id: id('sport'), kind: 'sport', title: 'Fitnessstudio', start: wake + s.travel.activationMin, end: wake + s.travel.activationMin + gymMin }
         if (moveIdx >= 0) morningSteps.splice(moveIdx, 1)
       } else {
         notes.push('Fitnessstudio passt heute morgens nicht – kurzes Training zu Hause, oder nach der Arbeit.')
@@ -190,7 +197,10 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     }
   }
 
-  const routineStart = gymBlock ? gymBlock.end : wake
+  fullMorningMin = morningSteps.reduce((sum, step) => sum + step.minutes, 0)
+  morningEnd = routineDeadline(anchors, fullMorningMin) ?? morningEnd
+  const activation = s.travel.activationMin
+  const routineStart = gymBlock ? gymBlock.end : wake + activation
   const window = morningEnd - routineStart
   // Wenig Energie, überlastet oder „Tag neu sortieren“: sofort die kleinen Versionen, ohne weitere Frage
   const low = !!o.light || o.mode === 'wenig-energie' || o.mode === 'ueberlastet'
@@ -252,13 +262,13 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     const otherDays = s.work.filter((d, i) => i !== 4 && d.isWorkDay).map((d) => d.durationMin)
     if (wd === 4 && !actual.closed && otherDays.length && w.durationMin < Math.min(...otherDays)) notes.push(`Heute ist dein kürzerer Freitag. Geplanter Feierabend ${fmtTime(workEnd)}.`)
     if (!homeOffice && !morningLeg) {
-      blocks.push({ id: id('commute'), kind: 'commute', title: 'Losgehen', start: leave!, end: plannedStart, hard: true })
+      if (leave !== undefined) blocks.push({ id: id('commute'), kind: 'commute', title: 'Losgehen', start: leave, end: plannedStart, hard: true })
     }
     if (morningLeg && officeOnsite && !morningLeg.commitment.replacesCommute) notes.push('Der Weg vom Termin ins Büro ist nicht eingeplant.')
     blocks.push({ id: id('work'), kind: 'work', title: homeOffice ? 'Arbeit (Homeoffice)' : 'Arbeit', start: workStart, end: workEnd })
     home = workEnd
     // Geht es vom Büro direkt zum nächsten Termin, gibt es keinen Umweg über die Wohnung
-    const onwards = legs.some((l) => l.commitment.start >= workEnd! - 120 && l.toLabel)
+    const onwards = legs.some((l) => l.fromKey === 'office' && l.commitment.start >= workEnd! - 120 && l.commitment.start <= workEnd! + s.commute.minutes + 120 && l.toLabel)
     if (!homeOffice && officeOnsite && !onwards) {
       blocks.push({ id: id('commute-home'), kind: 'commute', title: 'Heimweg', start: workEnd, end: workEnd + s.commute.minutes })
       home = workEnd + s.commute.minutes
@@ -386,12 +396,18 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   // Termine, Vorbereitung und Wege als eigene Blöcke
   for (const l of legs) {
     const c = l.commitment
-    if (l.prepStart !== undefined) blocks.push({ id: `prep:${c.id}`, kind: 'prep', title: `Fertig machen: ${c.label}`, start: l.prepStart, end: l.leave ?? c.start })
+    const anchor = c.commitment === 'hard' && c.start < 12 * 60 ? anchors.find((candidate) => candidate.id === `commitment:${c.id}`) : undefined
+    const extraPrep = anchor ? additionalPreparation(anchor, fullMorningMin) : undefined
+    const prepStart = extraPrep === undefined ? l.prepStart : extraPrep > 0 ? (l.leave ?? c.start) - extraPrep : undefined
+    if (prepStart !== undefined) blocks.push({ id: `prep:${c.id}`, kind: 'prep', title: `Fertig machen: ${c.label}`, start: prepStart, end: l.leave ?? c.start })
     if (l.leave !== undefined) blocks.push({ id: `travel:${c.id}`, kind: 'travel', title: `Weg: ${l.fromLabel} → ${l.toLabel}`, start: l.leave, end: c.start, hard: c.commitment === 'hard' })
     // Früher zurück oder früher fertig: Der Block endet dort, statt den Rest des Fensters zu belegen
     const backM = c.backAt !== undefined ? minutesOnPlanDay(date, c.backAt) : undefined
     if (backM === undefined || backM > c.start) blocks.push({ id: `commitment:${c.id}`, kind: 'commitment', title: c.label, start: c.start, end: backM ?? c.end ?? c.start + 1, hard: c.commitment === 'hard' })
-    if (l.travelOpen) notes.push(`Fahrzeit zu „${c.label}“ fehlt noch.`)
+    if (l.locationOpen) notes.push(`Ort für „${c.label}“ ist noch offen. Remote oder vor Ort kannst du selbst wählen.`)
+    else if (l.originOpen) notes.push(`Startort vor „${c.label}“ ist noch offen.`)
+    if (l.travelOpen) notes.push(`Fahrzeit zu „${c.label}“ fehlt noch oder ist noch nicht sicher zugeordnet.`)
+    if (l.returnOpen && c.end !== undefined && c.backAt === undefined) notes.push(`Rückfahrt nach „${c.label}“ ist noch offen. Anker wartet auf deine Rückmeldung.`)
   }
 
   for (const e of events) {
@@ -425,7 +441,7 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     }
   }
 
-  return finish({ date, dayType, homeOffice, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave: homeOffice && !morningLeg ? undefined : leave, legs, workInfo, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
+  return finish({ date, dayType, homeOffice, morningAnchors: anchors, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave: homeOffice && !morningLeg ? undefined : leave, legs, workInfo, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
 }
 
 function isWorkDayOnsite(dayType: DayType, o: DayOverride, w: Settings['work'][number]): boolean {
