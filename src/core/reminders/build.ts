@@ -55,7 +55,7 @@ export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
 /** Zusätzliche Erinnerungen, die nicht aus dem Tagesplan stammen. */
 export interface ReminderExtras {
   /** Berufliche Deadlines (UTC ms). Der Text bleibt absichtlich allgemein, auch auf dem Sperrbildschirm. */
-  deadlines?: { id: string; at: number }[]
+  deadlines?: { id: string; at: number; reminderRevision?: string }[]
   /** Nur offene, ausdrücklich zur Erinnerung ausgewählte Gedanken. Inhalte bleiben privat. */
   thoughtReviews?: InboxItem[]
   /** Lokale nächste Schritte; erledigte oder abgewählte Einträge werden entfernt. */
@@ -245,7 +245,11 @@ export function reminderRevisions(plans: DayPlan[], logs: Record<string, DayLog 
     const date = utcToZoned(deadline.at).date
     for (const [suffix, lead] of [['day', 24 * 3600_000], ['hour', 3600_000]] as const) {
       const key = `deadline-${suffix}:${deadline.id}`
-      if (!logs[date]?.dismissed?.includes(key) && reminderAllowed(undefined, logs[date], s, deadline.at - lead, true, key, extras, policy)) out[`${date}|${key}`] = reminderRevision([date, key, deadline.at])
+      if (!logs[date]?.dismissed?.includes(key) && reminderAllowed(undefined, logs[date], s, deadline.at - lead, true, key, extras, policy)) {
+        // Ein geänderter/offener Aufgabenstand darf keine alte native Erledigung übernehmen.
+        // Ohne Zusatzfeld behalten Legacy-Aufgaben exakt ihre bisherigen Revisionswerte.
+        out[`${date}|${key}`] = reminderRevision([date, key, deadline.at, ...(deadline.reminderRevision === undefined ? [] : [deadline.reminderRevision])])
+      }
     }
   }
   return out
