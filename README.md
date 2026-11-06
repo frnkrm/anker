@@ -1,14 +1,12 @@
-Anker – Updatepaket E01
-======================
+Anker E01 – aktuelle Signierhilfe2, ohne Android-SDK
+================================================
 
-Dieser getrennte Branch enthält ausschließlich das vorbereitete Updatepaket, seine Prüfsumme und diese Anleitung.
+Aktuell: Anker-Update-E01-Portable.zip. Der bisherige Dateiname Anker-Update-E01-Windows.zip enthält dieselbe aktualisierte Fassung.
 
-Das ZIP enthält ein unsigniertes APK und einen lokalen Signierhelfer. Der bisherige private Android-Schlüssel bleibt auf deinem PC. Eine Datensicherung gehört nicht zu diesem Paket.
+1. ZIP vollständig entpacken.
+2. Update-signieren.cmd starten; benötigt nur Node, Java17+ und den bisherigen lokalen Debugschlüssel.
+3. Erzeugte Anker-E01-Update.apk auf dem Handy über die bestehende App installieren.
 
-1. ZIP herunterladen und vollständig entpacken.
-2. Update-signieren.cmd unter Windows starten.
-3. Nur die erzeugte Anker-E01-Update.apk auf dem Handy über die vorhandene App installieren.
+Signierwerkzeuge liegen mitsamt Lizenz und eigener Java-Quelle im Paket. Kein SDK nötig. Es wird kein Schlüssel erzeugt oder übertragen. Die App-APK selbst ist unverändert.
 
-Die Signierhilfe prüft das neue APK, seinen Zertifikatsfingerabdruck und – falls vorhanden – die vorherige lokale APK. Android prüft zusätzlich die Kompatibilität zur tatsächlich installierten App. Bei Ablehnung Anker installiert lassen und die Fehlermeldung auswerten.
-
-ZIP-SHA256: 364d7d28537b747695e3ad8b73e2aa8539e6d4cad0c6f9d2b7f60ea7ca8446cd
+SHA256 (beide ZIP-Dateinamen): 1b46d36d431ecd4c5275ca0eacf1cd30a2202a19c6c81b36a2172abc914bb307
