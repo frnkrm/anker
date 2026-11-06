@@ -4,6 +4,9 @@ import type { NativeReminderRuleSnapshot } from '../core/reminders/rules'
 import type { ReminderAction } from '../core/reminders/actions'
 import type { ReminderPolicy } from '../core/reminders/build'
 import type { PaperSize, PrintDocumentSheet } from '../core/print'
+import type { GeofenceSnapshot, GeofenceStatus, GeofenceSuggestion, GeofenceVisit } from '../core/geofences'
+
+export type { GeofenceStatus, GeofenceSuggestion } from '../core/geofences'
 
 export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
 
@@ -90,6 +93,9 @@ export type ReminderActionInfo = ReminderAction
 export interface VoiceCapabilities { dictationSupported: boolean; speechSupported: boolean | null; localOnly: boolean }
 export interface VoiceResult { status: 'text' | 'cancelled' | 'unavailable' | 'permission-denied' | 'busy' | 'empty' | 'timeout' | 'spoken'; text?: string }
 
+export type NativeGeofenceVisit = GeofenceVisit
+export interface GeofenceState extends GeofenceStatus { suggestions: GeofenceSuggestion[] }
+
 /** Eigenes Kotlin-Plugin (android/app/src/main/java/.../AnkerNativePlugin.kt). */
 export interface AnkerNativePlugin {
   getVoiceCapabilities(): Promise<VoiceCapabilities>
@@ -97,6 +103,10 @@ export interface AnkerNativePlugin {
   stopDictation(): Promise<void>
   speakCue(o: { text: string }): Promise<VoiceResult>
   stopSpeaking(): Promise<void>
+  syncGeofences(o: GeofenceSnapshot): Promise<GeofenceStatus>
+  getGeofenceState(): Promise<GeofenceState>
+  ackGeofenceSuggestions(o: { ids: string[] }): Promise<void>
+  requestGeofencePermission(o: { kind: 'foreground' | 'background' }): Promise<{ fineGranted: boolean; backgroundGranted: boolean; settingsOpened?: boolean }>
   /** Konfiguration für den nativen Wecker. Kotlin plant damit jeden nächsten Morgen selbst. */
   syncAlarmConfig(c: NativeAlarmConfig): Promise<AlarmStateInfo>
   getAlarmState(): Promise<AlarmStateInfo>
@@ -144,6 +154,10 @@ const web: Partial<AnkerNativePlugin> = {
   async stopDictation() {},
   async speakCue() { return { status: 'unavailable' } },
   async stopSpeaking() {},
+  async syncGeofences() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable' } },
+  async getGeofenceState() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable', suggestions: [] } },
+  async ackGeofenceSuggestions() {},
+  async requestGeofencePermission() { return { fineGranted: false, backgroundGranted: false, settingsOpened: false } },
   async syncAlarmConfig() {
     return { ringing: false, snoozed: 0 }
   },

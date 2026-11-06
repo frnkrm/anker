@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -35,7 +36,12 @@ import org.json.JSONArray
 import java.lang.ref.WeakReference
 
 /** Brücke zwischen der Web-App und dem nativen Teil: Wecker, Erinnerungen, Widget, Druck, Einstellungen. */
-@CapacitorPlugin(name = "AnkerNative", permissions = [Permission(alias = "smartAudio", strings = [Manifest.permission.RECORD_AUDIO])])
+@CapacitorPlugin(name = "AnkerNative", permissions = [
+    Permission(alias = "smartAudio", strings = [Manifest.permission.RECORD_AUDIO]),
+    // Android 12+: genaue und ungefähre Freigabe gemeinsam anfragen. Nur Fine genügt für Geofences.
+    Permission(alias = "geofenceForeground", strings = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION]),
+    Permission(alias = "geofenceBackground", strings = [Manifest.permission.ACCESS_BACKGROUND_LOCATION]),
+])
 class AnkerNativePlugin : Plugin() {
     private val dictationLease = VoiceRequestLease()
     private val speechLease = VoiceRequestLease()
@@ -70,6 +76,51 @@ class AnkerNativePlugin : Plugin() {
         }
     }
     @PluginMethod fun stopSpeaking(call: PluginCall) { speechLease.cancel(); activity.runOnUiThread { voice.stopSpeaking(); call.resolve() } }
+
+    // ---------- Freiwillige besuchsbezogene Ankunftshinweise ----------
+
+    @PluginMethod fun syncGeofences(call: PluginCall) {
+        GeofenceManager.sync(context, call.data) { result -> call.resolve(result) }
+    }
+
+    @PluginMethod fun getGeofenceState(call: PluginCall) { call.resolve(GeofenceManager.state(context)) }
+
+    @PluginMethod fun ackGeofenceSuggestions(call: PluginCall) {
+        val ids = call.getArray("ids") ?: JSONArray()
+        GeofenceManager.ack(context, (0 until ids.length()).mapNotNull { ids.optString(it).takeIf { id -> id.isNotBlank() } }.toSet())
+        call.resolve()
+    }
+
+    private fun geofencePermissionState(settingsOpened: Boolean = false): JSObject {
+        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val background = fine && (Build.VERSION.SDK_INT < 29 || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        return JSObject().put("fineGranted", fine).put("backgroundGranted", background).put("settingsOpened", settingsOpened)
+    }
+
+    /** Nie vom Abgleich aufgerufen: beide Rechte brauchen eine eigene ausdrückliche Bedienhandlung. */
+    @PluginMethod fun requestGeofencePermission(call: PluginCall) {
+        when (call.getString("kind")) {
+            "foreground" -> {
+                if (geofencePermissionState().optBoolean("fineGranted")) call.resolve(geofencePermissionState())
+                else requestPermissionForAlias("geofenceForeground", call, "geofencePermissionReturned")
+            }
+            "background" -> {
+                // Die Hintergrundfreigabe wird niemals gemeinsam mit der ersten Standortfreigabe verlangt.
+                if (!geofencePermissionState().optBoolean("fineGranted") || Build.VERSION.SDK_INT < 29 || geofencePermissionState().optBoolean("backgroundGranted")) {
+                    call.resolve(geofencePermissionState())
+                } else if (Build.VERSION.SDK_INT == 29) {
+                    requestPermissionForAlias("geofenceBackground", call, "geofencePermissionReturned")
+                } else activity.runOnUiThread {
+                    var opened = false
+                    try { activity.startActivity(appSettingsIntent()); opened = true } catch (_: Exception) { /* Status bleibt ehrlich. */ }
+                    call.resolve(geofencePermissionState(opened))
+                }
+            }
+            else -> call.resolve(geofencePermissionState())
+        }
+    }
+
+    @PermissionCallback private fun geofencePermissionReturned(call: PluginCall) { call.resolve(geofencePermissionState()) }
 
     companion object {
         private var instance: WeakReference<AnkerNativePlugin>? = null
