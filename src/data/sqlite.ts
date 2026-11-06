@@ -1,5 +1,5 @@
 import { CapacitorSQLite, SQLiteConnection, type SQLiteDBConnection } from '@capacitor-community/sqlite'
-import { remoteWins } from './merge'
+import { key, remoteWins } from './merge'
 import type { Collection, Rec, Repository, RepositoryWrite } from './types'
 
 const SCHEMA = `
@@ -94,14 +94,22 @@ export class SqliteRepository implements Repository {
     return ((res.values ?? []) as Row[]).map(toRec)
   }
   async merge(recs: Rec[], { dirty = false }: { dirty?: boolean } = {}) {
-    let n = 0
+    const pending = new Map<string, Rec>()
+    const writes: Rec[] = []
     for (const r of recs) {
-      if (remoteWins(await this.row(r.collection, r.id), r)) {
-        await this.upsert({ ...r, dirty: dirty ? 1 : 0 })
-        n++
+      // Im selben Batch können mehrere Versionen einer ID vorkommen. Spätere Vergleiche
+      // müssen bereits angenommene Versionen sehen, bevor die gemeinsame Transaktion startet.
+      if (remoteWins(pending.get(key(r)) ?? await this.row(r.collection, r.id), r)) {
+        const next = { ...r, dirty: dirty ? 1 : 0 }
+        pending.set(key(r), next)
+        writes.push(next)
       }
     }
-    return n
+    if (writes.length) await this.db.executeSet(writes.map((r) => ({
+      statement: 'INSERT OR REPLACE INTO records (collection, id, data, updated_at, deleted, dirty) VALUES (?, ?, ?, ?, ?, ?)',
+      values: [r.collection, r.id, JSON.stringify(r.data ?? null), r.updated_at, r.deleted ? 1 : 0, r.dirty],
+    })), true)
+    return writes.length
   }
   async markClean(recs: Pick<Rec, 'collection' | 'id' | 'updated_at'>[]) {
     for (const r of recs) {
