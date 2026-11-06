@@ -1,19 +1,25 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DEVICE_TEST_SUITE, currentTestReport, deviceTestsFromLocal, parseDeviceTestCatalog, validDeviceTests } from './deviceTests'
+import { DEVICE_TEST_CAMPAIGN_GROUP, DEVICE_TEST_SUITE, currentTestReport, deviceTestsFromLocal, parseDeviceTestCatalog, validDeviceTests } from './deviceTests'
 import { makeBackup, parseBackup } from './export/backup'
 import type { DeviceTestReport } from './types'
 
 const report: DeviceTestReport = { result: 'passed', note: 'Ton gehört', at: 1000, platform: 'android', device: 'Testgerät', os: 'API36', appVersion: '1.2.0-rc.1', build: '3', suiteVersion: DEVICE_TEST_SUITE, buildFingerprint: 'current' }
 
 describe('Geführte Geräteprüfung', () => {
-  it('übernimmt alle85 Punkte aus derselben Dokumentquelle und niemals historische Ergebnisse', () => {
+  it('übernimmt alle 95 Punkte aus derselben Dokumentquelle und niemals historische Ergebnisse', () => {
     const catalog = parseDeviceTestCatalog(readFileSync(new URL('../../docs/GERAETETEST.md', import.meta.url), 'utf8'))
-    expect(catalog.map((test) => test.id)).toEqual(Array.from({ length: 85 }, (_, i) => i + 1))
+    expect(catalog.map((test) => test.id)).toEqual(Array.from({ length: 95 }, (_, i) => i + 1))
     expect(catalog.every((test) => test.group && test.action && test.expected)).toBe(true)
     expect(Object.keys(catalog[0]!)).toEqual(['id', 'group', 'action', 'expected'])
     expect(JSON.stringify(catalog)).not.toContain('Bestätigt vom Nutzer')
     expect(() => parseDeviceTestCatalog('| 1 | Tun | Erwartung | ok |\n| 1 | Tun | Erwartung | |')).toThrow('Doppelte')
+  })
+  it('führt zehn gemeinsame Abschlussstationen, ohne frühere Erfolge als aktuellen Nachweis zu übernehmen', () => {
+    const catalog = parseDeviceTestCatalog(readFileSync(new URL('../../docs/GERAETETEST.md', import.meta.url), 'utf8'))
+    expect(catalog.filter((test) => test.group === DEVICE_TEST_CAMPAIGN_GROUP).map((test) => test.id)).toEqual(Array.from({ length: 10 }, (_, i) => i + 86))
+    expect(currentTestReport({ ...report, suiteVersion: '2026-11-06-e03' }, 'android', 'current')).toBeUndefined()
+    expect(DEVICE_TEST_SUITE).toBe('2026-11-06-e04-e09')
   })
   it('liefert offene E03-Anleitungen und übernimmt die G75-Rückmeldung nicht als App-Erfolg', () => {
     const document = readFileSync(new URL('../../docs/GERAETETEST.md', import.meta.url), 'utf8')

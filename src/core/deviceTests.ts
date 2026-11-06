@@ -1,6 +1,7 @@
 import type { DeviceTestProgress, DeviceTestReport, DeviceTestResult } from './types'
 
-export const DEVICE_TEST_SUITE = '2026-11-06-e03'
+export const DEVICE_TEST_SUITE = '2026-11-06-e04-e09'
+export const DEVICE_TEST_CAMPAIGN_GROUP = 'Gemeinsamer Abschlusslauf: E04–E09'
 export const TEST_RESULT_LABEL: Record<DeviceTestResult, string> = {
   passed: 'Hat geklappt', partial: 'Teilweise', failed: 'Problem', 'not-applicable': 'Für mich nicht relevant',
 }

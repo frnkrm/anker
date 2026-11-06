@@ -30,22 +30,22 @@ test('Testseite beginnt offen und speichert ausschließlich bewusst berichtete B
   await onboard(page)
   await page.goto('/mehr')
   await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
   await page.getByLabel('Test auswählen', { exact: true }).selectOption('3')
   await expect(page.getByRole('heading', { name: 'Test 3 · Wecker', exact: true })).toBeVisible()
   await page.getByLabel('Testbeobachtung').fill('Plan angesehen, Ton am Handy noch offen')
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
   await expect(page.getByRole('status')).toContainText('Deine Rückmeldung wurde gespeichert: Teilweise.')
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await page.reload()
   await expect(page.getByLabel('Testbeobachtung')).toHaveValue('Plan angesehen, Ton am Handy noch offen')
   await expect(page.getByText(/Dein Browserbericht: Teilweise/)).toBeVisible()
   await page.getByRole('button', { name: '✓ Hat geklappt', exact: true }).click()
-  await expect(page.getByText(/1 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/1 von 95 im Browser/)).toBeVisible()
   await expect(page.getByText(/Dieser Versuch braucht ein echtes Android-Gerät/)).toBeVisible()
   await page.getByRole('button', { name: 'Diesen Test wieder öffnen', exact: true }).click()
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await page.reload()
   await expect(page.getByText(/Dein Browserbericht/)).toHaveCount(0)
 })
@@ -64,7 +64,7 @@ test('Test begleitet direkt zur Einstellung und zurück, ohne selbst eine Zeit u
   await expect(page.getByRole('heading', { name: /Test 62 ·/ })).toBeVisible()
   await expect(page.getByLabel('Testbeobachtung')).toHaveValue('Meine Notiz vor dem Einstellungswechsel')
   await expect(page.getByLabel('Testgerät')).toHaveValue('Eigenes Testgerät')
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await page.getByRole('button', { name: 'Testbegleitung pausieren', exact: true }).click()
   await expect(page.getByRole('status')).toHaveText('Testbegleitung pausiert. Deine Ergebnisse bleiben gespeichert.')
   await page.goto('/einstellungen/schlaf')
@@ -116,10 +116,11 @@ test('Dauern lassen sich direkt ändern, leeres Tippen speichert keine Null und 
 test('Testauswahl zeigt neue Weckfensterpunkte und nicht relevant zählt nicht als Erfolg', async ({ page }) => {
   await onboard(page)
   await page.goto('/geraetetest')
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Weckfenster prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Test 53 ·/ })).toBeVisible()
   await page.getByRole('button', { name: 'Für mich nicht relevant', exact: true }).click()
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await page.getByRole('button', { name: 'Nächster Test', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Test 54 ·/ })).toBeVisible()
 })
@@ -188,18 +189,19 @@ test('Export enthält nur bewusste Testberichte und deren Codestand', async ({ p
 test('E02-Prüfwege führen zu Erinnerungen und Papier und bleiben bis zur Rückmeldung offen', async ({ page }) => {
   await onboard(page)
   await page.goto('/geraetetest')
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Erinnerungen & Druck prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 66 · E02: Erinnerungen und Papier', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Erinnerungen einstellen', exact: true }).click()
   await expect(page).toHaveURL(/\/einstellungen\/erinnerungen$/)
   await page.getByRole('link', { name: 'Zurück zu Test 66', exact: true }).click()
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
   await page.getByLabel('Test auswählen', { exact: true }).selectOption('73')
   await expect(page.getByRole('heading', { name: 'Test 73 · E02: Erinnerungen und Papier', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Druckauswahl öffnen', exact: true }).click()
   await expect(page).toHaveURL(/\/druck$/)
   await page.getByRole('link', { name: 'Zurück zu Test 73', exact: true }).click()
-  await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+  await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
 })
 
 test('Systemleistenprüfung führt zu Jetzt, Fokus und Eingabe; Browseransichten bleiben ohne Gerätehaken', async ({ page }) => {
@@ -211,6 +213,7 @@ test('Systemleistenprüfung führt zu Jetzt, Fokus und Eingabe; Browseransichten
   // Prüft ausgelieferte Seiten und den nutzbaren Browserbereich, keine Android-WindowInsets oder echte Tastatur.
   await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /viewport-fit=contain/)
   await page.goto('/geraetetest')
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Systemleisten prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 75 · Android-Systemleisten', exact: true })).toBeVisible()
   await expect(page.getByText('Dieser Versuch braucht ein echtes Android-Gerät. Ein Ergebnis im Browser bestätigt ihn dafür nicht.', { exact: true })).toBeVisible()
@@ -258,7 +261,7 @@ test('Systemleistenprüfung führt zu Jetzt, Fokus und Eingabe; Browseransichten
     await input.focus()
     await expect(input).toBeFocused()
     await page.getByRole('link', { name: 'Zurück zu Test 75', exact: true }).click()
-    await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+    await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
     await expect(page.getByText(/Dein Browserbericht:/)).toHaveCount(0)
   }
   await expect.poll(() => storedRecord<Settings>(page, 'settings', 'main')).toEqual(expectedSettings)
@@ -271,6 +274,7 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
   const beforeSettings = await storedRecord<Settings>(page, 'settings', 'main')
   const before = await storedRecord<LocalData>(page, 'meta', 'local')
   await page.goto('/geraetetest')
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Aufgaben & Wiedereinstieg prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 76 · E03: Aufgaben und Wiedereinstieg', exact: true })).toBeVisible()
   await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('E03: Aufgaben und Wiedereinstieg')
@@ -295,7 +299,7 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
     await page.getByRole('button', { name: label, exact: true }).click()
     await expect(page).toHaveURL(destination)
     await page.getByRole('link', { name: `Zurück zu Test ${id}`, exact: true }).click()
-    await expect(page.getByText(/0 von 85 im Browser/)).toBeVisible()
+    await expect(page.getByText(/0 von 95 im Browser/)).toBeVisible()
     await expect(page.getByText(/Dein Browserbericht:/)).toHaveCount(0)
   }
   const after = await storedRecord<LocalData>(page, 'meta', 'local')
@@ -307,5 +311,67 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
   expect(after?.taskLearning ?? { enabled: false, samples: [] }).toEqual(before?.taskLearning ?? { enabled: false, samples: [] })
   expect(after?.deviceTests?.reports).toEqual({})
   // Reine Testlinks schreiben auch die nur im RAM ergänzten Migrationsdefaults nicht zurück.
+  expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(beforeSettings)
+})
+
+test('Gemeinsamer Abschlusslauf bündelt genau zehn freiwillige Stationen und erhält ältere Einzelberichte', async ({ page }) => {
+  await onboard(page)
+  await page.goto('/geraetetest?fall=3')
+  await page.getByLabel('Testbeobachtung').fill('Einzeltest bleibt erhalten')
+  await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
+  await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Test 86 · Gemeinsamer Abschlusslauf: E04–E09', exact: true })).toBeVisible()
+  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
+  expect(await page.getByLabel('Test auswählen', { exact: true }).locator('option:not([disabled])').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))).toEqual(Array.from({ length: 10 }, (_, index) => String(86 + index)))
+  await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Vorheriger Test', exact: true })).toBeDisabled()
+  await page.getByLabel('Test auswählen', { exact: true }).selectOption('95')
+  await expect(page.getByRole('button', { name: 'Nächster Test', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
+  await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
+  const local = await storedRecord<LocalData>(page, 'meta', 'local')
+  expect(local?.deviceTests?.reports[3]).toMatchObject({ note: 'Einzeltest bleibt erhalten', result: 'partial' })
+  expect(local?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
+  await expect(page.getByRole('button', { name: 'Erster Weckertest', exact: true })).toHaveCount(0)
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Erster Weckertest', exact: true })).toBeVisible()
+})
+
+test('Abschlussstationen führen begleitet durch vorhandene Bereiche und starten selbst keine Alltagsaktion', async ({ page }) => {
+  await onboard(page)
+  const beforeSettings = await storedRecord<Settings>(page, 'settings', 'main')
+  const before = await storedRecord<LocalData>(page, 'meta', 'local')
+  await page.goto('/geraetetest')
+  await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
+  const destinations: [number, string, RegExp][] = [
+    [86, 'Sicherung und Vorschau öffnen', /\/backup$/],
+    [87, 'Testabend im Tag planen', /\/tag$/],
+    [88, 'Arbeitszeit und Testeinsatz öffnen', /\/arbeitszeit$/],
+    [89, 'Termine und Orte vergleichen', /\/tag$/],
+    [90, 'Morgenvorschau im Tag öffnen', /\/tag$/],
+    [91, 'Vorbereitung und Packliste öffnen', /\/vorbereitung$/],
+    [92, 'Testaufgabe bewusst wählen', /\/arbeit$/],
+    [93, 'Lokalen Plan ohne Dienst öffnen', /\/tag$/],
+    [94, 'Kalender und Integrationen öffnen', /\/verbindungen$/],
+    [95, 'Darstellung und Eingabe öffnen', /\/einstellungen\/darstellung$/],
+  ]
+  for (const [id, label, destination] of destinations) {
+    await page.getByLabel('Test auswählen', { exact: true }).selectOption(String(id))
+    await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: label, exact: true }).click()
+    await expect(page).toHaveURL(destination)
+    await page.getByRole('link', { name: `Zurück zu Test ${id}`, exact: true }).click()
+    await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
+  }
+  const after = await storedRecord<LocalData>(page, 'meta', 'local')
+  expect(after?.deviceTests?.reports).toEqual({})
+  expect(after?.focus).toEqual(before?.focus)
+  expect(after?.stuck).toEqual(before?.stuck)
+  expect(after?.resume).toEqual(before?.resume)
+  expect(after?.work ?? []).toEqual(before?.work ?? [])
+  expect(after?.workSessions ?? []).toEqual(before?.workSessions ?? [])
+  expect(after?.commitments ?? []).toEqual(before?.commitments ?? [])
   expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(beforeSettings)
 })

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import catalog, { BUILD_FINGERPRINT } from 'virtual:anker-device-tests'
 import { version as webVersion } from '../../../package.json'
-import { DEVICE_TEST_SUITE, TEST_RESULT_LABEL, currentTestReport, deviceTestsFromLocal, type DeviceTestCase } from '../../core/deviceTests'
+import { DEVICE_TEST_CAMPAIGN_GROUP, DEVICE_TEST_SUITE, TEST_RESULT_LABEL, currentTestReport, deviceTestsFromLocal, type DeviceTestCase } from '../../core/deviceTests'
 import { fmtTime } from '../../core/time'
 import type { DeviceTestReport, DeviceTestResult } from '../../core/types'
 import { saveFile } from '../../platform/files'
@@ -14,7 +14,33 @@ import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85, 86, 88, 90, 94, 95])
+
+const CAMPAIGN_LINKS: Record<number, { label: string; to: string }[]> = {
+  86: [{ label: 'Sicherung und Vorschau öffnen', to: '/backup' }, { label: 'Vorhandene Aufgaben vergleichen', to: '/inbox' }],
+  87: [{ label: 'Testabend im Tag planen', to: '/tag' }, { label: 'Jetzt und Abend vergleichen', to: '/' }],
+  88: [{ label: 'Arbeitszeit und Testeinsatz öffnen', to: '/arbeitszeit' }, { label: 'Arbeitsaufgabe vergleichen', to: '/arbeit' }],
+  89: [{ label: 'Termine und Orte vergleichen', to: '/tag' }, { label: 'Gespeicherte Orte öffnen', to: '/orte' }],
+  90: [{ label: 'Morgenvorschau im Tag öffnen', to: '/tag' }, { label: 'Echten Weckerstand vergleichen', to: '/wecker' }, { label: 'Aufstehzeit ansehen', to: '/einstellungen/schlaf' }],
+  91: [{ label: 'Vorbereitung und Packliste öffnen', to: '/vorbereitung' }, { label: 'Wetter und Alltagshilfen öffnen', to: '/einstellungen/hilfen' }],
+  92: [{ label: 'Testaufgabe bewusst wählen', to: '/arbeit' }, { label: 'Gedanken und Entwurf vergleichen', to: '/inbox' }, { label: 'Wiedereinstieg auf Jetzt vergleichen', to: '/' }],
+  93: [{ label: 'Optionale Vorschläge und Freigaben öffnen', to: '/einstellungen/assistenz' }, { label: 'Lokalen Plan ohne Dienst öffnen', to: '/tag' }],
+  94: [{ label: 'Kalender und Integrationen öffnen', to: '/verbindungen' }, { label: 'Besuchstermin und Erinnerung öffnen', to: '/tag' }, { label: 'Gedanken für Spracheingabe öffnen', to: '/inbox' }],
+  95: [{ label: 'Darstellung und Eingabe öffnen', to: '/einstellungen/darstellung' }, { label: 'Ausdruck und PDF öffnen', to: '/druck' }, { label: 'Jetzt und Navigation vergleichen', to: '/' }],
+}
+
+const CAMPAIGN_HELP: Record<number, string[]> = {
+  86: ['Vergleiche nach dem Update einige dir bekannte Werte. Exportiere zuerst eine vollständige Sicherung. Das allein ist noch kein Import- oder Wiederherstellungsnachweis.', 'Du kannst dieselbe Datei auswählen und die Vorschau wieder abbrechen. Ein tatsächlicher Altimport gehört in eine passende Testkopie. Notiere Datenvergleich, Export und Import getrennt.'],
+  87: ['Verwende einen eigenen Testtermin. Vergleiche Tag und Jetzt nach einer Verschiebung, einem offenen Abend und einer Rücknahme; prüfe die angezeigte Rücknahme vor dem Bestätigen.', 'Bleibe bei deinen echten Erledigungen. Eine verschobene Grenze darf weder offene Schritte abhaken noch Freizeit wegnehmen. Ein wirklich späterer Tageswechsel kann bis dahin offen bleiben.'],
+  88: ['Das Öffnen der Arbeitszeitseite bucht nichts. Starte nur einen bewusst gewählten kurzen Testeinsatz, pausiere und setze ihn fort. Notiere, dass dies Testdaten sind.', 'Vergleiche Intervall, Pausen und Tagesplan nach erneutem Öffnen. Nachtgrenze, Neustart und reale Konflikte nur nach einem eigenen Versuch bestätigen; sonst „Teilweise“ wählen.'],
+  89: ['Wähle bei einem Testtermin nacheinander zu Hause, einen gespeicherten Ort oder eine selbst eingetragene Adresse. Ortsfreigabe und externe Wegabfrage bleiben deine Entscheidung.', 'Lass bei einer Variante die Fahrzeit unbekannt. Ändere dann Ziel oder Zeitpunkt und kontrolliere die neue Annahme in der Vorschau. Ohne konfigurierte Verkehrsanbindung prüfst du den lokalen Weg.'],
+  90: ['Öffne zuerst die Morgenvorschau im Tag und notiere den tatsächlichen Weckerstand. Wähle selbst, ob du eine vorgeschlagene Änderung übernehmen möchtest.', 'Für Klingeln und das Aktivitätsfenster nutze die alten Einzelprüfungen 53–61 und 65. Ein richtiger Vorschauwert bestätigt weder Sensorverhalten noch Ton. Behalte für den echten Nachtversuch einen unabhängigen Wecker.'],
+  91: ['Öffne denselben Testtermin in der Vorbereitung, bestätige nur einen wirklich vorbereiteten Gegenstand und rufe die Seite erneut auf. Vergleiche mit der Morgenroutine.', 'Prüfe Wetter nur mit einem selbst gewählten Ort. Beobachte einen fehlenden oder veralteten Stand auch ohne Netz; speichere nicht absichtlich falsche Alltagswerte. Ungesehene Zustände bleiben offen.'],
+  92: ['Wähle eine Testaufgabe und ergänze bei Bedarf deinen eigenen Grund. Öffnen der Liste startet keinen Fokus. Beginne erst bewusst, pausiere und öffne im Fokus den Gedankenknopf.', 'Lass zunächst einen Entwurf stehen, öffne neu und speichere später bewusst. Vergleiche Aufgabe, Teilabschlüsse und Rückkehr. Mehrtägige Nichtnutzung erst bestätigen, wenn sie wirklich vergangen ist.'],
+  93: ['Lies die Freigaben zuerst ausgeschaltet. Ohne eingerichteten Dienst kannst du den lokalen Rückfall prüfen; das zählt nicht als erfolgreiche KI- oder Verkehrsabfrage.', 'Wenn du einen Dienst verwenden möchtest, prüfe Hinweis und Freigabe vor der Anfrage. Lies danach den Vorschlag und verwirf ihn einmal. Eine Übernahme muss deine bewusste Entscheidung bleiben; Daten und Zeiten vorher notieren.'],
+  94: ['Prüfe nur die Hilfen, die du verwenden möchtest, und notiere jede getrennt. Öffnen eines Bereichs ist noch keine Freigabe. Ablehnung oder Abbruch darf nichts importieren oder erledigen.', 'Sprache braucht einen geprüften Entwurf; Kalender eine bewusst gewählte Übernahme. Einen Besuchshinweis musst du am echten Ort und Gerät beobachten. Nicht eingerichtete oder noch nicht besuchte Teile bleiben offen.'],
+  95: ['Öffne Darstellung und ein Eingabefeld, drehe bei Bedarf das Handy und prüfe obere sowie untere Systemleiste. Öffne eine PDF und kontrolliere alle Seiten vor einem echten Druck.', 'Öffne Anker zusätzlich getrennt vom Homescreen-Widget und einer echten Benachrichtigung. Wechsle danach zu Tag und Mehr. Zustellung, echter QR-Scan, Ton und Langzeitverhalten bleiben eigene Einzelprüfungen; ein geöffneter Link bestätigt sie nicht.'],
+}
 
 const E03_LINKS: Record<number, { label: string; to: string }[]> = {
   76: [{ label: 'Aufgabe zum Fokus wählen', to: '/arbeit' }, { label: 'Gedanken und Entwurf öffnen', to: '/inbox' }],
@@ -43,6 +69,7 @@ const E03_HELP: Record<number, string[]> = {
 }
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (CAMPAIGN_LINKS[id]) return CAMPAIGN_LINKS[id]
   if (E03_LINKS[id]) return E03_LINKS[id]
   if (id === 75) return [{ label: 'Jetzt mit Testbegleitung öffnen', to: '/' }, { label: 'Aufgabe für eigene Fokusprüfung wählen', to: '/arbeit' }, { label: 'Schrift & Tastatur prüfen', to: '/einstellungen/darstellung' }]
   if (id >= 72 && id <= 74) return [{ label: 'Druckauswahl öffnen', to: '/druck' }, { label: 'Morgenroutine öffnen', to: '/fokus/morning' }, { label: 'Abendroutine öffnen', to: '/fokus/evening' }]
@@ -69,6 +96,7 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (CAMPAIGN_HELP[id]) return CAMPAIGN_HELP[id]
   if (E03_HELP[id]) return E03_HELP[id]
   if (id === 75) return ['Öffne zuerst „Jetzt mit Testbegleitung“. Prüfe oben Uhr und Akku sowie den Knopf „Zurück zu Test 75“. Für den Fokus wähle in Arbeit eine Aufgabe und starte sie erst bewusst selbst.', 'Drehe das Handy ins Querformat und zurück. Vergleiche bei Bedarf Gesten- und Drei-Tasten-Navigation in den Android-Einstellungen; stelle danach deine übliche Navigation wieder her.', 'Öffne „Schrift & Tastatur prüfen“, tippe in das Schriftgrößenfeld und schließe die Tastatur wieder. Du brauchst keinen Wert zu ändern. Notiere obere und untere Abstände sowie Tastatur und Drehung getrennt; ungeprüfte Teile bleiben offen.']
   if (id === 71) return ['Lies den Android-Stand ein und öffne den Weckerstatus. Die gespeicherten Basisregeln gelten nach dem genauen Tagesvorrat; neue spontane Änderungen kennt Android erst nach erneutem Öffnen.', 'Der vollständige Langzeittest braucht echte Zeit ohne Appöffnung. Notiere den Beginn und halte einen unabhängigen Wecker bereit. Nur die angezeigte Regelzahl zu prüfen ist „Teilweise“, kein Zustellnachweis.']
@@ -97,22 +125,28 @@ export default function DeviceTests() {
   const progress = useApp((s) => s.local.deviceTests)
   const saved = deviceTestsFromLocal({ deviceTests: progress })
   const [params, setParams] = useSearchParams()
-  const [group, setGroup] = useState('Alle')
+  const [group, setGroup] = useState(() => Number(params.get('fall') ?? saved.activeId ?? 1) >= 86 ? DEVICE_TEST_CAMPAIGN_GROUP : 'Alle')
   const [onlyOpen, setOnlyOpen] = useState(false)
   const platform = isNative() ? 'android' : 'web'
   const requested = Number(params.get('fall') ?? saved.activeId ?? 1)
   const visible = catalog.filter((test) => (group === 'Alle' || test.group === group) && (!onlyOpen || currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result !== 'passed'))
   const selected = visible.find((test) => test.id === requested) ?? visible[0]
   const passed = catalog.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
+  const campaign = catalog.filter((test) => test.group === DEVICE_TEST_CAMPAIGN_GROUP)
+  const campaignPassed = campaign.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
   const select = (id: number) => setParams({ fall: String(id) })
 
   return <Page title="Gemeinsam testen" back="/mehr">
     <Card className="space-y-2">
       <p>Ein Versuch nach dem anderen. Du kannst jederzeit aufhören und später weitermachen.</p>
-      <p className="text-sm text-muted">{passed} von {catalog.length} {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Frühere Geräteberichte werden hier nicht automatisch abgehakt.</p>
+      <p className="text-sm text-muted">{campaignPassed} von {campaign.length} Abschlussstationen {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Frühere Geräteberichte bleiben erhalten; sie werden für diesen Stand nicht automatisch abgehakt.</p>
       {platform === 'web' && <p className="text-sm text-warm">Du bist in der Web-Version. Klingeln, Sperrbildschirm, Sensoren, Android-Widgets und Android-Druck lassen sich nur auf dem Handy prüfen. Deine Einträge hier bleiben Browserberichte.</p>}
     </Card>
     <Section title="Womit möchtest du anfangen?">
+      <p className="px-1 text-muted">Zehn Stationen führen dich durch das Zusammenspiel. Nutze eine kleine Testaufgabe oder einen Testtermin. Du musst die alten Einzelfälle nicht alle nacheinander abarbeiten; ungeprüfte Teile dürfen offen bleiben.</p>
+      <Button variant="primary" onClick={() => { setGroup(DEVICE_TEST_CAMPAIGN_GROUP); setOnlyOpen(false); select(86) }}>Gemeinsamer Abschlusslauf</Button>
+      <details className="rounded-2xl border border-line p-3">
+        <summary className="min-h-11 py-2">Einzelne Bereiche prüfen</summary>
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(1) }}>Erster Weckertest</Button>
         <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66) }}>Erinnerungen & Druck prüfen</Button>
@@ -121,6 +155,7 @@ export default function DeviceTests() {
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62) }}>Zeiteingabe prüfen</Button>
         <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75) }}>Systemleisten prüfen</Button>
       </div>
+      </details>
       <label className="block space-y-1"><span>Bereich</span><select aria-label="Testbereich" className={SELECT_CLASS} value={group} onChange={(e) => { setGroup(e.target.value); setParams({}) }}>
         {['Alle', ...new Set(catalog.map((test) => test.group))].map((name) => <option key={name}>{name}</option>)}
       </select></label>
@@ -138,6 +173,7 @@ export default function DeviceTests() {
       </div>
     </> : <Card><p>In dieser Auswahl ist gerade nichts offen. Du kannst die Filter ändern oder für heute aufhören.</p></Card>}
     <Section title="Nachweise getrennt halten">
+      <p className="px-1 text-sm text-muted">Im gesamten freiwilligen Katalog: {passed} von {catalog.length} {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Die Einzelfälle sind keine Pflichtliste.</p>
       <Card><p className="text-sm text-muted">Logik, Speicherung und Bedienwege werden zusätzlich automatisch geprüft. Das bestätigt keinen Ton und kein Vollbild auf deinem Handy. Hier setzt nur deine bewusste Rückmeldung einen Haken. Es gibt dafür weder Punkte noch Strafen.</p></Card>
       <ReportExport />
     </Section>
