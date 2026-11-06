@@ -1,5 +1,6 @@
 import type { DateStr } from './time'
 import type { FocusSession, StuckSession } from './focus'
+import type { AssistancePreferences } from './assistance'
 
 export type StepTag = 'movement' | 'tidy' | 'face' | 'teeth' | 'prep' | 'inbox' | 'gymbag' | 'breakfast'
 
@@ -533,6 +534,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Optionale Vorschlagsdienste: Zweckfreigaben und technische Abrufgrenzen ausschließlich lokal. */
+  assistance?: AssistancePreferences
   /** Private Rücknahmebasis für bewusste Tagesänderungen, niemals Teil des synchronisierten DayLog. */
   planUndo?: Record<DateStr, { at: number; commitments: Commitment[] }>
   /** Receipts for reminder actions affecting local commitments. No private notification text. */

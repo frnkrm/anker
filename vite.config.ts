@@ -20,6 +20,8 @@ function appSourceFingerprint(): string {
     }
   }
   visit('src')
+  // Gemeinsam mit Deno genutzte Protokolle gehören ebenfalls zum tatsächlichen Appcode.
+  visit('supabase/functions/_shared')
   visit('android/app/src/main/java/de/frnkrm/anker')
   for (const path of ['index.html', 'package.json', 'package-lock.json', 'vite.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
   hash.update(JSON.stringify(parseDeviceTestCatalog(readFileSync(root + 'docs/GERAETETEST.md', 'utf8'))))
