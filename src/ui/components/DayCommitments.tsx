@@ -7,6 +7,8 @@ import { useApp } from '../../state/store'
 import { openRoute } from './TodayDifferent'
 import { CommitmentForm } from './CommitmentForm'
 import { PackingList } from './Packing'
+import { RouteEstimateCard } from './RouteEstimateCard'
+import { GeofenceVisit } from './GeofenceVisit'
 import { Button, Card, Section, Sheet } from './ui'
 
 /** Termine des Tages: Weg, Quelle der Fahrzeit und schnelle Änderung. Bleibt auf dem Gerät. */
@@ -47,6 +49,8 @@ export function DayCommitments({ plan }: { plan: DayPlan }) {
             {l.originOpen && <p className="text-sm text-warm">Startort noch offen. Du kannst ihn unter „Termin bearbeiten“ wählen.</p>}
             {l.returnOpen && <p className="text-sm text-muted">Rückfahrt noch offen. Eine Rückkehr wird nicht erfunden.</p>}
             <PackingList commitment={c} items={l.items} />
+            <details className="space-y-3 rounded-xl border border-line p-3"><summary className="min-h-11 cursor-pointer content-center">Wegdetails</summary><RouteEstimateCard commitmentId={c.id} /></details>
+            <GeofenceVisit commitmentId={c.id} />
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => setEditing(c)}>Termin bearbeiten</Button>
               {address && kind !== 'remote' && (

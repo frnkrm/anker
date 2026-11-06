@@ -5,6 +5,7 @@ import { AssistanceError, assistantCapabilities, cancelAssistanceRequests } from
 import { supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
 import { Button, Card, Page, Section, Toggle } from '../components/ui'
+import { RouteCheckPreferences } from '../components/RouteEstimateCard'
 
 type Purpose = 'ai' | 'routes'
 const privacy = 'Diese Freigabe und die Abrufmerker liegen lokal. Auf deinem Server bleiben Tagesbudget-Zähler mit Nutzerkennung, Zweck und Datum für 14 Tage; Aufgaben- und Adressinhalte werden dort nicht als Prompt-Protokoll gespeichert. Die Anbieter verarbeiten die übermittelten Inhalte nach ihren aktuellen Bedingungen.'
@@ -85,6 +86,7 @@ export default function AssistanceSettings() {
         {!routes && <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" checked={acceptedRoutes} disabled={busy} onChange={(event) => acceptRoutes(event.target.checked)} /><span>Übertragung der gewählten Fahrtdaten an Google Routes und mögliche Anbieter-/Serverkosten sind für mich in Ordnung.</span></label>}
         <fieldset className="min-w-0" disabled={busy || (!routes && (!acceptedRoutes || !capabilities?.routes.configured))}><div className="flex flex-wrap items-center justify-between gap-3"><span>Verkehrsvorschläge erlauben</span><Toggle label="Verkehrsvorschläge erlauben" checked={routes} onChange={(value) => void change('routes', value)} /></div></fieldset>
       </Card>
+      <RouteCheckPreferences />
     </Section>
     <Card className="space-y-3">
       <p className="text-sm text-muted">{privacy}</p>

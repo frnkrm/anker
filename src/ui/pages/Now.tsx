@@ -16,6 +16,7 @@ import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferen
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
 import { WorkBar } from '../components/WorkControls'
+import { GeofenceSuggestions } from '../components/GeofenceVisit'
 import { InboxSheet } from '../components/Shell'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
@@ -80,6 +81,7 @@ export default function Now() {
       </section>
 
       <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
+      <GeofenceSuggestions />
       {readyToReview > 0 && !['sleep', 'night', 'bed', 'wake'].includes(a.type) && (
         <Link to="/abend" className="mb-3 block rounded-2xl border border-line px-4 py-3 text-muted">
           Für später gemerkt · {readyToReview} zum Ansehen
