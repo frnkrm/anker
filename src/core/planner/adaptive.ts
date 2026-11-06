@@ -70,7 +70,13 @@ export function planLegs(commitments: Commitment[], ctx: LegContext): Leg[] {
       // Ein Remote-Termin verändert den Aufenthaltsort nicht.
     } else if (ctx.office && c.start >= ctx.office.start && !c.replacesCommute) {
       const homeAt = ctx.office.end + ctx.settings.commute.minutes
-      origin = originPlace(c.start < homeAt ? 'office' : 'home', ctx.places)
+      const kind = locationKind(c, ctx.places)
+      const toKey = kind === 'home' ? 'home' : c.placeId ?? c.id
+      const travelFromHome = kind === 'remote' ? 0 : travelBetween(c, 'home', toKey, ctx)
+      const buffer = kind === 'remote' || kind === 'home' ? 0 : c.arrivalBufferMin ?? t.arrivalBufferMin
+      const prep = c.prepMin ?? (kind === 'remote' ? t.homeOfficeStartupMin : kind === 'home' ? 0 : t.prepMin)
+      const readyFromHome = travelFromHome === undefined ? c.start : c.start - buffer - travelFromHome - prep
+      origin = originPlace(readyFromHome < homeAt ? 'office' : 'home', ctx.places)
     }
     if (c.originPlaceId) origin = originPlace(c.originPlaceId, ctx.places)
 

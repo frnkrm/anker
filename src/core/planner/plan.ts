@@ -11,6 +11,8 @@ import type {
   DayType,
   EveningPlan,
   HardTime,
+  Leg,
+  MorningAnchor,
   Place,
   PlannedStep,
   RoutineStep,
@@ -123,19 +125,40 @@ export function buildDayPlan(input: PlanInput): DayPlan {
     blocks.push({ id: `event:${e.ev.id}`, kind: 'event', title: e.ev.title, start: e.start, end: e.end })
   }
   const busy: Interval[] = events.map((e) => [e.start, e.end])
+  const covered = new Set([...(input.covered ?? []), ...(o.coveredSteps ?? [])].filter((k) => !o.uncoveredSteps?.includes(k)))
 
   // ---------- Krank-Modus ----------
   if (dayType === 'sick') {
-    const basicsM = allMinimal(s.routines.morning.filter((x) => x.tag && SICK_BASICS.has(x.tag)))
+    const basicsM = allMinimal(s.routines.morning.filter((x) => x.tag && SICK_BASICS.has(x.tag) && !covered.has(`morning:${x.id}`)))
     const basicsE = allMinimal(s.routines.evening.filter((x) => x.tag && SICK_BASICS.has(x.tag)))
-    const mEnd = wake + 30 + totalMinutes(basicsM)
-    blocks.push({ id: id('morning'), kind: 'morning', title: 'Nur das Nötigste', start: wake + 30, end: mEnd, routine: 'morning', steps: basicsM, minimal: true })
-    const eStart = bed - 30
+    // Krank reduziert eigene Aufgaben, sagt aber keine bestätigte Verpflichtung ab.
+    const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [] })
+    const anchors = morningAnchors({ date, settings: s, legs, events: calendarEvents })
+    appendLegBlocks(legs, anchors, basicsM.reduce((sum, step) => sum + step.minutes, 0), date, blocks, notes)
+    const spans = legs.filter((leg) => leg.commitment.workKind !== 'oncall').map((leg) => {
+      const span = legSpan(leg)
+      return { ...span, end: leg.commitment.backAt === undefined ? span.end : minutesOnPlanDay(date, leg.commitment.backAt) }
+    })
+    const backAt = o.backAt === undefined ? undefined : minutesOnPlanDay(date, o.backAt)
+    const requested = o.routineAt?.evening
+    const pendingEvening = (requested === 'return' && backAt === undefined)
+      || spans.some((span) => span.end === undefined && span.start < bed && backAt === undefined)
+    const occupied: Interval[] = [...busy, ...spans.map((span): Interval => [span.start, span.end ?? backAt ?? bed + 120])]
+    const mStart = typeof o.routineAt?.morning === 'number' ? o.routineAt.morning : wake + s.travel.activationMin
+    const mEnd = mStart + totalMinutes(basicsM)
+    blocks.push({ id: id('morning'), kind: 'morning', title: 'Nur das Nötigste', start: mStart, end: mEnd, routine: 'morning', steps: basicsM, minimal: true })
+    const eStart = pendingEvening ? bed - 30 : placeAfter(Math.max(bed - 30, backAt ?? 0, typeof requested === 'number' ? asNight(requested) : 0), totalMinutes(basicsE), occupied)
     blocks.push({ id: id('rest'), kind: 'rest', title: 'Erholen', start: mEnd, end: eStart })
-    blocks.push({ id: id('evening-routine'), kind: 'evening-routine', title: 'Zähne & Gesicht', start: eStart, end: eStart + totalMinutes(basicsE), routine: 'evening', steps: basicsE, minimal: true })
-    blocks.push({ id: id('bed'), kind: 'bed', title: 'Schlafen', start: bed, end: bed, hard: true })
+    if (!pendingEvening) {
+      blocks.push({ id: id('evening-routine'), kind: 'evening-routine', title: 'Zähne & Gesicht', start: eStart, end: eStart + totalMinutes(basicsE), routine: 'evening', steps: basicsE, minimal: true })
+      bed = Math.max(bed, eStart + totalMinutes(basicsE))
+    }
+    if (!openEnd) blocks.push({ id: id('bed'), kind: 'bed', title: 'Schlafen', start: bed, end: bed, hard: true })
     notes.push('Krank-Modus: nur das Nötigste. Kein Ziel, kein Druck. Gute Besserung!')
-    return finish({ date, dayType, homeOffice: false, blocks, hardTimes: [{ key: 'bed', label: 'Bett', at: bed }], notes, pcStop: bed, bed, wake })
+    return finish({ date, dayType, homeOffice: false, blocks, legs, morningAnchors: anchors,
+      hardTimes: [...legs.filter((leg) => leg.commitment.commitment === 'hard').map(commitmentHardTime), ...(!openEnd ? [{ key: 'bed' as const, label: 'Bett', at: bed }] : [])].sort((a, b) => a.at - b.at),
+      notes, pcStop: bed, bed, wake, conflicts: hardConflicts(legs), pendingEvening: pendingEvening || undefined,
+      quiet: spans.map((span): Interval => [span.start, span.end ?? backAt ?? 1440 + 4 * 60]), openEnd: openEnd || undefined })
   }
 
   // ---------- Morgen ----------
@@ -149,7 +172,6 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   let leaveOverride: number | undefined
 
   // Schon versorgte Schritte entfallen für heute. Sie gelten damit nicht als heute erledigt.
-  const covered = new Set([...(input.covered ?? []), ...(o.coveredSteps ?? [])].filter((k) => !o.uncoveredSteps?.includes(k)))
   let morningSteps = s.routines.morning.filter((x) => !covered.has(`morning:${x.id}`)).map((x) => ({ ...x }))
 
   // Wege und Termine dieses Tages
@@ -393,6 +415,56 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
     blocks.push({ id: id('bed'), kind: 'bed', title: 'Ab ins Bett', start: bed, end: bed, hard: true })
   }
 
+  appendLegBlocks(legs, anchors, fullMorningMin, date, blocks, notes)
+
+  for (const e of events) {
+    if (e.end > pcStop && e.start < bed + 120) notes.push(`Termin ${eventLabel(e)} geht über den PC-Stopp hinaus.`)
+    else if (isWork && leave !== undefined && e.start < plannedStart && e.end > leave && !homeOffice)
+      notes.push(`Termin ${eventLabel(e)} überschneidet den Arbeitsweg.`)
+  }
+
+  const hardTimes: HardTime[] = [{ key: 'wake', label: 'Aufstehen', at: wake }]
+  if (morningLeg) hardTimes.push({ key: 'leave', label: `Los: ${morningLeg.commitment.label}`, at: morningLeg.leave! })
+  else if (isWork && !homeOffice && leave !== undefined) hardTimes.push({ key: 'leave', label: 'Losgehen', at: leave })
+  for (const l of legs) {
+    if (l !== morningLeg && l.commitment.commitment === 'hard') hardTimes.push(commitmentHardTime(l))
+  }
+  if (!openEnd) hardTimes.push({ key: 'pc-stop', label: 'PC-Stopp', at: pcStop }, { key: 'bed', label: 'Bett', at: bed })
+  hardTimes.sort((a, b) => a.at - b.at)
+
+  const conflicts = hardConflicts(legs)
+  const homeJourney = blocks.find((block) => block.id === id('commute-home'))
+  if (homeJourney) for (const leg of legs) {
+    const c = leg.commitment
+    if (c.commitment !== 'hard' || c.workKind === 'oncall' || c.backAt !== undefined || c.arrivedAt !== undefined) continue
+    const start = leg.prepStart ?? leg.leave ?? c.start
+    if (start < homeJourney.end && (c.end ?? c.start + 1) > homeJourney.start) conflicts.push(`„${c.label}“ einschließlich Vorbereitung oder Weg überschneidet sich mit deinem geplanten Heimweg. Prüfe den Startort oder sprich die Zeit selbst ab.`)
+  }
+  if (isWork && !actual.closed) {
+    const clash = legs.find((l) => l.commitment.commitment === 'hard' && !l.commitment.replacesCommute && l.commitment.start < workEnd! && (l.commitment.end ?? l.commitment.start) > workStart && l !== morningLeg && l.commitment.context !== 'work')
+    if (clash) conflicts.push(`„${clash.commitment.label}“ liegt in deiner Arbeitszeit.`)
+  }
+  // Rückt der Feierabend, rückt der Termin nicht. Ein fester wird benannt, ein flexibler nur erwähnt.
+  if (workEnd !== undefined && !actual.closed) {
+    for (const l of legs) {
+      const c = l.commitment
+      const requiredAt = l.prepStart ?? l.leave ?? c.start
+      if (l === morningLeg || c.workKind === 'oncall' || c.start < workEnd || requiredAt >= workEnd) continue
+      const text = `Dein Feierabend ${fmtTime(workEnd)} liegt hinter ${l.prepStart !== undefined ? 'der nötigen Vorbereitung für' : 'der Abfahrt zu'} „${c.label}“ (${fmtTime(requiredAt)}).`
+      if (c.commitment === 'hard') conflicts.push(`${text} Früher aufhören oder den Termin selbst absprechen?`)
+      else notes.push(text)
+    }
+  }
+
+  return finish({ date, dayType, homeOffice, morningAnchors: anchors, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave: homeOffice && !morningLeg ? undefined : leave, legs, workInfo, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
+}
+
+function commitmentHardTime(leg: Leg): HardTime {
+  return { key: 'commitment', label: leg.leave === undefined ? leg.commitment.label : `Los: ${leg.commitment.label}`, at: leg.leave ?? leg.commitment.start }
+}
+
+/** Gleiche Termin-/Wegdarstellung für reguläre, freie und entlastete Tage. */
+function appendLegBlocks(legs: Leg[], anchors: MorningAnchor[], fullMorningMin: number, date: DateStr, blocks: Block[], notes: string[]): void {
   // Termine, Vorbereitung und Wege als eigene Blöcke
   for (const l of legs) {
     const c = l.commitment
@@ -410,38 +482,6 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
     if (l.returnOpen && c.end !== undefined && c.backAt === undefined) notes.push(`Rückfahrt nach „${c.label}“ ist noch offen. Anker wartet auf deine Rückmeldung.`)
   }
 
-  for (const e of events) {
-    if (e.end > pcStop && e.start < bed + 120) notes.push(`Termin ${eventLabel(e)} geht über den PC-Stopp hinaus.`)
-    else if (isWork && leave !== undefined && e.start < plannedStart && e.end > leave && !homeOffice)
-      notes.push(`Termin ${eventLabel(e)} überschneidet den Arbeitsweg.`)
-  }
-
-  const hardTimes: HardTime[] = [{ key: 'wake', label: 'Aufstehen', at: wake }]
-  if (morningLeg) hardTimes.push({ key: 'leave', label: `Los: ${morningLeg.commitment.label}`, at: morningLeg.leave! })
-  else if (isWork && !homeOffice && leave !== undefined) hardTimes.push({ key: 'leave', label: 'Losgehen', at: leave })
-  for (const l of legs) {
-    if (l !== morningLeg && l.leave !== undefined && l.commitment.commitment === 'hard') hardTimes.push({ key: 'commitment', label: `Los: ${l.commitment.label}`, at: l.leave })
-  }
-  if (!openEnd) hardTimes.push({ key: 'pc-stop', label: 'PC-Stopp', at: pcStop }, { key: 'bed', label: 'Bett', at: bed })
-  hardTimes.sort((a, b) => a.at - b.at)
-
-  const conflicts = hardConflicts(legs)
-  if (isWork && !actual.closed) {
-    const clash = legs.find((l) => l.commitment.commitment === 'hard' && !l.commitment.replacesCommute && l.commitment.start < workEnd! && (l.commitment.end ?? l.commitment.start) > workStart && l !== morningLeg && l.commitment.context !== 'work')
-    if (clash) conflicts.push(`„${clash.commitment.label}“ liegt in deiner Arbeitszeit.`)
-  }
-  // Rückt der Feierabend, rückt der Termin nicht. Ein fester wird benannt, ein flexibler nur erwähnt.
-  if (workEnd !== undefined && !actual.closed) {
-    for (const l of legs) {
-      const c = l.commitment
-      if (l === morningLeg || c.workKind === 'oncall' || l.leave === undefined || c.start < workEnd || l.leave >= workEnd) continue
-      const text = `Dein Feierabend ${fmtTime(workEnd)} liegt hinter der Abfahrt zu „${c.label}“ (${fmtTime(l.leave)}).`
-      if (c.commitment === 'hard') conflicts.push(`${text} Früher aufhören oder den Termin selbst absprechen?`)
-      else notes.push(text)
-    }
-  }
-
-  return finish({ date, dayType, homeOffice, morningAnchors: anchors, blocks, hardTimes, notes, workEnd, pcStop, bed, wake, leave: homeOffice && !morningLeg ? undefined : leave, legs, workInfo, pendingEvening: waitsForReturn || undefined, quiet: quiet.length ? quiet : undefined, openEnd: openEnd || undefined, conflicts: conflicts.length ? conflicts : undefined })
 }
 
 function isWorkDayOnsite(dayType: DayType, o: DayOverride, w: Settings['work'][number]): boolean {

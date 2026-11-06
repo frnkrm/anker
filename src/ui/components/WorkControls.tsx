@@ -4,7 +4,6 @@ import { randomId } from '../../core/defaults'
 import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, weekday, zonedToUtc } from '../../core/time'
 import type { Commitment, DayLog, DayPlan, PlannedWorkKind } from '../../core/types'
 import { currentWorkActual, dayActual, dayBalance, latestInfo, nextObligation, overLatest, startRisk, SUNDAY_HINT, withUsualBreak, workHints } from '../../core/worktime'
-import { safe } from '../../platform/native'
 import { planFor, useApp } from '../../state/store'
 import { Button, Segmented, Stepper, TextInput, TimeField } from './ui'
 import { useTaskAction } from './TaskDetails'
@@ -13,8 +12,15 @@ import { TravelFields, travelDraftOf, travelFields } from './CommitmentForm'
 export function useCopy() {
   const toast = useApp((s) => s.showToast)
   return async (text: string) => {
-    await safe(() => navigator.clipboard.writeText(text), undefined)
-    toast('Kopiert. Gesendet ist damit noch nichts.')
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable')
+      await navigator.clipboard.writeText(text)
+      toast('Kopiert. Gesendet ist damit noch nichts.')
+      return true
+    } catch {
+      toast('Kopieren ist gerade nicht möglich. Du kannst die Vorlage selbst auswählen; gesendet wurde nichts.')
+      return false
+    }
   }
 }
 
@@ -49,10 +55,10 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
   if (actual.unconfirmed) return <div className={box} data-testid="workbar"><p>Einige Arbeitszeiten sind noch unbestätigt.</p><Link to="/arbeitszeit" className="flex min-h-11 items-center text-accent">Arbeitszeiten prüfen</Link></div>
 
   if (actual.open) {
-    const over = actual.netMin - (wi?.targetNetMin ?? 0)
+    const over = wi === undefined ? undefined : actual.netMin - wi.targetNetMin
     return (
       <div className={box} data-testid="workbar">
-        <p>{actual.open.date !== date ? `Arbeit läuft seit ${fmtTime(minutesOnPlanDay(actual.open.date, actual.open.startAt))}.` : over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend ${wi?.forecastLowerBound ? 'frühestens' : 'etwa'} ${fmtTime(wi?.forecastEnd ?? plan.workEnd ?? m)}`}</p>
+        <p>{actual.open.date !== date || over === undefined ? `Arbeit läuft seit ${fmtTime(minutesOnPlanDay(actual.open.date, actual.open.startAt))}.` : over >= 0 ? `Dein Ziel ist erreicht${over > 0 ? `, ${fmtDuration(over)} zusätzlich` : ''}.` : `Feierabend ${wi?.forecastLowerBound ? 'frühestens' : 'etwa'} ${fmtTime(wi?.forecastEnd ?? plan.workEnd ?? m)}`}</p>
         <div className="flex gap-2">
           <Button className="flex-1" onClick={() => st.workBreakStart()}>
             Pause starten
@@ -68,11 +74,10 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
   const fresh = actual.lastEnd !== undefined && now - actual.lastEnd < 3 * 3600_000
   if (fresh && actual.lastEnd !== undefined) {
     const last = actual.sessions[actual.sessions.length - 1]!
-    const target = wi?.targetNetMin ?? 0
     return (
       <div className={box} data-testid="workbar">
         <p>
-          Heute {fmtDuration(actual.netMin)} gearbeitet. {dayBalance(actual, target).text}.
+          Heute {fmtDuration(actual.netMin)} gearbeitet.{wi ? ` ${dayBalance(actual, wi.targetNetMin).text}.` : ''}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {actual.breakCount === 0 && !!wi?.plannedBreakMin && (
@@ -99,6 +104,7 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
         {risk && <p>{risk.text}</p>}
         {risk?.level === 'tight' && wi.latestLeave !== undefined && (
           <div className="flex flex-wrap gap-2">
+            <p className="w-full select-text whitespace-pre-wrap text-sm text-muted">{st.settings.flex.lateMessage}</p>
             {!log.override.light && (
               <Button size="sm" onClick={() => st.adjustDay(date, 'Morgen in kleinen Versionen', (l) => ({ ...l, override: { ...l.override, light: true } }))}>
                 Schnellste Morgenroutine
@@ -193,6 +199,7 @@ export function WorkDayForm({ date, m, isTomorrow, onDone }: { date: string; m: 
           {overLatest(start, latest) && (
             <div className="space-y-2 rounded-xl bg-surface-2 p-3">
               <p>Das liegt nach deiner Grenze {fmtTime(latest!.latestStart)}. Musst du jemandem Bescheid geben? Das machst du selbst.</p>
+              <p className="select-text whitespace-pre-wrap text-sm text-muted">{st.settings.flex.lateMessage}</p>
               <Button size="sm" onClick={() => copy(st.settings.flex.lateMessage)}>
                 Nachricht kopieren
               </Button>
