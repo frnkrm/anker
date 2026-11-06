@@ -376,3 +376,11 @@ Softwarebasis26e1aeb mit allen folgenden Synckorrekturen. Die71 IDs aus dem öff
 
 
 IN04 besitzt keinen speziellen automatischen Android-Systemstartnachweis; die API ist implementiert/kompiliert, tatsächlicher Herstellerweg bleibtG95. Alle neuen G86–95-Geräteberichte und echte Anbieter-/Windows-/Systemprüfungen bleiben offen. Lokale und Mocktests werden dafür nicht als Ersatz ausgegeben.
+
+## Finaler gemeinsamer E04–E09-Softwarelauf,06.11.2026
+
+Appcd2c63c, Testabläufebaad9f7, Quellkennung e8625c6f0443c315be57936c8b496037e4c5d72a8f917e8a6b23ae30925d843b. `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:pc` mitexplizitemPWSH_PATH und `npm run build` erfolgreich.780Vitest/80Dateien. Frischer Produktionsbuild, System-Chromium155/2Worker/0Retries:137/137PW,0Skip/Flaky,4,2min. Erster Vollauf134grün/3alteTestannahmenrot erhalten; ausschließlich Testnavigation/Formularablauf korrigiert, unveränderteErwartungen zu echtenAbschlüssen/Undo/16:30pluszusätzlicheDB-Prüfungen. Danach16/16gezieltund137/137vollgrün.
+
+87/87JUnit/9Suites ohneFehler/Skip aufidentischenAndroidquellen;196Tasks mitrerun, zusätzlich484Release-Tasks wirklich ausgeführt/2m59s. Final67Webassets bytegleich.19/19PowerShell7.5.4Linuxfälle plus4Scriptparser; Systemaktionen simuliert,keinWindowsScheduler/Toast/Shutdown. APK/portableZIP-Metadaten, Signierhelfertools, tatsächliche67Assets,16JNI-/4ARM64ELF-Dateienund16KB-ZIP-Ausrichtung geprüft. KeinNutzerschlüssel. MaschinenlesbarerBeleg [E04_E09_SOFTWARENACHWEIS.json](E04_E09_SOFTWARENACHWEIS.json). Logs `/workspace/.cache/anker/e04-e09/final-*`, `package-verification.*`, `portable-verification.*`, `android-native-check/`.
+
+EchteG86–95Androidberichte, Installation/SignierungaufWindows und Anbieter-/Serveraktivierung sind offen. RemoteCI wird separat nachPush bestätigt; lokaleGrünwerte sind keinRemoteCI-Erfolg.

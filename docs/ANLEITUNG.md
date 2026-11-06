@@ -2,7 +2,7 @@
 
 Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, und kannst Pläne ändern oder Freizeit wählen.
 
-**E04–E09 in Entwicklung:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; diese Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten. Sie bestätigen neue Funktionen nicht automatisch. Der gemeinsame neue Prüfdurchgang unter **Mehr → Gemeinsam testen** steht noch am echten Gerät aus, einschließlich Wecker, lokaler Sprache und Standorthinweisen. Für Weckertests bleibt ein unabhängiger Wecker sinnvoll. Tatsächliche automatische Nachweise stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md); Anbieterbetrieb, Schlüssel und Kostenfreigaben sind gesonderte Einrichtungsschritte. Für APK und Dienste siehe [README](../README.md).
+**E04–E09 implementiert, gemeinsame Geräteprüfung offen:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; diese Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten. Sie bestätigen neue Funktionen nicht automatisch. Der gemeinsame neue Prüfdurchgang unter **Mehr → Gemeinsam testen** steht noch am echten Gerät aus, einschließlich Wecker, lokaler Sprache und Standorthinweisen. Für Weckertests bleibt ein unabhängiger Wecker sinnvoll. Tatsächliche automatische Nachweise stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md); Anbieterbetrieb, Schlüssel und Kostenfreigaben sind gesonderte Einrichtungsschritte. Für APK und Dienste siehe [README](../README.md).
 
 ## Dein Tag mit Anker
 

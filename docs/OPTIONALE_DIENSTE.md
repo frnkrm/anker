@@ -1,6 +1,6 @@
 # Optionale KI- und Verkehrsvorschläge
 
-**E04–E09 in Entwicklung.** Client, geschützter Supabase-Adapter und echte OpenAI-/Google-Routes-Anfragen sind im Quellcode implementiert. Diese Datei ist ein prüfbarer Einrichtungsvertrag; sie bestätigt keine Bereitstellung, keinen verbundenen Anbieter und keine Freigabe von Kosten. Es wurde dadurch nichts installiert oder aktiviert.
+**E04–E09: Software implementiert, echte Dienste nicht aktiviert.** Client, geschützter Supabase-Adapter und echte OpenAI-/Google-Routes-Anfragen sind im Quellcode implementiert. Diese Datei ist ein prüfbarer Einrichtungsvertrag; sie bestätigt keine Bereitstellung, keinen verbundenen Anbieter und keine Freigabe von Kosten. Es wurde dadurch nichts installiert oder aktiviert.
 
 Lokale Teilschritt-Vorlagen, eigene Fahrzeiten und der restliche Offline-Kern benötigen diese Dienste nicht. Automatische Tests mit kontrollierten HTTP-Antworten prüfen Verhalten und Datenwege. **Ein Testbackend ist kein Nachweis eines echten Anbieterbetriebs.** Auch eine grüne CI ersetzt keinen Test mit der bewusst eingerichteten Verbindung.
 

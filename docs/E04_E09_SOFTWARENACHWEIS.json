@@ -1,0 +1,54 @@
+{
+  "version": "1.3.0-rc.1",
+  "versionCode": 8,
+  "appSourceCommit": "cd2c63c91305c02d50f74151c54434bb0611d542",
+  "testCommit": "baad9f725e33dc2f715c4ca664cde27966f6910f",
+  "sourceIdentity": "e8625c6f0443c315be57936c8b496037e4c5d72a8f917e8a6b23ae30925d843b",
+  "recordedAtUTC": "2026-11-06T19:55:00.000953+00:00",
+  "automatic": {
+    "lint": true,
+    "typecheck": true,
+    "vitest": {
+      "passed": 780,
+      "files": 80
+    },
+    "playwright": {
+      "startTime": "2026-11-06T19:50:18.926Z",
+      "duration": 254969.294,
+      "expected": 137,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "nativeJUnit": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": 87,
+      "skippedTags": 0
+    },
+    "powershell": {
+      "casesPassed": 19,
+      "parsedExports": 4,
+      "host": "Linux PowerShell7.5.4; simulated system actions"
+    },
+    "androidReleaseBuild": true,
+    "apkZip16KBAligned": true,
+    "arm64ELFLibraries16KB": 4
+  },
+  "package": {
+    "apkSha256": "9fb488411de0c389a7ffa06a544a27065f1e9c85e1e440ed770774be8d0b9599",
+    "zipSha256": "bff0a29aeaa9decd390001f1ff2de4306bb076f349c4cb5307ed844eff29b81e",
+    "zipBytes": 22137167,
+    "signingHelperVersion": 2,
+    "signingToolsUnchanged": true,
+    "userKeyUsed": false
+  },
+  "externalChecks": {
+    "realAndroidDevice": "open: G86–G95 and retained detailed variants",
+    "windowsSigningAndTaskScheduler": "open",
+    "realAIAndRoutesProvider": "not configured/activated",
+    "remoteCI": "pending publication"
+  }
+}

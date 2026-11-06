@@ -1,8 +1,8 @@
 # Patch Notes
 
-## E04–E09 in Entwicklung
+## 1.3.0-rc.1 – E04–E09 (2026-11-06)
 
-Diese Einträge beschreiben den neuen Quellstand, kein veröffentlichtes Update und keine neue bestätigte Android-Prüfung. Tatsächliche automatische Nachweise, Integrationsstand und verbleibende Grenzen führen [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [Testnachweise](docs/ANKER_TESTNACHWEISE.md). Ältere Versionsabschnitte bleiben als Verlauf erhalten.
+Gemeinsamer geprüfter Updatekandidat, Code8. Automatisch780 Logik-/137 Browser-/87 Kotlinfälle und19 PowerShell-Fälle grün, unsignierte APK gebaut. Echte Android-Prüfungen des neuen Stands und echte Anbieter-/Windows-Ausführung bleiben offen. Tatsächliche automatische Nachweise, Integrationsstand und verbleibende Grenzen führen [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [Testnachweise](docs/ANKER_TESTNACHWEISE.md). Ältere Versionsabschnitte bleiben als Verlauf erhalten.
 
 - **E04 – frei umplanen:** „Heute anders“ auch im Routinefokus, häufige Wege direkt und Details nach Bedarf. Rücknahme verändert Planungen atomar und erhält später wirklich erledigte Handlungen. Freizeit mit offenem Ende erhält keinen erfundenen PC-Termin; freie Verlängerungen und datierte Pausen benötigen das neue Windows-/Serverprotokoll 2. Bereitstellen ist kein Empfangsnachweis. Kapitel verlieren seit der vorangegangenen E03-Korrektur keinen Fortschritt durch Nichtnutzung.
 - **E05 – Arbeitszeit:** bestätigte Intervalle, Pausen und laufende Nachtschichten bleiben die gemeinsame Grundlage. Restprognose, unbestätigte Konflikte, ältere Datumsauswahl, sichere Korrektur-/Rücknahmewege sowie getrennte Wochen-Startgrenzen und Feierabendwünsche. Kein Plan gilt automatisch als gearbeitet.
@@ -10,6 +10,7 @@ Diese Einträge beschreiben den neuen Quellstand, kein veröffentlichtes Update 
 - **E07 – Wetter und Packen:** lokaler Wetterort, Ortswechsel-/Antwortprüfung, Stundenfenster und sichtbarer Abrufstand. Fehlende Werte werden nicht zu sicheren Nullen. Packvorlagen und vorbereitete Gegenstände verwenden die bestehenden Termine/Orte. Wetterort und Aktivierung verlassen den lokalen Speicher nicht per Sync; frühere Serverkopien werden nicht rückwirkend gelöscht.
 - **E07/E08 – optionale Vorschläge:** echte geschützte OpenAI-/Google-Routes-Adapter mit bestehenden Supabase-Konten, eigener Nutzer-/Originfreigabe und Tagesbudgets. KI und Verkehr sind getrennt aus, Vorschläge vor Übernahme bearbeitbar, automatische Wege brauchen eine zusätzliche Wahl. Externe Bereitstellung, Modellwahl, Schlüssel und Kostenaktivierung sind offen; Testbackend-Antworten sind kein Echtanbieter-Nachweis. [Einrichtungsvertrag](docs/OPTIONALE_DIENSTE.md).
 - **E08 – Android-Extras:** bewusst gestartetes lokales Diktieren, lokale kurze Zeitinfos, besuchsgebundene Standorthinweise mit manueller Ankunftsbestätigung, ablaufende allgemeine Widget-Inhalte und Schnellzugriffe. Lesen/Schreiben bei Google Kalender getrennt, Fehler und ältere Daten erkennbar. Sprache, Geofences, Launcher-/Widgetwege und tatsächlicher Google-Rückweg brauchen neue Gerätetests.
+- **Homeoffice-Kontakt:** eigene Tageswahl schon erledigt/nicht nötig/später; ehrlicher Kopier-/Sharestatus und höchstens eine freiwillige Rückfrage nach30Minuten im ruhigen Arbeitskontext.
 - **E09 – Sicherheit und Bedienung:** Importvorschau und Validierung vor Übernahme, bewusst abwählbare sensible Sicherungsgruppen, sichtbare Speicherfehler mit erneutem Versuch, Tastatur-/Touch-/Schrift-/Bewegungsverbesserungen. Gemeinsame geführte Prüfrunde statt automatisch gesetzter Geräte-Häkchen; frühere Berichte bleiben erhalten.
 
 ## 1.2.0-rc.2 in Entwicklung (2026-11-06)
