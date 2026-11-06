@@ -8,12 +8,11 @@ import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, type NextAction } from '../../core/support'
 import { addDays, fmtDuration, fmtTime, weekday } from '../../core/time'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
-import { pushPcStop } from '../../platform/supabase'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
-import { openRoute, TodayDifferent } from '../components/TodayDifferent'
+import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferent'
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
 import { WorkBar } from '../components/WorkControls'
@@ -31,6 +30,7 @@ export default function Now() {
   const [stuck, setStuck] = useState(false)
   const [dayOpen, setDayOpen] = useState(false)
   const [longer, setLonger] = useState(false)
+  const [late, setLate] = useState(false)
   const [interrupted, setInterrupted] = useState(false)
   const [rescue, setRescue] = useState(false)
   const [different, setDifferent] = useState(false)
@@ -70,7 +70,7 @@ export default function Now() {
         {v.reason && <p className="mt-3 text-muted">{v.reason}</p>}
         {v.estimatedMin && <p className="mt-2 text-sm text-muted">{v.alternative ? 'Kleiner Einstieg' : 'Fokusstart'}: etwa {v.estimatedMin} Minuten. Danach entscheidest du weiter.</p>}
         <div className="mt-8 space-y-3">
-          <ActionButtons action={a} date={date} mode={mode} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />
+          <ActionButtons action={a} date={date} m={m} mode={mode} onLate={() => setLate(true)} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />
         </div>
         {suggestion && (
           <button type="button" className="mt-4 min-h-11 rounded-xl border border-line px-3 text-sm text-muted" onClick={() => st.setOverride(date, { mode: suggestion })}>
@@ -158,6 +158,7 @@ export default function Now() {
       <RecoverySheet open={drifted} onClose={() => setDrifted(false)} onSmall={() => { setDrifted(false); setStuck(true) }} onCapture={(context) => { setCaptureContext(context); setDrifted(false); setCapture(true) }} onDifferent={() => { setDrifted(false); setDifferent(true) }} />
       <InboxSheet open={capture} onClose={() => setCapture(false)} context={captureContext} />
       <TodayDifferent open={different} onClose={() => setDifferent(false)} date={date} m={m} action={a} />
+      <Sheet open={late} onClose={() => setLate(false)} title="Dein Abend"><LateForm date={date} m={m} onDone={(text) => { setLate(false); st.showToast(text) }} /></Sheet>
       <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} date={date} />
       <InterruptSheet open={interrupted} onClose={() => setInterrupted(false)} action={a} />
       <Sheet open={rescue} onClose={() => setRescue(false)} title="Ab jetzt zählt nur das">
@@ -241,7 +242,7 @@ function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { ope
   </Sheet>
 }
 
-function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; mode: SupportMode; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
+function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
   const st = useApp()
   const nav = useNavigate()
   const StuckButton = (
@@ -403,7 +404,7 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
             Einsatz starten
           </Button>
           <div className="flex gap-2">
-            <Button variant="ghost" size="lg" className="flex-1" onClick={() => st.saveCommitment({ ...c, status: 'cancelled' })}>
+            <Button variant="ghost" size="lg" className="flex-1" onClick={() => st.adjustCommitment({ ...c, status: 'cancelled' }, 'Einsatz entfällt')}>
               Entfällt
             </Button>
             {StuckButton}
@@ -430,6 +431,8 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
           </div>
         </>
       )
+    case 'return-later':
+      return <Button variant="primary" size="xl" className="w-full" onClick={() => st.updateDay(date, (log) => ({ ...log, override: { ...log.override, backAt: Date.now() } }))}>Ich bin zurück</Button>
     case 'return-check':
       return (
         <>
@@ -441,6 +444,7 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
           >
             Ja, bin zurück
           </Button>
+          <Button size="lg" className="w-full" onClick={() => st.adjustDay(date, 'Rückfrage später', (log) => ({ ...log, override: { ...log.override, returnCheckAfter: m + 60 } }))}>Später</Button>
           <Button variant="ghost" size="lg" className="w-full" onClick={() =>
               st.adjustDay(date, 'Abendroutine: heute nicht nötig', (l) => ({
                 ...l,
@@ -477,19 +481,7 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
         </>
       )
     case 'free':
-      return a.canExtend ? (
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={async () => {
-            await st.setOverride(date, { pcStopExtendMin: 15 })
-            void pushPcStop()
-            st.showToast('15 Minuten mehr. Einmal pro Abend.')
-          }}
-        >
-          PC-Stopp +15 Minuten
-        </Button>
-      ) : null
+      return <Button size="lg" className="w-full" onClick={onLate}>Abendzeit ändern</Button>
     case 'pcoff':
       return (
         <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'pcOffAt')}>

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { defaultSettings } from './defaults'
 import { preparePrintSheets, printSheets } from './print'
 import QRCode from 'qrcode'
+import { routineCoverage } from './flexible'
+import { buildDayPlan } from './planner'
+import type { DayLog } from './types'
 
 const s = defaultSettings('2026-11-01')
 
@@ -46,5 +49,33 @@ describe('Druckauswahl', () => {
     if (prepared[0]?.kind === 'list') prepared[0].items.push('Nur in dieser Kopie')
     expect(sheets[0]?.kind === 'list' && sheets[0].items).toHaveLength(120)
     expect(settings.routines.morning).toHaveLength(120)
+  })
+
+  it('druckt eine Tagesinstanz mit ehrlichen Zuständen, Quellen und derselben nativen Projektion', () => {
+    const date = '2026-11-06'
+    const settings = { ...s, routineLinks: [{ eveningStepId: 'prep', morningStepId: 'dress' }] }
+    const day: DayLog = { date, override: {}, steps: { 'morning:water': 'done', 'morning:move': 'minimal', 'morning:shower': 'not-needed', 'morning:face': 'skipped' } }
+    const previous: DayLog = { date: '2026-11-05', override: {}, steps: { 'evening:prep': 'done' } }
+    const coverage = routineCoverage(date, settings, { [date]: day, [previous.date]: previous })
+    const plan = buildDayPlan({ date, settings, covered: coverage.filter((row) => row.covered).map((row) => row.key) })
+    const before = JSON.stringify({ settings, day, previous })
+    const sheets = printSheets('morning', settings, { plan, log: day, coverage })
+    expect(sheets[0]).toMatchObject({ id: 'morning', subtitle: 'Für 2026-11-06' })
+    if (sheets[0]?.kind !== 'list') throw new Error('Routinenblatt fehlt')
+    expect(sheets[0].items).toContain('Erledigt: Aufstehen, Glas Wasser')
+    expect(sheets[0].items).toContain('Kleine Version erledigt: 1 Liegestütz')
+    expect(sheets[0].items).toContain('Heute nicht nötig: Duschen')
+    expect(sheets[0].items).toContain('Übersprungen: Gesichtspflege')
+    expect(sheets[0].items).toContain('Schon versorgt: Anziehen (Vorabend 2026-11-05: Morgen vorbereiten)')
+    expect(preparePrintSheets(sheets)).toEqual(sheets)
+    expect(JSON.stringify({ settings, day, previous })).toBe(before)
+    expect(printSheets('morning', settings)[0]?.kind === 'list' && (printSheets('morning', settings)[0] as { items: string[] }).items).toEqual(settings.routines.morning.map((step) => step.title))
+  })
+
+  it('gibt einer wartenden Abendroutine keinen erfundenen Erledigtstatus', () => {
+    const plan = buildDayPlan({ date: '2026-11-06', settings: s, override: { routineAt: { evening: 'return' } } })
+    const sheet = printSheets('evening', s, { plan })[0]!
+    expect(sheet.kind === 'list' && sheet.subtitle).toContain('wartet auf deine Rückkehr')
+    expect(sheet.kind === 'list' && sheet.items).toEqual(['Die Routine bleibt offen und wartet auf deine Rückkehr.'])
   })
 })

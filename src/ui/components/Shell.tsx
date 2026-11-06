@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
-import { theme as getTheme } from '../../core/game'
 import { addDays } from '../../core/time'
 import type { ResumePoint } from '../../core/types'
 import { nextNow } from '../../state/hooks'
@@ -175,37 +174,23 @@ export function InboxSheet({ open, onClose, context }: { open: boolean; onClose:
 }
 
 function Celebrations() {
-  const list = useApp((s) => s.celebrations)
-  const pop = useApp((s) => s.popCelebration)
-  const themeId = useApp((s) => s.settings.themeId)
-  const c = list[0]
-  if (!c) return null
-  if (c.kind === 'xp') return <XpChip key={list.length + c.title} text={c.title} onDone={pop} />
-  const emoji = c.kind === 'chapter' ? '🏅' : c.kind === 'level' ? getTheme(themeId).emoji : c.kind === 'restart' ? '🌱' : c.kind === 'stage' ? '🧭' : '✨'
-  return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label={c.title}>
-      <div className="w-full max-w-sm rounded-3xl bg-surface p-6 text-center animate-pop">
-        <div className="mb-3 text-6xl" aria-hidden="true">
-          {emoji}
-        </div>
-        <h2 className="text-2xl font-semibold">{c.title}</h2>
-        {c.text && <p className="mt-2 text-lg text-muted">{c.text}</p>}
-        <Button variant="primary" size="lg" className="mt-6 w-full" onClick={pop}>
-          {c.kind === 'restart' ? 'Weiter' : 'Stark!'}
-        </Button>
-      </div>
-    </div>
-  )
+  const list = useApp((state) => state.celebrations)
+  const pop = useApp((state) => state.popCelebration)
+  const visible = useApp((state) => state.settings.support.gameVisible && state.days[today()]?.override.mode !== 'ueberlastet')
+  const celebration = list[0]
+  if (!visible || !celebration) return null
+  const text = celebration.kind === 'xp' ? celebration.title : `${celebration.title}${celebration.text ? ` ${celebration.text}` : ''} Mehr unter Spiel.`
+  return <XpChip key={`${list.length}:${celebration.kind}:${celebration.title}`} text={text} onDone={pop} duration={celebration.kind === 'xp' ? 1400 : 5000} />
 }
 
-function XpChip({ text, onDone }: { text: string; onDone: () => void }) {
+function XpChip({ text, onDone, duration }: { text: string; onDone: () => void; duration: number }) {
   useEffect(() => {
-    const id = setTimeout(onDone, 1400)
+    const id = setTimeout(onDone, duration)
     return () => clearTimeout(id)
-  }, [onDone])
+  }, [onDone, duration])
   return (
     <div className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center" aria-live="polite">
-      <span className="animate-rise rounded-full bg-accent px-4 py-2 font-semibold text-accent-ink shadow-lg">{text}</span>
+      <span className="mx-4 max-w-lg rounded-2xl bg-accent px-4 py-2 text-center font-semibold text-accent-ink shadow-lg">{text}</span>
     </div>
   )
 }

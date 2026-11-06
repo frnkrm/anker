@@ -57,7 +57,7 @@ export function Timeline({ plan, log, m, compact = false }: { plan: DayPlan; log
               {b.minimal && <span className="ml-2 text-xs text-muted">kurz</span>}
             </span>
             {done && <span aria-label="erledigt" className="text-accent">✓</span>}
-            {!compact && b.end > b.start && <span className="text-xs text-muted tabular-nums">bis {fmtTime(b.end)}</span>}
+            {!compact && b.end > b.start && <span className="text-xs text-muted tabular-nums">{plan.openEnd && b.kind === 'free' ? 'Ende offen' : `bis ${fmtTime(b.end)}`}</span>}
           </li>
         )
       })}

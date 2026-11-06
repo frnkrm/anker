@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { randomId } from '../../core/defaults'
+import { routineCoverage } from '../../core/flexible'
 import { mapsUrl, parseQuickTime } from '../../core/planner'
 import { sleepOutlook, wakeProposal } from '../../core/sleep'
 import type { NextAction } from '../../core/support'
@@ -8,11 +9,12 @@ import type { Commitment, CommitmentKind, DayLog, EventContext, RoutineId } from
 import { Browser } from '@capacitor/browser'
 import { isNative, safe } from '../../platform/native'
 import { pushPcStop } from '../../platform/supabase'
+import { applyWakeChange } from '../../platform/wakeChange'
 import { planFor, useApp } from '../../state/store'
 import { Button, Card, Segmented, Sheet, TextInput, TimeField } from './ui'
 import { WorkDayForm } from './WorkControls'
 
-type View = 'menu' | 'event' | 'later' | 'not-needed' | 'late' | 'covered' | 'work'
+type View = 'menu' | 'event' | 'later' | 'not-needed' | 'late' | 'covered' | 'covered-today' | 'work'
 
 const REASONS = ['Termin', 'Freunde', 'Zu müde', 'Später', 'Nicht nötig']
 
@@ -51,174 +53,88 @@ function ReasonChips({ value, onChange }: { value?: string; onChange: (v: string
  * „Heute anders“: wenige klare Wege, mitten in einer Routine erreichbar.
  * Ein Plan ist ein Angebot: Nichts davon gilt als erledigt oder als verfehlt, und alles lässt sich zurücknehmen.
  */
-export function TodayDifferent({ open, onClose, date, m, action, isTomorrow = false }: { open: boolean; onClose: () => void; date: string; m: number; action?: NextAction; isTomorrow?: boolean }) {
+function usePlanAction() {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const pending = useRef(false)
+  const run = async (action: () => Promise<void>) => {
+    if (pending.current) return
+    pending.current = true; setBusy(true); setError('')
+    try { await action() }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Die Änderung konnte nicht sicher gespeichert werden.') }
+    finally { pending.current = false; setBusy(false) }
+  }
+  return { busy, error, run }
+}
+
+export function TodayDifferent({ open, onClose, onApplied, date, m, action, isTomorrow = false }: { open: boolean; onClose: () => void; onApplied?: () => void; date: string; m: number; action?: NextAction; isTomorrow?: boolean }) {
   const st = useApp()
   const [view, setView] = useState<View>('menu')
   const [reason, setReason] = useState<string>()
+  const { busy, error, run } = usePlanAction()
   const log: DayLog | undefined = st.days[date]
   const changes = log?.changes ?? []
   const routine: RoutineId | undefined = action?.type === 'step' ? action.routine : undefined
-
-  const close = () => {
-    setView('menu')
-    setReason(undefined)
-    onClose()
-  }
-  const finish = (toast: string) => {
-    close()
-    st.showToast(toast)
-  }
   const planEvening = routine ?? 'evening'
   const plan = planFor(date)
   const routineName = planEvening === 'morning' ? 'Morgenroutine' : 'Abendroutine'
-  const withReason = (o: DayLog['override']) => (reason ? { ...o, reason } : o)
-
-  const menu = (
-    <div className="space-y-2">
-      <Button size="lg" className="w-full !justify-start" onClick={() => setView('event')}>
-        {isTomorrow ? 'Ich habe morgen einen Termin' : 'Ich habe heute etwas anderes vor'}
-      </Button>
-      <Button size="lg" className="w-full !justify-start" onClick={() => setView('work')}>
-        {isTomorrow ? 'Arbeit an diesem Tag anders' : 'Arbeit heute anders'}
-      </Button>
-      {!isTomorrow && (
-        <>
-          <Button size="lg" className="w-full !justify-start" onClick={() => setView('later')}>
-            Diese Routine später
-          </Button>
-          <Button size="lg" className="w-full !justify-start" onClick={() => setView('not-needed')}>
-            Heute nicht nötig
-          </Button>
-          <Button size="lg" className="w-full !justify-start" onClick={() => setView('late')}>
-            Länger wach bleiben
-          </Button>
-          <Button
-            size="lg"
-            className="w-full !justify-start"
-            onClick={async () => {
-              await st.adjustDay(date, 'Rest des Tages in kleinen Versionen', (l) => ({ ...l, override: { ...l.override, light: true } }))
-              finish('Okay, heute läuft es anders. Ich passe den Rest an.')
-            }}
-          >
-            Plan ab jetzt neu machen
-          </Button>
-        </>
-      )}
-      <Button size="lg" variant="ghost" className="w-full !justify-start" onClick={() => setView('covered')}>
-        {isTomorrow ? 'Morgen ist etwas schon versorgt' : 'Für morgen schon erledigt'}
-      </Button>
-      {changes.length > 0 && (
-        <Card className="space-y-2">
-          <p className="text-sm text-muted">Heute geändert</p>
-          <ul className="space-y-1">
-            {changes.map((c, i) => (
-              <li key={i}>{c}</li>
-            ))}
-          </ul>
-          <Button
-            size="sm"
-            onClick={async () => {
-              await st.restoreDay(date)
-              void pushPcStop()
-              finish('Zurück beim ursprünglichen Plan.')
-            }}
-          >
-            Zurück zum ursprünglichen Plan
-          </Button>
-        </Card>
-      )}
-    </div>
+  const withReason = (override: DayLog['override']) => reason ? { ...override, reason } : override
+  const close = () => { setView('menu'); setReason(undefined); onClose() }
+  const finish = (toast: string) => { close(); st.showToast(toast); onApplied?.() }
+  const change = (label: string, edit: (log: DayLog) => DayLog, toast: string) => run(async () => { await st.adjustDay(date, label, edit); finish(toast) })
+  const later = (at: number | 'return') => change(
+    at === 'return' ? 'Abendroutine nach Rückkehr' : `${routineName} um ${fmtTime(at)}`,
+    (log) => ({ ...log, override: withReason({ ...log.override, routineAt: { ...log.override.routineAt, [planEvening]: at } }) }),
+    at === 'return' ? 'Okay. Sag einfach Bescheid, wenn du zurück bist.' : `Okay. ${routineName} um ${fmtTime(at)}.`,
   )
+  const openHere = (plan.blocks.find((block) => block.routine === planEvening)?.steps ?? []).filter((step) => !log?.steps[`${planEvening}:${step.id}`])
 
-  const later = (
-    <div className="space-y-3">
-      <p className="text-muted">{routineName} bleibt offen und meldet sich zur neuen Zeit.</p>
-      <ReasonChips value={reason} onChange={setReason} />
-      <Button
-        size="lg"
-        className="w-full"
-        onClick={async () => {
-          const at = m + 60
-          await st.adjustDay(date, `${routineName} um ${fmtTime(at)}`, (l) => ({ ...l, override: withReason({ ...l.override, routineAt: { ...l.override.routineAt, [planEvening]: at } }) }))
-          finish(`Okay. ${routineName} um ${fmtTime(at)}.`)
-        }}
-      >
-        In einer Stunde
-      </Button>
-      {planEvening === 'evening' && (
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={async () => {
-            await st.adjustDay(date, 'Abendroutine nach Rückkehr', (l) => ({ ...l, override: withReason({ ...l.override, routineAt: { ...l.override.routineAt, evening: 'return' } }) }))
-            finish('Okay. Sag einfach Bescheid, wenn du zurück bist.')
-          }}
-        >
-          Wenn ich zurück bin
-        </Button>
-      )}
-      <PickTime
-        label="Um"
-        initial={m + 120}
-        onPick={async (at) => {
-          await st.adjustDay(date, `${routineName} um ${fmtTime(at)}`, (l) => ({ ...l, override: withReason({ ...l.override, routineAt: { ...l.override.routineAt, [planEvening]: at } }) }))
-          finish(`Okay. ${routineName} um ${fmtTime(at)}.`)
-        }}
-      />
-    </div>
-  )
-
-  const openHere = (plan.blocks.find((b) => b.routine === planEvening)?.steps ?? []).filter((s) => !log?.steps[`${planEvening}:${s.id}`])
-  const notNeeded = (
-    <div className="space-y-3">
-      <p className="text-muted">Das gilt nicht als erledigt und nicht als verfehlt. Nur für heute, dein Standard bleibt.</p>
-      <ReasonChips value={reason} onChange={setReason} />
-      {action?.type === 'step' && (
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={async () => {
-            await st.adjustDay(date, `${action.title}: heute nicht nötig`, (l) => ({ ...l, override: withReason(l.override), steps: { ...l.steps, [`${action.routine}:${action.step.id}`]: 'not-needed' } }))
-            finish('Okay, für heute gestrichen.')
-          }}
-        >
-          Nur dieser Schritt
-        </Button>
-      )}
-      {openHere.length > 0 && (
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={async () => {
-            await st.adjustDay(date, `${routineName}: heute nicht nötig`, (l) => ({ ...l, override: withReason(l.override), steps: { ...l.steps, ...Object.fromEntries(openHere.map((s) => [`${planEvening}:${s.id}`, 'not-needed' as const])) } }))
-            finish(`Okay, ${routineName} entfällt heute.`)
-          }}
-        >
-          Ganze {routineName}
-        </Button>
-      )}
-      {openHere.length === 0 && action?.type !== 'step' && <p>Gerade ist nichts offen.</p>}
-    </div>
-  )
-
-  return (
-    <Sheet open={open} onClose={close} title={view === 'menu' ? (isTomorrow ? 'Morgen anders' : 'Heute anders') : undefined}>
-      <div className="max-h-[80dvh] overflow-y-auto">
-        {view !== 'menu' && (
-          <button type="button" className="mb-2 min-h-10 text-muted" onClick={() => setView('menu')}>
-            ‹ Zurück
-          </button>
-        )}
-        {view === 'menu' && menu}
-        {view === 'work' && <WorkDayForm date={date} m={m} isTomorrow={isTomorrow} onDone={finish} />}
-        {view === 'event' && <EventForm date={date} isTomorrow={isTomorrow} reason={reason} onDone={finish} />}
-        {view === 'later' && later}
-        {view === 'not-needed' && notNeeded}
-        {view === 'late' && <LateForm date={date} m={m} onDone={finish} />}
-        {view === 'covered' && <CoveredForm date={isTomorrow ? date : addDays(date, 1)} onDone={finish} />}
-      </div>
-    </Sheet>
-  )
+  return <Sheet open={open} onClose={close} title={view === 'menu' ? (isTomorrow ? 'Morgen anders' : 'Heute anders') : undefined}>
+    <fieldset disabled={busy} className="min-w-0 space-y-3">
+      {error && <p role="alert" className="text-warm">{error}</p>}
+      {view !== 'menu' && <button type="button" className="min-h-10 text-muted" onClick={() => setView('menu')}>‹ Zurück</button>}
+      {view === 'menu' && <div className="space-y-2">
+        <Button size="lg" className="w-full !justify-start" onClick={() => setView('event')}>{isTomorrow ? 'Ich habe morgen einen Termin' : 'Ich habe heute etwas anderes vor'}</Button>
+        <Button size="lg" className="w-full !justify-start" onClick={() => setView('work')}>{isTomorrow ? 'Arbeit an diesem Tag anders' : 'Arbeit heute anders'}</Button>
+        {!isTomorrow && <Button size="lg" className="w-full !justify-start" onClick={() => setView('later')}>Diese Routine später</Button>}
+        <details className="rounded-2xl border border-line px-3">
+          <summary className="min-h-12 py-3 text-muted">Weitere Möglichkeiten</summary>
+          <div className="space-y-2 pb-3">
+            {!isTomorrow && <>
+              <Button size="lg" className="w-full !justify-start" onClick={() => setView('not-needed')}>Heute nicht nötig</Button>
+              <Button size="lg" className="w-full !justify-start" onClick={() => setView('late')}>Länger wach bleiben</Button>
+              <Button size="lg" className="w-full !justify-start" onClick={() => change('Rest des Tages in kleinen Versionen', (log) => ({ ...log, override: { ...log.override, light: true } }), 'Okay, heute läuft es anders. Ich passe den Rest an.')}>Plan ab jetzt neu machen</Button>
+            </>}
+            <Button size="lg" variant="ghost" className="w-full !justify-start" onClick={() => setView('covered')}>{isTomorrow ? 'Morgen ist etwas schon versorgt' : 'Für morgen schon versorgt'}</Button>
+            {!isTomorrow && <Button size="lg" variant="ghost" className="w-full !justify-start" onClick={() => setView('covered-today')}>Morgenroutine heute prüfen</Button>}
+            {changes.length > 0 && <Card className="space-y-2">
+              <p className="text-sm text-muted">Heute geändert</p>
+              <ul className="space-y-1">{changes.map((text, index) => <li key={index}>{text}</li>)}</ul>
+              <Button size="sm" onClick={() => run(async () => { await st.restoreDay(date); void pushPcStop(); finish('Zurück beim ursprünglichen Plan. Wirklich Gemachtes bleibt erhalten.') })}>Zurück zum ursprünglichen Plan</Button>
+            </Card>}
+          </div>
+        </details>
+      </div>}
+      {view === 'work' && <WorkDayForm date={date} m={m} isTomorrow={isTomorrow} onDone={finish} />}
+      {view === 'event' && <EventForm date={date} isTomorrow={isTomorrow} reason={reason} onDone={finish} />}
+      {view === 'later' && <div className="space-y-3">
+        <p className="text-muted">{routineName} bleibt offen und meldet sich zur neuen Zeit.</p>
+        <ReasonChips value={reason} onChange={setReason} />
+        <Button size="lg" className="w-full" onClick={() => later(m + 60)}>In einer Stunde</Button>
+        {planEvening === 'evening' && <Button size="lg" className="w-full" onClick={() => later('return')}>Wenn ich zurück bin</Button>}
+        <PickTime label="Um" initial={m + 120} onPick={later} />
+      </div>}
+      {view === 'not-needed' && <div className="space-y-3">
+        <p className="text-muted">Das gilt nicht als erledigt und nicht als verfehlt. Nur für heute, dein Standard bleibt.</p>
+        <ReasonChips value={reason} onChange={setReason} />
+        {action?.type === 'step' && <Button size="lg" className="w-full" onClick={() => change(`${action.title}: heute nicht nötig`, (log) => ({ ...log, override: withReason(log.override), steps: { ...log.steps, [`${action.routine}:${action.step.id}`]: 'not-needed' } }), 'Okay, für heute nicht nötig.')}>Nur dieser Schritt</Button>}
+        {openHere.length > 0 && <Button size="lg" className="w-full" onClick={() => change(`${routineName}: heute nicht nötig`, (log) => ({ ...log, override: withReason(log.override), steps: { ...log.steps, ...Object.fromEntries(openHere.map((step) => [`${planEvening}:${step.id}`, 'not-needed' as const])) } }), `Okay, ${routineName} entfällt heute.`)}>Ganze {routineName}</Button>}
+        {openHere.length === 0 && action?.type !== 'step' && <p>Gerade ist nichts offen.</p>}
+      </div>}
+      {view === 'late' && <LateForm date={date} m={m} onDone={finish} />}
+      {(view === 'covered' || view === 'covered-today') && <CoveredForm date={view === 'covered-today' || isTomorrow ? date : addDays(date, 1)} onDone={finish} />}
+    </fieldset>
+  </Sheet>
 }
 
 function PickTime({ label, initial, onPick }: { label: string; initial: number; onPick: (m: number) => void }) {
@@ -237,6 +153,7 @@ function PickTime({ label, initial, onPick }: { label: string; initial: number; 
 /** Wenige Felder. Der Text bleibt Notiz, bis du die Vorschau bestätigst. Nichts wird erfunden. */
 function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomorrow: boolean; reason?: string; onDone: (t: string) => void }) {
   const st = useApp()
+  const { busy, error, run } = usePlanAction()
   const [text, setText] = useState('')
   const [kind, setKind] = useState<EventContext>('social')
   const [start, setStart] = useState<number>()
@@ -250,7 +167,7 @@ function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomor
   const preview = time === undefined ? undefined : `${day} ${fmtTime(time)}, ${label}${place.trim() ? `, ${place.trim()}` : ''}, ${!place.trim() ? 'ohne Fahrt' : travel !== undefined ? `Fahrt ${travel} min` : 'Anfahrt unklar'}, ${end !== undefined ? `bis ${fmtTime(end)}` : 'Ende offen'}.`
   const custom = KINDS.find((k) => k.value === kind)!
 
-  const save = async () => {
+  const save = () => run(async () => {
     if (time === undefined) return
     const c: Commitment = {
       id: randomId(),
@@ -265,13 +182,13 @@ function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomor
       ...(travel !== undefined ? { travelMin: travel } : {}),
       ...(replaces ? { replacesCommute: true } : {}),
     }
-    await st.saveCommitment(c)
-    await st.adjustDay(date, `Termin um ${fmtTime(time)}`, (l) => ({ ...l, override: reason ? { ...l.override, reason } : l.override }))
+    await st.adjustCommitment(c, `Termin um ${fmtTime(time)}`, reason)
     onDone('Okay, heute läuft es anders. Ich passe den Rest an.')
-  }
+  })
 
   return (
-    <div className="space-y-3">
+    <fieldset disabled={busy} className="min-w-0 space-y-3">
+      {error && <p role="alert" className="text-warm">{error}</p>}
       <TextInput autoFocus aria-label="Was hast du vor?" placeholder="Z. B. Film bei einer Freundin ab 17 Uhr" value={text} onChange={(e) => setText(e.target.value)} />
       <Segmented<EventContext> label="Art" value={kind} options={KINDS.map((k) => ({ value: k.value, label: k.label }))} onChange={setKind} />
       <div className="flex items-center justify-between gap-2">
@@ -325,33 +242,44 @@ function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomor
         <p className="text-sm text-muted">Mit einer Uhrzeit kann ich den Rest des Tages anpassen.</p>
       )}
       <p className="text-sm text-muted">Termine und Orte bleiben auf diesem Gerät.</p>
-    </div>
+    </fieldset>
   )
 }
 
 /** Länger wach: eine freie Entscheidung. Die Folgen stehen sachlich da, entscheiden tust du. */
-function LateForm({ date, m, onDone }: { date: string; m: number; onDone: (t: string) => void }) {
+export function LateForm({ date, m, onDone }: { date: string; m: number; onDone: (t: string) => void }) {
   const st = useApp()
+  const { busy, error, run } = usePlanAction()
   const plan = planFor(date)
   const tomorrowDate = addDays(date, 1)
   const tomorrow = planFor(tomorrowDate)
   const [until, setUntil] = useState<number | 'open'>(plan.pcStop + 60)
-  const bed = until === 'open' ? undefined : until
-  const outlook = bed === undefined ? undefined : sleepOutlook(bed + Math.min(st.settings.sleep.screenOffMin, 30), tomorrow.wake, st.settings)
+  const oldLog = st.days[date] ?? { date, override: {}, steps: {} }
+  const preview = planFor(date, { ...st, days: { ...st.days, [date]: { ...oldLog, override: { ...oldLog.override, lateUntil: until } } } })
+  const outlook = until === 'open' ? undefined : sleepOutlook(preview.bed, tomorrow.wake, st.settings)
   const proposal = wakeProposal(tomorrow, st.settings)
   const [useProposal, setUseProposal] = useState(false)
-  const apply = async () => {
+  const [wakeMessage, setWakeMessage] = useState('')
+  const apply = () => run(async () => {
+    setWakeMessage('')
     const label = until === 'open' ? 'Heute ohne festes Ende' : `Wach bis ${fmtTime(until)}`
     await st.adjustDay(date, label, (l) => ({ ...l, override: { ...l.override, lateUntil: until === 'open' ? 'open' : until } }))
     if (useProposal && proposal) {
-      await st.adjustDay(tomorrowDate, `Wecker morgen ${fmtTime(proposal.wake)} statt ${fmtTime(tomorrow.wake)}`, (l) => ({ ...l, override: { ...l.override, wakeOverride: proposal.wake } }))
+      try {
+        const result = await applyWakeChange(tomorrowDate, proposal.wake)
+        setWakeMessage(result.message)
+      } catch (reason) {
+        throw new Error(`Deine Abendentscheidung ist gespeichert. ${reason instanceof Error ? reason.message : 'Die Weckänderung wurde nicht bestätigt. Prüfe den Weckerstatus.'}`)
+      }
     }
     void pushPcStop()
-    onDone('Viel Spaß. Der Abend gehört dir.')
-  }
+    if (!useProposal || !proposal) onDone('Viel Spaß. Der Abend gehört dir. Ob dein PC die Änderung übernommen hat, ist nicht bestätigt.')
+  })
   const base = Math.max(m, plan.pcStop)
   return (
     <div className="space-y-3">
+    <fieldset disabled={busy || !!wakeMessage} className="min-w-0 space-y-3">
+      {error && <p role="alert" className="text-warm">{error}</p>}
       <div className="flex flex-wrap gap-2">
         <Button aria-pressed={until === base + 30} onClick={() => setUntil(base + 30)}>
           +30 Minuten
@@ -369,7 +297,8 @@ function LateForm({ date, m, onDone }: { date: string; m: number; onDone: (t: st
           <TimeField label="Wach bis" value={until} onChange={(v) => setUntil(v < 720 ? v + 1440 : v)} />
         </div>
       )}
-      {outlook ? <p>{outlook.text}</p> : <p>Kein festes Ende. Anker bleibt still, der Wecker morgen um {fmtTime(tomorrow.wake)} bleibt gestellt.</p>}
+      {outlook ? <><p>{outlook.text}</p><p className="text-sm text-muted">PC-Stopp {fmtTime(preview.pcStop)}, Bett im Plan {fmtTime(preview.bed)}.</p></> : <p>Kein festes Ende. Anker bleibt still. Die geplante Weckzeit morgen um {fmtTime(tomorrow.wake)} bleibt unverändert.</p>}
+      {!st.settings.alarm.enabled && <p className="text-sm text-muted">Der Hauptwecker ist ausgeschaltet.</p>}
       {outlook?.short && <p className="text-sm text-muted">Nur zur Info. Du entscheidest. Morgen reicht auch die kleine Version der Routine.</p>}
       {proposal?.later && (
         <label className="flex min-h-11 items-center gap-3">
@@ -377,9 +306,9 @@ function LateForm({ date, m, onDone }: { date: string; m: number; onDone: (t: st
           <span>{proposal.text} Nur morgen so wecken.</span>
         </label>
       )}
-      <Button variant="primary" size="lg" className="w-full" onClick={apply}>
-        Übernehmen
-      </Button>
+    </fieldset>
+      {wakeMessage && <p role="status" className="text-sm text-muted">{wakeMessage}</p>}
+      {wakeMessage ? <Button variant="primary" size="lg" className="w-full" onClick={() => onDone('Abendentscheidung gespeichert. Prüfe bei Bedarf den aktuellen Weckerstatus.')}>Fertig</Button> : <Button variant="primary" size="lg" className="w-full" onClick={apply}>Übernehmen</Button>}
     </div>
   )
 }
@@ -387,35 +316,31 @@ function LateForm({ date, m, onDone }: { date: string; m: number; onDone: (t: st
 /** „Abends geduscht“: Der Morgenschritt entfällt, gilt am Morgen aber nicht als erledigt. */
 function CoveredForm({ date, onDone }: { date: string; onDone: (t: string) => void }) {
   const st = useApp()
-  const covered = st.days[date]?.override.coveredSteps ?? []
-  const steps = st.settings.routines.morning
+  const { busy, error, run } = usePlanAction()
+  const rows = routineCoverage(date, st.settings, st.days)
   return (
-    <div className="space-y-2">
-      <p className="text-muted">Das entfällt am nächsten Morgen. Es zählt dort nicht als erledigt, und der Standard bleibt.</p>
-      {steps.map((x) => {
-        const key = `morning:${x.id}`
-        const on = covered.includes(key)
-        return (
-          <label key={x.id} className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface-2 px-3">
-            <input
-              type="checkbox"
-              className="h-6 w-6 accent-[var(--accent)]"
-              checked={on}
-              onChange={() =>
-                st.adjustDay(date, on ? `${x.title} morgens wieder nötig` : `${x.title} morgens nicht nötig`, (l) => ({
-                  ...l,
-                  override: { ...l.override, coveredSteps: on ? covered.filter((k) => k !== key) : [...covered, key] },
-                }))
-              }
-            />
-            {x.title}
-          </label>
-        )
-      })}
+    <fieldset disabled={busy} className="min-w-0 space-y-2">
+      {error && <p role="alert" className="text-warm">{error}</p>}
+      <p className="text-muted">Versorgte Schritte entfallen an diesem Morgen. Sie gelten dort nicht als erledigt. Dein Standard bleibt.</p>
+      <p className="text-sm text-muted">Vorbereitung ist keine Einnahme; das private Einnahmeprotokoll bleibt unverändert.</p>
+      {rows.map((row) => <label key={row.key} className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface-2 px-3 py-2">
+        <input type="checkbox" aria-label={`${row.step.title} morgens versorgt`} className="h-6 w-6 shrink-0 accent-[var(--accent)]" checked={row.covered} onChange={() => void run(() => st.adjustDay(date, row.covered ? `${row.step.title} morgens wieder nötig` : `${row.step.title} morgens versorgt`, (log) => ({
+          ...log,
+          override: {
+            ...log.override,
+            coveredSteps: row.covered ? (log.override.coveredSteps ?? []).filter((key) => key !== row.key) : [...new Set([...(log.override.coveredSteps ?? []), row.key])],
+            uncoveredSteps: row.covered ? [...new Set([...(log.override.uncoveredSteps ?? []), row.key])] : (log.override.uncoveredSteps ?? []).filter((key) => key !== row.key),
+          },
+        })))} />
+        <span className="min-w-0"><span className="block">{row.step.title}</span>
+          {row.source?.kind === 'previous-evening' && <span className="block text-sm text-muted">{row.source.date}: {row.source.title}{row.source.result === 'minimal' ? ' (kleine Version)' : ''}. {row.overridden ? 'An diesem Morgen trotzdem nötig.' : 'Durch deine Regel versorgt.'}</span>}
+          {row.source?.kind === 'day-choice' && <span className="block text-sm text-muted">Nur für diesen Morgen ausgewählt.</span>}
+        </span>
+      </label>)}
       <Button variant="primary" className="mt-2 w-full" onClick={() => onDone('Okay, ist notiert.')}>
         Fertig
       </Button>
-    </div>
+    </fieldset>
   )
 }
 

@@ -2,11 +2,12 @@ import { Browser } from '@capacitor/browser'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { makeBackup, parseBackup } from '../../core/export/backup'
+import { routineCoverage } from '../../core/flexible'
 import { printSheets, preparePrintSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
 import { pickTextFile, saveFile, shareLocalFile } from '../../platform/files'
 import { AnkerNative, isNative, safe } from '../../platform/native'
 import { waitForPrintReady } from '../../platform/print'
-import { repository, today, useApp } from '../../state/store'
+import { planFor, repository, today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
 import { Button, Card, Page, Row, Section, Segmented } from '../components/ui'
 
@@ -151,17 +152,20 @@ export function Backup() {
  * Android nutzt den System-Druckdialog (dort auch „Als PDF speichern“), das Web window.print().
  */
 export function Print() {
-  const s = useApp((x) => x.settings)
+  const st = useApp()
+  const s = st.settings
   const activeTest = useApp((x) => x.local.deviceTests?.activeId)
   const [params] = useSearchParams()
   const initial = params.get('typ') as PrintChoice | null
   const [choice, setChoice] = useState<PrintChoice>(initial && PRINT_CHOICES.some((c) => c.value === initial) ? initial : 'both')
   const [size, setSize] = useState<PaperSize>('A5')
+  const [scope, setScope] = useState<'template' | 'day'>(params.get('tag') ? 'day' : 'template')
+  const [date, setDate] = useState(() => { const value = params.get('tag'); return value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value + 'T12:00:00Z').toISOString().slice(0, 10) === value ? value : today() })
   const [msg, setMsg] = useState<string>()
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
   const content = useRef<HTMLDivElement>(null)
-  const sheets = printSheets(choice, s)
+  const sheets = printSheets(choice, s, scope === 'day' ? { plan: planFor(date), log: st.days[date], coverage: routineCoverage(date, s, st.days) } : undefined)
 
   const run = async (action: () => Promise<void>) => {
     if (busyRef.current) return
@@ -204,6 +208,10 @@ export function Print() {
           <h1 className="min-w-0 break-words text-xl font-semibold">Druckansicht</h1>
         </div>
         <Segmented<PrintChoice> label="Was drucken?" value={choice} options={PRINT_CHOICES} onChange={setChoice} />
+        {(choice === 'morning' || choice === 'evening' || choice === 'both') && <>
+          <Segmented<'template' | 'day'> label="Vorlage oder Tagesplan" value={scope} options={[{ value: 'template', label: 'Standardvorlage' }, { value: 'day', label: 'Für einen Tag' }]} onChange={setScope} />
+          {scope === 'day' && <label className="block space-y-1"><span className="text-sm text-muted">Tag für die Routine</span><input type="date" aria-label="Tag für die Routine" className="min-h-12 w-full rounded-xl bg-surface-2 px-3" value={date} onChange={(event) => { const value = event.target.value; if (value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value))) setDate(value) }} /></label>}
+        </>}
         <Segmented<PaperSize>
           label="Papier"
           value={size}

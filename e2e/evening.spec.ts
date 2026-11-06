@@ -47,10 +47,11 @@ test('Abendroutine bietet nach PC-Stopp und Bettzeit keine neue Freizeit an', as
 test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', async ({ page }) => {
   await onboard(page)
   await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  await page.getByRole('dialog').getByText('Weitere Möglichkeiten', { exact: true }).click()
   await page.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()
   await page.getByRole('button', { name: 'Weiß ich noch nicht', exact: true }).click()
   await page.getByRole('button', { name: 'Übernehmen', exact: true }).click()
-  await expect(page.getByText('Viel Spaß. Der Abend gehört dir.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Viel Spaß. Der Abend gehört dir. Ob dein PC die Änderung übernommen hat, ist nicht bestätigt.', { exact: true })).toBeVisible()
   await finishEvening(page)
   await expect(page.getByText('Für heute ist hier nichts mehr offen.', { exact: true })).toBeVisible()
   await expect(page.getByText(/Jetzt Freizeit bis/)).toHaveCount(0)

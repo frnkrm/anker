@@ -10,6 +10,7 @@ import { useToday } from '../../state/hooks'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
 import { InboxButton } from '../components/Shell'
+import { TodayDifferent } from '../components/TodayDifferent'
 import { Button, Progress } from '../components/ui'
 
 const NEXT_PULSE: Record<FocusPulseMode, FocusPulseMode> = { off: 'gentle', gentle: 'strong', strong: 'off' }
@@ -46,6 +47,7 @@ export default function Focus() {
   useFocusPulse(session, now)
   const m = minutesOnPlanDay(date, now)
   const [error, setError] = useState('')
+  const [different, setDifferent] = useState(false)
   const [retry, setRetry] = useState(0)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -129,6 +131,8 @@ export default function Focus() {
         {timer && session && left > 0 && <Button size="sm" className="mt-3" disabled={busy} onClick={() => void run(() => st.updateFocus(session.id, (current) => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })))}>{timer.status === 'running' ? 'Pause' : 'Weiter'}</Button>}
         <button type="button" disabled={busy} className="mt-4 min-h-11 rounded-xl px-3 text-sm text-muted" aria-label={`Fokus-Puls umschalten, aktuell ${PULSE_LABEL[st.settings.focus.pulse]}`} onClick={() => void run(() => st.saveSettings((settings) => ({ ...settings, focus: { ...settings.focus, pulse: NEXT_PULSE[settings.focus.pulse] } })))}>{PULSE_LABEL[st.settings.focus.pulse]}</button>
       </section>
+      <Button variant="ghost" size="sm" disabled={busy} onClick={() => setDifferent(true)}>Heute anders</Button>
+      <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />
 
       <div className="space-y-3">
         <Button variant="primary" size="xl" className="w-full" disabled={busy || !session} onClick={() => void done(minimalMode ? 'minimal' : 'done')}>Erledigt</Button>

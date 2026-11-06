@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { dayGoals } from '../../core/game'
 import { addDays, fmtTime, weekday, WEEKDAYS_LONG } from '../../core/time'
 import { usePlan, useToday } from '../../state/hooks'
@@ -47,6 +48,7 @@ export default function Day() {
         {offset === 0 ? 'Heute anders' : offset === 1 ? 'Morgen anders' : 'Diesen Tag anders'}
       </button>
       <TodayDifferent open={different} onClose={() => setDifferent(false)} date={date} m={offset === 0 ? m : plan.wake} isTomorrow={offset > 0} />
+      <Link to={`/druck?typ=both&tag=${date}`} className="flex min-h-11 items-center rounded-xl border border-line px-3 text-muted">Routinen für diesen Tag drucken</Link>
       <DayCommitments plan={plan} />
       {offset > 0 && <WakeSuggestion date={date} />}
       {offset === 1 && <WeatherCard />}

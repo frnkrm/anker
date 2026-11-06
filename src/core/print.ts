@@ -1,5 +1,6 @@
 import { fmtTime } from './time'
-import type { Settings } from './types'
+import type { DayLog, DayPlan, RoutineId, Settings } from './types'
+import type { RoutineCoverage } from './flexible'
 import QRCode from 'qrcode'
 
 export type PrintChoice = 'morning' | 'evening' | 'both' | 'qr' | 'door'
@@ -31,10 +32,36 @@ export function preparePrintSheets(sheets: PrintSheet[]): PrintDocumentSheet[] {
   })
 }
 
-/** Genau das Gewählte, je Blatt eine Seite. Der QR-Wert wird nur gelesen, nie verändert. */
-export function printSheets(choice: PrintChoice, s: Settings): PrintSheet[] {
-  const morning: PrintSheet = { kind: 'list', id: 'morning', title: 'Morgenroutine', subtitle: `Ab ${fmtTime(s.anchor.wake)}`, items: s.routines.morning.map((x) => x.title), footer: 'Die kleine Version zählt auch.' }
-  const evening: PrintSheet = { kind: 'list', id: 'evening', title: 'Abendroutine', items: s.routines.evening.map((x) => x.title), footer: 'Die kleine Version zählt auch.' }
+export interface DayPrintContext {
+  plan: DayPlan
+  log?: DayLog
+  coverage?: readonly RoutineCoverage[]
+}
+
+function routineSheet(routine: RoutineId, settings: Settings, context?: DayPrintContext): PrintSheet {
+  const title = routine === 'morning' ? 'Morgenroutine' : 'Abendroutine'
+  if (!context) return { kind: 'list', id: routine, title, ...(routine === 'morning' ? { subtitle: `Ab ${fmtTime(settings.anchor.wake)}` } : {}), items: settings.routines[routine].map((step) => step.title), footer: 'Die kleine Version zählt auch.' }
+  const block = context.plan.blocks.find((candidate) => candidate.routine === routine)
+  const planned = new Map(block?.steps?.map((step) => [step.id, step]) ?? [])
+  const items = settings.routines[routine].flatMap((step) => {
+    const key = `${routine}:${step.id}`
+    const result = context.log?.steps[key]
+    const coverage = context.coverage?.find((row) => row.key === key)
+    if (result === 'done') return [`Erledigt: ${step.title}`]
+    if (result === 'minimal') return [`Kleine Version erledigt: ${step.minimal?.title ?? step.title}`]
+    if (result === 'not-needed') return [`Heute nicht nötig: ${step.title}`]
+    if (result === 'skipped') return [`Übersprungen: ${step.title}`]
+    if (coverage?.covered) return [`Schon versorgt: ${step.title}${coverage.source?.kind === 'previous-evening' ? ` (Vorabend ${coverage.source.date}: ${coverage.source.title})` : ' (deine Tagesauswahl)'}`]
+    const selected = planned.get(step.id)
+    return selected ? [selected.useMinimal && selected.minimal ? selected.minimal.title : selected.title] : []
+  })
+  return { kind: 'list', id: routine, title, subtitle: `Für ${context.plan.date}${context.plan.pendingEvening && routine === 'evening' ? ' · wartet auf deine Rückkehr' : ''}`, items: items.length ? items : [routine === 'evening' && context.plan.pendingEvening ? 'Die Routine bleibt offen und wartet auf deine Rückkehr.' : 'Für diesen Tag ist hier nichts eingeplant.'], footer: 'Nur wirklich Gemachtes zählt als erledigt. Deine Standardroutine bleibt erhalten.' }
+}
+
+/** Vorlage oder ausdrücklich gewählte Tagesinstanz; beide nativen Renderer erhalten dieselbe Projektion. */
+export function printSheets(choice: PrintChoice, s: Settings, context?: DayPrintContext): PrintSheet[] {
+  const morning = routineSheet('morning', s, context)
+  const evening = routineSheet('evening', s, context)
   switch (choice) {
     case 'morning':
       return [morning]
