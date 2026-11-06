@@ -62,6 +62,19 @@ export function validAssistantRequest(value: unknown): value is AssistantRequest
     && validTravelMode(value.mode) && stamp(value.at) && ['departure', 'arrival'].includes(String(value.timing))
 }
 
+/** Nach erfolgreicher Validierung: nur ausdrücklich gewählte Felder kopieren, keine lokalen Recordreste. */
+export function assistantRequestPayload(input: AssistantRequest): AssistantRequest {
+  if (input.kind === 'steps') return {
+    kind: 'steps', revision: input.revision, title: input.title, depth: input.depth,
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.nextStep !== undefined ? { nextStep: input.nextStep } : {}),
+  }
+  const point = (value: RoutePoint): RoutePoint => 'address' in value ? { address: value.address }
+    : { latitude: value.latitude, longitude: value.longitude }
+  return { kind: 'route', revision: input.revision, origin: point(input.origin), destination: point(input.destination),
+    mode: input.mode, at: input.at, timing: input.timing }
+}
+
 /** Nur überprüfbare, begrenzte Vorschlagdaten übernehmen, fremde Zusatzfelder nicht weiterreichen. */
 export function parseSuggestedSteps(value: unknown): SuggestedStep[] | undefined {
   if (!record(value) || !Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > 12) return undefined

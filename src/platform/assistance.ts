@@ -1,4 +1,4 @@
-import { assistanceAllowed, record, validAssistantRequest, validAssistantResult, type AssistantCapabilities, type AssistantRequest, type AssistantResult } from '../core/assistance'
+import { assistanceAllowed, assistantRequestPayload, record, validAssistantRequest, validAssistantResult, type AssistantCapabilities, type AssistantRequest, type AssistantResult } from '../core/assistance'
 import { useApp } from '../state/store'
 import { sb, supabaseConfigured } from './supabase'
 
@@ -28,6 +28,8 @@ export class AssistanceError extends Error {
 }
 
 async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, allowed?: () => boolean, purpose?: Purpose): Promise<unknown> {
+  // Vor jedem await den gewählten Inhalt festhalten; keine unbekannten Felder an den Server senden.
+  const payload = input && assistantRequestPayload(input)
   const client = sb()
   const base = import.meta.env.VITE_SUPABASE_URL as string | undefined
   if (!supabaseConfigured || !client || !base) throw new AssistanceError('not-configured')
@@ -47,7 +49,7 @@ async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, al
     const response = await fetch(`${base.replace(/\/$/, '')}/functions/v1/assistant`, {
       method: input ? 'POST' : 'GET', signal: controller.signal,
       headers: { authorization: `Bearer ${data.session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string, 'content-type': 'application/json' },
-      ...(input ? { body: JSON.stringify(input) } : {}),
+      ...(payload ? { body: JSON.stringify(payload) } : {}),
     })
     if (controller.signal.aborted) throw new AssistanceError(timedOut ? 'timeout' : 'cancelled')
     if (!response.ok) throw new AssistanceError(response.status === 401 || response.status === 403 ? 'signed-out' : response.status === 429 ? 'daily-limit' : response.status === 503 ? 'not-configured' : 'offline')

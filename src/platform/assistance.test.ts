@@ -35,6 +35,37 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     expect(fetcher.mock.calls[0]?.[1]?.headers).toMatchObject({ authorization: 'Bearer local-test-session' })
     expect(String(fetcher.mock.calls[0]?.[1]?.body)).not.toContain('api_key')
   })
+  it('überträgt an den Server ausschließlich die ausdrücklich gewählten Aufgabenfelder', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json(result))
+    vi.stubGlobal('fetch', fetcher)
+    await requestAssistance({ ...input, description: 'Bewusst gewählter Kontext', nextStep: 'Unterlage öffnen',
+      ...{ workSessions: [{ private: 'synthetic-unselected-work' }], local: { private: 'synthetic-unselected-local' } } })
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({ ...input, description: 'Bewusst gewählter Kontext', nextStep: 'Unterlage öffnen' })
+  })
+  it('entfernt Zusatzfelder auch innerhalb ausgewählter Routenpunkte', async () => {
+    context.profile = { routes: { enabled: true, version: 1, at: 1 } }
+    const route = { kind: 'route' as const, revision: 'route:current', origin: { latitude: 52, longitude: 13, private: 'synthetic-extra-coordinate' },
+      destination: { address: 'Bewusst gewähltes Ziel', private: 'synthetic-extra-address' }, mode: 'walking' as const, at: '2026-11-06T12:00:00Z', timing: 'departure' as const }
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json({ kind: 'route', revision: route.revision, route: {
+      durationMin: 10, source: 'Google Routes', fetchedAt: 1, travelAt: route.at, mode: route.mode, trafficAware: false, estimated: true,
+    } }))
+    vi.stubGlobal('fetch', fetcher)
+    await requestAssistance(route)
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({ ...route,
+      origin: { latitude: 52, longitude: 13 }, destination: { address: 'Bewusst gewähltes Ziel' } })
+  })
+  it('friert die gewählten Anfragefelder vor der asynchronen Sitzungsprüfung ein', async () => {
+    let release!: () => void
+    context.sessionDelay = new Promise<void>((resolve) => { release = resolve })
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json(result))
+    vi.stubGlobal('fetch', fetcher)
+    const chosen = { ...input, description: 'Ursprünglich gewählter Text' }
+    const pending = requestAssistance(chosen)
+    chosen.description = 'synthetic-later-unselected-text'
+    release()
+    await pending
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body)).description).toBe('Ursprünglich gewählter Text')
+  })
   it('verwirft eine Antwort nach zwischenzeitlichem Ausschalten', async () => {
     let finish!: (value: Response) => void
     const pending = new Promise<Response>((resolve) => { finish = resolve })
