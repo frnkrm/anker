@@ -48,9 +48,9 @@ describe('.ics-Export', () => {
 
 describe('Backup', () => {
   it('Roundtrip', () => {
-    const recs = [{ collection: 'inbox' as const, id: 'a', data: { t: 1 }, updated_at: 5, deleted: false, dirty: 1 }]
+    const recs = [{ collection: 'inbox' as const, id: 'a', data: { id: 'a', text: 'Alte Notiz', status: 'open', createdAt: 1 }, updated_at: 5, deleted: false, dirty: 1 }]
     const parsed = parseBackup(JSON.stringify(makeBackup(recs)))
-    expect(parsed).toEqual([{ collection: 'inbox', id: 'a', data: { t: 1 }, updated_at: 5, deleted: false }])
+    expect(parsed).toEqual([{ collection: 'inbox', id: 'a', data: { id: 'a', text: 'Alte Notiz', status: 'open', createdAt: 1 }, updated_at: 5, deleted: false }])
   })
   it('weist vorhandene Einstellungen mit falschen Datentypen vollständig zurück', () => {
     for (const data of [null, {}, { version: 1, onboarded: true, anchor: null }, { version: 1, onboarded: true, work: [] }, { version: 1, onboarded: true, routines: { morning: 'falsch' } }]) {
@@ -98,9 +98,9 @@ describe('Backup', () => {
     expect(() => parseBackup('kein json')).toThrow('kein gültiges JSON')
     expect(() => parseBackup('{"app":"x"}')).toThrow('keine Anker-Sicherung')
   })
-  it('filtert ungültige Datensätze', () => {
+  it('weist ungültige Datensätze vor einem Teilimport zurück', () => {
     const t = JSON.stringify({ app: 'anker', version: 1, records: [{ collection: 'hack', id: 'x', updated_at: 1, deleted: false }] })
-    expect(parseBackup(t)).toEqual([])
+    expect(() => parseBackup(t)).toThrow('ungültige Datensätze')
   })
 })
 

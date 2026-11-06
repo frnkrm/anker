@@ -1,0 +1,125 @@
+import { describe, expect, it } from 'vitest'
+import { defaultSettings, emptyLocal } from '../defaults'
+import { initialGame } from '../game'
+import type { LocalData } from '../types'
+import type { Collection, Rec } from '../../data/types'
+import { makeBackup, parseBackup, previewImport } from './backup'
+
+const date = '2026-11-02'
+const at = Date.parse(`${date}T10:00:00+01:00`)
+const record = (collection: Collection, id: string, data: unknown): Rec => ({ collection, id, data, updated_at: at, deleted: false })
+const parse = (records: unknown[]) => parseBackup(JSON.stringify({ app: 'anker', version: 1, exportedAt: new Date(at).toISOString(), records }))
+
+describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => {
+  it('verwirft einen gemischten Batch mit kaputtem Header statt nur seinen gültigen Teil zu übernehmen', () => {
+    const valid = record('settings', 'main', { version: 1, onboarded: true })
+    for (const broken of [null, {}, { ...valid, collection: 'unbekannt' }, { ...valid, id: '' }, { ...valid, updated_at: -1 }]) {
+      expect(() => parse([valid, broken])).toThrow()
+    }
+  })
+
+  it('weist einen unbrauchbaren Spielstand zurück, bevor er den vorhandenen ersetzt', () => {
+    const game = initialGame(date)
+    for (const data of [null, {}, { xp: 4 }, { ...game, chapter: null }, { ...game, xp: -1 }, { ...game, chaptersDone: [{}] }, { ...game, redeemed: [{ price: 'falsch' }] }]) {
+      expect(() => parse([record('game', 'main', data)])).toThrow()
+    }
+    expect(parse([record('game', 'main', game)])[0]?.data).toEqual(game)
+  })
+
+  it('weist kaputte Tageslogs und vom Record abweichende Daten-IDs zurück', () => {
+    const day = { date, override: {}, steps: {} }
+    for (const data of [null, {}, { ...day, date: '2026-11-03' }, { ...day, steps: null }, { ...day, steps: { 'morning:water': 'automatisch' } }, { ...day, override: { homeOffice: 'ja' } }]) {
+      expect(() => parse([record('days', date, data)])).toThrow()
+    }
+    expect(() => parse([record('reviews', date, { id: '2026-11-03', good: '', hard: '', change: '' })])).toThrow()
+    const note = { id: 'a', text: 'Behalten', status: 'open', createdAt: at }
+    for (const data of [{ t: 1 }, { ...note, id: 'b' }, { ...note, text: 7 }, { ...note, status: 'falsch' }, { ...note, createdAt: 'gestern' }]) {
+      expect(() => parse([record('inbox', 'a', data)])).toThrow()
+    }
+  })
+
+  it('weist kaputte echte Zeitintervalle und Kalenderdaten zurück, erhält aber strukturell gültige Konflikte', () => {
+    const session = { id: 'w', date, kind: 'regular', startAt: at, endAt: at + 60_000, breaks: [] }
+    for (const workSessions of [null, [{}], [{ ...session, breaks: null }], [{ ...session, breaks: [{ id: 'b', startAt: 'falsch' }] }]]) {
+      expect(() => parse([record('meta', 'local', { workSessions })])).toThrow()
+    }
+    const conflicts = [session, { ...session, startAt: at - 60_000, endAt: at - 120_000 }]
+    expect((parse([record('meta', 'local', { workSessions: conflicts })])[0]?.data as LocalData).workSessions).toEqual(conflicts)
+    for (const data of [null, [{}], [{ id: 'e', title: 'Termin', start: 'morgen', end: at }]]) {
+      expect(() => parse([record('meta', 'events', data)])).toThrow()
+    }
+  })
+
+  it('liest echte alte Datenformen ohne neue Pflichtfelder und bewahrt unbekannte Zusatzangaben', () => {
+    const records = [
+      record('settings', 'main', { version: 1, onboarded: true, oldChoice: { keep: true } }),
+      record('inbox', 'old', { id: 'old', text: 'Alte Notiz', status: 'open', createdAt: 1, oldExtra: 'bleibt' }),
+      record('days', date, { date, override: {}, steps: { 'morning:water': 'done' } }),
+      record('game', 'main', { ...initialGame(date), xp: 84, spent: 12, badges: ['alt'] }),
+      record('meta', 'local', { work: [{ id: 'old-work', title: 'Alte Arbeit', createdAt: 1 }], handover: {}, meds: {} }),
+    ]
+    expect(parse(records)).toEqual(records)
+  })
+
+  it('verwirft falsche bekannte Einstellungen, akzeptiert aber echte manuelle Nachtzeiten', () => {
+    const settings = defaultSettings(date)
+    for (const patch of [{ themeId: 'falsch' }, { goal: 'falsch' }, { focus: { ...settings.focus, pulse: 'falsch' } }, { game: { ...settings.game, stage: 99 } }, { version: 999 }]) {
+      expect(() => parse([record('settings', 'main', { ...settings, ...patch })])).toThrow()
+    }
+    const night = { ...settings, bed: 25 * 60, anchor: { ...settings.anchor, manual: { bed: true } } }
+    expect(parse([record('settings', 'main', night)])[0]?.data).toEqual(night)
+  })
+
+  it('behält erlaubte Tombstones ohne behauptete Erledigung', () => {
+    const deleted = { ...record('inbox', 'entfernt', null), deleted: true }
+    expect(parse([deleted])).toEqual([deleted])
+  })
+
+  it('Vollbackup bleibt unabhängig von Sensitivitätsoptionen als vollständiger Roundtrip verfügbar', () => {
+    const local = { ...emptyLocal(), meds: { [date]: { status: 'taken' as const, at } }, work: [{ id: 'w', title: 'Privat', createdAt: at }] }
+    const records = [record('meta', 'local', local)]
+    expect(parseBackup(JSON.stringify(makeBackup(records)))).toEqual(records)
+  })
+
+  it('lässt ausgeschlossene sensible Gruppen wirklich aus und verändert die Quelldaten nicht', () => {
+    const local = { ...emptyLocal(), meds: { [date]: { status: 'taken' as const, at } }, work: [{ id: 'w', title: 'Kundengeheimnis', createdAt: at }],
+      places: [{ id: 'p', label: 'Privater Ort', address: 'Geheime Adresse' }], deviceTests: { reports: {} },
+      resume: { kind: 'work' as const, title: 'Kundengeheimnis', at } }
+    const note = { id: 'note', text: 'Notiz behalten', createdAt: at, status: 'kept', linkedTo: { kind: 'work', id: 'w' } }
+    const records = [record('meta', 'local', local), record('inbox', 'note', note)]
+    const snapshot = structuredClone(records)
+    const backup = makeBackup(records, new Date(at), { work: false, health: false, places: false, deviceTests: false })
+    const text = JSON.stringify(backup)
+    expect(text).not.toContain('Kundengeheimnis')
+    expect(text).not.toContain('Geheime Adresse')
+    expect(text).not.toContain('"meds"')
+    expect((backup.records[0]!.data as Record<string, unknown>).deviceTests).toBeUndefined()
+    expect(parseBackup(text)[1]?.data).toEqual({ id: 'note', text: 'Notiz behalten', createdAt: at, status: 'kept' })
+    expect(records).toEqual(snapshot)
+  })
+
+  it('bewahrt beim Teilimport ausgelassene Gruppen im Ziel und zeigt nur tatsächlich gewinnende Änderungen', () => {
+    const target = record('meta', 'local', { ...emptyLocal(), work: [{ id: 'bestehend', title: 'Nicht löschen', createdAt: 1 }], meds: { [date]: { status: 'taken', at } } })
+    const incoming = { ...record('meta', 'local', { handover: { [date]: { open: 'Neu', next: 'Öffnen' } } }), updated_at: at + 1 }
+    const old = { ...record('inbox', 'alt', { id: 'alt', text: 'Alt', createdAt: 1, status: 'open' }), updated_at: at - 1 }
+    const current = [target, { ...old, updated_at: at }]
+    const before = structuredClone(current)
+    const preview = previewImport([incoming, old], current)
+    expect(preview).toMatchObject({ incoming: 2, changed: 1, skipped: 1, deletions: 0 })
+    expect(preview.records[0]?.data).toMatchObject({ work: (target.data as LocalData).work, meds: (target.data as LocalData).meds, handover: (incoming.data as LocalData).handover })
+    expect(current).toEqual(before)
+    expect((preview.records[0]?.data as LocalData).handover).toEqual((incoming.data as LocalData).handover)
+  })
+
+  it('berechnet doppelte Recordversionen monoton und unterscheidet echte Löschung von Auslassung', () => {
+    const original = record('inbox', 'n', { id: 'n', text: 'Alt', createdAt: 1, status: 'open' })
+    const latest: Rec = { ...original, data: { ...original.data as object, text: 'Neu' }, updated_at: at + 2 }
+    const older = { ...original, updated_at: at + 1 }
+    const deleted = { ...record('inbox', 'entfernt', null), deleted: true }
+    const preview = previewImport([latest, older, deleted], [original])
+    expect(preview).toMatchObject({ changed: 2, skipped: 1, deletions: 1 })
+    expect(preview.records.find((r) => r.id === 'n')?.data).toMatchObject({ text: 'Neu' })
+    latest.data = { changedOutside: true }
+    expect(preview.records.find((r) => r.id === 'n')?.data).toMatchObject({ text: 'Neu' })
+  })
+})
