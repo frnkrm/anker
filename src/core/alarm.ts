@@ -26,6 +26,8 @@ export interface AlarmPlanningStatus {
   ok: boolean
   message?: string
   scheduledAt?: number
+  /** Konfiguration, deren Übertragung gerade abgeschlossen wurde; enthält keine privaten Inhalte. */
+  configurationKey?: string
 }
 
 /** Planning evidence only: a token and exact permission never prove future delivery or sound. */

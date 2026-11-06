@@ -24,6 +24,7 @@ const reconcileAlarm = coalesceAsync(async () => {
     }
     const current = useApp.getState()
     if (current.settings !== st.settings || current.days !== st.days || today() !== date) continue
+    if (status.ok) status.configurationKey = JSON.stringify(buildAlarmConfig(st.settings, st.days, date))
     current.setAlarmStatus(status)
     return
   }
