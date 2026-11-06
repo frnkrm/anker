@@ -145,8 +145,8 @@ Auch diese Fälle bleiben bis zum eigenen Versuch offen. Für Nacht-, Neustart- 
 
 ## Android-Systemleisten
 
-Der gemeldete Fehler betrifft die Android-Leiste mit Uhr und Akku oben. Der neue Abstandsschutz wird erst nach diesem Versuch auf dem Galaxy als geprüft geführt. Alle Schritte sind freiwillig; die Testseite ändert keine Android-Systemeinstellung.
+Der gemeldete Fehler betrifft die Android-Leiste mit Uhr und Akku oben. Der Nutzer bestätigt am06.11.2026 nach Bereitstellung des Updates „oben frei“; damit ist die obere Anzeige als Teilprüfung bestätigt. Die übrigen Teile bleiben offen. Alle Schritte sind freiwillig; die Testseite ändert keine Android-Systemeinstellung.
 
 | # | Vorgehen | Erwartet | Ergebnis |
 |---|---|---|---|
-| 75 | Jetzt mit Testbegleitung, Fokus und Darstellung öffnen; Hoch- und Querformat prüfen. Falls genutzt, Android-Gesten und Drei-Tasten-Navigation vergleichen. Ein Eingabefeld mit Tastatur öffnen und diese wieder schließen | Uhr/Akku, Kameraaussparung und untere Systemnavigation verdecken keine App-Inhalte oder Knöpfe; Testbegleitung und erste Überschrift bleiben getrennt sichtbar, keine doppelten großen Ränder. Eingabe bleibt mit Tastatur erreichbar; nach Schließen stimmen Abstände weiter. Teilprüfungen getrennt notieren | |
+| 75 | Jetzt mit Testbegleitung, Fokus und Darstellung öffnen; Hoch- und Querformat prüfen. Falls genutzt, Android-Gesten und Drei-Tasten-Navigation vergleichen. Ein Eingabefeld mit Tastatur öffnen und diese wieder schließen | Uhr/Akku, Kameraaussparung und untere Systemnavigation verdecken keine App-Inhalte oder Knöpfe; Testbegleitung und erste Überschrift bleiben getrennt sichtbar, keine doppelten großen Ränder. Eingabe bleibt mit Tastatur erreichbar; nach Schließen stimmen Abstände weiter. Teilprüfungen getrennt notieren | Teilweise: Nutzer meldet „oben frei“ (06.11.2026). Obere Anzeige am Galaxy bestätigt; Drehung, Fokus, Tastatur und untere Systemnavigation nicht gemeldet. Installierte Buildkennung nicht unabhängig ausgelesen |
