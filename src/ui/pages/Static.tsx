@@ -51,16 +51,16 @@ export function Help() {
       <Section title="ADHS: Diagnose und Behandlung">
         <Card className="space-y-3">
           <p>
-            <strong>1. Hausarzt:</strong> Erste Anlaufstelle. Erzähl offen, was dir schwerfällt. Du bekommst eine Überweisung.
+            <strong>1. Hausarzt:</strong> Eine mögliche erste Anlaufstelle. Besprecht, was dir schwerfällt und welche weitere Unterstützung oder Überweisung passt.
           </p>
           <p>
             <strong>2. Facharzt für Psychiatrie (und Psychotherapie):</strong> Stellt die Diagnose bei Erwachsenen und bespricht die Behandlung (z. B. Medikamente, Therapie, Coaching).
           </p>
           <p>
-            <strong>3. Terminservicestelle 116117:</strong> Hilft, mit Überweisung zeitnah einen Facharzttermin zu bekommen. Telefon 116117 oder <ExtLink href="https://www.116117.de">116117.de</ExtLink>.
+            <strong>3. Terminservicestelle 116117:</strong> Informationen zur Terminvermittlung und den jeweiligen Voraussetzungen: Telefon 116117 oder <ExtLink href="https://www.116117.de">116117.de</ExtLink>. Verfügbarkeit und Wartezeiten unterscheiden sich.
           </p>
           <p>
-            <strong>4. Psychiatrische Institutsambulanz (PIA):</strong> An vielen Kliniken, oft kürzere Wartezeiten. Einfach in der nächsten psychiatrischen Klinik nachfragen.
+            <strong>4. Psychiatrische Institutsambulanz (PIA):</strong> Kliniken informieren über ihre Angebote, Aufnahmevoraussetzungen und Wartezeiten. Eine PIA ist nicht für jede Situation zuständig.
           </p>
           <p>
             <strong>5. ADHS Deutschland e.V.:</strong> Selbsthilfe, Gruppen vor Ort, Infos für Erwachsene: <ExtLink href="https://www.adhs-deutschland.de">adhs-deutschland.de</ExtLink>.
@@ -88,6 +88,7 @@ export function Help() {
 /** Freiwillig: Der Text wird nur kopiert oder geteilt, wenn du es antippst. Anker sendet nichts selbst. */
 function AskSomeone() {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const text = 'Hast du kurz Zeit für mich? Ich hänge gerade fest und könnte etwas Unterstützung gebrauchen.'
   return (
     <Card className="space-y-3">
@@ -96,12 +97,14 @@ function AskSomeone() {
       <Button
         size="sm"
         onClick={async () => {
-          await safe(() => navigator.clipboard.writeText(text), undefined)
-          setCopied(true)
+          setCopied(false); setCopyError(false)
+          try { await navigator.clipboard.writeText(text); setCopied(true) }
+          catch { setCopyError(true) }
         }}
       >
         {copied ? 'Kopiert' : 'Text kopieren'}
       </Button>
+      {copyError && <p role="status" className="text-sm text-muted">Kopieren ist gerade nicht möglich. Du kannst den Text oben selbst auswählen.</p>}
     </Card>
   )
 }

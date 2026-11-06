@@ -128,7 +128,7 @@ export function Tidy() {
         <div className="my-6 text-6xl font-light tabular-nums">
           {Math.floor((left ?? total) / 60)}:{String((left ?? total) % 60).padStart(2, '0')}
         </div>
-        <Progress value={left === null ? 0 : 1 - left / total} />
+        <Progress label="Abgelaufene Aufräumzeit" value={left === null ? 0 : 1 - left / total} />
         <div className="mt-5 space-y-2">
           {left === null ? (
             <Button variant="primary" size="xl" className="w-full" onClick={start}>

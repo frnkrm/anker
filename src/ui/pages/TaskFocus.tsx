@@ -123,7 +123,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
             {timer && (
               <div className="mt-7 space-y-3 text-center">
                 <div role="timer" aria-live="off" aria-label={`Restzeit ${countdownText(timer, now)}`} className="text-5xl font-light tabular-nums sm:text-6xl">{countdownText(timer, now)}</div>
-                <Progress value={timer.durationMs ? Math.min(1, elapsedMs(timer, now) / timer.durationMs) : 0} />
+                <Progress label="Abgelaufene Fokuszeit" value={timer.durationMs ? Math.min(1, elapsedMs(timer, now) / timer.durationMs) : 0} />
                 <p className="text-sm text-muted">{paused ? 'Pausiert' : `Zeitfenster bis ${clockTime(timer.deadlineAt)}`} · verstrichen: {Math.floor(elapsedMs(timer, now) / 60_000)} min</p>
                 {expired && <p className="text-muted">Zeitfenster zu Ende. Du entscheidest, ob du weiterarbeitest, abschließt oder pausierst.</p>}
               </div>

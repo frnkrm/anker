@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { DEFAULT_TASK_MIN, suggestTaskWindow, tasksFor } from '../../core/support'
 import { daysBetween, fmtTime, type DateStr } from '../../core/time'
+import { trialLearningPoints } from '../../core/trial'
+import { Link } from 'react-router'
 import type { DayPlan } from '../../core/types'
 import { useApp } from '../../state/store'
 import { Button, Card, Section } from './ui'
-import { TaskCard } from './TaskDetails'
+import { TaskCard, useTaskAction } from './TaskDetails'
 
 /** Flexible Aufgaben eines Tages. Dieselben Einträge wie in der Inbox, also nur eine Wahrheit. */
 export function DayTasks({ date, plan }: { date: DateStr; plan: DayPlan }) {
@@ -35,29 +37,28 @@ export function TrialCard({ date }: { date: DateStr }) {
   const st = useApp()
   const t = st.local.trial
   const [offer, setOffer] = useState(false)
+  const { busy, error, run } = useTaskAction()
   if (!t) {
     return (
-      <button type="button" className="min-h-10 px-1 text-left text-sm text-muted underline" onClick={() => setOffer(!offer)} aria-expanded={offer}>
-        {offer ? 'Doch nicht' : 'Freiwillig ausprobieren: Hilft mir Anker?'}
+      <div className="space-y-2">
+        <button type="button" className="min-h-11 px-1 text-left text-sm text-muted underline" onClick={() => setOffer(!offer)} aria-expanded={offer}>
+          {offer ? 'Doch nicht' : 'Freiwillig ausprobieren: Hilft mir Anker?'}
+        </button>
         {offer && (
-          <span className="mt-2 flex gap-2">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Dauer der freiwilligen Probe">
             {([7, 14] as const).map((days) => (
-              <span
+              <Button
                 key={days}
-                role="button"
-                tabIndex={0}
-                className="rounded-xl bg-surface-2 px-3 py-2 no-underline"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  void st.saveLocal((l) => ({ ...l, trial: { startedAt: date, days, answers: {} } }))
-                }}
+                disabled={busy}
+                onClick={() => void run(() => st.saveLocal((l) => ({ ...l, trial: { startedAt: date, days, answers: {} } })))}
               >
                 {days} Tage
-              </span>
+              </Button>
             ))}
-          </span>
+          </div>
         )}
-      </button>
+        {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+      </div>
     )
   }
   const over = daysBetween(t.startedAt, date) >= t.days
@@ -68,17 +69,18 @@ export function TrialCard({ date }: { date: DateStr }) {
       return next
     })
   if (over) {
-    const a = Object.values(t.answers)
-    const count = (v: string) => a.filter((x) => x === v).length
+    const points = trialLearningPoints(t)
     return (
       <Card className="space-y-2">
-        <p className="font-medium">Deine Probe ist fertig</p>
-        <p className="text-muted">
-          Geholfen: {count('ja')} Tage · teilweise: {count('teilweise')} · nicht: {count('nein')}. Die Zahlen bleiben auf dem Gerät und sagen nichts über deine Gesundheit.
-        </p>
-        <Button size="sm" onClick={remove}>
+        <h3 className="font-medium">Die Probezeit ist vorbei</h3>
+        <ul className="space-y-2 text-muted">{points.map((point) => <li key={point}>{point}</li>)}</ul>
+        <p className="text-sm text-muted">Die Antworten bleiben auf diesem Gerät und sagen nichts über deine Gesundheit. Einstellungen ändern sich dadurch nicht.</p>
+        <Link to="/einstellungen/hilfen" className="flex min-h-11 items-center text-accent">Hilfen nach eigener Wahl anpassen</Link>
+        <Link to="/backup" className="flex min-h-11 items-center text-accent">Antworten mit einer Sicherung exportieren</Link>
+        <Button size="sm" disabled={busy} onClick={() => void run(remove)}>
           Löschen
         </Button>
+        {error && <p role="alert" className="text-sm text-warm">{error}</p>}
       </Card>
     )
   }
@@ -88,14 +90,15 @@ export function TrialCard({ date }: { date: DateStr }) {
       <p className="font-medium">Hat dir Anker heute geholfen?</p>
       <div className="flex flex-wrap gap-2">
         {TRIAL_ANSWERS.map((o) => (
-          <Button key={o.value} size="sm" onClick={() => st.saveLocal((l) => (l.trial ? { ...l, trial: { ...l.trial, answers: { ...l.trial.answers, [date]: o.value } } } : l))}>
+          <Button key={o.value} size="sm" disabled={busy} onClick={() => void run(() => st.saveLocal((l) => (l.trial ? { ...l, trial: { ...l.trial, answers: { ...l.trial.answers, [date]: o.value } } } : l)))}>
             {o.label}
           </Button>
         ))}
       </div>
-      <button type="button" className="min-h-10 text-sm text-muted underline" onClick={remove}>
+      <button type="button" disabled={busy} className="min-h-11 text-sm text-muted underline" onClick={() => void run(remove)}>
         Probe beenden und löschen
       </button>
+      {error && <p role="alert" className="text-sm text-warm">{error}</p>}
     </Card>
   )
 }

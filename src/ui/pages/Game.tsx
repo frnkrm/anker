@@ -36,7 +36,7 @@ export default function Game() {
             <p className="text-sm text-muted">{t.xpWord}</p>
           </div>
         </div>
-        <Progress value={lvl.progress} className="mt-3" />
+        <Progress label="Fortschritt zum nächsten Level" value={lvl.progress} className="mt-3" />
         <p className="mt-1 text-sm text-muted">
           Noch {lvl.next - st.game.xp} bis {t.levels[lvl.level] ?? 'zum nächsten Stern'}
         </p>

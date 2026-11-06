@@ -13,7 +13,7 @@
   --accent: #127a68;
   --accent-ink: #ffffff;
   --accent-soft: #d5efe9;
-  --warm: #9a5b12;
+  --warm: #95570f;
   --warm-soft: #f6e6cf;
   --font-scale: 1;
 }
@@ -99,6 +99,10 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .animate-rise { animation: rise 1.6s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   .animate-pop, .animate-rise { animation: none; }
+  *, *::before, *::after {
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Druckansicht */

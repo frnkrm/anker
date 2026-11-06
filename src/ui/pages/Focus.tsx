@@ -118,7 +118,7 @@ export default function Focus() {
           <InboxButton context={captureContext} />
         </div>
       </header>
-      <Progress value={index / steps.length} />
+      <Progress label="Fortschritt der Routine" value={index / steps.length} />
       {toHard <= 15 && hard && <p className="mt-4 rounded-2xl bg-warm-soft px-4 py-3 text-center text-lg text-warm" role="status">Noch {Math.max(0, toHard)} Minuten bis {hard.label}</p>}
       {error && <div role="alert" className="mt-3 text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry((value) => value + 1)}>Erneut versuchen</Button></div>}
 

@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { fmtTime, parseTime } from '../../core/time'
@@ -28,6 +28,8 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 
 export function Page({ title, back, children, actions }: { title: string; back?: boolean | string; children: ReactNode; actions?: ReactNode }) {
   const nav = useNavigate()
+  const heading = useRef<HTMLHeadingElement>(null)
+  useLayoutEffect(() => { heading.current?.focus() }, [])
   return (
     <div className="mx-auto max-w-xl px-4 pb-28 safe-top">
       <header className="mb-4 flex min-h-12 items-center gap-2">
@@ -36,7 +38,7 @@ export function Page({ title, back, children, actions }: { title: string; back?:
             ‹
           </button>
         )}
-        <h1 className="flex-1 text-2xl font-semibold">{title}</h1>
+        <h1 ref={heading} tabIndex={-1} className="min-w-0 flex-1 break-words text-2xl font-semibold">{title}</h1>
         {actions}
       </header>
       <div className="space-y-4">{children}</div>
@@ -79,23 +81,38 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-8 w-14 shrink-0 rounded-full transition ${checked ? 'bg-accent' : 'bg-surface-2 ring-1 ring-line'}`}
+      className="flex h-11 w-14 shrink-0 items-center rounded-full"
     >
-      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${checked ? 'left-7' : 'left-1'}`} />
+      <span aria-hidden="true" className={`relative h-8 w-14 rounded-full transition ${checked ? 'bg-accent' : 'bg-surface-2 ring-1 ring-line'}`}>
+        <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${checked ? 'left-7' : 'left-1'}`} />
+      </span>
     </button>
   )
 }
 
 export function Segmented<T extends string | number>({ value, options, onChange, label }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
+  const buttons = useRef(new Map<T, HTMLButtonElement>())
+  const tabbable = options.some((option) => option.value === value) ? value : options[0]?.value
   return (
     <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
-      {options.map((o) => (
+      {options.map((o, index) => (
         <button
           key={String(o.value)}
           type="button"
           role="radio"
           aria-checked={o.value === value}
+          tabIndex={o.value === tabbable ? 0 : -1}
+          ref={(node) => { if (node) buttons.current.set(o.value, node); else buttons.current.delete(o.value) }}
           onClick={() => onChange(o.value)}
+          onKeyDown={(event) => {
+            const delta = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 0
+            if (!delta && !['Home', 'End'].includes(event.key)) return
+            event.preventDefault()
+            const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + delta + options.length) % options.length
+            const next = options[nextIndex]!
+            onChange(next.value)
+            buttons.current.get(next.value)?.focus()
+          }}
           className={`min-h-11 rounded-xl px-3 text-sm ${o.value === value ? 'bg-accent text-accent-ink font-semibold' : 'bg-surface-2 text-text'}`}
         >
           {o.label}
@@ -212,10 +229,11 @@ export function TextInput(p: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...p} className={`min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base placeholder:text-muted ${p.className ?? ''}`} />
 }
 
-export function Progress({ value, className = '' }: { value: number; className?: string }) {
+export function Progress({ value, className = '', label = 'Fortschritt' }: { value: number; className?: string; label?: string }) {
+  const percent = Math.round((Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0) * 100)
   return (
-    <div className={`h-3 w-full overflow-hidden rounded-full bg-surface-2 ${className}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)}>
-      <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${Math.round(Math.min(1, Math.max(0, value)) * 100)}%` }} />
+    <div className={`h-3 w-full overflow-hidden rounded-full bg-surface-2 ${className}`} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+      <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${percent}%` }} />
     </div>
   )
 }

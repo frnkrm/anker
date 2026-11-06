@@ -7,6 +7,7 @@ import { useRef, useState, type ReactNode } from 'react'
 export function SortableList<T extends { id: string }>({ items, onChange, render }: { items: T[]; onChange: (items: T[]) => void; render: (item: T, index: number) => ReactNode }) {
   const listRef = useRef<HTMLOListElement>(null)
   const [drag, setDrag] = useState<{ from: number; to: number; dy: number; startY: number } | null>(null)
+  const [announcement, setAnnouncement] = useState('')
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= items.length || from === to) return
@@ -14,6 +15,7 @@ export function SortableList<T extends { id: string }>({ items, onChange, render
     const [x] = next.splice(from, 1)
     next.splice(to, 0, x!)
     onChange(next)
+    setAnnouncement(`Eintrag von Position ${from + 1} auf ${to + 1} verschoben.`)
   }
 
   const targetIndex = (clientY: number): number => {
@@ -26,7 +28,9 @@ export function SortableList<T extends { id: string }>({ items, onChange, render
   }
 
   return (
-    <ol ref={listRef} className="space-y-2">
+    <div>
+      <p role="status" className="sr-only">{announcement}</p>
+      <ol ref={listRef} className="space-y-2">
       {items.map((item, i) => {
         const dragging = drag?.from === i
         return (
@@ -38,8 +42,8 @@ export function SortableList<T extends { id: string }>({ items, onChange, render
             <div className="flex flex-col items-center justify-center gap-1">
               <button
                 type="button"
-                aria-label="Ziehen zum Verschieben"
-                className="grid h-12 w-10 cursor-grab touch-none place-items-center rounded-xl text-xl text-muted active:bg-surface-2"
+                aria-label={`Eintrag ${i + 1} zum Verschieben ziehen`}
+                className="grid h-12 w-11 cursor-grab touch-none place-items-center rounded-xl text-xl text-muted active:bg-surface-2"
                 onPointerDown={(e) => {
                   e.currentTarget.setPointerCapture(e.pointerId)
                   setDrag({ from: i, to: i, dy: 0, startY: e.clientY })
@@ -57,10 +61,10 @@ export function SortableList<T extends { id: string }>({ items, onChange, render
                 ⋮⋮
               </button>
               <div className="flex flex-col">
-                <button type="button" aria-label="Nach oben" className="h-8 w-10 text-muted disabled:opacity-30" disabled={i === 0} onClick={() => move(i, i - 1)}>
+                <button type="button" aria-label={`Eintrag ${i + 1} nach oben`} className="h-11 w-11 text-muted disabled:opacity-30" disabled={i === 0} onClick={() => move(i, i - 1)}>
                   ▲
                 </button>
-                <button type="button" aria-label="Nach unten" className="h-8 w-10 text-muted disabled:opacity-30" disabled={i === items.length - 1} onClick={() => move(i, i + 1)}>
+                <button type="button" aria-label={`Eintrag ${i + 1} nach unten`} className="h-11 w-11 text-muted disabled:opacity-30" disabled={i === items.length - 1} onClick={() => move(i, i + 1)}>
                   ▼
                 </button>
               </div>
@@ -69,6 +73,7 @@ export function SortableList<T extends { id: string }>({ items, onChange, render
           </li>
         )
       })}
-    </ol>
+      </ol>
+    </div>
   )
 }

@@ -55,7 +55,7 @@ export default function Now() {
           {mode !== 'normal' ? MODE_LABEL[mode] : plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} ▾
         </button>
       </header>
-      {v.hard && <Progress value={v.elapsed} className="!h-1" />}
+      {v.hard && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
 
       {st.alarmStatus && !st.alarmStatus.ok && (
         <Link to="/wecker" className="mt-3 block rounded-2xl border border-warm px-4 py-3 text-warm">

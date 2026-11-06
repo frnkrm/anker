@@ -100,7 +100,7 @@ export default function SleepDiary() {
             </div>)}
           </dl>
           {row.bedToWakeMin !== undefined && <p className="mt-3 text-sm">Zeit zwischen Bett und Aufstehen: {fmtDuration(row.bedToWakeMin)}</p>}
-          <Button size="sm" variant="ghost" className="mt-2" disabled={pending} aria-label={`Nacht ${row.date} bearbeiten`} onClick={() => { pick(row.date); setEditing(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Bearbeiten</Button>
+          <Button size="sm" variant="ghost" className="mt-2" disabled={pending} aria-label={`Nacht ${row.date} bearbeiten`} onClick={() => { pick(row.date); setEditing(true); window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>Bearbeiten</Button>
         </Card>)}
       </Section>
       <p className="text-sm text-muted">Diese Angaben bleiben auf diesem Gerät und werden nicht synchronisiert. Deine Datensicherung enthält sie. Es entstehen keine Punkte oder Serien.</p>
