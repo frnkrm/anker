@@ -4,9 +4,9 @@ import { randomId } from '../../core/defaults'
 import { SESSION_LABEL } from '../../core/support'
 import { addDays, daysBetween, fmtDuration, fmtTime, weekday, WEEKDAYS, zonedToUtc } from '../../core/time'
 import type { WorkBreak, WorkSession, WorkSessionKind } from '../../core/types'
-import { balanceText, dayActual, dayBalance, manualSession, staleSession, weekSummary, workRule } from '../../core/worktime'
+import { balanceText, dayActual, dayBalance, manualSession, needsWorkConfirmation, weekSummary, workRule } from '../../core/worktime'
 import { useNow, useToday } from '../../state/hooks'
-import { planFor, today as currentDay, useApp } from '../../state/store'
+import { planFor, useApp } from '../../state/store'
 import { Button, Card, Page, Section, Segmented, TextInput, TimeField } from '../components/ui'
 import { msToField, PlanWorkForm, WorkHints } from '../components/WorkControls'
 import { useTaskAction } from '../components/TaskDetails'
@@ -23,7 +23,7 @@ export default function WorkTime() {
   const actual = dayActual(st.local.workSessions, date, now)
   const target = dayPlan.workInfo?.targetNetMin ?? 0
   const openHere = st.local.workSessions.find((x) => x.endAt === undefined)
-  const staleOpen = !!openHere && !!staleSession([openHere], today, now)
+  const staleOpen = !!openHere && needsWorkConfirmation(openHere, now)
   const planned = st.local.commitments.filter((c) => c.workKind && c.status !== 'cancelled' && c.date >= today && !st.local.workSessions.some((x) => x.commitmentId === c.id)).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)
 
   return (
@@ -102,7 +102,7 @@ export default function WorkTime() {
           </Section>
         ))}
 
-      <Section title="Nachtragen" hint="Auch ohne Timer. Eine Endzeit vor dem Beginn liegt nach Mitternacht.">
+      <Section title="Nachtragen" hint="Auch ohne Timer. Ein Plantag läuft von 04:00 bis 04:00. Für eine Zeit vor 04:00 wählst du den vorherigen Tag; ein Ende vor dem Beginn liegt nach Mitternacht.">
         <ManualForm key={date} date={date} />
       </Section>
 
@@ -119,7 +119,7 @@ export default function WorkTime() {
                 Starten
               </Button>
             )}
-            <Button size="sm" variant="ghost" disabled={action.busy} onClick={() => action.run(() => st.saveCommitment({ ...c, status: 'cancelled' }))}>
+            <Button size="sm" variant="ghost" disabled={action.busy} onClick={() => action.run(() => st.adjustCommitment({ ...c, status: 'cancelled' }, 'Einsatz entfällt'))}>
               Entfällt
             </Button>
           </Card>
@@ -171,7 +171,7 @@ function correctedTime(date: string, originalAt: number, clockMinute: number): n
 function SessionCard({ session: x, date }: { session: WorkSession; date: string }) {
   const st = useApp()
   const { busy, error, message, run } = useTaskAction()
-  const stale = !!staleSession([x], currentDay(), Date.now())
+  const stale = needsWorkConfirmation(x, Date.now())
   const [confirmedEnd, setConfirmedEnd] = useState('')
   const patch = (fn: (session: WorkSession) => WorkSession) => run(() => st.editWork((list) => list.map((session) => session.id === x.id ? { ...fn(session), manual: true } : session)), 'Korrektur gespeichert.')
   return <Card className="space-y-2">

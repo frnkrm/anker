@@ -308,8 +308,7 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
       workKind: kind,
       ...(onsite ? { ...(place.trim() ? { placeLabel: place.trim(), address: place.trim() } : {}), ...(travel !== undefined ? { travelMin: travel } : {}) } : { routeMode: 'none' as const, prepMin: kind === 'oncall' ? 0 : 15 }),
     }
-    await st.saveCommitment(c)
-    await st.adjustDay(date, `Einsatz um ${fmtTime(start)}`, (l) => l)
+    await st.adjustCommitment(c, `Einsatz um ${fmtTime(start)}`)
     setTitle('')
     onDone('Eingeplant. Der Rest des Tages bleibt, wie er ist.')
   })

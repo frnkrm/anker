@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test'
+import type { LocalData } from '../src/core/types'
+import { storedRecord } from './helpers/storage'
 
 // Smoke-Test der Web-Version: Onboarding → Jetzt-Ansicht → Gedanke festhalten → Seiten erreichbar.
 test('Onboarding und Hauptwege funktionieren', async ({ page }) => {
@@ -185,21 +187,21 @@ test('Gleitzeit: Start, längere Pause, Feierabend übersteht Neuladen und zähl
   await expect(bar.getByText('Feierabend etwa 17:00')).toBeVisible()
   await expect(bar.getByRole('button', { name: 'Arbeit starten' })).toHaveCount(0)
 
-  await page.waitForTimeout(500)
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.workSessions.length).toBe(1)
   await page.clock.setFixedTime(new Date('2026-11-02T12:00:00+01:00'))
   await page.reload()
   await bar.getByRole('button', { name: 'Pause starten' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pause läuft')
 
   // Die Pause läuft weiter, auch wenn die App zwischendurch zu war
-  await page.waitForTimeout(500)
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.workSessions[0]?.breaks.length).toBe(1)
   await page.clock.setFixedTime(new Date('2026-11-02T13:30:00+01:00'))
   await page.reload()
-  await expect(page.getByText(/Feierabend gerade etwa 17:30/)).toBeVisible()
+  await expect(page.getByText(/Feierabend frühestens 17:30/)).toBeVisible()
   await page.getByRole('button', { name: 'Pause beenden' }).click()
   await expect(bar.getByText('Feierabend etwa 17:30')).toBeVisible()
 
-  await page.waitForTimeout(500)
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.workSessions[0]?.breaks[0]?.endAt).toBe(new Date('2026-11-02T13:30:00+01:00').getTime())
   await page.clock.setFixedTime(new Date('2026-11-02T18:00:00+01:00'))
   await page.reload()
   await expect(bar.getByText(/Ziel ist erreicht, 30 min zusätzlich/)).toBeVisible()

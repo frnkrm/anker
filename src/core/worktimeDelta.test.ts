@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { defaultSettings } from './defaults'
 import { buildDayPlan } from './planner'
-import { assertWorkChanges, dayActual, forecastEnd, latestInfo, validWorkSession, workForecast, workRule, workSessionIssues } from './worktime'
+import { assertWorkChanges, dayActual, forecastEnd, latestInfo, manualSession, needsWorkConfirmation, validWorkSession, workForecast, workRule, workSessionIssues } from './worktime'
 import { zonedToUtc } from './time'
 import type { Settings, WorkSession } from './types'
 
@@ -93,9 +93,32 @@ describe('E05: Arbeitsprognose mit realem Fortsetzungspunkt', () => {
     expect(() => assertWorkChanges([], [s], at(1140))).toThrow('Pausenende')
   })
 
+  it('lässt eine tatsächliche geschlossene Pause unabhängig von ihrer alten Endschätzung korrigieren', () => {
+    const s = session('a', 480, 1020)
+    s.breaks = [{ id: 'p', startAt: at(840), endAt: at(870), expectedEndAt: at(810) }]
+    expect(() => assertWorkChanges([], [s], at(1140))).not.toThrow()
+    expect(dayActual([s], date, at(1140))).toMatchObject({ unconfirmed: false, breakMin: 30 })
+  })
+
   it('akzeptiert Legacy-Sessions ohne Endschätzung und prüft neue optionale Daten strukturell', () => {
     const s = session('a', 480, 1020)
     expect(validWorkSession(s)).toBe(true)
     for (const bad of [{ ...s, breaks: null }, { ...s, startAt: NaN }, { ...s, kind: 'automatic' }, { ...s, date: '2026-02-31' }, { ...s, breaks: [{ id: 'p', startAt: at(720), expectedEndAt: Infinity }] }]) expect(validWorkSession(bad)).toBe(false)
+  })
+
+  it('ordnet einen Nachtrag vor 04:00 dem nächsten Kalendertag des gewählten Plantags zu', () => {
+    const s = manualSession('night', date, 60, 120, [{ start: 75, end: 90 }], 'incident')
+    expect(s.startAt).toBe(zonedToUtc('2026-11-03', 60))
+    expect(s.endAt).toBe(zonedToUtc('2026-11-03', 120))
+    expect(s.breaks[0]?.startAt).toBe(zonedToUtc('2026-11-03', 75))
+    expect(dayActual([s], date, zonedToUtc('2026-11-03', 180))).toMatchObject({ netMin: 45, unconfirmed: false })
+  })
+
+  it('erzwingt bei einer normalen Nachtschicht nach dem 04:00-Wechsel keine falsche Endbestätigung', () => {
+    const night = session('night', 1420, undefined, 'incident')
+    const now = zonedToUtc('2026-11-03', 270)
+    expect(needsWorkConfirmation(night, now)).toBe(false)
+    expect(dayActual([night], date, now)).toMatchObject({ unconfirmed: false, netMin: 290 })
+    expect(needsWorkConfirmation(night, zonedToUtc('2026-11-03', 1000))).toBe(true)
   })
 })

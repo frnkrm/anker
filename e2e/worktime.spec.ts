@@ -131,3 +131,31 @@ test('Rücknahme einer alten Korrektur steht nach neuem Arbeitsstart nicht mehr 
   expect((await local(page))?.workSessions).toEqual(sessions)
   expect(sessions.filter((session) => session.endAt === undefined)).toHaveLength(1)
 })
+
+test('Nachtrag vor 04 Uhr landet am richtigen Kalendertag und bleibt beim gewählten Plantag', async ({ page }) => {
+  await onboard(page, '2026-11-06')
+  await page.getByLabel('Arbeitstag auswählen', { exact: true }).fill(date)
+  await manual(page, '01:00', '02:00')
+  await expect.poll(async () => (await local(page))?.workSessions.length).toBe(1)
+  expect((await local(page))?.workSessions[0]).toMatchObject({ date, startAt: zonedToUtc('2026-11-03', 60), endAt: zonedToUtc('2026-11-03', 120) })
+  await page.reload()
+  await page.getByLabel('Arbeitstag auswählen', { exact: true }).fill(date)
+  await expect(page.getByText('1 h', { exact: true }).first()).toBeVisible()
+})
+
+test('Echte Nachtschicht bleibt nach 04 Uhr pausierbar ohne erzwungenen falschen Abschluss', async ({ page }) => {
+  await onboard(page, date, 1420)
+  await page.getByRole('button', { name: 'Kundenproblem jetzt bearbeiten', exact: true }).click()
+  await expect.poll(async () => (await local(page))?.workSessions.length).toBe(1)
+  const id = (await local(page))!.workSessions[0]!.id
+  await clock(page, '2026-11-03', 270)
+  await page.reload()
+  await expect(page.getByLabel('Tatsächliches Ende bestätigen', { exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Pause starten', exact: true }).click()
+  await expect.poll(async () => (await local(page))?.workSessions[0]?.breaks.length).toBe(1)
+  expect((await local(page))?.workSessions[0]).toMatchObject({ id, date })
+  expect((await local(page))?.workSessions[0]?.endAt).toBeUndefined()
+  await page.getByRole('button', { name: 'Pause beenden', exact: true }).click()
+  await expect.poll(async () => (await local(page))?.workSessions[0]?.breaks[0]?.endAt).toBe(zonedToUtc('2026-11-03', 270))
+  expect((await local(page))?.workSessions[0]?.endAt).toBeUndefined()
+})

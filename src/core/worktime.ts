@@ -88,7 +88,7 @@ export function workSessionIssues(list: readonly WorkSession[], nowMs: number): 
       if (pauseEnd < pause.startAt) add('break-order', [session.id], 'Das Pausenende liegt vor dem Pausenbeginn. Bitte prüfe beide Zeiten.', pause.id, pause.startAt - pauseEnd)
       if (pause.startAt < session.startAt || pauseEnd > end || pause.startAt > end || (session.endAt !== undefined && pause.endAt === undefined)) add('break-outside', [session.id], 'Die Pause liegt nicht vollständig innerhalb dieses Arbeitsabschnitts. Bitte korrigiere die Zeiten.', pause.id, Math.max(1, session.startAt - pause.startAt, pauseEnd - end, pause.startAt - end))
       if (nowMs > 0 && (pause.startAt > nowMs || (pause.endAt !== undefined && pause.endAt > nowMs))) add('future-break', [session.id], 'Diese Pause liegt noch in der Zukunft. Eine Endschätzung ist noch keine erfasste Pause.', pause.id, Math.max(pause.startAt, pause.endAt ?? 0) - nowMs)
-      if (pause.expectedEndAt !== undefined && pause.expectedEndAt < pause.startAt) add('estimate', [session.id], 'Die geschätzte Rückkehr liegt vor dem Pausenbeginn.', pause.id, pause.startAt - pause.expectedEndAt)
+      if (pause.endAt === undefined && pause.expectedEndAt !== undefined && pause.expectedEndAt < pause.startAt) add('estimate', [session.id], 'Die geschätzte Rückkehr liegt vor dem Pausenbeginn.', pause.id, pause.startAt - pause.expectedEndAt)
     }
     for (let a = 0; a < pauses.length; a++) for (let b = a + 1; b < pauses.length; b++) {
       const x = pauses[a]!; const y = pauses[b]!
@@ -150,7 +150,7 @@ export function dayActual(all: WorkSession[], date: DateStr, nowMs: number): Day
   // Für künftige/leere Plantage keine gesamte Historie paarweise prüfen. Reale Überschneidungen über Mitternacht bleiben erkennbar.
   const related = sessions.length ? all.filter((session) => session && (selected.has(session.id) || sessions.some((other) => Math.min(session.endAt ?? nowMs, other.endAt ?? nowMs) > Math.max(session.startAt, other.startAt)))) : []
   const issues = workSessionIssues(related, nowMs).filter((issue) => issue.sessionIds.some((id) => selected.has(id)))
-  const unconfirmed = issues.length > 0 || sessions.some((session) => session.endAt === undefined && (session.date < utcToZoned(nowMs).date && minutesOnPlanDay(session.date, nowMs) >= 1440 + 240 || nowMs - session.startAt > 16 * 60 * MIN))
+  const unconfirmed = issues.length > 0 || sessions.some((session) => needsWorkConfirmation(session, nowMs))
   const work = normalizeIntervals(sessions.map((x) => [x.startAt, Math.max(x.startAt, x.endAt ?? nowMs)]))
   const rawBreaks = normalizeIntervals(sessions.flatMap((x) => x.breaks.map((b): Interval => [b.startAt, Math.max(b.startAt, b.endAt ?? nowMs)])))
   const breaks = intersect(rawBreaks, work)
@@ -284,8 +284,12 @@ export function endBreak(list: WorkSession[], at: number): WorkSession[] {
 
 /** Plan-Minuten als Eingabe in eine Sitzung. Ein Ende vor dem Beginn liegt nach Mitternacht. */
 export function manualSession(id: string, date: DateStr, start: number, end: number, breaks: { start: number; end: number }[], kind: WorkSessionKind = 'regular'): WorkSession {
-  const startAt = zonedToUtc(date, start)
-  const fix = (m: number) => (m < start ? m + 1440 : m)
+  const planStart = start < 240 ? start + 1440 : start
+  const startAt = zonedToUtc(date, planStart)
+  const fix = (minute: number) => {
+    const onPlanDay = minute < 240 ? minute + 1440 : minute
+    return onPlanDay < planStart ? onPlanDay + 1440 : onPlanDay
+  }
   return {
     id,
     date,
@@ -304,6 +308,11 @@ export function withUsualBreak(x: WorkSession, minutes: number, id: string): Wor
   const len = Math.min(minutes * MIN, span)
   const startAt = x.startAt + Math.round((span - len) / 2)
   return { ...x, breaks: [...x.breaks, { id, startAt, endAt: startAt + len }] }
+}
+
+/** Ein bloßer 04:00-Tagwechsel macht eine kurze laufende Nachtschicht nicht zu vergessen gearbeiteten Stunden. */
+export function needsWorkConfirmation(session: WorkSession, nowMs: number): boolean {
+  return session.endAt === undefined && nowMs - session.startAt > 16 * 60 * MIN
 }
 
 /** Sitzung, die vergessen wurde: läuft seit einem früheren Plantag oder ungewöhnlich lange. Nie still schließen. */
