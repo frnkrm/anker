@@ -38,6 +38,7 @@ async function prepare(page: Page) {
   await page.goto('/start')
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
   await page.evaluate((data) => new Promise<void>((resolve, reject) => {
     const request = indexedDB.open('anker')
     request.onerror = () => reject(request.error)

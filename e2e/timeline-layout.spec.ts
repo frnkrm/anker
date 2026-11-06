@@ -6,6 +6,7 @@ test('Tageslinie bleibt bei 320 Pixeln und 160 Prozent Schrift vollständig inne
   await page.goto('/start')
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
   await page.goto('/einstellungen/darstellung')
   const size = page.getByRole('spinbutton', { name: 'Schriftgröße', exact: true })
   await size.fill('160'); await size.press('Tab')
