@@ -248,12 +248,13 @@ object GeofenceManager {
         }
     }
 
-    fun restoreAfterBoot(context: Context) {
-        if (!unlocked(context)) return
+    fun restoreAfterBoot(context: Context, completed: (() -> Unit)? = null) {
+        if (!unlocked(context)) { completed?.invoke(); return }
         synchronized(lock) {
             val current = pruned(read(context), System.currentTimeMillis())
             // Registrierungen überleben Reboot nicht zuverlässig; nur vorhandene Auswahl/reale Rechte verwenden.
             store(context, current.copy(registered = 0)); generation++
+            if (completed != null) callbacks.add { completed() }
             if (!busy) { busy = true; main.post { reconcile(credential(context).applicationContext) } }
         }
     }
