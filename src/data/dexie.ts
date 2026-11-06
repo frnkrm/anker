@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import { remoteWins } from './merge'
-import type { Collection, Rec, Repository } from './types'
+import type { Collection, Rec, Repository, RepositoryWrite } from './types'
 
 class AnkerDb extends Dexie {
   records!: Table<Rec, [Collection, string]>
@@ -28,9 +28,9 @@ export class DexieRepository implements Repository {
   async put<T>(c: Collection, id: string, data: T) {
     await this.db.records.put({ collection: c, id, data, updated_at: Date.now(), deleted: false, dirty: 1 })
   }
-  async putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]) {
+  async putMany(records: readonly RepositoryWrite[]) {
     await this.db.transaction('rw', this.db.records, async () => {
-      await this.db.records.bulkPut(records.map((r) => ({ ...r, updated_at: Date.now(), deleted: false, dirty: 1 })))
+      await this.db.records.bulkPut(records.map((r) => ({ ...r, updated_at: Date.now(), deleted: r.deleted ?? false, dirty: 1 })))
     })
   }
   async remove(c: Collection, id: string) {

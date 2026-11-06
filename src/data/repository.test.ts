@@ -78,6 +78,36 @@ for (const [name, make] of impls) {
       expect(await r.get('game', 'main')).toEqual({ xp: 10 })
       expect(await r.dirty()).toHaveLength(2)
     })
+
+    it('speichert lokale Arbeitsaufgabe und Inbox-Tombstone gemeinsam, ohne die Notiz weiter anzuzeigen', async () => {
+      const r = await fresh()
+      await r.put('inbox', 'gedanke', { text: 'Vorgang prüfen', status: 'open' })
+      await r.markClean(await r.dirty())
+      await r.putMany([
+        { collection: 'meta', id: 'local', data: { work: [{ id: 'arbeit', title: 'Vorgang prüfen', createdAt: 1 }] } },
+        { collection: 'inbox', id: 'gedanke', data: null, deleted: true },
+      ])
+      expect(await r.get('meta', 'local')).toEqual({ work: [{ id: 'arbeit', title: 'Vorgang prüfen', createdAt: 1 }] })
+      expect(await r.get('inbox', 'gedanke')).toBeUndefined()
+      expect(await r.list('inbox')).toEqual([])
+      const pending = await r.dirty()
+      expect(pending).toHaveLength(2)
+      expect(pending.find((record) => record.collection === 'inbox')).toMatchObject({ id: 'gedanke', data: null, deleted: true, dirty: 1 })
+      expect(pending.find((record) => record.collection === 'meta')).toMatchObject({ deleted: false, dirty: 1 })
+      await r.markClean(pending)
+      expect(await r.dirty()).toEqual([])
+    })
+
+    it('bewahrt Batch-Löschung gegen ältere Syncstände und erlaubt ausdrückliche Wiederherstellung', async () => {
+      const r = await fresh()
+      await r.putMany([{ collection: 'inbox', id: 'gedanke', data: null, deleted: true }])
+      const tombstone = (await r.all())[0]!
+      expect(await r.merge([{ ...tombstone, data: { text: 'alter Stand' }, deleted: false, updated_at: tombstone.updated_at - 1 }])).toBe(0)
+      expect(await r.get('inbox', 'gedanke')).toBeUndefined()
+      await r.putMany([{ collection: 'inbox', id: 'gedanke', data: { text: 'wiederhergestellt' }, deleted: false }])
+      expect(await r.get('inbox', 'gedanke')).toEqual({ text: 'wiederhergestellt' })
+      expect((await r.all())[0]!.deleted).toBe(false)
+    })
   })
 }
 
@@ -99,4 +129,37 @@ it('Memory lässt bei einem fehlgeschlagenen Batch keine teilweise gespeicherte 
     { collection: 'game', id: 'main', data: { xp: 10 } },
   ])).rejects.toThrow('clock failed')
   expect(await r.all()).toEqual([])
+})
+
+it('Dexie erhält die ursprüngliche Notiz und Arbeitsdaten, wenn der Batch nach dem Tombstone fehlschlägt', async () => {
+  const r = new DexieRepository()
+  await r.init(); await r.clear()
+  await r.put('inbox', 'gedanke', { text: 'bleibt erhalten' })
+  await r.put('meta', 'local', { work: [] })
+  const before = await r.all()
+  await expect(r.putMany([
+    { collection: 'inbox', id: 'gedanke', data: null, deleted: true },
+    { collection: 'meta', id: 'local', data: { work: [() => 'not cloneable'] } },
+  ])).rejects.toThrow()
+  expect(await r.all()).toEqual(before)
+  expect(await r.get('inbox', 'gedanke')).toEqual({ text: 'bleibt erhalten' })
+})
+
+it('Memory veröffentlicht keinen Tombstone, wenn das zweite Batch-Schreiben fehlschlägt', async () => {
+  let fail = false
+  let batchWrites = 0
+  const r = new MemoryRepository(() => {
+    if (fail && ++batchWrites === 2) throw new Error('clock failed')
+    return 1
+  })
+  await r.put('inbox', 'gedanke', { text: 'bleibt erhalten' })
+  await r.put('meta', 'local', { work: [] })
+  const before = await r.all()
+  fail = true
+  await expect(r.putMany([
+    { collection: 'inbox', id: 'gedanke', data: null, deleted: true },
+    { collection: 'meta', id: 'local', data: { work: [{ id: 'arbeit', title: 'Neuer Stand' }] } },
+  ])).rejects.toThrow('clock failed')
+  expect(await r.all()).toEqual(before)
+  expect(await r.get('inbox', 'gedanke')).toEqual({ text: 'bleibt erhalten' })
 })

@@ -12,13 +12,16 @@ export interface Rec<T = unknown> {
   dirty?: number
 }
 
+/** Lokaler Batch-Eintrag; ohne deleted bleibt das bisherige normale Speichern erhalten. */
+export type RepositoryWrite = Pick<Rec, 'collection' | 'id' | 'data'> & Partial<Pick<Rec, 'deleted'>>
+
 export interface Repository {
   init(): Promise<void>
   get<T>(c: Collection, id: string): Promise<T | undefined>
   list<T>(c: Collection): Promise<T[]>
   put<T>(c: Collection, id: string, data: T): Promise<void>
-  /** One local transaction: effects and their acknowledgement receipt commit together. */
-  putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]): Promise<void>
+  /** One local transaction for related writes, including explicit deletion tombstones. */
+  putMany(records: readonly RepositoryWrite[]): Promise<void>
   remove(c: Collection, id: string): Promise<void>
   all(): Promise<Rec[]>
   dirty(): Promise<Rec[]>

@@ -1,5 +1,5 @@
 import { key, remoteWins } from './merge'
-import type { Collection, Rec, Repository } from './types'
+import type { Collection, Rec, Repository, RepositoryWrite } from './types'
 
 /** In-Memory-Repository für Tests und als letzter Fallback. */
 export class MemoryRepository implements Repository {
@@ -17,9 +17,9 @@ export class MemoryRepository implements Repository {
   async put<T>(c: Collection, id: string, data: T) {
     this.map.set(key({ collection: c, id }), { collection: c, id, data, updated_at: this.now(), deleted: false, dirty: 1 })
   }
-  async putMany(records: readonly Pick<Rec, 'collection' | 'id' | 'data'>[]) {
+  async putMany(records: readonly RepositoryWrite[]) {
     const next = new Map(this.map)
-    for (const r of records) next.set(key(r), { ...r, updated_at: this.now(), deleted: false, dirty: 1 })
+    for (const r of records) next.set(key(r), { ...r, updated_at: this.now(), deleted: r.deleted ?? false, dirty: 1 })
     this.map = next
   }
   async remove(c: Collection, id: string) {
