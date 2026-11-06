@@ -101,6 +101,7 @@ for (const target of ['now', 'alarm']) {
     await expect(page.getByRole('link', { name: /Gemeinsam testen/ })).toBeVisible()
     await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
     await expect(page.getByLabel('Test auswählen', { exact: true })).toBeVisible()
+    await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
     await page.getByRole('button', { name: 'Zeiteingabe prüfen', exact: true }).click()
     await page.getByRole('button', { name: 'Uhrzeiten direkt ändern', exact: true }).click()
     await expect(page.getByLabel('PC-Stopp', { exact: true })).toBeVisible()

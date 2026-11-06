@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { LocalData } from '../src/core/types'
+import type { DayLog, GameState, LocalData } from '../src/core/types'
 import { storedRecord } from './helpers/storage'
 
 // Smoke-Test der Web-Version: Onboarding → Jetzt-Ansicht → Gedanke festhalten → Seiten erreichbar.
@@ -99,18 +99,32 @@ test('Heute anders: Termin, Routine wartet, Spiel ohne falsches Erledigt, Rückg
 
   await page.getByRole('button', { name: /Arbeitstag/ }).click()
   await page.getByRole('radio', { name: 'Ja' }).click()
-  await expect(page.getByText(/Gesendet|Das machst du selbst/)).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Homeoffice-Kontakt', exact: true })).toContainText('sendet nichts automatisch')
   await page.getByRole('button', { name: 'Fertig' }).click()
+  const beforeSteps = (await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.steps ?? {}
+  const beforeXp = (await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? 0
 
   await page.getByRole('button', { name: 'Heute anders' }).click()
   await page.getByRole('button', { name: /etwas anderes vor/ }).click()
   await page.getByRole('textbox', { name: 'Was hast du vor?' }).fill('Film bei einer Freundin ab 17 Uhr')
+  await page.getByRole('radio', { name: 'Vor Ort', exact: true }).click()
+  await page.getByRole('button', { name: 'Weg & Vorbereitung', exact: true }).click()
   await page.getByRole('textbox', { name: 'Ort' }).fill('Bei Lena')
   // Vorschau zuerst: Anfahrt unklar wird benannt, nichts wird erfunden
-  await expect(page.getByText(/Heute 17:00, .*Anfahrt unklar, Ende offen/)).toBeVisible()
+  await expect(page.getByRole('dialog').getByText('2026-11-02 · 17:00 · Film bei einer Freundin ab 17 Uhr · Ende offen · Bei Lena', { exact: true })).toBeVisible()
+  await expect(page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten' })).toHaveValue('')
   await page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten' }).fill('20')
+  expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.commitments ?? []).toEqual([])
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.steps ?? {}).toEqual(beforeSteps)
+  expect((await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? 0).toBe(beforeXp)
   await page.getByRole('button', { name: 'So übernehmen' }).click()
-  await expect(page.getByText(/heute läuft es anders/)).toBeVisible()
+  await expect(page.getByText(/^Eingeplant\./)).toBeVisible()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.commitments.length).toBe(1)
+  const commitment = (await storedRecord<LocalData>(page, 'meta', 'local'))?.commitments[0]
+  expect(commitment).toMatchObject({ date: '2026-11-02', start: 17 * 60, placeLabel: 'Bei Lena', travelMin: 20 })
+  expect(commitment?.end).toBeUndefined()
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.steps ?? {}).toEqual(beforeSteps)
+  expect((await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? 0).toBe(beforeXp)
 
   await page.goto('/tag')
   await expect(page.getByText('Zuhause → Bei Lena', { exact: false }).first()).toBeVisible()
