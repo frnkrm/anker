@@ -7,6 +7,12 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: { backgroundColor: '#0f1115' },
   plugins: {
+    // Die ganze WebView bleibt außerhalb von Systemleisten und Kameraausschnitt,
+    // auch bei aktiver Testbegleitung und nach einer Drehung.
+    SystemBars: {
+      insetsHandling: 'css',
+      initialViewportFitValueHint: 'contain',
+    },
     LocalNotifications: {
       smallIcon: 'ic_stat_anker',
       iconColor: '#7dd3c0',

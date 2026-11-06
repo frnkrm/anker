@@ -21,7 +21,7 @@ function appSourceFingerprint(): string {
   }
   visit('src')
   visit('android/app/src/main/java/de/frnkrm/anker')
-  for (const path of ['package.json', 'package-lock.json', 'vite.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
+  for (const path of ['index.html', 'package.json', 'package-lock.json', 'vite.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
   hash.update(JSON.stringify(parseDeviceTestCatalog(readFileSync(root + 'docs/GERAETETEST.md', 'utf8'))))
   return hash.digest('hex')
 }
