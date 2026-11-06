@@ -374,10 +374,19 @@ export interface NextObligation {
 
 /** Was am Folgetag zuerst ansteht. Ein fester Termin geht vor dem eigenen Wunsch-Beginn. */
 export function nextObligation(plan: DayPlan, date: DateStr): NextObligation | undefined {
-  const firstHard = (plan.legs ?? []).find((l) => l.commitment.commitment === 'hard')
+  const obligations = new Map((plan.legs ?? []).filter((leg) => leg.commitment.commitment === 'hard')
+    .map((leg) => [`commitment:${leg.commitment.id}`, leg.commitment.start]))
+  // Derselbe harte Morgen wie bei Weckbedarf/Plan, einschließlich bewusst importierter Kalendertermine.
+  // Eine Abfahrt oder Rechner-Vorbereitung wird dadurch nicht zum rechtlichen Arbeitsbeginn.
+  for (const anchor of plan.morningAnchors ?? []) {
+    if (anchor.id === 'work' || obligations.has(anchor.id)) continue
+    const block = plan.blocks.find((candidate) => candidate.id === anchor.id)
+    obligations.set(anchor.id, block?.start ?? anchor.readyAt)
+  }
+  const firstHard = [...obligations.values()].sort((a, b) => a - b)[0]
   const wi = plan.workInfo
-  if (firstHard && (!wi || firstHard.commitment.start <= wi.plannedStart || wi.fixedMorning)) {
-    return { startMs: zonedToUtc(date, firstHard.commitment.start), label: 'deinem Termin', hard: true }
+  if (firstHard !== undefined && (!wi || firstHard <= wi.plannedStart || wi.fixedMorning)) {
+    return { startMs: zonedToUtc(date, firstHard), label: 'deinem Termin', hard: true }
   }
   return wi ? { startMs: zonedToUtc(date, wi.plannedStart), label: 'dem nächsten Arbeitsbeginn', hard: false } : undefined
 }
