@@ -91,7 +91,9 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   const wake = o.wakeOverride ?? s.anchor.wake
   let bed = asNight(s.bed)
-  let pcStop = Math.min(asNight(s.pcStop) + Math.min(15, o.pcStopExtendMin ?? 0), bed)
+  const legacyExtension = Number.isFinite(o.pcStopExtendMin) ? Math.max(0, o.pcStopExtendMin ?? 0) : 0
+  let pcStop = asNight(s.pcStop) + legacyExtension
+  if (pcStop > bed) bed = pcStop + Math.min(s.sleep.screenOffMin, 30)
   const quiet: [number, number][] = []
   // Länger wach ist eine freie Entscheidung: Die Grenzen rücken mit, ohne Warnung und ohne erfundenes Ende
   const openEnd = o.lateUntil === 'open'

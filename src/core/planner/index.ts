@@ -10,8 +10,8 @@ export function workLonger(o: DayOverride, plan: DayPlan, extraMin: number): Day
   return { ...o, workEnd: base + extraMin }
 }
 
-/** Verlängerung PC-Stopp: einmal pro Abend um 15 Minuten. */
-export function extendPcStop(o: DayOverride): DayOverride | null {
-  if ((o.pcStopExtendMin ?? 0) > 0) return null
-  return { ...o, pcStopExtendMin: 15 }
+/** Bestehende gespeicherte Verlängerungen bleiben additiv; neue UI nutzt die freie Abendentscheidung. */
+export function extendPcStop(o: DayOverride, minutes = 15): DayOverride | null {
+  if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) return null
+  return { ...o, pcStopExtendMin: (o.pcStopExtendMin ?? 0) + minutes }
 }

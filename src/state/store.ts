@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { eveningLocalFields } from '../core/evening'
+import { restoreCommitments, routineCoverage, validPlanUndo } from '../core/flexible'
 import { deviceTestsFromLocal, validDeviceTests } from '../core/deviceTests'
 import { createCountdown, isFocusSession, pauseCountdown, remainingMs, resumeCountdown, sameFocusTarget, validFocusTarget, validStuck, type FocusSession, type FocusTarget, type StuckSession } from '../core/focus'
 import { normaliseTask, recoveryFields, usableResume, validCaptureDraft } from '../core/recovery'
@@ -120,6 +121,8 @@ interface AppState {
   /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
   restoreDay(date: DateStr): Promise<void>
   saveCommitment(c: Commitment): Promise<void>
+  /** Bewusste Terminplanung mit privater atomarer Rücknahmebasis. */
+  adjustCommitment(c: Commitment, label: string, reason?: string): Promise<void>
   /** Arbeit starten. Läuft schon etwas, bleibt es dabei. */
   workStart(i?: { kind?: WorkSessionKind; label?: string; commitmentId?: string; at?: number }): Promise<void>
   /** Beendet, was läuft. Mehrfaches Tippen ändert nichts. */
@@ -272,6 +275,37 @@ function editTask(ref: TaskRef, edit: (task: InboxItem | WorkTask, data: TaskDat
   })
 }
 
+/** Planänderung und private Rücknahmebasis werden gemeinsam gespeichert, ohne echte Handlungen zu erfinden. */
+function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: LocalData) => DayLog): Promise<void> {
+  return atomic(async () => {
+    const st = useApp.getState()
+    const local = structuredClone(st.local)
+    let log = structuredClone(st.days[date] ?? emptyLog(date))
+    local.planUndo ??= {}
+    local.planUndo[date] ??= { at: Date.now(), commitments: structuredClone(local.commitments.filter((commitment) => commitment.date === date)) }
+    const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
+    log = edit(log, local)
+    log = { ...log, before, override: { ...log.override, adjusted: true }, changes: [...(log.changes ?? []), label] }
+    pauseChangedRoutine(local, log)
+    const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: log } })
+    const award = applyAwards(plan, log, st.game, st.settings)
+    const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: local }]
+    if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
+    await repo.putMany(records)
+    useApp.setState({ days: { ...st.days, [date]: award.log }, local, game: award.game })
+    changed()
+  })
+}
+
+function pauseChangedRoutine(local: LocalData, log: DayLog): void {
+  const focus = local.focus
+  if (focus?.target.kind === 'routine' && focus.target.date === log.date) {
+    if (log.steps[stepKey(focus.target.routine, focus.target.stepId)]) local.focus = undefined
+    else focus.timer = pauseCountdown(focus.timer, Date.now())
+  }
+  local.focusHistory = local.focusHistory?.filter((focus) => focus.target.kind !== 'routine' || focus.target.date !== log.date || !log.steps[stepKey(focus.target.routine, focus.target.stepId)])
+}
+
 export function today(): DateStr {
   return activePlanDate(Date.now(), todayBerlin)
 }
@@ -282,13 +316,9 @@ export function emptyLog(date: DateStr): DayLog {
 
 const planCache = new Map<string, { key: unknown[]; plan: DayPlan }>()
 
-/** Vom Vortag versorgte Schritte, nur über ausdrücklich gesetzte Regeln. */
+/** Dieselbe bestätigte Bedarfprojektion wird in Planer und Oberfläche verwendet. */
 function coveredBy(date: DateStr, st: Pick<AppState, 'settings' | 'days'>): string {
-  const prev = st.days[addDays(date, -1)]
-  return st.settings.routineLinks
-    .filter((l) => ['done', 'minimal'].includes(prev?.steps[`evening:${l.eveningStepId}`] ?? ''))
-    .map((l) => `morning:${l.morningStepId}`)
-    .join(',')
+  return routineCoverage(date, st.settings, st.days).filter((row) => row.covered).map((row) => row.key).join(',')
 }
 
 export function planFor(date: DateStr, st: Pick<AppState, 'settings' | 'days' | 'events' | 'local'> = useApp.getState()): DayPlan {
@@ -333,6 +363,7 @@ async function readAppData() {
   const events = (await repo.get<CalendarEvent[]>('meta', 'events')) ?? []
   const savedLocal = await repo.get<LocalData>('meta', 'local')
   const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...recoveryFields(savedLocal), deviceTests: deviceTestsFromLocal(savedLocal) }
+  if (!validPlanUndo(local.planUndo)) local.planUndo = undefined
   local.work = local.work.map(normaliseTask)
   local.resume = usableResume(local.resume, inbox, local.work)
   const relevant = (focus: FocusSession): boolean => focus.target.kind === 'routine'
@@ -876,31 +907,49 @@ export const useApp = create<AppState>()((set, get) => ({
     })
   },
 
-  async adjustDay(date, label, fn) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    await get().updateDay(date, (log) => {
-      const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
-      const next = fn(log)
-      return { ...next, before, override: { ...next.override, adjusted: true }, changes: [...(log.changes ?? []), label] }
-    })
+  adjustDay(date, label, fn) {
+    return editDayPlan(date, label, (log) => fn(log))
   },
 
-  async restoreDay(date) {
-    if (pendingAtomicAction) await waitForAtomicActions()
-    await get().updateDay(date, (log) => {
-      if (!log.before) return log
-      const real = Object.fromEntries(Object.entries(log.steps).filter(([, v]) => v === 'done' || v === 'minimal'))
-      const restored: DayLog = { ...log, override: log.before.override, steps: { ...log.before.steps, ...real } }
-      delete restored.before
-      delete restored.changes
-      return restored
+  restoreDay(date) {
+    return atomic(async () => {
+      const st = get()
+      const current = st.days[date]
+      // Alte Daten ohne Rücknahmebasis niemals durch vermutete Terminabsagen verändern.
+      if (!current?.before) return
+      const local = structuredClone(st.local)
+      const log = structuredClone(current)
+      const real = Object.fromEntries(Object.entries(log.steps).filter(([, value]) => value === 'done' || value === 'minimal'))
+      const override = { ...log.before!.override, ...(log.override.backAt !== undefined ? { backAt: log.override.backAt } : {}) }
+      const restored: DayLog = { ...log, override, steps: { ...log.before!.steps, ...real } }
+      delete restored.before; delete restored.changes
+      const snapshot = local.planUndo?.[date]
+      if (snapshot) local.commitments = restoreCommitments(date, local.commitments, snapshot.commitments, local.workSessions)
+      if (local.planUndo) {
+        delete local.planUndo[date]
+        if (!Object.keys(local.planUndo).length) delete local.planUndo
+      }
+      pauseChangedRoutine(local, restored)
+      const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: restored } })
+      const award = applyAwards(plan, restored, st.game, st.settings)
+      const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: local }]
+      if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
+      await repo.putMany(records)
+      set({ days: { ...st.days, [date]: award.log }, local, game: award.game })
+      changed()
     })
-    await get().saveLocal((l) => ({ ...l, commitments: l.commitments.map((c) => (c.date === date && !c.arrivedAt && !l.workSessions.some((x) => x.commitmentId === c.id) ? { ...c, status: 'cancelled' as const } : c)) }))
   },
 
   async saveCommitment(c) {
     if (pendingAtomicAction) await waitForAtomicActions()
-    await get().saveLocal((l) => ({ ...l, commitments: [...l.commitments.filter((x) => x.id !== c.id), c] }))
+    await get().saveLocal((local) => ({ ...local, commitments: [...local.commitments.filter((commitment) => commitment.id !== c.id), c] }))
+  },
+
+  adjustCommitment(c, label, reason) {
+    return editDayPlan(c.date, label, (log, local) => {
+      local.commitments = [...local.commitments.filter((commitment) => commitment.id !== c.id), structuredClone(c)]
+      return reason ? { ...log, override: { ...log.override, reason } } : log
+    })
   },
 
   async workStart(i = {}) {
@@ -966,6 +1015,7 @@ export const useApp = create<AppState>()((set, get) => ({
   },
 
   celebrate(c) {
+    if (!get().settings.support.gameVisible || get().days[today()]?.override.mode === 'ueberlastet') return
     set({ celebrations: [...get().celebrations, c] })
   },
   popCelebration() {

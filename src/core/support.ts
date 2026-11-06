@@ -127,6 +127,7 @@ export type NextAction =
   | { type: 'underway'; title: string; sub?: string; leg: Leg }
   | { type: 'away'; title: string; sub?: string; leg: Leg }
   | { type: 'return-check'; title: string; sub?: string }
+  | { type: 'return-later'; title: string; sub?: string }
   | { type: 'work-break'; title: string; sub?: string; session: WorkSession }
   | { type: 'work-stale'; title: string; sub?: string; session: WorkSession }
   | { type: 'einsatz-start'; title: string; sub?: string; leg: Leg }
@@ -195,7 +196,9 @@ export function nextAction(i: NextInput): NextView {
   }
   if (leg) return view(leg.action, leg.reason)
   if (i.plan.pendingEvening && i.m >= (i.plan.workEnd ?? 18 * 60) && !i.log?.override.backAt && i.log?.override.routineAt?.evening === 'return') {
-    return view({ type: 'return-check', title: 'Bist du wieder zuhause?', sub: 'Dann schauen wir, was heute noch sinnvoll ist.' })
+    return i.log.override.returnCheckAfter !== undefined && i.m < i.log.override.returnCheckAfter
+      ? view({ type: 'return-later', title: 'Dein Abend bleibt offen', sub: 'Die Routine wartet. Sag Bescheid, wenn du zurück bist.' })
+      : view({ type: 'return-check', title: 'Bist du wieder zuhause?', sub: 'Dann schauen wir, was heute noch sinnvoll ist.' })
   }
 
   // 1. Feste Zeiten, Termine und der Weg zur Arbeit: nie überlagern, schon gar nicht während der Fahrt

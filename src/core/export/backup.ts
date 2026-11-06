@@ -1,6 +1,7 @@
 import type { Collection, Rec } from '../../data/types'
 import { defaultSettings } from '../defaults'
 import { validEveningLocal } from '../evening'
+import { validPlanUndo } from '../flexible'
 import { validDeviceTests } from '../deviceTests'
 import { validReminderReceipts } from '../reminders/actions'
 import { validRecoveryLocal } from '../recovery'
@@ -49,6 +50,9 @@ export function parseBackup(text: string): Rec[] {
     }
     if (!record.deleted && record.collection === 'meta' && record.id === 'local' && object(record.data) && !validDeviceTests(record.data.deviceTests)) {
       throw new Error('Die Sicherung enthält ungültige Testergebnisse. Es wurde nichts importiert.')
+    }
+    if (!record.deleted && record.collection === 'meta' && record.id === 'local' && object(record.data) && !validPlanUndo(record.data.planUndo)) {
+      throw new Error('Die Sicherung enthält eine ungültige private Planrücknahme. Es wurde nichts importiert.')
     }
     if (!record.deleted && record.collection === 'meta' && record.id === 'local' && !validRecoveryLocal(record.data)) {
       throw new Error('Die Sicherung enthält ungültige Aufgaben-, Fokus- oder Wiedereinstiegsdaten. Es wurde nichts importiert.')

@@ -122,7 +122,7 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
     case 'work':
       return view({ type: 'work', title: block.title, sub: `Bis ${t(block.end)}` })
     case 'free':
-      return view({ type: 'free', title: 'Freizeit – zocken erlaubt', sub: `Bis ${t(plan.pcStop)}`, canExtend: !(log?.override.pcStopExtendMin ?? 0) })
+      return view({ type: 'free', title: 'Freizeit – zocken erlaubt', sub: plan.openEnd ? 'Ohne festes Ende' : `Bis ${t(plan.pcStop)}`, canExtend: true })
     case 'commute':
       return view({ type: 'info', title: block.title, sub: `Bis ${t(block.end)}`, block })
     default:
@@ -137,7 +137,7 @@ interface WidgetView extends Pick<NowView, 'block' | 'hard'> {
 const WIDGET_ACTIONS: Record<string, string> = {
   task: 'Deine Aufgabe', worktask: 'Arbeit weiterführen', resume: 'Wieder einsteigen',
   arrival: 'Ankommen', prep: 'Termin vorbereiten', go: 'Losgehen', underway: 'Unterwegs', away: 'Termin',
-  'return-check': 'Wieder zuhause?', 'work-break': 'Pause läuft', 'work-stale': 'Arbeitszeit prüfen',
+  'return-check': 'Wieder zuhause?', 'return-later': 'Dein Abend bleibt offen', 'work-break': 'Pause läuft', 'work-stale': 'Arbeitszeit prüfen',
   'einsatz-start': 'Arbeitseinsatz starten', 'einsatz-running': 'Arbeitseinsatz läuft',
 }
 const BASE_WIDGET_ACTIONS = new Set(['sleep', 'wake', 'step', 'leave', 'work', 'info', 'free', 'pcoff', 'bed', 'night'])

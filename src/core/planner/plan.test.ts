@@ -178,12 +178,12 @@ describe('Randfälle', () => {
     expect(p.bed).toBe(1470)
     expect(block(p, 'bed').start).toBe(1470)
   })
-  it('PC-Stopp-Verlängerung: einmalig 15 Minuten', () => {
+  it('historische PC-Stopp-Verlängerungen bleiben additiv und werden nicht auf15 begrenzt', () => {
     const o = extendPcStop({})!
     expect(o.pcStopExtendMin).toBe(15)
-    expect(extendPcStop(o)).toBeNull()
+    expect(extendPcStop(o)?.pcStopExtendMin).toBe(30)
     const p = buildDayPlan({ date: MON, settings: settings(), override: { pcStopExtendMin: 60 } })
-    expect(p.pcStop).toBe(1285 + 15)
+    expect(p.pcStop).toBe(1285 + 60)
   })
   it('Fitnessstudio morgens passt nicht vor 8 Uhr → freundlicher Hinweis, Training zu Hause', () => {
     const s = settings()

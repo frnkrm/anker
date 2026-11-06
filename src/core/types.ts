@@ -155,7 +155,7 @@ export interface DayOverride {
   workStart?: number
   targetNetMin?: number
   pauseMin?: number
-  /** Verlängerung PC-Stopp in Minuten (max. 15) */
+  /** Historische Verlängerung; neue freie Entscheidungen verwenden lateUntil. */
   pcStopExtendMin?: number
   /** Unterstützungsmodus für diesen Tag */
   mode?: SupportMode
@@ -169,6 +169,8 @@ export interface DayOverride {
   routineAt?: Partial<Record<RoutineId, number | 'return'>>
   /** „Wieder zuhause“ gemeldet (UTC ms), ohne dass ein Termin dazugehört */
   backAt?: number
+  /** Erst dann erneut nach Rückkehr fragen (Plan-Minuten); behauptet keine Rückkehr. */
+  returnCheckAfter?: number
   /** Schritte, die an diesem Tag schon anderweitig versorgt sind, z. B. "morning:shower" */
   coveredSteps?: string[]
   /** Regel für diesen Tag übersteuern */
@@ -531,6 +533,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Private Rücknahmebasis für bewusste Tagesänderungen, niemals Teil des synchronisierten DayLog. */
+  planUndo?: Record<DateStr, { at: number; commitments: Commitment[] }>
   /** Receipts for reminder actions affecting local commitments. No private notification text. */
   reminderReceipts?: string[]
   deviceTests?: DeviceTestProgress
