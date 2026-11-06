@@ -63,6 +63,7 @@ test('Test begleitet direkt zur Einstellung und zurück, ohne selbst eine Zeit u
   await expect(page.getByLabel('Testgerät')).toHaveValue('Eigenes Testgerät')
   await expect(page.getByText(/0 von 74 im Browser/)).toBeVisible()
   await page.getByRole('button', { name: 'Testbegleitung pausieren', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Testbegleitung pausiert. Deine Ergebnisse bleiben gespeichert.')
   await page.goto('/einstellungen/schlaf')
   await expect(page.getByRole('complementary', { name: 'Testbegleitung' })).toHaveCount(0)
 })

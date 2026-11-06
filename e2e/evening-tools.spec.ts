@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
+import type { Settings } from '../src/core/types'
+import { storedRecord } from './helpers/storage'
 
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-02T19:00:00+01:00'))
@@ -40,6 +42,7 @@ test('Privater nächster Schritt bleibt über Tage und Neustart bis zur bewusste
   await page.getByLabel('Weiter am', { exact: true }).fill('2026-11-03T18:00')
   await page.getByRole('button', { name: 'Nächsten Schritt speichern', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Für später gespeichert', exact: true })).toBeVisible()
+  await expect(page.getByText('Dein nächster Schritt ist gespeichert.', { exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByText('Nächster Schritt: Die zwei Teile bereitlegen', { exact: true })).toBeVisible()
   await page.clock.setFixedTime(new Date('2026-11-06T18:00:00+01:00'))
@@ -47,6 +50,7 @@ test('Privater nächster Schritt bleibt über Tage und Neustart bis zur bewusste
   await expect(page.getByRole('heading', { name: 'Bereit zum Weitermachen', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Erledigt: Modell bauen', exact: true }).click()
   await expect(page.getByText('Nächster Schritt: Die zwei Teile bereitlegen', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Als erledigt gespeichert.', { exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Bereit zum Weitermachen', exact: true })).toHaveCount(0)
 })
@@ -104,12 +108,14 @@ test('Aktivitäts-Weckfenster bleibt freiwillig und startet im Web keine Sensore
   await expect(page.getByRole('spinbutton', { name: 'Weckfenster Minuten', exact: true })).toHaveValue('45')
   await page.getByRole('button', { name: 'Weckfenster Minuten erhöhen', exact: true }).click()
   await expect(page.getByRole('spinbutton', { name: 'Weckfenster Minuten', exact: true })).toHaveValue('50')
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.alarm.smartWake).toEqual({ enabled: true, windowMinutes: 50 })
   await page.reload()
   await expect(option).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByRole('spinbutton', { name: 'Weckfenster Minuten', exact: true })).toHaveValue('50')
   await expect(page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true })).toHaveCount(0)
   await expect(page.getByText(/Die Bewegungs- und Mikrofonmessung ist nur in der Android-App verfügbar/)).toBeVisible()
   await option.click()
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.alarm.smartWake.enabled).toBe(false)
   await page.reload()
   await expect(option).toHaveAttribute('aria-checked', 'false')
 })

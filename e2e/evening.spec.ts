@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
+import type { DayLog, Settings } from '../src/core/types'
+import { storedRecord } from './helpers/storage'
 
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-02T19:00:00+01:00'))
@@ -23,6 +25,7 @@ async function finishEvening(page: Page) {
     await expect(heading).not.toHaveText(title)
   }
   await expect(heading).toHaveText('Abendroutine fertig')
+  await expect.poll(async () => (await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.eveningRoutineDoneAt ?? 0).toBeGreaterThan(0)
 }
 
 test('Abendroutine bietet nach PC-Stopp und Bettzeit keine neue Freizeit an', async ({ page }) => {
@@ -47,6 +50,7 @@ test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', a
   await page.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()
   await page.getByRole('button', { name: 'Weiß ich noch nicht', exact: true }).click()
   await page.getByRole('button', { name: 'Übernehmen', exact: true }).click()
+  await expect(page.getByText('Viel Spaß. Der Abend gehört dir.', { exact: true })).toBeVisible()
   await finishEvening(page)
   await expect(page.getByText('Für heute ist hier nichts mehr offen.', { exact: true })).toBeVisible()
   await expect(page.getByText(/Jetzt Freizeit bis/)).toHaveCount(0)
@@ -65,6 +69,7 @@ test('Abendeinstellungen sind gebündelt und optionale Schalter bleiben eine eig
   const preset = page.getByRole('switch', { name: 'Abendmodus vorschlagen', exact: true })
   await expect(preset).toHaveAttribute('aria-checked', 'false')
   await preset.click()
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.support.eveningPreset.enabled).toBe(true)
   await page.reload()
   await expect(preset).toHaveAttribute('aria-checked', 'true')
 
@@ -72,6 +77,7 @@ test('Abendeinstellungen sind gebündelt und optionale Schalter bleiben eine eig
   const quiet = page.getByRole('switch', { name: 'Arbeitsaufgaben nach Feierabend ruhigstellen', exact: true })
   await expect(quiet).toHaveAttribute('aria-checked', 'false')
   await quiet.click()
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.support.workAfterHoursQuiet).toBe(true)
   await page.reload()
   await expect(quiet).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByText('Auf der Startseite haben Abend und Erholung Vorrang. Arbeitsaufgaben bleiben unter Arbeit erreichbar; Fristmeldungen bleiben unverändert. Laufende Arbeit wird dadurch nicht beendet.', { exact: true })).toBeVisible()
