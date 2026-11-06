@@ -452,11 +452,18 @@ export interface WorkSession {
 export type CommitmentKind = 'hard' | 'soft' | 'optional'
 export type EventContext = 'work' | 'customer' | 'social' | 'personal' | 'other'
 export type RouteMode = 'driving' | 'transit' | 'cycling' | 'walking' | 'none'
+export type LocationKind = 'unknown' | 'onsite' | 'remote' | 'home'
+export type PlaceKind = 'home' | 'office' | 'customer' | 'private' | 'other'
 
 /** Gespeicherter Ort. Bleibt auf dem Gerät. */
 export interface Place {
   id: string
   label: string
+  kind?: PlaceKind
+  latitude?: number
+  longitude?: number
+  /** Nur ausdrücklich erlaubte Zwecke; Orte bleiben ansonsten ausschließlich lokal. */
+  externalUse?: { weather?: boolean; routes?: boolean }
   address?: string
   travelFromHomeMin?: number
   /** Fahrzeit von anderen Orten, Schlüssel = Orts-ID oder "office" */
@@ -475,6 +482,9 @@ export interface Commitment {
   start: number
   /** Ohne Angabe bleibt das Ende offen, es wird keine Rückkehr erfunden */
   end?: number
+  locationKind?: LocationKind
+  /** home, office, unknown oder ID eines gespeicherten Orts. */
+  originPlaceId?: string
   placeId?: string
   placeLabel?: string
   address?: string
@@ -484,7 +494,10 @@ export interface Commitment {
   travelHomeMin?: number
   arrivalBufferMin?: number
   prepMin?: number
+  /** Nur nach eigener Wahl: Vorbereitung ist bereits in der Morgenroutine enthalten. */
+  prepIncludesMorning?: boolean
   items?: string[]
+  source?: { provider: string; id: string }
   /** Ersetzt den Weg ins Büro an diesem Tag */
   replacesCommute?: boolean
   /** Ist ein geplanter Arbeitseinsatz. Ändert den Wochenstandard nicht. */
@@ -500,7 +513,12 @@ export interface Commitment {
 export interface Leg {
   commitment: Commitment
   fromLabel: string
+  fromKey?: string
   toLabel?: string
+  toKey?: string
+  locationOpen?: boolean
+  originOpen?: boolean
+  returnOpen?: boolean
   travelMin?: number
   /** Ort bekannt, Fahrzeit nicht. Dann gibt es keine errechnete Abfahrt. */
   travelOpen: boolean
