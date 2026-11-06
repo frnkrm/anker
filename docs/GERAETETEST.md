@@ -126,3 +126,19 @@ Implementiert und automatisch geprüft heißt nicht am Galaxy geprüft. Für Tes
 | 63 | Einen Test bewusst als teilweise speichern, App neu öffnen, Einstellungen über Testlink öffnen und zurückkehren | Ergebnis mit Datum/Version bleibt; kein Test wird automatisch bestanden, kein Routine-Haken und keine XP entstehen | |
 | 64 | Anker über Widget oder Benachrichtigung öffnen, danach Mehr, Tag und Gemeinsam testen aufrufen; auch bei Gute Nacht | Gewählte Seite bleibt offen; kein Rücksprung auf Jetzt, neue Benachrichtigungslinks und klingelnder Wecker bleiben erreichbar | |
 | 65 | Vorwecker aktiv lassen, Messung für diese Nacht starten; Weckerstatus vor und nach Messungsende prüfen, Vorweckzeit abwarten | Vor Start klarer Pausenhinweis; Vorwecker für diesen Haupttermin pausiert und bleibt still, auch nach Messungsende oder Neustart; fester Hauptwecker bleibt. Neue Weckzeit oder nächste Nacht ohne Messung nutzt wieder die Vorwecker-Einstellung | |
+
+## E02: Erinnerungen und Papier
+
+Auch diese Fälle bleiben bis zum eigenen Versuch offen. Für Nacht-, Neustart- und Langzeittests einen unabhängigen Wecker beibehalten. Die Testseite stellt deine persönlichen Zeiten nicht selbst um und markiert keine Alltagsaufgabe als erledigt.
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 66 | Erinnerung sichtbar lassen, dazugehörigen Termin oder Tagesplan verschieben/absagen; alten Button danach betätigen | Alte Meldung verschwindet bzw. ihre Aktion bleibt ohne neue Wirkung; neue Aufgabe, Zeit und Spielstand unverändert | |
+| 67 | Erledigt oder Heute nicht bei geschlossener App schnell mehrfach betätigen, App wieder öffnen | Eine passende gespeicherte Wirkung, keine doppelte Erledigung/XP und keine überschriebene Erledigungszeit; Heute nicht bleibt ohne Erledigt-Haken | |
+| 68 | Normale Erinnerung mit Wiederholung vor Ruhezeit oder Film planen, Grenze und Wiederholungszeit abwarten; auch 5 Min später über die Grenze prüfen | Normale Stufe bleibt in Ruhe/Freizeit still; ausdrücklich kritischer Anker bleibt nach gewählter Regel erhalten | |
+| 69 | Eine Routine im Fokus starten und eine normale Erinnerung im laufenden Zeitfenster abwarten; danach Fokus verlassen | Normaler Hinweis stört den laufenden Fokus nicht; kritischer Anker bleibt; kein alter Meldungsstau beim Verlassen | |
+| 70 | Aktivitätsmessung außerhalb ihres Fensters vorbereiten, mehrere normale Meldungen und separaten Testalarm zusammen beobachten | Erforderliche Alarm- und Messanzeige bleiben sichtbar; gewöhnliche Anker-Meldungen werden nach Wichtigkeit reduziert, keine fremden Meldungen entfernt | |
+| 71 | Vorrat und Basisregeln im Weckerstatus lesen; danach Langzeittest über das Ende des 14-Tage-Vorrats ohne Appöffnung | Wichtige gespeicherte Wochenregeln laufen weiter, bekannte Sondertage werden berücksichtigt; nach Rückkehr kein Nachholsturm. Regelanzeige allein nur als Teilprüfung werten | |
+| 72 | Lange Routine mit langem Einzeltext, gleichen Titeln und Umlauten in A5 und A4 drucken bzw. PDF öffnen | Alle Schritte lesbar und vollständig, mehrere Seiten erlaubt, keine abgeschnittenen Zeilen, keine Navigation oder Feierdialoge | |
+| 73 | Auf Android PDF-Datei ohne eingerichteten Druckdienst erstellen; Teilen oder Druckdialog auch abbrechen | Nutzbare PDF-Datei als Alternative, verständliche Meldung; Abbruch wird nicht als Druck- oder Versandbestätigung angezeigt | |
+| 74 | Aus Morgen-/Abendroutine direkt drucken; QR-Auswahl öffnen und echten Ausdruck scannen | Richtige Vorauswahl, bestehender QR bleibt unverändert; ausreichender weißer Rand und echter Scan möglich. PDF-Vorschau allein bestätigt den Scan nicht | |

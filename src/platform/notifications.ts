@@ -1,12 +1,15 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { buildReminders, reminderPolicy, reminderRevisions, reopenHint } from '../core/reminders/build'
 import { validReminderAction } from '../core/reminders/actions'
+import { knownReminderDates } from '../core/reminders/dates'
+import { buildReminderRuleSnapshot } from '../core/reminders/rules'
+import { DAY_ROLLOVER_MIN } from '../core/now'
 import { addDays, zonedToUtc } from '../core/time'
 import type { DayLog } from '../core/types'
 import { planFor, today, useApp } from '../state/store'
 import { AnkerNative, isNative, safe, type ReminderActionInfo } from './native'
 
-/** So weit legt die App Erinnerungen beim nativen Teil ab. Danach folgt ein einziger Hinweis. */
+/** Minimum dated planning; known future exceptions are compiled as dated plans too. */
 export const HORIZON_DAYS = 14
 
 let setupDone = false
@@ -63,21 +66,25 @@ export async function rescheduleAll() {
     const st = useApp.getState()
     if (!st.settings.onboarded) return
     const t = today()
-    const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(t, i))
+    const ordinaryDates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(t, i))
+    const knownDates = knownReminderDates(t, st.days, st.events, st.local.commitments)
+    const dates = [...new Set([...ordinaryDates, ...knownDates])].sort()
     const plans = dates.map((d) => planFor(d))
     // Auch ältere offene Gedanken behalten ihre Dismissals und ihre sichtbare Meldung,
     // bis sie in der Inbox erledigt, anders einsortiert oder abgewählt werden.
     const logs: Record<string, DayLog | undefined> = st.days
     const now = Date.now()
     const deadlines = st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! }))
-    const horizonEnd = zonedToUtc(dates[dates.length - 1]!, 18 * 60)
+    const horizonEnd = zonedToUtc(addDays(ordinaryDates[ordinaryDates.length - 1]!, 1), DAY_ROLLOVER_MIN)
+    const datedEnd = zonedToUtc(addDays(dates[dates.length - 1]!, 1), DAY_ROLLOVER_MIN)
     const extras = { deadlines, thoughtReviews: st.inbox, tomorrowSteps: st.local.tomorrowSteps }
-    const specs = buildReminders(plans, logs, st.settings, now, horizonEnd - now, extras)
-    const last = dates[dates.length - 1]!
-    const reminders = [...specs, reopenHint(horizonEnd, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }))
+    const specs = buildReminders(plans, logs, st.settings, now, datedEnd - now, extras)
+    const last = ordinaryDates[ordinaryDates.length - 1]!
+    const hintAt = zonedToUtc(last, 18 * 60)
+    const reminders = [...specs, reopenHint(hintAt, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }))
     const revisions = reminderRevisions(plans, logs, st.settings, extras)
     for (const r of reminders.filter((r) => r.key === 'open-app')) revisions[`${r.date}|${r.key}`] = r.revision
-    await AnkerNative.syncReminders({ reminders, relevant: Object.keys(revisions), revisions, policy: reminderPolicy(plans, st.settings) })
+    await AnkerNative.syncReminders({ reminders, relevant: Object.keys(revisions), revisions, policy: reminderPolicy(plans, st.settings), ruleSnapshot: buildReminderRuleSnapshot(st.settings, knownDates, horizonEnd) })
   }, undefined)
 }
 
@@ -118,4 +125,11 @@ export function drainActions(): Promise<void> {
 
 export async function applyAction(a: ReminderActionInfo) {
   return useApp.getState().applyReminderAction(a)
+}
+
+let focusUpdates: Promise<void> = Promise.resolve()
+/** Preserve ordering when a step ends while the next one starts, or when leaving the page. */
+export function mirrorReminderFocus(until: number): void {
+  if (!isNative()) return
+  focusUpdates = focusUpdates.catch(() => undefined).then(() => AnkerNative.setReminderFocus({ until })).catch((error: unknown) => { console.warn('[Anker] Fokusruhe konnte nicht übernommen werden.', error) })
 }

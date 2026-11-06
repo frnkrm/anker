@@ -157,10 +157,17 @@ class SmartWakeService : Service(), SensorEventListener {
             .setContentTitle("Anker: Aktivitäts-Weckfenster")
             .setContentText(if (measuring) "Bewegungs- und Geräuschaktivität wird lokal ausgewertet." else "Vorbereitet. Die Auswertung beginnt erst im Weckfenster.")
             .setOngoing(true).setContentIntent(open).addAction(0, "Messung beenden", stop).build()
-        if (Build.VERSION.SDK_INT >= 30) startForeground(ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
-        else startForeground(ID, notification)
+        // Reserve the ordinary-notification slot before posting the required service display.
         foregroundShown = true
-        ReminderScheduler.onProtectedDisplaysChanged(this)
+        try {
+            ReminderScheduler.onProtectedDisplaysChanged(this)
+            if (Build.VERSION.SDK_INT >= 30) startForeground(ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            else startForeground(ID, notification)
+        } catch (error: Exception) {
+            foregroundShown = false
+            try { ReminderScheduler.onProtectedDisplaysChanged(this) } catch (_: Exception) { }
+            throw error
+        }
     }
 
     fun beginMeasurement() {

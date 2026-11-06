@@ -186,6 +186,11 @@ object ReminderScheduler {
         return q.size to (q.lastOrNull()?.at ?: 0L)
     }
 
+    fun ruleInfo(ctx: Context): Pair<Int, Long> {
+        val snapshot = ruleSnapshot(ctx)
+        return (snapshot?.rules?.size ?: 0) to (snapshot?.validFrom ?: 0L)
+    }
+
     fun visibleCount(ctx: Context): Int {
         val now = System.currentTimeMillis()
         return loadSlots(ctx).count { it.expiresAt > now }

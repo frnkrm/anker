@@ -13,10 +13,12 @@ import { Button, Card, Page, Row, Section, TextInput } from '../components/ui'
 import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
-const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65])
+const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74])
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (id >= 72) return [{ label: 'Druckauswahl öffnen', to: '/druck' }, { label: 'Morgenroutine öffnen', to: '/fokus/morning' }, { label: 'Abendroutine öffnen', to: '/fokus/evening' }]
+  if (id >= 66) return [{ label: 'Erinnerungen einstellen', to: '/einstellungen/erinnerungen' }, { label: 'Tagesplan öffnen', to: '/tag' }, { label: 'Weckerstatus und Messung öffnen', to: '/wecker' }, ...(id === 69 ? [{ label: 'Morgenfokus öffnen', to: '/fokus/morning' }] : [])]
   if (id === 64) return [{ label: 'Mehr öffnen', to: '/mehr' }, { label: 'Tag öffnen', to: '/tag' }, { label: 'Wecker öffnen', to: '/wecker' }]
   if (id === 65) return [{ label: 'Messung und Vorwecker prüfen', to: '/wecker' }]
   if (id === 62) return [{ label: 'Uhrzeiten direkt ändern', to: '/einstellungen/schlaf' }, { label: 'Fahrzeit direkt ändern', to: '/einstellungen/weg' }]
@@ -39,6 +41,9 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (id === 71) return ['Lies den Android-Stand ein und öffne den Weckerstatus. Die gespeicherten Basisregeln gelten nach dem genauen Tagesvorrat; neue spontane Änderungen kennt Android erst nach erneutem Öffnen.', 'Der vollständige Langzeittest braucht echte Zeit ohne Appöffnung. Notiere den Beginn und halte einen unabhängigen Wecker bereit. Nur die angezeigte Regelzahl zu prüfen ist „Teilweise“, kein Zustellnachweis.']
+  if (id >= 72) return ['Öffne die Druckauswahl oder den direkten Link aus deiner Routine. Wähle nur den gewünschten Inhalt und A5 oder A4.', 'PDF-Datei auf Android und Systemdruck sind getrennte Wege. Öffne die Datei und prüfe alle Seiten; ein geöffneter Dialog oder abgebrochenes Teilen gilt nicht als gedruckt.', 'QR-Code nach Möglichkeit wirklich auf Papier scannen. Deine Einstellungen und der QR-Wert werden durch die Auswahl nicht geändert.']
+  if (id >= 66) return ['Notiere vorher deine eigenen Zeiten und Optionen. Die Knöpfe unten führen direkt zu Erinnerungen, Tagesplan und Weckerstatus.', 'Führe den beschriebenen Ablauf mit einer bewusst gewählten Erinnerung aus. Der separate Testalarm prüft nur den Alarm und kann keine Aufgaben-Erledigung simulieren.', 'Stelle anschließend deine eigenen Einstellungen wieder her. Notiere, welchen Teil du tatsächlich beobachtet hast; nichts wird automatisch als bestanden eingetragen.']
   if (id === 64) return ['Öffne Anker über sein Widget oder eine Benachrichtigung. Rufe danach über die Navigation andere Seiten auf.', 'Auch bei „Gute Nacht“ müssen die gewählten Seiten offen bleiben. Prüfe neue Benachrichtigungslinks und den separaten Testwecker anschließend getrennt.']
   if (id === 65) return ['Notiere zuerst deine eigenen Weckzeiten. Aktiviere den Vorwecker und prüfe die feste Hauptzeit, bevor du die Messung bewusst startest.', 'Der Status muss den Vorwecker für diese Messnacht als pausiert zeigen. Seine Einstellung bleibt gespeichert. Auch nach Messungsende oder Neustart bleibt die Pause für diesen Haupttermin erhalten.', 'Warte den Vorwecktermin und die feste Hauptzeit tatsächlich ab. Danach eine neue Weckzeit oder den nächsten Morgen ohne Messung prüfen und deine eigenen Einstellungen wiederherstellen. Teilprüfungen als „Teilweise“ speichern.']
   if (id === 3) return ['Lies vor dem Test den Android-Stand unten ein. Die geplante Hauptzeit und der Schlummerzähler werden zum Vergleich gespeichert.', 'Starte den separaten Testalarm, beende ihn und kehre über „Zurück zu Test 3“ hierher zurück.', 'Lies den Android-Stand erneut und vergleiche die Hauptzeit. Nur dein beobachtetes Ergebnis wird abgehakt.']
@@ -80,6 +85,7 @@ export default function DeviceTests() {
     <Section title="Womit möchtest du anfangen?">
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(1) }}>Erster Weckertest</Button>
+        <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66) }}>Erinnerungen & Druck prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(53) }}>Weckfenster prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62) }}>Zeiteingabe prüfen</Button>
       </div>

@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { NativeAlarmConfig } from '../core/alarm'
+import type { NativeReminderRuleSnapshot } from '../core/reminders/rules'
 import type { ReminderAction } from '../core/reminders/actions'
 import type { ReminderPolicy } from '../core/reminders/build'
 
@@ -60,6 +61,8 @@ export interface AlarmDiagnostics extends AlarmStateInfo {
   reminderQueue: number
   reminderHorizon: number
   remindersVisible: number
+  reminderRuleCount?: number
+  reminderRulesFrom?: number
   sdk: number
   device: string
 }
@@ -100,7 +103,7 @@ export interface AnkerNativePlugin {
   confirmTest(o: { heard: boolean }): Promise<void>
   playTestTone(): Promise<{ ok: boolean }>
   getAlarmDiagnostics(): Promise<AlarmDiagnostics>
-  syncReminders(o: { reminders: NativeReminder[]; relevant: string[]; revisions: Record<string, string>; policy?: ReminderPolicy }): Promise<void>
+  syncReminders(o: { reminders: NativeReminder[]; relevant: string[]; revisions: Record<string, string>; policy?: ReminderPolicy; ruleSnapshot?: NativeReminderRuleSnapshot }): Promise<void>
   drainReminderActions(): Promise<{ actions: ReminderActionInfo[] }>
   ackReminderActions(o: { ids: string[] }): Promise<void>
   setReminderFocus(o: { until: number }): Promise<void>

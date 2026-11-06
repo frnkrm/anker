@@ -4,6 +4,7 @@ import { defaultSettings } from '../src/core/defaults'
 
 interface BridgeProbe {
   launchReads: number
+  focusUntil: number
   listeners: Record<string, number>
   emit: (plugin: string, event: string, value: { url: string } | Record<string, never>) => void
   setRinging: (ringing: boolean) => void
@@ -22,6 +23,7 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
     const records = [{ collection: 'settings', id: 'main', data: JSON.stringify(settings), updated_at: Date.now(), deleted: 0, dirty: 0 }]
     const probe: BridgeProbe = {
       launchReads: 0,
+      focusUntil: 0,
       listeners: {},
       emit(plugin, event, value) {
         for (const entry of [...callbacks.values()]) {
@@ -36,10 +38,10 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
       Capacitor: {
         PluginHeaders: [
           { name: 'App', methods: ['getLaunchUrl', 'getInfo', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
-          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
+          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
           { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
         ],
-        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[] }) {
+        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; until?: number }) {
           if (method === 'removeListener') { callbacks.delete(options.callbackId!); return {} }
           if (plugin === 'App' && method === 'getLaunchUrl') { probe.launchReads++; return { url: launchUrl } }
           if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker', name: 'Anker', version: 'simulation', build: '0' }
@@ -48,6 +50,7 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
           if (plugin === 'AnkerNative' && method === 'getSmartWakeState') return { active: measurementActive, phase: measurementActive ? 'waiting' : 'stopped', targetAt: alarm.scheduledAt, windowAt: alarm.scheduledAt - 45 * 60_000, hasMotion: true, microphoneGranted: true, preWakePausedForTargetAt: alarm.preWakePausedForTargetAt, message: measurementActive ? 'Vorbereitet.' : 'Beendet.' }
           if (plugin === 'AnkerNative' && method === 'startSmartWake') { measurementActive = true; alarm.preWakeAt = null; alarm.preWakePausedForTargetAt = alarm.scheduledAt; return {} }
           if (plugin === 'AnkerNative' && method === 'stopSmartWake') { measurementActive = false; return {} }
+          if (plugin === 'AnkerNative' && method === 'setReminderFocus') { probe.focusUntil = options.until ?? 0; return {} }
           if (plugin === 'AnkerNative' && method === 'drainReminderActions') return { actions: [] }
           if (plugin === 'CapacitorSQLite') {
             if (method === 'checkConnectionsConsistency') return { result: false }
@@ -135,4 +138,16 @@ test('Messnacht zeigt die Vorweckerpause vor Start, im Status und nach Messungse
   await expect(page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true })).toBeVisible()
   await expect(page.getByText(/Vorwecker für .* pausiert\./)).toBeVisible()
   await expect(page.getByRole('switch', { name: 'Vorwecker', exact: true })).toBeChecked()
+})
+
+test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim Verlassen auf', async ({ page }) => {
+  await nativeEntry(page, 'de.frnkrm.anker://now')
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker://now' }))
+  // A real route transition without reloading the native session.
+  await page.getByRole('link', { name: 'Tag', exact: true }).click()
+  await page.evaluate(() => { history.pushState({}, '', '/fokus/morning'); window.dispatchEvent(new PopStateEvent('popstate')) })
+  await expect(page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.focusUntil)).toBeGreaterThan(new Date('2026-11-06T02:00:00+01:00').getTime())
+  await page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.focusUntil)).toBe(0)
 })
