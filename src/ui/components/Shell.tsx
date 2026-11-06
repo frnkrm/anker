@@ -5,6 +5,7 @@ import type { ResumePoint } from '../../core/types'
 import { nextNow } from '../../state/hooks'
 import { today, useApp } from '../../state/store'
 import { Button, Sheet } from './ui'
+import { CaptureDictation } from './ExtraControls'
 
 const TABS = [
   { to: '/', label: 'Jetzt', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2' },
@@ -163,6 +164,11 @@ export function InboxSheet({ open, onClose, context }: { open: boolean; onClose:
           enterKeyHint="done"
           className="min-h-14 w-full rounded-2xl bg-surface-2 px-4 text-lg placeholder:text-muted"
         />
+        <CaptureDictation open={open} disabled={pending} onText={(transcript) => {
+          const value = text.trim() ? `${text.trim()} ${transcript}` : transcript
+          setText(value)
+          void saveDraft(value, was.current).catch(() => setError('Der Entwurf konnte nicht gespeichert werden. Bitte behalte deinen Text bis zum Speichern hier.'))
+        }} />
         <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending || !text.trim()}>
           {pending ? 'Wird gespeichert …' : 'Merken'}
         </Button>

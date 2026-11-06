@@ -205,7 +205,7 @@ function stepLink(step: PlannedStep): { to: string; label: string } | undefined 
   return undefined
 }
 
-function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { open: boolean; onClose: () => void; onSmall: () => void; onCapture: (context?: ResumePoint) => void; onDifferent: () => void }) {
+export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { open: boolean; onClose: () => void; onSmall: () => void; onCapture: (context?: ResumePoint) => void; onDifferent: () => void }) {
   const st = useApp()
   const nav = useNavigate()
   const { plan, m } = useToday()

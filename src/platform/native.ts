@@ -87,8 +87,16 @@ export interface NativeReminder {
 
 export type ReminderActionInfo = ReminderAction
 
+export interface VoiceCapabilities { dictationSupported: boolean; speechSupported: boolean | null; localOnly: boolean }
+export interface VoiceResult { status: 'text' | 'cancelled' | 'unavailable' | 'permission-denied' | 'busy' | 'empty' | 'timeout' | 'spoken'; text?: string }
+
 /** Eigenes Kotlin-Plugin (android/app/src/main/java/.../AnkerNativePlugin.kt). */
 export interface AnkerNativePlugin {
+  getVoiceCapabilities(): Promise<VoiceCapabilities>
+  startDictation(): Promise<VoiceResult>
+  stopDictation(): Promise<void>
+  speakCue(o: { text: string }): Promise<VoiceResult>
+  stopSpeaking(): Promise<void>
   /** Konfiguration für den nativen Wecker. Kotlin plant damit jeden nächsten Morgen selbst. */
   syncAlarmConfig(c: NativeAlarmConfig): Promise<AlarmStateInfo>
   getAlarmState(): Promise<AlarmStateInfo>
@@ -117,20 +125,25 @@ export interface AnkerNativePlugin {
   openFullScreenIntentSettings(): Promise<void>
   openExactAlarmSettings(): Promise<void>
   openAlarmChannelSettings(): Promise<void>
-  openFocusSettings(): Promise<void>
+  openFocusSettings(): Promise<{ opened: boolean; destination: 'dnd' | 'settings' | 'unavailable' }>
   isIgnoringBatteryOptimizations(): Promise<{ granted: boolean }>
   openBatteryOptimizationSettings(): Promise<void>
   hasDndAccess(): Promise<{ granted: boolean }>
   openDndSettings(): Promise<void>
   openAppSettings(): Promise<void>
   /** Einträge: ab `at` (UTC ms) zeigt das Widget diesen Text. */
-  updateWidget(o: { entries: { at: number; action: string; sub: string; hardLabel: string; hardTime: string }[] }): Promise<void>
+  updateWidget(o: { entries: { at: number; action: string; sub: string; hardLabel: string; hardTime: string }[]; generatedAt: number; expiresAt: number }): Promise<void>
   isWidgetPlaced(): Promise<{ placed: boolean }>
   addListener(event: 'alarmRinging' | 'reminderAction', fn: () => void): Promise<PluginListenerHandle>
 }
 
 // Im Web gibt es keinen Wecker: nur still antworten, nie so tun, als wäre etwas geplant
 const web: Partial<AnkerNativePlugin> = {
+  async getVoiceCapabilities() { return { dictationSupported: false, speechSupported: false, localOnly: true } },
+  async startDictation() { return { status: 'unavailable' } },
+  async stopDictation() {},
+  async speakCue() { return { status: 'unavailable' } },
+  async stopSpeaking() {},
   async syncAlarmConfig() {
     return { ringing: false, snoozed: 0 }
   },
@@ -158,7 +171,7 @@ const web: Partial<AnkerNativePlugin> = {
   async openFullScreenIntentSettings() {},
   async openExactAlarmSettings() {},
   async openAlarmChannelSettings() {},
-  async openFocusSettings() {},
+  async openFocusSettings() { return { opened: false, destination: 'unavailable' } },
   async isIgnoringBatteryOptimizations() {
     return { granted: false }
   },
@@ -184,8 +197,8 @@ export const isNative = () => Capacitor.isNativePlatform()
 export async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn()
-  } catch (e) {
-    console.warn('[Anker] optionale Funktion fehlgeschlagen:', e)
+  } catch {
+    console.warn('[Anker] Eine optionale Funktion ist gerade nicht verfügbar.')
     return fallback
   }
 }

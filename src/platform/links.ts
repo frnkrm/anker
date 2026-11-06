@@ -5,7 +5,8 @@ export function nativeDestination(url: string): string | undefined {
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== `${APP_ID}:` || (parsed.pathname !== '' && parsed.pathname !== '/')) return undefined
-    return ({ inbox: '/gedanke', alarm: '/wecker/klingelt', now: '/', evening: '/abend', thoughts: '/inbox', smartwake: '/wecker' } as Record<string, string>)[parsed.hostname]
+    const routes: Readonly<Record<string, string>> = { inbox: '/gedanke', recover: '/wiedereinstieg', focus: '/fokus-start', alarm: '/wecker/klingelt', now: '/', evening: '/abend', thoughts: '/inbox', smartwake: '/wecker' }
+    return Object.hasOwn(routes, parsed.hostname) ? routes[parsed.hostname] : undefined
   } catch {
     return undefined
   }

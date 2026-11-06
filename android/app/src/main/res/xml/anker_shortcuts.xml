@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="anker_capture" android:enabled="true" android:icon="@drawable/ic_stat_anker" android:shortcutShortLabel="@string/shortcut_capture">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="de.frnkrm.anker" android:targetClass="de.frnkrm.anker.MainActivity" android:data="de.frnkrm.anker://inbox" />
+    </shortcut>
+    <shortcut android:shortcutId="anker_recovery" android:enabled="true" android:icon="@drawable/ic_stat_anker" android:shortcutShortLabel="@string/shortcut_recovery">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="de.frnkrm.anker" android:targetClass="de.frnkrm.anker.MainActivity" android:data="de.frnkrm.anker://recover" />
+    </shortcut>
+    <shortcut android:shortcutId="anker_focus" android:enabled="true" android:icon="@drawable/ic_stat_anker" android:shortcutShortLabel="@string/shortcut_focus">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="de.frnkrm.anker" android:targetClass="de.frnkrm.anker.MainActivity" android:data="de.frnkrm.anker://focus" />
+    </shortcut>
+</shortcuts>

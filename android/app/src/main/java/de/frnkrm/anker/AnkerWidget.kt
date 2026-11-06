@@ -48,24 +48,27 @@ class AnkerWidget : AppWidgetProvider() {
         private fun render(ctx: Context, mgr: AppWidgetManager, ids: IntArray) {
             val now = System.currentTimeMillis()
             val all = entries(ctx)
-            val cur = all.lastOrNull { it.at <= now }
+            val fresh = WidgetModel.isFresh(AnkerPrefs.widgetGeneratedAt(ctx), AnkerPrefs.widgetExpiresAt(ctx), now)
+            val cur = if (fresh) all.lastOrNull { it.at <= now } else null
             val next = all.firstOrNull { it.at > now }
 
             val v = RemoteViews(ctx.packageName, R.layout.widget_anker)
             v.setTextViewText(R.id.widget_action, cur?.action ?: "Anker öffnen")
-            v.setTextViewText(R.id.widget_sub, cur?.sub ?: "")
+            v.setTextViewText(R.id.widget_sub, cur?.sub ?: if (all.isNotEmpty() && !fresh) "Stand aktualisieren" else "")
             v.setTextViewText(R.id.widget_hard, if (cur != null && cur.hardLabel.isNotEmpty()) "${cur.hardLabel} ${cur.hardTime}" else "")
             v.setOnClickPendingIntent(R.id.widget_root, deepLink(ctx, "now", 1))
             v.setOnClickPendingIntent(R.id.widget_inbox, deepLink(ctx, "inbox", 2))
+            v.setOnClickPendingIntent(R.id.widget_recover, deepLink(ctx, "recover", 4))
             mgr.updateAppWidget(ids, v)
 
             // Beim nächsten Eintrag neu zeichnen (ungenau reicht, spart Akku)
-            if (next != null) {
+            val refreshAt = if (fresh) WidgetModel.nextRefresh(next?.at, AnkerPrefs.widgetExpiresAt(ctx), now) else null
+            if (refreshAt != null) {
                 val pi = PendingIntent.getBroadcast(
                     ctx, 3, Intent(ctx, AnkerWidget::class.java).setAction(ACTION_REFRESH),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
-                ctx.getSystemService(AlarmManager::class.java)?.set(AlarmManager.RTC, next.at, pi)
+                ctx.getSystemService(AlarmManager::class.java)?.set(AlarmManager.RTC, refreshAt, pi)
             }
         }
     }

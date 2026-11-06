@@ -45,7 +45,7 @@ export function Help() {
         </Card>
         <AskSomeone />
         {isNative() && (
-          <Row label="Ablenkungen am Handy begrenzen" sub="Android hat dafür eigene Fokus- und Wohlbefinden-Einstellungen" onClick={() => void AnkerNative.openFocusSettings()} />
+          <Row label="Ablenkungen am Handy begrenzen" sub="Freiwillige Wege und tatsächliche Android-Einstellungen" to="/einstellungen/hilfen" />
         )}
       </Section>
       <Section title="ADHS: Diagnose und Behandlung">

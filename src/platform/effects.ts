@@ -1,5 +1,6 @@
 import { App } from '@capacitor/app'
 import { coalesceAsync } from '../core/coalesced'
+import { widgetSnapshot } from '../core/widget'
 import { activePlanDate, widgetEntry } from '../core/now'
 import { nextAction } from '../core/support'
 import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc } from '../core/time'
@@ -16,7 +17,7 @@ const reconcileWidget = coalesceAsync(async () => {
     for (;;) {
       const before = useApp.getState()
       const date = today()
-      await AnkerNative.updateWidget({ entries: widgetEntries() })
+      await AnkerNative.updateWidget(widgetSnapshot(widgetEntries(), Date.now()))
       const current = useApp.getState()
       if (before.settings !== current.settings || before.days !== current.days || before.local !== current.local
         || before.inbox !== current.inbox || before.events !== current.events || today() !== date) continue
@@ -38,6 +39,9 @@ export function widgetEntries(now = Date.now()) {
   for (const d of [date, addDays(date, 1)]) {
     const plan = planFor(d, st)
     const points = new Set<number>([plan.wake - 30, ...plan.blocks.flatMap((b) => [b.start, b.end]), ...plan.hardTimes.flatMap((h) => [h.at - 20, h.at]), plan.bed + 120])
+    // E04: die bewusst vertagte Rückkehrfrage hat einen eigenen nächsten Umschaltpunkt.
+    const returnCheckAfter = (st.days[d]?.override as { returnCheckAfter?: number } | undefined)?.returnCheckAfter
+    if (typeof returnCheckAfter === 'number' && Number.isFinite(returnCheckAfter) && returnCheckAfter >= 0) points.add(returnCheckAfter)
     for (const task of st.local.work) if (task.deadline && !task.done) {
       for (const at of [task.deadline, task.deadline - ((task.estimateMin ?? 30) + 30) * 60_000]) {
         const m = minutesOnPlanDay(d, at)

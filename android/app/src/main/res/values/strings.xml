@@ -5,4 +5,7 @@
     <string name="package_name">de.frnkrm.anker</string>
     <string name="custom_url_scheme">de.frnkrm.anker</string>
     <string name="widget_description">Deine nächste Aktion auf einen Blick</string>
+    <string name="shortcut_capture">Gedanke festhalten</string>
+    <string name="shortcut_recovery">Wieder einsteigen</string>
+    <string name="shortcut_focus">Fokus starten</string>
 </resources>

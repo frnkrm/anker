@@ -121,6 +121,7 @@ object AlarmController {
     }
 
     private fun startRinging(ctx: Context) {
+        LocalVoiceController.silenceForAlarm()
         ReminderScheduler.onAlarmStarted(ctx)
         try {
             ContextCompat.startForegroundService(ctx, Intent(ctx, AlarmService::class.java))

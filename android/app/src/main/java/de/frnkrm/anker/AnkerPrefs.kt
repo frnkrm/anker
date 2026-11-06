@@ -174,5 +174,7 @@ object AnkerPrefs {
 
     // ---------- Widget ----------
     fun widgetEntries(ctx: Context): String = prefs(ctx).getString("widget", "[]") ?: "[]"
-    fun setWidgetEntries(ctx: Context, json: String) = prefs(ctx).edit().putString("widget", json).apply()
+    fun widgetGeneratedAt(ctx: Context): Long = prefs(ctx).getLong("widgetGeneratedAt", 0L)
+    fun widgetExpiresAt(ctx: Context): Long = prefs(ctx).getLong("widgetExpiresAt", 0L)
+    fun setWidgetEntries(ctx: Context, json: String, generatedAt: Long, expiresAt: Long): Boolean = prefs(ctx).edit().putString("widget", json).putLong("widgetGeneratedAt", generatedAt).putLong("widgetExpiresAt", expiresAt).commit()
 }

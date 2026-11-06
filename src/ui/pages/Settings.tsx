@@ -6,6 +6,7 @@ import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineSte
 import { WeatherSettings } from '../components/WeatherSettings'
 import { useApp } from '../../state/store'
 import { SortableList } from '../components/Sortable'
+import { ExtraControls } from '../components/ExtraControls'
 import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
@@ -449,6 +450,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
   const setSup = (patch: Partial<S['support']>) => save((x) => ({ ...x, support: { ...x.support, ...patch } }))
   return (
     <Page title="Alltagshilfen" back="/einstellungen">
+      <ExtraControls />
       <Section title="Fokus-Puls" hint="Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.">
         <Card className="space-y-3">
           <Segmented<S['focus']['pulse']>
@@ -461,7 +463,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
             ]}
             onChange={(v) => setFocus({ pulse: v })}
           />
-          {f.pulse !== 'off' && (
+          {(f.pulse !== 'off' || s.extras?.spokenCues) && (
             <>
               <Segmented<number>
                 label="Abstand"

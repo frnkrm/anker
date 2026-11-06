@@ -13,6 +13,8 @@ import Now from './ui/pages/Now'
 const Onboarding = lazy(() => import('./ui/pages/Onboarding'))
 const Focus = lazy(() => import('./ui/pages/Focus'))
 const TaskFocus = lazy(() => import('./ui/pages/TaskFocus'))
+const QuickRecovery = lazy(() => import('./ui/pages/QuickEntries').then((module) => ({ default: module.QuickRecovery })))
+const QuickFocus = lazy(() => import('./ui/pages/QuickEntries').then((module) => ({ default: module.QuickFocus })))
 const Day = lazy(() => import('./ui/pages/Day'))
 const Game = lazy(() => import('./ui/pages/Game'))
 const Shop = lazy(() => import('./ui/pages/Shop'))
@@ -151,6 +153,8 @@ export default function App() {
             <Route path="/spiel/shop" element={<Shop />} />
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/gedanke" element={<QuickThought />} />
+            <Route path="/wiedereinstieg" element={<QuickRecovery />} />
+            <Route path="/fokus-start" element={<QuickFocus />} />
             <Route path="/mehr" element={<More />} />
             <Route path="/abend" element={<Evening />} />
             <Route path="/schlaf" element={<SleepDiary />} />

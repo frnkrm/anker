@@ -37,6 +37,40 @@ import java.lang.ref.WeakReference
 /** Brücke zwischen der Web-App und dem nativen Teil: Wecker, Erinnerungen, Widget, Druck, Einstellungen. */
 @CapacitorPlugin(name = "AnkerNative", permissions = [Permission(alias = "smartAudio", strings = [Manifest.permission.RECORD_AUDIO])])
 class AnkerNativePlugin : Plugin() {
+    private val dictationLease = VoiceRequestLease()
+    private val speechLease = VoiceRequestLease()
+    @Volatile private var voiceForeground = true
+    private val voice by lazy { LocalVoiceController(context) }
+    override fun handleOnResume() { super.handleOnResume(); voiceForeground = true }
+    override fun handleOnPause() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); super.handleOnPause(); activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking() } }
+    override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy() }; super.handleOnDestroy() }
+
+    @PluginMethod fun getVoiceCapabilities(call: PluginCall) { activity.runOnUiThread { call.resolve(voice.capabilities()) } }
+    @PluginMethod fun startDictation(call: PluginCall) {
+        if (!voiceForeground) { ok(call, "status" to "cancelled"); return }
+        dictationLease.begin(call.callbackId)
+        if (getPermissionState("smartAudio") != PermissionState.GRANTED) requestPermissionForAlias("smartAudio", call, "dictationPermitted")
+        else dictationPermitted(call)
+    }
+    @PermissionCallback private fun dictationPermitted(call: PluginCall) {
+        if (!dictationLease.accepts(call.callbackId) || !voiceForeground) { ok(call, "status" to "cancelled"); return }
+        if (getPermissionState("smartAudio") != PermissionState.GRANTED) { ok(call, "status" to "permission-denied"); return }
+        activity.runOnUiThread {
+            if (!voiceForeground || !dictationLease.accepts(call.callbackId)) ok(call, "status" to "cancelled")
+            else voice.dictate(activity) { result -> call.resolve(result) }
+        }
+    }
+    @PluginMethod fun stopDictation(call: PluginCall) { dictationLease.cancel(); activity.runOnUiThread { voice.stopDictation(); call.resolve() } }
+    @PluginMethod fun speakCue(call: PluginCall) {
+        if (!voiceForeground) { ok(call, "status" to "cancelled"); return }
+        speechLease.begin(call.callbackId)
+        activity.runOnUiThread {
+            if (!voiceForeground || !speechLease.accepts(call.callbackId)) ok(call, "status" to "cancelled")
+            else voice.speak(call.getString("text") ?: "") { result -> call.resolve(result) }
+        }
+    }
+    @PluginMethod fun stopSpeaking(call: PluginCall) { speechLease.cancel(); activity.runOnUiThread { voice.stopSpeaking(); call.resolve() } }
+
     companion object {
         private var instance: WeakReference<AnkerNativePlugin>? = null
 
@@ -388,7 +422,11 @@ class AnkerNativePlugin : Plugin() {
 
     @PluginMethod
     fun openFocusSettings(call: PluginCall) {
-        open(call, Intent("android.settings.ZEN_MODE_SETTINGS"), Intent(Settings.ACTION_SETTINGS))
+        try { activity.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS")); ok(call, "opened" to true, "destination" to "dnd") }
+        catch (_: Exception) {
+            try { activity.startActivity(Intent(Settings.ACTION_SETTINGS)); ok(call, "opened" to true, "destination" to "settings") }
+            catch (_: Exception) { ok(call, "opened" to false, "destination" to "unavailable") }
+        }
     }
 
     @PluginMethod
@@ -427,7 +465,7 @@ class AnkerNativePlugin : Plugin() {
     @PluginMethod
     fun updateWidget(call: PluginCall) {
         val entries = call.getArray("entries") ?: return call.reject("entries fehlt")
-        AnkerPrefs.setWidgetEntries(context, entries.toString())
+        if (!AnkerPrefs.setWidgetEntries(context, entries.toString(), call.getLong("generatedAt") ?: 0L, call.getLong("expiresAt") ?: 0L)) { call.reject("Widgetstand konnte nicht gespeichert werden."); return }
         AnkerWidget.refreshAll(context)
         call.resolve()
     }

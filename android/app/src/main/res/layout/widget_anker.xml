@@ -45,6 +45,16 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/widget_recover"
+        android:layout_width="48dp"
+        android:layout_height="52dp"
+        android:background="@drawable/widget_button"
+        android:contentDescription="Wieder einsteigen"
+        android:gravity="center"
+        android:text="↩"
+        android:textSize="22sp" />
+
+    <TextView
         android:id="@+id/widget_inbox"
         android:layout_width="52dp"
         android:layout_height="52dp"
