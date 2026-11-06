@@ -19,7 +19,10 @@ import java.util.Locale
 class LocalVoiceController(private val context: Context) {
     companion object {
         private var current: WeakReference<LocalVoiceController>? = null
-        fun silenceForAlarm() { current?.get()?.let { voice -> voice.handler.post { voice.stopDictation(); voice.stopSpeaking() } } }
+        fun silenceForAlarm() { current?.get()?.let { voice ->
+            if (Looper.myLooper() == voice.handler.looper) { voice.stopDictation(); voice.stopSpeaking() }
+            else voice.handler.post { voice.stopDictation(); voice.stopSpeaking() }
+        } }
     }
     private val handler = Handler(Looper.getMainLooper())
     private var recognizer: SpeechRecognizer? = null
@@ -36,6 +39,7 @@ class LocalVoiceController(private val context: Context) {
     init { current = WeakReference(this) }
 
     private fun dictationAvailable(): Boolean = try { Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(context) } catch (_: Exception) { false }
+    private fun priorityAudioActive(): Boolean = AlarmController.state(context).ringing != null || SmartWakeService.status(context).optString("phase", "") == "measuring"
     fun capabilities(): JSObject = JSObject().put("dictationSupported", dictationAvailable())
         .put("localOnly", true).put("speechSupported", if (!ttsChecked) org.json.JSONObject.NULL else ttsReady && tts?.voices?.any { !it.isNetworkConnectionRequired && it.locale.language == Locale.GERMAN.language } == true)
 
@@ -54,7 +58,7 @@ class LocalVoiceController(private val context: Context) {
     fun dictate(activity: Activity, callback: (JSObject) -> Unit) {
         stopDictation()
         if (destroyed || Build.VERSION.SDK_INT < 31 || !dictationAvailable()) { callback(result("unavailable")); return }
-        if (AlarmController.state(context).ringing != null || SmartWakeService.status(context).optString("phase", "") == "measuring") { callback(result("busy")); return }
+        if (priorityAudioActive()) { callback(result("busy")); return }
         stopSpeaking()
         val generation = ++dictationGeneration
         dictationResult = callback
@@ -95,7 +99,7 @@ class LocalVoiceController(private val context: Context) {
         val text = pendingSpeech ?: return
         val callback = pendingSpeechResult ?: return
         pendingSpeech = null; pendingSpeechResult = null
-        if (destroyed || !ttsReady || AlarmController.state(context).ringing != null) { callback(result("unavailable")); return }
+        if (destroyed || !ttsReady || priorityAudioActive() || recognizer != null) { callback(result("unavailable")); return }
         val engine = tts ?: run { callback(result("unavailable")); return }
         val voice = engine.voices?.filter { !it.isNetworkConnectionRequired && it.locale.language == Locale.GERMAN.language }?.sortedBy { it.name }?.firstOrNull()
         if (voice == null) { callback(result("unavailable")); return }
@@ -105,7 +109,7 @@ class LocalVoiceController(private val context: Context) {
     }
     fun speak(text: String, callback: (JSObject) -> Unit) {
         stopSpeaking()
-        if (destroyed || AlarmController.state(context).ringing != null || recognizer != null) { callback(result("busy")); return }
+        if (destroyed || priorityAudioActive() || recognizer != null) { callback(result("busy")); return }
         val trimmed = VoiceModel.transcript(listOf(text))?.take(240) ?: run { callback(result("empty")); return }
         pendingSpeech = trimmed; pendingSpeechResult = callback
         val generation = speechGeneration
