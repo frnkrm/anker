@@ -113,11 +113,6 @@ export function advanceGame(g0: GameState, c: ProgressContext): { game: GameStat
       }
       continue
     }
-    if (r.ended && r.endedOn) {
-      g.chapter = { index: g.chapter.index, startDate: addDays(r.endedOn, 1), jokerUsed: false, attempt: g.chapter.attempt + 1 }
-      events.push({ type: 'chapter-restarted', text: `Neuer Anlauf für ${c.theme.chapterWord} ${g.chapter.index + 1}. Alles, was du gesammelt hast, bleibt.` })
-      continue
-    }
     g.chapter.jokerUsed = r.jokerUsed
     break
   }

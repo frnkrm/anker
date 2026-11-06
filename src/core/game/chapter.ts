@@ -11,19 +11,18 @@ export interface ChapterResult {
   length: number
   progress: number
   jokerUsed: boolean
-  /** zwei verpasste Tage hintereinander (ohne Joker) */
+  /** Kompatibilitätsfeld: Nicht erfüllte Tage beenden kein Kapitel mehr. */
   ended: boolean
   endedOn?: DateStr
   completed: boolean
   completedOn?: DateStr
-  /** aktuell 1 verpasster Tag: morgen zählt doppelt („Nie zweimal“) */
+  /** Kompatibilitätsfeld: Aus Nichtnutzung entsteht keine Aufforderung zum Nachholen. */
   missedYesterday: boolean
 }
 
 /**
- * Regel „Nie zweimal“: Ein verpasster Tag unterbricht nichts. Erst der zweite verpasste Tag
- * in Folge beendet das Kapitel – außer der Joker (1× pro Kapitel) fängt ihn ab.
- * Neutrale Tage (krank) werden übersprungen.
+ * Nur tatsächlich geschaffte Tage erhöhen den Fortschritt. Pausen und nicht erfüllte
+ * Tage nehmen nichts weg und verbrauchen keinen Joker. Historische Jokerwerte bleiben erhalten.
  */
 export function evaluateChapter(
   start: DateStr,
@@ -33,28 +32,14 @@ export function evaluateChapter(
   jokerAlreadyUsed = false,
 ): ChapterResult {
   let progress = 0
-  let missedStreak = 0
-  let jokerUsed = jokerAlreadyUsed
   const days = daysBetween(start, today)
   for (let i = 0; i <= days; i++) {
     const d = addDays(start, i)
     const st = statusOf(d)
     if (st === 'success') {
       progress++
-      missedStreak = 0
-      if (progress >= length) return { length, progress, jokerUsed, ended: false, completed: true, completedOn: d, missedYesterday: false }
-    } else if (st === 'missed') {
-      missedStreak++
-      if (missedStreak >= 2) {
-        if (!jokerUsed) {
-          jokerUsed = true
-          missedStreak = 1
-        } else {
-          return { length, progress, jokerUsed, ended: true, endedOn: d, completed: false, missedYesterday: false }
-        }
-      }
+      if (progress >= length) return { length, progress, jokerUsed: jokerAlreadyUsed, ended: false, completed: true, completedOn: d, missedYesterday: false }
     }
-    // 'neutral' und 'open' ändern nichts
   }
-  return { length, progress, jokerUsed, ended: false, completed: false, missedYesterday: missedStreak === 1 }
+  return { length, progress, jokerUsed: jokerAlreadyUsed, ended: false, completed: false, missedYesterday: false }
 }

@@ -6,7 +6,7 @@ import type { DayLog, Settings } from '../types'
 import { applyAwards } from './awards'
 import { evaluateChapter } from './chapter'
 import { dayGoals, dayStatus, type DayStatus } from './evaluate'
-import { advanceGame, initialGame } from './progress'
+import { advanceGame, chapterStatus, initialGame } from './progress'
 import { THEMES, THEME_LIST } from './themes'
 import { levelFor, levelThreshold } from './xp'
 
@@ -140,7 +140,7 @@ describe('Sport abhaken', () => {
   })
 })
 
-describe('Kapitel: Regel „Nie zweimal“', () => {
+describe('Kapitel ohne Verlust durch nicht erfüllte Tage', () => {
   const start = '2026-11-02'
   const d = (i: number) => addDays(start, i)
 
@@ -155,24 +155,31 @@ describe('Kapitel: Regel „Nie zweimal“', () => {
     const r = evaluateChapter(start, 7, d(2), statuses(m))
     expect(r).toMatchObject({ progress: 2, ended: false, jokerUsed: false })
   })
-  it('zwei verpasste Tage: Joker fängt einmal ab', () => {
+  it('zwei nicht erfüllte Tage verbrauchen keinen Joker', () => {
     const m = { [d(0)]: 'missed', [d(1)]: 'missed', [d(2)]: 'success' } as Record<string, DayStatus>
     const r = evaluateChapter(start, 7, d(2), statuses(m))
-    expect(r).toMatchObject({ ended: false, jokerUsed: true, progress: 1 })
+    expect(r).toMatchObject({ ended: false, jokerUsed: false, progress: 1 })
   })
-  it('ohne Joker beenden zwei verpasste Tage das Kapitel', () => {
+  it('mehrere nicht erfüllte Tage beenden kein Kapitel und zählen nicht als Fortschritt', () => {
     const m = { [d(0)]: 'missed', [d(1)]: 'missed', [d(2)]: 'missed' } as Record<string, DayStatus>
     const r = evaluateChapter(start, 7, d(3), statuses(m))
-    expect(r).toMatchObject({ ended: true, endedOn: d(2) })
+    expect(r).toMatchObject({ ended: false, progress: 0, jokerUsed: false, completed: false })
+    expect(r.endedOn).toBeUndefined()
   })
   it('krank (neutral) zählt weder als verpasst noch als geschafft', () => {
     const m = { [d(0)]: 'missed', [d(1)]: 'neutral', [d(2)]: 'neutral', [d(3)]: 'success' } as Record<string, DayStatus>
     const r = evaluateChapter(start, 7, d(3), statuses(m))
     expect(r).toMatchObject({ ended: false, jokerUsed: false, progress: 1 })
   })
-  it('meldet „gestern verpasst“', () => {
+  it('erzeugt keine Nachholaufforderung nach einem nicht erfüllten Tag', () => {
     const m = { [d(0)]: 'success', [d(1)]: 'missed' } as Record<string, DayStatus>
-    expect(evaluateChapter(start, 7, d(2), statuses(m)).missedYesterday).toBe(true)
+    expect(evaluateChapter(start, 7, d(2), statuses(m)).missedYesterday).toBe(false)
+  })
+  it('zählt sieben echte Erfolgstage auch mit längeren Pausen und erhält historische Jokerwerte', () => {
+    const m: Record<string, DayStatus> = {}
+    for (let i = 0; i < 28; i++) m[d(i)] = i % 4 === 0 ? 'success' : 'missed'
+    const r = evaluateChapter(start, 7, d(27), statuses(m), true)
+    expect(r).toMatchObject({ completed: true, completedOn: d(24), progress: 7, jokerUsed: true, ended: false })
   })
 })
 
@@ -198,15 +205,65 @@ describe('Spielfortschritt', () => {
     expect(events.map((e) => e.type)).toContain('chapter-completed')
     expect(game.xp).toBeGreaterThan(0)
   })
-  it('Neustart nach zwei Doppel-Ausfällen behält XP', () => {
+  it('nicht erfüllte Tage behalten Kapitel, Joker und XP ohne Neustart', () => {
     const st = s()
     const m: Record<string, DayStatus> = {}
     for (let i = 0; i < 4; i++) m[addDays('2026-11-01', i)] = 'missed'
     const g0 = { ...initialGame('2026-11-01'), xp: 500 }
     const { game, events } = advanceGame(g0, ctxBase(st, m, '2026-11-05'))
     expect(game.xp).toBe(500)
-    expect(game.chapter.attempt).toBe(2)
-    expect(events[0]!.type).toBe('chapter-restarted')
+    expect(game.chapter).toEqual(g0.chapter)
+    expect(events).toEqual([])
+    expect(chapterStatus(game, '2026-11-05', statuses(m))).toMatchObject({ progress: 0, completed: false, jokerUsed: false })
+  })
+  it.each([3, 30])('behält nach %i Tagen Nichtnutzung echte Kapitel-Tage und den alten Spielstand', (absentDays) => {
+    const st = s()
+    const start = '2026-11-01'
+    const today = addDays(start, absentDays + 2)
+    const m: Record<string, DayStatus> = { [start]: 'success', [addDays(start, 1)]: 'success' }
+    const context = {
+      ...ctxBase(st, m, today),
+      statusOf: (date: string) => m[date] ?? dayStatus(buildDayPlan({ date, settings: st }), undefined, st, date < today),
+    }
+    const g0 = {
+      ...initialGame(start), xp: 500, spent: 60,
+      chapter: { index: 0, startDate: start, jokerUsed: true, attempt: 3 },
+      badges: ['Vorhandenes Abzeichen'], achievements: { 'first-step': '2026-10-31' },
+    }
+    const before = structuredClone(g0)
+    const { game, events } = advanceGame(g0, context)
+    expect(game.chapter).toEqual(g0.chapter)
+    expect(chapterStatus(game, today, context.statusOf)).toMatchObject({ progress: 2, ended: false, jokerUsed: true, missedYesterday: false })
+    expect(game.xp).toBe(500)
+    expect(game.spent).toBe(60)
+    expect(game.badges).toEqual(g0.badges)
+    expect(game.achievements).toEqual(g0.achievements)
+    expect(game.chaptersDone).toEqual(g0.chaptersDone)
+    expect(events).toEqual([])
+    expect(g0).toEqual(before)
+
+    m[today] = 'success'
+    const resumed = advanceGame(game, context)
+    expect(chapterStatus(resumed.game, today, context.statusOf).progress).toBe(3)
+    const repeated = advanceGame(resumed.game, context)
+    expect(repeated.game).toEqual(resumed.game)
+    expect(repeated.events).toEqual([])
+  })
+  it('vergibt den Kapitelbonus nach sieben echten Tagen mit Pausen nur einmal', () => {
+    const st = s()
+    const start = '2026-11-01'
+    const today = addDays(start, 12)
+    const m: Record<string, DayStatus> = {}
+    for (let i = 0; i <= 12; i++) m[addDays(start, i)] = i % 2 === 0 ? 'success' : 'missed'
+    const context = ctxBase(st, m, today)
+    const first = advanceGame(initialGame(start), context)
+    expect(first.game.chaptersDone).toEqual([{ length: 7, endDate: today }])
+    expect(first.game.chapter).toMatchObject({ index: 1, startDate: addDays(today, 1), attempt: 1 })
+    expect(first.events.filter((event) => event.type === 'chapter-completed')).toHaveLength(1)
+    expect(first.events.some((event) => event.type === 'chapter-restarted')).toBe(false)
+    const repeated = advanceGame(first.game, context)
+    expect(repeated.game).toEqual(first.game)
+    expect(repeated.events).toEqual([])
   })
   it('Stufen-Angebot erst nach geschafftem Kapitel und ab Woche 3', () => {
     const st = s()
