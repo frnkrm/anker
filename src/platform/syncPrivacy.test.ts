@@ -44,12 +44,18 @@ describe('Syncfreigabe und explizit lokale Inhalte', () => {
   })
   it('blockiert neue automatische Abrufe schon vor dem gespeicherten Ausschaltwert bis zur bewussten neuen Freigabe', async () => {
     const { rpc } = client()
-    const { cancelSyncRequests, syncNow } = await import('./supabase')
+    const { automaticSyncEnableConfirmation, cancelSyncRequests, syncNow } = await import('./supabase')
     cancelSyncRequests()
     await syncNow()
     expect(rpc).not.toHaveBeenCalled()
     await syncNow({ manual: true })
     expect(rpc).toHaveBeenCalledOnce()
+    await context.repo!.put('inbox', 'later', { id: 'later', text: 'Späterer lokaler Entwurf', status: 'open', createdAt: 2 })
+    await syncNow()
+    expect(rpc).toHaveBeenCalledOnce()
+    automaticSyncEnableConfirmation()()
+    await syncNow()
+    expect(rpc).toHaveBeenCalledTimes(2)
   })
   it.each(['auth', 'dirty'] as const)('prüft den Widerruf nach wartendem %s erneut vor dem Upload', async (stage) => {
     let entered!: () => void; let release!: () => void

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { buildIcs } from '../../core/export/ics'
 import { saveFile } from '../../platform/files'
 import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
-import { cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
+import { automaticSyncEnableConfirmation, cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
 import { Button, Card, Page, Section, TextInput, Toggle } from '../components/ui'
 
@@ -74,12 +74,14 @@ export default function Connections() {
                   void setInteg({ sync: false }).then(() => setMsg('Automatischer Sync ist ausgeschaltet. Deine lokalen Daten bleiben erhalten.')).catch(() => setMsg('Der Sync wurde angehalten. Der Schalter konnte noch nicht gespeichert werden; versuche es erneut.'))
                   return
                 }
+                const confirm = automaticSyncEnableConfirmation()
                 syncEnabling.current = intent
                 void syncAction(async () => {
                   // Dieser Callback läuft erst innerhalb der zentralen Schreibbarriere.
                   try { await st.saveSettings((settings) => syncCurrent(intent) ? { ...settings, integrations: { ...settings.integrations, sync: true } } : settings) }
                   finally { if (syncEnabling.current === intent) syncEnabling.current = undefined }
                   if (!syncCurrent(intent)) return
+                  confirm()
                   const result = await syncNow({ manual: true }); setLastSync(result.lastSync); setMsg(result.error ?? 'Automatischer Sync ist eingeschaltet.')
                 })
               }} /></fieldset></div>

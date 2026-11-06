@@ -47,6 +47,11 @@ let syncGeneration = 0
 let syncBlocked = false
 /** Sofortiger Stopp, auch wenn das Speichern des ausgeschalteten Schalters noch wartet. */
 export function cancelSyncRequests(): void { syncGeneration++; syncBlocked = true }
+/** Ausschließlich nach einer erfolgreich gespeicherten ausdrücklichen Automatik-Wahl bestätigen. */
+export function automaticSyncEnableConfirmation(): () => void {
+  const generation = syncGeneration
+  return () => { if (generation === syncGeneration && useApp.getState().settings.integrations.sync === true) syncBlocked = false }
+}
 
 /** Magic-Link-Rückkehr in die Android-App (de.frnkrm.anker://login?code=…). */
 export function listenForAuthLinks() {
@@ -80,9 +85,8 @@ const syncMeta = (value: SyncMeta): SyncMeta => ({ ...value, ...(value.error ? {
 
 /** Lädt geänderte Datensätze hoch und holt neue vom Server (last-write-wins pro Datensatz). */
 export async function syncNow(options: { manual?: boolean } = {}): Promise<SyncMeta> {
-  if (options.manual) syncBlocked = false
   const generation = syncGeneration
-  const accepted = () => !syncBlocked && generation === syncGeneration && (options.manual === true || useApp.getState().settings.integrations.sync === true)
+  const accepted = () => generation === syncGeneration && (options.manual === true || !syncBlocked && useApp.getState().settings.integrations.sync === true)
   const stopped = (meta: SyncMeta): SyncMeta => options.manual ? { ...meta, error: 'Sync wurde beendet. Deine lokalen Daten bleiben erhalten.' } : meta
   if (!accepted()) return {}
   const c = sb()
@@ -134,9 +138,11 @@ let pcPublication: Promise<void> = Promise.resolve()
 
 /** Veröffentlichungen sind serialisiert. Kein Rückgabewert behauptet einen Empfang am PC. */
 export function pushPcStop(options: { manual?: boolean } = {}): Promise<PcStopPublication> {
+  const generation = syncGeneration
+  const accepted = () => generation === syncGeneration && (options.manual === true || !syncBlocked && useApp.getState().settings?.integrations.sync === true)
   const task = pcPublication.then(async (): Promise<PcStopPublication> => {
     const result = (status: PcStopPublication['status']): PcStopPublication => ({ status, message: pcStopPublicationText(status) })
-    if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+    if (!accepted()) return result('disabled')
     const c = sb()
     if (!c) return result('unconfigured')
     try {
@@ -148,11 +154,11 @@ export function pushPcStop(options: { manual?: boolean } = {}): Promise<PcStopPu
           return buildPcStopCommands([today(), addDays(today(), 1)].map((date) => ({ ...planFor(date), date })))
             .map((command) => ({ ...command, ...(command.mode === 'scheduled' ? { extended: typeof st.days[command.date]?.override.lateUntil === 'number' || (st.days[command.date]?.override.pcStopExtendMin ?? 0) > 0 } : {}) }))
         }
-        if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+        if (!accepted()) return result('disabled')
         const entries = desired()
         const { error } = await c.from('pc_stop').upsert({ user_id: user.id, entries, updated_at: new Date().toISOString() })
         if (error) return result('error')
-        if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+        if (!accepted()) return result('disabled')
         if (JSON.stringify(entries) !== JSON.stringify(desired())) continue
         return result('published')
       }

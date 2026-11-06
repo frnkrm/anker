@@ -45,3 +45,19 @@ it('schreibt bei ausgeschaltetem automatischem Abgleich nichts ohne ausdrücklic
   expect(await pushPcStop()).toMatchObject({ status: 'disabled' })
   expect(context.writes).toEqual([])
 })
+
+it('beachtet den sofortigen Sync-Widerruf auch bei noch gespeichertem alten Einschaltwert', async () => {
+  const { cancelSyncRequests, pushPcStop } = await import('./supabase')
+  cancelSyncRequests()
+  expect(context.sync).toBe(true)
+  expect(await pushPcStop()).toMatchObject({ status: 'disabled' })
+  expect(context.writes).toEqual([])
+})
+
+it('erlaubt einen ausdrücklich manuellen PC-Publish nach Widerruf, ohne die Automatik freizugeben', async () => {
+  const { cancelSyncRequests, pushPcStop } = await import('./supabase')
+  cancelSyncRequests()
+  expect(await pushPcStop({ manual: true })).toMatchObject({ status: 'published' })
+  expect(await pushPcStop()).toMatchObject({ status: 'disabled' })
+  expect(context.writes).toHaveLength(1)
+})
