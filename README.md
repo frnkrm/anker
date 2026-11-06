@@ -2,7 +2,7 @@
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
-**E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün: 780 Logik-/139 Browser-/87 native Modelltests und19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.
+**E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün: 780 Logik-/139 Browser-/87 native Modelltests und 19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.
 
 - **Android-App** (Capacitor) und **Web-Version/PWA** (Netlify, für den PC) aus derselben Codebasis
 - **Offline zuerst:** Alles Wichtige läuft ohne Konto, ohne Server, ohne Internet
