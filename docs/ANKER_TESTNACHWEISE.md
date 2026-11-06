@@ -388,3 +388,7 @@ EchteG86–95Androidberichte, Installation/SignierungaufWindows und Anbieter-/Se
 ## CI19: neue Laufzeit und präzise asynchrone Testbarrieren
 
 [CI19](https://github.com/frnkrm/anker/actions/runs/42283981487), e59cc42, Browser156:132grün/5rot; allevorherigenSoftware-Schritteinkl.PowerShellgrün. VeröffentlichteFehler unter `e04-e09/remote-ci/ci19-e59cc42/` erhalten. Gerätetestbericht95 und zweiSyncfälle alsTestbarrierenfehler echtrot reproduziert; bestehendeProduktionsquelle unverändert. ZusätzlicheBarrierengegenSW/LazyChunk/IDB-CommitundlokalegezielteTestsgrün. Nachtfälle10/10wiederholt155grün; begrenzteUhr/DB/Core/H1-Diagnosefürnächste156-Ausführung, keinFehlergrundgeraten. Folgelaufnoch offen.
+
+## CI20/CI21 – belegte Setup- und Uhrwechselbarrieren
+
+CI20 auf8506325:135/138grün. Annotations/Diagnose unter `e04-e09/remote-ci/ci20-8506325/` erhalten. UrsacheNight/Sync: harteNavigationvorasynchronerErsteinrichtungs-Speicherung,mitgehaltenemSettings-Writebelegt;Clock/DB/CorederNachtsitzungstimmten. UrsacheHomeoffice: alterLadebildschirmbestehtNegativcheck, UhrwechselundReloadverbrauchenkorrektEinmalcue. JeweilsrealeIDB-Barrierenrot→grün,keinProduktcodegeändert. Root24/24gezielteFälle/45s,0Skip/Retry; Nacht15/15Wiederholungen,Sync4/4,Homeoffice3/3. TestgesamtumfangnachzusätzlichenRegressionen139; Remote-Gesamtprüfungfolgt. Lint0Fehler/1bekannteRef-Cleanup-Warnung,keineTimeouterhöhung/Skip.

@@ -324,6 +324,14 @@ Main `e59cc42` erfolgreich gepusht; [CI19](https://github.com/frnkrm/anker/actio
 
 Zwei Nachtfälle waren lokal wiederholt grün, die Browser156-Abweichung noch nicht erklärt. Verschärfte Prüfung enthält exakte Start-/Pause-/Uhrwerte, reine Projektion und datensparsame H1-Diagnose; gleiche5sFrist. Der nächste vollständige CI-Lauf entscheidet, kein Produktfix oder Erfolg vorweggenommen. Offizieller Browser156-Container konnte wegen gesperrtem Auslieferungshost nicht vollständig geladen werden, keine Netzrichtlinie umgangen. LokalerBrowser bleibt155, GitHub nutzt156. Downloadbranch `download-anker-e04-e09-rc1-20261106`/`699df5e` enthält bytegleiches Paket; HTTPS200/22137167Bytes/SHA256bff0a29a… vollständig bestätigt, Appcode weiterhin e862… . Kein neues Gerätetestresultat.
 
+### CI20 – Ursache der verbleibenden Testabläufe belegt
+
+[CI20](https://github.com/frnkrm/anker/actions/runs/42286857557),8506325:135/138Browserfälle grün; die zuvor reparierten Gerätebericht-/Sync-Schreibbarrieren bestanden. Die Nacht-Diagnose zeigte korrekte Uhr, gespeicherte Sitzung und aktive Coreprojektion, aber `/start` stattJetzt. Nacht- und Sync-Setup navigierten nach dem Klick hart weiter, bevor die asynchrone Ersteinrichtung gespeichert war. Echte gehaltene Settings-Schreibvorgänge reproduzieren das; die Tests warten nun vor Navigation auf Home-URL und persistiertes onboarded=true. Vier weitere direkte Testnavigationen derselben Klasse ebenfalls abgesichert.
+
+Die Homeoffice-Rückfrage wurde mit echtem verzögertem IDB-Load reproduziert: Negativcheck schon im Loader bestanden, dann Uhrwechsel und alter Now-Mount, der die Rückfrage korrekt einmal verbrauchte; sofortiger zweiter Reload konnte sie folgerichtig nicht erneut anzeigen. Test wartet jetzt auf vollständiges Jetzt/persistierten Eintrag, verlässt Now vor dem Uhrwechsel und prüft danach genau eine Rückfrage sowie keine Wiederholung. Kein Produktcode/Fingerprint/APK geändert, keine Timeouts verlängert und keine Fälle übersprungen.
+
+Integrierter Root-Ziellauf24/24 in45s grün,0Skip/Retry. Zusätzlich15wiederholte Nachtläufe,4Syncfälle und3Homeoffice-Fälle getrennt grün; neue physische IDB-Setupregression ergänzt. Nächster vollständiger CI-Lauf mit139Fällen ist das ausstehende Remote-Gate. LokalerLint0Fehler/1bestehendeRef-Cleanup-Warnung; Warnung nicht mit dem eigentlichen CI-Fehler verwechselt. Quellen unverändert e862… , vorhandene ZIP unverändert bff0a29a… .
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
