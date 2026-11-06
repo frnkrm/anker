@@ -318,6 +318,12 @@ APK `de.frnkrm.anker`,1.3.0-rc.1/Code8, SHA256 `9fb488411de0c389a7ffa06a544a2706
 
 Main-Integration, öffentlicher Download und Remote-CI werden erst nach tatsächlichem Abschluss ergänzt. Nächster Nutzerschritt danach: Paket lokal signieren, über bestehende App installieren und mitStationG86 Datenvergleich beginnen; weitere Handytests erst dann gemeinsam.
 
+### GitHub-CI19 – getrennte Testablaufkorrektur
+
+Main `e59cc42` erfolgreich gepusht; [CI19](https://github.com/frnkrm/anker/actions/runs/42283981487) bestand Install/Lint/Typecheck/780Logik/PowerShell/Build, Browser132/137. Drei konkret nicht deterministische Testannahmen nachgewiesen: Bericht95 nach unverändertem0-Zähler vor tatsächlichem Commit neu geladen; zwei gehaltene Sync-Schreibvorgänge freigegeben, bevor lazy Tag-Navigation tatsächlich den alten Bereich unmountete. Neue Barrieren warten auf bestätigte Persistenz, kaltes Tag-DOM und echte Transaktionsabschlüsse; SW nur in dieser HTTP-Mockfixture blockiert. Neue positive IDB-Regressionsprüfung ergänzt. Appcode/Quellkennung unverändert, keine Timeoutlockerung/Skips.
+
+Zwei Nachtfälle waren lokal wiederholt grün, die Browser156-Abweichung noch nicht erklärt. Verschärfte Prüfung enthält exakte Start-/Pause-/Uhrwerte, reine Projektion und datensparsame H1-Diagnose; gleiche5sFrist. Der nächste vollständige CI-Lauf entscheidet, kein Produktfix oder Erfolg vorweggenommen. Offizieller Browser156-Container konnte wegen gesperrtem Auslieferungshost nicht vollständig geladen werden, keine Netzrichtlinie umgangen. LokalerBrowser bleibt155, GitHub nutzt156. Downloadbranch `download-anker-e04-e09-rc1-20261106`/`699df5e` enthält bytegleiches Paket; HTTPS200/22137167Bytes/SHA256bff0a29a… vollständig bestätigt, Appcode weiterhin e862… . Kein neues Gerätetestresultat.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`

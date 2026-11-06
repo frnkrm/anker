@@ -384,3 +384,7 @@ Appcd2c63c, Testabläufebaad9f7, Quellkennung e8625c6f0443c315be57936c8b496037e4
 87/87JUnit/9Suites ohneFehler/Skip aufidentischenAndroidquellen;196Tasks mitrerun, zusätzlich484Release-Tasks wirklich ausgeführt/2m59s. Final67Webassets bytegleich.19/19PowerShell7.5.4Linuxfälle plus4Scriptparser; Systemaktionen simuliert,keinWindowsScheduler/Toast/Shutdown. APK/portableZIP-Metadaten, Signierhelfertools, tatsächliche67Assets,16JNI-/4ARM64ELF-Dateienund16KB-ZIP-Ausrichtung geprüft. KeinNutzerschlüssel. MaschinenlesbarerBeleg [E04_E09_SOFTWARENACHWEIS.json](E04_E09_SOFTWARENACHWEIS.json). Logs `/workspace/.cache/anker/e04-e09/final-*`, `package-verification.*`, `portable-verification.*`, `android-native-check/`.
 
 EchteG86–95Androidberichte, Installation/SignierungaufWindows und Anbieter-/Serveraktivierung sind offen. RemoteCI wird separat nachPush bestätigt; lokaleGrünwerte sind keinRemoteCI-Erfolg.
+
+## CI19: neue Laufzeit und präzise asynchrone Testbarrieren
+
+[CI19](https://github.com/frnkrm/anker/actions/runs/42283981487), e59cc42, Browser156:132grün/5rot; allevorherigenSoftware-Schritteinkl.PowerShellgrün. VeröffentlichteFehler unter `e04-e09/remote-ci/ci19-e59cc42/` erhalten. Gerätetestbericht95 und zweiSyncfälle alsTestbarrierenfehler echtrot reproduziert; bestehendeProduktionsquelle unverändert. ZusätzlicheBarrierengegenSW/LazyChunk/IDB-CommitundlokalegezielteTestsgrün. Nachtfälle10/10wiederholt155grün; begrenzteUhr/DB/Core/H1-Diagnosefürnächste156-Ausführung, keinFehlergrundgeraten. Folgelaufnoch offen.
