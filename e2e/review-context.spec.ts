@@ -78,3 +78,32 @@ for (const failure of ['missing', 'rejected'] as const) test(`Arbeitsnachricht: 
   await dialog.getByRole('button', { name: 'Nachricht kopieren', exact: true }).click()
   await expect(page.getByText('Kopiert. Gesendet ist damit noch nichts.', { exact: true })).toBeVisible()
 })
+
+test('Die lange Abendvorschau nennt an der Sommerzeitgrenze die reale Schlafgelegenheit und verändert keinen Wecker', async ({ page }) => {
+  await onboard(page)
+  const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  settings.anchor = { ...settings.anchor, wake: 7 * 60, manual: { ...settings.anchor.manual, wake: true } }
+  settings.pcStop = 21 * 60; settings.bed = 21 * 60 + 30
+  settings.sleep = { ...settings.sleep, needMin: 480, fallAsleepMin: 0, screenOffMin: 30 }
+  await page.evaluate((settings) => new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open('anker')
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => {
+      const db = request.result; const tx = db.transaction('records', 'readwrite')
+      tx.objectStore('records').put({ collection: 'settings', id: 'main', data: settings, updated_at: Date.now(), deleted: false, dirty: 1 })
+      tx.oncomplete = () => { db.close(); resolve() }; tx.onabort = () => { db.close(); reject(tx.error) }
+    }
+  }), settings)
+  await page.clock.setFixedTime(new Date('2026-03-28T20:00:00+01:00'))
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await dialog.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()
+  await dialog.getByLabel('Wach bis', { exact: true }).fill('22:30')
+  await expect(dialog).toContainText('Bett im Plan 23:00.')
+  await expect(dialog).toContainText('etwa 7 h mögliche Schlafzeit')
+  await expect(dialog).toContainText('kürzer als deine gewünschten 8 h')
+  expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(settings)
+  expect((await storedRecord<DayLog>(page, 'days', '2026-03-29'))?.override.wakeOverride).toBeUndefined()
+})

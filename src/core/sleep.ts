@@ -1,7 +1,7 @@
 // Rechnet Morgen und Schlaf nachvollziehbar aus. Keine Schlaftherapie und keine Empfehlung, weniger zu schlafen.
 // Die Weckzeit ändert sich nur nach ausdrücklicher Bestätigung, Medikation spielt hier keine Rolle.
 
-import { fmtDuration, fmtTime, roundDownTo, zonedToUtc } from './time'
+import { addDays, fmtDuration, fmtTime, roundDownTo, zonedToUtc, type DateStr } from './time'
 import { additionalPreparation } from './morning'
 import type { DayPlan, Settings } from './types'
 
@@ -51,8 +51,10 @@ export interface SleepOutlook {
 }
 
 /** Was eine Bettzeit (Plan-Minuten heute, nach Mitternacht > 1440) für den nächsten Morgen bedeutet. */
-export function sleepOutlook(bedMin: number, wakeNextDay: number, s: Settings): SleepOutlook {
-  const sleepMin = Math.max(0, wakeNextDay + 1440 - bedMin - s.sleep.fallAsleepMin)
+export function sleepOutlook(bedMin: number, wakeNextDay: number, s: Settings, date?: DateStr): SleepOutlook {
+  const opportunity = date === undefined ? wakeNextDay + 1440 - bedMin
+    : (zonedToUtc(addDays(date, 1), wakeNextDay) - zonedToUtc(date, bedMin)) / 60_000
+  const sleepMin = Math.max(0, opportunity - s.sleep.fallAsleepMin)
   const short = sleepMin < s.sleep.needMin
   const text = short
     ? `Bis ${fmtTime(bedMin)} wach und um ${fmtTime(wakeNextDay)} aufstehen: etwa ${fmtDuration(sleepMin)} mögliche Schlafzeit. Das ist kürzer als deine gewünschten ${fmtDuration(s.sleep.needMin)}.`

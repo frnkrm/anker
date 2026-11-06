@@ -159,7 +159,7 @@ export function LateForm({ date, m, onDone }: { date: string; m: number; onDone:
   const [until, setUntil] = useState<number | 'open'>(plan.pcStop + 60)
   const oldLog = st.days[date] ?? { date, override: {}, steps: {} }
   const preview = planFor(date, { ...st, days: { ...st.days, [date]: { ...oldLog, override: { ...oldLog.override, lateUntil: until } } } })
-  const outlook = until === 'open' ? undefined : sleepOutlook(preview.bed, tomorrow.wake, st.settings)
+  const outlook = until === 'open' ? undefined : sleepOutlook(preview.bed, tomorrow.wake, st.settings, date)
   const proposal = wakeProposal(tomorrow, st.settings)
   const [useProposal, setUseProposal] = useState(false)
   const [wakeMessage, setWakeMessage] = useState('')
