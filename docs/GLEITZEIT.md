@@ -2,6 +2,8 @@
 
 Anker soll dir Entscheidungen abnehmen, nicht zur Zeiterfassung werden. Alles hier ist freiwillig, liegt auf dem Gerät und ist keine offizielle Arbeitszeiterfassung, keine Lohnabrechnung und keine Rechtsauskunft.
 
+**E04–E09 in Entwicklung.** Die neuen Erfassungs-/Korrekturwege sind im Code angelegt; tatsächliche automatische und echte Android-Nachweise stehen getrennt im [Testprotokoll](ANKER_TESTNACHWEISE.md). Ein laufender Timer ist kein Beleg dafür, dass du die ganze Zeit gearbeitet hast.
+
 ## Begriffe
 
 | Begriff | Wo | Bedeutung |
@@ -14,6 +16,8 @@ Anker soll dir Entscheidungen abnehmen, nicht zur Zeiterfassung werden. Alles hi
 | Geplanter Einsatz | `Commitment.workKind` | Bleibt ein Plan, bis du ihn startest |
 
 Der **Freitag** ist ein normaler Eintrag in `work`. Anker rät keinen Wert: Solange du keinen kürzeren einträgst, gilt, was dort steht, und die Einstellungen weisen einmal darauf hin.
+
+Unter **Einstellungen → Arbeit → Weitere Wochenwerte** kann jeder Wochentag eine eigene Startgrenze oder keine Grenze haben. Eine eigene Feierabend-Wunschzeit bleibt vom Netto-Soll getrennt: Sie erfindet keine gearbeiteten Stunden und ändert keinen anderen Wochentag. Die globale späteste Startzeit ist weiter ein Fallback, kein empfohlenes Ziel.
 
 ## Reihenfolge
 
@@ -31,15 +35,25 @@ Pause läuft     : wie oben, wächst also mit jeder Minute Pause
 Differenz       = Netto − Soll des Tages
 ```
 
+Bei offener Pause ohne bestätigtes Ende ist die Anzeige eine Untergrenze (**frühestens**), kein fester Feierabend. Mit einer freiwilligen Endschätzung lässt sie sich präzisieren. Nach spätem echtem Beginn wird Restarbeit ab dem tatsächlichen aktuellen Stand berechnet, nicht ab einem inzwischen vergangenen Wunschbeginn.
+
 Beispiel: Start 08:00, Soll 8 h, Pause 12:00 bis 13:30 ergibt 17:30. Korrigiert auf 13:15 ergibt das 17:15. Eine kürzere Pause zieht den Feierabend vor, ein Hinweis nennt es, wenn die Pause knapp werden könnte.
 
 Eine positive Differenz heißt „zusätzlich gearbeitet“, eine negative „weniger als geplant“. Das sagt nichts über Bezahlung oder Ausgleich aus, und nichts davon wirkt aufs Spiel. Tage ohne Erfassung zählen im Wochenblick nicht als null, sondern gar nicht.
+
+Überschneidende Sitzungen, Pausen außerhalb ihrer Sitzung oder noch ungeklärte lange Timer werden nicht still zu bestätigter Arbeitszeit erklärt. Unbestätigte Einträge werden benannt und aus dem bestätigten Wochensaldo herausgehalten. Korrigiere sie anhand dessen, was du tatsächlich weißt; Anker rät keine verlorenen Anfangs-/Endzeiten.
 
 **Keine Pause erfasst, aber Start und Ende schon:** Anker zieht nichts ab und zeigt die Zeit so, wie sie erfasst ist. Mit einem Tipp lässt sich die übliche Pause nachtragen.
 
 ## Zeit
 
 Echte Zeitpunkte sind UTC-ms, Dauern damit echte Zeit, auch über die Zeitumstellung. Eine Sitzung gehört **ganz zu dem Plantag, an dem sie begann** (Wechsel um 04:00) und wird nicht nach Kalendertagen aufgeteilt. Samstag 23:40 bis Sonntag 00:30 sind 50 Minuten am Samstag. Läuft eine Sitzung über 04:00 hinaus oder länger als 16 Stunden, fragt Anker nach. Beendet wird sie nie von selbst, denn das Ende kennst nur du.
+
+Eine solche noch laufende Sitzung bleibt nach dem Plantagwechsel bedienbar, statt einen zweiten Start zu verlangen. Unter **Arbeitszeit & Einsätze → Arbeitstag auswählen** kannst du auch ältere Tage aufrufen und nachtragen. Ein Endwert vor dem Beginn kann den Folgetag meinen; angezeigtes Datum und tatsächliche Pause vor dem Speichern prüfen.
+
+## Korrigieren und rückgängig machen
+
+Ein Korrekturformular verändert dieselbe vorhandene Sitzung. Widersprüchliche Eingaben bleiben als Fehler sichtbar und ersetzen keine funktionierenden Daten. Rückgängig prüft, ob die betroffenen Zeiten inzwischen verändert wurden; später erfasste echte Arbeit wird nicht aus Versehen gelöscht. Tagesplan-Rücknahme unter **Heute anders** entfernt keine tatsächlich gestartete oder beendete Sitzung. Ein geplanter Kundeneinsatz ist weiterhin etwas anderes als sein echter Start.
 
 ## Einsätze
 

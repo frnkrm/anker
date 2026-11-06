@@ -2,6 +2,8 @@
 
 Wo liegt was, und wo änderst du was? Die Bedienung der App steht in [ANLEITUNG.md](ANLEITUNG.md), die Einrichtung der Dienste im [README](../README.md).
 
+**E04–E09 in Entwicklung.** Diese Übersicht umfasst die erweiterten Quellmodule. Ob ein Teil bereits integriert, automatisch geprüft oder am echten Android-Gerät bestätigt ist, steht getrennt im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md). Es gibt weiterhin einen gemeinsamen Planer und ein gemeinsames Repository.
+
 ## Der Grundgedanke
 
 Anker besteht aus wenigen klar getrennten Schichten. Die Pfeile zeigen, wer wen benutzt:
@@ -20,7 +22,7 @@ flowchart TD
 **Was bei einem Tipp passiert:**
 
 1. Du tippst „Erledigt“, die Seite ruft eine Aktion im Store auf.
-2. Der Store speichert lokal und vergibt XP.
+2. Der Store prüft und speichert lokal; XP entstehen nur aus einer dafür vorgesehenen echten Erledigung, nicht aus Vorschlägen, Überspringen oder Testberichten.
 3. `onPlanChange` meldet die Änderung (400 ms verzögert).
 4. `platform/effects.ts` plant Erinnerungen und Wecker neu und aktualisiert das Widget.
 5. Falls eingerichtet: Sync höchstens jede Minute, Kalender alle 15 Minuten.
@@ -31,8 +33,8 @@ flowchart TD
 |---|---|
 | `src/` | Der App-Code (Web und Android teilen ihn sich) |
 | `android/` | Android-Projekt von Capacitor plus eigener Kotlin-Code |
-| `supabase/` | Datenbank-Migration und Edge Function `pc-stop` |
-| `e2e/` | Playwright-Smoke-Test |
+| `supabase/` | RLS-/Budgetmigrationen sowie getrennte Functions `pc-stop` und `assistant` |
+| `e2e/` | Playwright-Prüfungen gegen Produktionsbuilds; kontrollierte Backendantworten ausschließlich in Testhelfern |
 | `scripts/` | `icons.mjs` (Icons erzeugen), `gradle.mjs` (Gradle unter Windows und Linux starten) |
 | `public/` | App-Icons für die Web-Version |
 | `docs/` | Diese Dokumente |
@@ -55,11 +57,18 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `defaults.ts` | Standardwerte und Zeitvorschlag, rückwärts vom Arbeitsbeginn |
 | `now.ts` | Was der Tagesplan gerade vorsieht |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
+| `tasks.ts`, `focus.ts`, `recovery.ts` | Gemeinsame private/berufliche Aufgaben und echte Teilabschlüsse, Fokus-Timer und Wiedereinstieg ohne starren Stundenverfall |
+| `flexible.ts` | Planrücknahme mit privater Basis und Erhalt tatsächlich erfolgter Handlungen |
+| `travel.ts` | Gemeinsame Datengrenzen für Orte und Termine, offene/Remote-Orte, manueller Wegbedarf |
+| `assistance.ts` | Optionale Zweckfreigaben, Protokolltypen, Request-/Taskrevisionen; kein Provider-Schlüssel |
 | `alarm.ts` | Konfiguration für den nativen Wecker |
 | `deviceTests.ts` | Liest Prüfschritte aus der Geräte-Dokumentation, validiert manuelle Berichte und trennt Plattform/Codestand |
 | `planner/adaptive.ts` | Wege und Termine, Konflikte, Maps-Link |
 | `sleep.ts` | Späteste Weckzeit, Schlafhinweis, Weckvorschlag |
 | `weather.ts` | Wetterhinweis für die Zeit draußen |
+| `weatherProfile.ts`, `packing.ts` | Lokaler Wetterort mit Syncprojektion, Ortsbezug und wiederverwendbare Packlisten |
+| `geofences.ts` | Besuchsgebundene Auswahl, Gültigkeit und bestätigte Ankunftsvorschläge; keine Arbeitszeitbuchung |
+| `traffic.ts` | Gemeinsamer Routenauftrag, lokale Freigaben, relevante Planrevision und Grenzen automatischer Checks |
 | `print.ts` | Was auf welchem Druckblatt steht |
 | `reminders/build.ts`, `actions.ts` | Gemeinsame Ereignis-/Ruhepolitik, logische Revision, Zustellungstoken und Aktionsprüfung |
 | `reminders/rules.ts`, `dates.ts` | Wochenregeln aus dem bestehenden Planer sowie bekannte datierte Ausnahmen |
@@ -68,7 +77,7 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `game/themes.ts` | Die fünf Themen mit Level-Namen und Abzeichen |
 | `game/xp.ts`, `awards.ts` | XP-Werte, Level, einmalige Vergabe pro Tag |
 | `game/evaluate.ts` | Kernziele je Stufe, Status eines Tages |
-| `game/chapter.ts` | Kapitel, Regel „Nie zweimal“, Joker |
+| `game/chapter.ts` | Kapitel zählen echte Erfolgstage ohne Frist; Nichtnutzung entfernt keinen Fortschritt, historische Jokerwerte bleiben erhalten |
 | `game/progress.ts` | Kapitel-Abschluss, Stufen-Angebot, Erfolge |
 | `reminders/build.ts` | Erinnerungen mit Slot und Rang, Zeitfenster frei wählbar |
 | `export/` | `.ics`, JSON-Sicherung, PC-Stopp-Skripte |
@@ -81,11 +90,15 @@ Eine gemeinsame Schnittstelle (`types.ts`) mit drei Umsetzungen: `sqlite.ts` (An
 
 Alles liegt als gleichförmiger Datensatz vor: `{ collection, id, data, updated_at, deleted, dirty }`. Sammlungen: `settings`, `days`, `inbox`, `game`, `reviews`, `meta`. `merge.ts` enthält die Sync-Regel: Der neuere Stand gewinnt.
 
-**`meta` wird nicht synchronisiert.** Dort liegt `local` (`LocalData`): Arbeitsaufgaben, Übergabe, Wiedereinstieg, Einnahmeprotokoll. In der JSON-Sicherung ist es enthalten, darauf weist die Sicherungsseite hin.
+**`meta` wird nicht synchronisiert.** Dort liegt `local` (`LocalData`): Arbeitsaufgaben/-zeiten, Übergabe, Wiedereinstieg, Protokolle, Orte/Termine, Wetterort/-cache, Packlisten, Dienste-/Besuchsfreigaben und Geräteberichte. Eine vollständige unverschlüsselte JSON-Sicherung enthält diese Daten; sensible Gruppen können bewusst ausgeschlossen werden. Das bedeutet nicht, dass Freitext automatisch anonymisiert wäre.
+
+`core/export/backup.ts` und `backupValidation.ts` validieren vor der Übernahme und liefern eine Importvorschau. Ausgelassene Gruppen einer Teilsicherung löschen keinen Bestand. Ein fehlgeschlagener dauerhafter Speicher erscheint als Fehler mit erneutem Versuch, statt als erfolgreiche leere Sitzung. Sync verwendet weiter die vorhandenen Datensätze; `weatherRecordForSync` projiziert Wetterort und Aktivierung auf beiden Übertragungswegen heraus, ohne frühere Serverkopien rückwirkend zu löschen.
 
 ## `src/state/` – der App-Zustand
 
 `store.ts` ist die einzige Stelle, die ins Repository schreibt. `hooks.ts` liefert den Seiten Uhrzeit, Plan und Tageslog.
+
+Aufgabenänderungen und echte Teilabschlüsse werden über die bestehende Schreibqueue serialisiert. Eine KI-Übernahme kann zusätzlich den erwarteten Task-Snapshot und die aktuelle Freigabe innerhalb derselben Mutation prüfen. Routenübernahmen, Arbeitszeitkorrekturen und Rücknahmen prüfen ebenfalls den aktuellen relevanten Stand; verspätete Antworten dürfen keine neueren Nutzereingaben überschreiben.
 
 ## `src/platform/` – Handy und Internet
 
@@ -98,12 +111,15 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `alarm.ts` | Wecker-Konfiguration an Kotlin, Fehler landen sichtbar im Store (nicht über `safe()`) |
 | `native.ts` | Brücke zum Kotlin-Plugin |
 | `weather.ts` | Open-Meteo, nur wenn eingeschaltet |
+| `assistance.ts` | Bewusster Fähigkeitencheck und authentifizierte Vorschlagsaufrufe über den eigenen Server, Validierung/Abbruch; keine Provider-Schlüssel im Client |
+| `traffic.ts` | Begrenzte manuelle/automatische Routenanfragen und explizite Übernahme in den bestehenden Termin |
+| `geofences.ts` | Abgleich ausgewählter Besuche und native Registrierung/Rechte; manuelle Ankunft bleibt eigenständig |
 | `qr.ts`, `health.ts`, `files.ts` | QR-Scan, Health Connect, Dateien speichern oder teilen |
 | `supabase.ts`, `google.ts` | Sync und Login, PC-Stopp-Zeiten, Kalender |
 
 ## `src/ui/` – die Oberfläche
 
-**`components/`**: `ui.tsx` (Button, Card, Sheet …), `Shell.tsx` (Navigation, Gedanken-Knopf, Feier-Bildschirme), `Timeline.tsx`, `Stuck.tsx`, `TodayDifferent.tsx` („Heute anders“), `DayCommitments.tsx`, `DayTasks.tsx`, `WeatherCard.tsx`, `Sortable.tsx`, `QrCode.tsx`, `SportToggle.tsx`.
+**`components/`**: `ui.tsx` (Button, Card, Sheet …), `Shell.tsx` (Navigation, Gedanken-Knopf, Feier-Bildschirme), `Timeline.tsx`, `Stuck.tsx`, `TodayDifferent.tsx` („Heute anders“), `DayCommitments.tsx`, `DayTasks.tsx`, `TaskDetails.tsx`/`TaskPurpose.tsx` (dieselbe Aufgabe, lokale Zerlegung und eigener Grund), `TaskAssistance.tsx` (bewusstes Senden und editierbare KI-Vorschau), `RouteEstimateCard.tsx` (Routenvorschlag/gesonderte automatische Prüfungen), `Packing.tsx`, `WeatherCard.tsx`, `GeofenceVisit.tsx`, `ExtraControls.tsx` (lokale Sprache und Systemwege), `Sortable.tsx`, `QrCode.tsx`, `SportToggle.tsx`.
 
 **`pages/`** (die Routen stehen in `src/App.tsx`):
 
@@ -119,6 +135,10 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `Daily.tsx` | `/essen`, `/aufraeumen`, `/vorbereitung`, `/rueckblick` | Alltag |
 | `More.tsx` | `/mehr` | Menü |
 | `Settings.tsx` | `/einstellungen/:section` | Alle Einstellungen |
+| `AssistanceSettings.tsx` | `/einstellungen/assistenz` | Getrennte optionale KI-/Verkehrsfreigaben mit Daten-/Kostenhinweisen und bewusstem Verbindungscheck |
+| `Places.tsx` | `/orte` | Gespeicherte lokale Orte und manuelle Wege |
+| `TaskFocus.tsx` | `/aufgabe/:kind/:id` | Derselbe persistierte private/berufliche Aufgabenfokus |
+| `QuickEntries.tsx` | `/fokus-start`, `/wiedereinstieg` | Launcher-/Widgeteinstiege in den aktuellen gemeinsamen Fokus oder Wiedereinstieg |
 | `Alarm.tsx` | `/wecker`, `/wecker/klingelt` | Wecker einrichten, Klingel-Bildschirm |
 | `Check.tsx` | `/check` | Einrichtungs-Check |
 | `DeviceTests.tsx` | `/geraetetest` | Ein Versuch nach dem anderen, Einstellungswege, lokaler Nutzerbericht/Entwurf, Testexport |
@@ -141,6 +161,9 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 | `ReminderScheduler.kt` | Stellt Erinnerungen ohne JavaScript zu, Knöpfe in Meldungen |
 | `Receivers.kt` | Weckzeit erreicht; Abgleich nach Neustart, Update, Zeit- und Rechteänderung |
 | `AnkerWidget.kt` | Homescreen-Widget |
+| `WidgetModel.kt` | Ablauf alter Snapshots und sichere allgemeine Widgetanzeige |
+| `LocalVoiceController.kt`, `VoiceModel.kt` | On-Device-Diktieren, lokale deutsche Stimme und Abbruch-/Prioritätsregeln; keine Cloud-Ersatzfunktion |
+| `GeofenceManager.kt`, `GeofenceModel.kt`, `GeofenceReceiver.kt` | Ausgewählte Besuchsfenster, Systemregistrierung, getrennte Rechte und Wiederherstellung; nur Ankunftsvorschläge |
 | `AnkerPrefs.kt` | Kleiner Speicher für den nativen Teil |
 
 Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/build.gradle` (Signierung, Versionen). Das Web-Bundle unter `app/src/main/assets/public/` wird von `cap sync` erzeugt, also nicht von Hand ändern.
@@ -149,6 +172,7 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 
 - `migrations/`: Tabellen `records`, `pc_stop`, `pc_stop_tokens` mit Row Level Security, dazu `upsert_records` (neuerer Stand gewinnt).
 - `functions/pc-stop/`: Liefert dem PC nur die PC-Stopp-Zeit. Anmeldung über persönlichen Token.
+- `functions/assistant/` und `functions/_shared/`: Eigene authentifizierte KI-/Routenendpunkte, striktes Schema, feste Providerziele und Nutzer-/Originfreigabe. Tagesbudgets kommen aus `claim_assistant_request`; keine App-Build-Aktivierung oder eingebauten Providerkeys. Einrichtung, Bereinigungsgrenze der technischen Zähler und Kosten: [OPTIONALE_DIENSTE.md](OPTIONALE_DIENSTE.md).
 
 ## Wo ändere ich was?
 
@@ -199,7 +223,7 @@ node scripts/gradle.mjs :app:testDebugUnitTest
 - **Vitest** deckt `src/core/` und den Speicher ab.
 - **JUnit** deckt die reine Kotlin-Logik ab: Alarmarten, Folgetag, Schlummern, Zeitumstellung, Slots, Warteschlange.
 - **Playwright** prüft die wichtigsten Wege der Web-Version, auch die Druckansicht.
-- **Nicht automatisch getestet:** alles, was Android tatsächlich tut (PendingIntents, Klingeln, Vollbild, Benachrichtigungen, Druckdialog), SQLite auf Android, Supabase und Google. Der Android-Build zeigt nur, dass der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
+- **Nicht durch Logik-/Browsertests bestätigt:** tatsächliche Android-Zustellung, Klingeln, Vollbild, lokales ASR/TTS, Geofence-Registrierung/-Erkennung, Druckdialog, SQLite-Laufzeit auf dem Gerät und der bewusst einzurichtende reale Supabase-/Providerbetrieb. Ein Android-Build bestätigt Kompilierbarkeit. Kontrollierte Backend-/Pluginantworten in Tests bestätigen keine echte API oder Hardware. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
 
 ## E02: Zustellung, Persistenz und Druck
 

@@ -1,8 +1,8 @@
 # Anker: Anleitung
 
-Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sondern nur den nächsten Schritt machen.
+Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, und kannst Pläne ändern oder Freizeit wählen.
 
-**Aktueller Entwicklungsstand:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; Ergebnisse und offene Punkte stehen in [GERAETETEST.md](GERAETETEST.md). Neue Weckerkorrekturen und das experimentelle Weckfenster sind noch nicht auf diesem Gerät bestätigt. Lass für die Prüfung einen unabhängigen Wecker gestellt. Unter **Mehr → Gemeinsam testen** führt dich die App durch die Versuche. Für APK, Supabase, Google und Netlify siehe [README](../README.md).
+**E04–E09 in Entwicklung:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; diese Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten. Sie bestätigen neue Funktionen nicht automatisch. Der gemeinsame neue Prüfdurchgang unter **Mehr → Gemeinsam testen** steht noch am echten Gerät aus, einschließlich Wecker, lokaler Sprache und Standorthinweisen. Für Weckertests bleibt ein unabhängiger Wecker sinnvoll. Tatsächliche automatische Nachweise stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md); Anbieterbetrieb, Schlüssel und Kostenfreigaben sind gesonderte Einrichtungsschritte. Für APK und Dienste siehe [README](../README.md).
 
 ## Dein Tag mit Anker
 
@@ -17,7 +17,7 @@ Anker sagt dir, was jetzt dran ist. Du musst den Tag nicht selbst planen, sonder
 
 **Die Grundregeln:**
 - Eine kleine Version zählt voll als erledigt.
-- Ein schlechter Tag macht nichts. Nur nie zwei hintereinander.
+- Pausen, Nichtnutzung und bewusst geänderte Pläne nehmen dir keine XP, Kapitel oder Abzeichen weg. Es gibt keinen Nachholauftrag.
 - Krank? Oben rechts **„Krank“** wählen, dann gibt es nur das Nötigste und nichts geht verloren.
 
 ## Die fünf Bereiche
@@ -37,7 +37,7 @@ Unter **Einstellungen → Arbeit & Gleitzeit → Nach Feierabend** kannst du **A
 
 ### Heute anders
 
-Ein Plan ist ein Angebot. Der Knopf **Heute anders** steht immer auf der Startseite, auch mitten in einer Routine. Für einen späteren Tag nimmst du unter **Tag** den Knopf **Morgen anders**.
+Ein Plan ist ein Angebot. **Heute anders** ist auf der Startseite und im geöffneten Routinefokus erreichbar. Die drei häufigen Wege stehen direkt da, seltenere unter **Weitere Möglichkeiten**. Für einen späteren Tag nimmst du unter **Tag** den Knopf **Morgen anders**.
 
 | Weg | Was passiert |
 |---|---|
@@ -48,7 +48,7 @@ Ein Plan ist ein Angebot. Der Knopf **Heute anders** steht immer auf der Startse
 | **Plan ab jetzt neu machen** | Rest des Tages in kleinen Versionen. |
 | **Für morgen schon erledigt** | Etwa abends geduscht: Der Morgenschritt entfällt, gilt dort aber nicht als erledigt. Als feste Regel unter *Alltagshilfen*. |
 
-**Zurück zum ursprünglichen Plan** steht unter *Heute anders*, sobald du etwas geändert hast. Wirklich Erledigtes bleibt erledigt.
+**Zurück zum ursprünglichen Plan** steht unter *Heute anders*, sobald du etwas geändert hast. Es nimmt Planänderungen dieses Tages zurück; spätere echte Starts, Ankünfte, Rückkehr und erledigte Schritte bleiben erhalten. Deine Wochenregeln ändern sich dadurch nicht.
 
 Ein Tag, den du bewusst geändert hast, zählt im Spiel nie als verfehlt. XP gibt es nur für das, was du wirklich gemacht hast, abgezogen wird nichts.
 
@@ -57,7 +57,9 @@ Ein Tag, den du bewusst geändert hast, zählt im Spiel nie als verfehlt. XP gib
 - **Kunde morgen um 9:** Tag → Morgen → Morgen anders → Termin, Art „Kunde“, Ort und deine Fahrzeit, „Statt ins Büro“. Anker rechnet die Abfahrt aus und schlägt eine Weckzeit vor. Der Wecker ändert sich erst, wenn du **Einmalig um … wecken** antippst.
 - **Homeoffice:** Oben rechts „Arbeitstag ▾“ → Homeoffice. Dort kannst du einen Text kopieren, falls du jemandem Bescheid geben musst. Anker sendet nichts und weiß nicht, ob du Homeoffice machen darfst.
 
-**Unterwegs:** Die Startseite zeigt der Reihe nach Fertigmachen, **Bin los**, **Ich bin angekommen**, **Bin wieder da**. **Route öffnen** startet Google Maps. Die Fahrzeit bleibt deine Schätzung, Maps meldet Anker nichts zurück.
+**Unterwegs:** Die Startseite zeigt der Reihe nach Fertigmachen, **Bin los**, **Ich bin angekommen**, **Bin wieder da**. **Route öffnen** startet Google Maps; dieser Link meldet Anker keine Fahrzeit oder Ankunft zurück. Fehlende Fahrzeiten und offene Orte bleiben offen. Ein Angebot zum früheren Wecken ist erst nach deiner Bestätigung eine einmalige Änderung.
+
+Unter **Mehr → Orte & manuelle Wege** speicherst du wiederverwendbare Orte, freiwillige Adressen, Wegzeiten und Dinge zum Mitnehmen. Ein Name genügt. Bei Terminen kannst du einen gespeicherten Ort, einen offenen Ort oder eine Remote-Teilnahme wählen. Gespeicherte Adressen lösen keine Abfragen aus. Standorthinweise und Verkehrsvorschläge sind davon getrennte Extras; ihre Wahl ist unten beschrieben.
 
 ### Unterstützung wählen
 
@@ -75,6 +77,8 @@ Feste Zeiten ändern sich in keinem Modus.
 ### Arbeit
 
 *Mehr → Arbeit.* Ein Titel genügt, oben steht die wichtigste Aufgabe, höchstens zwei weitere sind sichtbar. Unter *Details* gehen nächster Schritt, Schätzung und Frist. Vor einer Frist erinnert Anker am Vortag und eine Stunde vorher, ohne den Inhalt zu nennen. Abends notierst du in der Übergabe, wo du morgen weitermachst. **Arbeitsaufgaben bleiben auf dem Gerät** und werden nicht synchronisiert. Anker sendet nichts an Kollegen oder Vorgesetzte.
+
+Private und berufliche Aufgaben nutzen dieselben vorhandenen Schritte: starten, pausieren, fortsetzen, verschieben und bewusst erledigen. Ein abgelaufener Fokus-Timer erledigt nichts. Dein Wiedereinstieg bleibt auch nach mehreren Tagen erhalten, solange die zugehörige Aufgabe offen ist. Unter **Details → Kleine Schritte** funktioniert die lokale Zerlegung ohne Konto oder KI. Erledigte Teile bleiben bei einer neuen Zerlegung erhalten. **Warum mache ich das?** merkt bei Bedarf deinen eigenen Grund direkt an derselben Aufgabe.
 
 ### Tag
 Der Ablauf für heute, morgen und übermorgen, dazu die heutigen Kernziele mit Häkchen.
@@ -112,11 +116,10 @@ Alles andere, siehe [Was Anker alles kann](#was-anker-alles-kann).
 | **2** | zusätzlich Bewegung am Morgen |
 | **3** | zusätzlich Sport an Sporttagen, Vorkochen am Vorkoch-Tag, Aufräumen |
 
-**Kapitel** dauern 7, 14, 30 und 66 Tage.
-- Ein verpasster Tag unterbricht nichts.
-- Der zweite in Folge wird einmal pro Kapitel automatisch vom **Joker** aufgefangen.
-- Danach startet ein neuer Anlauf für dasselbe Kapitel. Deine XP bleiben.
-- Krankheitstage zählen weder dafür noch dagegen.
+**Kapitel** sammeln 7, 14, 30 oder 66 wirklich geschaffte Tage, ohne feste Frist.
+- Pausen und offene Tage nehmen keinen Fortschritt weg und verbrauchen keinen Joker.
+- Es gibt keinen automatischen Kapitel-Neustart und keinen Rückstandsauftrag nach Nichtnutzung.
+- Bestehende XP, Abzeichen und historische Kapitel-/Jokerdaten bleiben erhalten.
 
 **Stufen:** Nach einem geschafften Kapitel bietet Anker die nächste Stufe an, Stufe 2 ab Woche 3 und Stufe 3 ab Woche 5. Du kannst sie ablehnen oder jederzeit von Hand ändern.
 
@@ -174,8 +177,10 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 
 - Warnung etwa 15 und 5 Minuten vorher. Zur Stopp-Zeit kommt eine weitere Meldung, etwa 5 Minuten später fährt der PC ohne Zwang herunter. Programme mit ungespeicherter Arbeit können das aufhalten. **Speichere trotzdem rechtzeitig**, nicht jedes Programm fragt nach.
 - Bis 6 Stunden nach der Stopp-Zeit versucht er es auch nach einem Neustart wieder.
-- **Verlängerung:** einmal pro Abend um 15 Minuten. Beim PC kommt sie nur an, wenn Sync eingerichtet ist und du angemeldet bist.
-- **Ohne Sync** gilt die feste Zeit, die beim Herunterladen eingestellt war. Änderst du sie später, lade das Paket neu und installiere es erneut.
+- **Abendzeit ändern:** beliebig erneut verlängern, eine Uhrzeit wählen oder das Ende offenlassen. Ein offenes Ende bedeutet für diesen Abend einen pausierten PC-Stopp, keinen erfundenen Termin.
+- **Plan einmalig bereitstellen:** überträgt mit Anmeldung den gewünschten datierten Auftrag an deinen Server, auch ohne automatischen Datensync. „Bereitgestellt“ bestätigt weder Empfang noch Ausführung am PC.
+- **Ohne funktionierende Verbindung** kann am PC noch ein gültiger alter Auftrag gelten. Setze ihn bei Bedarf direkt am PC aus. Ein neu erstelltes Paket ohne Server verwendet eine ausdrücklich gewählte feste Zeit.
+- **Neue Windows-Installation nötig:** Freie Verlängerungen, Pausen und Ablaufzeiten benötigen Protokoll 2 im Windows-Paket und in der Serverfunktion. Alte Pakete erhalten diese Regeln nicht allein durch ein Handyupdate. Windows-Aufgabe, Server und tatsächlicher Empfang müssen separat geprüft werden.
 - **Für heute aussetzen:** `pc-stop-abbrechen.ps1` mit PowerShell ausführen. Entfernen mit `uninstall.ps1`. Pakete von vor 1.1.0 fahren noch erzwungen herunter, also bitte neu herunterladen und installieren.
 
 ## Was Anker alles kann
@@ -188,13 +193,13 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | **Sport** | Tage, Art und Zeitpunkt wählbar, Taschen-Erinnerung am Vorabend, Abhaken von Hand oder automatisch über Health Connect |
 | **Essen** | Eigene Gerichte, Vorschlag per Zufall, Vorkoch-Tag |
 | **Aufräumen** | 10-Minuten-Timer, täglich wechselnde Zonen |
-| **Vorbereitung** | Eigene Checkliste für den Abend |
+| **Vorbereitung** | Eigene Abendcheckliste, lokale Packvorlagen und terminbezogene Dinge zum Mitnehmen mit getrenntem „vorbereitet“-Stand |
 | **Wochenrückblick** | 3 Fragen, die Änderung landet als Vorschlag in den Einstellungen |
 | **Belohnungen** | Eigene Belohnungen gegen XP einlösen |
-| **Widget** | Nächste Aktion, nächste feste Zeit, Knopf für Gedanken |
+| **Widget** | Allgemeiner nächster Schritt und Zeit, direkter Gedanke; alte Inhalte laufen ab, Schnellzugriffe öffnen den aktuellen Fokus oder Wiedereinstieg |
 | **Druckansicht** | Morgen, Abend, beide, QR-Code oder Haustür, A5 oder A4; auf Android zusätzlich eine eigene PDF-Datei ohne Druckdienst |
 | **Abend & Schlaf** | Schlaf & Anker, Abendpläne, Abendroutine und der freiwillige Abendmodus-Vorschlag sind in den Einstellungen zusammengefasst. |
-| **Alltagshilfen** | Fokus-Puls, Ankommen nach der Arbeit, Spiel ausblenden (alles in den Einstellungen) |
+| **Alltagshilfen** | Freiwilliger Fokus-Puls, Ankommen, lokale Sprache und Wege zu Androids eigenen Ruhe-Einstellungen |
 | **Kalender** | Google-Termine im Tagesplan, Routinen in eigenen Kalender schreiben, `.ics`-Export |
 | **Daten** | Läuft offline und ohne Konto, Sicherung als JSON, optionaler Sync |
 | **Anzeige** | Dunkel oder hell, Schriftgröße 80–160 % |
@@ -239,12 +244,12 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 - **Kranktage und Änderungen** erreichen den Wecker erst, wenn die App sie gespeichert hat. Der Plan der nächsten zwei Wochen ändert sich nicht, solange die App zu ist.
 - **Fokus-Puls** läuft nur, solange der Fokus-Modus offen ist.
 - **Sync:** Arbeitsaufgaben und Einnahmeprotokoll bleiben auf dem Gerät. Tagesdaten wie Routinen, Gedanken und der gewählte Modus werden mitsynchronisiert, wenn du Sync eingerichtet hast.
-- **Sprache:** Gedanken lassen sich nur tippen, Spracheingabe gibt es nicht.
-- **Keine Live-Verkehrsdaten und keine Ankunftserkennung:** Fahrzeiten sind deine Schätzungen, „Angekommen“ tippst du selbst.
-- **Termine und Orte** bleiben auf dem Gerät und erscheinen deshalb nicht auf anderen Geräten. Orte lassen sich noch nicht als feste Liste speichern, du gibst sie pro Termin ein.
-- **Wetter** ist aus, bis du es unter *Einstellungen → Alltagshilfen* mit einem Ort einschaltest. Es kommt von Open-Meteo, übertragen wird nur dieser Ort. Eine Vorhersage kann danebenliegen.
+- **Sprache:** Lokales Diktieren und kurze vorgelesene Zeitinfos benötigen passende Android-Modelle/Stimmen und eigene Freigaben. Es gibt keinen Cloud-Fallback; die tatsächliche Gerätefunktion ist noch zu prüfen. Tippen und sichtbare Zeitinfos bleiben verfügbar.
+- **Verkehr:** Ein optionaler, separat eingerichteter Dienst kann Schätzungen liefern. Ohne ihn gelten deine manuellen Angaben. Kein Vorschlag ändert deinen Plan oder Wecker ungefragt; Ankunft bestätigst du selbst.
+- **Termine und Orte** bleiben auf dem Gerät und erscheinen deshalb nicht auf anderen Geräten. Gespeicherte Orte lassen sich an mehreren Terminen wiederverwenden.
+- **Wetter** beginnt ausgeschaltet. Wetterort und Aktivierung bleiben lokal. Open-Meteo erhält erst nach bewusster Wahl den Suchort beziehungsweise freigegebene Koordinaten, nicht deine Termintexte. Cachealter und fehlende Werte werden sichtbar; eine Vorhersage kann danebenliegen.
 - **Hartnäckig** bedeutet 3 Erinnerungen, nicht Dauerklingeln bis zur Bestätigung.
-- **Google-Anmeldung:** Sie gilt auf Handy und im Browser etwa eine Stunde. Danach bleiben die zuletzt geladenen Termine stehen, bis du dich unter *Kalender & Sync* neu verbindest.
+- **Google-Anmeldung:** Zugriff kann ablaufen oder widerrufen werden. Die App benennt Fehler beziehungsweise ältere geladene Daten; neu verbinden erfolgt unter *Kalender & Sync*. Lesen und Schreiben sind getrennte Entscheidungen, fremde Kalender werden nicht beschrieben.
 - **Fitnessstudio morgens** passt bei 8:00 Arbeitsbeginn rechnerisch nicht. Anker schlägt dann Training zu Hause vor.
 
 ## Gleitzeit und Einsätze
@@ -261,7 +266,7 @@ Wenn dir die Zeiten zu früh sind, verschiebe sie in kleinen Schritten unter *Ei
 
 **Einsatz am Wochenende:** *Mehr → Arbeitszeit & Einsätze*. *Kundenproblem jetzt bearbeiten* startet sofort, *Einplanen* legt einen Einsatz für später an. Zur Zeit steht er auf der Startseite, mit *Einsatz starten* und *Einsatz beenden*. Der Tag bleibt ein freier Tag.
 
-**Nachtragen:** Unter *Arbeitszeit & Einsätze* trägst du Von, Bis und Pause von Hand ein oder korrigierst sie. Details: [GLEITZEIT.md](GLEITZEIT.md).
+**Nachtragen:** Unter *Arbeitszeit & Einsätze* wählst du auch ältere Arbeitstage und korrigierst Beginn, Ende und Pausen. Überschneidungen oder offene Langzeittimer bleiben als unbestätigt erkennbar, statt heimlich als korrekte Arbeitszeit zu gelten. Ein Rückgängig kann zwischenzeitlich erfasste Arbeit nicht still überschreiben. Weitere Wochenwerte wie eigene Startgrenze und Feierabendwunsch bleiben vom Nettoziel getrennt. Details: [GLEITZEIT.md](GLEITZEIT.md).
 
 Anker ist deine Planungshilfe, keine offizielle Zeiterfassung. Bezahlung und Ausgleich regelt dein Arbeitgeber.
 
@@ -273,7 +278,7 @@ Das experimentelle **Aktivitäts-Weckfenster** findest du unter **Wecker & QR-Co
 
 ## Gemeinsam testen
 
-**Mehr → Gemeinsam testen**, alternativ über **Einrichtungs-Check** oder **Wecker gemeinsam testen**. Alle74 Punkte stammen aus derselben gepflegten Geräteprüfliste; historische Ergebniszellen werden nicht in die App übernommen. **Erinnerungen & Druck prüfen** führt direkt zu den neuen E02-Versuchen66–74.
+**Mehr → Gemeinsam testen**, alternativ über **Einrichtungs-Check** oder **Wecker gemeinsam testen**. Der aktuelle Katalog kommt aus derselben gepflegten Geräteprüfliste; historische Ergebniszellen werden nicht in die App übernommen. Die gemeinsame E04–E09-Prüfrunde bündelt zusammenhängende Funktionen, die Detailversuche bleiben erreichbar. Du musst bis dahin keine einzelnen neuen Handytests vorziehen.
 
 1. Wähle einen Bereich oder starte mit **Erster Weckertest**. Es ist immer ein Versuch mit Vorgehen und Erwartung sichtbar.
 2. Die Knöpfe öffnen direkt die passende App-Einstellung. Das Banner **Zurück zu Test…** bringt dich wieder zurück. Notiz, Gerät und Systemversion bleiben beim Verlassen des Feldes als lokaler Entwurf erhalten.
@@ -298,3 +303,32 @@ Alte Buttons nach Verschieben oder Erledigen ändern keinen neueren Eintrag. Ein
 **Mehr → Druckansicht** zeigt die Auswahl vor dem Druck. Aus beiden Fokus-Routinen führt **Drucken** zur passenden Routine; beim Wecker ist der QR-Weg vorhanden. **Drucken oder als PDF speichern** öffnet den Systemdialog. Auf Android bietet **PDF-Datei erstellen und teilen** zusätzlich eine eigene Datei, auch ohne eingerichteten Druckdienst. Im Teilen-Menü wählst du selbst Speichern oder Öffnen. Ein Abbruch bestätigt weder Versand noch Ausdruck. Lange Routinen dürfen mehrere Seiten nutzen; den unveränderten QR-Code bitte einmal auf echtem Papier prüfen.
 
 Beim bewusst gestarteten Aktivitäts-Weckfenster pausiert der Vorwecker für den zugehörigen Haupttermin. Die Pause bleibt auch nach Messungsende/Unterbrechung bestehen. Der feste Hauptwecker bleibt aktiv; neue Termine ohne Messung nutzen wieder deine gespeicherte Vorwecker-Einstellung. Die App informiert vor dem Start und im Status.
+
+## Wetter und Dinge zum Mitnehmen
+
+Unter **Einstellungen → Alltagshilfen → Wetter** wählst du bewusst eine Stadt oder einen bereits freigegebenen Ort. Der Wetterort und seine Aktivierung bleiben lokal. Eigene Jacken-/Regenvorlieben lassen sich anpassen. Die Anzeige bezieht sich auf die relevante Zeit draußen und nennt den Abrufstand. Fehlt ein Wert oder eine passende Vorhersage, wird daraus keine sichere Null und keine Empfehlung erfunden. Bei einem Ortswechsel wird nicht die alte Stadt als neue Vorhersage ausgegeben.
+
+Unter **Mehr → Vorbereitung → Für deine Termine vorbereiten** findest du Gegenstände aus dem Termin, dem gespeicherten Ort und deinen lokalen Packvorlagen. Du kannst sie ändern und separat als **vorbereitet** markieren. Das erledigt keinen Termin und bestätigt keine Arbeitsleistung. Eine Packliste funktioniert auch ohne Wetter oder Internet.
+
+## Freiwillige KI- und Verkehrsvorschläge
+
+**Einstellungen → Optionale Vorschläge** bündelt die beiden getrennten Dienste. Sie beginnen ausgeschaltet. Zuerst kannst du bewusst **Verbindung prüfen** wählen: Dabei gehen keine Aufgaben oder Adressen an einen Anbieter. Ohne passenden Server, Anmeldung und Einrichtung bleibt der Dienst unkonfiguriert; lokales Planen bleibt möglich. Datensync musst du dafür nicht einschalten.
+
+- **KI:** Unter Aufgabendetails neben den lokalen kleinen Schritten öffnest du **KI-Vorschlag (freiwillig)**. Du bearbeitest den zu sendenden Titel; Beschreibung und nächster Schritt sind zunächst abgewählt. Jede Anfrage braucht deine ausdrückliche Inhaltsfreigabe. Die Antwort ist editierbar und wird erst mit **Geprüfte KI-Schritte übernehmen** in dieselbe Aufgabe übernommen. Erledigte Teile bleiben erhalten; eine zwischenzeitlich veränderte Aufgabe wird nicht von einer alten Antwort überschrieben. Keine automatische Erledigung und keine XP für den Vorschlag.
+- **Verkehr:** In den Termindetails wählst und prüfst du Start, Ziel, Verkehrsmittel und Zeitbezug. Die Schätzung zeigt Anbieter, Abrufzeit, Unsicherheit und Abweichung zu deiner manuellen Planung. Erst deine Übernahme ändert die Fahrzeit. Ein früherer Wecker braucht weiterhin eine eigene Bestätigung. **Automatische Fahrtschätzungen** ist ein zusätzlicher, zunächst ausgeschalteter Schalter: höchstens passende begrenzte Versuche am Vorabend, morgens und vor Abfahrt, solange die App aktiv ist und beide Orte freigegeben sind. Keine dauernde Überwachung.
+
+OpenAI, Google Routes und dein Server können Kosten verursachen. Prüfe die in der App verlinkten aktuellen Bedingungen vor echter Aktivierung. Ein Abbruch oder Ausschalten holt bereits übertragene Inhalte nicht vom Anbieter zurück. **Freigaben und Abrufmerker löschen** betrifft diese lokale Auswahl, nicht deine Aufgaben, Orte oder manuellen Zeiten. Genaue Einrichtung, Datenempfänger, technische Budgetzähler und Grenzen der Verkehrsmittel stehen im [inaktiven Einrichtungsvertrag](OPTIONALE_DIENSTE.md). Ein kontrolliertes Testbackend ist kein Echtanbieter-Nachweis.
+
+## Lokale Sprache und optionale Standorthinweise
+
+Unter **Einstellungen → Alltagshilfen → Lokale Sprache** kannst du **Lokales Diktieren** und **Lokale Zeitinfos vorlesen** getrennt einschalten. Beides beginnt aus. Diktieren hört erst nach deinem Start zu und erzeugt einen bearbeitbaren Gedankenentwurf; **Merken** speichert ihn. Die App verwendet Androids verfügbare lokale Spracherkennung, legt keine Audiodatei ab und nutzt keinen Cloud-Fallback. Kurze Zeitinfos werden im geöffneten Fokus mit einer geeigneten lokalen deutschen Stimme angefragt, keine Aufgabeninhalte. Abbruch, Pause, Verlassen des Fokus und Weckerton haben Vorrang. Verfügbarkeit, Abbruch und Hörbarkeit sind noch am echten Handy zu prüfen.
+
+Für einen bestimmten Termin kann unter **Optionaler Standorthinweis** ein Besuch mit gespeicherten Koordinaten gewählt werden. Android und Google Play Dienste verarbeiten dafür die ausdrücklich gewählten Koordinaten; genaue Standortfreigabe und Hintergrundfreigabe sind getrennte freiwillige Schritte. Ein Name oder eine Adresse wird nicht automatisch geortet. Die Auswahl ist besuchsgebunden und wieder entfernbar. Ein Hinweis kann verspätet oder falsch sein: Erst **Ja, angekommen** bestätigt deine Ankunft. Arbeitszeit, Medikamenteneinnahme und Aufgaben werden dadurch nicht gebucht. Manuelle Ankunft bleibt verfügbar. Neue Geofence-Registrierung, Rechteentzug, Neustart und tatsächliche Hinweise sind Geräteprüfungen, keine bereits bestätigten Erfolge.
+
+Androids eigene Ruhe-/Nicht-stören-Einstellungen kannst du über **Ablenkungen begrenzen** öffnen und dort selbst wählen. Anker schaltet keine fremden Apps fern, verlangt keine Administrationsrechte dafür und verändert Systemlautstärke oder Nicht stören nicht eigenmächtig.
+
+## Sicherungen bewusst prüfen
+
+**Mehr → Sicherung** exportiert eine unverschlüsselte JSON-Datei. Unter **Was soll die Sicherung enthalten?** kannst du Arbeitsdaten, Einnahme-/Schlafprotokoll, Orte-/Termin-/Wetter-/Packdaten und Testnotizen bewusst weglassen. Eine vollständige eigene Sicherung enthält standardmäßig alles; Freitexte können auch nach dem Abwählen einzelner Gruppen persönliche Angaben enthalten.
+
+Ein Import wird zuerst geprüft und als Vorschau angezeigt. Erst **Jetzt importieren** übernimmt die gültigen neueren Datensätze. Ältere oder gleiche Stände bleiben unangetastet; ausgelassene Bereiche einer Teilsicherung löschen keine vorhandenen Daten. Abbrechen verändert nichts. Ein sichtbarer Speicherfehler ist kein Erfolg und kein Anlass, die Appdaten zu löschen: Nutze den angebotenen erneuten Versuch. Gerätewechsel und Android-Speicherverhalten bleiben Teil der gemeinsamen Prüfung.
