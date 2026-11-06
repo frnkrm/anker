@@ -4,12 +4,53 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ReminderModelTest {
     private val now = 1_000_000_000L
     private fun e(key: String, slot: Int, rank: Int, at: Long = now, snoozes: Int = 0) =
         ReminderEntry(key, "2026-11-04", at, "sanft", key, "", true, slot, rank, true, snoozes)
+
+    @Test fun alteButtonsRevisionenUndAbgelaufeneKartenAendernNichts() {
+        val source = e("leave", 1, 4).copy(revision = "new-plan", token = "new-delivery")
+        val slots = ReminderLogic.place(emptyList(), source, now, 0).slots
+        assertNull(ReminderLogic.currentAction(slots, source.date, source.key, "old-plan", "old-delivery", now))
+        assertNull(ReminderLogic.currentAction(slots, source.date, source.key, source.revision, "old-delivery", now))
+        assertNull(ReminderLogic.currentAction(slots, source.date, source.key, "", "", now))
+        assertNull(ReminderLogic.currentAction(slots, source.date, source.key, source.revision, source.token, now + ReminderLogic.VISIBLE_MS))
+        assertNotNull(ReminderLogic.currentAction(slots, source.date, source.key, source.revision, source.token, now))
+        assertNull(ReminderLogic.currentAction(emptyList(), source.date, source.key, source.revision, source.token, now))
+    }
+
+    @Test fun verschobenerPlanVerwirftAltesSnoozeUndAlteKarte() {
+        val old = e("leave", 1, 4, now + 1000, 1).copy(revision = "old", token = "delivery")
+        val incoming = old.copy(at = now + 2000, snoozes = 0, revision = "new", token = "next")
+        val revisions = mapOf("${old.date}|${old.key}" to incoming.revision)
+        assertEquals(listOf(incoming), ReminderLogic.replace(listOf(old), listOf(incoming), revisions.keys, now, revisions))
+        val slots = ReminderLogic.place(emptyList(), old, now, 0).slots
+        assertEquals(slots, ReminderLogic.obsolete(slots, revisions.keys, now, revisions))
+    }
+
+    @Test fun zweiErforderlicheDienstanzeigenLassenNurWichtigsteNormaleKarte() {
+        val slots = listOf(SlotEntry(0, "routine", "d", 2, now + 1000), SlotEntry(1, "departure", "d", 4, now + 1000), SlotEntry(2, "hint", "d", 1, now + 1000))
+        assertEquals(listOf("departure"), ReminderLogic.trimToBudget(slots, now, 2).map { it.key })
+        assertNull(ReminderLogic.place(slots, e("trivia", 0, 1), now, 2).slot)
+        assertTrue(ReminderLogic.trimToBudget(slots, now, 3).isEmpty())
+        assertEquals(3, ReminderLogic.trimToBudget(slots, now, 0).size)
+    }
+
+    @Test fun normaleHinweiseBleibenInRuheFokusUndPrivatemZeitfensterStill() {
+        val at = AlarmPlanner.toUtc(java.time.LocalDate.parse("2026-11-06"), 23 * 60 + 40)
+        val policy = ReminderPolicy(23 * 60 + 30, 6 * 60)
+        val normal = e("evening", 0, 2, at)
+        assertFalse(ReminderLogic.allowed(normal, at, policy, 0))
+        assertTrue(ReminderLogic.allowed(normal.copy(critical = true), at, policy, 0))
+        assertFalse(ReminderLogic.allowed(normal, at, ReminderPolicy(), at + 1000))
+        assertFalse(ReminderLogic.allowed(normal, at, ReminderPolicy(ranges = listOf(ReminderQuietRange(at, at + 1000))), 0))
+        assertTrue(ReminderLogic.allowed(normal.copy(key = "go:appointment", critical = true), at, ReminderPolicy(ranges = listOf(ReminderQuietRange(at, at + 1000))), at + 1000))
+        assertTrue(ReminderLogic.allowed(normal, at + 1000, ReminderPolicy(), at + 1000))
+    }
 
     @Test
     fun abenderinnerungenOeffnenDenAbendbereich() {

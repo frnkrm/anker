@@ -148,6 +148,20 @@ object AnkerPrefs {
     fun setReminderSlots(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderSlots", json).commit()
     fun reminderActions(ctx: Context): String = prefs(ctx).getString("reminderActions", "[]") ?: "[]"
     fun setReminderActions(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderActions", json).commit()
+    fun reminderRevisions(ctx: Context): String = prefs(ctx).getString("reminderRevisions", "{}") ?: "{}"
+    fun setReminderRevisions(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderRevisions", json).commit()
+    fun reminderPolicy(ctx: Context): String = prefs(ctx).getString("reminderPolicy", "{}") ?: "{}"
+    fun setReminderPolicy(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderPolicy", json).commit()
+    fun reminderFocusUntil(ctx: Context): Long = prefs(ctx).getLong("reminderFocusUntil", 0)
+    fun setReminderFocusUntil(ctx: Context, until: Long) = prefs(ctx).edit().putLong("reminderFocusUntil", until).commit()
+    fun reminderRules(ctx: Context): String = prefs(ctx).getString("reminderRules", "{}") ?: "{}"
+    fun setReminderRules(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderRules", json).commit()
+    fun reminderRuleConsumed(ctx: Context): String = prefs(ctx).getString("reminderRuleConsumed", "{}") ?: "{}"
+    fun setReminderRuleConsumed(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderRuleConsumed", json).commit()
+    fun reminderConsumedTokens(ctx: Context): String = prefs(ctx).getString("reminderConsumedTokens", "{}") ?: "{}"
+    fun setReminderConsumedTokens(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderConsumedTokens", json).commit()
+    fun commitReminderAction(ctx: Context, slots: String, queue: String, actions: String): Boolean =
+        prefs(ctx).edit().putString("reminderSlots", slots).putString("reminderQueue", queue).putString("reminderActions", actions).commit()
 
     fun reminderLastShown(ctx: Context, date: String, key: String): String? = prefs(ctx).getString("shown:$date|$key", null)
     fun setReminderLastShown(ctx: Context, date: String, key: String, json: String) {

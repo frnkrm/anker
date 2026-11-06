@@ -272,7 +272,9 @@ class AnkerNativePlugin : Plugin() {
             val arr = call.getArray("reminders") ?: return call.reject("reminders fehlt")
             val rel = call.getArray("relevant") ?: JSONArray()
             val list = (0 until arr.length()).map { ReminderScheduler.entryFromJson(arr.getJSONObject(it)) }
-            ReminderScheduler.sync(context, list, (0 until rel.length()).map { rel.getString(it) }.toSet())
+            val revisions = call.getObject("revisions") ?: JSObject()
+            val revisionMap = revisions.keys().asSequence().associateWith { revisions.getString(it) }
+            ReminderScheduler.sync(context, list, (0 until rel.length()).map { rel.getString(it) }.toSet(), revisionMap, call.getObject("policy") ?: JSObject(), call.getObject("ruleSnapshot") ?: JSObject())
             call.resolve()
         } catch (e: Exception) {
             call.reject("Erinnerungen konnten nicht geplant werden: ${e.javaClass.simpleName}")
@@ -284,6 +286,19 @@ class AnkerNativePlugin : Plugin() {
         val o = JSObject()
         o.put("actions", JSONArray(ReminderScheduler.drainActions(context)))
         call.resolve(o)
+    }
+
+    @PluginMethod
+    fun ackReminderActions(call: PluginCall) {
+        val ids = call.getArray("ids") ?: return call.reject("ids fehlt")
+        ReminderScheduler.acknowledgeActions(context, (0 until ids.length()).map { ids.getString(it) }.toSet())
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun setReminderFocus(call: PluginCall) {
+        ReminderScheduler.setFocus(context, call.getLong("until") ?: 0)
+        call.resolve()
     }
 
     // ---------- Druck ----------

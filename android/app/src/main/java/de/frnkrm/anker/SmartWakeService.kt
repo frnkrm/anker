@@ -46,6 +46,7 @@ class SmartWakeService : Service(), SensorEventListener {
         private const val PREFS = "anker_smart_wake"
         @Volatile var instance: SmartWakeService? = null
             private set
+        fun hasForeground(): Boolean = instance?.foregroundShown == true
 
         fun status(ctx: Context): JSObject {
             val p = ctx.getSharedPreferences(PREFS, MODE_PRIVATE)
@@ -97,6 +98,7 @@ class SmartWakeService : Service(), SensorEventListener {
     private var soundPeak = 0.0
     private var gravity: FloatArray? = null
     private var ending = false
+    @Volatile private var foregroundShown = false
     private val tick = object : Runnable {
         override fun run() {
             if (ending) return
@@ -157,6 +159,8 @@ class SmartWakeService : Service(), SensorEventListener {
             .setOngoing(true).setContentIntent(open).addAction(0, "Messung beenden", stop).build()
         if (Build.VERSION.SDK_INT >= 30) startForeground(ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
         else startForeground(ID, notification)
+        foregroundShown = true
+        ReminderScheduler.onProtectedDisplaysChanged(this)
     }
 
     fun beginMeasurement() {
@@ -238,6 +242,8 @@ class SmartWakeService : Service(), SensorEventListener {
         try { getSystemService(AlarmManager::class.java)?.cancel(windowIntent(this)) } catch (_: Exception) { }
         try { recordStatus(phase, message, false) } catch (_: Exception) { }
         try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Exception) { }
+        foregroundShown = false
+        try { ReminderScheduler.onProtectedDisplaysChanged(this) } catch (_: Exception) { }
         stopSelf()
     }
 
