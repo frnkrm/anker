@@ -1,5 +1,7 @@
 # Gemeinsames Anker-Update E04–E09
 
+**Aktueller Nachfolger:** [Korrekturupdate 1.3.0-rc.2](UPDATE_ROUTINEN_RC2.md) enthält alle E04–E09-Funktionen sowie die Routinen-Touchkorrektur und klare KI-Freigabehinweise. Die Anleitung darunter bleibt der historische RC1-Stand.
+
 Version **1.3.0-rc.1, Code 8**. Alle Softwareetappen sind integriert. [CI21](https://github.com/frnkrm/anker/actions/runs/42289520357) bestätigt den vollständigen Lauf mit **139 Browserfällen**, Logiktests, TypeScript, Lint, PowerShell und Produktionsbuild. Lokal zusätzlich 87 native JUnit-Tests und der unsignierte Android-Releasebuild. Neue Handytests sind wie vereinbart noch offen.
 
 ## Auf deinem Windows-PC

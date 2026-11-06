@@ -1,5 +1,7 @@
 # ⚓ Anker
 
+**Korrekturupdate 1.3.0-rc.2 / Code9:** Routinen am Fingergriff sortieren, aktuelle Schritte bewahren und fehlende KI-Einrichtung direkt am Schalter erklären. Enthält weiterhin E04–E09. [Windows-Update und gezielter Handytest](docs/UPDATE_ROUTINEN_RC2.md).
+
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
 **E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün: 780 Logik-/139 Browser-/87 native Modelltests und 19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.

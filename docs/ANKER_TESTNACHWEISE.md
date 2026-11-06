@@ -2,6 +2,18 @@
 
 Ein Fortschrittsplan: [ANKER_IMPLEMENTIERUNGSPLAN.md](ANKER_IMPLEMENTIERUNGSPLAN.md). Diese Datei protokolliert Ausführungen und ihre Grenzen, keine zweite Planung.
 
+## Nachkorrekturen RC2 – Routinen-Touch und KI-Freigabe, 07.11.2026
+
+Implementiert in `src/core/sortable.ts`, `src/ui/components/Sortable.tsx`, `src/ui/pages/Settings.tsx` und `src/ui/pages/AssistanceSettings.tsx`; gemeinsamer TaskDetails-Speicherschutz bleibt erhalten. Keine Datenmigration, neue Parallelmodelle oder Anbieteraktivierung.
+
+| Anforderung | Fehlerbeleg | Automatischer Nachweis | Echte Geräte-/Anbieterprüfung |
+|---|---|---|---|
+| UX-01 / IN-01: Routinen am Griff sortieren, im übrigen Inhalt scrollen | Browser berechnete `touch-action: manipulation` statt `none`; alte Touchtests: sechs Fehler, drei erfolgreiche Kontrollen | Neue `e2e/routine-sort.spec.ts`: 13 Fälle bestanden, echte Chromium-CDP-Touchereignisse mit `hasTouch`, 650ms Halten, Morgen/Abend beide Richtungen, Scroll, Maus/Rechtsziehen, Abbruch, Mehrfinger, Bearbeiten+Sortieren und vollständige Werte nach Reload. Eigene Rotnachweise für Fokusverlust und gelöschtes Capture-Ziel | G95, Galaxy S26 Ultra offen; Nutzer meldete Fehler, nicht erfolgreiche Korrektur |
+| IN-06: aktuelle Schritte und Daten bewahren | Ganze alte Renderarrays konnten neuere Änderungen verdrängen | Fünf neue Vitestfälle zu stabilen IDs, aktuellen/neuen Zeilen und keiner Wiederherstellung gelöschter IDs; gesamter Logiklauf 785/785. Routinen-Browserfälle vergleichen IDs, Texte, Dauern, Tags, Minimal-Versionen und die andere Routine | Tatsächlicher Update-/SQLite-Datenerhalt RC2 offen |
+| KI-Freigabe nachvollziehbar, bewusst und widerrufbar | Unkonfigurierter Build: Schalter auch nach Kostenhäkchen deaktiviert, null Anfragen, keine gespeicherte Freigabe; zwei fehlende Hilfestellungen im Rotlauf | Vier neue `e2e/assistance-settings.spec.ts` plus sechs bestehende KI-Fälle separat bestanden. Unkonfigurierter Build bleibt ohne Anfrage; konfiguriertes Fixture erlaubt Freigabe, Commit, Reload und Offlinewiderruf ohne Vorschlagsabruf | G93 offen; kein echter Supabase-/OpenAI-Betrieb eingerichtet oder geprüft |
+
+Vollständiger gemeinsamer Lauf: **156/156 Browserfälle in5,3min** mit Chromium155, zwei Workers, keine Skips/Flakies/Retries. **785/785 Vitestfälle in81 Dateien** auf dem finalen Appstand; Lint ohne Fehler (eine bestehende TaskAssistance-Warnung), TypeScript und Produktionsbuild bestanden. Neues unsigniertes Android-Releasepaket1.3.0-rc.2/Code9 gebaut: alle67 Webdateien bytegleich, Paket-/Versions-/API-Metadaten, unveränderte Berechtigungen, Signierhilfe2 und 16KB-Ausrichtung geprüft. Native Quellen seit RC1 unverändert außer Versionsdefaults;87 damalige JUnit-Fälle ausdrücklich nicht neu ausgeführt. PowerShell-Anleitungsblock mit echter PowerShell7.5.4 syntaktisch geparst; tatsächliche Windows-Signierung offen. GitHub-CI und öffentlicher Download werden nach Push geprüft. [Update](UPDATE_ROUTINEN_RC2.md) · [Maschinenlesbarer Nachweis](KORREKTUREN_RC2_NACHWEIS.json). Historische RC1-Nachweise darunter behalten ihren ursprünglichen Buildbezug.
+
 ## E00 – Baseline vor Änderungen am 05.11.2026
 
 - Branch `work`, HEAD `38da41ef78a68f3d5d9ea25e73e1d4cf946b9d36` **einschließlich vorher vorhandener uncommitteter Änderungen**.
