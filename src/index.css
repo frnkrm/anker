@@ -102,6 +102,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
 }
 
 /* Druckansicht */
+.print-page h2 { overflow-wrap: anywhere; }
 @media print {
   html { font-size: calc(16px * var(--font-scale, 1)); }
   html, body, #root, main { background: #fff !important; color: #000 !important; min-height: 0 !important; }

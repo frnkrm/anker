@@ -49,6 +49,7 @@ test('Routinen öffnen direkt ihre Druckauswahl; QR und andere Auswahl ändern k
 })
 
 test('Lange Routine und große Schrift liefern mehrere A5/A4-Seiten ohne Drucknavigation', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 844 })
   await onboard(page)
   const items = Array.from({ length: 90 }, (_, i) => ({ id: `paper-${i}`, title: i === 89 ? 'Letzter Testschritt: Alles vollständig erhalten.' : i % 3 ? `Schritt ${i + 1}: Äpfel, Öl und Grüße bereitstellen und anschließend ruhig weitermachen.` : 'Gleicher Schritt', minutes: 1 }))
   await page.evaluate(({ items }) => new Promise<void>((resolve, reject) => {
@@ -72,6 +73,8 @@ test('Lange Routine und große Schrift liefern mehrere A5/A4-Seiten ohne Druckna
   await page.goto('/druck?typ=morning')
   await expect(page.locator('[data-sheet="morning"] li')).toHaveCount(90)
   await expect(page.getByText('Letzter Testschritt: Alles vollständig erhalten.', { exact: true })).toBeVisible()
+  // Große Überschriften müssen auch auf schmalen Displays mit unterschiedlichen Systemschriften umbrechen.
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
   await page.evaluate(() => {
     const overlay = document.createElement('aside')
     overlay.setAttribute('data-test-overlay', '')
@@ -85,7 +88,10 @@ test('Lange Routine und große Schrift liefern mehrere A5/A4-Seiten ohne Druckna
     await expect(page.getByRole('button', { name: /Drucken oder als PDF/ })).toBeHidden()
     await expect(page.locator('[data-test-overlay]')).toBeHidden()
     await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0)
-    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+    }
     const path = testInfo.outputPath(`long-${paper}.pdf`)
     const pdf = await page.pdf({ path, preferCSSPageSize: true, printBackground: true })
     const raw = pdf.toString('latin1')

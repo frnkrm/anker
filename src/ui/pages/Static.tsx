@@ -201,7 +201,7 @@ export function Print() {
         {activeTest !== undefined && <Link to={`/geraetetest?fall=${activeTest}`} className="flex min-h-11 items-center rounded-xl bg-surface-2 px-3 text-accent">Zurück zu Test {activeTest}</Link>}
         <div className="flex items-center gap-2">
           <Button onClick={() => history.back()}>‹ Zurück</Button>
-          <h1 className="text-xl font-semibold">Druckansicht</h1>
+          <h1 className="min-w-0 break-words text-xl font-semibold">Druckansicht</h1>
         </div>
         <Segmented<PrintChoice> label="Was drucken?" value={choice} options={PRINT_CHOICES} onChange={setChoice} />
         <Segmented<PaperSize>
