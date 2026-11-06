@@ -7,6 +7,8 @@ Neue Prüfungen kannst du in der App unter **Mehr → Gemeinsam testen** einzeln
 
 Gerät: Samsung Galaxy S26 Ultra (Nutzerangabe vom 05.11.2026) · Android/One UI: „neueste Versionen“ laut Nutzer, genaue Versionsnummern noch offen · Datum: 04.11.2026 · Version: Punkt 3 mit 1.1.0-rc.1, der Rest mit 1.2.0-rc.1 inklusive Gleitzeit
 
+**Updatebericht vom 06.11.2026:** Nutzer bestätigt die Aktualisierung auf seinem Handy und ausdrücklich den Erhalt der bisherigen Routinen, Einstellungen und des Spielstands. Geräteversion/Quellkennung noch nicht ausgelesen. Das bestätigt Installation und sichtbaren Datenerhalt; Weckerplanung nach Update (G12) und die übrigen Fälle unten gelten dadurch nicht als neu geprüft. Nächster Test ist G1 bei entsperrtem Handy.
+
 ## Wecker
 
 | # | Vorgehen | Erwartet | Ergebnis |

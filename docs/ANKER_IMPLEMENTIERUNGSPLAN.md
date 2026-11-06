@@ -168,6 +168,12 @@ Der separate Downloadbranch wurde auf `8f1457daffc72742ff1d15560fb4a080133a119e`
 
 Windows-Ausführung und echte Installation sind weiterhin offen. Nächster Nutzerschritt: neues Paket vollständig in einen eigenen Ordner entpacken und dort den CMD-Starter ausführen; alte Signierhilfe nicht weiter verwenden. Keine Schlüsselübertragung oder Deinstallation.
 
+### Update und Datenerhalt vom Nutzer bestätigt (06.11.2026)
+
+Nach Bereitstellung der SDK-freien Signierhilfe hat der Nutzer die erfolgreiche Aktualisierung auf seinem Handy gemeldet. Auf Nachfrage bestätigte er ausdrücklich, dass die bisherigen Routinen, Einstellungen und der Spielstand vorhanden sind. Dies ist ein echter Nutzerbericht zur Installation und sichtbaren Datenübernahme, kein hier ausgeführter Windows-/Android-Test. Versions-/Quellkennung am Gerät und Signierprotokoll wurden nicht ausgelesen.
+
+Die Installation allein bestätigt weder die weitere Weckerplanung (G12) noch einen der Klingel-, Sensor- oder Testseitenfälle. Diese bleiben für den aktuellen Stand offen. Nächster gemeinsamer Schritt: **Mehr → Gemeinsam testen → Erster Weckertest → Separaten Test in 10 Sekunden starten**, zunächst bei entsperrtem Handy. Den beobachteten Ausgang bewusst auf der Testseite speichern. Die unabhängige Code-Etappe E02 bleibt der nächste Entwicklungsschritt.
+
 ---
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)

@@ -125,3 +125,12 @@ Insgesamt11 überprüfte Fälle (1 Repro,10 neue Integrationsfälle),0 unerwarte
 Neues Paket: `/workspace/artifacts/Anker-Update-E01-Portable.zip`,22172417Bytes, SHA256 `1b46d36d431ecd4c5275ca0eacf1cd30a2202a19c6c81b36a2172abc914bb307`.10 vorgesehene Dateien einschließlich Werkzeuglizenz und eigener Java-Quelle; ZIP und alle Inhalte nachgelesen, keine privaten Schlüssel enthalten. Die eigentliche App-APK bleibt unverändert, deshalb weiterhin derselbe Appprüfstand340/29/50; keine erneute App-/Gerätefreigabe behauptet.
 
 **Bereitstellung geprüft:** Remote-Branch `download-anker-e01-20261106` steht auf `8f1457daffc72742ff1d15560fb4a080133a119e`. Öffentliche neue ZIP über GitHub-HTTPS vollständig gelesen: HTTP200,22172417Bytes, obige SHA256 stimmt. Nachweis: `/workspace/.cache/anker/portable-signing/https-verification.json`. Dies bestätigt den Serverdownload; die Ausführung im Windows-Client bleibt offen.
+
+## Nutzerbericht nach dem Handy-Update – 06.11.2026
+
+- Nutzer meldet die erfolgreiche Aktualisierung auf seinem Handy nach Bereitstellung der SDK-freien Signierhilfe.
+- Auf ausdrückliche Nachfrage zu Routinen, Einstellungen und Spielstand bestätigt: alles vorhanden.
+- Damit sind Installation und sichtbarer Erhalt dieser Daten vom Nutzer bestätigt. Keine eigenständige Prüfung des Windows-Signierlaufs, keine ausgelesene Geräteversion/Quellkennung und kein vollständiger Datenbankvergleich.
+- Weckerplanung nach Update, tatsächliches Klingeln und die übrigen aktuellen Gerätefälle bleiben offen. Insbesondere G12 nicht allein wegen erfolgreicher Installation als bestanden führen. Historische Testergebnisse und lokale Testseiten-Häkchen wurden nicht verändert.
+
+Nächster Geräteablauf: separater Testalarm in10 Sekunden bei entsperrtem Handy (G1), Ergebnis bewusst auf der Testseite speichern. Dieser Dokumentationsschritt ändert keine Appdateien und erfordert keine erneuten App-Tests oder APK.
