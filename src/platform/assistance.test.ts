@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AssistancePreferences } from '../core/assistance'
-import { assistantCapabilities, cancelAssistanceRequests, requestAssistance } from './assistance'
+import { assistanceEnableConfirmation, assistantCapabilities, cancelAssistanceRequests, requestAssistance } from './assistance'
 
 const context = vi.hoisted(() => ({ profile: undefined as AssistancePreferences | undefined, token: true, sessionDelay: undefined as Promise<void> | undefined }))
 vi.mock('../state/store', () => ({ useApp: { getState: () => ({ local: { assistance: context.profile } }) } }))
@@ -12,6 +12,7 @@ beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co')
   vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'public-test-key')
   context.profile = { ai: { enabled: true, version: 1, at: 1 } }; context.token = true; context.sessionDelay = undefined
+  assistanceEnableConfirmation('ai')()
 })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
@@ -107,7 +108,9 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     release()
     await expect(requesting).rejects.toMatchObject({ issue: 'consent' })
     expect(fetcher).not.toHaveBeenCalled()
-    // Neue bewusste Anfragen nach einer weiterhin bestehenden/erneuten Freigabe bleiben möglich.
+    // Erst ein erfolgreiches bewusstes Wiedereinschalten hebt den synchronen Widerruf auf.
+    await expect(requestAssistance(input)).rejects.toMatchObject({ issue: 'consent' })
+    assistanceEnableConfirmation('ai')()
     vi.stubGlobal('fetch', async () => Response.json(result))
     expect(await requestAssistance(input)).toEqual(result)
   })

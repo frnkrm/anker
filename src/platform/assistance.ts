@@ -6,11 +6,20 @@ type Issue = 'not-configured' | 'signed-out' | 'consent' | 'daily-limit' | 'offl
 type Purpose = 'ai' | 'routes'
 const generations: Record<Purpose, number> = { ai: 0, routes: 0 }
 const running = new Map<AbortController, Purpose>()
+const blocked = new Set<Purpose>()
 
 /** Widerruf beendet auch Anfragen, die gerade noch auf ihre Anmeldung warten. */
 export function cancelAssistanceRequests(purpose?: Purpose): void {
-  for (const key of purpose ? [purpose] : ['ai', 'routes'] as const) generations[key]++
+  for (const key of purpose ? [purpose] : ['ai', 'routes'] as const) { generations[key]++; blocked.add(key) }
   for (const [controller, key] of running) if (!purpose || purpose === key) controller.abort()
+}
+
+/** Erst nach erfolgreichem bewusstem Einschalten aufrufen. Ein neuerer Widerruf behält Vorrang. */
+export function assistanceEnableConfirmation(purpose: Purpose): () => void {
+  const generation = generations[purpose]
+  return () => {
+    if (generation === generations[purpose] && assistanceAllowed(useApp.getState().local.assistance, purpose)) blocked.delete(purpose)
+  }
 }
 export class AssistanceError extends Error {
   constructor(readonly issue: Issue) {
@@ -81,7 +90,7 @@ export async function requestAssistance(input: AssistantRequest, signal?: AbortS
   if (!validAssistantRequest(input)) throw new AssistanceError('invalid-response')
   const purpose = input.kind === 'steps' ? 'ai' : 'routes'
   const generation = generations[purpose]
-  const allowed = () => generation === generations[purpose] && assistanceAllowed(useApp.getState().local.assistance, purpose)
+  const allowed = () => !blocked.has(purpose) && generation === generations[purpose] && assistanceAllowed(useApp.getState().local.assistance, purpose)
   if (!allowed()) throw new AssistanceError('consent')
   const result = await invoke(input, signal, allowed, purpose)
   if (!allowed()) throw new AssistanceError('consent')

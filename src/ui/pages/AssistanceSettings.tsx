@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { ASSISTANCE_NOTICE_VERSION, assistanceAllowed, type AssistantCapabilities } from '../../core/assistance'
-import { AssistanceError, assistantCapabilities, cancelAssistanceRequests } from '../../platform/assistance'
+import { AssistanceError, assistanceEnableConfirmation, assistantCapabilities, cancelAssistanceRequests } from '../../platform/assistance'
 import { supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
 import { Button, Card, Page, Section, Toggle } from '../components/ui'
 import { RouteCheckPreferences } from '../components/RouteEstimateCard'
 
 type Purpose = 'ai' | 'routes'
-const privacy = 'Diese Freigabe und die Abrufmerker liegen lokal. Auf deinem Server bleiben Tagesbudget-Zähler mit Nutzerkennung, Zweck und Datum für 14 Tage; Aufgaben- und Adressinhalte werden dort nicht als Prompt-Protokoll gespeichert. Die Anbieter verarbeiten die übermittelten Inhalte nach ihren aktuellen Bedingungen.'
+const privacy = 'Diese Freigabe und die Abrufmerker liegen lokal. Auf deinem Server gibt es technische Tagesbudget-Zähler mit Nutzerkennung, Zweck und Datum. Beim nächsten Abruf werden Einträge bereinigt, die älter als 14 Tage sind; eine automatische zeitgesteuerte Löschung ist nicht eingerichtet. Aufgaben- und Adressinhalte werden dort nicht als Prompt-Protokoll gespeichert. Die Anbieter verarbeiten die übermittelten Inhalte nach ihren aktuellen Bedingungen.'
 
 export default function AssistanceSettings() {
   const st = useApp()
@@ -35,6 +35,7 @@ export default function AssistanceSettings() {
     if (mounted.current) { setCapabilities(result); setMessage('Verbindung geprüft. Dabei wurden keine Aufgaben oder Adressen übertragen und keine Freigaben eingeschaltet.') }
   })
   const change = (purpose: Purpose, enabled: boolean) => run(async (signal) => {
+    const confirmEnable = enabled ? assistanceEnableConfirmation(purpose) : undefined
     if (enabled) {
       if (!(purpose === 'ai' ? acceptedAI : acceptedRoutes)) return
       // Vor jeder neuen Freigabe nochmals prüfen: ein alter Check schaltet keinen fehlenden Dienst ein.
@@ -49,6 +50,7 @@ export default function AssistanceSettings() {
       [purpose]: { ...local.assistance?.[purpose], enabled, at: Date.now(), version: ASSISTANCE_NOTICE_VERSION,
         ...(purpose === 'routes' ? { automatic: false } : {}) },
     } }))
+    confirmEnable?.()
     if (mounted.current) {
       if (!enabled) { if (purpose === 'ai') acceptAI(false); else acceptRoutes(false) }
       setMessage(enabled ? 'Freigabe gespeichert. Ein Vorschlag wird erst durch deine eigene Anfrage abgerufen.' : 'Freigabe ausgeschaltet. Laufende Anfragen wurden beendet; dein Plan bleibt erhalten.')
@@ -57,7 +59,7 @@ export default function AssistanceSettings() {
   const clear = () => run(async () => {
     cancelAssistanceRequests()
     await st.saveLocal((local) => ({ ...local, assistance: undefined }))
-    if (mounted.current) { acceptAI(false); acceptRoutes(false); setMessage('Lokale Freigaben und Abrufmerker gelöscht. Aufgaben, Orte und manuelle Fahrzeiten bleiben erhalten. Server-Budgetzähler laufen nach 14 Tagen aus.') }
+    if (mounted.current) { acceptAI(false); acceptRoutes(false); setMessage('Lokale Freigaben und Abrufmerker gelöscht. Aufgaben, Orte und manuelle Fahrzeiten bleiben erhalten. Server-Budgetzähler werden erst beim nächsten Abruf um Einträge älter als 14 Tage bereinigt.') }
   })
   const ai = assistanceAllowed(st.local.assistance, 'ai')
   const routes = assistanceAllowed(st.local.assistance, 'routes')
