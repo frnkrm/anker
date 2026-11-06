@@ -205,6 +205,10 @@ Der native Snapshot-Abgleich wird serialisiert und fasst schnelle Änderungen zu
 
 **Statusgrenzen:** implementiert und im dokumentierten automatischen Umfang geprüft. Android-SQLite-Transaktion, Receiver/PendingIntent-Zustellung, sichtbare Anzahl, Mikrofonstart, nativer Druck/PDF und Papier-QR bleiben auf dem Galaxy offen. Offizielle Android-Dokumentationsseiten waren durch die Netzrichtlinie gesperrt; keine aktuelle Webprüfung behauptet, vorhandene SDK36-APIs und tatsächliche Kompilierung genutzt. Neue Regeln kennen Änderungen erst nach erneutem App-Abgleich; keine unbekannten Termine, Live-Anpassungen oder Schlafphasen erfinden. Nächste Entwicklungsetappe E03.
 
+**Übergabe:** Appänderungen in Quellcommit `f272c514772a32c4529b92088467851e7f940668` auf main integriert. E02-Paket separat auf `download-anker-e02-20261106`, Commit `bbbd844737c71f827095c8ba9cd1058d93d647d8`; kein Merge der Binärdatei in den Appbaum, kein Tag/Store-Release. Öffentlicher Download vollständig nachgelesen: HTTP200,21972987Bytes, SHA256 `5e754fa1de871ad8077a2925dd36e46b1cf3623f86e786420069afeec6cf22b5` stimmt. URL: `https://github.com/frnkrm/anker/raw/refs/heads/download-anker-e02-20261106/Anker-Update-E02.zip`.
+
+Nächster Nutzerschritt: Download prüfen, entpacken und lokal mit dem vorhandenen Schlüssel signieren; die erzeugte `Anker-E02-Update.apk` über die bestehende App installieren. Danach zuerst Daten und G64 prüfen, dann **Gemeinsam testen → Erinnerungen & Druck prüfen**. Neue Gerätebeobachtungen erst nach tatsächlichem Bericht eintragen. Die private Auftragskopie ist weiterhin bytegleich und ignoriert.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
