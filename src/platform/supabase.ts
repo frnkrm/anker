@@ -1,7 +1,8 @@
 import { App } from '@capacitor/app'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { APP_ID } from '../../app.config'
-import { addDays, fmtTime, zonedToUtc } from '../core/time'
+import { addDays } from '../core/time'
+import { buildPcStopCommands, pcStopPublicationText, type PcStopPublication } from '../core/pcStop'
 import { planFor, repository, today, useApp } from '../state/store'
 import { isNative, safe } from './native'
 import { pullRecords } from './syncPull'
@@ -91,19 +92,38 @@ export async function syncNow(): Promise<SyncMeta> {
   }
 }
 
-/** Schreibt die PC-Stopp-Zeiten für heute und morgen (nur diese Daten liest die Edge Function). */
-export async function pushPcStop() {
-  const c = sb()
-  const user = await currentUser()
-  if (!c || !user) return
-  const entries = [today(), addDays(today(), 1)].map((d) => {
-    const p = planFor(d)
-    return { date: d, stopAt: new Date(zonedToUtc(d, p.pcStop)).toISOString(), localTime: fmtTime(p.pcStop), extended: (useApp.getState().days[d]?.override.pcStopExtendMin ?? 0) > 0 }
+let pcPublication: Promise<void> = Promise.resolve()
+
+/** Veröffentlichungen sind serialisiert. Kein Rückgabewert behauptet einen Empfang am PC. */
+export function pushPcStop(options: { manual?: boolean } = {}): Promise<PcStopPublication> {
+  const task = pcPublication.then(async (): Promise<PcStopPublication> => {
+    const result = (status: PcStopPublication['status']): PcStopPublication => ({ status, message: pcStopPublicationText(status) })
+    if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+    const c = sb()
+    if (!c) return result('unconfigured')
+    try {
+      const user = await currentUser()
+      if (!user) return result('signed-out')
+      for (;;) {
+        const desired = () => {
+          const st = useApp.getState()
+          return buildPcStopCommands([today(), addDays(today(), 1)].map((date) => ({ ...planFor(date), date })))
+            .map((command) => ({ ...command, ...(command.mode === 'scheduled' ? { extended: typeof st.days[command.date]?.override.lateUntil === 'number' || (st.days[command.date]?.override.pcStopExtendMin ?? 0) > 0 } : {}) }))
+        }
+        if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+        const entries = desired()
+        const { error } = await c.from('pc_stop').upsert({ user_id: user.id, entries, updated_at: new Date().toISOString() })
+        if (error) return result('error')
+        if (!options.manual && useApp.getState().settings?.integrations.sync === false) return result('disabled')
+        if (JSON.stringify(entries) !== JSON.stringify(desired())) continue
+        return result('published')
+      }
+    } catch {
+      return result('error')
+    }
   })
-  await safe(async () => {
-    const { error } = await c.from('pc_stop').upsert({ user_id: user.id, entries, updated_at: new Date().toISOString() })
-    if (error) throw error
-  }, undefined)
+  pcPublication = task.then(() => undefined, () => undefined)
+  return task
 }
 
 async function sha256Hex(s: string): Promise<string> {
@@ -121,7 +141,7 @@ export async function createPcStopToken(): Promise<string | null> {
   const token = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
   const { error } = await c.from('pc_stop_tokens').insert({ user_id: user.id, token_hash: await sha256Hex(token) })
   if (error) return null
-  await pushPcStop()
+  await pushPcStop({ manual: true })
   return token
 }
 

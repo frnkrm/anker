@@ -7,22 +7,28 @@ export interface PcStopConfig {
   token: string
   /** Feste Rückfallzeit "HH:MM", wenn nie eine Verbindung bestand */
   fallbackTime: string
+  /** Ohne heutigen Onlineauftrag sicher pausieren oder ausdrücklich feste Zeit verwenden. */
+  offlinePolicy?: 'pause' | 'fixed-time'
 }
 
 export function configJson(c: PcStopConfig): string {
-  return JSON.stringify({ endpoint: c.endpoint, token: c.token, fallbackTime: c.fallbackTime }, null, 2)
+  return JSON.stringify({ endpoint: c.endpoint, token: c.token, fallbackTime: c.fallbackTime, protocolVersion: 2, offlinePolicy: c.offlinePolicy ?? (c.endpoint ? 'pause' : 'fixed-time') }, null, 2)
 }
 
 // Wichtig: "shutdown /s /t N" mit N > 0 schließt laut Windows-Doku Programme erzwungen (/f) und vernichtet
 // Ungespeichertes. Deshalb erst warnen, eine Schonfrist lassen und dann ohne Zwang mit /t 0 herunterfahren:
 // Programme mit offener Arbeit können das dann noch aufhalten. pc-stop-abbrechen.ps1 setzt für heute aus.
-export const PC_STOP_PS1 = String.raw`# Anker PC-Stopp: holt die heutige Zeit, warnt 15 und 5 Minuten vorher, gibt 5 Minuten Schonfrist, fährt dann ohne Zwang herunter.
+export const PC_STOP_PS1 = String.raw`# Anker PC-Stopp2: heutiger Auftrag, Pause und datumsgebundener Offlinecache.
 $ErrorActionPreference = 'SilentlyContinue'
-$dir = Join-Path $env:LOCALAPPDATA 'Anker'
-$cfg = Get-Content (Join-Path $dir 'config.json') -Raw | ConvertFrom-Json
-$cacheFile = Join-Path $dir 'cache.json'
-$stateFile = Join-Path $dir 'state.json'
-$now = Get-Date
+$ankerDir = Join-Path $env:LOCALAPPDATA 'Anker'
+$ankerCfg = Get-Content (Join-Path $ankerDir 'config.json') -Raw | ConvertFrom-Json
+$ankerCacheFile = Join-Path $ankerDir 'cache.json'
+$ankerStateFile = Join-Path $ankerDir 'state.json'
+$ankerNow = [datetimeoffset]::UtcNow
+$ankerZone = [TimeZoneInfo]::FindSystemTimeZoneById('W. Europe Standard Time')
+if (-not $ankerZone -or -not $ankerCfg) { return }
+$ankerBerlin = [TimeZoneInfo]::ConvertTime($ankerNow, $ankerZone)
+$ankerDate = $ankerBerlin.AddHours(-4).ToString('yyyy-MM-dd')
 
 function Show-Toast([string]$title, [string]$text) {
   try {
@@ -37,62 +43,81 @@ function Show-Toast([string]$title, [string]$text) {
   } catch { }
 }
 
-function Local-Target([string]$hhmm) {
-  $t = [datetime]::ParseExact($hhmm, 'HH:mm', $null)
-  $target = $now.Date.AddHours($t.Hour).AddMinutes($t.Minute)
-  # Zeiten vor 12 Uhr gelten als "nach Mitternacht"
-  if ($t.Hour -lt 12) { if ($now.Hour -ge 12) { $target = $target.AddDays(1) } }
-  return $target
+function Test-AnkerCommand($command) {
+  if (-not $command -or $command.version -ne 2 -or $command.date -ne $ankerDate -or -not $command.revision) { return $false }
+  try {
+    if ([datetimeoffset]::Parse($command.validUntil) -le $ankerNow) { return $false }
+    if ($command.mode -eq 'paused') { return -not $command.stopAt }
+    if ($command.mode -ne 'scheduled' -or -not $command.stopAt) { return $false }
+    $null = [datetimeoffset]::Parse($command.stopAt)
+    return $true
+  } catch { return $false }
 }
 
-# 1) Zeit holen (online), sonst Cache, sonst feste Rückfallzeit
-$target = $null
-if ($cfg.endpoint) {
+$ankerState = @{}
+if (Test-Path $ankerStateFile) { (Get-Content $ankerStateFile -Raw | ConvertFrom-Json).psobject.Properties | ForEach-Object { $ankerState[$_.Name] = $_.Value } }
+# Lokaler Abbruch gilt für den ganzen Plantag, auch nach neuer Veröffentlichung/Verlängerung.
+if ($ankerState['pausedDate'] -eq $ankerDate) { return }
+
+$ankerCommand = $null
+if ($ankerCfg.endpoint) {
   try {
-    $res = Invoke-RestMethod -Uri $cfg.endpoint -Headers @{ 'x-anker-token' = $cfg.token } -TimeoutSec 10
-    if ($res.stopAt) {
-      $target = ([datetimeoffset]::Parse($res.stopAt)).LocalDateTime
-      @{ stopAt = $res.stopAt; localTime = $res.localTime; fetched = $now.ToString('o') } | ConvertTo-Json | Set-Content $cacheFile -Encoding UTF8
+    $ankerOnline = Invoke-RestMethod -Uri $ankerCfg.endpoint -Headers @{ 'x-anker-token' = $ankerCfg.token } -TimeoutSec 10 -ErrorAction Stop
+    if (Test-AnkerCommand $ankerOnline) {
+      $ankerCommand = $ankerOnline
+      $ankerOnline | ConvertTo-Json -Depth 6 | Set-Content $ankerCacheFile -Encoding UTF8
     }
   } catch { }
 }
-if (-not $target -and (Test-Path $cacheFile)) {
-  $cache = Get-Content $cacheFile -Raw | ConvertFrom-Json
-  $cached = ([datetimeoffset]::Parse($cache.stopAt)).LocalDateTime
-  if (($now - $cached).TotalHours -lt 6 -and ($cached - $now).TotalHours -lt 18) { $target = $cached }
-  elseif ($cache.localTime) { $target = Local-Target $cache.localTime }
+if (-not $ankerCommand -and (Test-Path $ankerCacheFile)) {
+  $ankerCached = Get-Content $ankerCacheFile -Raw | ConvertFrom-Json
+  if (Test-AnkerCommand $ankerCached) { $ankerCommand = $ankerCached }
 }
-if (-not $target) { $target = Local-Target $cfg.fallbackTime }
+if ($ankerCommand -and $ankerCommand.mode -eq 'paused') {
+  $ankerState.Remove('down')
+  $ankerState.Remove('w15')
+  $ankerState.Remove('w5')
+  $ankerState | ConvertTo-Json | Set-Content $ankerStateFile -Encoding UTF8
+  return
+}
 
-# 2) Warnen / herunterfahren. Aktiv bis 6 h nach dem PC-Stopp.
-$state = @{}
-if (Test-Path $stateFile) { (Get-Content $stateFile -Raw | ConvertFrom-Json).psobject.Properties | ForEach-Object { $state[$_.Name] = $_.Value } }
-$tag = $target.ToString('yyyyMMddHHmm')
-$left = ($target - $now).TotalMinutes
-
-if ($left -le 15 -and $left -gt 5 -and $state['w15'] -ne $tag) {
-  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") ("Um " + $target.ToString('HH:mm') + " fährt der PC herunter. Runde in Ruhe beenden.")
-  $state['w15'] = $tag
+$ankerTarget = $null
+if ($ankerCommand) {
+  try { $ankerTarget = [datetimeoffset]::Parse($ankerCommand.stopAt) } catch { return }
 }
-elseif ($left -le 5 -and $left -gt 0 -and $state['w5'] -ne $tag) {
-  Show-Toast ("In " + [math]::Ceiling($left) + " Minuten PC-Stopp") 'Jetzt speichern. Danach bleiben noch 5 Minuten.'
-  $state['w5'] = $tag
+elseif ($ankerCfg.offlinePolicy -eq 'fixed-time' -or (-not $ankerCfg.endpoint -and -not $ankerCfg.offlinePolicy)) {
+  # Nur ausdrücklich gewählte feste Offlinezeit, niemals gestrige Uhrzeit erneut aus einem Cache ableiten.
+  if ($ankerCfg.fallbackTime -notmatch '^(?:[01]\d|2[0-3]):[0-5]\d$') { return }
+  try {
+    $ankerClock = [datetime]::ParseExact($ankerCfg.fallbackTime, 'HH:mm', $null)
+    $ankerLocal = [datetime]::ParseExact($ankerDate, 'yyyy-MM-dd', $null).AddHours($ankerClock.Hour).AddMinutes($ankerClock.Minute)
+    if ($ankerClock.Hour -lt 12) { $ankerLocal = $ankerLocal.AddDays(1) }
+    $ankerTarget = [datetimeoffset]::new([TimeZoneInfo]::ConvertTimeToUtc($ankerLocal, $ankerZone))
+  } catch { return }
 }
-elseif ($left -le 0 -and $left -gt -360) {
-  if ($state['paused'] -eq $tag) {
-    # Für heute ausgesetzt: nichts tun
-  }
-  elseif ($state['down'] -ne $tag) {
-    # Erster Lauf nach der Stopp-Zeit: Schonfrist. Der nächste Lauf kommt nach etwa 5 Minuten.
-    Show-Toast 'PC-Stopp: jetzt speichern' 'In etwa 5 Minuten fährt der PC herunter. Abbrechen: pc-stop-abbrechen.ps1'
-    $state['down'] = $tag
+if (-not $ankerTarget) { return }
+$ankerTag = $ankerTarget.ToString('o')
+$ankerLeft = ($ankerTarget - $ankerNow).TotalMinutes
+if ($ankerState['paused'] -eq $ankerTag -or $ankerState['paused'] -eq $ankerTarget.ToLocalTime().ToString('yyyyMMddHHmm')) { return }
+if ($ankerLeft -le 15 -and $ankerLeft -gt 5 -and $ankerState['w15'] -ne $ankerTag) {
+  Show-Toast ("In " + [math]::Ceiling($ankerLeft) + " Minuten PC-Stopp") 'Speichere in Ruhe. Für heute aussetzen: pc-stop-abbrechen.ps1'
+  $ankerState['w15'] = $ankerTag
+}
+elseif ($ankerLeft -le 5 -and $ankerLeft -gt 0 -and $ankerState['w5'] -ne $ankerTag) {
+  Show-Toast ("In " + [math]::Ceiling($ankerLeft) + " Minuten PC-Stopp") 'Jetzt speichern. Danach bleiben noch 5 Minuten.'
+  $ankerState['w5'] = $ankerTag
+}
+elseif ($ankerLeft -le 0 -and $ankerLeft -gt -360) {
+  if ($ankerState['down'] -ne $ankerTag) {
+    Show-Toast 'PC-Stopp: jetzt speichern' 'In etwa 5 Minuten folgt der nächste Lauf. Abbrechen: pc-stop-abbrechen.ps1'
+    $ankerState['down'] = $ankerTag
   }
   else {
-    # Ohne /f und ohne Wartezeit: Programme mit ungespeicherter Arbeit können das Herunterfahren noch aufhalten
+    # Ohne Zwang und ohne verzögerte shutdown-Option. Ungespeicherte Programme können das aufhalten.
     & shutdown.exe /s /t 0 /c "Anker: PC-Stopp"
   }
 }
-$state | ConvertTo-Json | Set-Content $stateFile -Encoding UTF8
+$ankerState | ConvertTo-Json | Set-Content $ankerStateFile -Encoding UTF8
 `
 
 export const INSTALL_PS1 = String.raw`# Anker PC-Stopp installieren (ohne Administratorrechte)
@@ -118,24 +143,16 @@ Write-Host 'Anker PC-Stopp ist eingerichtet. Test:' -ForegroundColor Green
 Write-Host 'Fertig. Die Aufgabe läuft alle 5 Minuten und bei der Anmeldung.'
 `
 
-export const ABORT_PS1 = String.raw`# Anker PC-Stopp: für heute aussetzen. Morgen läuft alles wieder normal.
-$dir = Join-Path $env:LOCALAPPDATA 'Anker'
-$stateFile = Join-Path $dir 'state.json'
-$cfg = Get-Content (Join-Path $dir 'config.json') -Raw | ConvertFrom-Json
-$state = @{}
-if (Test-Path $stateFile) { (Get-Content $stateFile -Raw | ConvertFrom-Json).psobject.Properties | ForEach-Object { $state[$_.Name] = $_.Value } }
-$cacheFile = Join-Path $dir 'cache.json'
-$now = Get-Date
-$t = [datetime]::ParseExact($cfg.fallbackTime, 'HH:mm', $null)
-$target = $now.Date.AddHours($t.Hour).AddMinutes($t.Minute)
-if (Test-Path $cacheFile) {
-  $cached = ([datetimeoffset]::Parse((Get-Content $cacheFile -Raw | ConvertFrom-Json).stopAt)).LocalDateTime
-  if ($cached.Date -eq $now.Date) { $target = $cached }
-}
-$state['paused'] = $target.ToString('yyyyMMddHHmm')
-$state | ConvertTo-Json | Set-Content $stateFile -Encoding UTF8
+export const ABORT_PS1 = String.raw`# Anker PC-Stopp: diesen Berliner Plantag ausdrücklich aussetzen.
+$ankerDir = Join-Path $env:LOCALAPPDATA 'Anker'
+$ankerStateFile = Join-Path $ankerDir 'state.json'
+$ankerState = @{}
+if (Test-Path $ankerStateFile) { (Get-Content $ankerStateFile -Raw | ConvertFrom-Json).psobject.Properties | ForEach-Object { $ankerState[$_.Name] = $_.Value } }
+$ankerBerlin = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([datetimeoffset]::UtcNow, 'W. Europe Standard Time')
+$ankerState['pausedDate'] = $ankerBerlin.AddHours(-4).ToString('yyyy-MM-dd')
+$ankerState | ConvertTo-Json | Set-Content $ankerStateFile -Encoding UTF8
 & shutdown.exe /a 2>$null
-Write-Host 'PC-Stopp ist für heute ausgesetzt.' -ForegroundColor Green
+Write-Host 'PC-Stopp ist für diesen Plantag ausgesetzt.' -ForegroundColor Green
 `
 
 export const UNINSTALL_PS1 = String.raw`# Anker PC-Stopp entfernen
@@ -147,7 +164,7 @@ Write-Host 'Anker PC-Stopp wurde entfernt.' -ForegroundColor Green
 
 export function readme(c: PcStopConfig): string {
   return [
-    'ANKER PC-STOPP – Anleitung',
+    'ANKER PC-STOPP2 – Anleitung',
     '==========================',
     '',
     '1. ZIP-Datei entpacken, z. B. nach Downloads\\anker-pc-stopp.',
@@ -157,8 +174,11 @@ export function readme(c: PcStopConfig): string {
     '   15 und 5 Minuten vorher kommt eine Windows-Benachrichtigung. Zur Stopp-Zeit kommt noch eine,',
     '   etwa 5 Minuten später fährt der PC ohne Zwang herunter. Programme mit offener Arbeit können das aufhalten.',
     '',
-    `Verbindung: ${c.endpoint ? 'mit der App verbunden (Verlängerungen kommen automatisch an)' : 'ohne Verbindung, feste Zeit'}`,
-    `Rückfallzeit ohne Internet: ${c.fallbackTime} (bzw. die zuletzt bekannte Zeit).`,
+    `Verbindung: ${c.endpoint ? 'Onlineabruf eingerichtet. Übernahme am PC wird der App nicht bestätigt.' : 'ohne Verbindung, ausdrücklich feste Zeit'}`,
+    `Feste Zeit: ${c.fallbackTime}. Ohne heutigen Onlineauftrag: ${(c.offlinePolicy ?? (c.endpoint ? 'pause' : 'fixed-time')) === 'pause' ? 'sicher pausieren' : 'ausdrücklich feste Zeit verwenden'}.`,
+    'Ein Cache gilt nur am gespeicherten Berliner Plantag. Eine veröffentlichte Pause bleibt auch offline erhalten.',
+    'Dieses neue Windows-Paket installieren, damit eine offene Abendplanung tatsächlich pausieren kann.',
+    'Alte installierte Skripte kennen die Pause nicht und können weiterhin ihre alte Abschaltzeit verwenden.',
     '',
     'Für heute aussetzen: pc-stop-abbrechen.ps1 mit PowerShell ausführen.',
     'Entfernen: uninstall.ps1 mit PowerShell ausführen.',

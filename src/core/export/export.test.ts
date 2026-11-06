@@ -108,7 +108,7 @@ describe('PC-Stopp-Paket', () => {
   it('enthält alle Dateien und die Konfiguration', () => {
     const f = pcStopFiles({ endpoint: 'https://x.supabase.co/functions/v1/pc-stop', token: 'abc', fallbackTime: '21:25' })
     expect(Object.keys(f).sort()).toEqual(['ANLEITUNG.txt', 'config.json', 'install.ps1', 'pc-stop-abbrechen.ps1', 'pc-stop.ps1', 'uninstall.ps1'])
-    expect(JSON.parse(f['config.json']!)).toEqual({ endpoint: 'https://x.supabase.co/functions/v1/pc-stop', token: 'abc', fallbackTime: '21:25' })
+    expect(JSON.parse(f['config.json']!)).toEqual({ endpoint: 'https://x.supabase.co/functions/v1/pc-stop', token: 'abc', fallbackTime: '21:25', protocolVersion: 2, offlinePolicy: 'pause' })
     expect(f['pc-stop.ps1']).toContain('x-anker-token')
     // Kein erzwungenes Herunterfahren: /t mit Wartezeit würde laut Windows-Doku /f einschließen
     expect(f['pc-stop.ps1']).not.toMatch(/shutdown\.exe \/s \/t (?!0 )/)
