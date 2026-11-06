@@ -7,7 +7,8 @@ export const DEFAULT_PACK_TEMPLATES: readonly PackTemplate[] = [
 ]
 
 export function packItems(items: readonly string[]): string[] {
-  return [...new Set(items.map((item) => item.trim()).filter(Boolean))]
+  if (!Array.isArray(items)) return []
+  return [...new Set(items.filter((item) => typeof item === 'string').map((item) => item.trim()).filter(Boolean))]
 }
 
 /** Explizit vorbereitete Items gehören zur lokalen Termininstanz, nicht zum synchronisierten Tageslog. */
@@ -17,14 +18,14 @@ export function preparedItems(commitment: Commitment, items: readonly string[]):
 }
 
 export function changePrepared(commitment: Commitment, item: string, done: boolean): Commitment {
-  const prepared = new Set(commitment.preparedItems ?? [])
+  const prepared = new Set(packItems(commitment.preparedItems ?? []))
   if (done) prepared.add(item)
   else prepared.delete(item)
   return { ...commitment, preparedItems: [...prepared] }
 }
 
 export function packingTemplates(local: LocalData): PackTemplate[] {
-  return local.packTemplates ?? DEFAULT_PACK_TEMPLATES.map((template) => ({ ...template, items: [...template.items] }))
+  return local.packTemplates !== undefined && validPackingLocal({ packTemplates: local.packTemplates }) ? local.packTemplates : DEFAULT_PACK_TEMPLATES.map((template) => ({ ...template, items: [...template.items] }))
 }
 
 export function validPackingLocal(value: unknown): boolean {

@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { randomId } from '../../core/defaults'
 import { routineBlock } from '../../core/planner'
-import { daysBetween, weekday, WEEKDAYS_LONG } from '../../core/time'
+import { addDays, daysBetween, weekday, WEEKDAYS_LONG } from '../../core/time'
 import { remainingSec } from '../../core/support'
 import { useNow } from '../../state/hooks'
 import { planFor, today, useApp } from '../../state/store'
 import { WeatherCard } from '../components/WeatherCard'
+import { PackingForDay } from '../components/Packing'
 import { Button, Card, Page, Progress, Section, Stepper, TextInput } from '../components/ui'
 
 /** Essen: schnelle Gerichte, Würfeln, Vorkoch-Tag. */
@@ -191,6 +192,7 @@ export function Prep() {
   return (
     <Page title="Für morgen vorbereiten" back>
       <WeatherCard />
+      <PackingForDay date={addDays(d, 1)} />
       <Section>
         {items.map((x) => (
           <label key={x} className="flex min-h-16 items-center gap-4 rounded-2xl bg-surface px-4 text-lg">

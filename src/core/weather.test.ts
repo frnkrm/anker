@@ -43,7 +43,7 @@ describe('Keine erfundenen Wetterwerte', () => {
     const hours = weatherHoursForPlan(cache, '2026-11-06')
     expect(hours[0]?.minutes).toBe(1440 + 420)
     const advice = weatherAdvice(hours, { from: 1440 + 420, to: 1440 + 480 }, settings.weather.rules)!
-    expect(advice.summary).toContain('8 °C')
+    expect(advice.summary).toContain('8 bis 10 °C')
     expect(advice.summary).toContain('gefühlt 5 bis 7 °C')
     expect(advice.summary).toContain('Wind bis 15 km/h')
     expect(advice.suggestions).toEqual(['Jacke', 'Regenjacke oder Schirm'])

@@ -1,44 +1,58 @@
-import { useEffect, useState } from 'react'
-import { addDays, fmtTime } from '../../core/time'
-import { outdoorWindow, weatherAdvice } from '../../core/weather'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
+import { addDays } from '../../core/time'
+import { outdoorWindow, weatherAdvice, weatherAge, weatherHoursForPlan, WEATHER_CACHE_MS } from '../../core/weather'
+import { currentWeatherProfile, weatherTarget } from '../../core/weatherProfile'
 import type { WeatherCache } from '../../core/types'
 import { loadWeather } from '../../platform/weather'
-import { planFor, today, useApp } from '../../state/store'
-import { Card } from './ui'
+import { usePlan, useToday } from '../../state/hooks'
+import { useApp } from '../../state/store'
+import { Button, Card } from './ui'
 
-/** Abendkarte „Was brauche ich morgen?“. Erscheint nur, wenn Wetter eingeschaltet ist und du morgen rausgehst. */
-export function WeatherCard() {
+const stand = (at: number) => new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', dateStyle: 'short', timeStyle: 'short' }).format(at)
+
+/** Eine kompakte Vorhersage für den frühesten tatsächlichen Draußenabschnitt des gewählten Tags. */
+export function WeatherCard({ date: selectedDate }: { date?: string }) {
   const st = useApp()
-  const enabled = st.settings.weather.enabled
-  const [data, setData] = useState<WeatherCache>()
-  const [failed, setFailed] = useState(false)
+  const { date: currentDate, now } = useToday()
+  const date = selectedDate ?? addDays(currentDate, 1)
+  const plan = usePlan(date)
+  const profile = currentWeatherProfile(st.settings, st.local)
+  const window = useMemo(() => outdoorWindow(plan), [plan])
+  const target = useMemo(() => weatherTarget(profile, st.local.places, window?.placeId, window?.placeKind), [profile, st.local.places, window?.placeId, window?.placeKind])
+  const key = `${target?.key ?? ''}|${target?.source ?? ''}|${target?.placeId ?? ''}|${profile?.revision ?? ''}|${date}`
+  const [result, setResult] = useState<{ key: string; data?: WeatherCache }>()
+  const [refreshing, setRefreshing] = useState(false)
   useEffect(() => {
-    if (!enabled) return
-    void loadWeather().then((w) => {
-      setData(w)
-      setFailed(!w)
-    })
-  }, [enabled])
-  if (!enabled) return null
-  const date = addDays(today(), 1)
-  const window = outdoorWindow(planFor(date))
-  if (!window) return null
-  if (failed) return <Card>Wetter gerade nicht verfügbar.</Card>
-  if (!data) return null
-  const a = weatherAdvice(data.hours.filter((h) => h.date === date), window, st.settings.weather.rules)
-  if (!a) return <Card>Wetter gerade nicht verfügbar.</Card>
-  return (
-    <Card className="space-y-1">
-      <p className="font-medium">{a.windowLabel}</p>
-      <p>{a.summary}. Eine Vorhersage kann danebenliegen.</p>
-      {a.suggestions.length > 0 && <p>Vorschlag: {a.suggestions.join(', ')}.</p>}
-      <p className="text-sm text-muted">
-        {st.settings.weather.city}, Stand {fmtTime(Math.floor((data.fetchedAt - new Date(data.fetchedAt).setHours(0, 0, 0, 0)) / 60_000))}. Daten:{' '}
-        <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">
-          Open-Meteo
-        </a>{' '}
-        (CC BY 4.0)
-      </p>
-    </Card>
-  )
+    if (!window || !target || !profile?.enabled) return
+    let active = true
+    void loadWeather(false, target).then((data) => { if (active) setResult({ key, data }) })
+    return () => { active = false }
+  }, [key, target, profile?.enabled, window])
+  if (!profile?.enabled || !window) return null
+  if (!target) return <Card><p>Wetter gerade nicht verfügbar. Wähle eine Stadt oder einen ausdrücklich freigegebenen Wetterort.</p><Link to="/einstellungen/hilfen" className="flex min-h-11 items-center text-accent">Wetterort einstellen</Link></Card>
+  const cached = st.local.weather?.key === target.key && weatherAge(st.local.weather, now) !== undefined ? st.local.weather : undefined
+  const responseData = result?.key === key && weatherAge(result.data, now) !== undefined ? result.data : undefined
+  const data = cached ?? responseData
+  const advice = data ? weatherAdvice(weatherHoursForPlan(data, date), window, st.settings.weather.rules, date === currentDate ? 'Heute' : date === addDays(currentDate, 1) ? 'Morgen' : date) : undefined
+  const age = weatherAge(data, now)
+  const stale = age !== undefined && age >= WEATHER_CACHE_MS
+  const refresh = async () => {
+    const requestKey = key
+    setRefreshing(true)
+    const next = await loadWeather(true, target)
+    setResult({ key: requestKey, data: next })
+    setRefreshing(false)
+  }
+  return <Card className="space-y-2">
+    <p className="font-medium">{advice?.windowLabel ?? 'Wetter für deine Draußenzeit'}</p>
+    <p className="break-words">{target.label}{target.source === 'city' && window.label ? ` · gewählte Stadt für ${window.label}` : ''}</p>
+    {advice ? <>
+      <p>{advice.summary}. Eine Vorhersage kann danebenliegen.</p>
+      {advice.suggestions.length > 0 && <p>Vorschlag: {advice.suggestions.join(', ')}. Du entscheidest.</p>}
+      <p className={stale ? 'text-sm text-warm' : 'text-sm text-muted'}>{stale ? 'Ältere Vorhersage, ' : ''}Stand {stand(data!.fetchedAt)} (Berliner Zeit).</p>
+    </> : <p>{result?.key === key ? 'Wetter gerade nicht verfügbar. Planung und Packliste bleiben nutzbar.' : 'Wetter wird abgefragt …'}</p>}
+    <Button size="sm" variant="ghost" disabled={refreshing} onClick={() => void refresh()}>Wetter neu abfragen</Button>
+    <p className="text-xs text-muted"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">Open-Meteo</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>. Stundenwerte zusammengefasst, Vorschläge nach deinen Regeln.</p>
+  </Card>
 }

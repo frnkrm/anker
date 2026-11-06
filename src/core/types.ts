@@ -128,7 +128,7 @@ export interface Settings {
   /** Nach dem Grund fragen, wenn etwas verschoben wird (nie Pflicht) */
   askReason: boolean
   homeOfficeMessage: string
-  /** Wetter ist aus, bis ein Ort gewählt wurde. Übertragen wird nur dieser Ort. */
+  /** Legacy-Ortsfelder werden lokal nach weatherProfile übernommen. Nur Kleidungsvorlieben bleiben im Settings-Sync. */
   weather: { enabled: boolean; city: string; lat?: number; lng?: number; rules: { jacketBelowC: number; rainAbovePct: number } }
   focus: { pulse: FocusPulseMode; everyMin: 2 | 5; halfway: boolean; lastMinute: boolean }
   support: {

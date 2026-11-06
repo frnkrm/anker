@@ -1,10 +1,9 @@
-import { useState } from 'react'
 import { useParams } from 'react-router'
 import { applySchedule, deriveSchedule, EVENING_LABELS, randomId, resetToSuggested, sumMinutes } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtDuration, fmtTime, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
 import type { CommuteMode, EveningPlan, ReminderIntensity, RoutineId, RoutineStep, Settings as S, SportKind, ThemeId } from '../../core/types'
-import { findCity } from '../../platform/weather'
+import { WeatherSettings } from '../components/WeatherSettings'
 import { useApp } from '../../state/store'
 import { SortableList } from '../components/Sortable'
 import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
@@ -558,7 +557,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
           </form>
         </Card>
       </Section>
-      <Section title="Wetter" hint="Aus, bis du es einschaltest. Übertragen wird nur der Ort an Open-Meteo, keine Termine und kein GPS.">
+      <Section title="Wetter" hint="Freiwillig, mit lokalem Wetterort und eigenen Kleidungsvorlieben.">
         <WeatherSettings s={s} save={save} />
       </Section>
       <Section title="Rückfrage und Homeoffice">
@@ -577,49 +576,6 @@ function Supports({ s, save }: { s: S; save: Save }) {
         </Card>
       </Section>
     </Page>
-  )
-}
-
-function WeatherSettings({ s, save }: { s: S; save: Save }) {
-  const w = s.weather
-  const [city, setCity] = useState(w.city)
-  const [msg, setMsg] = useState<string>()
-  const setW = (patch: Partial<S['weather']>) => save((x) => ({ ...x, weather: { ...x.weather, ...patch } }))
-  return (
-    <Card className="space-y-3">
-      <form
-        className="flex gap-2"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          const found = await findCity(city)
-          if (found) {
-            setW({ enabled: true, city: found.name, lat: found.lat, lng: found.lng })
-            setMsg(`${found.name} eingestellt.`)
-          } else setMsg('Ort nicht gefunden oder Wetter gerade nicht erreichbar.')
-        }}
-      >
-        <TextInput aria-label="Ort für das Wetter" placeholder="Stadt" value={city} onChange={(e) => setCity(e.target.value)} />
-        <Button type="submit" disabled={!city.trim()}>
-          Einschalten
-        </Button>
-      </form>
-      {msg && <p className="text-sm text-muted">{msg}</p>}
-      {w.enabled && (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Jacke unter</span>
-            <Stepper label="Jacke unter" value={w.rules.jacketBelowC} step={1} min={-10} max={30} unit="°C" onChange={(v) => setW({ rules: { ...w.rules, jacketBelowC: v } })} />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Regenschutz ab</span>
-            <Stepper label="Regenschutz ab" value={w.rules.rainAbovePct} step={10} min={10} max={100} unit="%" onChange={(v) => setW({ rules: { ...w.rules, rainAbovePct: v } })} />
-          </div>
-          <Button size="sm" variant="ghost" onClick={() => setW({ enabled: false })}>
-            Wetter ausschalten
-          </Button>
-        </>
-      )}
-    </Card>
   )
 }
 

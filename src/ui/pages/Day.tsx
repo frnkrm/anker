@@ -51,7 +51,7 @@ export default function Day() {
       <Link to={`/druck?typ=both&tag=${date}`} className="flex min-h-11 items-center rounded-xl border border-line px-3 text-muted">Routinen für diesen Tag drucken</Link>
       <DayCommitments plan={plan} />
       {offset > 0 && <WakeSuggestion date={date} />}
-      {offset === 1 && <WeatherCard />}
+      {offset > 0 && <WeatherCard date={date} />}
       <DayTasks date={date} plan={plan} />
       {offset === 0 && <SportToggle plan={plan} />}
       {goals.length > 0 && st.settings.support.gameVisible && log?.override.mode !== 'ueberlastet' && (

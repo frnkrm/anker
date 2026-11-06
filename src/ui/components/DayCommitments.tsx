@@ -6,6 +6,7 @@ import { locationKind } from '../../core/travel'
 import { useApp } from '../../state/store'
 import { openRoute } from './TodayDifferent'
 import { CommitmentForm } from './CommitmentForm'
+import { PackingList } from './Packing'
 import { Button, Card, Section, Sheet } from './ui'
 
 /** Termine des Tages: Weg, Quelle der Fahrzeit und schnelle Änderung. Bleibt auf dem Gerät. */
@@ -45,7 +46,7 @@ export function DayCommitments({ plan }: { plan: DayPlan }) {
             {l.locationOpen && <p className="text-sm text-warm">Ort noch offen. Es wurde keine Fahrt oder sichere spätere Weckzeit angenommen.</p>}
             {l.originOpen && <p className="text-sm text-warm">Startort noch offen. Du kannst ihn unter „Termin bearbeiten“ wählen.</p>}
             {l.returnOpen && <p className="text-sm text-muted">Rückfahrt noch offen. Eine Rückkehr wird nicht erfunden.</p>}
-            {l.items.length > 0 && <p className="text-muted">Mitnehmen: {l.items.slice(0, 3).join(', ')}</p>}
+            <PackingList commitment={c} items={l.items} />
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => setEditing(c)}>Termin bearbeiten</Button>
               {address && kind !== 'remote' && (

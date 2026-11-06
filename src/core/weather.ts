@@ -88,7 +88,9 @@ export function weatherAdvice(hours: WeatherHour[], window: OutdoorWindow, rules
   if (!relevant.length) return undefined
   const low = Math.round(Math.min(...relevant.map((hour) => hour.apparentC)))
   const high = Math.round(Math.max(...relevant.map((hour) => hour.apparentC)))
-  const temp = Math.round(Math.min(...relevant.map((hour) => hour.tempC)))
+  const tempLow = Math.round(Math.min(...relevant.map((hour) => hour.tempC)))
+  const tempHigh = Math.round(Math.max(...relevant.map((hour) => hour.tempC)))
+  const actual = tempLow === tempHigh ? `${tempLow} °C` : `${tempLow} bis ${tempHigh} °C`
   const rain = Math.max(...relevant.map((hour) => hour.rainPct))
   const wind = Math.round(Math.max(...relevant.map((hour) => hour.windKmh)))
   const suggestions: string[] = []
@@ -96,5 +98,5 @@ export function weatherAdvice(hours: WeatherHour[], window: OutdoorWindow, rules
   if (rain >= rules.rainAbovePct) suggestions.push('Regenjacke oder Schirm')
   const felt = low === high ? `gefühlt ${low} °C` : `gefühlt ${low} bis ${high} °C`
   return { windowLabel: `${dayLabel} ${fmtTime(window.from)} bis ${fmtTime(window.to)} Uhr`,
-    summary: `${temp} °C, ${felt}, Regenrisiko ${Math.round(rain)} %, Wind bis ${wind} km/h`, suggestions }
+    summary: `${actual}, ${felt}, Regenrisiko ${Math.round(rain)} %, Wind bis ${wind} km/h`, suggestions }
 }
