@@ -5,6 +5,7 @@ import { knownReminderDates } from '../core/reminders/dates'
 import { buildReminderRuleSnapshot } from '../core/reminders/rules'
 import { DAY_ROLLOVER_MIN } from '../core/now'
 import { addDays, zonedToUtc } from '../core/time'
+import { taskIsOpen } from '../core/tasks'
 import type { DayLog } from '../core/types'
 import { planFor, today, useApp } from '../state/store'
 import { AnkerNative, isNative, safe, type ReminderActionInfo } from './native'
@@ -91,7 +92,7 @@ async function scheduleSnapshot() {
     // bis sie in der Inbox erledigt, anders einsortiert oder abgewählt werden.
     const logs: Record<string, DayLog | undefined> = st.days
     const now = Date.now()
-    const deadlines = st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! }))
+    const deadlines = st.local.work.filter((w) => w.deadline && taskIsOpen(w)).map((w) => ({ id: w.id, at: w.deadline!, reminderRevision: w.reminderRevision }))
     const horizonEnd = zonedToUtc(addDays(ordinaryDates[ordinaryDates.length - 1]!, 1), DAY_ROLLOVER_MIN)
     const datedEnd = zonedToUtc(addDays(dates[dates.length - 1]!, 1), DAY_ROLLOVER_MIN)
     const extras = { deadlines, thoughtReviews: st.inbox, tomorrowSteps: st.local.tomorrowSteps }

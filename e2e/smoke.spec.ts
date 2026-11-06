@@ -72,6 +72,7 @@ test('Arbeit: Titel genügt, Inhalte bleiben nach dem Neuladen', async ({ page }
   await page.goto('/arbeit')
   await page.getByRole('textbox', { name: 'Neue Aufgabe' }).fill('Bericht fertigstellen')
   await page.getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('button', { name: 'Details', exact: true }).click()
   await page.getByRole('button', { name: 'Ich wurde unterbrochen' }).click()
   await page.getByRole('textbox', { name: 'Wo machst du weiter?' }).fill('Tabelle öffnen')
   await page.getByRole('button', { name: 'Merken' }).click()
@@ -81,7 +82,9 @@ test('Arbeit: Titel genügt, Inhalte bleiben nach dem Neuladen', async ({ page }
   // Der Wiedereinstieg führt mit einem Tipp zum notierten Schritt zurück
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tabelle öffnen')
-  await page.getByRole('button', { name: 'Weiter' }).click()
+  await page.getByRole('button', { name: 'Dort weitermachen', exact: true }).click()
+  await expect(page).toHaveURL(/\/aufgabe\/work\//)
+  await expect(page.getByRole('heading', { name: 'Tabelle öffnen', exact: true })).toBeVisible()
 })
 
 test('Heute anders: Termin, Routine wartet, Spiel ohne falsches Erledigt, Rückgängig', async ({ page }) => {

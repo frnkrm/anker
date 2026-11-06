@@ -39,9 +39,9 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
         PluginHeaders: [
           { name: 'App', methods: ['getLaunchUrl', 'getInfo', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
           { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
-          { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
+          { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'executeSet', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
         ],
-        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; until?: number }) {
+        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[]; until?: number }) {
           if (method === 'removeListener') { callbacks.delete(options.callbackId!); return {} }
           if (plugin === 'App' && method === 'getLaunchUrl') { probe.launchReads++; return { url: launchUrl } }
           if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker', name: 'Anker', version: 'simulation', build: '0' }
@@ -55,11 +55,14 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
           if (plugin === 'CapacitorSQLite') {
             if (method === 'checkConnectionsConsistency') return { result: false }
             if (method === 'query') return { values: records.filter((r) => !options.values?.length || (r.collection === options.values[0] && (!options.values[1] || r.id === options.values[1]))) }
-            if (method === 'run') {
-              const [collection, id, data, updated_at, deleted, dirty] = options.values! as [string, string, string, number, number, number]
-              const index = records.findIndex((r) => r.collection === collection && r.id === id)
-              const row = { collection, id, data, updated_at, deleted, dirty }
-              if (index < 0) records.push(row); else records[index] = row
+            if (method === 'run' || method === 'executeSet') {
+              const writes = method === 'executeSet' ? options.set!.map((entry) => entry.values) : [options.values!]
+              for (const values of writes) {
+                const [collection, id, data, updated_at, deleted, dirty] = values as [string, string, string, number, number, number]
+                const index = records.findIndex((r) => r.collection === collection && r.id === id)
+                const row = { collection, id, data, updated_at, deleted, dirty }
+                if (index < 0) records.push(row); else records[index] = row
+              }
             }
             return {}
           }

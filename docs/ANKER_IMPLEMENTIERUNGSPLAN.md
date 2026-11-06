@@ -1,8 +1,8 @@
 # Anker 2.0: Implementierungsplan
 
-## Aktueller Gesamtauftrag v6: E00 (05.11.2026)
+## Gesamtauftrag v6: Baseline und aktueller Fortschritt
 
-Dieser Abschnitt hat Vorrang vor den historischen Fortschrittsangaben weiter unten. Quelle: [öffentliche technische Fassung des vollständig gelesenen Gesamtauftrags](auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md). Neue direkte Nutzerwünsche: geführte Testseite, direkt bearbeitbare Uhrzeiten und Dauern. Bestehende Abendhilfen und das experimentelle Weckfenster bleiben erhalten.
+**Aktuell06.11.2026:** E03 ist implementiert und im automatischen Umfang geprüft (499 Logik-/58 Browser-/73 Kotlin-Tests, App1.2.0-rc.4/Code6). Neue Geräteprüfungen G76–G85 bleiben offen. Die folgende E00-Matrix dokumentiert die unveränderte Baseline; die Etappenberichte darunter halten den aktuellen Fortschritt fest. Dieser Abschnitt hat Vorrang vor den historischen Fortschrittsangaben weiter unten. Quelle: [öffentliche technische Fassung des vollständig gelesenen Gesamtauftrags](auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md). Neue direkte Nutzerwünsche: geführte Testseite, direkt bearbeitbare Uhrzeiten und Dauern. Bestehende Abendhilfen und das experimentelle Weckfenster bleiben erhalten.
 
 **E00 abgeschlossen:** tatsächlicher Branch `work`, HEAD `38da41ef78a68f3d5d9ea25e73e1d4cf946b9d36`, Ursprung `github.com/frnkrm/anker`, App `1.2.0-rc.1`. Vorhandene Änderungen und unversionierte Dateien sind Teil der Baseline, nicht zurückgesetzt. Kein Claude-Prozess festgestellt; nur der Hauptagent schreibt, Unteragent prüft lesend. Keine geltenden `AGENTS.md`/`AGENTS.override.md` an den übergeordneten oder relevanten Projektpfaden gefunden. `CLAUDE.md`, Projektanleitung, Struktur, Changelog, Plan und Fach­dokumentation gelesen.
 
@@ -12,7 +12,7 @@ Dieser Abschnitt hat Vorrang vor den historischen Fortschrittsangaben weiter unt
 
 **Geräteberichte erhalten:** G1–59 bezeichnen die bestehenden Fälle in [GERAETETEST.md](GERAETETEST.md). Darunter sind echte Nutzerberichte aus früheren Builds, Teilresultate und offene Fälle. G47/48 bestätigen den AOD-Fix am 05.11.; die frühere pauschale Aussage „kein Handy-Test“ ist deshalb historisch. Keine neue Änderung gilt dadurch als am Gerät geprüft. Galaxy S26 Ultra laut Nutzer; genaue Android-/One-UI-Version offen.
 
-### Delta-Matrix nach aktuellem Code, vor E01
+### Delta-Matrix der E00-Baseline, vor E01
 
 Status: **V** vorhanden und im genannten automatischen Umfang geprüft · **U** vorhanden, dafür kein spezifischer automatischer Nachweis · **T** teilweise · **F** fehlt · **K** Konflikt · **X** externe Voraussetzung. Ein V bedeutet nie automatisch „am Android-Gerät geprüft“. Prüfungen beziehen sich auf die E00-Baseline; Testdateien unter `src/`, Kotlin unter `android/app/src/`.
 
@@ -100,7 +100,7 @@ Status: **V** vorhanden und im genannten automatischen Umfang geprüft · **U** 
 | E00 Audit/Baseline/Delta | abgeschlossen; Nachweise oben und im Testprotokoll |
 | E01 Wecker | sichere Delta-Umsetzung implementiert;340 Vitest-/29 Browser-/50 JUnit-Tests bestanden, Lint/Typecheck/Build bestanden. Details im Etappenergebnis und Testprotokoll. Geräte-Gate offen; keine neue Android-API-/Berechtigungsstrategie |
 | E02 Erinnerungen/Druck | implementiert; aktuelle Nachweise und Hardwaregrenzen im E02-Ergebnis unten. NO-01–05/PR-01–03 im vorhandenen Modell integriert,74 geführte Gerätefälle insgesamt |
-| E03 Zustände/Tasks/Recovery | nächste Code-Etappe: vorhandene Modelle erweitern, übrige Effekte sequenzieren, langer Wiedereinstieg; Reminder-Transaktionen und Snapshot-Abgleich sind bereits in E02 abgesichert |
+| E03 Zustände/Tasks/Recovery | implementiert und automatisch geprüft:499 Logik-/58 Browser-/73 Kotlinfälle, Release-APK rc.4/Code6. Geführte G76–G85 ergänzt; echte Android-Prüfungen offen. Keine Freigabe aus einem Browsermock abgeleitet; Details unten |
 | E04 Flexible Planung/Spiel | danach: Nichtnutzung ohne Kapitelverlust, freie Verlängerung/PC-Zustand; Fortschritt bewahren |
 | E05 Arbeit | danach: Intervallkonflikte/Restprognose, Wochenprofil |
 | E06 lokale Wege/Schlaf | danach: unklare Orte/Bedarf/Material, keine erfundenen Daten |
@@ -216,6 +216,28 @@ Nächster Nutzerschritt: Download prüfen, entpacken und lokal mit dem vorhanden
 Nutzer bestätigt Überlagerung durch Uhr-/Akku-Leiste. `viewport-fit=contain` und synchroner SystemBars-Hinweis nutzen den bereits vorhandenen nativen Capacitor-Abstand für die gesamte App, einschließlich Testbegleitung und Fokus. Kein eigenes Insets-Modell, keine festen Pixelwerte, bestehende Tastaturbehandlung bleibt erhalten. Appversion1.2.0-rc.3/Code5; G75 ergänzt,75 geführte Fälle insgesamt. Implementiert;376 Logiktests, Lint/Typecheck/Build und **[CI16](https://github.com/frnkrm/anker/actions/runs/42191095861) mit40 Browserfällen vollständig grün**. Unsig­niertes APK erfolgreich gebaut; Paketversion, eingebettete Konfiguration und Webassets geprüft. Neues portables `Anker-Systemleisten-Update.zip` auf getrenntem Downloadbranch bereitgestellt und HTTPS-Download vollständig gegen SHA256 geprüft. Details im Abschnitt „Android-Systemleisten“ der [Testnachweise](ANKER_TESTNACHWEISE.md).
 
 **Geräterückmeldung06.11.2026:** Nutzer bestätigt **„oben frei“** nach der Bitte zum ersten Sichttest auf Jetzt. Der gemeldete obere Überlagerungsfehler ist damit am Galaxy nicht mehr sichtbar; G75 bleibt als Teilprüfung geführt. Fokus, Tastatur, Rotation, Kameraaussparung und untere Systemnavigation sind nicht bestätigt. Installierte Buildkennung und Windows-Ausführung wurden nicht unabhängig ausgelesen. Der Bericht erfordert kein weiteres Update und ändert keine lokalen App-Häkchen oder Nutzerdaten. Nächste Produktetappe bleibt E03.
+
+## E03 – umgesetzt und automatisch geprüft (06.11.2026)
+
+Ausdrückliche Freigabe „du kannst gerne schon mal mit E03 beginnen“. Startstand `34f8a87`, sauberer Hauptbaum; Entwicklungsbranch `entwicklung/anker-e03`. Quellsnapshot `/workspace/.cache/anker/e03/baseline-source.tar.gz`, SHA256 `8543d35dfe82701a5d493aad4676f0b6fb335d35092da8fdd4854c3e626f75a8`. Baseline376 Logik-/40 Browserfälle, App rc.3/Code5. Hauptagent schrieb allein im Integrationsbaum; Teilagenten ausschließlich in getrennten Worktrees. Bestehende Datenmodelle und Claude-Änderungen wiederverwendet, privates Original unverändert und ausgeschlossen.
+
+| IDs | Implementiertes Delta im vorhandenen Modell | Konkrete automatische Nachweise / Grenze |
+|---|---|---|
+| TA-01/03,03.3 | Optionale gemeinsame TaskFields an InboxItem/WorkTask; ehrliche Zustände, stabile Unteraufgaben-/Wiederholungs-IDs. Gemeinsamer Abschluss/Undo. Inbox→Arbeit inklusive neutralem Tombstone atomar; Importkonflikt bewahrt beide Fassungen | `tasks.test.ts` (Core/Store), `tasks-ui.spec.ts`, `tasks.spec.ts`: Morgen→Tagesplan/Jetzt→gemeinsamer Abschluss/Undo, Transfer/Transaktionsfehler/Importkonflikt |
+| TA-02 | Lokaler Capture-Entwurf mit tatsächlichem Fokuskontext, Pending-Guard und explizitem Notizspeichern. Berufliche Metadaten nur allgemein im synchronisierbaren Inboxrecord | `tasks.spec.ts`: Entwurf→Reload→Speichern→derselbe Schritt/Timer, Workkontext-Privacy. Vorhandener Widget-Capture bleibt; weitere Android-Launcher-Shortcuts bewusst später bei E08, keine zweite Startebene |
+| TA-04 | Eine gemeinsame nextAction für aktive Priorität, passende Dauer, verfügbares Fenster, Fristen, frühesten Start, Kontext/Energie und Erholung. Widget verwendet dieselbe Auswahl mit neutraler Projektion | `taskSelection.test.ts`, `support.test.ts`, `widgetPrivacy.test.ts`, `tasks.spec.ts`; künftige Umschaltpunkte mitgeplant. Keine Standortmessung |
+| TA-05/06 | Lokale Zerlegung mit Vorschau/Detailtiefe und erhaltenen echten Teilen; Fokus15/25/40/50, nächste Schritte und Notizen je Aufgabe. Fokus und Arbeitszeit getrennt | `tasks-ui.spec.ts`, `tasks.spec.ts`, Storefälle A→B→A, Undo, doppelte Wiederholung. Bestehende Arbeitsübergabe/Vorlagen bleiben; keine externen Nachrichten |
+| TA-07/08 | Kein8h-Verfall, referenztreuer Wiedereinstieg, unabhängige persistente Fokus-/Hilfetimer. Starthilfe erst auf Start, Deadline/Pause, neutrale Zeitüberschreitung, geschützte deduplizierte Pulse | `focus.test.ts`, `recovery.test.ts`, sieben `recovery.spec.ts`-Fälle einschließlich alter Timerübernahme und verspäteter Brückenantwort. Prozessbeendigung/Sperren/Pulse am echten Handy offen |
+| TA-09 | Freiwillige lokale, bestätigte Dauerproben; robuster Median als ausdrücklich anzuwendender Vorschlag, Aus/Reset und Undo ohne doppelte Proben | Core-/Store-/Lern-UI-Tests. Bestehende Ankommen-/Routinenverknüpfungen und kleine Tagesmodi wiederverwendet; keine zusätzliche allgemeine Regelengine, KI oder Sprachübertragung |
+|03.4/IN-06 | Atomare Task-/Fokus-/Receiptaktionen vor RAM-Erfolg; serialisierter gemeinsamer lokaler/native Abgleich, langsame Extras getrennt, direkte Alarm-/Widgetaufrufe abgesichert. Import/Sync-Merge aktualisiert RAM vor nächster Bearbeitung; SQLite-Batches transaktional | Coalesced-/Effects-/Alarm-/Health-Tests, SQLite-/Repositorytests, zusätzliche Store-Regressionen: verspätete Antwort, Rollback, Import+Bearbeitung, Doppelbelohnung, native Wiederholung und alte Deadline-Aktion nach Undo |
+| UX-01/02/03 | Bestehende Gedanken/Arbeit/Tag statt zusätzlicher Hauptnavigation. Aufgaben Start/Erledigt/Details; seltene Angaben darunter. Private Später-Aktion unter Plan & Optionen, „Ich bin abgedriftet“ als kurzer Rettungsweg | Browserprüfung Interaktionsbudget und320px/160%-Schrift; Capture/Recovery ohne Pflichtreflexion. Weitere Onboarding-/Personalisierungswünsche gehören zu späteren Etappen |
+| Q34 / nötige FL-08-Voraussetzung | Automatischer Kapitelverlust bei Nichtnutzung entfernt; nur echte Erfolgstage zählen. Bestehende Versuche/Joker/XP/Abzeichen erhalten, keine erfundene Rückgewinnung |2 reale Nichtnutzungsfälle vorher rot;30 Spieleinheiten grün, Altbackup-Offlinefluss nach3 Tagen ohne Verlust. Weitere E04-Planungs-/Freizeitfunktionen nicht vorgezogen |
+
+**Automatisches Gate:** Lint/Typecheck/Produktionsbuild erfolgreich;499 Vitest-Tests/40 Dateien und58 Playwright-Fälle vollständig grün, keine Skips. Frischer Produktionsbuild, eigener Port4195, System-Chromium155. Android-Release mit aktivem Lint gebaut und73 Kotlin-Tests in6 Suiten tatsächlich neu ausgeführt, keine Fehler/Skips. Testseite85 Fälle, darunter zehn neue geführte E03-Prüfwege G76–G85. Links ändern keine Einstellungen oder Tasks und starten keine Timer; Berichte nur nach bewusster Rückmeldung.
+
+**Update:** App1.2.0-rc.4/Code6; Quellkennung `e4541ce7f2587af4796541c6da5d81396a5542819106b79ff75759ec8a37bb2e`. SDK-freie Signierhilfe unverändert, kein Nutzerschlüssel verwendet. Paket- und Prüfdetails im E03-Abschnitt der [Testnachweise](ANKER_TESTNACHWEISE.md).
+
+**Statusgrenzen:** E03 implementiert und automatisch getestet; noch keine neue echte Android-Prüfung. G75 hat weiterhin ausschließlich die frühere obere Anzeige bestätigt. Fokus-Resume nach echter Prozessbeendigung, Hardwarepulse, native SQLite-Laufzeit, Widgets und sämtliche G76–G85 bleiben am Galaxy offen. Keine KI oder produktiven externen Dienste aktiviert; kein Release/Tag. Main-Übernahme und GitHub-CI werden nach Durchführung unten mit tatsächlichen IDs ergänzt. Nächste Produktetappe ist E04, hier nicht begonnen.
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 

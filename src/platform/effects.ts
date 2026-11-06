@@ -43,14 +43,21 @@ export function widgetEntries(now = Date.now()) {
         if (m >= 0 && m <= Math.max(1440, plan.bed + 120)) points.add(m)
       }
     }
+    for (const task of [...st.local.work, ...st.inbox.filter((item) => item.status === 'task')]) {
+      for (const at of [task.earliestStart, task.deferredUntil, task.deadline, task.deadline === undefined ? undefined : task.deadline - (task.estimateMin ?? 5) * 60_000]) {
+        if (at === undefined) continue
+        const m = minutesOnPlanDay(d, at)
+        if (m >= 0 && m <= Math.max(1440, plan.bed + 120)) points.add(m)
+      }
+    }
     for (const m of [...points].sort((a, b) => a - b)) {
       const at = zonedToUtc(d, m)
-      const v = nextAction({ plan, log: st.days[d], m, nowMs: at, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
+      const v = nextAction({ plan, log: st.days[d], m, nowMs: at, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext })
       entries.push(widgetEntry(at, v))
     }
   }
   // Aktuellen Zustand als ersten Eintrag sichern
-  const cur = nextAction({ plan: planFor(date, st), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
+  const cur = nextAction({ plan: planFor(date, st), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext })
   entries.push(widgetEntry(now, cur))
   return entries.sort((a, b) => a.at - b.at).filter((e) => e.at > now - 36 * 3600_000)
 }

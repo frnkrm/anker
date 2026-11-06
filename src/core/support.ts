@@ -5,6 +5,8 @@ import { nowView, type NowAction, type NowView } from './now'
 import { fmtTime, minutesOnPlanDay, type DateStr } from './time'
 import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkSession, WorkSessionKind, WorkTask } from './types'
 import { dayActual, staleSession } from './worktime'
+import { usableResume } from './recovery'
+import { taskIsActionable, taskIsOpen, taskNextStep, taskPriority } from './tasks'
 
 export const MODE_LABEL: Record<SupportMode, string> = {
   normal: 'Normal',
@@ -40,7 +42,8 @@ export const DEFAULT_TASK_MIN = 5
 
 /** Aufgaben, die an diesem Tag dran sind. Älteres bleibt ruhig dabei, ohne Rückstands-Anzeige. */
 export function tasksFor(inbox: InboxItem[], date: DateStr): InboxItem[] {
-  return inbox.filter((x) => x.status === 'task' && !x.done && (x.taskDate ?? date) <= date).sort((a, b) => (a.taskDate ?? '').localeCompare(b.taskDate ?? '') || a.createdAt - b.createdAt)
+  return inbox.filter((x) => x.status === 'task' && taskIsOpen(x) && (x.taskDate ?? date) <= date)
+    .sort((a, b) => Number(b.state === 'active') - Number(a.state === 'active') || taskPriority(b) - taskPriority(a) || (a.deadline ?? Infinity) - (b.deadline ?? Infinity) || (a.taskDate ?? '').localeCompare(b.taskDate ?? '') || a.createdAt - b.createdAt)
 }
 
 export interface TaskWindow {
@@ -54,18 +57,31 @@ export interface TaskWindow {
  * Flexibles Zeitfenster nach Feierabend, nie im Schlaf, bei der Arbeit oder in Terminen.
  * Eine Schätzung, kein Termin: Die Aufgabe bleibt verschiebbar.
  */
-export function suggestTaskWindow(plan: DayPlan, minutes = DEFAULT_TASK_MIN): TaskWindow | undefined {
+export function suggestTaskWindow(plan: DayPlan, minutes = DEFAULT_TASK_MIN, from?: number): TaskWindow | undefined {
   const fromBlock = plan.blocks.find((b) => b.kind === 'evening-plan' || b.kind === 'free' || b.kind === 'day' || b.kind === 'rest')
   if (!fromBlock) return undefined
   const firstEvening = plan.blocks.filter((b) => b.kind === 'free' || b.kind === 'evening-plan' || b.kind === 'day' || b.kind === 'rest')
-  const blocked = plan.blocks.filter((b) => b.kind === 'event')
+  const blocked = plan.blocks.filter((b) => b.kind === 'event' || b.kind === 'commute' || b.kind === 'commitment' || b.kind === 'prep').sort((a, b) => a.start - b.start)
+  let small: TaskWindow | undefined
   for (const b of firstEvening) {
-    let start = b.start
-    for (const e of blocked) if (e.start < start + minutes && e.end > start) start = e.end
+    let start = Math.max(b.start, from ?? b.start)
+    if (start >= b.end) continue
+    for (const e of blocked) {
+      if (e.end <= start || e.start >= b.end) continue
+      if (e.start > start) {
+        if (e.start - start >= minutes) return { start, end: start + minutes, fits: true }
+        small ??= { start, end: e.start, fits: false }
+        if (from !== undefined && start === from) return small
+      }
+      start = Math.max(start, e.end)
+    }
     if (start + minutes <= b.end) return { start, end: start + minutes, fits: true }
+    if (start < b.end) {
+      small ??= { start, end: b.end, fits: false }
+      if (from !== undefined && start === from) return small
+    }
   }
-  const b = firstEvening[0]!
-  return { start: b.start, end: b.end, fits: false }
+  return small
 }
 
 // ---------- Berufliche Aufgaben ----------
@@ -73,7 +89,7 @@ export function suggestTaskWindow(plan: DayPlan, minutes = DEFAULT_TASK_MIN): Ta
 export const MAX_WORK_VISIBLE = 3
 
 export function openWork(work: WorkTask[]): WorkTask[] {
-  return work.filter((w) => !w.done)
+  return work.filter(taskIsOpen).sort((a, b) => Number(b.state === 'active') - Number(a.state === 'active') || taskPriority(b) - taskPriority(a))
 }
 
 /** Top-1 ist die erste offene Aufgabe in der vom Nutzer gewählten Reihenfolge. */
@@ -85,7 +101,7 @@ export type DeadlineRisk = 'none' | 'soon' | 'today' | 'past'
 
 /** Sachlich, ohne Vorwurf. Berücksichtigt die eigene Schätzung plus etwas Luft. */
 export function deadlineRisk(w: WorkTask, nowMs: number): DeadlineRisk {
-  if (!w.deadline || w.done) return 'none'
+  if (!w.deadline || !taskIsOpen(w)) return 'none'
   const left = w.deadline - nowMs
   if (left <= 0) return 'past'
   const need = ((w.estimateMin ?? 30) + 30) * 60_000
@@ -95,15 +111,15 @@ export function deadlineRisk(w: WorkTask, nowMs: number): DeadlineRisk {
 }
 
 export function workStepText(w: WorkTask): string {
-  return w.nextStep?.trim() || w.title
+  return taskNextStep(w, w.title)
 }
 
 // ---------- Nächste Aktion ----------
 
 export type NextAction =
   | NowAction
-  | { type: 'worktask'; title: string; sub?: string; task: WorkTask }
-  | { type: 'task'; title: string; sub?: string; task: InboxItem }
+  | { type: 'worktask'; title: string; sub?: string; task: WorkTask; focusMinutes?: number }
+  | { type: 'task'; title: string; sub?: string; task: InboxItem; focusMinutes?: number }
   | { type: 'resume'; title: string; sub?: string; resume: ResumePoint }
   | { type: 'arrival'; title: string; sub?: string; index: number; total: number; meal?: string }
   | { type: 'prep'; title: string; sub?: string; leg: Leg }
@@ -120,6 +136,9 @@ export interface NextView extends Omit<NowView, 'action'> {
   action: NextAction
   /** Ein Satz: warum das gerade dran ist. Nur mit echten Daten, sonst leer. */
   reason?: string
+  estimatedMin?: number
+  estimatedEndAt?: number
+  alternative?: { title: string; reason: string }
 }
 
 export interface NextInput {
@@ -133,6 +152,8 @@ export interface NextInput {
   resume?: ResumePoint
   /** Erfasste Arbeitszeiten. Ohne sie bleibt alles wie geplant. */
   sessions?: WorkSession[]
+  /** Freiwillige explizite Auswahl; keine automatische Ortsbestimmung. */
+  context?: 'any' | 'home' | 'work' | 'errand'
 }
 
 export const SESSION_LABEL: Record<WorkSessionKind, string> = {
@@ -142,9 +163,6 @@ export const SESSION_LABEL: Record<WorkSessionKind, string> = {
   onsite: 'Vor-Ort-Termin',
   other: 'Andere Arbeit',
 }
-
-/** Wiedereinstieg gilt nur am selben Tag und höchstens 8 Stunden. */
-const RESUME_MAX_MS = 8 * 3600_000
 
 const FIXED: NowAction['type'][] = ['sleep', 'night', 'wake', 'leave', 'pcoff', 'bed']
 
@@ -189,26 +207,38 @@ export function nextAction(i: NextInput): NextView {
   const quietWork = i.settings.support.workAfterHoursQuiet && !actual.open
     && (actual.closed || i.plan.workInfo?.closed || i.plan.workEnd === undefined || i.m >= i.plan.workEnd)
 
-  // 2. Berufliche Aufgabe mit echter Deadline-Gefahr
-  const risky = quietWork ? undefined : openWork(i.work).find((w) => {
+  const activeWork = quietWork ? undefined : openWork(i.work).find((task) => task.state === 'active')
+  const activePrivate = tasksFor(i.inbox, i.plan.date).find((task) => task.state === 'active')
+
+  // 2. Eine echte unmittelbar gefährdete Frist darf vorgehen; ein neuer optionaler Task nicht.
+  const risky = quietWork ? undefined : openWork(i.work).filter((w) => {
+    if (!taskIsActionable(w, i.nowMs)) return false
     const r = deadlineRisk(w, i.nowMs)
-    return r === 'soon' || r === 'past'
-  })
+    if (r !== 'soon' && r !== 'past') return false
+    if (activeWork && activeWork.id !== w.id && w.deadline! > i.nowMs + (w.estimateMin ?? 30) * 60_000) return false
+    return true
+  }).sort((a, b) => a.deadline! - b.deadline!)[0]
+  const privateRisk = tasksFor(i.inbox, i.plan.date).filter((task) => taskIsActionable(task, i.nowMs) && task.deadline !== undefined
+    && task.deadline - i.nowMs <= (task.estimateMin ?? DEFAULT_TASK_MIN) * 60_000).sort((a, b) => a.deadline! - b.deadline!)[0]
+  if (privateRisk && (!risky || privateRisk.deadline! < risky.deadline!)) return taskView(i, base, privateRisk, false, 'Deine gewählte Frist rückt näher. Du entscheidest über den nächsten Schritt.')
   if (risky) {
     const r = deadlineRisk(risky, i.nowMs)
-    return view({ type: 'worktask', title: workStepText(risky), sub: risky.title !== workStepText(risky) ? risky.title : undefined, task: risky }, r === 'past' ? 'Die Frist ist erreicht. Ein kleiner nächster Schritt hilft trotzdem.' : 'Die Frist rückt näher, deshalb jetzt.')
+    return taskView(i, base, risky, true, r === 'past' ? 'Die Frist ist erreicht. Ein kleiner nächster Schritt hilft trotzdem.' : 'Die Frist rückt näher, deshalb jetzt.')
   }
 
   // 3. Begonnene Aufgabe wieder aufnehmen
-  const r = i.resume
-  if (r && !(quietWork && r.kind === 'work') && i.nowMs - r.at <= RESUME_MAX_MS && minutesOnPlanDay(i.plan.date, r.at) >= 0) {
+  if (activeWork) return taskView(i, base, activeWork, true, 'Hier machst du gerade weiter.')
+  if (activePrivate && !(a.type === 'step' && a.routine === 'morning')) return taskView(i, base, activePrivate, false, 'Hier machst du gerade weiter.')
+  const r = usableResume(i.resume, i.inbox, i.work)
+  if (r && !(quietWork && r.kind === 'work') && !(a.type === 'step' && a.routine === 'morning')) {
     return view({ type: 'resume', title: r.nextStep?.trim() || r.title, sub: r.nextStep ? `Du warst bei: ${r.title}` : 'Hier warst du', resume: r }, 'Du warst gerade dabei.')
   }
 
   // Arbeitsblock: die wichtigste Aufgabe statt „Nichts zu tun“
   if (a.type === 'work') {
-    const top = topWork(i.work)
-    if (top) return view({ type: 'worktask', title: workStepText(top), sub: top.title !== workStepText(top) ? top.title : `Heute am wichtigsten · bis ${fmtTime(base.block?.end ?? i.m)}`, task: top }, top.deadline ? `Frist: ${new Date(top.deadline).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit' })}.` : undefined)
+    const candidates = openWork(i.work).filter((task) => taskIsActionable(task, i.nowMs))
+    const top = candidates.find((task) => taskContextFits(i, task) && !(mode === 'wenig-energie' && task.energy === 'high')) ?? candidates[0]
+    if (top) return taskView(i, base, top, true, top.deadline ? `Frist: ${new Date(top.deadline).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit' })}.` : undefined)
     return view(a)
   }
 
@@ -221,15 +251,45 @@ export function nextAction(i: NextInput): NextView {
 
   // 4. Heute fällige, bewusst geplante Aufgabe
   if (mode !== 'ueberlastet' && i.m < i.plan.pcStop) {
-    const due = tasksFor(i.inbox, i.plan.date)[0]
-    const win = suggestTaskWindow(i.plan, due?.estimateMin ?? DEFAULT_TASK_MIN)
-    if (due && (!win || i.m >= win.start)) {
-      return view({ type: 'task', title: due.text, sub: `Etwa ${due.estimateMin ?? DEFAULT_TASK_MIN} Minuten`, task: due }, 'Hast du dir für heute vorgenommen.')
+    const candidates = tasksFor(i.inbox, i.plan.date).filter((task) => taskIsActionable(task, i.nowMs))
+    const due = candidates.find((task) => taskContextFits(i, task) && !(mode === 'wenig-energie' && task.energy === 'high')) ?? candidates[0]
+    const win = suggestTaskWindow(i.plan, due?.estimateMin ?? DEFAULT_TASK_MIN, i.m)
+    if (due && win && i.m >= win.start && i.m < win.end) {
+      return taskView(i, base, due, false, 'Hast du dir für heute vorgenommen.')
     }
   }
 
   // 5. Routine, 7. Pause oder Freizeit. Beides ist in Ordnung.
   return view(a, a.type === 'step' ? hardReason : undefined)
+}
+
+function taskContextFits(i: NextInput, task: InboxItem | WorkTask): boolean {
+  if (!task.context || task.context === 'any') return true
+  if (i.context && i.context !== 'any') return i.context === task.context
+  const working = i.plan.blocks.some((block) => block.kind === 'work' && block.start <= i.m && i.m < block.end)
+    || !!dayActual(i.sessions ?? [], i.plan.date, i.nowMs).open
+  return working && (task.context === 'work' || (task.context === 'home' && i.plan.homeOffice))
+}
+
+function taskView(i: NextInput, base: NowView, task: InboxItem | WorkTask, work: boolean, reason?: string): NextView {
+  const title = 'text' in task ? task.text : task.title
+  const estimate = task.estimateMin ?? (work ? 30 : DEFAULT_TASK_MIN)
+  const hard = i.plan.hardTimes.filter((time) => time.at > i.m).sort((a, b) => a.at - b.at)[0]?.at
+  const window = work ? undefined : suggestTaskWindow(i.plan, estimate, i.m)
+  const end = Math.min(hard ?? Infinity, task.deadline === undefined ? Infinity : minutesOnPlanDay(i.plan.date, task.deadline), work ? (base.block?.end ?? Infinity) : (window?.end ?? Infinity))
+  const available = Math.max(0, end - i.m)
+  const context = taskContextFits(i, task)
+  const small = available < estimate || !context || (currentMode(i.log) === 'wenig-energie' && task.energy === 'high')
+  const minutes = Math.max(1, Math.min(small ? 2 : estimate, Number.isFinite(available) ? available : estimate))
+  const step = taskNextStep(task, title)
+  const action: NextAction = work
+    ? { type: 'worktask', title: step, sub: title !== step ? title : `Grob geschätzt ${estimate} Minuten`, task: task as WorkTask, focusMinutes: Math.min(25, minutes) }
+    : { type: 'task', title: step, sub: title !== step ? title : `Grob geschätzt ${estimate} Minuten`, task: task as InboxItem, focusMinutes: Math.min(25, minutes) }
+  return { ...base, action, estimatedMin: minutes, estimatedEndAt: i.nowMs + minutes * 60_000,
+    reason: !context ? `${reason ? reason + ' ' : ''}Der Aufgabenkontext ist noch nicht bestätigt. Du kannst ihn unter Plan & Optionen wählen oder später anfangen.`
+      : available < estimate ? `${reason ? reason + ' ' : ''}Für die ganze Aufgabe wird es bis zum nächsten festen Punkt eng. Ein kleiner Anfang ist möglich.` : reason,
+    ...(small ? { alternative: { title: 'Später oder kleiner anfangen', reason: 'Die Aufgabe bleibt offen; du entscheidest.' } } : {}),
+  }
 }
 
 function legSub(l: Leg): string | undefined {

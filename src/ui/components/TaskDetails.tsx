@@ -67,10 +67,10 @@ export function TaskCard({ taskRef, task, first = false, children, moveToTop }: 
       const form = new FormData(event.currentTarget)
       const nextStep = String(form.get('next') ?? '').trim()
       const note = String(form.get('note') ?? '').trim()
-      void run(async () => { await st.pauseTaskFocus(taskRef, nextStep || undefined, note || undefined); setInterrupt(false) }, 'Gemerkt. Dein nächster Schritt bleibt erhalten.')
+      void run(async () => { await st.pauseTaskFocus(taskRef, nextStep || undefined, note); setInterrupt(false) }, 'Gemerkt. Dein nächster Schritt bleibt erhalten.')
     }}>
       <TextInput name="next" aria-label="Wo machst du weiter?" defaultValue={next !== title ? next : ''} placeholder="Zum Beispiel: Tabelle öffnen" />
-      <TextInput name="note" aria-label="Wenn ich zurückkomme" placeholder="Wenn ich zurückkomme … (freiwillig)" />
+      <TextInput name="note" aria-label="Wenn ich zurückkomme" defaultValue={task.resumeNote ?? ''} placeholder="Wenn ich zurückkomme … (freiwillig)" />
       <Button type="submit" size="sm" disabled={busy}>Merken</Button>
     </form>}
     {children}
@@ -146,7 +146,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
         <label className="block space-y-1"><span className="text-sm text-muted">Benötigte Energie</span><select aria-label="Benötigte Energie" className={FIELD} value={draft.energy} onChange={(event) => updateDraft('energy', event.target.value as typeof draft.energy)}><option value="">Offen</option><option value="low">Wenig</option><option value="medium">Mittel</option><option value="high">Viel</option></select></label>
         <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={draft.repeat} onChange={(event) => updateDraft('repeat', event.target.checked)} />Aufgabe wiederholen</label>
         {draft.repeat && <div className="flex flex-wrap items-center justify-between gap-2"><span>Abstand in Tagen</span><Stepper label="Wiederholungsabstand" value={draft.everyDays} min={1} max={366} onChange={(value) => updateDraft('everyDays', value)} /></div>}
-        {draft.repeat && <p className="text-xs text-muted">Jede Ausführung bleibt getrennt. Nach einer Pause erscheint nur die nächste künftige Wiederholung.</p>}
+        {draft.repeat && <p className="text-xs text-muted">Jede Ausführung bleibt getrennt. Nach einer Pause erscheint nur die nächste künftige Wiederholung. Fristen gelten für die jeweilige Ausführung.</p>}
         <Button type="submit" disabled={busy}>Details speichern</Button>
       </fieldset>
     </form>

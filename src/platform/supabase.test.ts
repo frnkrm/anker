@@ -12,7 +12,7 @@ vi.mock('../state/store', () => ({
   repository: () => context.repo,
   today: () => '2026-11-05',
   planFor: () => ({ pcStop: 1200 }),
-  useApp: { getState: () => ({ load: context.load, days: {} }) },
+  useApp: { getState: () => ({ load: context.load, days: {}, mergeRecords: (records: Rec[]) => context.repo!.merge(records) }) },
 }))
 vi.mock('./native', () => ({
   isNative: () => false,

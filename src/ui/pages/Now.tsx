@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
 import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
+import { resumeRoute, usableResume } from '../../core/recovery'
+import { resolveTask, taskIsOpen, taskNextStep, taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, type NextAction } from '../../core/support'
 import { addDays, fmtDuration, fmtTime, weekday } from '../../core/time'
-import type { DayType, EveningPlan, PlannedStep, SupportMode } from '../../core/types'
+import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
 import { pushPcStop } from '../../platform/supabase'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
@@ -15,6 +17,7 @@ import { openRoute, TodayDifferent } from '../components/TodayDifferent'
 import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
 import { WorkBar } from '../components/WorkControls'
+import { InboxSheet } from '../components/Shell'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
 
@@ -32,7 +35,10 @@ export default function Now() {
   const [rescue, setRescue] = useState(false)
   const [different, setDifferent] = useState(false)
   const [more, setMore] = useState(false)
-  const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions }
+  const [drifted, setDrifted] = useState(false)
+  const [capture, setCapture] = useState(false)
+  const [captureContext, setCaptureContext] = useState<ResumePoint>()
+  const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext }
   const v = nextAction(input)
   const a = v.action
   const mode = currentMode(log)
@@ -62,6 +68,7 @@ export default function Now() {
         {a.type === 'step' && a.step.useMinimal && <p className="mt-3 text-muted">Kleine Version. Zählt genauso.</p>}
         {a.type === 'arrival' && a.meal && a.index === 1 && <p className="mt-3 text-muted">Idee aus deinen Gerichten: {a.meal}</p>}
         {v.reason && <p className="mt-3 text-muted">{v.reason}</p>}
+        {v.estimatedMin && <p className="mt-2 text-sm text-muted">{v.alternative ? 'Kleiner Einstieg' : 'Fokusstart'}: etwa {v.estimatedMin} Minuten. Danach entscheidest du weiter.</p>}
         <div className="mt-8 space-y-3">
           <ActionButtons action={a} date={date} mode={mode} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />
         </div>
@@ -83,6 +90,7 @@ export default function Now() {
           {x} Ansehen
         </Link>
       ))}
+      <button type="button" className="min-h-11 self-start px-1 text-sm text-muted underline" onClick={() => setDrifted(true)}>Ich bin abgedriftet</button>
       <div className="flex gap-2">
         <button type="button" className="min-h-11 flex-1 rounded-2xl border border-line" onClick={() => setDifferent(true)}>
           Heute anders
@@ -94,6 +102,10 @@ export default function Now() {
 
       {more && (
         <div className="mt-2 space-y-3">
+          <Segmented label="Mein Aufgabenkontext (freiwillig)" value={st.local.taskContext ?? 'any'} onChange={(context) => st.saveLocal((local) => ({ ...local, taskContext: context }))} options={[
+            { value: 'any' as const, label: 'Offen' }, { value: 'home' as const, label: 'Zuhause' }, { value: 'work' as const, label: 'Arbeit' }, { value: 'errand' as const, label: 'Unterwegs' },
+          ]} />
+          {a.type === 'task' && <Button className="w-full" onClick={() => st.updateTask({ kind: 'task', id: a.task.id }, { taskDate: addDays(date, 1), state: 'deferred' })}>Aufgabe auf morgen verschieben</Button>}
           <Link to="/abend" className="flex min-h-12 items-center justify-center rounded-2xl border border-line">
             Abend & morgen
           </Link>
@@ -143,6 +155,8 @@ export default function Now() {
       )}
 
       <StuckSheet open={stuck} onClose={() => setStuck(false)} action={a} />
+      <RecoverySheet open={drifted} onClose={() => setDrifted(false)} onSmall={() => { setDrifted(false); setStuck(true) }} onCapture={(context) => { setCaptureContext(context); setDrifted(false); setCapture(true) }} onDifferent={() => { setDrifted(false); setDifferent(true) }} />
+      <InboxSheet open={capture} onClose={() => setCapture(false)} context={captureContext} />
       <TodayDifferent open={different} onClose={() => setDifferent(false)} date={date} m={m} action={a} />
       <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} date={date} />
       <InterruptSheet open={interrupted} onClose={() => setInterrupted(false)} action={a} />
@@ -188,6 +202,43 @@ function stepLink(step: PlannedStep): { to: string; label: string } | undefined 
   if (step.tag === 'prep' || step.tag === 'gymbag') return { to: '/vorbereitung', label: 'Checkliste' }
   if (step.tag === 'breakfast') return { to: '/essen', label: 'Ideen' }
   return undefined
+}
+
+function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { open: boolean; onClose: () => void; onSmall: () => void; onCapture: (context?: ResumePoint) => void; onDifferent: () => void }) {
+  const st = useApp()
+  const nav = useNavigate()
+  const { plan, m } = useToday()
+  let point: ResumePoint | undefined = usableResume(st.local.resume, st.inbox, st.local.work)
+  const focus = st.local.focus
+  if (focus?.target.kind === 'routine') {
+    const target = focus.target
+    const step = st.settings.routines[target.routine].find((item) => item.id === target.stepId)
+    if (step && !st.days[target.date]?.steps[`${target.routine}:${target.stepId}`]) point = { kind: 'step', title: step.title, refId: step.id, route: `/fokus/${target.routine}`, at: focus.timer.startedAt }
+  } else if (focus) {
+    const task = resolveTask(focus.target, st.inbox, st.local.work)
+    if (task && taskIsOpen(task)) point = { kind: focus.target.kind, refId: focus.target.id, title: taskTitle(task), nextStep: taskNextStep(task, taskTitle(task)), at: focus.timer.startedAt, note: task.resumeNote ?? (point?.kind === focus.target.kind && point.refId === focus.target.id ? point.note : undefined) }
+  }
+  if (point?.kind === 'work' && st.settings.support.workAfterHoursQuiet && !st.local.workSessions.some((session) => session.endAt === undefined)
+    && (plan.workEnd === undefined || m >= plan.workEnd || plan.workInfo?.closed)) point = undefined
+  const current = point
+  return <Sheet open={open} onClose={onClose} title={current ? 'Hier warst du' : 'Ab hier geht es weiter'}>
+    <p className="mb-3 text-xl font-semibold">{current?.nextStep || current?.title || 'Ein kleiner Einstieg reicht.'}</p>
+    {current?.note && <p className="mb-3 whitespace-pre-wrap text-muted">{current.note}</p>}
+    <div className="space-y-2">
+      <Button variant="primary" size="lg" className="w-full" onClick={async () => {
+        try {
+          if (!current) { onSmall(); return }
+          if ((current.kind === 'task' || current.kind === 'work') && current.refId) await st.startTaskFocus({ kind: current.kind, id: current.refId })
+          const route = resumeRoute(current)
+          onClose()
+          if (route) nav(route)
+          else onSmall()
+        } catch { st.showToast('Der Wiedereinstieg konnte noch nicht gespeichert werden. Bitte versuche es erneut.') }
+      }}>{current ? 'Dort weitermachen' : 'Kleinen Schritt wählen'}</Button>
+      <Button className="w-full" onClick={() => onCapture(current)}>Gedanke festhalten</Button>
+      <Button variant="ghost" className="w-full" onClick={onDifferent}>Heute anders</Button>
+    </div>
+  </Sheet>
 }
 
 function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; mode: SupportMode; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
@@ -245,12 +296,12 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
     case 'worktask':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={() => st.saveLocal((l) => ({ ...l, work: l.work.map((w) => (w.id === a.task.id ? { ...w, done: true, doneAt: Date.now() } : w)) }))}>
-            Erledigt
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => { await st.startTaskFocus({ kind: 'work', id: a.task.id }, a.focusMinutes ?? 25); nav(`/aufgabe/work/${encodeURIComponent(a.task.id)}`) }}>
+            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
           </Button>
           <div className="flex gap-2">
-            <Button size="lg" className="flex-1" onClick={onInterrupted}>
-              Ich wurde unterbrochen
+            <Button size="lg" className="flex-1" onClick={() => st.completeTask({ kind: 'work', id: a.task.id }, true)}>
+              Erledigt
             </Button>
             {StuckButton}
           </div>
@@ -259,12 +310,12 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
     case 'task':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={() => st.setInboxDone(a.task.id, true)}>
-            Erledigt
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => { await st.startTaskFocus({ kind: 'task', id: a.task.id }, a.focusMinutes ?? 25); nav(`/aufgabe/task/${encodeURIComponent(a.task.id)}`) }}>
+            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
           </Button>
           <div className="flex gap-2">
-            <Button size="lg" className="flex-1" onClick={() => st.updateInbox(a.task.id, { taskDate: addDays(date, 1) })}>
-              Später
+            <Button size="lg" className="flex-1" onClick={() => st.setInboxDone(a.task.id, true)}>
+              Erledigt
             </Button>
             {StuckButton}
           </div>
@@ -273,8 +324,13 @@ function ActionButtons({ action: a, date, mode, onLonger, onStuck, onInterrupted
     case 'resume':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={() => st.setResume(undefined)}>
-            Weiter
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => {
+            if ((a.resume.kind === 'work' || a.resume.kind === 'task') && a.resume.refId) await st.startTaskFocus({ kind: a.resume.kind, id: a.resume.refId })
+            const route = resumeRoute(a.resume)
+            if (route) nav(route)
+            else onStuck()
+          }}>
+            Dort weitermachen
           </Button>
           <div className="flex gap-2">{StuckButton}</div>
         </>
@@ -474,8 +530,7 @@ function InterruptSheet({ open, onClose, action: a }: { open: boolean; onClose: 
           e.preventDefault()
           const step = next.trim()
           if (task) {
-            if (step) await st.saveLocal((l) => ({ ...l, work: l.work.map((w) => (w.id === task.id ? { ...w, nextStep: step } : w)) }))
-            await st.setResume({ kind: 'work', title: task.title, nextStep: step || task.nextStep, refId: task.id, at: Date.now() })
+            await st.pauseTaskFocus({ kind: 'work', id: task.id }, step || task.nextStep)
           }
           if (einsatz) await st.setResume({ kind: 'work', title: einsatz, nextStep: step || undefined, at: Date.now() })
           setNext('')

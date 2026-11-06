@@ -28,7 +28,7 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
 
   function actionFor(key: string, id = 'action-one') {
     const st = useApp.getState()
-    const extras = { deadlines: st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline! })) }
+    const extras = { deadlines: st.local.work.filter((w) => w.deadline && !w.done).map((w) => ({ id: w.id, at: w.deadline!, reminderRevision: w.reminderRevision })) }
     const event = buildReminders([planFor(date)], st.days, st.settings, zonedToUtc(date, 0), undefined, extras).find((e) => e.key === key)!
     expect(event).toBeDefined()
     vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(event.at + 1000)
@@ -204,17 +204,17 @@ describe('Speichern und erneutes Laden', () => {
 
   it('schreibt Tagespunkte vor einer späteren Spieländerung und verliert keine Einlösung', async () => {
     const repo = storage.repo!
-    const put = repo.put.bind(repo)
+    const put = repo.putMany.bind(repo)
     const reached = deferred()
     const release = deferred()
     let first = true
-    vi.spyOn(repo, 'put').mockImplementation(async (collection, id, data) => {
+    vi.spyOn(repo, 'putMany').mockImplementation(async (records) => {
       if (first) {
         first = false
         reached.resolve()
         await release.promise
       }
-      await put(collection, id, data)
+      await put(records)
     })
     const step = useApp.getState().setStep('2026-11-02', 'morning', 'water', 'done')
     await reached.promise

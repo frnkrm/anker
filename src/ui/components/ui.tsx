@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useEffectEvent, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { fmtTime, parseTime } from '../../core/time'
@@ -168,13 +168,25 @@ export function TimeStepper({ value, onChange, label, night = false }: { value: 
 
 export function Sheet({ open, onClose, children, title }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
   const ref = useRef<HTMLDivElement>(null)
+  const close = useEffectEvent(onClose)
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
+    const controls = () => [...(ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]') ?? [])].filter((node) => node.getClientRects().length)
+    const onKey = (e: KeyboardEvent) => {
+      if ([...document.querySelectorAll('[role="dialog"]')].at(-1) !== ref.current) return
+      if (e.key === 'Escape') { e.preventDefault(); close() }
+      if (e.key !== 'Tab') return
+      const items = controls()
+      const first = items[0]; const last = items.at(-1)
+      if (!first) { e.preventDefault(); ref.current?.focus(); return }
+      if (e.shiftKey && (document.activeElement === first || !ref.current?.contains(document.activeElement))) { e.preventDefault(); last?.focus() }
+      else if (!e.shiftKey && (document.activeElement === last || !ref.current?.contains(document.activeElement))) { e.preventDefault(); first.focus() }
+    }
     window.addEventListener('keydown', onKey)
-    ref.current?.querySelector<HTMLElement>('input,textarea,button')?.focus()
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+    ;(controls()[0] ?? ref.current)?.focus()
+    return () => { window.removeEventListener('keydown', onKey); if (previous?.isConnected) previous.focus() }
+  }, [open])
   if (!open) return null
   // Portal: unabhängig von Eltern mit backdrop-filter/transform, die position:fixed verschieben würden
   return createPortal(
@@ -184,8 +196,9 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl rounded-t-3xl bg-surface p-5 safe-bottom"
+        className="max-h-[calc(100dvh-0.75rem)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-3xl bg-surface p-5 safe-bottom"
       >
         {title && <h2 className="mb-3 text-xl font-semibold">{title}</h2>}
         {children}

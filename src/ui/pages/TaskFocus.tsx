@@ -41,7 +41,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const route = `/aufgabe/${reference.kind}/${encodeURIComponent(reference.id)}`
   const back = reference.kind === 'work' ? '/arbeit' : '/inbox'
   const savedResume = st.local.resume
-  const resumeNote = savedResume?.kind === reference.kind && savedResume.refId === reference.id ? savedResume.note : undefined
+  const resumeNote = task.resumeNote ?? (savedResume?.kind === reference.kind && savedResume.refId === reference.id ? savedResume.note : undefined)
   const context = useMemo<ResumePoint>(() => ({ kind: reference.kind, title, nextStep, refId: reference.id, route, at: Date.now(), ...(resumeNote ? { note: resumeNote } : {}) }), [reference.kind, reference.id, title, nextStep, route, resumeNote])
   const [minutes, setMinutes] = useState<FocusMinutes>(() => {
     const saved = focus ? focus.timer.durationMs / 60_000 : 25
@@ -90,7 +90,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
     if (!interrupting) {
       setResumeStep(nextStep)
       const saved = st.local.resume
-      setNote(saved?.kind === reference.kind && saved.refId === reference.id ? saved.note ?? '' : '')
+      setNote(task.resumeNote ?? (saved?.kind === reference.kind && saved.refId === reference.id ? saved.note ?? '' : ''))
     }
     setInterrupting(!interrupting)
   }
@@ -151,7 +151,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
           <form className="space-y-3" onSubmit={(event) => {
             event.preventDefault()
             void run(async () => {
-              await st.pauseTaskFocus(reference, resumeStep.trim() || undefined, note.trim() || undefined)
+              await st.pauseTaskFocus(reference, resumeStep.trim() || undefined, note.trim())
               setInterrupting(false)
               st.showToast('Gesichert. Dein nächster Schritt bleibt erhalten.')
             })

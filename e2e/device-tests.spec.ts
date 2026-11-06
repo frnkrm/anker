@@ -306,5 +306,6 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
   expect(after?.work ?? []).toEqual(before?.work ?? [])
   expect(after?.taskLearning ?? { enabled: false, samples: [] }).toEqual(before?.taskLearning ?? { enabled: false, samples: [] })
   expect(after?.deviceTests?.reports).toEqual({})
-  expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(migrateSettings(beforeSettings!, '2026-11-05'))
+  // Reine Testlinks schreiben auch die nur im RAM ergänzten Migrationsdefaults nicht zurück.
+  expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(beforeSettings)
 })

@@ -45,9 +45,9 @@ describe('nextAction', () => {
     expect(v.action).toMatchObject({ type: 'resume', title: 'Tabelle öffnen', sub: 'Du warst bei: Bericht' })
   })
 
-  it('alter Wiedereinstieg verfällt still', () => {
-    const v = nextAction(input({ m: 16 * 60, log: wakeLog({ leftAt: 1, steps: allMorningDone() }), resume: { kind: 'work', title: 'Alt', at: zonedToUtc(MON, 6 * 60) } }))
-    expect(v.action.type).not.toBe('resume')
+  it('älterer Wiedereinstieg bleibt ohne Zeitstrafe erhalten', () => {
+    const v = nextAction(input({ m: 16 * 60, log: wakeLog({ leftAt: 1, steps: allMorningDone() }), resume: { kind: 'work', title: 'Alt', at: zonedToUtc(addDays(MON, -3), 6 * 60) } }))
+    expect(v.action.type).toBe('resume')
   })
 
   it('im Arbeitsblock: die wichtigste Aufgabe statt nichts', () => {
@@ -154,7 +154,8 @@ describe('Freiwilliger Feierabend-Schutz', () => {
   })
 
   it('lässt private Aufgaben nach Feierabend verfügbar', () => {
-    const v = nextAction(input({ settings: quiet(), m: eveningMinute, work: [urgent(eveningMinute)], inbox: [task()] }))
+    const m = suggestTaskWindow(plan)!.start + 1
+    const v = nextAction(input({ settings: quiet(), m, work: [urgent(m)], inbox: [task()] }))
     expect(v.action.type).toBe('task')
   })
 

@@ -39,7 +39,7 @@ src/core/          Reine Logik, keine Seiteneffekte, vollständig getestet
   support.ts       nextAction(): genau eine Handlung inkl. Arbeit, Aufgaben, Wiedereinstieg; Modi, Puls
   worktime.ts      Gleitzeit: Ist-Zeiten, Prognose Feierabend, Hinweise
   alarm.ts         Konfiguration für den nativen Wecker
-  game/            Themen, XP/Level, Tagesziele je Stufe, Kapitel mit „Nie zweimal“ + Joker, Erfolge
+  game/            Themen, XP/Level, Tagesziele je Stufe, Kapitel ohne Fortschrittsverlust bei Pausen, Erfolge
   reminders/       buildReminders(): Erinnerungen mit Slot und Rang inkl. Eskalation/Ruhezeiten
   export/          .ics, JSON-Backup, PC-Stopp-Skripte (PowerShell)
 src/data/          Repository-Schnittstelle: SqliteRepository (Android), DexieRepository (Web), Memory

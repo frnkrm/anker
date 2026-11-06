@@ -36,7 +36,7 @@ export function nextNow(): NextView {
   const st = useApp.getState()
   const date = today()
   const now = Date.now()
-  return nextAction({ plan: planFor(date), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
+  return nextAction({ plan: planFor(date), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext })
 }
 
 export function usePlan(date: string): DayPlan {

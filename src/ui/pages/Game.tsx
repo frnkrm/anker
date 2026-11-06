@@ -57,10 +57,7 @@ export default function Game() {
           ))}
         </div>
         <p className="mt-3 text-muted">
-          {ch.missedYesterday
-            ? 'Gestern lief’s nicht – kein Ding. Regel: nie zweimal. Heute zählt.'
-            : 'Ein verpasster Tag unterbricht nichts. Erst zwei in Folge.'}{' '}
-          Joker: {st.game.chapter.jokerUsed || ch.jokerUsed ? 'benutzt' : '1 übrig'}.
+          Geschaffte Tage bleiben erhalten. Pausen nehmen dir nichts weg.
         </p>
         {st.game.chapter.attempt > 1 && <p className="mt-1 text-sm text-muted">Anlauf {st.game.chapter.attempt}. Alles Gesammelte bleibt.</p>}
       </Card>

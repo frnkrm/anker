@@ -3,6 +3,8 @@ import { defaultSettings } from '../defaults'
 import { validEveningLocal } from '../evening'
 import { validDeviceTests } from '../deviceTests'
 import { validReminderReceipts } from '../reminders/actions'
+import { validRecoveryLocal } from '../recovery'
+import { validTaskFields, validTaskRef } from '../tasks'
 import { COLLECTIONS } from '../../data/types'
 
 export interface Backup {
@@ -47,6 +49,13 @@ export function parseBackup(text: string): Rec[] {
     }
     if (!record.deleted && record.collection === 'meta' && record.id === 'local' && object(record.data) && !validDeviceTests(record.data.deviceTests)) {
       throw new Error('Die Sicherung enthält ungültige Testergebnisse. Es wurde nichts importiert.')
+    }
+    if (!record.deleted && record.collection === 'meta' && record.id === 'local' && !validRecoveryLocal(record.data)) {
+      throw new Error('Die Sicherung enthält ungültige Aufgaben-, Fokus- oder Wiedereinstiegsdaten. Es wurde nichts importiert.')
+    }
+    if (!record.deleted && record.collection === 'inbox' && (!validTaskFields(record.data)
+      || (object(record.data) && record.data.linkedTo !== undefined && !validTaskRef(record.data.linkedTo)))) {
+      throw new Error('Die Sicherung enthält ungültige Aufgabenangaben. Es wurde nichts importiert.')
     }
     if (!record.deleted && record.collection === 'inbox' && record.data && typeof record.data === 'object') {
       const data = record.data as Record<string, unknown>

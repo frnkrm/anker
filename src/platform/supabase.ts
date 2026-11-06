@@ -78,7 +78,7 @@ export async function syncNow(): Promise<SyncMeta> {
       await repo.markClean(dirty)
     }
     // Pull: alle Seiten, auch bei mehr als 1000 Datensätzen mit demselben Zeitstempel.
-    const pulled = await pullRecords(c, repo, meta.cursor)
+    const pulled = await pullRecords(c, { merge: (records) => useApp.getState().mergeRecords(records) }, meta.cursor)
     const next: SyncMeta = { cursor: pulled.cursor, lastSync: Date.now() }
     await repo.put('meta', 'sync', next)
     if (pulled.changed) await useApp.getState().load()

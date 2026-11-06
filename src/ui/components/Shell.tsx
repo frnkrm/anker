@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { theme as getTheme } from '../../core/game'
 import { addDays } from '../../core/time'
+import type { ResumePoint } from '../../core/types'
 import { nextNow } from '../../state/hooks'
 import { today, useApp } from '../../state/store'
 import { Button, Sheet } from './ui'
@@ -21,7 +22,7 @@ function Icon({ d }: { d: string }) {
   )
 }
 
-const FULLSCREEN = ['/fokus', '/wecker/klingelt', '/start', '/druck']
+const FULLSCREEN = ['/fokus', '/aufgabe', '/wecker/klingelt', '/start', '/druck']
 
 export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
@@ -69,32 +70,50 @@ function Tab({ to, label, icon }: { to: string; label: string; icon: string }) {
 }
 
 /** Gedanken-Inbox: von überall in einer Zeile festhalten, ohne die aktuelle Aufgabe zu verlassen. */
-export function InboxButton() {
+export function InboxButton({ context }: { context?: ResumePoint } = {}) {
   const [open, setOpen] = useState(false)
   return (
     <div className="flex flex-1 justify-center">
       <button type="button" aria-label="Gedanken festhalten" onClick={() => setOpen(true)} className="grid h-12 w-12 place-items-center rounded-full bg-surface-2 text-xl ring-1 ring-line active:scale-95">
         💭
       </button>
-      <InboxSheet open={open} onClose={() => setOpen(false)} />
+      <InboxSheet open={open} onClose={() => setOpen(false)} context={context} />
     </div>
   )
 }
 
-export function InboxSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function InboxSheet({ open, onClose, context }: { open: boolean; onClose: () => void; context?: ResumePoint }) {
   const add = useApp((s) => s.addInbox)
   const update = useApp((s) => s.updateInbox)
+  const saveDraft = useApp((s) => s.saveCaptureDraft)
   const [text, setText] = useState('')
   const [saved, setSaved] = useState<{ id: string; was: string; planned?: boolean }>()
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
+  const submitting = useRef(false)
+  const was = useRef<ResumePoint | undefined>(undefined)
+  useEffect(() => {
+    if (!open) return
+    const draft = useApp.getState().local.captureDraft
+    const action = nextNow().action
+    const work = action.type === 'worktask' || (action.type === 'resume' && action.resume.kind === 'work') || ['work', 'einsatz-start', 'einsatz-running', 'prep', 'go', 'underway', 'away'].includes(action.type)
+    was.current = draft?.context ?? context ?? { kind: work ? 'work' : 'free', title: action.title, at: Date.now() }
+    setText(draft?.text ?? '')
+    setSaved(undefined); setError('')
+    // Der tatsächliche Fokuskontext bleibt während dieser Erfassung stabil.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
   const submit = async () => {
-    if (!text.trim()) return
-    const a = nextNow().action
-    const was = a.title
-    // Gedanken werden synchronisiert, Arbeitsinhalte nicht: Der Hinweis erscheint, wird aber nicht gespeichert
-    const isWork = a.type === 'worktask' || (a.type === 'resume' && a.resume.kind === 'work') || ['einsatz-start', 'einsatz-running', 'prep', 'go', 'underway', 'away'].includes(a.type)
-    const id = await add(text, isWork ? undefined : was)
-    setText('')
-    if (id) setSaved({ id, was })
+    if (!text.trim() || submitting.current) return
+    submitting.current = true; setPending(true); setError('')
+    try {
+      const current = was.current
+      await saveDraft(text, current)
+      const id = await add(text, current?.kind === 'work' ? undefined : current?.title)
+      setText('')
+      if (id) setSaved({ id, was: current?.title ?? 'Deinem nächsten Schritt' })
+    } catch { setError('Der Gedanke konnte nicht sicher gespeichert werden. Dein Text bleibt hier.') }
+    finally { submitting.current = false; setPending(false) }
   }
   const close = () => {
     setSaved(undefined)
@@ -135,14 +154,20 @@ export function InboxSheet({ open, onClose }: { open: boolean; onClose: () => vo
         <input
           autoFocus
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value
+            setText(value)
+            void saveDraft(value, was.current).catch(() => setError('Der Entwurf konnte nicht gespeichert werden. Bitte behalte deinen Text bis zum Speichern hier.'))
+          }}
+          aria-label="Gedanke"
           placeholder="Was ist dir gerade eingefallen?"
           enterKeyHint="done"
           className="min-h-14 w-full rounded-2xl bg-surface-2 px-4 text-lg placeholder:text-muted"
         />
-        <Button type="submit" variant="primary" size="lg" className="w-full">
-          Merken
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending || !text.trim()}>
+          {pending ? 'Wird gespeichert …' : 'Merken'}
         </Button>
+        {error && <p role="alert" className="text-warm">{error}</p>}
         <p className="text-center text-sm text-muted">Bleibt erst mal geparkt. Abends schaust du kurz drüber.</p>
       </form>
     </Sheet>

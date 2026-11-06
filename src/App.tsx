@@ -12,6 +12,7 @@ import Now from './ui/pages/Now'
 
 const Onboarding = lazy(() => import('./ui/pages/Onboarding'))
 const Focus = lazy(() => import('./ui/pages/Focus'))
+const TaskFocus = lazy(() => import('./ui/pages/TaskFocus'))
 const Day = lazy(() => import('./ui/pages/Day'))
 const Game = lazy(() => import('./ui/pages/Game'))
 const Shop = lazy(() => import('./ui/pages/Shop'))
@@ -114,7 +115,7 @@ export default function App() {
         startEffects({
           sync: async () => {
             const now = Date.now()
-            if (now - lastSync > 60_000) {
+            if (useApp.getState().settings.integrations.sync && now - lastSync > 60_000) {
               lastSync = now
               await syncNow()
             }
@@ -139,6 +140,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/start" element={<Onboarding />} />
             <Route path="/fokus/:routine" element={<Focus />} />
+            <Route path="/aufgabe/:kind/:id" element={<TaskFocus />} />
             <Route path="/tag" element={<Day />} />
             <Route path="/arbeit" element={<Work />} />
             <Route path="/arbeitszeit" element={<WorkTime />} />

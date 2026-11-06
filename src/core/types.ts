@@ -1,4 +1,5 @@
 import type { DateStr } from './time'
+import type { FocusSession, StuckSession } from './focus'
 
 export type StepTag = 'movement' | 'tidy' | 'face' | 'teeth' | 'prep' | 'inbox' | 'gymbag' | 'breakfast'
 
@@ -306,8 +307,12 @@ export interface TaskPart {
   doneAt?: number
 }
 export interface TaskFields {
+  /** Bewusste Änderungen machen ältere Benachrichtigungsaktionen ungültig. */
+  reminderRevision?: string
   description?: string
   nextStep?: string
+  /** Unterbrechungsnotiz gehört zur Aufgabe und bleibt beim bewussten Wechsel erhalten. */
+  resumeNote?: string
   priority?: 'low' | 'normal' | 'high'
   deadline?: number
   earliestStart?: number
@@ -537,6 +542,12 @@ export interface LocalData {
   /** Textentwurf bleibt lokal, auch wenn die Gedankenliste optional synchronisiert wird. */
   captureDraft?: { id: string; text: string; context?: ResumePoint; updatedAt: number }
   taskLearning?: { enabled: boolean; samples: TaskDurationSample[] }
+  /** Freiwillig gewählter Aufgabenkontext, keine Standortmessung. */
+  taskContext?: 'any' | 'home' | 'work' | 'errand'
+  focus?: FocusSession
+  /** Pausierte Uhren verwenden denselben Countdown-Typ; keine zweite Fokus-Engine. */
+  focusHistory?: FocusSession[]
+  stuck?: StuckSession
   tomorrowSteps: TomorrowStep[]
   /** Nächte nach Datum; weder Wecker noch Tagespunkte tragen hier etwas ein. */
   sleepDiary: Record<DateStr, SleepDiaryEntry>

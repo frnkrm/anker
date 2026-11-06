@@ -22,7 +22,9 @@ export function taskIsOpen(task: TaskFields): boolean {
 }
 
 export function taskIsActionable(task: TaskFields, nowMs: number): boolean {
-  if (!taskIsOpen(task) || (task.earliestStart !== undefined && task.earliestStart > nowMs)) return false
+  if (!taskIsOpen(task)) return false
+  if (task.state === 'active') return true // bewusst vorgezogen, kein automatisches Verstecken
+  if (task.earliestStart !== undefined && task.earliestStart > nowMs) return false
   return task.state !== 'deferred' || (task.deferredUntil !== undefined && task.deferredUntil <= nowMs)
 }
 
@@ -72,7 +74,8 @@ export function validTaskParts(value: unknown): value is TaskPart[] {
 /** Neue Felder prüfen, ohne alte Records zur Angabe aller optionalen Felder zu zwingen. */
 export function validTaskFields(value: unknown): value is TaskFields {
   if (!object(value)) return false
-  for (const key of ['description', 'nextStep']) if (value[key] !== undefined && !text(value[key])) return false
+  if (value.reminderRevision !== undefined && !nonempty(value.reminderRevision)) return false
+  for (const key of ['description', 'nextStep', 'resumeNote']) if (value[key] !== undefined && !text(value[key])) return false
   for (const key of ['deadline', 'earliestStart', 'startedAt', 'deferredUntil', 'doneAt']) if (value[key] !== undefined && !timestamp(value[key])) return false
   if (value.estimateMin !== undefined && !minutes(value.estimateMin)) return false
   if (value.done !== undefined && typeof value.done !== 'boolean') return false
