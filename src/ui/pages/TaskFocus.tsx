@@ -40,7 +40,9 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const nextStep = taskNextStep(task, title)
   const route = `/aufgabe/${reference.kind}/${encodeURIComponent(reference.id)}`
   const back = reference.kind === 'work' ? '/arbeit' : '/inbox'
-  const context = useMemo<ResumePoint>(() => ({ kind: reference.kind, title, nextStep, refId: reference.id, route, at: Date.now() }), [reference.kind, reference.id, title, nextStep, route])
+  const savedResume = st.local.resume
+  const resumeNote = savedResume?.kind === reference.kind && savedResume.refId === reference.id ? savedResume.note : undefined
+  const context = useMemo<ResumePoint>(() => ({ kind: reference.kind, title, nextStep, refId: reference.id, route, at: Date.now(), ...(resumeNote ? { note: resumeNote } : {}) }), [reference.kind, reference.id, title, nextStep, route, resumeNote])
   const [minutes, setMinutes] = useState<FocusMinutes>(() => {
     const saved = focus ? focus.timer.durationMs / 60_000 : 25
     return WINDOWS.find((value) => value === saved) ?? 25
@@ -106,6 +108,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
       <section className="flex flex-1 flex-col justify-center py-4">
         {nextStep !== title && <p className="mb-2 break-words text-muted">{title}</p>}
         <h1 className="break-words text-3xl font-semibold leading-tight">{open ? nextStep : title}</h1>
+        {open && resumeNote && <p className="mt-3 whitespace-pre-wrap break-words text-muted">Für den Wiedereinstieg: {resumeNote}</p>}
         {!open ? (
           <div className="mt-6 space-y-3">
             <p className="text-xl text-accent">{taskStateLabel(task)}</p>
