@@ -130,13 +130,27 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   }
 }
 
-/** Das Widget ist von außen lesbar: Anlass, Ort und Kunde bleiben in der App. */
-export function widgetEntry(at: number, v: NowView) {
-  const privateBlock = !!v.block && ['commitment', 'prep', 'travel'].includes(v.block.kind)
+interface WidgetView extends Pick<NowView, 'block' | 'hard'> {
+  action: { type: string; title: string; sub?: string }
+}
+
+const WIDGET_ACTIONS: Record<string, string> = {
+  task: 'Deine Aufgabe', worktask: 'Arbeit weiterführen', resume: 'Wieder einsteigen',
+  arrival: 'Ankommen', prep: 'Termin vorbereiten', go: 'Losgehen', underway: 'Unterwegs', away: 'Termin',
+  'return-check': 'Wieder zuhause?', 'work-break': 'Pause läuft', 'work-stale': 'Arbeitszeit prüfen',
+  'einsatz-start': 'Arbeitseinsatz starten', 'einsatz-running': 'Arbeitseinsatz läuft',
+}
+const BASE_WIDGET_ACTIONS = new Set(['sleep', 'wake', 'step', 'leave', 'work', 'info', 'free', 'pcoff', 'bed', 'night'])
+
+/** Gleiche Handlungsauswahl wie Jetzt; private Inhalte bleiben unabhängig vom Actiontyp in der App. */
+export function widgetEntry(at: number, v: WidgetView) {
+  const privateBlock = !!v.block && ['commitment', 'prep', 'travel', 'event', 'session'].includes(v.block.kind)
+  const label = Object.hasOwn(WIDGET_ACTIONS, v.action.type) ? WIDGET_ACTIONS[v.action.type] : undefined
+  const unknown = !label && !BASE_WIDGET_ACTIONS.has(v.action.type)
   return {
     at,
-    action: privateBlock ? 'Termin' : v.action.title,
-    sub: privateBlock ? '' : (v.action.sub ?? ''),
+    action: label ?? (privateBlock ? 'Termin' : unknown ? 'Anker öffnen' : v.action.title),
+    sub: label || privateBlock || unknown ? '' : (v.action.sub ?? ''),
     hardLabel: v.hard?.key === 'commitment' || v.hard?.label.startsWith('Los:') ? 'Losgehen' : (v.hard?.label ?? ''),
     hardTime: v.hard ? fmtTime(v.hard.at) : '',
   }

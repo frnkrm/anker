@@ -1,40 +1,89 @@
 import { App } from '@capacitor/app'
-import { nowView, widgetEntry } from '../core/now'
-import { addDays, minutesOnPlanDay, zonedToUtc } from '../core/time'
+import { coalesceAsync } from '../core/coalesced'
+import { activePlanDate, widgetEntry } from '../core/now'
+import { nextAction } from '../core/support'
+import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc } from '../core/time'
 import { onPlanChange, planFor, today, useApp } from '../state/store'
 import { syncAlarm } from './alarm'
 import { syncWorkout } from './health'
 import { AnkerNative, isNative, safe } from './native'
 import { drainActions, rescheduleAll, setupNotifications } from './notifications'
 
-/** Widget auf dem Homescreen aktualisieren. */
-export async function updateWidget() {
+const reconcileWidget = coalesceAsync(async () => {
   if (!isNative()) return
-  await safe(() => AnkerNative.updateWidget({ entries: widgetEntries() }), undefined)
+  await safe(async () => {
+    for (;;) {
+      const before = useApp.getState()
+      const date = today()
+      await AnkerNative.updateWidget({ entries: widgetEntries() })
+      const current = useApp.getState()
+      if (before.settings !== current.settings || before.days !== current.days || before.local !== current.local
+        || before.inbox !== current.inbox || before.events !== current.events || today() !== date) continue
+      return
+    }
+  }, undefined)
+})
+
+/** Direkte und periodische Aufrufe dürfen ältere Widgetdaten nicht zuletzt schreiben. */
+export function updateWidget(): Promise<void> {
+  return reconcileWidget()
 }
 
 /** Zeitleiste fürs Widget: ab jedem Zeitpunkt gilt der jeweilige Eintrag (auch bei geschlossener App). */
-export function widgetEntries() {
+export function widgetEntries(now = Date.now()) {
   const st = useApp.getState()
-  const now = Date.now()
+  const date = activePlanDate(now, todayBerlin)
   const entries: { at: number; action: string; sub: string; hardLabel: string; hardTime: string }[] = []
-  for (const d of [today(), addDays(today(), 1)]) {
-    const plan = planFor(d)
+  for (const d of [date, addDays(date, 1)]) {
+    const plan = planFor(d, st)
     const points = new Set<number>([plan.wake - 30, ...plan.blocks.flatMap((b) => [b.start, b.end]), ...plan.hardTimes.flatMap((h) => [h.at - 20, h.at]), plan.bed + 120])
+    for (const task of st.local.work) if (task.deadline && !task.done) {
+      for (const at of [task.deadline, task.deadline - ((task.estimateMin ?? 30) + 30) * 60_000]) {
+        const m = minutesOnPlanDay(d, at)
+        if (m >= 0 && m <= Math.max(1440, plan.bed + 120)) points.add(m)
+      }
+    }
     for (const m of [...points].sort((a, b) => a - b)) {
       const at = zonedToUtc(d, m)
-      const v = nowView(plan, st.days[d], m)
+      const v = nextAction({ plan, log: st.days[d], m, nowMs: at, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
       entries.push(widgetEntry(at, v))
     }
   }
   // Aktuellen Zustand als ersten Eintrag sichern
-  const d = today()
-  const cur = nowView(planFor(d), st.days[d], minutesOnPlanDay(d, now))
+  const cur = nextAction({ plan: planFor(date, st), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions })
   entries.push(widgetEntry(now, cur))
   return entries.sort((a, b) => a.at - b.at).filter((e) => e.at > now - 36 * 3600_000)
 }
 
 let started = false
+let notificationSetup: Promise<void> = Promise.resolve()
+let replanRequested = false
+
+/** Fehler einer Erweiterung dürfen die übrigen Abgleiche nicht abbrechen. Keine privaten Fehlerdetails loggen. */
+async function attempt(label: string, work: () => Promise<unknown>): Promise<void> {
+  try { await work() } catch { console.warn(`[Anker] ${label} konnte noch nicht aktualisiert werden.`) }
+}
+
+const localEffects = coalesceAsync(async () => {
+  const replan = replanRequested
+  replanRequested = false
+  if (replan) {
+    await notificationSetup
+    if (isNative()) await attempt('Erinnerungsrückmeldung', drainActions)
+    await attempt('Erinnerungsplanung', rescheduleAll)
+    // syncAlarm führt seinen sichtbaren Fehlerstatus selbst, auch für direkte Aufrufer.
+    try { await syncAlarm() } catch {
+      useApp.getState().setAlarmStatus({ ok: false, message: 'Der Wecker konnte nicht geplant werden.' })
+    }
+  }
+  await attempt('Widget', updateWidget)
+})
+
+/** Ein einziger lokaler/native Abgleich, Änderungen währenddessen landen im nächsten Durchlauf. */
+export function reconcileEffects(): Promise<void> {
+  replanRequested = true
+  return localEffects()
+}
 
 /**
  * Verbindet die optionalen Extras mit dem Plan. Jede Funktion ist einzeln abgesichert:
@@ -43,26 +92,29 @@ let started = false
 export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   if (started) return
   started = true
-  const run = async () => {
-    if (isNative()) await drainActions()
-    await rescheduleAll()
-    await syncAlarm()
-    await updateWidget()
-    if (extra.sync) await safe(extra.sync, undefined)
+  // Optionale Dienste dürfen eine neue lokale Weckerplanung nicht auf ihre Netzantwort warten lassen.
+  const optionalEffects = coalesceAsync(async () => {
+    await attempt('Training', () => syncWorkout(today()))
+    await attempt('Fortschritt', () => useApp.getState().evaluateProgress())
+    if (extra.sync) await attempt('Optionale Verbindung', extra.sync)
+  })
+  const request = () => {
+    void reconcileEffects().catch(() => console.warn('[Anker] Lokaler Abgleich wird beim nächsten Anlass erneut versucht.'))
+    void optionalEffects().catch(() => console.warn('[Anker] Optionale Aktualisierung wird beim nächsten Anlass erneut versucht.'))
   }
-  void setupNotifications().then(run)
-  onPlanChange(() => void run())
+  notificationSetup = Promise.resolve().then(setupNotifications).catch(() => {
+    console.warn('[Anker] Erinnerungen konnten noch nicht eingerichtet werden.')
+  })
+  onPlanChange(request)
+  void notificationSetup.then(request)
 
   // Beim Zurückkehren in die App: Training prüfen, alles neu planen
   if (isNative()) {
     void App.addListener('appStateChange', ({ isActive }) => {
       if (!isActive) return
-      void syncWorkout(today())
-      void useApp.getState().evaluateProgress()
-      void run()
-    })
+      request()
+    }).catch(() => { console.warn('[Anker] Rückkehr in die App konnte noch nicht beobachtet werden.') })
   }
-  void syncWorkout(today())
-  // Widget alle 5 Minuten frisch halten, solange die App läuft
-  setInterval(() => void updateWidget(), 5 * 60_000)
+  // Gleiche Queue auch für den Widget-Takt; ohne neue Planänderung ist kein voller Abgleich nötig.
+  setInterval(() => void localEffects().catch(() => console.warn('[Anker] Widget wird beim nächsten Anlass erneut versucht.')), 5 * 60_000)
 }

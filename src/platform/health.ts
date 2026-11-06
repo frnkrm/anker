@@ -29,6 +29,7 @@ export async function syncWorkout(date: DateStr) {
   const st = useApp.getState()
   if (!st.settings.integrations.healthConnect || st.days[date]?.sport) return
   if (!(await healthAvailable())) return
+  if (!useApp.getState().settings.integrations.healthConnect || useApp.getState().days[date]?.sport) return
   const found = await safe(async () => {
     const r = await Health.queryWorkouts({
       startDate: new Date(zonedToUtc(date, 0)).toISOString(),
@@ -37,5 +38,8 @@ export async function syncWorkout(date: DateStr) {
     })
     return r.workouts.some((w) => w.duration >= 8 * 60)
   }, false)
-  if (found) await st.updateDay(date, (l) => ({ ...l, sport: 'health' }))
+  const current = useApp.getState()
+  if (found && current.settings.integrations.healthConnect && !current.days[date]?.sport) {
+    await current.updateDay(date, (l) => l.sport || !useApp.getState().settings.integrations.healthConnect ? l : ({ ...l, sport: 'health' }))
+  }
 }
