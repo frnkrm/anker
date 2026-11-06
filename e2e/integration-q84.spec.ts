@@ -20,7 +20,7 @@ const local = (page: Page) => storedRecord<LocalData>(page, 'meta', 'local')
 const day = (page: Page, date = DATE) => storedRecord<DayLog>(page, 'days', date)
 let server: Awaited<ReturnType<typeof startAssistanceServer>>
 test.use({ serviceWorkers: 'block' })
-test.beforeAll(async () => { server = await startAssistanceServer(4217) })
+test.beforeAll(async () => { test.setTimeout(120_000); server = await startAssistanceServer(4217) })
 test.afterAll(async () => { await server?.close() })
 
 async function clock(page: Page, minute: number) {

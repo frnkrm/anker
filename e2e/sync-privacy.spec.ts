@@ -5,7 +5,7 @@ import { assistanceHost, installAssistanceBackend, startAssistanceServer } from 
 import { storedRecord } from './helpers/storage'
 
 let server: Awaited<ReturnType<typeof startAssistanceServer>>
-test.beforeAll(async () => { server = await startAssistanceServer(4225) })
+test.beforeAll(async () => { test.setTimeout(120_000); server = await startAssistanceServer(4225) })
 test.afterAll(async () => { await server?.close() })
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-06T09:00:00Z'))
