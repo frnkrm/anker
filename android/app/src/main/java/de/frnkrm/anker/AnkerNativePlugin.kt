@@ -274,7 +274,7 @@ class AnkerNativePlugin : Plugin() {
             val rel = call.getArray("relevant") ?: JSONArray()
             val list = (0 until arr.length()).map { ReminderScheduler.entryFromJson(arr.getJSONObject(it)) }
             val revisions = call.getObject("revisions") ?: JSObject()
-            val revisionMap = revisions.keys().asSequence().associateWith { revisions.getString(it) }
+            val revisionMap = revisions.keys().asSequence().associateWith { requireNotNull(revisions.getString(it)) { "revision fehlt" } }
             ReminderScheduler.sync(context, list, (0 until rel.length()).map { rel.getString(it) }.toSet(), revisionMap, call.getObject("policy") ?: JSObject(), call.getObject("ruleSnapshot") ?: JSObject())
             call.resolve()
         } catch (e: Exception) {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
 import { buildReminders } from '../core/reminders/build'
-import { zonedToUtc } from '../core/time'
+import { addDays, zonedToUtc } from '../core/time'
 import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
 import { planFor, useApp } from '../state/store'
@@ -93,5 +93,35 @@ describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen'
     expect(request.reminders.every((e) => typeof e.critical === 'boolean' && e.token && e.revision === request.revisions[`${e.date}|${e.key}`])).toBe(true)
     expect(new Set(request.relevant)).toEqual(new Set(Object.keys(request.revisions)))
     expect(request.policy).toMatchObject({ quietStart: useApp.getState().settings.reminders.quietStart, quietEnd: useApp.getState().settings.reminders.quietEnd })
+    expect(request.ruleSnapshot?.validFrom).toBe(zonedToUtc(addDays(date, 14), 4 * 60))
+    expect(request.ruleSnapshot?.rules.length).toBeGreaterThan(0)
+  })
+
+  it('spiegelt bekannte künftige Ausnahmen datiert und nimmt sie aus der Wochenfortsetzung aus', async () => {
+    const future = addDays(date, 28)
+    await useApp.getState().saveSettings((s) => ({ ...s, onboarded: true }))
+    await useApp.getState().setOverride(future, { dayType: 'vacation' })
+    await rescheduleAll()
+    const request = mocks.sync.mock.calls[0]![0]
+    expect(request.ruleSnapshot?.excludedDates).toContain(future)
+    expect(request.reminders.some((e) => e.date === future && e.key === 'bed')).toBe(true)
+  })
+
+  it('überholt bei schnellen Änderungen keinen laufenden nativen Planabgleich', async () => {
+    await useApp.getState().saveSettings((s) => ({ ...s, onboarded: true }))
+    let entered!: () => void; let release!: () => void
+    const reached = new Promise<void>((resolve) => { entered = resolve })
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    mocks.sync.mockImplementationOnce(async () => { entered(); await gate })
+    const first = rescheduleAll()
+    await reached
+    await useApp.getState().saveSettings((s) => ({ ...s, bed: s.bed + 5 }))
+    expect(rescheduleAll()).toBe(first)
+    expect(mocks.sync).toHaveBeenCalledTimes(1)
+    release(); await first
+    expect(mocks.sync).toHaveBeenCalledTimes(2)
+    const [old, current] = mocks.sync.mock.calls.map(([request]) => request)
+    expect(current!.revisions[`${date}|bed`]).not.toBe(old!.revisions[`${date}|bed`])
+    expect(current!.revisions[`${date}|bed`]).toBe(buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, Date.now()).find((e) => e.key === 'bed')!.revision)
   })
 })

@@ -11,7 +11,7 @@
 
 Private nächste Schritte und Schlafangaben bleiben lokal und werden nicht synchronisiert. Eine bewusst exportierte Datensicherung enthält sie. Geparkte Gedanken bleiben Teil der vorhandenen Inbox und deren optionalem Sync. Neue Hinweise enthalten auf dem Sperrbildschirm keine privaten Texte.
 
-Einzelne Gedanken/Schritte erinnern nur, wenn „Einmal erinnern“ ausdrücklich gewählt wurde. Hinweise bei geschlossener App benötigen die Android-App und Benachrichtigungsfreigabe. Die Web-Version zeigt die gespeicherten Einträge. Die vorhandene Vorausplanung reicht bis zu 14 Tage; danach erinnert Anker ans erneute Öffnen.
+Einzelne Gedanken/Schritte erinnern nur, wenn „Einmal erinnern“ ausdrücklich gewählt wurde. Hinweise bei geschlossener App benötigen die Android-App und Benachrichtigungsfreigabe. Die Web-Version zeigt die gespeicherten Einträge. Der genaue Tagesvorrat umfasst mindestens14 Tage; wichtige gespeicherte Wochenregeln laufen anschließend weiter. Einmalige private Gedanken werden dabei nicht als Wochenregel wiederholt. Neue Tagesänderungen erreichen die native Planung beim erneuten Öffnen.
 
 ## Experimentelles Aktivitäts-Weckfenster
 
@@ -26,6 +26,8 @@ Beispiel: Bei festem Wecker um 06:30 und 45 Minuten Fenster beginnt die Auswertu
 3. Den tatsächlichen Status „Vorbereitet“ prüfen. Android zeigt eine laufende Dienstmeldung; dort und in der App lässt sich die Messung beenden.
 4. Das Handy liegt auf der Matratze und muss deren Bewegungen erfassen können.
 
+**Vorwecker:** Beim erfolgreichen Start einer Messnacht pausiert er für genau diesen Haupttermin, damit sein Ton und seine Vibration nicht als Aktivität eingehen. Das wird vor dem Start und im Status angezeigt. Die Pause bleibt auch nach Messungsende oder Neustart bestehen; der feste Hauptwecker bleibt gestellt. Ein abgelehnter Messstart entfernt keinen Vorwecker. Bei einer neuen Weckzeit oder der nächsten Nacht ohne Messung gilt wieder deine gespeicherte Vorwecker-Einstellung.
+
 Vor dem Fenster werden keine Sensorwerte ausgewertet. Im Fenster werden Beschleunigung und Mikrofonlautstärke kombiniert. Kurze Audiopuffer und Aktivitätsaggregate liegen nur im RAM; es werden keine Tondateien gespeichert oder Daten versendet. Die Auswertung hat eine kurze Einlaufzeit und benötigt mehrere Aktivitätshinweise.
 
 Das ist **keine Erkennung von Schlafstadien oder tatsächlicher Wachheit**. Umdrehen, Schnarchen, Partner oder andere Geräusche können Signale beeinflussen. Die Heuristik wurde mit künstlichen Signalen getestet; ihre Eignung auf der konkreten Matratze ist noch nicht am Gerät bestätigt.
@@ -39,4 +41,4 @@ Das ist **keine Erkennung von Schlafstadien oder tatsächlicher Wachheit**. Umdr
 - Ohne Bestätigung bleiben feste Weckzeit, Timeout- und Neustart-Abgleich erhalten. Frühes Schlummern gibt keinen zusätzlichen zweiten Schlummerdurchgang am festen Zeitpunkt frei.
 - Eine Änderung am Weckplan beendet eine laufende Messsitzung; für die neue Zeit muss sie erneut gestartet werden.
 
-Bis die offenen Gerätetests bestanden sind, ist das Weckfenster eine zusätzliche, experimentelle Option. Es wurde kein App-Release veröffentlicht.
+Bis die offenen Gerätetests bestanden sind, ist das Weckfenster eine zusätzliche, experimentelle Option.

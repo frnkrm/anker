@@ -59,8 +59,25 @@ export async function openExactAlarmSettings() {
   if (isNative()) await safe(() => AnkerNative.openExactAlarmSettings(), undefined)
 }
 
-/** Übergibt die Erinnerungen der nächsten zwei Wochen an den nativen Teil. */
-export async function rescheduleAll() {
+let activeSchedule: Promise<void> | undefined
+let scheduleAgain = false
+
+/** Serialize native snapshots; rapid edits must leave the newest plan last. */
+export function rescheduleAll(): Promise<void> {
+  if (!isNative()) return Promise.resolve()
+  scheduleAgain = true
+  if (activeSchedule) return activeSchedule
+  const task = (async () => {
+    do { scheduleAgain = false; await scheduleSnapshot() } while (scheduleAgain)
+    // Clear before resolving, so a change in the next microtask starts a fresh pass.
+    activeSchedule = undefined
+  })().finally(() => { if (activeSchedule === task) activeSchedule = undefined })
+  activeSchedule = task
+  return task
+}
+
+/** Dated plans and critical weekly continuation share the existing native queue. */
+async function scheduleSnapshot() {
   if (!isNative()) return
   await safe(async () => {
     const st = useApp.getState()

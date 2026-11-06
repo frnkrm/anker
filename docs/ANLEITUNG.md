@@ -146,7 +146,7 @@ Wichtige Erinnerungen haben die Knöpfe **Erledigt**, **5 Min später** (höchst
 
 **Höchstens drei** Anker-Meldungen stehen gleichzeitig in der Leiste: eine zur laufenden Aufgabe, eine zur nächsten festen Zeit, eine für den Rest. Eine Kleinigkeit verdrängt nie einen festen Termin. Klingelt der Wecker, bleibt der dritte Platz frei. Erledigtes verschwindet von selbst, nach 90 Minuten auch Unbeantwortetes.
 
-Anker plant **zwei Wochen voraus**, auch wenn du die App nicht öffnest. Kurz vor Ende kommt ein einzelner Hinweis, die App einmal zu öffnen. War das Handy lange aus, kommen keine alten Meldungen nach.
+Anker plant **mindestens zwei Wochen genau voraus** und berücksichtigt weitere bekannte Sondertage als datierte Pläne. Danach führen gespeicherte wichtige Wochenregeln deine Basiszeiten fort: zum Beispiel Abfahrt, Startgrenze, PC-Stopp oder Bett. Neue spontane Änderungen kennt Android erst nach erneutem Öffnen. Ein einzelner Hinweis erinnert daran; alte Meldungen werden nach langer Unterbrechung nicht nachgeholt.
 
 ## Der Wecker
 
@@ -192,7 +192,7 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | **Wochenrückblick** | 3 Fragen, die Änderung landet als Vorschlag in den Einstellungen |
 | **Belohnungen** | Eigene Belohnungen gegen XP einlösen |
 | **Widget** | Nächste Aktion, nächste feste Zeit, Knopf für Gedanken |
-| **Druckansicht** | Morgen, Abend, beide, QR-Code oder Haustür, A5 oder A4, auf Android auch „Als PDF speichern“ im Systemdialog |
+| **Druckansicht** | Morgen, Abend, beide, QR-Code oder Haustür, A5 oder A4; auf Android zusätzlich eine eigene PDF-Datei ohne Druckdienst |
 | **Abend & Schlaf** | Schlaf & Anker, Abendpläne, Abendroutine und der freiwillige Abendmodus-Vorschlag sind in den Einstellungen zusammengefasst. |
 | **Alltagshilfen** | Fokus-Puls, Ankommen nach der Arbeit, Spiel ausblenden (alles in den Einstellungen) |
 | **Kalender** | Google-Termine im Tagesplan, Routinen in eigenen Kalender schreiben, `.ics`-Export |
@@ -273,7 +273,7 @@ Das experimentelle **Aktivitäts-Weckfenster** findest du unter **Wecker & QR-Co
 
 ## Gemeinsam testen
 
-**Mehr → Gemeinsam testen**, alternativ über **Einrichtungs-Check** oder **Wecker gemeinsam testen**. Alle63 Punkte stammen aus derselben gepflegten Geräteprüfliste; historische Ergebniszellen werden nicht in die App übernommen.
+**Mehr → Gemeinsam testen**, alternativ über **Einrichtungs-Check** oder **Wecker gemeinsam testen**. Alle74 Punkte stammen aus derselben gepflegten Geräteprüfliste; historische Ergebniszellen werden nicht in die App übernommen. **Erinnerungen & Druck prüfen** führt direkt zu den neuen E02-Versuchen66–74.
 
 1. Wähle einen Bereich oder starte mit **Erster Weckertest**. Es ist immer ein Versuch mit Vorgehen und Erwartung sichtbar.
 2. Die Knöpfe öffnen direkt die passende App-Einstellung. Das Banner **Zurück zu Test…** bringt dich wieder zurück. Notiz, Gerät und Systemversion bleiben beim Verlassen des Feldes als lokaler Entwurf erhalten.
@@ -288,3 +288,13 @@ Die Testseite ändert selbst keine Alltags-Häkchen, XP oder Weckregeln. Benöti
 Tippe die Uhrzeit zwischen Minus und Plus an und gib zum Beispiel **20:00** direkt ein oder nutze die Uhrzeitauswahl deines Handys. Das gilt auch in der Ersteinrichtung. PC-Stopp und Bett um **00:30** gehören weiterhin zur folgenden Nacht. Manuell eingegebene Ankerzeiten bleiben beim späteren Neuberechnen geschützt.
 
 Dauern lassen sich ebenfalls direkt als Zahl eingeben, etwa **45min** Fahrzeit oder **7,5h** Schlafbedarf. Verlasse das Feld oder bestätige mit Enter, um zu übernehmen. Ein leeres Feld setzt den gespeicherten Wert nicht auf0; vorhandene Mindest-/Höchstwerte gelten weiter. Plus und Minus bleiben für kleine Änderungen erhalten.
+
+## Erinnerungen und Papier ab E02
+
+Unter **Mehr → Einstellungen → Erinnerungen** wählst du Ruhezeiten und Wiederholungen. Jede einzelne Stufe respektiert die aktuelle Ruhe-/Freizeitregel; während eines laufenden Schritt-Timers im Fokus bleiben gewöhnliche Hinweise still. Ausdrücklich wichtige Anker bleiben nach ihrer Regel erhalten. Der native Vorrat und die gespeicherten Wochenregeln sind unter **Wecker & QR-Code → So steht dein Wecker** ablesbar. Ihre Anzeige ist kein Zustellnachweis.
+
+Alte Buttons nach Verschieben oder Erledigen ändern keinen neueren Eintrag. Eine aktuelle Rückmeldung wird mit der Aufgabe dauerhaft gespeichert und anschließend bestätigt; ein Speicherfehler führt zu einem späteren Versuch. **Heute nicht** erzeugt keinen Erledigt-Haken. Erforderliche Alarm-/Messanzeigen bleiben erhalten; gewöhnliche Anker-Karten werden nach Wichtigkeit reduziert.
+
+**Mehr → Druckansicht** zeigt die Auswahl vor dem Druck. Aus beiden Fokus-Routinen führt **Drucken** zur passenden Routine; beim Wecker ist der QR-Weg vorhanden. **Drucken oder als PDF speichern** öffnet den Systemdialog. Auf Android bietet **PDF-Datei erstellen und teilen** zusätzlich eine eigene Datei, auch ohne eingerichteten Druckdienst. Im Teilen-Menü wählst du selbst Speichern oder Öffnen. Ein Abbruch bestätigt weder Versand noch Ausdruck. Lange Routinen dürfen mehrere Seiten nutzen; den unveränderten QR-Code bitte einmal auf echtem Papier prüfen.
+
+Beim bewusst gestarteten Aktivitäts-Weckfenster pausiert der Vorwecker für den zugehörigen Haupttermin. Die Pause bleibt auch nach Messungsende/Unterbrechung bestehen. Der feste Hauptwecker bleibt aktiv; neue Termine ohne Messung nutzen wieder deine gespeicherte Vorwecker-Einstellung. Die App informiert vor dem Start und im Status.

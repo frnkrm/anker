@@ -5,8 +5,12 @@
 - Öffnungslinks aus Widget/Benachrichtigung sperren die Navigation nicht mehr durch erneutes Öffnen nach jedem Seitenwechsel. Neue Links und klingelnde Wecker bleiben erreichbar.
 - Eine bewusst gestartete Aktivitäts-Messnacht pausiert ihren Vorwecker. Hinweis vor dem Start sowie im Mess- und Weckerstatus; Hauptwecker und gespeicherte Vorwecker-Einstellung bleiben erhalten. Die Pause gilt auch nach Messungsende bis zu diesem Haupttermin, neue Termine verwenden wieder die Einstellung.
 - Geführte Gerätefälle64/65 ergänzen Navigation und Vorweckerpause. Neue Ergebnisse bleiben bis zum eigenen Test offen.
+- **E02 Erinnerungen:** aktuelle Revision/Zustellung prüfen, Wirkung und Receipt atomar speichern, erst dann bestätigen. Schnelle Planänderungen werden nacheinander abgeglichen; alte Buttons und doppelte Rückmeldungen erzeugen keine neue Erledigung. Jede Wiederholung und jedes Snooze respektiert die Ruhe-/Freizeit-/Fokuspolitik.
+- **E02 Mehrtag:** vollständiger Tagesvorrat bis zum Plantagwechsel, zusätzliche bekannte Sondertage datiert, danach wichtige gespeicherte Wochenregeln ohne Nachholsturm. Erforderliche Alarm-/Messanzeigen reservieren vor dem Posten Platz im gemeinsamen Meldungsbudget.
+- **E02 Papier:** direkte Routinen-Druckwege, dedizierter Android-Druckinhalt und eigenständige PDF-Datei ohne Druckdienst. Lange Routinen dürfen mehrere Seiten nutzen, QR mit vier Modulen Rand; Dialog-/Share-Abbruch ist kein Druckerfolg.
+- **E02 Prüfweg:**74 geführte Fälle mit direktem Einstieg **Erinnerungen & Druck prüfen**. Keine automatischen Geräte-Häkchen.
 
-Automatische Nachweise im Testprotokoll; diese Korrekturen sind noch nicht am Handy geprüft. E02 wird anschließend im selben Update ergänzt.
+Automatische Nachweise im Testprotokoll; diese Korrekturen und E02 sind noch nicht am Handy geprüft. Keine neue Abhängigkeit; bestehende Daten werden kompatibel erweitert.
 
 ## Unveröffentlicht: E00-Audit und erste E01-Verbesserungen
 

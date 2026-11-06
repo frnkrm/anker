@@ -266,7 +266,7 @@ export function reopenHint(horizonEnd: number, date: string): ReminderSpec {
     at: horizonEnd,
     channel: 'sanft',
     title: 'Anker einmal kurz öffnen',
-    body: 'Dann laufen deine Erinnerungen weiter. Sonst ist nichts zu tun.',
+    body: 'Deine wichtigen Basiszeiten laufen weiter. Öffne Anker für neue Tagesänderungen.',
     escalation: 0,
     actions: false,
     exact: false,

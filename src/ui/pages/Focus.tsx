@@ -6,6 +6,7 @@ import { inQuietHours, MODE_LABEL, pulseDue, remainingSec } from '../../core/sup
 import { fmtTime } from '../../core/time'
 import type { FocusPulseMode, RoutineId } from '../../core/types'
 import { AnkerNative, safe } from '../../platform/native'
+import { mirrorReminderFocus } from '../../platform/notifications'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { InboxButton } from '../components/Shell'
@@ -55,6 +56,11 @@ export default function Focus() {
   const cur = minimalMode && step?.minimal ? step.minimal : step
   const minutes = cur ? (step?.useMinimal && step.minimal ? step.minimal.minutes : cur.minutes) : 0
   const totalSec = minutes * 60
+  const focusUntil = step && totalSec > 0 ? startAt + totalSec * 1000 : 0
+  useEffect(() => {
+    mirrorReminderFocus(focusUntil)
+    return () => mirrorReminderFocus(0)
+  }, [focusUntil])
   const leftSec = remainingSec(startAt, totalSec, now)
 
   // Fokus-Puls: nur auf dieser geöffneten Seite. Standardmäßig aus, dann passiert hier gar nichts.

@@ -99,8 +99,8 @@ Status: **V** vorhanden und im genannten automatischen Umfang geprüft · **U** 
 |---|---|
 | E00 Audit/Baseline/Delta | abgeschlossen; Nachweise oben und im Testprotokoll |
 | E01 Wecker | sichere Delta-Umsetzung implementiert;340 Vitest-/29 Browser-/50 JUnit-Tests bestanden, Lint/Typecheck/Build bestanden. Details im Etappenergebnis und Testprotokoll. Geräte-Gate offen; keine neue Android-API-/Berechtigungsstrategie |
-| E02 Erinnerungen/Druck | nächste unabhängige sichere Etappe: alte Actions/Relevanz, Mehrtag und Druckgrenzen; Geräteprüfung weiter offen |
-| E03 Zustände/Tasks/Recovery | danach: vorhandene Modelle erweitern, Effekte sequenzieren, langer Wiedereinstieg |
+| E02 Erinnerungen/Druck | implementiert; aktuelle Nachweise und Hardwaregrenzen im E02-Ergebnis unten. NO-01–05/PR-01–03 im vorhandenen Modell integriert,74 geführte Gerätefälle insgesamt |
+| E03 Zustände/Tasks/Recovery | nächste Code-Etappe: vorhandene Modelle erweitern, übrige Effekte sequenzieren, langer Wiedereinstieg; Reminder-Transaktionen und Snapshot-Abgleich sind bereits in E02 abgesichert |
 | E04 Flexible Planung/Spiel | danach: Nichtnutzung ohne Kapitelverlust, freie Verlängerung/PC-Zustand; Fortschritt bewahren |
 | E05 Arbeit | danach: Intervallkonflikte/Restprognose, Wochenprofil |
 | E06 lokale Wege/Schlaf | danach: unklare Orte/Bedarf/Material, keine erfundenen Daten |
@@ -185,6 +185,25 @@ Zusätzliche Nutzerentscheidung: Während einer bewusst gestarteten Messnacht de
 **Nachweise:** alter Code scheitert am echten Browser-Navigationsablauf; neuer Stand besteht340 Vitest-,33 Browser- und54 Kotlin-Tests, Lint/Typecheck/Produktionsbuild sowie vollständigen unsignierten Release-APK-Build. Browser simuliert native API-Werte, kein Android-Sensor-/Dienstnachweis. Neue G64/65 offen. Appversion für das nächste Update:1.2.0-rc.2, Code4; noch kein neues Paket ausgeliefert. Logs: `/workspace/.cache/anker/navigation-fix/`.
 
 **E02 jetzt ausdrücklich vollständig beauftragt:** NO-01–05 und PR-01–03 im vorhandenen Modell vervollständigen; Testseite ergänzen, geprüften Stand in main pushen und automatischen PowerShell-Updateweg liefern. Erneuter Appstart über das Symbol ist nur der vom Nutzer bestätigte Zwischenweg, kein Ersatz für den Navigationsfix. E02-Prüfung erfolgt parallel ausschließlich lesend bzw. in getrennten Arbeitsbäumen; keine konkurrierenden Schreibzugriffe auf denselben Baum.
+
+## E02 – integriertes Ergebnis (06.11.2026)
+
+Ausdrücklicher Auftrag für die gesamte Etappe, main-Push und neues lokales Updatepaket. Basis nach E01-Nachbesserung: `8b08fd7`. Teilaufgaben wurden in getrennten Worktrees umgesetzt und im Hauptbaum integriert; keine zwei schreibenden Agenten im selben Baum. Bestehende Planer, Tasks, Routinen, QR-Werte und Daten bleiben maßgeblich. Keine neuen Abhängigkeiten, Provider oder Gebühren.
+
+| Anforderungen | Umsetzung im vorhandenen Weg | Automatischer Nachweis / Gerätefall |
+|---|---|---|
+| NO-01, Q13/14: Relevanz/Lebensdauer/Priorität | `reminders/build` und `ReminderLogic`: generische Texte, aktuelle logische Revision, getrennte Queue/Slots, Ablauf-/Stale-Pruning; höhere Wichtigkeit bleibt | Policy-/Modelltests; G21/66/68 offen |
+| NO-02, Q16/17: alte und doppelte Aktionen | getrennter Zustellungstoken, Tokenhash in PendingIntent-Identität; Slot/Revision/Quelle vor Wirkung prüfen; native Slots/Queue/Aktion gemeinsam committen. Ausgang lesen, nach atomarem Store-`putMany` per ID ACK. Receipts bewahren echte Zeiten/XP, fehlgeschlagene Transaktion bleibt ohne RAM-Erfolg erneut versuchbar | Schreibfehler/Retry, paralleler Drain/UI-Eingabe, alte Revision, Doppeltap, ACK-Reihenfolge, Dexie-Rollback; G66/67 offen |
+| NO-03, Q15: gemeinsames Budget | Alarm und Mikrofon-Dienst reservieren Platz; normale Karten nach Rang auf3 minus geschützte Anzeigen reduzieren. Reservierung vor Foreground-Post; Pflichtanzeigen nie löschen, fremde Apps unberührt | Modelltest0–3 Reservierungen, Lifecycle-Review und SDK-Kompilierung; physisches Budget G70 offen |
+| NO-04, Q18: Mehrtag ohne Nachholsturm | mindestens14 vollständige Plantage bis04:00, weitere bekannte Sondertage datiert; neutrale Wochenregeln aus kanonischem `buildDayPlan` als Snapshot. Kotlin rechnet nur nächste Berliner Vorkommnisse, genau ein zukünftiger Eintrag je Regel. Highwater/Tokenledger gegen Rückstau/Zeitrückstellung. Regelzahl/Gültigkeit ehrlich in Diagnose |7 TS-Regeltests,9 Kotlin-Regeltests, zukünftige Ausnahmen/Nacht/DST; G24/25/71 offen |
+| NO-05, Q19: Ruhe/Freizeit/Fokus | zentrale Policy pro tatsächlicher Stufe, Snooze erneut geprüft. Wichtige Anker behalten ihre Ausnahme, gewöhnliche Hinweise respektieren Fokus-Timerende, Freizeit/Fahrt und Modus. Fokusspiegel endet beim Seitenaustritt, keine fingierte Erledigung | Policytests, Native-`allowed`, Browser-Fokusspiegel; G68/69 offen |
+| PR-01, Q20: tatsächlich erreichbare Auswahl | bestehende `PrintSheet` für Morgen/Abend/beide/QR/Haustür, direkte Fokus-/Weckerlinks; Test-Rückweg außerhalb des Druckinhalts | Auswahl-/Persistenz-/Navigationsfälle; G74 offen |
+| PR-02, Q22: Dialog und unabhängige PDF | Fonts/Bilder/QR-Bereitschaft statt150ms; dedizierter lokaler Android-Druck-WebView, eigener `PdfDocument` ohne Druckdienst, bestehender Share-Weg. Haupt-WebView erhalten. Fehler/Abbruch melden keinen Ausdruck/Versand | Native-API-/SDK-Build, Browser-Brückensimulation/Fallback; G73 offen |
+| PR-03, Q21: Papierqualität | A5/A4, skalierte Schrift, Checkboxen, einzelne Schritte paginiert, lange Einzeltexte und gleiche Titel erhalten; QR unverändert mit4 Modulen Ruhezone | reine Kotlin-Paginierung, Browser-PDF90 Schritte bei160%: A5 21/A4 9Seiten, alle Texte und kein Overlay; Papier-Scan G72/74 offen |
+
+Der native Snapshot-Abgleich wird serialisiert und fasst schnelle Änderungen zusammen, damit ein älterer Plan keinen neueren überschreibt. Zusätzliche transaktionale Repository-Methode ist die kleinste Integration für Wirkung/Receipt/XP, kein zweites Datenmodell. Die übrige globale Effekt-Sequenzierung bleibt E03.
+
+**Statusgrenzen:** implementiert und im dokumentierten automatischen Umfang geprüft. Android-SQLite-Transaktion, Receiver/PendingIntent-Zustellung, sichtbare Anzahl, Mikrofonstart, nativer Druck/PDF und Papier-QR bleiben auf dem Galaxy offen. Offizielle Android-Dokumentationsseiten waren durch die Netzrichtlinie gesperrt; keine aktuelle Webprüfung behauptet, vorhandene SDK36-APIs und tatsächliche Kompilierung genutzt. Neue Regeln kennen Änderungen erst nach erneutem App-Abgleich; keine unbekannten Termine, Live-Anpassungen oder Schlafphasen erfinden. Nächste Entwicklungsetappe E03.
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 

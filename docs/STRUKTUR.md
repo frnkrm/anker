@@ -61,6 +61,8 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `sleep.ts` | Späteste Weckzeit, Schlafhinweis, Weckvorschlag |
 | `weather.ts` | Wetterhinweis für die Zeit draußen |
 | `print.ts` | Was auf welchem Druckblatt steht |
+| `reminders/build.ts`, `actions.ts` | Gemeinsame Ereignis-/Ruhepolitik, logische Revision, Zustellungstoken und Aktionsprüfung |
+| `reminders/rules.ts`, `dates.ts` | Wochenregeln aus dem bestehenden Planer sowie bekannte datierte Ausnahmen |
 | `planner/plan.ts` | `buildDayPlan()`: die Zeitleiste eines Tages |
 | `planner/fit.ts` | Routinen ins Zeitfenster einpassen, Minimal-Versionen wählen |
 | `game/themes.ts` | Die fünf Themen mit Level-Namen und Abzeichen |
@@ -198,6 +200,14 @@ node scripts/gradle.mjs :app:testDebugUnitTest
 - **JUnit** deckt die reine Kotlin-Logik ab: Alarmarten, Folgetag, Schlummern, Zeitumstellung, Slots, Warteschlange.
 - **Playwright** prüft die wichtigsten Wege der Web-Version, auch die Druckansicht.
 - **Nicht automatisch getestet:** alles, was Android tatsächlich tut (PendingIntents, Klingeln, Vollbild, Benachrichtigungen, Druckdialog), SQLite auf Android, Supabase und Google. Der Android-Build zeigt nur, dass der Code kompiliert. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
+
+## E02: Zustellung, Persistenz und Druck
+
+`ReminderScheduler` hält weiterhin allein native Warteschlange und sichtbare Slots. `ReminderRules` berechnet ausschließlich den nächsten Berliner Zeitpunkt bereits vom TS-Planer erzeugter Wochenregeln. Datiert geplante Ausnahmen und wiederkehrende Basisregeln teilen dieselbe Queue; Highwater und konsumierte Tokens verhindern Rückstau und erneutes Erzeugen alter Vorkommnisse. Erforderliche Alarm-/Messanzeigen reduzieren das gemeinsame normale Slotbudget. `Focus` spiegelt nur das befristete Schritt-Timerende; Seitenaustritt räumt diesen Spiegel auf.
+
+Eine Aktion trägt Revision und Zustellungstoken in Slot/Intent/Aktionsqueue. Der native Ausgang wird gelesen und nach Erfolg per ID bestätigt. Store-`applyReminderAction` schreibt Wirkung, Receipt und ggf. Spielstand mit Repository-`putMany` atomar; Memory/Dexie und SQLite-`executeSet(..., true)` verwenden die vorhandenen Speicher. Der native Snapshot-Abgleich ist serialisiert und fasst schnelle Änderungen zusammen; es entsteht kein zweiter Planer.
+
+`PrintSheet` bleibt die gemeinsame Datenquelle. `PrintModel` prüft/paginiert, `PrintRenderer` erzeugt dedizierten lokalen Druck-WebView oder Android-`PdfDocument`. `platform/print.ts` wartet auf Ressourcen; `shareLocalFile` öffnet den vorhandenen Share-Weg. Keine neue Abhängigkeit, Online-Schrift oder Übertragung im Renderer. Native echte Ausgabe bleibt ein Gerätetest.
 
 ## Gleitzeit
 

@@ -177,6 +177,8 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 **Weckerprüfung:** Native Folgetage und Wiederherstellung sind implementiert; frühere Geräteberichte bestätigen nur die jeweils genannten Builds und Teilfälle. Neue Weckerkorrekturen und das Aktivitäts-Weckfenster bleiben geräteoffen. **Mehr → Gemeinsam testen** führt mit direkten Einstellungswegen durch [die Geräteprüfung](docs/GERAETETEST.md). Lass dabei einen unabhängigen Wecker gestellt. **Drucken:** Auf Android öffnet *Drucken oder als PDF speichern* den Systemdialog, im Browser `window.print()`.
 
+**E02:** Veraltete Erinnerungsbuttons werden nach Revision und Zustellung geprüft; Wirkung/Receipt/XP werden atomar gespeichert und erst danach quittiert. Ruhe-/Freizeit-/Fokuspolitik gilt pro Stufe und beim Snooze, wichtige gespeicherte Wochenregeln setzen den datierten Vorrat fort. Auf Android erzeugt **PDF-Datei erstellen und teilen** eine unabhängige Datei ohne Druckdienst. **Gemeinsam testen → Erinnerungen & Druck prüfen** enthält die neuen Gerätefälle; der Gesamtkatalog umfasst74 offene bzw. bewusst berichtete Versuche. Neue Android-Laufzeit- und Papiernachweise stehen weiterhin aus.
+
 ### 9. PC-Stopp (Windows)
 
 1. In der App: **Mehr → PC-Stopp → Paket für Windows herunterladen** (am besten in der Web-Version direkt auf dem PC).

@@ -145,3 +145,25 @@ Nutzer bestätigt: Rücksprungschleife nur nach Einstieg per Benachrichtigung/Wi
 - Aktueller Katalog:65 Fälle, G64/65 am Handy offen. Die vom Nutzer zuvor bestätigte Installation/Datenübernahme gilt für den vorherigen Build, nicht als Freigabe dieser Korrekturen.
 
 Logs unter `/workspace/.cache/anker/navigation-fix/`. Ein erster Browserversuch nach dem Edit nutzte wegen `reuseExistingServer` den alten Build; separat als `stale-build-attempt.log`, nicht als Prüfung des korrigierten Standes gezählt. Nach explizitem Neubau vollständiger Erfolg. Der erste native Aufruf fand den optionalen Node-Starter in der isolierten Kopie nicht; anschließend direkt über deren Gradle-Wrapper vollständig erfolgreich. Neues Updatepaket wird nach E02 gebaut und ausgeliefert.
+
+## E02 – integrierter Abschlussstand, 06.11.2026
+
+Anforderungen NO-01–05/PR-01–03 und Q13–22 sind im [E02-Etappenergebnis](ANKER_IMPLEMENTIERUNGSPLAN.md#e02--integriertes-ergebnis-06112026) mit Implementierung und offenen Gerätefällen verknüpft. Isolierte Teil-Worktrees wurden integriert; keine konkurrierenden Schreibzugriffe auf denselben Baum. Keine neuen Abhängigkeiten oder produktiven Datenbanken im Test.
+
+| Ausführung | Tatsächliches Ergebnis | Grenze / Nachweis |
+|---|---|---|
+| Lint/Typecheck/Produktionsbuild | bestanden | `e02-final/lint.log`, `build.log`, finaler Copy-Abgleich `build-copy-final.log` |
+| Vollständiges Vitest |376 Tests/28 Dateien,0 Fehler | `vitest.log` und erneut `vitest-copy-final.log`; vorher340,36 zusätzliche Fälle |
+| Vollständiges Playwright |39 Tests,0 Fehler | `e2e.log`, `e2e-results.json`; gegenüber E01 zusätzlich native Einstiege, Fokus, E02-Testführung und4 Druckfälle |
+| Gradle `:app:testDebugUnitTest --rerun :app:assembleRelease` |73 Tests/0 Fehler/0 übersprungen, APK-Build erfolgreich, Release-Lint aktiv |72 Fachtests+1 Vorlagentest; `android.log`, XML. Kein Framework-/Gerätelauf |
+| Native Quelldateien und Webassets im APK |20 eigene Kotlin-Quell-/Testdateien bytegleich zur Buildkopie; alle aktuellen Webassets bytegleich im APK | `apk-verification.json`; abschließende Änderungen betreffen Webinhalt, native DEX und ARM64-Bibliotheken bytegleich zum zuvor geprüften Build |
+| Lange Browser-PDFs |90 Schritte vollständig,160% Schrift, A5 21/A4 9Seiten, keine Overlaytexte | Nachweise/PDFs unter `e02-print/`; QR-Scan auf Papier und Android-PDF-Renderer damit nicht bewiesen |
+| Neuer Signierpaket-Smoketest |2 echte kryptografische Fälle: Signatur ohne Runtime-SDK erfolgreich, beschädigte APK abgelehnt | kurzlebiger eigener Testschlüssel, bytegleich und entfernt; unabhängiges SDK-apksigner/zipalign als Testorakel; `signing-smoke-results.json` |
+
+Alle Pfade sind unter `/workspace/.cache/anker/`. Die neuen Tests schützen insbesondere aktuelle Slot-/Token-/Revisionsprüfung, ACK nach Transaktion, fehlgeschlagene Speicherung/Retry und gleichzeitige UI-Eingabe, alte Erledigungszeiten, Doppeltap, native Highwater/DST/Nachtzuordnung, zukünftige datierte Ausnahmen, neueste Planung nach schnellen Änderungen, Ressourcenbereitschaft und Druck-/Share-Abbruch. Memory/Dexie-Transaktionen sind automatisch ausgeführt; Android-SQLite bleibt Geräteprüfung.
+
+**Zwischenfehler getrennt:** Native Gesamtkopplung fand einen Nullable-Typfehler bei der Revisionsmap; mit expliziter Nullprüfung korrigiert und anschließend vollständig kompiliert/getestet. Log `android-nullable-revision-failed.log`. Ein Signierlauf im eingeschränkten Prozesssandbox meldete bei Node-Kindprozessen EPERM; der freigegebene normale Testlauf besteht. Keine Schutzprüfung dafür entfernt. Der letzte Hinweistext stellt klar, dass Basiszeiten nach dem Tagesvorrat weiterlaufen; danach Vitest/Build/APK erneut erfolgreich, keine Web-Verhaltensregel geändert.
+
+**Updateartefakt:** `Anker-Update-E02.zip`,21972987Bytes, SHA256 `5e754fa1de871ad8077a2925dd36e46b1cf3623f86e786420069afeec6cf22b5`.10 Dateien einschließlich Bibliothekslizenz und eigener Java-Quelle, jeder Inhalt und ZIP-CRC erneut geprüft, keine privaten Schlüssel. Unsig­niertes APK SHA256 `edc4df197487cea724dc227817bf0022b92b0accbb85e5728ea7da47761321ae`, Paket `de.frnkrm.anker`, Version1.2.0-rc.2, Code4, Quellkennung `13c644b5d80c957367194c390b0c1d1faca12f177be049f498a3f6afed6cbbdf`. APK erwartungsgemäß unsigniert; ZIP-/ELF16-KB-Ausrichtung geprüft. Signierhilfe2 samt Werkzeughashes unverändert.
+
+**Am aktuellen Handy offen:** G64–74 sowie die übrigen neuen Zustell-, Mikrofon-, SQLite-, Boot-, Druck-/PDF-/Papierfälle. Frühere Nutzerberichte gelten unverändert für ihre früheren Builds. SDK-/Modell-/Browsererfolg bestätigt keine zukünftige Hörbarkeit oder Schlafphase. Offizielle Android-Webdokumentation blieb netzseitig gesperrt; SDK36-API-/Kompiliernachweise sind davon getrennt. Neue Windows-Ausführung und echte Installation dieses E02-Pakets werden erst nach Nutzerbericht bestätigt.

@@ -79,6 +79,9 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Niemals: Einnahme aus Wecker-Ereignissen ableiten, Wirkung anzeigen, Lautstärke oder „Nicht stören“ von selbst ändern, Hardwaretasten blockieren.
 - Erinnerungen stellt `ReminderScheduler` zu, nicht das Capacitor-Plugin (das nur noch für Berechtigungen). Höchstens drei sichtbare Slots, der laufende Alarm wird nie weggeräumt.
 - Arbeit und Einnahmeprotokoll liegen in `LocalData` (`meta/local`), ausgenommen vom Sync. Texte auf dem Sperrbildschirm allgemein halten.
+- Erinnerungsaktionen brauchen aktuellen Slot, logische Revision und Zustellungstoken; PendingIntent-Extras allein schaffen keine Identität. Native Queue lesen, erst nach atomarer Store-Persistenz per ID bestätigen. Receipts und Wirkung gemeinsam über Repository-`putMany` speichern.
+- Wochenhinweise werden aus dem vorhandenen TS-Planer als neutrale Basisregeln gespiegelt; Kotlin rechnet nur nächste Berliner Vorkommnisse. Datiertes/Snooze/Sichtbares trennen, bekannte Ausnahmen erhalten, keine versäumten Wochen nachholen. Erforderliche Anzeigen reservieren Budget vor dem Posten.
+- Druck nutzt gemeinsame `PrintSheet`-Daten, dedizierten Druck-WebView oder eigenen Android-PDF-Renderer. Haupt-WebView nicht zerstören; Öffnen/Teilen ist keine Druckbestätigung. Keine neue QR-Erzeugung beim Druck.
 - Status ehrlich führen: „am Gerät verifiziert“ nur nach echtem Handy-Test (`docs/GERAETETEST.md`).
 
 ## Flexible Planung (Regeln, Details in docs/FLEXIBLE_PLANUNG.md)
