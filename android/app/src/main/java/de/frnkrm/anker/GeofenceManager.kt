@@ -48,8 +48,10 @@ object GeofenceManager {
         val error: String? = null,
     )
 
-    private fun credential(context: Context): Context = if (context.isDeviceProtectedStorage) context.createCredentialProtectedStorageContext() else context
-    private fun unlocked(context: Context): Boolean = context.getSystemService(UserManager::class.java)?.isUserUnlocked == true
+    // Android bietet keinen createCredentialProtectedStorageContext-Gegenpart. Die normale
+    // Application ist credential-protected; einen anders konfigurierten Kontext ablehnen.
+    private fun credential(context: Context): Context = context.applicationContext
+    private fun unlocked(context: Context): Boolean = !credential(context).isDeviceProtectedStorage && context.getSystemService(UserManager::class.java)?.isUserUnlocked == true
     private fun prefs(context: Context): SharedPreferences = credential(context).getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private fun fine(context: Context): Boolean = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     private fun background(context: Context): Boolean = fine(context) && (Build.VERSION.SDK_INT < 29 || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)
