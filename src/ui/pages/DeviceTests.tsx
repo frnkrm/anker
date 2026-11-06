@@ -14,12 +14,39 @@ import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85])
+
+const E03_LINKS: Record<number, { label: string; to: string }[]> = {
+  76: [{ label: 'Aufgabe zum Fokus wählen', to: '/arbeit' }, { label: 'Gedanken und Entwurf öffnen', to: '/inbox' }],
+  77: [{ label: 'Gedanken bewusst einplanen', to: '/inbox' }, { label: 'Aufgabe im Tagesplan prüfen', to: '/tag' }, { label: 'Jetzt-Empfehlung prüfen', to: '/' }],
+  78: [{ label: 'Arbeitsaufgabe und Schritte öffnen', to: '/arbeit' }, { label: 'Private Aufgaben und Schritte öffnen', to: '/inbox' }],
+  79: [{ label: 'Aufgabe für Fokus wählen', to: '/arbeit' }, { label: 'Private Aufgabe für Fokus wählen', to: '/inbox' }, { label: 'Fokus-Puls ansehen', to: '/einstellungen/hilfen' }],
+  80: [{ label: 'Starthilfe auf Jetzt prüfen', to: '/' }],
+  81: [{ label: 'Wiedereinstieg auf Jetzt öffnen', to: '/' }, { label: 'Gemerkte Arbeit ansehen', to: '/arbeit' }, { label: 'Private Aufgaben ansehen', to: '/inbox' }],
+  82: [{ label: 'Aufgabenkontext auf Jetzt wählen', to: '/' }, { label: 'Dauer und Kontext der Aufgabe ansehen', to: '/inbox' }, { label: 'Tagesplan und Zeitfenster öffnen', to: '/tag' }],
+  83: [{ label: 'Eigene Zeitschätzungen öffnen', to: '/arbeit' }, { label: 'Private Zeitschätzungen öffnen', to: '/inbox' }],
+  84: [{ label: 'Sicherung öffnen', to: '/backup' }, { label: 'Bestehende private Aufgaben prüfen', to: '/inbox' }, { label: 'Bestehende Arbeitsaufgaben prüfen', to: '/arbeit' }],
+  85: [{ label: 'Probeaufgabe und Mehrfachtipps prüfen', to: '/arbeit' }, { label: 'Aktuellen Stand auf Jetzt ansehen', to: '/' }],
+}
+
+const E03_HELP: Record<number, string[]> = {
+  76: ['Wähle in Arbeit eine eigene Testaufgabe und starte ihren Fokus bewusst. Öffne den Gedankenknopf im Aufgabenfokus, damit du den tatsächlichen Kontext prüfst.', 'Tippe einen kurzen Entwurf, verlasse die App und öffne sie wieder. Prüfe den Entwurf, speichere erst danach bewusst und kehre zur Aufgabe zurück.', 'Notiere Entwurf, Rückkehr und Timer getrennt. Eine gespeicherte API-Antwort allein bestätigt kein sofortiges Android-Prozessende.'],
+  77: ['Benutze eine Testnotiz. „Behalten“ bleibt eine Notiz; unter „Tag wählen oder verknüpfen“ kannst du eine bestehende Aufgabe wählen, ohne sie zu kopieren.', 'Plane eine andere Testnotiz bewusst für morgen oder einen gewählten Tag ein. Vergleiche Gedanken, Tagesplan und Jetzt; erledige sie einmal und nimm den Abschluss wieder zurück.', 'Eine heutige Vorausschau bestätigt noch keinen echten Tageswechsel. Dafür kannst du zunächst „Teilweise“ notieren.'],
+  78: ['Öffne bei einer Testaufgabe „Details“. Wähle eine Detailtiefe und „In kleine Schritte zerlegen“; prüfe den lokalen Vorschlag vor „Vorschlag übernehmen“.', 'Erledige einen echten kleinen Testschritt. Ändere danach die Detailtiefe und öffne die App neu; kontrolliere den erhaltenen Teilabschluss.', 'Falls du Wiederholung prüfen möchtest, schalte sie nur bei der Testaufgabe bewusst ein. Ein Abschluss darf nur deren aktuelle Instanz erledigen; die nächste liegt für später bereit.'],
+  79: ['Die Links öffnen nur die Aufgabenliste. Wähle dort selbst eine Testaufgabe, stelle bei Bedarf unter Details den Fokusblock ein und tippe erst dann „Starten“. „Arbeit starten“ wäre dagegen eine Arbeitszeitbuchung.', 'Pausiere, sperre das Handy kurz und öffne Anker erneut. Prüfe Restzeit und konkreten nächsten Schritt, bevor du selbst „Weiter“ wählst.', 'Ein kompletter Zeitablauf und optionale Pulse sind eigene Teilprüfungen. Eine richtige Anzeige beweist noch kein Android-Hintergrundsignal.'],
+  80: ['Öffne auf Jetzt „Ich hänge fest“ und lies erst einige Sekunden. Vor deinem Tipp auf „Starten“ darf keine Hilfezeit laufen.', 'Starte danach bewusst den kleinen Schritt; prüfe Pause, Weiter und bei Gelegenheit das Zeitfensterende.', 'Kontrolliere, dass keine Aufgabe oder Routine durch Hilfeöffnung oder Zeitablauf als erledigt gilt. Deine ursprüngliche Aufgabe soll erhalten bleiben.'],
+  81: ['Merke bei einer Testaufgabe einen konkreten nächsten Schritt, zum Beispiel „Tabelle öffnen“. Über „Ich bin abgedriftet“ auf Jetzt kommst du später wieder dorthin.', 'Du brauchst die App nicht absichtlich drei Tage wegzulegen. Prüfe die mehrtägige Rückkehr erst, wenn eine solche Pause ohnehin vorkommt; bis dahin bleibt dieser Teil offen.', 'Vergleiche dann den gemerkten Schritt und deinen bereits erworbenen Fortschritt. Ändere dafür weder Systemzeit noch gespeicherte Alltagsdaten.'],
+  82: ['Öffne die Details einer Testaufgabe und notiere eigene Dauer, Frist, frühesten Start, Ort und Energiebedarf nur soweit sinnvoll.', 'Auf Jetzt findest du unter „Plan & Optionen“ den freiwilligen Aufgabenkontext. Vergleiche eine passende Auswahl mit einem tatsächlich knappen Zeitfenster.', 'Prüfe aktive Aufgabe, harten Termin und kleinen Einstieg getrennt. Stelle geänderte Testwerte oder deinen Kontext anschließend wieder nach Wunsch ein.'],
+  83: ['Unten in Arbeit oder Gedanken liegt „Eigene Zeitschätzungen (freiwillig)“. Öffnen allein schaltet nichts ein; prüfe zuerst den Schalter und die angezeigten Werte.', 'Nur wenn du es nutzen möchtest: schalte lokal ein und bestätige später echte aktive Dauern beim Aufgabenabschluss. Ohne ausreichend echte Werte bleibt der Vorschlagsteil offen.', 'Eine Schätzung ändert sich erst durch „Schätzung übernehmen“. „Gelernte Zeiten zurücksetzen“ entfernt Lernwerte und schaltet Lernen aus; Aufgaben und Erledigungen bleiben.'],
+  84: ['Exportiere zuerst eine neue Sicherung. Notiere eine vorhandene Aufgabe, einen echten Teilabschluss und einen gemerkten Wiedereinstieg.', 'Vergleiche diese Daten nach einem regulären Update. Ein alter Import gehört in eine passende eigene Testkopie, nicht ungeprüft über deinen neueren Alltagsstand.', 'Export, Update-Erhalt und Altbestand-Import sind getrennte Nachweise. Melde nur die tatsächlich beobachteten Teile; Appdaten müssen dafür nicht gelöscht werden.'],
+  85: ['Verwende eine Testaufgabe und tippe ihren Abschluss oder eine Änderung wenige Male schnell. Kontrolliere anschließend genau eine passende Wirkung und die nächste künftige Instanz.', 'Prüfe den letzten gewünschten Stand auf Jetzt. Öffne das echte Anker-Widget getrennt vom Android-Homescreen und kehre über seinen Knopf zurück.', 'Widgettexte bleiben bewusst allgemein. Browsernavigation oder ein geöffneter Link bestätigt weder Android-Zustellung noch mehrere Tage ohne Appöffnung.'],
+}
 
 function linksFor(id: number): { label: string; to: string }[] {
-  if (id === 75) return [{ label: 'Jetzt mit Testbegleitung öffnen', to: '/' }, { label: 'Fokus-Modus öffnen', to: '/fokus/morning' }, { label: 'Schrift & Tastatur prüfen', to: '/einstellungen/darstellung' }]
-  if (id >= 72) return [{ label: 'Druckauswahl öffnen', to: '/druck' }, { label: 'Morgenroutine öffnen', to: '/fokus/morning' }, { label: 'Abendroutine öffnen', to: '/fokus/evening' }]
-  if (id >= 66) return [{ label: 'Erinnerungen einstellen', to: '/einstellungen/erinnerungen' }, { label: 'Tagesplan öffnen', to: '/tag' }, { label: 'Weckerstatus und Messung öffnen', to: '/wecker' }, ...(id === 69 ? [{ label: 'Morgenfokus öffnen', to: '/fokus/morning' }] : [])]
+  if (E03_LINKS[id]) return E03_LINKS[id]
+  if (id === 75) return [{ label: 'Jetzt mit Testbegleitung öffnen', to: '/' }, { label: 'Aufgabe für eigene Fokusprüfung wählen', to: '/arbeit' }, { label: 'Schrift & Tastatur prüfen', to: '/einstellungen/darstellung' }]
+  if (id >= 72 && id <= 74) return [{ label: 'Druckauswahl öffnen', to: '/druck' }, { label: 'Morgenroutine öffnen', to: '/fokus/morning' }, { label: 'Abendroutine öffnen', to: '/fokus/evening' }]
+  if (id >= 66 && id <= 71) return [{ label: 'Erinnerungen einstellen', to: '/einstellungen/erinnerungen' }, { label: 'Tagesplan öffnen', to: '/tag' }, { label: 'Weckerstatus und Messung öffnen', to: '/wecker' }, ...(id === 69 ? [{ label: 'Morgenfokus öffnen', to: '/fokus/morning' }] : [])]
   if (id === 64) return [{ label: 'Mehr öffnen', to: '/mehr' }, { label: 'Tag öffnen', to: '/tag' }, { label: 'Wecker öffnen', to: '/wecker' }]
   if (id === 65) return [{ label: 'Messung und Vorwecker prüfen', to: '/wecker' }]
   if (id === 62) return [{ label: 'Uhrzeiten direkt ändern', to: '/einstellungen/schlaf' }, { label: 'Fahrzeit direkt ändern', to: '/einstellungen/weg' }]
@@ -42,10 +69,11 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
-  if (id === 75) return ['Öffne zuerst „Jetzt mit Testbegleitung“. Prüfe oben Uhr und Akku sowie den Knopf „Zurück zu Test 75“. Öffne danach den Fokus-Modus; dafür musst du keinen Routineschritt erledigen.', 'Drehe das Handy ins Querformat und zurück. Vergleiche bei Bedarf Gesten- und Drei-Tasten-Navigation in den Android-Einstellungen; stelle danach deine übliche Navigation wieder her.', 'Öffne „Schrift & Tastatur prüfen“, tippe in das Schriftgrößenfeld und schließe die Tastatur wieder. Du brauchst keinen Wert zu ändern. Notiere obere und untere Abstände sowie Tastatur und Drehung getrennt; ungeprüfte Teile bleiben offen.']
+  if (E03_HELP[id]) return E03_HELP[id]
+  if (id === 75) return ['Öffne zuerst „Jetzt mit Testbegleitung“. Prüfe oben Uhr und Akku sowie den Knopf „Zurück zu Test 75“. Für den Fokus wähle in Arbeit eine Aufgabe und starte sie erst bewusst selbst.', 'Drehe das Handy ins Querformat und zurück. Vergleiche bei Bedarf Gesten- und Drei-Tasten-Navigation in den Android-Einstellungen; stelle danach deine übliche Navigation wieder her.', 'Öffne „Schrift & Tastatur prüfen“, tippe in das Schriftgrößenfeld und schließe die Tastatur wieder. Du brauchst keinen Wert zu ändern. Notiere obere und untere Abstände sowie Tastatur und Drehung getrennt; ungeprüfte Teile bleiben offen.']
   if (id === 71) return ['Lies den Android-Stand ein und öffne den Weckerstatus. Die gespeicherten Basisregeln gelten nach dem genauen Tagesvorrat; neue spontane Änderungen kennt Android erst nach erneutem Öffnen.', 'Der vollständige Langzeittest braucht echte Zeit ohne Appöffnung. Notiere den Beginn und halte einen unabhängigen Wecker bereit. Nur die angezeigte Regelzahl zu prüfen ist „Teilweise“, kein Zustellnachweis.']
-  if (id >= 72) return ['Öffne die Druckauswahl oder den direkten Link aus deiner Routine. Wähle nur den gewünschten Inhalt und A5 oder A4.', 'PDF-Datei auf Android und Systemdruck sind getrennte Wege. Öffne die Datei und prüfe alle Seiten; ein geöffneter Dialog oder abgebrochenes Teilen gilt nicht als gedruckt.', 'QR-Code nach Möglichkeit wirklich auf Papier scannen. Deine Einstellungen und der QR-Wert werden durch die Auswahl nicht geändert.']
-  if (id >= 66) return ['Notiere vorher deine eigenen Zeiten und Optionen. Die Knöpfe unten führen direkt zu Erinnerungen, Tagesplan und Weckerstatus.', 'Führe den beschriebenen Ablauf mit einer bewusst gewählten Erinnerung aus. Der separate Testalarm prüft nur den Alarm und kann keine Aufgaben-Erledigung simulieren.', 'Stelle anschließend deine eigenen Einstellungen wieder her. Notiere, welchen Teil du tatsächlich beobachtet hast; nichts wird automatisch als bestanden eingetragen.']
+  if (id >= 72 && id <= 74) return ['Öffne die Druckauswahl oder den direkten Link aus deiner Routine. Wähle nur den gewünschten Inhalt und A5 oder A4.', 'PDF-Datei auf Android und Systemdruck sind getrennte Wege. Öffne die Datei und prüfe alle Seiten; ein geöffneter Dialog oder abgebrochenes Teilen gilt nicht als gedruckt.', 'QR-Code nach Möglichkeit wirklich auf Papier scannen. Deine Einstellungen und der QR-Wert werden durch die Auswahl nicht geändert.']
+  if (id >= 66 && id <= 70) return ['Notiere vorher deine eigenen Zeiten und Optionen. Die Knöpfe unten führen direkt zu Erinnerungen, Tagesplan und Weckerstatus.', 'Führe den beschriebenen Ablauf mit einer bewusst gewählten Erinnerung aus. Der separate Testalarm prüft nur den Alarm und kann keine Aufgaben-Erledigung simulieren.', 'Stelle anschließend deine eigenen Einstellungen wieder her. Notiere, welchen Teil du tatsächlich beobachtet hast; nichts wird automatisch als bestanden eingetragen.']
   if (id === 64) return ['Öffne Anker über sein Widget oder eine Benachrichtigung. Rufe danach über die Navigation andere Seiten auf.', 'Auch bei „Gute Nacht“ müssen die gewählten Seiten offen bleiben. Prüfe neue Benachrichtigungslinks und den separaten Testwecker anschließend getrennt.']
   if (id === 65) return ['Notiere zuerst deine eigenen Weckzeiten. Aktiviere den Vorwecker und prüfe die feste Hauptzeit, bevor du die Messung bewusst startest.', 'Der Status muss den Vorwecker für diese Messnacht als pausiert zeigen. Seine Einstellung bleibt gespeichert. Auch nach Messungsende oder Neustart bleibt die Pause für diesen Haupttermin erhalten.', 'Warte den Vorwecktermin und die feste Hauptzeit tatsächlich ab. Danach eine neue Weckzeit oder den nächsten Morgen ohne Messung prüfen und deine eigenen Einstellungen wiederherstellen. Teilprüfungen als „Teilweise“ speichern.']
   if (id === 3) return ['Lies vor dem Test den Android-Stand unten ein. Die geplante Hauptzeit und der Schlummerzähler werden zum Vergleich gespeichert.', 'Starte den separaten Testalarm, beende ihn und kehre über „Zurück zu Test 3“ hierher zurück.', 'Lies den Android-Stand erneut und vergleiche die Hauptzeit. Nur dein beobachtetes Ergebnis wird abgehakt.']
@@ -82,12 +110,13 @@ export default function DeviceTests() {
     <Card className="space-y-2">
       <p>Ein Versuch nach dem anderen. Du kannst jederzeit aufhören und später weitermachen.</p>
       <p className="text-sm text-muted">{passed} von {catalog.length} {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Frühere Geräteberichte werden hier nicht automatisch abgehakt.</p>
-      {platform === 'web' && <p className="text-sm text-warm">Du bist in der Web-Version. Klingeln, Sperrbildschirm, Sensoren und Android-Druck lassen sich nur auf dem Handy prüfen. Deine Einträge hier bleiben Browserberichte.</p>}
+      {platform === 'web' && <p className="text-sm text-warm">Du bist in der Web-Version. Klingeln, Sperrbildschirm, Sensoren, Android-Widgets und Android-Druck lassen sich nur auf dem Handy prüfen. Deine Einträge hier bleiben Browserberichte.</p>}
     </Card>
     <Section title="Womit möchtest du anfangen?">
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(1) }}>Erster Weckertest</Button>
         <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66) }}>Erinnerungen & Druck prüfen</Button>
+        <Button onClick={() => { setGroup('E03: Aufgaben und Wiedereinstieg'); setOnlyOpen(false); select(76) }}>Aufgaben & Wiedereinstieg prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(53) }}>Weckfenster prüfen</Button>
         <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62) }}>Zeiteingabe prüfen</Button>
         <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75) }}>Systemleisten prüfen</Button>
@@ -122,6 +151,7 @@ function TestView({ test }: { test: DeviceTestCase }) {
   const report = progress.reports[test.id]
   const draft = progress.drafts?.[test.id]
   const native = isNative()
+  const alarmTools = native && test.id <= 75
   const [note, setNote] = useState(draft?.note ?? report?.note ?? '')
   const [device, setDevice] = useState(draft?.device ?? progress.device ?? '')
   const [os, setOs] = useState(draft?.os ?? progress.os ?? '')
@@ -167,7 +197,7 @@ function TestView({ test }: { test: DeviceTestCase }) {
       <ol className="list-decimal space-y-2 pl-5">{extraHelp(test.id).map((step) => <li key={step}>{step}</li>)}</ol>
       <p className="text-sm text-muted">Deine gespeicherte Standard-Aufstehzeit: {fmtTime(st.settings.anchor.wake)}. Einstellungen änderst du nur selbst; ein Test-Haken verändert weder Weckregel noch Routine oder Spielstand.</p>
       <div className="space-y-2">{linksFor(test.id).map((link) => <Row key={link.to} label={link.label} onClick={() => void run(async () => { await activate(); nav(link.to) })} />)}</div>
-      {native && <div className="flex flex-wrap gap-2">
+      {alarmTools && <div className="flex flex-wrap gap-2">
         <Button disabled={busy} onClick={() => void run(readAndroid)}>Android-Stand lesen</Button>
         {TEST_ALARM_CASES.has(test.id) && <Button disabled={busy} variant="primary" onClick={() => void run(startTest)}>Separaten Test in 10 Sekunden starten</Button>}
         {[14].includes(test.id) && <Button disabled={busy} onClick={() => void run(() => AnkerNative.openDndSettings())}>Nicht stören öffnen</Button>}
@@ -175,7 +205,7 @@ function TestView({ test }: { test: DeviceTestCase }) {
         {test.id === 18 && <Button disabled={busy} onClick={() => void run(() => AnkerNative.openBatteryOptimizationSettings())}>Akku-Einstellungen öffnen</Button>}
       </div>}
       {comparison && <p role="status" className="text-sm text-muted">{comparison}</p>}
-      {native && <details><summary className="min-h-11 py-2">Weckerdiagnose anzeigen</summary><AlarmDiagnosis /></details>}
+      {alarmTools && <details><summary className="min-h-11 py-2">Weckerdiagnose anzeigen</summary><AlarmDiagnosis /></details>}
     </Card>
     <Card className="space-y-3">
       <h2 className="text-lg font-medium">Deine Beobachtung</h2>

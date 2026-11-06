@@ -7,13 +7,21 @@ import type { DeviceTestReport } from './types'
 const report: DeviceTestReport = { result: 'passed', note: 'Ton gehört', at: 1000, platform: 'android', device: 'Testgerät', os: 'API36', appVersion: '1.2.0-rc.1', build: '3', suiteVersion: DEVICE_TEST_SUITE, buildFingerprint: 'current' }
 
 describe('Geführte Geräteprüfung', () => {
-  it('übernimmt alle75 Punkte aus derselben Dokumentquelle und niemals historische Ergebnisse', () => {
+  it('übernimmt alle85 Punkte aus derselben Dokumentquelle und niemals historische Ergebnisse', () => {
     const catalog = parseDeviceTestCatalog(readFileSync(new URL('../../docs/GERAETETEST.md', import.meta.url), 'utf8'))
-    expect(catalog.map((test) => test.id)).toEqual(Array.from({ length: 75 }, (_, i) => i + 1))
+    expect(catalog.map((test) => test.id)).toEqual(Array.from({ length: 85 }, (_, i) => i + 1))
     expect(catalog.every((test) => test.group && test.action && test.expected)).toBe(true)
     expect(Object.keys(catalog[0]!)).toEqual(['id', 'group', 'action', 'expected'])
     expect(JSON.stringify(catalog)).not.toContain('Bestätigt vom Nutzer')
     expect(() => parseDeviceTestCatalog('| 1 | Tun | Erwartung | ok |\n| 1 | Tun | Erwartung | |')).toThrow('Doppelte')
+  })
+  it('liefert offene E03-Anleitungen und übernimmt die G75-Rückmeldung nicht als App-Erfolg', () => {
+    const document = readFileSync(new URL('../../docs/GERAETETEST.md', import.meta.url), 'utf8')
+    const catalog = parseDeviceTestCatalog(document)
+    expect(catalog.filter((test) => test.group === 'E03: Aufgaben und Wiedereinstieg').map((test) => test.id)).toEqual(Array.from({ length: 10 }, (_, index) => 76 + index))
+    expect(document).toContain('Teilweise: Nutzer meldet „oben frei“')
+    expect(JSON.stringify(catalog)).not.toContain('Teilweise: Nutzer meldet')
+    expect(currentTestReport({ ...report, suiteVersion: '2026-11-06-systemleisten' }, 'android', 'current')).toBeUndefined()
   })
   it('alte Daten beginnen ohne Häkchen; APIs erzeugen keine Ergebnisse', () => {
     expect(deviceTestsFromLocal(undefined)).toEqual({ reports: {} })
