@@ -53,6 +53,7 @@ object GeofenceManager {
     private fun credential(context: Context): Context = context.applicationContext
     private fun unlocked(context: Context): Boolean = !credential(context).isDeviceProtectedStorage && context.getSystemService(UserManager::class.java)?.isUserUnlocked == true
     private fun prefs(context: Context): SharedPreferences = credential(context).getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private fun hasSavedMirror(context: Context): Boolean = try { prefs(context).contains("enabled") } catch (_: Exception) { true }
     private fun fine(context: Context): Boolean = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     private fun background(context: Context): Boolean = fine(context) && (Build.VERSION.SDK_INT < 29 || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)
     private fun available(context: Context): Boolean = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
@@ -129,6 +130,12 @@ object GeofenceManager {
             val parsed = if (values != null && values.length() <= GeofenceModel.MAX_VISITS) (0 until values.length()).map { values.optJSONObject(it)?.let(::parseVisit) } else null
             val invalid = input.opt("enabled") !is Boolean || parsed == null || parsed.any { it == null } || parsed.filterNotNull().map { it.id }.toSet().size != parsed.size
             val enabled = input.optBoolean("enabled", false) && !invalid
+            // Vor der allerersten Auswahl weder GMS initialisieren noch fehlgeschlagenen
+            // Cleanup melden. Ein früher gespeicherter Off-Spiegel muss dagegen abgeglichen
+            // werden: Sein Prozess könnte vor der bestätigten Entfernung beendet worden sein.
+            if (!invalid && !enabled && parsed!!.isEmpty() && !busy && !hasSavedMirror(app)) {
+                callback(stateLocked(app)); return
+            }
             val permitted = fine(app) && background(app) && available(app) && locationEnabled(app)
             val before = read(app)
             val visits = if (enabled && permitted) GeofenceModel.active(parsed!!.filterNotNull(), System.currentTimeMillis()) else emptyList()
@@ -250,6 +257,7 @@ object GeofenceManager {
 
     fun restoreAfterBoot(context: Context, completed: (() -> Unit)? = null) {
         if (!unlocked(context)) { completed?.invoke(); return }
+        if (!hasSavedMirror(context)) { completed?.invoke(); return }
         synchronized(lock) {
             val current = pruned(read(context), System.currentTimeMillis())
             // Registrierungen überleben Reboot nicht zuverlässig; nur vorhandene Auswahl/reale Rechte verwenden.
