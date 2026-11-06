@@ -127,7 +127,7 @@ export default function Focus() {
         {timer?.status === 'paused' && <p className="mt-2 text-muted">Pausiert. Die Restzeit bleibt erhalten.</p>}
         {timer && left === 0 && <p className="mt-2 text-muted">Zeitfenster zu Ende. Du kannst in Ruhe weitermachen oder selbst abschließen.</p>}
         {timer && session && left > 0 && <Button size="sm" className="mt-3" disabled={busy} onClick={() => void run(() => st.updateFocus(session.id, (current) => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })))}>{timer.status === 'running' ? 'Pause' : 'Weiter'}</Button>}
-        <button type="button" className="mt-4 min-h-11 rounded-xl px-3 text-sm text-muted" aria-label={`Fokus-Puls umschalten, aktuell ${PULSE_LABEL[st.settings.focus.pulse]}`} onClick={() => void run(() => st.saveSettings((settings) => ({ ...settings, focus: { ...settings.focus, pulse: NEXT_PULSE[settings.focus.pulse] } })))}>{PULSE_LABEL[st.settings.focus.pulse]}</button>
+        <button type="button" disabled={busy} className="mt-4 min-h-11 rounded-xl px-3 text-sm text-muted" aria-label={`Fokus-Puls umschalten, aktuell ${PULSE_LABEL[st.settings.focus.pulse]}`} onClick={() => void run(() => st.saveSettings((settings) => ({ ...settings, focus: { ...settings.focus, pulse: NEXT_PULSE[settings.focus.pulse] } })))}>{PULSE_LABEL[st.settings.focus.pulse]}</button>
       </section>
 
       <div className="space-y-3">
