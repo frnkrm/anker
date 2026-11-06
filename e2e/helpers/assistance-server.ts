@@ -14,10 +14,10 @@ export const configuredCapabilities = {
 }
 
 /** Realer Produktionsbuild mit öffentlicher Test-Konfiguration, ohne Testschalter im Produkt. */
-export async function startAssistanceServer(port = 4222): Promise<{ url: string; close: () => Promise<void> }> {
+export async function startAssistanceServer(port = 4222, backendConfigured = true): Promise<{ url: string; close: () => Promise<void> }> {
   const directory = await mkdtemp(join(tmpdir(), 'anker-assistance-e2e-'))
   const vite = resolve('node_modules/vite/bin/vite.js')
-  const env = { ...process.env, VITE_SUPABASE_URL: assistanceHost, VITE_SUPABASE_ANON_KEY: 'public-browser-test-key' }
+  const env = { ...process.env, VITE_SUPABASE_URL: backendConfigured ? assistanceHost : '', VITE_SUPABASE_ANON_KEY: backendConfigured ? 'public-browser-test-key' : '' }
   let server: ChildProcess | undefined
   try {
     await new Promise<void>((resolveBuild, reject) => {

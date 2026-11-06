@@ -63,6 +63,17 @@ export default function AssistanceSettings() {
   })
   const ai = assistanceAllowed(st.local.assistance, 'ai')
   const routes = assistanceAllowed(st.local.assistance, 'routes')
+  const aiNextStep = !supabaseConfigured
+    ? 'KI-Vorschläge sind noch nicht verfügbar: In dieser App-Version fehlt die Server-Verbindung. Dafür muss zuerst die Verbindung eingerichtet werden.'
+    : error
+      ? error
+      : !capabilities
+        ? 'Prüfe zuerst die Verbindung. Der Check klärt, ob KI auf deinem Server eingerichtet ist; er ruft keinen Anbieter auf.'
+        : !capabilities.ai.configured
+          ? 'KI ist auf deinem Server noch nicht eingerichtet. Die Server-Einrichtung ist ein gesonderter Schritt; das Kostenhäkchen allein schaltet keinen Dienst ein.'
+          : !acceptedAI
+            ? 'Bestätige zuerst den Daten- und Kostenhinweis oben. Danach kannst du KI-Vorschläge bewusst erlauben.'
+            : 'Die Verbindung ist geprüft und der Hinweis bestätigt. Du kannst KI-Vorschläge jetzt erlauben; eine Anfrage bestätigst du später gesondert.'
   return <Page title="Optionale Vorschläge" back="/einstellungen">
     <Card className="space-y-3">
       <p>Lokale Teilschritt-Vorlagen und manuelle Fahrzeiten funktionieren weiterhin ohne diese Dienste. Beide Datenfreigaben sind eine eigene Wahl.</p>
@@ -78,7 +89,13 @@ export default function AssistanceSettings() {
         <p className="text-sm">Empfänger: dein Supabase-Server und OpenAI. Übermittelt werden der von dir bearbeitbare Aufgabentext und die Detailtiefe. Beschreibung und nächster Schritt sind je Anfrage freiwillig abgewählt. Vor jedem Senden siehst du die Inhalte und bestätigst sie gesondert; berufliche Angaben prüfst du selbst.</p>
         <p className="text-sm text-muted">Es können Kosten bei OpenAI und deinem Server entstehen. Prüfe vor echter Aktivierung die <a className="text-accent underline" href="https://openai.com/api/pricing/" target="_blank" rel="noreferrer">aktuellen API-Preise</a> und <a className="text-accent underline" href="https://openai.com/policies/business-terms/" target="_blank" rel="noreferrer">Anbieterbedingungen</a>.</p>
         {!ai && <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" checked={acceptedAI} disabled={busy} onChange={(event) => acceptAI(event.target.checked)} /><span>Übertragung an OpenAI und mögliche Anbieter-/Serverkosten für KI-Vorschläge sind für mich in Ordnung.</span></label>}
-        <fieldset className="min-w-0" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured))}><div className="flex flex-wrap items-center justify-between gap-3"><span>KI-Vorschläge erlauben</span><Toggle label="KI-Vorschläge erlauben" checked={ai} onChange={(value) => void change('ai', value)} /></div></fieldset>
+        <fieldset className="min-w-0 disabled:opacity-50" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured))}><div className="flex flex-wrap items-center justify-between gap-3"><span>KI-Vorschläge erlauben</span><Toggle label="KI-Vorschläge erlauben" checked={ai} onChange={(value) => void change('ai', value)} /></div></fieldset>
+        {!ai && <div className="space-y-2">
+          <p role="status" className="text-sm text-muted">{aiNextStep}</p>
+          {supabaseConfigured && (!capabilities?.ai.configured || error) && <Button disabled={busy} onClick={() => void check()}>Verbindung für KI prüfen</Button>}
+          {(!capabilities?.ai.configured || error) && <Link className="flex min-h-11 items-center text-accent" to="/verbindungen">Anmeldung und Verbindungen öffnen</Link>}
+          <Link className="flex min-h-11 items-center text-accent" to="/arbeit">Lokale Teilschritte unter Arbeit öffnen</Link>
+        </div>}
       </Card>
     </Section>
     <Section title="Verkehr für Fahrzeiten">
