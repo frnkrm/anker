@@ -17,6 +17,7 @@ import { Timeline } from '../components/Timeline'
 import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
 import { WorkBar } from '../components/WorkControls'
 import { GeofenceSuggestions } from '../components/GeofenceVisit'
+import { HomeOfficeContact } from '../components/HomeOfficeContact'
 import { InboxSheet } from '../components/Shell'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
@@ -80,6 +81,7 @@ export default function Now() {
         )}
       </section>
 
+      {!dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
       <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
       <GeofenceSuggestions />
       {readyToReview > 0 && !['sleep', 'night', 'bed', 'wake'].includes(a.type) && (
@@ -574,7 +576,7 @@ function DaySheet({ open, onClose, date }: { open: boolean; onClose: () => void;
           />
           {type === 'sick' && <p className="text-sm text-muted">Krank-Modus: nur das Nötigste, kein Ziel, nichts geht verloren. Der Wecker pausiert an diesem Tag und klingelt danach wieder.</p>}
         </div>
-        {type === 'work' && (o.homeOffice ?? st.settings.work[weekday(date)]?.homeOffice) && <HomeOfficeInfo />}
+        {type === 'work' && (o.homeOffice ?? st.settings.work[weekday(date)]?.homeOffice) && <HomeOfficeContact date={date} />}
         {type === 'work' && (
           <div className="flex items-center justify-between">
             <span>Homeoffice heute</span>
@@ -598,27 +600,6 @@ function DaySheet({ open, onClose, date }: { open: boolean; onClose: () => void;
         </Button>
       </div>
     </Sheet>
-  )
-}
-
-/** Nur eine Hilfe zum Kopieren: Anker sendet nichts und weiß nicht, ob du Homeoffice machen darfst. */
-function HomeOfficeInfo() {
-  const st = useApp()
-  const text = st.settings.homeOfficeMessage
-  return (
-    <div className="space-y-2 rounded-xl bg-surface-2 p-3">
-      <p className="text-sm text-muted">Musst du jemandem Bescheid geben? Das machst du selbst.</p>
-      <p>„{text}“</p>
-      <Button
-        size="sm"
-        onClick={async () => {
-          await navigator.clipboard?.writeText(text).catch(() => undefined)
-          st.showToast('Kopiert. Gesendet ist damit noch nichts.')
-        }}
-      >
-        Text kopieren
-      </Button>
-    </div>
   )
 }
 

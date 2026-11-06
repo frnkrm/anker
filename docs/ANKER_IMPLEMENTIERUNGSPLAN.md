@@ -304,6 +304,12 @@ Gemeinsame Anbieterbasis und KI-Eingabe `3617c1e`/`d304af1`, Verkehrsadapter `f5
 
 **Zwischengate:**725 Vitest/71Dateien, Lint/Typecheck;27/27 frische Produktionsbrowserfälle für Sicherung/Storage/A11y/Testbegleitung,0Skip (`e09-*`,1,4min). Testseite beginnt mit zehn Stationen G86–95 statt95 Pflichtfällen; bestehende Detailfälle und frühere Berichte bleiben erhalten. Jede Station hat direkte sichere Zielwege, Öffnen erzeugt weder Alltagshandlung noch Erfolgshäkchen. Weitere Abschlussreviewkorrekturen und Q84 laufen noch; finale Zahlen/CI/APK werden erst nach tatsächlichem Abschluss eingetragen. Sämtliche neuen Android-Gerätefälle sind offen.
 
+### Gemeinsamer Abschlussreview – umgesetzte Regressionen
+
+Nach der Etappenintegration wurden konkrete Fehler mit roten Regressionen belegt und behoben: tatsächliche PC-Schonfrist/strikte Zeitstempel; laufende Nachtschicht über04:00; Großschrift-Tageslinie; verspätete Anbieterantwort und unnötige Payloadfelder; synchroner KI-/Verkehrswiderruf; Syncfreigabe einschließlich wartender Storequeue und privater Settings/Arbeitsgedanken; Teilsicherung ohne Arbeitskopien; atomare Alt-Wettermigration und Importprojektion vor Commit; feste Termine im Krankmodus; knappe Büro-/Heim-/Anschlusswege; korrekter nächster Kalender-Morgen und Sommer-/Winterzeit-Schlafgelegenheit; wahrer Kopiererfolg; allgemeine Remote-Widgetbezeichnung. UX-05 ergänzt die ausdrücklich gewünschte lokale Kontaktwahl mit einmaliger freiwilliger Rückfrage, ohne Versandbehauptung. Alle Änderungen nutzen bestehende Plan-/Store-/Backupwege.
+
+Frischer integrierter Crossflow:15/15 Browserfälle,0Skip,59,1s (`cross-review-browser.log`):3Homeoffice,3Q84,6Plan-/Copy-/DST,3Sync. Zusätzlich30 relevante Unit-/Import-/Consenttests und Typecheck grün. Die letzte Sync-Persistenzkante wird noch ergänzt, danach Quellstand einfrieren und vollständigen Gesamtcheck ausführen. Native Root-Quellen88/89bytegleich (nur generierte Modulpfade abweichend),87/87JUnit ohneSkip,196GradleTasks erneut ausgeführt (`android-native-check/BUILD_REPORT.md`). Kein Gerätetest daraus abgeleitet.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`

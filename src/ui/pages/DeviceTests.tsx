@@ -19,7 +19,7 @@ const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 
 const CAMPAIGN_LINKS: Record<number, { label: string; to: string }[]> = {
   86: [{ label: 'Sicherung und Vorschau öffnen', to: '/backup' }, { label: 'Vorhandene Aufgaben vergleichen', to: '/inbox' }],
   87: [{ label: 'Testabend im Tag planen', to: '/tag' }, { label: 'Jetzt und Abend vergleichen', to: '/' }],
-  88: [{ label: 'Arbeitszeit und Testeinsatz öffnen', to: '/arbeitszeit' }, { label: 'Arbeitsaufgabe vergleichen', to: '/arbeit' }],
+  88: [{ label: 'Arbeitszeit und Testeinsatz öffnen', to: '/arbeitszeit' }, { label: 'Arbeitsaufgabe vergleichen', to: '/arbeit' }, { label: 'Homeoffice-Kontakt auf Jetzt öffnen', to: '/' }],
   89: [{ label: 'Termine und Orte vergleichen', to: '/tag' }, { label: 'Gespeicherte Orte öffnen', to: '/orte' }],
   90: [{ label: 'Morgenvorschau im Tag öffnen', to: '/tag' }, { label: 'Echten Weckerstand vergleichen', to: '/wecker' }, { label: 'Aufstehzeit ansehen', to: '/einstellungen/schlaf' }],
   91: [{ label: 'Vorbereitung und Packliste öffnen', to: '/vorbereitung' }, { label: 'Wetter und Alltagshilfen öffnen', to: '/einstellungen/hilfen' }],

@@ -332,3 +332,7 @@ Androids eigene Ruhe-/Nicht-stören-Einstellungen kannst du über **Ablenkungen 
 **Mehr → Sicherung** exportiert eine unverschlüsselte JSON-Datei. Unter **Was soll die Sicherung enthalten?** kannst du Arbeitsdaten, Einnahme-/Schlafprotokoll, Orte-/Termin-/Wetter-/Packdaten und Testnotizen bewusst weglassen. Eine vollständige eigene Sicherung enthält standardmäßig alles; Freitexte können auch nach dem Abwählen einzelner Gruppen persönliche Angaben enthalten.
 
 Ein Import wird zuerst geprüft und als Vorschau angezeigt. Erst **Jetzt importieren** übernimmt die gültigen neueren Datensätze. Ältere oder gleiche Stände bleiben unangetastet; ausgelassene Bereiche einer Teilsicherung löschen keine vorhandenen Daten. Abbrechen verändert nichts. Ein sichtbarer Speicherfehler ist kein Erfolg und kein Anlass, die Appdaten zu löschen: Nutze den angebotenen erneuten Versuch. Gerätewechsel und Android-Speicherverhalten bleiben Teil der gemeinsamen Prüfung.
+
+### Homeoffice-Kontakt
+
+Nach deiner Tageswahl Homeoffice kannst du bei der Kontaktfrage **Schon erledigt**, **Nein, nicht nötig** oder **Später** wählen. Kopieren und Teilen ändern diesen Status nicht. Später merkt höchstens eine ruhige Rückfrage innerhalb der App nach frühestens30Minuten vor; Schlaf, Fahrt, Fokus und andere Dialoge gehen vor. Die Kontaktwahl bleibt lokal und wird bei einer Sicherung ohne Arbeitsdaten ausgelassen.
