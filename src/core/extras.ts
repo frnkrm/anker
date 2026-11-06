@@ -16,6 +16,10 @@ export interface GeofenceChoice {
   radiusM: number
   dwellMs: number
   consentedAt: number
+  /** Zustimmung gilt nur für diesen gewählten Zielort. Alte ungebundene Werte bleiben inaktiv. */
+  placeId?: string
+  latitude?: number
+  longitude?: number
 }
 
 export interface ExtraLocal {
@@ -48,5 +52,8 @@ export function validExtrasLocal(value: unknown): value is ExtraLocal | undefine
   return object(geo) && typeof geo.enabled === 'boolean' && object(geo.visits) && Object.entries(geo.visits).length <= 20
     && Object.entries(geo.visits).every(([id, choice]) => !!id && object(choice) && timestamp(choice.consentedAt)
       && typeof choice.radiusM === 'number' && choice.radiusM >= 100 && choice.radiusM <= 1000
-      && typeof choice.dwellMs === 'number' && choice.dwellMs >= 60_000 && choice.dwellMs <= 900_000)
+      && typeof choice.dwellMs === 'number' && choice.dwellMs >= 60_000 && choice.dwellMs <= 900_000
+      && (choice.placeId === undefined || typeof choice.placeId === 'string' && !!choice.placeId && choice.placeId.length <= 200)
+      && (choice.latitude === undefined || typeof choice.latitude === 'number' && Number.isFinite(choice.latitude) && Math.abs(choice.latitude) <= 90)
+      && (choice.longitude === undefined || typeof choice.longitude === 'number' && Number.isFinite(choice.longitude) && Math.abs(choice.longitude) <= 180))
 }

@@ -1,6 +1,6 @@
 import type { Commitment, LocalData, Place } from './types'
 import { zonedToUtc } from './time'
-import { validExtrasLocal } from './extras'
+import { validExtrasLocal, type GeofenceChoice } from './extras'
 
 export interface GeofenceVisit {
   id: string
@@ -49,6 +49,7 @@ export function geofenceSnapshot(local: Pick<LocalData, 'extras' | 'commitments'
     const choice = selection.visits[commitment.id]
     const place = commitment.placeId && places.get(commitment.placeId)
     if (!choice || !place || !validCoordinates(place) || !bounded(commitment.id, 200)
+      || choice.placeId !== place.id || choice.latitude !== place.latitude || choice.longitude !== place.longitude
       || commitment.status === 'cancelled' || commitment.arrivedAt !== undefined || commitment.backAt !== undefined
       || commitment.locationKind === 'remote' || commitment.locationKind === 'home' || commitment.routeMode === 'none'
       || !timestamp(choice.consentedAt) || choice.consentedAt > now + 60_000
@@ -91,4 +92,24 @@ export function geofenceSuggestions(values: readonly unknown[], snapshot: Geofen
 export function geofencePlace(commitment: Commitment, places: readonly Place[]): Place | undefined {
   const place = places.find((candidate) => candidate.id === commitment.placeId)
   return place && validCoordinates(place) ? place : undefined
+}
+
+/** Entfernt ausschließlich die optionale Auswahl; Buchungen bleiben unverändert. */
+export function removeGeofenceChoice(local: LocalData, visitId: string): LocalData {
+  const visits = { ...local.extras?.geofences?.visits }
+  delete visits[visitId]
+  return { ...local, extras: { ...local.extras, geofences: { enabled: Object.keys(visits).length > 0 && local.extras?.geofences?.enabled === true, visits } } }
+}
+
+/** Bewusste UI-Auswahl gegen den jüngsten Storewert prüfen; alte Auswahlreste verbrauchen kein Limit. */
+export function selectGeofenceVisit(local: LocalData, visitId: string, choice: GeofenceChoice, now: number): LocalData | undefined {
+  const commitment = local.commitments.find((item) => item.id === visitId)
+  const place = commitment && geofencePlace(commitment, local.places)
+  if (!place || place.id !== choice.placeId || place.latitude !== choice.latitude || place.longitude !== choice.longitude) return undefined
+  const active = new Set(geofenceSnapshot(local, now).visits.map((visit) => visit.id))
+  const visits = Object.fromEntries(Object.entries(local.extras?.geofences?.visits ?? {}).filter(([id]) => id === visitId || active.has(id)))
+  if (!visits[visitId] && Object.keys(visits).length >= 20) return undefined
+  visits[visitId] = choice
+  const next = { ...local, extras: { ...local.extras, geofences: { enabled: true, visits } } }
+  return geofenceSnapshot(next, now).visits.some((visit) => visit.id === visitId) ? next : undefined
 }
