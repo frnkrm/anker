@@ -77,6 +77,7 @@ export function WeatherSettings({ s, save }: { s: Settings; save: (fn: (settings
       <p>Open-Meteo ist für private nichtkommerzielle Nutzung ohne API-Key verfügbar. Fair Use: Bei mehr als 10.000 Anfragen am Tag verlangt der Anbieter Kontakt. Anker nutzt einen Cache für drei Stunden, begrenzt Wiederholungen und zeigt ältere Daten ausdrücklich an. Nach einem Tag werden sie nicht mehr als brauchbare Vorhersage angezeigt.</p>
       <p className="mt-2">Dein Wetterort und dessen Freigabe bleiben lokal. Kleidungsvorlieben können mit deinen übrigen Einstellungen synchronisiert werden. Bei fehlenden Daten bleiben Planung und Packlisten nutzbar.</p>
       <p className="mt-2"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">Open-Meteo</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">Daten: CC BY 4.0</a>. Stundenwerte werden zusammengefasst; Vorschläge folgen deinen Regeln. Keine amtlichen Wetterwarnungen.</p>
+      <p className="mt-2">Ortssuche: GeoNames-Daten über <a href="https://github.com/open-meteo/geocoding-api" target="_blank" rel="noreferrer" className="underline">Open-Meteo Geocoding</a>, <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY-NC 4.0</a>. Verwendung für nichtkommerzielle Zwecke.</p>
     </details>
   </Card>
 }

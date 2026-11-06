@@ -53,6 +53,6 @@ export function WeatherCard({ date: selectedDate }: { date?: string }) {
       <p className={stale ? 'text-sm text-warm' : 'text-sm text-muted'}>{stale ? 'Ältere Vorhersage, ' : ''}Stand {stand(data!.fetchedAt)} (Berliner Zeit).</p>
     </> : <p>{result?.key === key ? 'Wetter gerade nicht verfügbar. Planung und Packliste bleiben nutzbar.' : 'Wetter wird abgefragt …'}</p>}
     <Button size="sm" variant="ghost" disabled={refreshing} onClick={() => void refresh()}>Wetter neu abfragen</Button>
-    <p className="text-xs text-muted"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">Open-Meteo</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>. Stundenwerte zusammengefasst, Vorschläge nach deinen Regeln.</p>
+    <p className="text-xs text-muted"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">Open-Meteo</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>. Stundenwerte zusammengefasst, Vorschläge nach deinen Regeln. Ortssuche: <a href="https://github.com/open-meteo/geocoding-api" target="_blank" rel="noreferrer" className="underline">GeoNames über Open-Meteo</a> (<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY-NC 4.0</a>).</p>
   </Card>
 }
