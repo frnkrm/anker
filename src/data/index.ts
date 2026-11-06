@@ -1,27 +1,24 @@
 import { Capacitor } from '@capacitor/core'
-import { MemoryRepository } from './memory'
 import type { Repository } from './types'
 
 export * from './types'
 
 let repo: Repository | undefined
+let opening: Promise<Repository> | undefined
 
-/** Wählt das passende Repository: SQLite auf Android, IndexedDB im Web, Arbeitsspeicher als Notlösung. */
-export async function getRepository(): Promise<Repository> {
-  if (repo) return repo
-  try {
-    if (Capacitor.isNativePlatform()) {
-      const { SqliteRepository } = await import('./sqlite')
-      repo = new SqliteRepository()
-    } else {
-      const { DexieRepository } = await import('./dexie')
-      repo = new DexieRepository()
-    }
-    await repo.init()
-  } catch (e) {
-    console.warn('Speicher nicht verfügbar, nutze Arbeitsspeicher', e)
-    repo = new MemoryRepository()
-    await repo.init()
-  }
-  return repo
+/** Erst nach erfolgreichem Öffnen veröffentlichen; ein Fehler darf keinen flüchtigen Speicher vortäuschen. */
+export function getRepository(): Promise<Repository> {
+  if (repo) return Promise.resolve(repo)
+  opening ??= (async () => {
+    const candidate = Capacitor.isNativePlatform()
+      ? new (await import('./sqlite')).SqliteRepository()
+      : new (await import('./dexie')).DexieRepository()
+    await candidate.init()
+    repo = candidate
+    return candidate
+  })().catch(() => {
+    // Keine SQL-/Datei-/Nutzinhalte in Meldung oder Konsole übernehmen.
+    throw new Error('Der lokale Speicher konnte nicht geöffnet werden. Bitte versuche es erneut.')
+  }).finally(() => { opening = undefined })
+  return opening
 }

@@ -1,5 +1,5 @@
 import { App as CapApp } from '@capacitor/app'
-import { lazy, Suspense, useEffect, useEffectEvent } from 'react'
+import { lazy, Suspense, useEffect, useEffectEvent, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
 import { startEffects } from './platform/effects'
 import { refreshCalendar, writeAnkerBlocks } from './platform/google'
@@ -9,6 +9,7 @@ import { listenForAuthLinks, syncNow } from './platform/supabase'
 import { useApp } from './state/store'
 import { useGeofenceLifecycle } from './state/useGeofences'
 import { InboxSheet, Shell } from './ui/components/Shell'
+import { Button } from './ui/components/ui'
 import Now from './ui/pages/Now'
 
 const Onboarding = lazy(() => import('./ui/pages/Onboarding'))
@@ -112,15 +113,51 @@ function Home() {
   return onboarded ? <Now /> : <Navigate to="/start" replace />
 }
 
+/** Der Datenbestand wird bei einem Ladefehler nicht durch einen leeren RAM-Erfolg ersetzt. */
+function StorageRecovery({ onRetry }: { onRetry: () => void }) {
+  const [ringing, setRinging] = useState<boolean>()
+  const [stopping, setStopping] = useState(false)
+  const [stopError, setStopError] = useState(false)
+  useEffect(() => {
+    if (!isNative()) return
+    let active = true
+    void AnkerNative.getAlarmState().then((state) => { if (active) setRinging(typeof state.ringing === 'boolean' ? state.ringing : undefined) }).catch(() => undefined)
+    const listener = AnkerNative.addListener('alarmRinging', () => { if (active) setRinging(true) })
+    return () => { active = false; void listener.then((handle) => handle.remove()).catch(() => undefined) }
+  }, [])
+  return <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 px-5 py-8 safe-top">
+    <h1 className="text-2xl font-semibold">Daten gerade nicht erreichbar</h1>
+    <p role="alert">Anker konnte deine gespeicherten Daten noch nicht sicher laden. Es wurde nichts zurückgesetzt.</p>
+    <p className="text-muted">Versuche es erneut. Deine bisherigen Angaben bleiben erhalten.</p>
+    <Button variant="primary" size="lg" onClick={onRetry}>Erneut versuchen</Button>
+    {isNative() && ringing !== false && <div className="space-y-3 rounded-2xl border border-line p-4">
+      <p role="status">{ringing ? 'Dein Wecker klingelt. Du kannst ihn hier im Notfall beenden.' : 'Der Weckerstatus ist gerade nicht abrufbar. Der Notfallstopp bleibt erreichbar.'}</p>
+      <Button variant="warm" className="w-full" disabled={stopping} onClick={async () => {
+        setStopping(true); setStopError(false)
+        try { const state = await AnkerNative.stopAlarm({ method: 'emergency' }); setRinging(typeof state.ringing === 'boolean' ? state.ringing : undefined) }
+        catch { setStopError(true) }
+        finally { setStopping(false) }
+      }}>Wecker im Notfall beenden</Button>
+      {stopError && <p role="alert">Der Wecker konnte noch nicht beendet werden. Du kannst es erneut versuchen.</p>}
+    </div>}
+  </main>
+}
+
 export default function App() {
   const ready = useApp((s) => s.ready)
+  const [loadError, setLoadError] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [attempt, setAttempt] = useState(0)
   useAppearance()
 
   useEffect(() => {
+    let active = true
     void useApp
       .getState()
       .load()
       .then(() => {
+        if (!active) return
+        setLoading(false)
         listenForAuthLinks()
         startEffects({
           sync: async () => {
@@ -137,9 +174,12 @@ export default function App() {
           },
         })
       })
-  }, [])
+      .catch(() => { if (active) { setLoading(false); setLoadError(true) } })
+    return () => { active = false }
+  }, [attempt])
 
-  if (!ready) return <div className="min-h-dvh bg-bg" aria-busy="true" />
+  if (loadError) return <StorageRecovery onRetry={() => { setLoadError(false); setLoading(true); setAttempt((current) => current + 1) }} />
+  if (loading || !ready) return <div className="min-h-dvh bg-bg" aria-busy="true" aria-label="Gespeicherte Daten laden" />
 
   return (
     <BrowserRouter>
