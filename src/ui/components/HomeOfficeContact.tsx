@@ -16,7 +16,8 @@ function quietMoment(date: string): boolean {
   if (plan.dayType !== 'work' || !plan.homeOffice || inQuietHours(m, state.settings)
     || plan.quiet?.some(([start, end]) => m >= start && m < end) || state.local.focus?.timer.status === 'running') return false
   const action = nextNow().action.type
-  return !['sleep', 'night', 'bed', 'wake', 'leave', 'prep', 'go', 'underway', 'away', 'return-check', 'return-later', 'step'].includes(action)
+  // Auch Pause, Ankommen und Freizeit sind Ruhe: die Rückfrage wartet auf Arbeitskontext.
+  return action === 'work' || action === 'worktask'
 }
 
 /** Eine lokale Tageswahl; Kopieren/Teilen ist niemals ein Versand- oder Erledigungsbeweis. */
