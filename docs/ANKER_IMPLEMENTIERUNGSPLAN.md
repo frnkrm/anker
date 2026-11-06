@@ -286,6 +286,12 @@ Code `3313fe5` bis `5bdd3cf` plus bestätigter Weckvertrag ausE04. Lokale Orte b
 
 **Automatisch geprüft:**603 Vitest/52 Dateien, Lint/Typecheck,6/6 frische Produktionsbrowserfälle (4 Orte/Termine/Morgen/Maps plus2 Nachtschichten;35,3s,0Skip). `e04-e09/e06-*`. Zusätzlich PC-Nachbesserung `9683370`: echte fünf Minuten Schonfrist nach tatsächlicher Warnung, strikte ISO-Stempel, Pause/Legacy/Uhrrücksprung geprüft.19/19 isolierte PowerShell7.5.4-Fälle und4 Exportparser grün (`pc-proof-approved.log`); CI erhält eigenen verpflichtenden `test:pc`-Schritt. Das ist Linux-Scriptlogik mit simulierten Systemaktionen, keine Windows-/Abschaltbestätigung. Alle neuen Android-Geräteabläufe bleiben offen. Nächste Integration E07.
 
+### E07 – Wetter und Packlisten integriert; Verkehrsbasis bereit
+
+`6c7e5df`/`fc5d02b`/`54b3063`: Wetterwerte vollständig prüfen, fehlend bleibt unbekannt, alter Ort und spät eintreffende Antwort werden nicht unter neuem Ort angezeigt. Stundenfenster richten sich nach konkretem Außenweg; Anbieter/Alter/Offlinecache bleiben sichtbar. Wetteraktivierung/Koordinaten liegen im lokalen Profil, Syncprojektion bereinigt den alten Settings-Ort in beide Richtungen. Abschließender zentraler Altbackup-/Load-Migrationsanschluss wird zusätzlich geprüft. Kundenorte verlassen das Gerät erst nach eigener Zweckfreigabe. Vorlagen für Kundenbesuch/Sport/Ausgehen und eigene Dinge nutzen dieselbe lokale Termininstanz; vorbereitet ist kein Routine-/Arbeitsabschluss. Offizielle Forecast-/Geocodingherkunft und unterschiedliche Lizenzen werden getrennt ausgewiesen.
+
+Frisch6/6 Produktionsbrowserfälle inklusive320px/160%Schrift, Stadtwechsel/fehlendeWerte/Offline/Pack-Roundtrip (`e07-browser.log`,36,2s); Logiklauf629 Tests/55Dateien grün (`e07-unit.log`). Während dieses Zwischenlaufs wurden zwei unabhängige Assistance-Commits früh übernommen; deshalb zählt dies als Zwischenbeleg, der gesamte endgültige Stand wird erneut frisch geprüft. Providerbasis ist geschlossen/default-off, vollständiger Trafficadapter samt Vorschau und Revisionsschutz folgt vor E08-Abschluss. Tatsächliche Kosten-/Kontoeinrichtung bleibt bewusst offen. Keine neuen Handytests.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`
