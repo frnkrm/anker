@@ -7,7 +7,7 @@ import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
 import { planFor, useApp } from '../state/store'
 import { AssistanceError } from './assistance'
-import { acceptRouteProposal, clearRouteProposal, currentTrafficContext, proposalCurrent, refreshRouteEstimates, requestRouteEstimate, routeIssue, routeProposal } from './traffic'
+import { acceptRouteProposal, cancelAutomaticRouteRequests, clearRouteProposal, currentTrafficContext, proposalCurrent, refreshRouteEstimates, requestRouteEstimate, routeIssue, routeProposal } from './traffic'
 
 const mocks = vi.hoisted(() => ({ repo: undefined as Repository | undefined, request: vi.fn<(input: AssistantRequest, signal?: AbortSignal) => Promise<AssistantResult>>() }))
 vi.mock('../data', () => ({ getRepository: async () => mocks.repo! }))
@@ -23,7 +23,7 @@ function options() {
   const context = currentTrafficContext(visit.id)!
   return { origin: context.origin!, destination: context.destination!, mode: 'driving' as const, timing: 'arrival' as const, at: new Date(context.arrivalAt).toISOString() }
 }
-function result(input: RouteRequest): AssistantResult {
+function result(input: RouteRequest): Extract<AssistantResult, { kind: 'route' }> {
   return { kind: 'route', revision: input.revision, route: { durationMin: 65, estimated: true, source: 'Google Routes', fetchedAt: Date.now(), travelAt: input.at, mode: input.mode, trafficAware: true } }
 }
 function deferred<T>() {
@@ -33,7 +33,7 @@ function deferred<T>() {
 }
 
 beforeEach(async () => {
-  vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(zonedToUtc(date, 6 * 60))
+  vi.useFakeTimers(); vi.setSystemTime(zonedToUtc(date, 6 * 60))
   mocks.repo = new MemoryRepository()
   useApp.setState({ ready: false, settings: defaultSettings(date), local: emptyLocal(), workUndo: undefined })
   await useApp.getState().load()
@@ -42,7 +42,7 @@ beforeEach(async () => {
   mocks.request.mockReset()
   mocks.request.mockImplementation(async (input) => result(input as RouteRequest))
 })
-afterEach(() => { clearRouteProposal(visit.id); vi.useRealTimers(); vi.restoreAllMocks() })
+afterEach(() => { clearRouteProposal(visit.id); vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks() })
 
 describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale Effekte', () => {
   it('sendet ohne Zweck- oder Einmalfreigabe sowie unterwegs nichts', async () => {
@@ -81,6 +81,15 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
     gate.resolve(result(mocks.request.mock.calls[0]![0] as RouteRequest))
     await rejected
     expect(routeProposal(visit.id)).toBeUndefined()
+    expect(useApp.getState().local.commitments[0]?.travelMin).toBe(45)
+  })
+
+  it('entfernt abgelaufene Anbieterinformationen auch ohne neue Anfrage aus dem Arbeitsspeicher', async () => {
+    await requestRouteEstimate(visit.id, options())
+    expect(routeProposal(visit.id)).toBeDefined()
+    await vi.advanceTimersByTimeAsync(15 * 60_000)
+    expect(routeProposal(visit.id)).toBeUndefined()
+    expect(mocks.request).toHaveBeenCalledOnce()
     expect(useApp.getState().local.commitments[0]?.travelMin).toBe(45)
   })
 
@@ -133,6 +142,37 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
     expect(useApp.getState().local.commitments[0]?.travelMin).toBe(45)
   })
 
+  it('verdrängt bei voller lokaler Abrufgrenze keine noch relevanten Merker zugunsten neuer kostenpflichtiger Versuche', async () => {
+    const routeChecks = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`seen-${index}`, { at: Date.now(), revision: 'seen' }]))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true }, routeChecks } }))
+    const writes = vi.spyOn(mocks.repo!, 'putMany')
+    await refreshRouteEstimates()
+    expect(mocks.request).not.toHaveBeenCalled()
+    expect(writes).not.toHaveBeenCalled()
+    expect(useApp.getState().local.assistance!.routeChecks).toEqual(routeChecks)
+  })
+
+  it('sendet nach einer zwischen Abrufmerker und Anfrage vorgenommenen Terminänderung keine alte Reisezeit', async () => {
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    const save = useApp.getState().saveLocal
+    vi.spyOn(useApp.getState(), 'saveLocal').mockImplementationOnce(async (fn) => {
+      await save(fn)
+      await save((local) => ({ ...local, commitments: local.commitments.map((item) => ({ ...item, start: item.start + 60 })) }))
+    })
+    try { await refreshRouteEstimates() } finally { useApp.setState({ saveLocal: save }) }
+    expect(mocks.request).not.toHaveBeenCalled()
+    expect(useApp.getState().local.commitments[0]?.start).toBe(visit.start + 60)
+  })
+
+  it('verwirft einen Antwortbezug auf ein anderes Verkehrsmittel oder eine andere Reisezeit', async () => {
+    mocks.request.mockImplementationOnce(async (input) => {
+      const reply = result(input as RouteRequest)
+      return { ...reply, route: { ...reply.route, mode: 'transit' } }
+    })
+    await expect(requestRouteEstimate(visit.id, options())).rejects.toMatchObject({ issue: 'invalid-response' })
+    expect(routeProposal(visit.id)).toBeUndefined()
+  })
+
   it('startet ohne Automatik keine Anfrage und bricht bewusste manuelle Anfragen dabei nicht ab', async () => {
     await refreshRouteEstimates()
     expect(mocks.request).not.toHaveBeenCalled()
@@ -143,5 +183,19 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
     expect(mocks.request.mock.calls[0]?.[1]?.aborted).toBe(false)
     gate.resolve(result(mocks.request.mock.calls[0]![0] as RouteRequest))
     expect(await querying).toBeDefined()
+  })
+
+  it('beendet beim Ausschalten nur die automatische Anfrage und übernimmt keine späte Antwort', async () => {
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    const gate = deferred<AssistantResult>()
+    mocks.request.mockReturnValueOnce(gate.promise)
+    const querying = requestRouteEstimate(visit.id, { ...options(), automatic: true })
+    const rejected = expect(querying).rejects.toMatchObject({ issue: 'cancelled' })
+    cancelAutomaticRouteRequests()
+    expect(mocks.request.mock.calls[0]?.[1]?.aborted).toBe(true)
+    gate.resolve(result(mocks.request.mock.calls[0]![0] as RouteRequest))
+    await rejected
+    expect(routeProposal(visit.id)).toBeUndefined()
+    expect(useApp.getState().local.commitments[0]?.travelMin).toBe(45)
   })
 })

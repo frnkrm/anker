@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { assistanceAllowed, type AssistantTravelMode } from '../../core/assistance'
 import { fromBerlinDateTimeInput, toBerlinDateTimeInput } from '../../core/evening'
 import { parseRoutePoint, routePointText, routeRequestNeedsOneShot } from '../../core/traffic'
-import { acceptRouteProposal, cancelRouteRequest, clearRouteProposal, currentTrafficContext, proposalCurrent, requestRouteEstimate, routeIssue, routeProposal, subscribeRouteProposals } from '../../platform/traffic'
+import { acceptRouteProposal, cancelAutomaticRouteRequests, cancelRouteRequest, clearRouteProposal, currentTrafficContext, proposalCurrent, requestRouteEstimate, routeIssue, routeProposal, subscribeRouteProposals } from '../../platform/traffic'
 import { useNow } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { Button, Sheet, Stepper, TextInput, Toggle } from './ui'
@@ -65,7 +65,7 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
     pending.current = true; setBusy(true); setError(''); setMessage('')
     const request = new AbortController(); controller.current = request
     try {
-      await requestRouteEstimate(commitmentId, { origin: originPoint, destination: destinationPoint, mode, at: new Date(timestamp).toISOString(), timing, oneShot }, request.signal)
+      await requestRouteEstimate(commitmentId, { origin: originPoint, destination: destinationPoint, mode, at: new Date(timestamp).toISOString(), timing, oneShot, expectedSignature: formSignature }, request.signal)
       if (!request.signal.aborted) setOpen(false)
     } catch (reason) {
       if (!request.signal.aborted) setError(reason instanceof Error ? reason.message : 'Die Schätzung ist gerade nicht verfügbar. Deine manuelle Planung bleibt erhalten.')
@@ -125,6 +125,7 @@ export function RouteCheckPreferences() {
   if (!assistanceAllowed(state.local.assistance, 'routes') || !consent) return null
   const save = async (patch: { automatic?: boolean; changeThresholdMin?: number }) => {
     if (busy) return
+    if (patch.automatic === false) cancelAutomaticRouteRequests()
     setBusy(true); setError('')
     try { await state.saveLocal((local) => {
       if (!local.assistance?.routes || !assistanceAllowed(local.assistance, 'routes')) return local

@@ -106,6 +106,7 @@ export function routeCheckKey(context: TrafficContext, stage: RouteCheckStage): 
 export function automaticRouteRequest(state: TrafficState, context: TrafficContext, now: number): { request: RouteRequest; key: string } | undefined {
   if (!assistanceAllowed(state.local.assistance, 'routes') || state.local.assistance?.routes?.automatic !== true
     || !context.origin || !context.destination) return undefined
+  if (Object.values(state.local.assistance.routeChecks ?? {}).filter((entry) => entry.at > now - 3 * 86400_000).length >= 100) return undefined
   const stage = routeCheckStage(context, now)
   if (!stage) return undefined
   const key = routeCheckKey(context, stage)
