@@ -296,7 +296,36 @@ export interface DayPlan {
   workInfo?: WorkInfo
 }
 
-export interface InboxItem {
+export type TaskRef = { kind: 'task' | 'work'; id: string }
+/** Erledigung bleibt kompatibel in done/doneAt; diese Zustände gelten für offene Handlungen. */
+export type TaskState = 'pending' | 'active' | 'paused' | 'partial' | 'deferred' | 'not-needed' | 'cancelled'
+export interface TaskPart {
+  id: string
+  title: string
+  estimateMin?: number
+  doneAt?: number
+}
+export interface TaskFields {
+  description?: string
+  nextStep?: string
+  priority?: 'low' | 'normal' | 'high'
+  deadline?: number
+  earliestStart?: number
+  estimateMin?: number
+  context?: 'any' | 'home' | 'work' | 'errand'
+  energy?: 'low' | 'medium' | 'high'
+  state?: TaskState
+  startedAt?: number
+  deferredUntil?: number
+  done?: boolean
+  doneAt?: number
+  doneMode?: 'full' | 'minimal'
+  subtasks?: TaskPart[]
+  recurrence?: { seriesId: string; everyDays: number; occurrenceDate: DateStr }
+  source?: { kind: 'capture' | 'manual' | 'repeat'; id?: string }
+}
+
+export interface InboxItem extends TaskFields {
   id: string
   text: string
   createdAt: number
@@ -313,10 +342,12 @@ export interface InboxItem {
   reviewAt?: number
   /** Freiwillige Erinnerung zur Wiedervorlage, ohne Gedankeninhalt auf dem Sperrbildschirm. */
   reviewNotify?: boolean
+  /** Verknüpfte Notiz; keine Kopie der verknüpften Aufgabe. */
+  linkedTo?: TaskRef
 }
 
 /** Berufliche Aufgabe. Bleibt lokal auf dem Gerät und wird nicht synchronisiert. */
-export interface WorkTask {
+export interface WorkTask extends TaskFields {
   id: string
   title: string
   nextStep?: string
@@ -335,6 +366,9 @@ export interface ResumePoint {
   nextStep?: string
   refId?: string
   at: number
+  /** Konkreter Rückweg, statt den Merker beim Wiederfinden nur zu löschen. */
+  route?: string
+  note?: string
 }
 
 /** Privater nächster Schritt. Bleibt bis zur bewussten Erledigung oder Löschung auf diesem Gerät. */
