@@ -50,10 +50,21 @@ export function validCommitment(value: unknown): value is Commitment {
 export function validPlanningLocal(value: unknown): boolean {
   if (!object(value)) return false
   return (value.places === undefined || (Array.isArray(value.places) && unique(value.places, validPlace)))
-    && (value.commitments === undefined || (Array.isArray(value.commitments) && unique(value.commitments, validCommitment)))
+    && (value.commitments === undefined || (Array.isArray(value.commitments) && unique(value.commitments, validCommitment) && uniqueSources(value.commitments)))
 }
 
-function unique<T extends { id: string }>(values: unknown[], valid: (value: unknown) => value is T): boolean {
+function uniqueSources(values: Commitment[]): boolean {
+  const seen = new Set<string>()
+  return values.every((commitment) => {
+    if (!commitment.source || commitment.status === 'cancelled') return true
+    const key = JSON.stringify([commitment.date, commitment.source.provider, commitment.source.id])
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+function unique<T extends { id: string }>(values: unknown[], valid: (value: unknown) => value is T): values is T[] {
   const ids = new Set<string>()
   return values.every((value) => valid(value) && !ids.has(value.id) && !!ids.add(value.id))
 }

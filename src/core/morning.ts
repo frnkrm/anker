@@ -14,9 +14,9 @@ export function morningAnchors(input: {
   if (input.work && input.work.readyAt < 12 * 60) result.push({ id: 'work', ...input.work, prepMin: 0 })
   for (const leg of input.legs) {
     const c = leg.commitment
-    if (c.commitment !== 'hard' || c.workKind === 'oncall' || c.start < 4 * 60 || c.start >= 12 * 60) continue
-    const kind = leg.toKey === 'home' ? 'home' : locationKind(c)
-    const prepMin = c.prepMin ?? (kind === 'remote' ? input.settings.travel.homeOfficeStartupMin : kind === 'home' ? 0 : input.settings.travel.prepMin)
+    if (c.commitment !== 'hard' || c.workKind === 'oncall' || c.start < 0 || c.start >= 12 * 60) continue
+    const kind = locationKind(c)
+    const prepMin = c.prepMin ?? (kind === 'remote' ? input.settings.travel.homeOfficeStartupMin : leg.toKey === 'home' ? 0 : input.settings.travel.prepMin)
     result.push({
       id: `commitment:${c.id}`,
       label: c.label,
@@ -29,7 +29,7 @@ export function morningAnchors(input: {
   for (const event of input.events) {
     if (event.allDay) continue
     const start = minutesOnPlanDay(input.date, event.start)
-    if (start < 4 * 60 || start >= 12 * 60) continue
+    if (start < 0 || start >= 12 * 60) continue
     // Ohne bewusst verknüpften lokalen Termin wissen wir nicht, ob eine Fahrt nötig ist.
     result.push({ id: `event:${event.id}`, label: event.title, readyAt: start, prepMin: input.settings.travel.homeOfficeStartupMin, uncertain: true })
   }

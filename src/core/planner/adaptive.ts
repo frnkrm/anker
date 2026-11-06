@@ -51,7 +51,18 @@ export function planLegs(commitments: Commitment[], ctx: LegContext): Leg[] {
     const previous = active[i - 1]
     if (previous) {
       const kind = locationKind(previous, ctx.places)
-      if (previous.backAt !== undefined || previous.thenTo === 'home' || kind === 'home') origin = originPlace('home', ctx.places)
+      if (kind === 'remote') {
+        // Auch „Remote-Einsatz beendet“ ist keine physische Rückkehr nach Hause.
+      } else if (previous.backAt !== undefined || kind === 'home') origin = originPlace('home', ctx.places)
+      else if (previous.thenTo === 'home') {
+        const nextKind = locationKind(c, ctx.places)
+        const nextKey = nextKind === 'home' ? 'home' : c.placeId ?? c.id
+        const onward = nextKind === 'remote' ? 0 : travelBetween(c, 'home', nextKey, ctx)
+        const buffer = nextKind === 'remote' || nextKind === 'home' ? 0 : c.arrivalBufferMin ?? t.arrivalBufferMin
+        const leaveHome = c.start - buffer - (onward ?? 0)
+        const returned = previous.end !== undefined && previous.travelHomeMin !== undefined && previous.end + previous.travelHomeMin <= leaveHome
+        origin = originPlace(returned ? 'home' : 'unknown', ctx.places)
+      }
       else if (kind === 'onsite') {
         const label = placeLabel(previous, ctx.places)
         origin = label ? { key: previous.placeId ?? previous.id, label } : originPlace('unknown', ctx.places)
