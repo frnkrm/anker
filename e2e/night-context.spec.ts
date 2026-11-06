@@ -4,10 +4,20 @@ import { zonedToUtc } from '../src/core/time'
 import type { LocalData, Settings } from '../src/core/types'
 import { currentWorkActual } from '../src/core/worktime'
 import { storedRecord } from './helpers/storage'
+import { heldRecordsProbe, holdRecordsWrites, releaseRecordsWrites } from './helpers/held-records'
 
 const date = '2026-11-02'
 const nextDate = '2026-11-03'
 const local = (page: Page) => storedRecord<LocalData>(page, 'meta', 'local')
+async function finishOnboarding(page: Page) {
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await onboardingFinished(page)
+}
+async function onboardingFinished(page: Page) {
+  // Der Klick bestätigt nur die Eingabe. Erst der abgeschlossene Write erlaubt den Dokumentwechsel.
+  await expect(page).toHaveURL(/\/$/)
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
+}
 async function at(page: Page, day: string, minute: number) {
   await page.clock.setFixedTime(new Date(zonedToUtc(day, minute)))
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
@@ -60,7 +70,7 @@ for (const kind of ['regular', 'incident'] as const) {
     await at(page, date, 23 * 60 + 40)
     await page.goto('/start')
     await page.getByRole('button', { name: 'Weiter', exact: true }).click()
-    await page.getByRole('button', { name: /Passt, los/ }).click()
+    await finishOnboarding(page)
     await page.goto('/arbeitszeit')
     await page.getByRole('button', { name: kind === 'regular' ? 'Arbeit starten' : 'Kundenproblem jetzt bearbeiten', exact: true }).click()
     await expect.poll(async () => (await local(page))?.workSessions.length).toBe(1)
@@ -93,3 +103,28 @@ for (const kind of ['regular', 'incident'] as const) {
     expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(before)
   })
 }
+
+test('Nacht-Testaufbau verlässt die Ersteinrichtung erst nach ihrem echten Settings-Commit', async ({ page }) => {
+  await at(page, date, 23 * 60 + 40)
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
+  await holdRecordsWrites(page)
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect.poll(async () => (await heldRecordsProbe(page)).writes.some((write) => write.collection === 'settings' && write.id === 'main')).toBe(true)
+  let continued = false
+  const completing = onboardingFinished(page).then(() => { continued = true })
+  await Promise.resolve()
+  try {
+    expect((await heldRecordsProbe(page)).writes.some((write) => write.committed)).toBe(false)
+    expect(continued, 'Der Test darf vor dem Ersteinrichtungs-Commit keinen harten Seitenwechsel starten.').toBe(false)
+    await expect(page).toHaveURL(/\/start$/)
+  } finally {
+    await releaseRecordsWrites(page)
+    await completing
+  }
+  await page.goto('/arbeitszeit')
+  await expect(page).toHaveURL(/\/arbeitszeit$/)
+  expect((await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Arbeitszeit', exact: true })).toBeVisible()
+})
