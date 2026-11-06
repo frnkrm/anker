@@ -133,8 +133,8 @@ export function drainActions(): Promise<void> {
       // Unknown legacy records without an ID need native migration; never spin or apply them blindly.
       if (!ids.length || legacy) return
     }
-  })().catch((error: unknown) => {
-    console.warn('[Anker] Erinnerungsrückmeldung bleibt zur erneuten Verarbeitung erhalten.', error)
+  })().catch(() => {
+    console.warn('[Anker] Erinnerungsrückmeldung bleibt zur erneuten Verarbeitung erhalten.')
     useApp.getState().showToast('Deine Rückmeldung konnte noch nicht gespeichert werden. Anker versucht es beim nächsten Öffnen erneut.')
   }).finally(() => { if (activeDrain === task) activeDrain = undefined })
   activeDrain = task
@@ -149,5 +149,5 @@ let focusUpdates: Promise<void> = Promise.resolve()
 /** Preserve ordering when a step ends while the next one starts, or when leaving the page. */
 export function mirrorReminderFocus(until: number): void {
   if (!isNative()) return
-  focusUpdates = focusUpdates.catch(() => undefined).then(() => AnkerNative.setReminderFocus({ until })).catch((error: unknown) => { console.warn('[Anker] Fokusruhe konnte nicht übernommen werden.', error) })
+  focusUpdates = focusUpdates.catch(() => undefined).then(() => AnkerNative.setReminderFocus({ until })).catch(() => { console.warn('[Anker] Fokusruhe konnte nicht übernommen werden.') })
 }

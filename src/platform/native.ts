@@ -212,7 +212,7 @@ export async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn()
   } catch {
-    console.warn('[Anker] Eine optionale Funktion ist gerade nicht verfügbar.')
+    console.warn('[Anker] optionale Funktion fehlgeschlagen.')
     return fallback
   }
 }
