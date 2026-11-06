@@ -284,8 +284,10 @@ function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: Lo
     local.planUndo ??= {}
     local.planUndo[date] ??= { at: Date.now(), commitments: structuredClone(local.commitments.filter((commitment) => commitment.date === date)) }
     const before = log.before ?? { override: structuredClone(log.override), steps: structuredClone(log.steps) }
+    const performed = Object.fromEntries(Object.entries(log.steps).filter(([, result]) => result === 'done' || result === 'minimal'))
+    const confirmedBackAt = log.override.backAt
     log = edit(log, local)
-    log = { ...log, before, override: { ...log.override, adjusted: true }, changes: [...(log.changes ?? []), label] }
+    log = { ...log, before, steps: { ...log.steps, ...performed }, override: { ...log.override, adjusted: true, ...(confirmedBackAt !== undefined ? { backAt: confirmedBackAt } : {}) }, changes: [...(log.changes ?? []), label] }
     pauseChangedRoutine(local, log)
     const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: log } })
     const award = applyAwards(plan, log, st.game, st.settings)

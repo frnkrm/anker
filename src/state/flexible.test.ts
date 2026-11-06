@@ -114,4 +114,14 @@ describe('Rückgängig bewahrt echte Handlungen und private Termine', () => {
     expect(app().local.commitments[0]?.status).toBe('planned')
     expect(app().days[date]?.override.light).toBeUndefined()
   })
+
+  it('überschreibt mit einer noch offenen Planänderung keine inzwischen wirklich bestätigten Schritte', async () => {
+    const step = app().settings.routines.evening[0]!
+    const key = `evening:${step.id}`
+    await app().setStep(date, 'evening', step.id, 'done')
+    const xp = app().game.xp
+    await app().adjustDay(date, 'Routine heute nicht nötig', (log) => ({ ...log, steps: { ...log.steps, [key]: 'not-needed' } }))
+    expect(app().days[date]?.steps[key]).toBe('done')
+    expect(app().game.xp).toBe(xp)
+  })
 })
