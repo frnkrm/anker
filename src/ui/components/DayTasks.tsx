@@ -1,27 +1,24 @@
 import { useState } from 'react'
 import { DEFAULT_TASK_MIN, suggestTaskWindow, tasksFor } from '../../core/support'
-import { addDays, daysBetween, fmtTime, type DateStr } from '../../core/time'
+import { daysBetween, fmtTime, type DateStr } from '../../core/time'
 import type { DayPlan } from '../../core/types'
 import { useApp } from '../../state/store'
 import { Button, Card, Section } from './ui'
+import { TaskCard } from './TaskDetails'
 
 /** Flexible Aufgaben eines Tages. Dieselben Einträge wie in der Inbox, also nur eine Wahrheit. */
 export function DayTasks({ date, plan }: { date: DateStr; plan: DayPlan }) {
   const st = useApp()
+  const [showAll, setShowAll] = useState(false)
   const tasks = tasksFor(st.inbox, date)
   if (!tasks.length) return null
   const win = suggestTaskWindow(plan, tasks[0]?.estimateMin ?? DEFAULT_TASK_MIN)
   return (
     <Section title="Flexibel" hint={win ? (win.fits ? `Passt etwa ab ${fmtTime(win.start)}, kein fester Termin.` : 'Heute wird es eng. Ein kleiner Anfang reicht, oder verschiebe es.') : undefined}>
-      {tasks.map((x) => (
-        <div key={x.id} className="flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4 py-2">
-          <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" aria-label={`${x.text} erledigt`} checked={false} onChange={() => st.setInboxDone(x.id, true)} />
-          <span className="flex-1">{x.text}</span>
-          <Button size="sm" variant="ghost" onClick={() => st.updateInbox(x.id, { taskDate: addDays(date, 1) })}>
-            Später
-          </Button>
-        </div>
+      {(showAll ? tasks : tasks.slice(0, 3)).map((x) => (
+        <TaskCard key={x.id} taskRef={{ kind: 'task', id: x.id }} task={x} />
       ))}
+      {tasks.length > 3 && <button type="button" className="min-h-11 px-1 text-sm text-muted underline" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? 'Weniger Aufgaben zeigen' : `${tasks.length - 3} weitere Aufgaben`}</button>}
     </Section>
   )
 }
