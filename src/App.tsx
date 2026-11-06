@@ -22,6 +22,7 @@ const Evening = lazy(() => import('./ui/pages/Evening'))
 const SleepDiary = lazy(() => import('./ui/pages/SleepDiary'))
 const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
+const AssistanceSettings = lazy(() => import('./ui/pages/AssistanceSettings'))
 const Work = lazy(() => import('./ui/pages/Work'))
 const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
 const Places = lazy(() => import('./ui/pages/Places'))
@@ -154,6 +155,7 @@ export default function App() {
             <Route path="/abend" element={<Evening />} />
             <Route path="/schlaf" element={<SleepDiary />} />
             <Route path="/einstellungen/abenduebergang" element={<WindDown />} />
+            <Route path="/einstellungen/assistenz" element={<AssistanceSettings />} />
             <Route path="/einstellungen" element={<Settings />} />
             <Route path="/einstellungen/:section" element={<Settings />} />
             <Route path="/essen" element={<Food />} />

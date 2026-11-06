@@ -74,6 +74,7 @@ export default function Settings() {
         <Row label="Morgenroutine" sub={`${s.routines.morning.length} Schritte · ${fmtDuration(sumMinutes(s.routines.morning))}`} to="/einstellungen/morgenroutine" />
       </Section>
       <Section title="App">
+        <Row label="Optionale Vorschläge" sub="KI und Verkehr bewusst freigeben" to="/einstellungen/assistenz" />
         <Row label="Erinnerungen" sub={{ gentle: 'Sanft', normal: 'Normal', persistent: 'Hartnäckig' }[s.reminders.intensity]} to="/einstellungen/erinnerungen" />
         <Row label="Alltagshilfen" sub="Fokus-Puls, Ankommen, Spiel" to="/einstellungen/hilfen" />
         <Row label="Darstellung & Thema" to="/einstellungen/darstellung" />

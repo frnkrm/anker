@@ -8,6 +8,7 @@ import { addDays, zonedToUtc } from '../../core/time'
 import type { InboxItem, TaskFields, TaskPart, TaskRef, WorkTask } from '../../core/types'
 import { today, useApp } from '../../state/store'
 import { SortableList } from './Sortable'
+import { TaskAssistance } from './TaskAssistance'
 import { Button, Card, Segmented, Stepper, TextInput, Toggle } from './ui'
 
 const FIELD = 'min-h-12 min-w-0 w-full max-w-full rounded-xl bg-surface-2 px-3'
@@ -156,6 +157,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
       <h4 className="font-semibold">Kleine Schritte</h4>
       <Segmented<TaskDetailDepth> label="Detailtiefe" value={depth} onChange={setDepth} options={[{ value: 'three', label: '3 Schritte' }, { value: 'normal', label: 'Normal' }, { value: 'tiny', label: 'Sehr klein' }]} />
       <Button size="sm" onClick={() => setPreview(decomposeTask(title, depth, parts))}>In kleine Schritte zerlegen</Button>
+      <TaskAssistance taskRef={taskRef} task={task} depth={depth} />
       {preview && <div className="space-y-2 rounded-xl bg-surface-2 p-3"><p className="text-sm text-muted">Lokaler Vorschlag aus Vorlagen. Du kannst die offenen Schritte danach bearbeiten; erledigte Teile bleiben erhalten.</p><ol className="list-decimal space-y-1 pl-5">{preview.map((part) => <li key={part.id} className="break-words">{part.doneAt !== undefined ? '✓ ' : ''}{part.title}</li>)}</ol><div className="flex flex-wrap gap-2"><Button size="sm" disabled={busy} onClick={() => run(async () => { await st.replaceTaskParts(taskRef, preview); setPreview(undefined) }, 'Schritte gespeichert.')}>Vorschlag übernehmen</Button><Button size="sm" variant="ghost" onClick={() => setPreview(undefined)}>Verwerfen</Button></div></div>}
       <fieldset disabled={busy} className="min-w-0">
         <SortableList items={parts} onChange={(next) => void run(() => st.replaceTaskParts(taskRef, next))} render={(part, index) => <div className="space-y-2">
