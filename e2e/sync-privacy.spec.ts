@@ -16,6 +16,9 @@ async function onboard(page: Page) {
   await page.goto(`${server.url}/start`)
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await page.getByRole('button', { name: /Passt, los/ }).click()
+  // Der Klick startet finish(); erst sein dauerhafter Settings-Commit erlaubt den harten Seitenwechsel.
+  await expect(page).toHaveURL(`${server.url}/`)
+  await expect.poll(async () => (await settings(page))?.onboarded).toBe(true)
   await page.goto(`${server.url}/verbindungen`)
   await expect(page.getByText('Angemeldet als browser-fixture@example.invalid', { exact: true })).toBeVisible()
 }
