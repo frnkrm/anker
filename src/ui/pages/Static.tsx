@@ -1,10 +1,11 @@
 import { Browser } from '@capacitor/browser'
-import { useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { makeBackup, parseBackup } from '../../core/export/backup'
-import { printSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
-import { pickTextFile, saveFile } from '../../platform/files'
+import { printSheets, preparePrintSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
+import { pickTextFile, saveFile, shareLocalFile } from '../../platform/files'
 import { AnkerNative, isNative, safe } from '../../platform/native'
+import { waitForPrintReady } from '../../platform/print'
 import { repository, today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
 import { Button, Card, Page, Row, Section, Segmented } from '../components/ui'
@@ -151,34 +152,53 @@ export function Backup() {
  */
 export function Print() {
   const s = useApp((x) => x.settings)
-  const toast = useApp((x) => x.showToast)
+  const activeTest = useApp((x) => x.local.deviceTests?.activeId)
   const [params] = useSearchParams()
   const initial = params.get('typ') as PrintChoice | null
   const [choice, setChoice] = useState<PrintChoice>(initial && PRINT_CHOICES.some((c) => c.value === initial) ? initial : 'both')
   const [size, setSize] = useState<PaperSize>('A5')
   const [msg, setMsg] = useState<string>()
+  const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
+  const content = useRef<HTMLDivElement>(null)
   const sheets = printSheets(choice, s)
 
-  const print = async () => {
-    setMsg(undefined)
-    // Schriften und QR-Code müssen fertig sein, sonst bleibt die Seite im Druck leer
-    await document.fonts?.ready
-    await new Promise((r) => setTimeout(r, 150))
-    if (!isNative()) {
-      window.print()
-      return
-    }
-    const r = await safe(() => AnkerNative.printPage({ jobName: `Anker ${PRINT_CHOICES.find((c) => c.value === choice)?.label ?? ''}`.trim(), size }), { opened: false })
-    if (!r.opened) {
-      setMsg('Android konnte den Druckdialog nicht öffnen. Öffne die Seite in der Web-Version am PC, dort klappt das Drucken auch.')
-      toast('Drucken gerade nicht möglich.')
-    }
+  const run = async (action: () => Promise<void>) => {
+    if (busyRef.current) return
+    busyRef.current = true; setBusy(true); setMsg(undefined)
+    try {
+      if (!content.current) return
+      await waitForPrintReady(content.current)
+      await action()
+    } catch (error) {
+      setMsg(error instanceof Error ? error.message : 'Das Dokument konnte nicht vorbereitet werden. Bitte versuche es erneut.')
+    } finally { busyRef.current = false; setBusy(false) }
   }
+  const nativeDocument = () => ({ size, fontScale: s.appearance.fontScale, sheets: preparePrintSheets(sheets) })
+  const print = () => run(async () => {
+    if (isNative()) {
+      const result = await safe(() => AnkerNative.printPage({ jobName: `Anker ${PRINT_CHOICES.find((c) => c.value === choice)?.label ?? ''}`.trim(), ...nativeDocument() }), { opened: false })
+      setMsg(result.opened ? 'Druckdialog geöffnet.' : 'Android konnte den Druckdialog nicht öffnen. Du kannst stattdessen unten eine PDF-Datei erstellen und teilen.')
+    } else {
+      window.print(); setMsg('Druckdialog geöffnet. Ob du druckst oder abbrichst, entscheidest du dort.')
+    }
+  })
+  const pdf = () => run(async () => {
+    const result = await AnkerNative.exportPrintPdf(nativeDocument())
+    setMsg('PDF-Datei erstellt. Wähle im Teilen-Menü, wo du sie speichern oder öffnen möchtest.')
+    try {
+      await shareLocalFile(`Anker ${size}.pdf`, result.uri)
+      setMsg('PDF-Datei erstellt und Teilen-Menü geöffnet. Anker bestätigt keinen Versand oder Ausdruck.')
+    } catch {
+      setMsg('Die PDF-Datei wurde erstellt. Das Teilen wurde beendet oder konnte nicht geöffnet werden. Du kannst es erneut versuchen.')
+    }
+  })
 
   return (
-    <div className="mx-auto max-w-xl px-4 pb-16 safe-top" data-paper={size}>
+    <div ref={content} className="mx-auto max-w-xl px-4 pb-16 safe-top" data-paper={size} data-print-root>
       <style>{`@media print { @page { size: ${size}; margin: 10mm; } }`}</style>
-      <div className="no-print mb-4 space-y-3">
+      <fieldset disabled={busy} className="no-print mb-4 min-w-0 space-y-3 border-0 p-0">
+        {activeTest !== undefined && <Link to={`/geraetetest?fall=${activeTest}`} className="flex min-h-11 items-center rounded-xl bg-surface-2 px-3 text-accent">Zurück zu Test {activeTest}</Link>}
         <div className="flex items-center gap-2">
           <Button onClick={() => history.back()}>‹ Zurück</Button>
           <h1 className="text-xl font-semibold">Druckansicht</h1>
@@ -196,12 +216,14 @@ export function Print() {
         <Button variant="primary" size="lg" className="w-full" onClick={print}>
           Drucken oder als PDF speichern
         </Button>
+        {isNative() && <Button size="lg" className="w-full" onClick={pdf}>PDF-Datei erstellen und teilen</Button>}
+        {busy && <p role="status" className="text-sm text-muted">Dokument wird vorbereitet …</p>}
         {msg && (
           <p className="text-warm" role="status">
             {msg}
           </p>
         )}
-      </div>
+      </fieldset>
       {sheets.map((sheet) =>
         sheet.kind === 'qr' ? (
           <section key={sheet.id} data-sheet={sheet.id} className="print-page mx-auto mb-6 flex w-full max-w-md flex-col items-center justify-center rounded-2xl bg-white p-8 text-center text-black">
@@ -215,9 +237,9 @@ export function Print() {
             <h2 className="mb-1 text-3xl font-bold">{sheet.title}</h2>
             {sheet.subtitle && <p className="mb-4 text-lg">{sheet.subtitle}</p>}
             <ul className="mt-4 space-y-3 text-xl">
-              {sheet.items.map((item) => (
-                <li key={item} className="flex items-center gap-3">
-                  <span className="print-box inline-block h-6 w-6 shrink-0 rounded border-2 border-black" aria-hidden="true" />
+              {sheet.items.map((item, index) => (
+                <li key={`${sheet.id}:${index}`} className="relative whitespace-pre-wrap break-words pl-10">
+                  <span className="print-box absolute left-0 top-1 inline-block h-6 w-6 rounded border-2 border-black" aria-hidden="true" />
                   {item}
                 </li>
               ))}

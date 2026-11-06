@@ -8,6 +8,11 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(s)
 }
 
+/** A local file already created by a native renderer; opening Share is not a delivery receipt. */
+export async function shareLocalFile(name: string, uri: string): Promise<void> {
+  await Share.share({ title: name, files: [uri] })
+}
+
 /** Speichert bzw. teilt eine Datei: im Browser als Download, auf Android über das Teilen-Menü. */
 export async function saveFile(name: string, content: string | Uint8Array, mime: string): Promise<void> {
   const bytes = typeof content === 'string' ? new TextEncoder().encode(content) : content

@@ -92,6 +92,7 @@ export default function Focus() {
         <Button variant="primary" size="xl" className="mt-10 w-full" onClick={() => nav('/')}>
           Weiter
         </Button>
+        <Link to={`/druck?typ=${r}`} className="mt-3 flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>
       </div>
     )
   }
@@ -111,6 +112,7 @@ export default function Focus() {
           {mode && mode !== 'normal' && <span className="block text-sm">{MODE_LABEL[mode]}</span>}
         </span>
         <div className="flex w-24 justify-end">
+          <Link to={`/druck?typ=${r}`} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-xl text-muted" aria-label={r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}>🖨️</Link>
           <InboxButton />
         </div>
       </header>

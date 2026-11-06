@@ -103,12 +103,14 @@ input[type='time']::-webkit-calendar-picker-indicator {
 
 /* Druckansicht */
 @media print {
-  html { font-size: 100%; }
+  html { font-size: calc(16px * var(--font-scale, 1)); }
   html, body, #root, main { background: #fff !important; color: #000 !important; min-height: 0 !important; }
+  #root > :not(main) { display: none !important; }
   .no-print { display: none !important; }
+  [data-print-root] { max-width: none !important; padding: 0 !important; }
   .print-page {
     break-after: page;
-    break-inside: avoid;
+    break-inside: auto;
     color: #000;
     max-width: none !important;
     width: 100% !important;
@@ -118,5 +120,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
     box-shadow: none !important;
   }
   .print-page:last-child { break-after: auto; }
+  .print-page h2 { break-after: avoid; }
+  .print-page li { break-inside: avoid; overflow-wrap: anywhere; }
   .print-page [role='img'] { border-radius: 0; padding: 0; }
 }

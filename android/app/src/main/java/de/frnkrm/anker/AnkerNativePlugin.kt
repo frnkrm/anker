@@ -20,8 +20,6 @@ import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.print.PrintAttributes
-import android.print.PrintManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -306,25 +304,31 @@ class AnkerNativePlugin : Plugin() {
 
     // ---------- Druck ----------
 
-    /** Öffnet den Android-Druckdialog (dort ist „Als PDF speichern“ wählbar) für die aktuelle Seite. */
+    /** Druckt nur die gewählten Daten über einen eigenen, vollständig lokalen WebView. */
     @PluginMethod
     fun printPage(call: PluginCall) {
         val name = call.getString("jobName") ?: "Anker"
-        val a4 = call.getString("size") == "A4"
-        activity.runOnUiThread {
-            try {
-                val pm = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
-                val adapter = bridge.webView.createPrintDocumentAdapter(name)
-                val attrs = PrintAttributes.Builder()
-                    .setMediaSize(if (a4) PrintAttributes.MediaSize.ISO_A4 else PrintAttributes.MediaSize.ISO_A5)
-                    .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
-                    .build()
-                pm.print(name, adapter, attrs)
-                ok(call, "opened" to true)
-            } catch (e: Exception) {
-                ok(call, "opened" to false)
+        try {
+            val sheets = PrintRenderer.readSheets(call.getArray("sheets") ?: throw IllegalArgumentException("Missing sheets"))
+            val paper = PrintPaper.of(call.getString("size"))
+            val fontScale = (call.getDouble("fontScale") ?: 1.0).toFloat().also { require(it.isFinite()) }
+            activity.runOnUiThread { PrintRenderer.openDialog(activity, name, sheets, paper, fontScale) { opened -> ok(call, "opened" to opened) } }
+        } catch (_: Exception) { call.reject("Die Druckauswahl konnte nicht vorbereitet werden. Bitte wähle weniger oder kürzere Schritte und versuche es erneut.") }
+    }
+
+    @PluginMethod
+    fun exportPrintPdf(call: PluginCall) {
+        try {
+            val sheets = PrintRenderer.readSheets(call.getArray("sheets") ?: throw IllegalArgumentException("Missing sheets"))
+            val paper = PrintPaper.of(call.getString("size"))
+            val fontScale = (call.getDouble("fontScale") ?: 1.0).toFloat().also { require(it.isFinite()) }
+            execute {
+                try {
+                    val exported = PrintRenderer.exportPdf(context, sheets, paper, fontScale)
+                    call.resolve(JSObject().apply { put("uri", Uri.fromFile(exported.file).toString()); put("pages", exported.pages) })
+                } catch (_: Exception) { call.reject("Die PDF-Datei konnte nicht erstellt werden. Es wurde nichts geteilt oder gedruckt.") }
             }
-        }
+        } catch (_: Exception) { call.reject("Die PDF-Auswahl konnte nicht vorbereitet werden. Bitte wähle weniger oder kürzere Schritte und versuche es erneut.") }
     }
 
     // ---------- Fokus-Puls ----------

@@ -3,6 +3,7 @@ import type { NativeAlarmConfig } from '../core/alarm'
 import type { NativeReminderRuleSnapshot } from '../core/reminders/rules'
 import type { ReminderAction } from '../core/reminders/actions'
 import type { ReminderPolicy } from '../core/reminders/build'
+import type { PaperSize, PrintDocumentSheet } from '../core/print'
 
 export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
 
@@ -108,7 +109,9 @@ export interface AnkerNativePlugin {
   ackReminderActions(o: { ids: string[] }): Promise<void>
   setReminderFocus(o: { until: number }): Promise<void>
   /** Öffnet den Android-Druckdialog. opened=false, wenn das System ihn nicht zeigen konnte. */
-  printPage(o: { jobName: string; size: 'A5' | 'A4' }): Promise<{ opened: boolean }>
+  printPage(o: { jobName: string; size: PaperSize; fontScale: number; sheets: PrintDocumentSheet[] }): Promise<{ opened: boolean }>
+  /** Local PDF export, also when Android's print service is unavailable. */
+  exportPrintPdf(o: { size: PaperSize; fontScale: number; sheets: PrintDocumentSheet[] }): Promise<{ uri: string; pages: number }>
   vibratePulse(o: { strength: 'gentle' | 'strong' }): Promise<void>
   canUseFullScreenIntent(): Promise<{ granted: boolean }>
   openFullScreenIntentSettings(): Promise<void>
