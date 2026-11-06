@@ -508,6 +508,8 @@ export interface Commitment {
   /** Nur nach eigener Wahl: Vorbereitung ist bereits in der Morgenroutine enthalten. */
   prepIncludesMorning?: boolean
   items?: string[]
+  /** Bewusst vorbereitete Packgegenstände; bleibt wie der Termin ausschließlich lokal. */
+  preparedItems?: string[]
   source?: { provider: string; id: string }
   /** Ersetzt den Weg ins Büro an diesem Tag */
   replacesCommute?: boolean
@@ -542,7 +544,26 @@ export interface Leg {
 export interface WeatherCache {
   key: string
   fetchedAt: number
+  /** Alte, ungeprüfte Parsercaches werden nicht als bestätigte Messwerte weiterverwendet. */
+  validated?: true
   hours: { date: string; minutes: number; tempC: number; apparentC: number; rainPct: number; windKmh: number }[]
+}
+
+/** Gewählter Wetterort und Freigabe bleiben auf diesem Gerät, unabhängig vom Settings-Sync. */
+export interface WeatherProfile {
+  enabled: boolean
+  city: string
+  lat?: number
+  lng?: number
+  revision?: string
+}
+
+/** Wiederverwendbare persönliche Packvorlage, nicht Teil des allgemeinen Settings-Sync. */
+export interface PackTemplate {
+  id: string
+  label: string
+  context: 'customer' | 'sport' | 'going-out'
+  items: string[]
 }
 
 export type MedsStatus = 'taken' | 'not-taken' | 'unsure'
@@ -585,6 +606,8 @@ export interface LocalData {
   commitments: Commitment[]
   places: Place[]
   weather?: WeatherCache
+  weatherProfile?: WeatherProfile
+  packTemplates?: PackTemplate[]
   work: WorkTask[]
   /** Erfasste Arbeitszeiten */
   workSessions: WorkSession[]

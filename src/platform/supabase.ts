@@ -6,6 +6,7 @@ import { buildPcStopCommands, pcStopPublicationText, type PcStopPublication } fr
 import { planFor, repository, today, useApp } from '../state/store'
 import { isNative, safe } from './native'
 import { pullRecords } from './syncPull'
+import { weatherRecordForSync } from '../core/weatherProfile'
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -73,13 +74,13 @@ export async function syncNow(): Promise<SyncMeta> {
     const dirty = (await repo.dirty()).filter((r) => r.collection !== 'meta')
     if (dirty.length) {
       const { error } = await c.rpc('upsert_records', {
-        recs: dirty.map((r) => ({ collection: r.collection, id: r.id, data: r.data, updated_at: r.updated_at, deleted: r.deleted })),
+        recs: dirty.map(weatherRecordForSync).map((r) => ({ collection: r.collection, id: r.id, data: r.data, updated_at: r.updated_at, deleted: r.deleted })),
       })
       if (error) throw error
       await repo.markClean(dirty)
     }
     // Pull: alle Seiten, auch bei mehr als 1000 Datensätzen mit demselben Zeitstempel.
-    const pulled = await pullRecords(c, { merge: (records) => useApp.getState().mergeRecords(records) }, meta.cursor)
+    const pulled = await pullRecords(c, { merge: (records) => useApp.getState().mergeRecords(records.map(weatherRecordForSync)) }, meta.cursor)
     const next: SyncMeta = { cursor: pulled.cursor, lastSync: Date.now() }
     await repo.put('meta', 'sync', next)
     if (pulled.changed) await useApp.getState().load()

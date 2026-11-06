@@ -1,56 +1,82 @@
 import { addDays } from '../core/time'
+import { currentWeatherProfile, weatherTarget, type WeatherTarget } from '../core/weatherProfile'
+import { parseForecast, WEATHER_CACHE_MS, weatherAge } from '../core/weather'
 import type { WeatherCache } from '../core/types'
 import { useApp } from '../state/store'
 
-// Open-Meteo: kein API-Key, für private nichtkommerzielle Nutzung frei (CC BY 4.0, unter 10.000 Abrufen am Tag).
-// Übertragen wird nur der gewählte Ort, keine Termine, keine GPS-Abfrage. Aus, bis du es einschaltest.
-const CACHE_MS = 3 * 3600_000
+// Open-Meteo: freiwillig, ohne API-Key für private nichtkommerzielle Nutzung; Daten CC BY 4.0.
+// Anfragen enthalten ausschließlich freigegebene Koordinaten, nie Termintexte oder eine GPS-Abfrage.
+const RETRY_MS = 60_000
+const inFlight = new Map<string, Promise<WeatherCache | undefined>>()
+const attemptedAt = new Map<string, number>()
+let latestRequest = 0
 
-interface ForecastResponse {
-  hourly: { time: string[]; temperature_2m: number[]; apparent_temperature: number[]; precipitation_probability: number[]; wind_speed_10m: number[] }
-}
+interface City { name: string; lat: number; lng: number }
+const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
+const coordinate = (value: unknown, max: number): value is number => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= max
 
-/** Sucht den vom Nutzer eingegebenen Ort. null = nichts gefunden oder nicht erreichbar. */
-export async function findCity(name: string): Promise<{ name: string; lat: number; lng: number } | null> {
+export async function findCity(name: string): Promise<City | null> {
+  const query = name.trim()
+  if (!query || query.length > 200) return null
   try {
-    const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=de&format=json&name=${encodeURIComponent(name)}`)
-    if (!r.ok) return null
-    const first = ((await r.json()) as { results?: { name: string; latitude: number; longitude: number }[] }).results?.[0]
-    return first ? { name: first.name, lat: first.latitude, lng: first.longitude } : null
-  } catch {
-    return null
-  }
+    const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=de&format=json&name=${encodeURIComponent(query)}`, { signal: AbortSignal.timeout(12_000) })
+    if (!response.ok) return null
+    const body: unknown = await response.json()
+    const first: unknown = object(body) && Array.isArray(body.results) ? body.results[0] : undefined
+    if (!object(first) || typeof first.name !== 'string' || !first.name.trim() || !coordinate(first.latitude, 90) || !coordinate(first.longitude, 180)) return null
+    return { name: first.name, lat: first.latitude, lng: first.longitude }
+  } catch { return null }
 }
 
-/** Liefert die Vorhersage aus dem Cache oder dem Netz. undefined heißt: gerade nicht verfügbar. Nie etwas Erfundenes. */
-export async function loadWeather(force = false): Promise<WeatherCache | undefined> {
-  const st = useApp.getState()
-  const w = st.settings.weather
-  if (!w.enabled || w.lat === undefined || w.lng === undefined) return undefined
-  const key = `${w.lat},${w.lng}`
-  const cached = st.local.weather
-  if (!force && cached?.key === key && Date.now() - cached.fetchedAt < CACHE_MS) return cached
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lng}&hourly=temperature_2m,apparent_temperature,precipitation_probability,wind_speed_10m&forecast_days=3&timezone=Europe%2FBerlin`
-    const r = await fetch(url)
-    if (!r.ok) return cached?.key === key ? cached : undefined
-    const h = ((await r.json()) as ForecastResponse).hourly
-    const hours = h.time.map((t, i) => ({
-      date: t.slice(0, 10),
-      minutes: Number(t.slice(11, 13)) * 60,
-      tempC: h.temperature_2m[i] ?? 0,
-      apparentC: h.apparent_temperature[i] ?? 0,
-      rainPct: h.precipitation_probability[i] ?? 0,
-      windKmh: h.wind_speed_10m[i] ?? 0,
-    }))
-    const next: WeatherCache = { key, fetchedAt: Date.now(), hours }
-    await st.saveLocal((l) => ({ ...l, weather: next }))
-    return next
-  } catch {
-    return cached?.key === key ? cached : undefined
-  }
+function contextFor(target: WeatherTarget): string | undefined {
+  const state = useApp.getState()
+  const profile = currentWeatherProfile(state.settings, state.local)
+  if (!profile?.enabled) return undefined
+  const current = weatherTarget(profile, state.local.places, target.source === 'place' ? target.placeId : undefined)
+  if (!current || current.key !== target.key || current.source !== target.source || current.placeId !== target.placeId) return undefined
+  return JSON.stringify([profile.enabled, profile.city, profile.lat, profile.lng, profile.revision, current.source, current.placeId, current.key])
 }
 
-export function tomorrowOf(today: string) {
-  return addDays(today, 1)
+/** Eine freie Offline-Erweiterung: niemals Wecker/Termine verändern oder fremde Ortsantworten übernehmen. */
+export function loadWeather(force = false, requested?: WeatherTarget): Promise<WeatherCache | undefined> {
+  const state = useApp.getState()
+  const target = requested ?? weatherTarget(currentWeatherProfile(state.settings, state.local), state.local.places)
+  if (!target) return Promise.resolve(undefined)
+  const context = contextFor(target)
+  if (!context) return Promise.resolve(undefined)
+  const running = inFlight.get(context)
+  if (running) return running
+  const requestId = ++latestRequest
+  const cache = state.local.weather
+  const age = cache?.key === target.key ? weatherAge(cache) : undefined
+  const fallback = age === undefined ? undefined : cache
+  if (!force && age !== undefined && age < WEATHER_CACHE_MS) return Promise.resolve(fallback)
+  const lastAttempt = attemptedAt.get(context)
+  if (lastAttempt !== undefined && Date.now() - lastAttempt >= 0 && Date.now() - lastAttempt < RETRY_MS) return Promise.resolve(fallback)
+  attemptedAt.set(context, Date.now())
+  if (attemptedAt.size > 64) attemptedAt.delete(attemptedAt.keys().next().value!)
+  const current = () => latestRequest === requestId && contextFor(target) === context
+  const loading = (async (): Promise<WeatherCache | undefined> => {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${target.lat}&longitude=${target.lng}&hourly=temperature_2m,apparent_temperature,precipitation_probability,wind_speed_10m&forecast_days=3&timezone=Europe%2FBerlin`
+      const response = await fetch(url, { signal: AbortSignal.timeout(12_000) })
+      if (!response.ok) return current() ? fallback : undefined
+      const hours = parseForecast(await response.json())
+      if (!hours || !current()) return current() ? fallback : undefined
+      const next: WeatherCache = { key: target.key, fetchedAt: Date.now(), validated: true, hours }
+      let saved = false
+      await useApp.getState().saveLocal((local) => {
+        // Dieser Callback läuft erst in der Store-Schreibbarriere; Freigabe auch hier erneut prüfen.
+        if (!current()) return local
+        saved = true
+        return { ...local, weather: next }
+      })
+      return saved && current() ? next : undefined
+    } catch { return current() ? fallback : undefined }
+  })()
+  inFlight.set(context, loading)
+  void loading.finally(() => { if (inFlight.get(context) === loading) inFlight.delete(context) })
+  return loading
 }
+
+export function tomorrowOf(today: string) { return addDays(today, 1) }

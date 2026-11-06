@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import { defaultSettings } from '../core/defaults'
 import type { Rec, Repository } from '../data/types'
 import { MemoryRepository } from '../data/memory'
 
@@ -21,7 +22,7 @@ vi.mock('./native', () => ({
   },
 }))
 
-afterEach(() => vi.unstubAllEnvs())
+afterEach(() => { vi.unstubAllEnvs(); vi.resetModules() })
 
 it('übernimmt exakt 1000 Datensätze erst nach der leeren Schlussseite und lädt den Store nach einem Retry', async () => {
   vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co')
@@ -70,4 +71,40 @@ it('übernimmt exakt 1000 Datensätze erst nach der leeren Schlussseite und läd
   expect(await context.repo.list('inbox')).toHaveLength(1000)
   expect(context.load).toHaveBeenCalledOnce()
   expect(lowerBounds).toEqual([before, before, before, before])
+})
+
+it('überträgt Wetterstadt und Koordinaten weder aus Settings noch aus altem Remote-Sync', async () => {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co')
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-only')
+  context.load.mockClear()
+  const settings = defaultSettings('2026-11-06')
+  settings.weather = { ...settings.weather, enabled: true, city: 'Lokale Teststadt', lat: 51.12345, lng: 9.12345 }
+  context.repo = new MemoryRepository()
+  await context.repo.put('settings', 'main', settings)
+  const pushed: unknown[] = []
+  const pages = [
+    { data: [{ collection: 'settings', id: 'main', data: { ...settings, weather: { ...settings.weather, city: 'Alter Remoteort', lat: 53.45678 } }, updated_at: Date.now() + 1000, deleted: false, server_updated_at: '2026-11-07T12:00:00Z' }], error: null },
+    { data: [], error: null },
+  ]
+  context.client = {
+    auth: { getSession: async () => ({ data: { session: { user: { id: 'user' } } } }) },
+    async rpc(_name: string, payload: unknown) { pushed.push(payload); return { error: null } },
+    from(table: string) {
+      if (table === 'pc_stop') return { upsert: async () => ({ error: null }) }
+      const query = {
+        select() { return query }, order() { return query }, limit() { return query }, or() { return query }, gte() { return query },
+        then(resolve: (page: (typeof pages)[number]) => unknown) { return Promise.resolve(pages.shift()!).then(resolve) },
+      }
+      return query
+    },
+  }
+  const { syncNow } = await import('./supabase')
+  await syncNow()
+  expect(pushed).toHaveLength(1)
+  expect(JSON.stringify(pushed)).not.toContain('Lokale Teststadt')
+  expect(JSON.stringify(pushed)).not.toContain('51.12345')
+  expect(JSON.stringify(pushed)).not.toContain('9.12345')
+  const received = await context.repo.get<typeof settings>('settings', 'main')
+  expect(received?.weather).toEqual({ enabled: false, city: '', rules: settings.weather.rules })
+  expect(JSON.stringify(received)).not.toContain('Alter Remoteort')
 })
