@@ -8,6 +8,7 @@ export default function More() {
         <Row label="🌗 Schlafüberblick" sub="Deine eigenen Angaben zu Müdigkeit, Bett und Aufstehen" to="/schlaf" />
         <Row label="💼 Arbeit" to="/arbeit" />
         <Row label="⏱️ Arbeitszeit & Einsätze" to="/arbeitszeit" />
+        <Row label="📍 Orte & manuelle Wege" to="/orte" />
         <Row label="🍳 Essen & Vorkochen" to="/essen" />
         <Row label="🧹 Aufräumen (10 Minuten)" to="/aufraeumen" />
         <Row label="🎒 Abend-Vorbereitung" to="/vorbereitung" />

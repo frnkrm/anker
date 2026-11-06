@@ -8,6 +8,7 @@ import { safe } from '../../platform/native'
 import { planFor, useApp } from '../../state/store'
 import { Button, Segmented, Stepper, TextInput, TimeField } from './ui'
 import { useTaskAction } from './TaskDetails'
+import { TravelFields, travelDraftOf, travelFields } from './CommitmentForm'
 
 export function useCopy() {
   const toast = useApp((s) => s.showToast)
@@ -286,8 +287,7 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
   const [date, setDate] = useState(today)
   const [start, setStart] = useState(10 * 60)
   const [minutes, setMinutes] = useState(90)
-  const [place, setPlace] = useState('')
-  const [travel, setTravel] = useState<number>()
+  const [travelDraft, setTravelDraft] = useState(() => ({ ...travelDraftOf(), locationKind: 'onsite' as const }))
   const { busy, error, run } = useTaskAction()
   const k = PLAN_KINDS.find((x) => x.value === kind)!
   const onsite = kind === 'onsite'
@@ -303,7 +303,7 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
       end: start + minutes,
       status: 'planned',
       workKind: kind,
-      ...(onsite ? { ...(place.trim() ? { placeLabel: place.trim(), address: place.trim() } : {}), ...(travel !== undefined ? { travelMin: travel } : {}) } : { routeMode: 'none' as const, prepMin: kind === 'oncall' ? 0 : 15 }),
+      ...travelFields({ ...travelDraft, locationKind: onsite ? 'onsite' : 'remote', prepMin: travelDraft.prepMin || String(kind === 'oncall' ? 0 : 15) }),
     }
     await st.adjustCommitment(c, `Einsatz um ${fmtTime(start)}`)
     setTitle('')
@@ -325,17 +325,10 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
         <span>Voraussichtlich</span>
         <Stepper label="Dauer des Einsatzes" value={minutes} step={15} min={15} max={720} onChange={setMinutes} />
       </div>
-      {onsite && (
-        <>
-          <TextInput aria-label="Ort des Einsatzes" placeholder="Ort oder Adresse (freiwillig)" value={place} onChange={(e) => setPlace(e.target.value)} />
-          {place.trim() && (
-            <div className="flex items-center justify-between gap-2">
-              <span>Fahrt in Minuten</span>
-              <input type="number" inputMode="numeric" min={0} max={600} aria-label="Fahrzeit zum Einsatz" className="min-h-12 w-24 rounded-xl bg-surface-2 px-3 text-center" value={travel ?? ''} placeholder="offen" onChange={(e) => setTravel(e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))} />
-            </div>
-          )}
-        </>
-      )}
+      <details className="rounded-xl border border-line p-3">
+        <summary className="min-h-11 cursor-pointer">Weg & Vorbereitung</summary>
+        <TravelFields draft={{ ...travelDraft, locationKind: onsite ? 'onsite' : 'remote' }} onChange={(next) => setTravelDraft({ ...next, locationKind: 'onsite' })} places={st.local.places} showLocation={false} />
+      </details>
       {kind === 'oncall' && <p className="text-sm text-muted">Rufbereitschaft zählt hier nicht als gearbeitete Zeit. Wie sie rechtlich gilt, entscheidet Anker nicht. Läuft ein Einsatz, startest du ihn selbst.</p>}
       {st.settings.flex.legalHints && weekday(date) === 6 && <p className="text-sm text-muted">{SUNDAY_HINT}</p>}
       <Button disabled={busy} variant="primary" size="lg" className="w-full" onClick={save}>

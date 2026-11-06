@@ -24,6 +24,7 @@ const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
 const Work = lazy(() => import('./ui/pages/Work'))
 const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
+const Places = lazy(() => import('./ui/pages/Places'))
 const Check = lazy(() => import('./ui/pages/Check'))
 const DeviceTests = lazy(() => import('./ui/pages/DeviceTests'))
 const PcStop = lazy(() => import('./ui/pages/PcStop'))
@@ -144,6 +145,7 @@ export default function App() {
             <Route path="/tag" element={<Day />} />
             <Route path="/arbeit" element={<Work />} />
             <Route path="/arbeitszeit" element={<WorkTime />} />
+            <Route path="/orte" element={<Places />} />
             <Route path="/spiel" element={<Game />} />
             <Route path="/spiel/shop" element={<Shop />} />
             <Route path="/inbox" element={<Inbox />} />

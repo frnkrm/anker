@@ -354,7 +354,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
     case 'go':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, leftAt: Date.now() })}>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.markCommitment(a.leg.commitment.id, 'leftAt')}>
             Bin los
           </Button>
           <div className="flex gap-2">
@@ -369,13 +369,13 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
       )
     case 'underway':
       return (
-        <Button variant="primary" size="xl" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, arrivedAt: Date.now() })}>
+        <Button variant="primary" size="xl" className="w-full" onClick={() => st.markCommitment(a.leg.commitment.id, 'arrivedAt')}>
           Ich bin angekommen
         </Button>
       )
     case 'away':
       return (
-        <Button size="lg" className="w-full" onClick={() => st.saveCommitment({ ...a.leg.commitment, backAt: Date.now() })}>
+        <Button size="lg" className="w-full" onClick={() => st.markCommitment(a.leg.commitment.id, 'backAt')}>
           Bin wieder da
         </Button>
       )

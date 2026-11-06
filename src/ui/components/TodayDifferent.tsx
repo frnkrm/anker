@@ -1,29 +1,23 @@
 import { useRef, useState } from 'react'
-import { randomId } from '../../core/defaults'
 import { routineCoverage } from '../../core/flexible'
-import { mapsUrl, parseQuickTime } from '../../core/planner'
+import { mapsUrl } from '../../core/planner'
 import { sleepOutlook, wakeProposal } from '../../core/sleep'
 import type { NextAction } from '../../core/support'
 import { addDays, fmtTime } from '../../core/time'
-import type { Commitment, CommitmentKind, DayLog, EventContext, RoutineId } from '../../core/types'
+import type { Commitment, DayLog, RoutineId } from '../../core/types'
 import { Browser } from '@capacitor/browser'
 import { isNative, safe } from '../../platform/native'
 import { pushPcStop } from '../../platform/supabase'
 import { applyWakeChange } from '../../platform/wakeChange'
 import { planFor, useApp } from '../../state/store'
-import { Button, Card, Segmented, Sheet, TextInput, TimeField } from './ui'
+import { Button, Card, Sheet, TimeField } from './ui'
 import { WorkDayForm } from './WorkControls'
+import { CommitmentForm } from './CommitmentForm'
 
 type View = 'menu' | 'event' | 'later' | 'not-needed' | 'late' | 'covered' | 'covered-today' | 'work'
 
 const REASONS = ['Termin', 'Freunde', 'Zu müde', 'Später', 'Nicht nötig']
 
-const KINDS: { value: EventContext; label: string; hard: CommitmentKind }[] = [
-  { value: 'social', label: 'Freunde', hard: 'soft' },
-  { value: 'personal', label: 'Termin', hard: 'hard' },
-  { value: 'customer', label: 'Kunde', hard: 'hard' },
-  { value: 'other', label: 'Unterwegs', hard: 'soft' },
-]
 
 export function openRoute(destination: string, mode?: Commitment['routeMode']) {
   const url = mapsUrl(destination, mode)
@@ -151,99 +145,8 @@ function PickTime({ label, initial, onPick }: { label: string; initial: number; 
 }
 
 /** Wenige Felder. Der Text bleibt Notiz, bis du die Vorschau bestätigst. Nichts wird erfunden. */
-function EventForm({ date, isTomorrow, reason, onDone }: { date: string; isTomorrow: boolean; reason?: string; onDone: (t: string) => void }) {
-  const st = useApp()
-  const { busy, error, run } = usePlanAction()
-  const [text, setText] = useState('')
-  const [kind, setKind] = useState<EventContext>('social')
-  const [start, setStart] = useState<number>()
-  const [end, setEnd] = useState<number>()
-  const [place, setPlace] = useState('')
-  const [travel, setTravel] = useState<number>()
-  const [replaces, setReplaces] = useState(false)
-  const label = text.trim() || (KINDS.find((k) => k.value === kind)?.label ?? 'Termin')
-  const time = start ?? parseQuickTime(text)
-  const day = isTomorrow ? 'Morgen' : 'Heute'
-  const preview = time === undefined ? undefined : `${day} ${fmtTime(time)}, ${label}${place.trim() ? `, ${place.trim()}` : ''}, ${!place.trim() ? 'ohne Fahrt' : travel !== undefined ? `Fahrt ${travel} min` : 'Anfahrt unklar'}, ${end !== undefined ? `bis ${fmtTime(end)}` : 'Ende offen'}.`
-  const custom = KINDS.find((k) => k.value === kind)!
-
-  const save = () => run(async () => {
-    if (time === undefined) return
-    const c: Commitment = {
-      id: randomId(),
-      date,
-      label,
-      context: kind,
-      commitment: custom.hard,
-      start: time,
-      status: 'planned',
-      ...(end !== undefined ? { end } : {}),
-      ...(place.trim() ? { placeLabel: place.trim(), address: place.trim() } : { routeMode: 'none' as const }),
-      ...(travel !== undefined ? { travelMin: travel } : {}),
-      ...(replaces ? { replacesCommute: true } : {}),
-    }
-    await st.adjustCommitment(c, `Termin um ${fmtTime(time)}`, reason)
-    onDone('Okay, heute läuft es anders. Ich passe den Rest an.')
-  })
-
-  return (
-    <fieldset disabled={busy} className="min-w-0 space-y-3">
-      {error && <p role="alert" className="text-warm">{error}</p>}
-      <TextInput autoFocus aria-label="Was hast du vor?" placeholder="Z. B. Film bei einer Freundin ab 17 Uhr" value={text} onChange={(e) => setText(e.target.value)} />
-      <Segmented<EventContext> label="Art" value={kind} options={KINDS.map((k) => ({ value: k.value, label: k.label }))} onChange={setKind} />
-      <div className="flex items-center justify-between gap-2">
-        <span>Beginn</span>
-        <TimeField label="Beginn" value={time ?? 17 * 60} onChange={setStart} />
-      </div>
-      {time === undefined && (
-        <Button size="sm" onClick={() => setStart(17 * 60)}>
-          17:00 übernehmen
-        </Button>
-      )}
-      <div className="flex items-center justify-between gap-2">
-        <span>Ende</span>
-        {end === undefined ? (
-          <div className="flex items-center gap-2">
-            <span className="text-muted">Noch offen</span>
-            <Button size="sm" onClick={() => setEnd((time ?? 17 * 60) + 120)}>
-              Eintragen
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <TimeField label="Ende" value={end} onChange={setEnd} />
-            <Button size="sm" variant="ghost" onClick={() => setEnd(undefined)}>
-              Offen
-            </Button>
-          </div>
-        )}
-      </div>
-      <TextInput aria-label="Ort" placeholder="Ort oder Adresse (freiwillig)" value={place} onChange={(e) => setPlace(e.target.value)} />
-      {place.trim() && (
-        <div className="flex items-center justify-between gap-2">
-          <span>Fahrt in Minuten</span>
-          <input type="number" inputMode="numeric" min={0} max={600} aria-label="Fahrzeit in Minuten" className="min-h-12 w-24 rounded-xl bg-surface-2 px-3 text-center" value={travel ?? ''} placeholder="offen" onChange={(e) => setTravel(e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))} />
-        </div>
-      )}
-      {(kind === 'customer' || kind === 'personal') && place.trim() && (
-        <label className="flex min-h-11 items-center gap-3">
-          <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" checked={replaces} onChange={(e) => setReplaces(e.target.checked)} />
-          Statt ins Büro, nur an diesem Tag
-        </label>
-      )}
-      {preview ? (
-        <>
-          <p className="rounded-xl bg-surface-2 p-3">{preview}</p>
-          <Button variant="primary" size="lg" className="w-full" onClick={save}>
-            So übernehmen
-          </Button>
-        </>
-      ) : (
-        <p className="text-sm text-muted">Mit einer Uhrzeit kann ich den Rest des Tages anpassen.</p>
-      )}
-      <p className="text-sm text-muted">Termine und Orte bleiben auf diesem Gerät.</p>
-    </fieldset>
-  )
+function EventForm({ date, reason, onDone }: { date: string; isTomorrow: boolean; reason?: string; onDone: (message: string) => void }) {
+  return <CommitmentForm date={date} reason={reason} onDone={onDone} />
 }
 
 /** Länger wach: eine freie Entscheidung. Die Folgen stehen sachlich da, entscheiden tust du. */
@@ -344,36 +247,4 @@ function CoveredForm({ date, onDone }: { date: string; onDone: (t: string) => vo
   )
 }
 
-/** Einmalige Weckzeit nach Bestätigung. Solange der Wecker am Gerät ungeprüft ist, steht das auch da. */
-export function WakeSuggestion({ date }: { date: string }) {
-  const st = useApp()
-  const plan = planFor(date)
-  const p = wakeProposal(plan, st.settings)
-  const override = st.days[date]?.override.wakeOverride
-  if (override !== undefined) {
-    return (
-      <Card className="space-y-2">
-        <p>
-          Wecker an diesem Tag einmalig um <strong>{fmtTime(override)}</strong>. Danach gilt wieder {fmtTime(st.settings.anchor.wake)}.
-        </p>
-        <Button size="sm" onClick={() => st.updateDay(date, (l) => {
-          const o = { ...l.override }
-          delete o.wakeOverride
-          return { ...l, override: o }
-        })}>
-          Zurück zu {fmtTime(st.settings.anchor.wake)}
-        </Button>
-      </Card>
-    )
-  }
-  if (!p) return null
-  return (
-    <Card className="space-y-2">
-      <p>{p.text}</p>
-      <p className="text-sm text-muted">Gilt nur für diesen Tag. Lass bis zur Prüfung am Handy den Android-Wecker zusätzlich gestellt.</p>
-      <Button size="sm" onClick={() => st.adjustDay(date, `Wecker ${fmtTime(p.wake)} statt ${fmtTime(plan.wake)}`, (l) => ({ ...l, override: { ...l.override, wakeOverride: p.wake } }))}>
-        Einmalig um {fmtTime(p.wake)} wecken
-      </Button>
-    </Card>
-  )
-}
+export { WakeSuggestion } from './WakeSuggestion'
