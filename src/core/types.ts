@@ -598,6 +598,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Bewusste Kontaktwahl je Homeoffice-Tag, kein Versand- oder Arbeitserfassungsnachweis. */
+  homeOfficeContact?: Record<DateStr, { status: 'done' | 'not-needed' | 'later'; at: number; remindAt?: number }>
   /** Optionale Vorschlagsdienste: Zweckfreigaben und technische Abrufgrenzen ausschließlich lokal. */
   assistance?: AssistancePreferences
   /** Private Rücknahmebasis für bewusste Tagesänderungen, niemals Teil des synchronisierten DayLog. */

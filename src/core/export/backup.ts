@@ -52,7 +52,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
         if (object(data.assistance)) data = { ...data, assistance: without(data.assistance, ['routeChecks']) }
       }
       if (!selection.work) {
-        data = without(data, ['work', 'workSessions', 'handover'])
+        data = without(data, ['work', 'workSessions', 'handover', 'homeOfficeContact'])
         if (workReference(data.resume)) data = without(data, ['resume'])
         if (object(data.captureDraft) && workReference(data.captureDraft.context)) data = without(data, ['captureDraft'])
         if (object(data.focus) && workReference(data.focus.target)) data = without(data, ['focus'])
@@ -112,7 +112,7 @@ export function previewImport(incoming: unknown, current: readonly Rec[]): Impor
   const prepared = validatedRecords([...winners.values()])
   const local = records.find((record) => !record.deleted && record.collection === 'meta' && record.id === 'local')?.data
   const sensitive = object(local) ? [
-    ...(['work', 'workSessions', 'handover'].some((field) => Object.hasOwn(local, field)) ? ['Arbeitsaufgaben und Zeiten'] : []),
+    ...(['work', 'workSessions', 'handover', 'homeOfficeContact'].some((field) => Object.hasOwn(local, field)) ? ['Arbeitsaufgaben und Zeiten'] : []),
     ...(['meds', 'sleepDiary'].some((field) => Object.hasOwn(local, field)) ? ['Einnahme- oder Schlafprotokoll'] : []),
     ...(['places', 'commitments'].some((field) => Object.hasOwn(local, field)) ? ['Orte und Termine'] : []),
   ] : []

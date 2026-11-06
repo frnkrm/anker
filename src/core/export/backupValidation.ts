@@ -12,6 +12,7 @@ import { validTaskFields, validTaskRef } from '../tasks'
 import { validPlanningLocal } from '../travel'
 import { validWeatherLocal } from '../weatherProfile'
 import { validWorkSession } from '../worktime'
+import { validHomeOfficeContacts } from '../homeOfficeContact'
 
 export const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const text = (value: unknown): value is string => typeof value === 'string'
@@ -118,7 +119,7 @@ function validInbox(value: unknown, id: string): boolean {
 }
 
 function validLocal(value: unknown): boolean {
-  if (!object(value) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
+  if (!object(value) || !validHomeOfficeContacts(value.homeOfficeContact) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
     || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)) return false
   if (object(value.planUndo) && !Object.values(value.planUndo).every((entry) => object(entry) && validPlanningLocal({ commitments: entry.commitments }))) return false
   if (!optional(value, 'workSessions', (v) => Array.isArray(v) && v.every(validWorkSession))) return false
