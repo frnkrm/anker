@@ -325,6 +325,15 @@ export interface TaskFields {
   source?: { kind: 'capture' | 'manual' | 'repeat'; id?: string }
 }
 
+export interface TaskDurationSample {
+  id: string
+  key: string
+  label: string
+  minutes: number
+  at: number
+  confirmed: true
+}
+
 export interface InboxItem extends TaskFields {
   id: string
   text: string
@@ -525,6 +534,9 @@ export interface LocalData {
   /** Erfasste Arbeitszeiten */
   workSessions: WorkSession[]
   resume?: ResumePoint
+  /** Textentwurf bleibt lokal, auch wenn die Gedankenliste optional synchronisiert wird. */
+  captureDraft?: { id: string; text: string; context?: ResumePoint; updatedAt: number }
+  taskLearning?: { enabled: boolean; samples: TaskDurationSample[] }
   tomorrowSteps: TomorrowStep[]
   /** Nächte nach Datum; weder Wecker noch Tagespunkte tragen hier etwas ein. */
   sleepDiary: Record<DateStr, SleepDiaryEntry>
