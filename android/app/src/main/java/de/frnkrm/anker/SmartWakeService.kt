@@ -59,6 +59,7 @@ class SmartWakeService : Service(), SensorEventListener {
                 put("message", p.getString("message", "Für diese Nacht noch nicht gestartet."))
                 put("targetAt", p.getLong("targetAt", 0))
                 put("windowAt", p.getLong("windowAt", 0))
+                put("preWakePausedForTargetAt", AlarmController.state(ctx).preWakePausedForTargetAt)
                 put("hasMotion", ctx.getSystemService(SensorManager::class.java)?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null)
                 put("microphoneGranted", ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
             }
@@ -134,9 +135,11 @@ class SmartWakeService : Service(), SensorEventListener {
             val nm = getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(NotificationChannel(CHANNEL, "Aktivitäts-Weckfenster", NotificationManager.IMPORTANCE_LOW).apply { setSound(null, null) })
             showForeground(false)
-            recordStatus("waiting", "Vorbereitet. Auswertung nur im gewählten Weckfenster.", true)
-            if (System.currentTimeMillis() >= windowAt) beginMeasurement()
-            else getSystemService(AlarmManager::class.java).setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, windowAt, windowIntent(this))
+            if (System.currentTimeMillis() < windowAt) {
+                getSystemService(AlarmManager::class.java).setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, windowAt, windowIntent(this))
+                if (!AlarmController.prepareSmartWake(this, targetAt)) throw IllegalStateException("Weckplan hat sich geändert")
+                recordStatus("waiting", "Vorbereitet. Der Vorwecker pausiert für diese Nacht, auch nach Messungsende. Der feste Hauptwecker bleibt gestellt.", true)
+            } else beginMeasurement()
             handler.removeCallbacks(tick)
             handler.postDelayed(tick, if (sampling) 10_000 else 60_000)
         } catch (_: Exception) { finish("error", "Die Messung konnte nicht gestartet werden. Prüfe Mikrofonfreigabe und exakte Wecker. Der feste Wecker bleibt gestellt.") }
@@ -171,6 +174,7 @@ class SmartWakeService : Service(), SensorEventListener {
             if (recorder.state != AudioRecord.STATE_INITIALIZED) throw IllegalStateException("Mikrofon nicht verfügbar")
             recorder.startRecording()
             if (recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) throw IllegalStateException("Mikrofon nicht verfügbar")
+            if (!AlarmController.prepareSmartWake(this, targetAt)) throw IllegalStateException("Weckplan hat sich geändert")
             sampling = true
             detector = SmartWakeDetector(now, targetAt)
             wakeLock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "anker:smart-window").apply {
@@ -193,7 +197,7 @@ class SmartWakeService : Service(), SensorEventListener {
                 finally { buffer.fill(0) }
             }, "AnkerSmartWake").start()
             showForeground(true)
-            recordStatus("measuring", "Bewegung und Geräuschaktivität werden im Weckfenster ausgewertet. Keine Schlafphasenmessung.", true)
+            recordStatus("measuring", "Bewegung und Geräuschaktivität werden ausgewertet. Der Vorwecker pausiert für diese Nacht. Keine Schlafphasenmessung.", true)
             handler.removeCallbacks(tick)
             handler.postDelayed(tick, 10_000)
         } catch (_: Exception) { finish("error", "Sensoren oder Mikrofon sind nicht verfügbar. Der feste Wecker bleibt gestellt.") }

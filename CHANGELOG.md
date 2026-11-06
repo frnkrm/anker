@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 1.2.0-rc.2 in Entwicklung (2026-11-06)
+
+- Öffnungslinks aus Widget/Benachrichtigung sperren die Navigation nicht mehr durch erneutes Öffnen nach jedem Seitenwechsel. Neue Links und klingelnde Wecker bleiben erreichbar.
+- Eine bewusst gestartete Aktivitäts-Messnacht pausiert ihren Vorwecker. Hinweis vor dem Start sowie im Mess- und Weckerstatus; Hauptwecker und gespeicherte Vorwecker-Einstellung bleiben erhalten. Die Pause gilt auch nach Messungsende bis zu diesem Haupttermin, neue Termine verwenden wieder die Einstellung.
+- Geführte Gerätefälle64/65 ergänzen Navigation und Vorweckerpause. Neue Ergebnisse bleiben bis zum eigenen Test offen.
+
+Automatische Nachweise im Testprotokoll; diese Korrekturen sind noch nicht am Handy geprüft. E02 wird anschließend im selben Update ergänzt.
+
 ## Unveröffentlicht: E00-Audit und erste E01-Verbesserungen
 
 Versionsnummer unverändert. Automatische Nachweise und Grenzen in [ANKER_TESTNACHWEISE.md](docs/ANKER_TESTNACHWEISE.md); diese Änderungen sind **noch nicht auf dem Galaxy geprüft**, kein Release/APK.

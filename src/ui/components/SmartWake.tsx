@@ -41,6 +41,7 @@ export function SmartWake() {
   }, 'Einstellung gespeichert. Die Messung startest du für jede Nacht bewusst.')
   const planned = st.alarmStatus?.scheduledAt ?? nextAlarmTimes(buildAlarmConfig(st.settings, st.days, today()), Date.now()).mainAt
   const window = smartWakeWindow(state?.active ? state.targetAt : planned, settings.windowMinutes)
+  const pausedUntil = state?.preWakePausedForTargetAt ?? 0
 
   return (
     <Section title="Aktivitäts-Weckfenster" hint="Experimentell: Bewegungen und Geräuschaktivität sind Hinweise, keine verlässliche Erkennung eines fast wachen Zustands.">
@@ -49,6 +50,7 @@ export function SmartWake() {
           <span>Früheres Wecken bei Aktivität anbieten</span>
           <Toggle label="Aktivitäts-Weckfenster" checked={settings.enabled} onChange={(enabled) => save({ enabled })} />
         </div>
+        {pausedUntil > Date.now() && <p role="status" className="text-sm text-accent">Vorwecker für {format.format(pausedUntil)} pausiert. Die Pause bleibt auch nach Messungsende bis zu diesem Haupttermin bestehen. Dein fester Hauptwecker bleibt aktiv.</p>}
         {settings.enabled && <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span>Höchstens früher</span>
@@ -64,7 +66,7 @@ export function SmartWake() {
           <p className="text-sm text-muted">Ohne brauchbare Signale oder bei Abbruch klingelt der reguläre Wecker. Ein vorgezogener Wecker kann deine Schlafzeit um bis zu {settings.windowMinutes} Minuten verkürzen. Nach dem bestätigten Beenden gibt es keinen zweiten Hauptwecker zur ursprünglichen Zeit.</p>
           </div>
           </details>
-          {st.settings.alarm.preWakeEnabled && <p className="text-sm text-warm">Der Vorwecker ist zusätzlich eingeschaltet. Seine Geräusche und deine Reaktion können die Aktivität beeinflussen.</p>}
+          <p className="text-sm text-muted">Beim Start wird der Vorwecker für diese Nacht pausiert, damit sein Ton und seine Vibration die Messung nicht beeinflussen. Die Pause bleibt auch nach Messungsende bestehen. Für die nächste Nacht ohne Messung gilt wieder deine Vorwecker-Einstellung.</p>
           {isNative() ? <>
             {state?.hasMotion === false && <p role="status" className="text-warm">Android meldet keinen verfügbaren Bewegungssensor.</p>}
             {state?.active ? <Button disabled={busy} className="w-full" onClick={() => void run(() => AnkerNative.stopSmartWake(), 'Messungsende angefragt. Der feste Wecker bleibt gestellt.')}>Messung beenden</Button>

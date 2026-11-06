@@ -14,8 +14,8 @@ android {
         applicationId "de.frnkrm.anker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode((System.getenv('VERSION_CODE') ?: '3') as int)
-        versionName(System.getenv('VERSION_NAME') ?: '1.2.0-rc.1')
+        versionCode((System.getenv('VERSION_CODE') ?: '4') as int)
+        versionName(System.getenv('VERSION_NAME') ?: '1.2.0-rc.2')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

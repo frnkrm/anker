@@ -134,3 +134,14 @@ Neues Paket: `/workspace/artifacts/Anker-Update-E01-Portable.zip`,22172417Bytes,
 - Weckerplanung nach Update, tatsächliches Klingeln und die übrigen aktuellen Gerätefälle bleiben offen. Insbesondere G12 nicht allein wegen erfolgreicher Installation als bestanden führen. Historische Testergebnisse und lokale Testseiten-Häkchen wurden nicht verändert.
 
 Nächster Geräteablauf: separater Testalarm in10 Sekunden bei entsperrtem Handy (G1), Ergebnis bewusst auf der Testseite speichern. Dieser Dokumentationsschritt ändert keine Appdateien und erfordert keine erneuten App-Tests oder APK.
+
+## Navigation und Vorweckerpause vor E02 – 06.11.2026
+
+Nutzer bestätigt: Rücksprungschleife nur nach Einstieg per Benachrichtigung/Widget; normaler Start erlaubt Seitenwechsel. Roter Browsernachweis gegen unverändertes `src/App.tsx`: Klick auf Mehr führt zurück zu Gute Nacht, Test scheitert. Nach einmaliger Bridge-Initialisierung sind alte now-/alarm-Startlinks, neue Deep Links und klingelnde Ereignisse geprüft. Browser simuliert Capacitor und Speicher; keine echte Android-Ausführung.
+
+- Lint,340 Vitest und Produktionsbuild/Typecheck bestanden.
+- Vollständiger Browserlauf:33 bestanden;29 bestehende Fälle plus4 native Simulationen einschließlich Vorwecker-Info vor Start und nach Messungsende.
+- Gradle `:app:testDebugUnitTest --rerun :app:assembleRelease`: erfolgreich,54 Tests/0 Fehler/0 übersprungen, Release-Lint aktiv. Vier zusätzliche Modelltests sichern Vorweckerpause, alte Intents, Neustart, spätere Vorwecker-Aktivierung, neuen Haupttermin und abgelehnten Messstart.
+- Aktueller Katalog:65 Fälle, G64/65 am Handy offen. Die vom Nutzer zuvor bestätigte Installation/Datenübernahme gilt für den vorherigen Build, nicht als Freigabe dieser Korrekturen.
+
+Logs unter `/workspace/.cache/anker/navigation-fix/`. Ein erster Browserversuch nach dem Edit nutzte wegen `reuseExistingServer` den alten Build; separat als `stale-build-attempt.log`, nicht als Prüfung des korrigierten Standes gezählt. Nach explizitem Neubau vollständiger Erfolg. Der erste native Aufruf fand den optionalen Node-Starter in der isolierten Kopie nicht; anschließend direkt über deren Gradle-Wrapper vollständig erfolgreich. Neues Updatepaket wird nach E02 gebaut und ausgeliefert.

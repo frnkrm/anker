@@ -11,6 +11,7 @@ export interface SmartWakeState {
   windowAt: number
   hasMotion: boolean
   microphoneGranted: boolean
+  preWakePausedForTargetAt?: number
 }
 
 export interface AlarmStateInfo {
@@ -18,6 +19,7 @@ export interface AlarmStateInfo {
   kind?: AlarmKindWire | null
   scheduledAt?: number | null
   preWakeAt?: number | null
+  preWakePausedForTargetAt?: number
   snoozeAt?: number | null
   wakeCheckAt?: number | null
   testAt?: number | null

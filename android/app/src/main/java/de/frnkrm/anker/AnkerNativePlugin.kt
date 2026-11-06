@@ -111,6 +111,7 @@ class AnkerNativePlugin : Plugin() {
         o.put("kind", s.ringing?.wire)
         o.put("scheduledAt", if (s.mainAt > 0) s.mainAt else null)
         o.put("preWakeAt", if (s.preWakeAt > 0) s.preWakeAt else null)
+        o.put("preWakePausedForTargetAt", s.preWakePausedForTargetAt)
         o.put("snoozeAt", if (s.snoozeAt > 0) s.snoozeAt else null)
         o.put("wakeCheckAt", if (s.wakeCheckAt > 0) s.wakeCheckAt else null)
         o.put("testAt", if (s.testAt > 0) s.testAt else null)

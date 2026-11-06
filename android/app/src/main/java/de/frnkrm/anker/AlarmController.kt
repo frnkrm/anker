@@ -132,6 +132,14 @@ object AlarmController {
     }
 
     @Synchronized
+    fun prepareSmartWake(ctx: Context, targetAt: Long): Boolean {
+        val prepared = AlarmMachine.preparedSmartWake(state(ctx), AnkerPrefs.config(ctx), targetAt, System.currentTimeMillis()) ?: return false
+        AnkerPrefs.saveState(ctx, prepared)
+        reconcile(ctx, "smart-prepared")
+        return true
+    }
+
+    @Synchronized
     fun trySmartWake(ctx: Context, targetAt: Long): Boolean {
         val now = System.currentTimeMillis()
         val decision = AlarmMachine.smartFired(state(ctx), AnkerPrefs.config(ctx), targetAt, now)

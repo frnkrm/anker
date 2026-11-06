@@ -66,7 +66,8 @@ export function AlarmDiagnosis() {
     load()
     const onVis = () => document.visibilityState === 'visible' && load()
     document.addEventListener('visibilitychange', onVis)
-    return () => document.removeEventListener('visibilitychange', onVis)
+    const interval = setInterval(onVis, 2000)
+    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(interval) }
   }, [load])
 
   if (!isNative()) return <p className="px-1 text-muted">Der Wecker läuft nur in der Android-App. Die Web-Version kann nicht wecken.</p>
@@ -84,7 +85,7 @@ export function AlarmDiagnosis() {
         label={d.scheduledAt ? `Nächster Hauptwecker: ${fmtDateTime(d.scheduledAt)}` : 'Kein Hauptwecker geplant'}
         hint={planning.message}
       />
-      <DiagRow state={d.preWakeAt ? (preWakePlanning.ok ? 'ok' : 'warn') : 'off'} label={d.preWakeAt ? `Vorwecker: ${fmtDateTime(d.preWakeAt)}` : 'Vorwecker: aus oder heute schon vorbei'} hint={d.preWakeAt ? preWakePlanning.message : undefined} />
+      <DiagRow state={d.preWakeAt ? (preWakePlanning.ok ? 'ok' : 'warn') : 'off'} label={d.preWakeAt ? `Vorwecker: ${fmtDateTime(d.preWakeAt)}` : d.preWakePausedForTargetAt === d.scheduledAt && d.scheduledAt ? 'Vorwecker: für diese Messnacht pausiert' : 'Vorwecker: aus oder heute schon vorbei'} hint={d.preWakeAt ? preWakePlanning.message : undefined} />
       {d.missedMainAt > 0 && <DiagRow state="warn" label={`Termin nicht regulär ausgelöst: ${fmtDateTime(d.missedMainAt)}`} hint="Die Ursache ist unbekannt. Danach wurde weitergeplant; prüfe die aktuelle Planung und den Testton." />}
       <DiagRow state={d.testResult === 'heard' ? 'ok' : 'warn'} label="Letzter Test" hint={`${TEST_LABEL[d.testResult] ?? ''}${d.testResultAt ? ` (${fmtDateTime(d.testResultAt)})` : ''}`} />
       <DiagRow state={quietVolume ? 'warn' : 'ok'} label={`Wecker-Lautstärke: ${d.alarmVolume} von ${d.alarmVolumeMax}`} hint={quietVolume ? 'Das ist leise. Stelle sie mit den Lauter-Tasten höher, während ein Testton läuft. Anker ändert sie nicht von selbst.' : undefined} action="Testton" run={() => void AnkerNative.playTestTone()} />

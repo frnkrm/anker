@@ -51,6 +51,8 @@ data class AlarmState(
     val smartTargetAt: Long = 0,
     val smartTriggeredAt: Long = 0,
     val smartConfirmedAt: Long = 0,
+    /** Bewusst gestartete Messnacht: Vorwecker bis zu diesem Haupttermin pausieren. */
+    val preWakePausedForTargetAt: Long = 0,
     val ringing: AlarmKind? = null,
     val ringStartedAt: Long = 0,
     val mainAt: Long = 0,
@@ -112,6 +114,12 @@ object AlarmMachine {
 
     /** Wege ohne Prüfung. Sie gelten nur für Test, Vorwecker und Wachheits-Check. */
     private val LIGHT_METHODS = setOf("test", "prewake", "check")
+
+    /** Erst nach erfolgreichem Dienststart. Die gespeicherte Vorwecker-Einstellung bleibt erhalten. */
+    fun preparedSmartWake(s: AlarmState, cfg: AlarmConfig?, targetAt: Long, now: Long): AlarmState? {
+        if (cfg?.enabled != true || !cfg.smartWakeEnabled || targetAt <= now || s.mainAt != targetAt || s.ringing != null) return null
+        return s.copy(preWakePausedForTargetAt = targetAt, preWakeAt = 0)
+    }
 
     /**
      * Nur beim ersten Signal eines tatsächlichen Geräteneustarts ist alter Klingelzustand veraltet.
@@ -252,6 +260,8 @@ object AlarmMachine {
             if (!cfg.enabled) state = state.copy(snoozeAt = 0, wakeCheckAt = 0)
             if (!cfg.wakeCheckEnabled) state = state.copy(wakeCheckAt = 0)
         }
+        state = if (state.mainAt > 0 && state.mainAt == state.preWakePausedForTargetAt) state.copy(preWakeAt = 0)
+            else state.copy(preWakePausedForTargetAt = 0)
         return ReconcileResult(state, late)
     }
 }

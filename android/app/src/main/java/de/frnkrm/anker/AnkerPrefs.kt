@@ -31,6 +31,7 @@ object AnkerPrefs {
             .put("smartTargetAt", s.smartTargetAt)
             .put("smartTriggeredAt", s.smartTriggeredAt)
             .put("smartConfirmedAt", s.smartConfirmedAt)
+            .put("preWakePausedForTargetAt", s.preWakePausedForTargetAt)
             .put("ringing", s.ringing?.wire ?: "")
             .put("ringStartedAt", s.ringStartedAt)
             .put("mainAt", s.mainAt)
@@ -62,6 +63,7 @@ object AnkerPrefs {
                 smartTargetAt = o.optLong("smartTargetAt"),
                 smartTriggeredAt = o.optLong("smartTriggeredAt"),
                 smartConfirmedAt = o.optLong("smartConfirmedAt"),
+                preWakePausedForTargetAt = o.optLong("preWakePausedForTargetAt"),
                 ringing = AlarmKind.of(o.optString("ringing")),
                 ringStartedAt = o.optLong("ringStartedAt"),
                 mainAt = o.optLong("mainAt"),

@@ -14,9 +14,11 @@ import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65])
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (id === 64) return [{ label: 'Mehr öffnen', to: '/mehr' }, { label: 'Tag öffnen', to: '/tag' }, { label: 'Wecker öffnen', to: '/wecker' }]
+  if (id === 65) return [{ label: 'Messung und Vorwecker prüfen', to: '/wecker' }]
   if (id === 62) return [{ label: 'Uhrzeiten direkt ändern', to: '/einstellungen/schlaf' }, { label: 'Fahrzeit direkt ändern', to: '/einstellungen/weg' }]
   if (id === 63) return [{ label: 'Schlaf & Anker öffnen', to: '/einstellungen/schlaf' }]
   if (id >= 53 && id <= 59) return [{ label: 'Aktivitäts-Weckfenster öffnen', to: '/wecker' }]
@@ -37,6 +39,8 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (id === 64) return ['Öffne Anker über sein Widget oder eine Benachrichtigung. Rufe danach über die Navigation andere Seiten auf.', 'Auch bei „Gute Nacht“ müssen die gewählten Seiten offen bleiben. Prüfe neue Benachrichtigungslinks und den separaten Testwecker anschließend getrennt.']
+  if (id === 65) return ['Notiere zuerst deine eigenen Weckzeiten. Aktiviere den Vorwecker und prüfe die feste Hauptzeit, bevor du die Messung bewusst startest.', 'Der Status muss den Vorwecker für diese Messnacht als pausiert zeigen. Seine Einstellung bleibt gespeichert. Auch nach Messungsende oder Neustart bleibt die Pause für diesen Haupttermin erhalten.', 'Warte den Vorwecktermin und die feste Hauptzeit tatsächlich ab. Danach eine neue Weckzeit oder den nächsten Morgen ohne Messung prüfen und deine eigenen Einstellungen wiederherstellen. Teilprüfungen als „Teilweise“ speichern.']
   if (id === 3) return ['Lies vor dem Test den Android-Stand unten ein. Die geplante Hauptzeit und der Schlummerzähler werden zum Vergleich gespeichert.', 'Starte den separaten Testalarm, beende ihn und kehre über „Zurück zu Test 3“ hierher zurück.', 'Lies den Android-Stand erneut und vergleiche die Hauptzeit. Nur dein beobachtetes Ergebnis wird abgehakt.']
   if ([4, 60, 61].includes(id)) return ['Notiere deine bisherige Aufstehzeit. Der separate Testalarm kann Schlummern nicht prüfen; dieser Test braucht bewusst einen regulären Hauptwecker.', 'Öffne „Aufstehzeit direkt einstellen“ und wähle eine Zeit wenige Minuten voraus. Abends kann das die berechneten Schlafzeiten verändern; deine manuell gesetzten Werte bleiben geschützt.', 'Führe die beschriebene Änderung durch. Stelle danach deine eigene Aufstehzeit und den gewünschten Ein-/Aus-Zustand wieder her. Falls du vorher automatische Zeiten genutzt hast, kannst du „Vorschlag übernehmen“ wählen.']
   if (id === 47) return ['Samsung: Öffne die Systemeinstellungen und suche dort nach „Always On Display“. Schalte es für diesen Test ein; die genaue Menüposition hängt von deiner One-UI-Version ab.', 'Starte hier den Testalarm, sperre das Handy und warte zehn Sekunden. Beobachte Ton und Vollbild getrennt.']

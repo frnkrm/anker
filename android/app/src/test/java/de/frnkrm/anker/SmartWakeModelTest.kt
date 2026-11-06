@@ -8,6 +8,59 @@ class SmartWakeModelTest {
     private val from = target - 45 * 60_000L
     private val cfg = AlarmConfig(enabled = true, wakeMinutes = 390, smartWakeEnabled = true)
 
+    @Test fun preparedNightPausesOnlyPrewakeAndRejectsItsOldSignal() {
+        val s = AlarmState(mainAt = target, preWakeAt = target - 30 * 60_000L)
+        val prepared = AlarmMachine.preparedSmartWake(s, cfg.copy(preWakeEnabled = true), target, from)!!
+        assertEquals(target, prepared.mainAt)
+        assertEquals(0L, prepared.preWakeAt)
+        assertEquals(target, prepared.preWakePausedForTargetAt)
+        assertEquals(s.copy(preWakeAt = 0, preWakePausedForTargetAt = target), prepared)
+        assertFalse(AlarmMachine.firedScheduled(prepared, AlarmKind.PRE_WAKE, s.preWakeAt, s.preWakeAt).ring)
+        assertTrue(AlarmMachine.firedScheduled(prepared, AlarmKind.MAIN, target, target).ring)
+    }
+
+    @Test fun nightPauseSurvivesReconcileBootAndLaterEnablingPrewake() {
+        val hard = AlarmPlanner.toUtc(java.time.LocalDate.parse("2026-11-06"), cfg.wakeMinutes)
+        val now = hard - 60 * 60_000L
+        val prepared = AlarmMachine.preparedSmartWake(AlarmState(mainAt = hard), cfg, hard, now)!!
+        val withPrewake = cfg.copy(preWakeEnabled = true)
+        for (initial in listOf(prepared, AlarmMachine.booted(prepared, 5, true))) {
+            val once = AlarmMachine.reconcile(initial, withPrewake, now).state
+            assertEquals(hard, once.mainAt)
+            assertEquals(0L, once.preWakeAt)
+            assertEquals(once, AlarmMachine.reconcile(once, withPrewake, now).state)
+        }
+    }
+
+    @Test fun newMainOccurrenceRestoresConfiguredPrewake() {
+        val day = java.time.LocalDate.parse("2026-11-06")
+        val hard = AlarmPlanner.toUtc(day, cfg.wakeMinutes)
+        val now = hard - 60 * 60_000L
+        val withPrewake = cfg.copy(preWakeEnabled = true)
+        val prepared = AlarmMachine.preparedSmartWake(AlarmState(mainAt = hard), withPrewake, hard, now)!!
+        val changed = AlarmMachine.reconcile(prepared, withPrewake.copy(wakeMinutes = cfg.wakeMinutes + 60), now).state
+        assertEquals(0L, changed.preWakePausedForTargetAt)
+        assertEquals(changed.mainAt - 30 * 60_000L, changed.preWakeAt)
+        val fired = AlarmMachine.firedScheduled(prepared, AlarmKind.MAIN, hard, hard).state
+        val tomorrow = AlarmMachine.reconcile(fired, withPrewake, hard).state
+        assertEquals(AlarmPlanner.toUtc(day.plusDays(1), cfg.wakeMinutes), tomorrow.mainAt)
+        assertEquals(tomorrow.mainAt - 30 * 60_000L, tomorrow.preWakeAt)
+        assertEquals(0L, tomorrow.preWakePausedForTargetAt)
+        val disabled = AlarmMachine.reconcile(prepared, withPrewake.copy(enabled = false), now).state
+        assertEquals(0L, disabled.mainAt)
+        assertEquals(0L, disabled.preWakePausedForTargetAt)
+    }
+
+    @Test fun rejectedMeasurementPreparationDoesNotChangeExistingAlarms() {
+        val s = AlarmState(mainAt = target, preWakeAt = target - 30 * 60_000L)
+        assertNull(AlarmMachine.preparedSmartWake(s, cfg.copy(enabled = false), target, from))
+        assertNull(AlarmMachine.preparedSmartWake(s, cfg.copy(smartWakeEnabled = false), target, from))
+        assertNull(AlarmMachine.preparedSmartWake(s, cfg, target + 1, from))
+        assertNull(AlarmMachine.preparedSmartWake(s, cfg, target, target))
+        assertNull(AlarmMachine.preparedSmartWake(s.copy(ringing = AlarmKind.PRE_WAKE), cfg, target, from))
+        assertEquals(target - 30 * 60_000L, s.preWakeAt)
+    }
+
     @Test fun combinedActivityOnlyInsideWindowAfterCalibrationAndOnce() {
         val d = SmartWakeDetector(from, target)
         assertFalse(d.observe(from - 1, 1.0, 0.2))

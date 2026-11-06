@@ -176,6 +176,16 @@ Die Installation allein bestätigt weder die weitere Weckerplanung (G12) noch ei
 
 ---
 
+## E01-Nachbesserung und Übergang zu E02 (06.11.2026)
+
+Nutzerbericht: Nach Start über Benachrichtigung/Widget führt jeder Seitenwechsel zurück zu Jetzt; normaler Appstart erlaubt Navigation. Ursache am produktiven Router reproduziert: `useNavigate` wechselt seine Identität und der Bridge-Effekt liest dadurch den von Android beibehaltenen Startlink erneut. `useEffectEvent` hält die Navigation aktuell, während Startlink/Listener nur einmal je Mount eingerichtet werden. Neue native Einstiege und Klingelereignisse bleiben aktiv.
+
+Zusätzliche Nutzerentscheidung: Während einer bewusst gestarteten Messnacht den Vorwecker ausschalten und informieren. Umsetzung als `preWakePausedForTargetAt` im bestehenden nativen Alarmzustand, ohne Änderung der gespeicherten Vorwecker-Einstellung. Erfolgreicher Vordergrund-/Timerstart bzw. erfolgreiche Sensor-/Mikrofoninitialisierung gehen der Pause voraus. Gleicher Haupttermin bleibt auch nach Stop/Boot pausiert; neuer Termin löscht die Ausnahme. Fester Hauptwecker und Bestätigungsregeln bleiben erhalten. Brücke, Diagnose und sichtbare Info vor/nach Start sind angepasst.
+
+**Nachweise:** alter Code scheitert am echten Browser-Navigationsablauf; neuer Stand besteht340 Vitest-,33 Browser- und54 Kotlin-Tests, Lint/Typecheck/Produktionsbuild sowie vollständigen unsignierten Release-APK-Build. Browser simuliert native API-Werte, kein Android-Sensor-/Dienstnachweis. Neue G64/65 offen. Appversion für das nächste Update:1.2.0-rc.2, Code4; noch kein neues Paket ausgeliefert. Logs: `/workspace/.cache/anker/navigation-fix/`.
+
+**E02 jetzt ausdrücklich vollständig beauftragt:** NO-01–05 und PR-01–03 im vorhandenen Modell vervollständigen; Testseite ergänzen, geprüften Stand in main pushen und automatischen PowerShell-Updateweg liefern. Erneuter Appstart über das Symbol ist nur der vom Nutzer bestätigte Zwischenweg, kein Ersatz für den Navigationsfix. E02-Prüfung erfolgt parallel ausschließlich lesend bzw. in getrennten Arbeitsbäumen; keine konkurrierenden Schreibzugriffe auf denselben Baum.
+
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)
 
 Fortsetzbarer Stand. Status: `offen` · `implementiert` · `automatisch getestet` · `am Gerät verifiziert` · `blockiert`

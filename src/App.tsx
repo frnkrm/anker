@@ -1,5 +1,5 @@
 import { App as CapApp } from '@capacitor/app'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useEffectEvent } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
 import { startEffects } from './platform/effects'
 import { refreshCalendar, writeAnkerBlocks } from './platform/google'
@@ -53,6 +53,7 @@ function useAppearance() {
 /** Native Einstiege: Wecker klingelt, Widget-Knopf „Gedanke“. */
 function NativeBridge() {
   const nav = useNavigate()
+  const openDestination = useEffectEvent((destination: string) => nav(destination))
   useEffect(() => {
     if (!isNative()) return
     let active = true
@@ -61,10 +62,10 @@ function NativeBridge() {
       const version = alarmVersion
       const ringing = await safe(async () => (await AnkerNative.getAlarmState()).ringing, undefined)
       if (!active || version !== alarmVersion) return
-      if (ringing) nav('/wecker/klingelt')
+      if (ringing) openDestination('/wecker/klingelt')
       else if (url) {
         const destination = nativeDestination(url)
-        if (destination) nav(destination)
+        if (destination) openDestination(destination)
       }
     }
     void open()
@@ -74,8 +75,9 @@ function NativeBridge() {
     }, undefined)
     const subs = [
       AnkerNative.addListener('alarmRinging', () => {
+        if (!active) return
         alarmVersion++
-        nav('/wecker/klingelt')
+        openDestination('/wecker/klingelt')
       }),
       CapApp.addListener('appUrlOpen', ({ url }) => void open(url)),
     ]
@@ -83,7 +85,9 @@ function NativeBridge() {
       active = false
       subs.forEach((p) => void p.then((h) => h.remove()))
     }
-  }, [nav])
+    // Android behält den Startlink. Seitenwechsel dürfen ihn nicht erneut öffnen;
+    // das Effect Event verwendet trotzdem die aktuelle Router-Navigation.
+  }, [])
   return null
 }
 
