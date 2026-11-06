@@ -75,7 +75,7 @@ export function validTaskParts(value: unknown): value is TaskPart[] {
 export function validTaskFields(value: unknown): value is TaskFields {
   if (!object(value)) return false
   if (value.reminderRevision !== undefined && !nonempty(value.reminderRevision)) return false
-  for (const key of ['description', 'nextStep', 'resumeNote']) if (value[key] !== undefined && !text(value[key])) return false
+  for (const key of ['description', 'nextStep', 'resumeNote', 'why']) if (value[key] !== undefined && !text(value[key])) return false
   for (const key of ['deadline', 'earliestStart', 'startedAt', 'deferredUntil', 'doneAt']) if (value[key] !== undefined && !timestamp(value[key])) return false
   if (value.estimateMin !== undefined && !minutes(value.estimateMin)) return false
   if (value.done !== undefined && typeof value.done !== 'boolean') return false

@@ -6,6 +6,7 @@ import type { InboxItem, ResumePoint, TaskRef, WorkTask } from '../../core/types
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
 import { InboxButton } from '../components/Shell'
+import { TaskPurpose } from '../components/TaskPurpose'
 import { Button, Card, Progress, Section, Segmented, TextInput } from '../components/ui'
 
 const WINDOWS = [15, 25, 40, 50] as const
@@ -166,6 +167,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
       {open && (
         <details className="space-y-3">
           <summary className="min-h-11 py-2 text-muted">Details & Abschluss</summary>
+          <TaskPurpose taskRef={reference} task={task} />
           {task.description && <p className="whitespace-pre-wrap break-words text-muted">{task.description}</p>}
           {!!task.subtasks?.length && (
             <Section title="Kleine Schritte">

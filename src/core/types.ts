@@ -310,6 +310,8 @@ export interface TaskFields {
   /** Bewusste Änderungen machen ältere Benachrichtigungsaktionen ungültig. */
   reminderRevision?: string
   description?: string
+  /** Eigener freiwilliger Grund, keine vorgegebene Motivation. */
+  why?: string
   nextStep?: string
   /** Unterbrechungsnotiz gehört zur Aufgabe und bleibt beim bewussten Wechsel erhalten. */
   resumeNote?: string

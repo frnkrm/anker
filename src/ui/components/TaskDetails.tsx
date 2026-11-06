@@ -97,7 +97,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
   const st = useApp()
   const title = taskTitle(task)
   const [draft, setDraft] = useState({
-    title, description: task.description ?? '', nextStep: task.nextStep ?? '', estimate: task.estimateMin?.toString() ?? '',
+    title, description: task.description ?? '', why: task.why ?? '', nextStep: task.nextStep ?? '', estimate: task.estimateMin?.toString() ?? '',
     priority: task.priority ?? 'normal', context: task.context ?? 'any', energy: (task.energy ?? '') as NonNullable<TaskFields['energy']> | '',
     deadline: task.deadline === undefined ? '' : toBerlinDateTimeInput(task.deadline),
     earliest: task.earliestStart === undefined ? '' : toBerlinDateTimeInput(task.earliestStart),
@@ -122,7 +122,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
     if (estimateMin !== undefined && (!Number.isFinite(estimateMin) || estimateMin <= 0 || estimateMin > 1440)) throw new Error('Wähle eine grobe Schätzung zwischen 1 und 1440 Minuten oder lasse sie offen.')
     const patch: TaskFields & { text?: string; title?: string; taskDate?: string } = {
       ...(taskRef.kind === 'task' ? { text: draft.title.trim(), taskDate: draft.date } : { title: draft.title.trim() }),
-      description: draft.description.trim() || undefined, nextStep: draft.nextStep.trim() || undefined,
+      description: draft.description.trim() || undefined, why: draft.why.trim() || undefined, nextStep: draft.nextStep.trim() || undefined,
       estimateMin, deadline, earliestStart, priority: draft.priority, context: draft.context,
       energy: draft.energy || undefined,
       recurrence: draft.repeat ? { seriesId: task.recurrence?.seriesId ?? task.id, everyDays: draft.everyDays, occurrenceDate: task.recurrence?.occurrenceDate ?? draft.date } : undefined,
@@ -135,6 +135,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
     <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void save() }}>
       <fieldset disabled={busy} className="min-w-0 space-y-3">
         <label className="block space-y-1"><span className="text-sm text-muted">Titel</span><TextInput aria-label="Titel" value={draft.title} onChange={(event) => updateDraft('title', event.target.value)} /></label>
+        <label className="block space-y-1"><span className="text-sm text-muted">Wofür ist dir das wichtig? (freiwillig)</span><TextInput aria-label="Mein Grund für die Aufgabe" value={draft.why} onChange={(event) => updateDraft('why', event.target.value)} placeholder="Ein eigener Grund, wenn er dir hilft" /></label>
         <label className="block space-y-1"><span className="text-sm text-muted">Nächster Schritt</span><TextInput aria-label="Nächster Schritt" value={draft.nextStep} onChange={(event) => updateDraft('nextStep', event.target.value)} /></label>
         <label className="block space-y-1"><span className="text-sm text-muted">Beschreibung (freiwillig)</span><textarea aria-label="Beschreibung" className={FIELD + ' py-3'} rows={3} value={draft.description} onChange={(event) => updateDraft('description', event.target.value)} /></label>
         <label className="block space-y-1"><span className="text-sm text-muted">Grob geschätzt, Minuten</span><input type="number" aria-label="Schätzung Minuten" className={FIELD} min={1} max={1440} value={draft.estimate} onChange={(event) => updateDraft('estimate', event.target.value)} placeholder="Offen" /></label>

@@ -70,7 +70,7 @@ export function resumeRoute(resume: ResumePoint): string | undefined {
   return internalRoute(resume.route) ? resume.route : undefined
 }
 
-const taskFields = ['reminderRevision', 'description', 'nextStep', 'resumeNote', 'priority', 'deadline', 'earliestStart', 'estimateMin', 'context', 'energy', 'state', 'startedAt', 'deferredUntil', 'done', 'doneAt', 'doneMode', 'subtasks', 'recurrence', 'source'] as const
+const taskFields = ['reminderRevision', 'description', 'why', 'nextStep', 'resumeNote', 'priority', 'deadline', 'earliestStart', 'estimateMin', 'context', 'energy', 'state', 'startedAt', 'deferredUntil', 'done', 'doneAt', 'doneMode', 'subtasks', 'recurrence', 'source'] as const
 
 /** Bestehende gültige Angaben bleiben exakt erhalten; kaputte optionale Felder werden nicht ausgeführt. */
 export function normaliseTask<T extends InboxItem | WorkTask>(task: T): T {
