@@ -232,3 +232,7 @@ Unter *PC-Stopp → Abendzeit ändern* kannst du frei verlängern oder das Ende 
 ## Gleitzeit
 
 Spätester Beginn, eigener Freitag, flexible Pausen und einzelne Kundeneinsätze am Wochenende, alles freiwillig und lokal: [docs/GLEITZEIT.md](docs/GLEITZEIT.md).
+
+### PC-Scriptprüfung in der Entwicklung
+
+`npm run test:pc` benötigt zusätzlich PowerShell (`pwsh` im PATH oder `PWSH_PATH` mit absolutem Programmpfad). Der eigene CI-Schritt führt die exportierten Scripts mit simulierten Uhrzeiten/Systemaktionen unter PowerShell aus. Eine fehlende Laufzeit bricht diesen Befehl ab; `npm test` bleibt der normale Logiklauf. Windows-Aufgabenplanung, Toasts und echte Abschaltung werden dadurch nicht geprüft.
