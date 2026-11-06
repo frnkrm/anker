@@ -104,3 +104,24 @@ Logs/Metadaten/Integrationsergebnisse: `/workspace/.cache/anker/update-preparati
 - Native-/SmartWake-Abschlussreview: keine blockierende neue Regression, keine Schreibarbeiten oder zusätzliche Testausführung durch Reviewer. Grenzen bei realer Android-Ausführung bleiben unverändert offen.
 
 **Git-Nachweis:** Commit `ab686481641eab085ad844cd82ae9d45eaa6cfb7` enthält95 geprüfte App-/Test-/Dokumentänderungen. `git ls-remote` bestätigt nach Fast-forward und Push denselben Commit auf `refs/heads/main` und `refs/heads/entwicklung/anker-e01`; der separate Downloadbranch steht auf `529d37590c14f4d1f26e53228a2a6481ab8a0b1d`. Keine Binär-/Keystore-/Datenbankdatei im Appcommit, private Auftragskopie nicht im Tree. Remote-CI gestartet; ihr Ergebnis ist vom lokalen vollständigen Prüfstand getrennt.
+
+## SDK-unabhängige Signierhilfe2 – 06.11.2026
+
+Der tatsächliche Windows-Fehler „Android-Buildwerkzeuge nicht gefunden“ ist ein Bericht zum ersten Helfer, kein bestandener Windows-Signiernachweis. Die neue Hilfe entfernt diese Voraussetzung vollständig.
+
+| Nachweis | Ergebnis | Grenze |
+|---|---|---|
+| Alte Hilfe, SDK-Variablen entfernt/kein SDK-Pfad | erwarteter Fehler reproduziert | entspricht der gemeldeten Fehlerklasse |
+| Neue Hilfe, gleiche fehlende SDK-Umgebung | echte Signierung erfolgreich, mit und ohne vorherige lokale APK | Linux mit Java21; Windows noch offen |
+| Falscher Schlüssel, APK-Prüfsumme oder Paket | erwarteter Fehler, keine finale APK | Zertifikatsabgleich vor Zugriff auf den privaten Schlüssel |
+| Höherer alter Versionscode, auch oberhalb JS-Number-Präzision | erwarteter Abbruch | vollständiger Long-Code als Dezimalstring/BigInt |
+| Fehlender Schlüssel, beschädigte JAR oder Klasse | erwarteter Abbruch | keine Werkzeug-/Schlüsselerzeugung als Ersatz |
+| Unabhängige Nachprüfung erfolgreicher Ausgaben | SDK-apksigner und `zipalign -c -P16 4` erfolgreich | SDK wird ausschließlich im Entwicklertest verwendet |
+| Eingabe und Testkeystores nach jedem Fall | bytegleich; temporäre APK/idsig entfernt | kurzlebige Testschlüssel anschließend gelöscht; Nutzerschlüssel nie verwendet |
+| `javac --release 17`, `node --check` | bestanden | Java-API-/Syntaxprüfung, kein Windows-Lauf |
+
+Insgesamt11 überprüfte Fälle (1 Repro,10 neue Integrationsfälle),0 unerwartete Fehler. Quelle/Logs: `/workspace/.cache/anker/portable-signing/`. Lizenz des unveränderten Maven-JAR liegt zusätzlich lesbar im Paket; keine SDK-JAR mit unklarer Zuordnung weiterer Komponenten weitergegeben. Bibliothek-SHA256 `c070ed1394629d74641aa0906f60b2ffa1ee77e6366a1f93437f59717b1aeb89`, eigene Klasse-SHA256 `d17ffa00371bfec8bcb1df7269b8a7718610f2156c2eb3edd51fd53ed8f124f7`.
+
+Neues Paket: `/workspace/artifacts/Anker-Update-E01-Portable.zip`,22172417Bytes, SHA256 `1b46d36d431ecd4c5275ca0eacf1cd30a2202a19c6c81b36a2172abc914bb307`.10 vorgesehene Dateien einschließlich Werkzeuglizenz und eigener Java-Quelle; ZIP und alle Inhalte nachgelesen, keine privaten Schlüssel enthalten. Die eigentliche App-APK bleibt unverändert, deshalb weiterhin derselbe Appprüfstand340/29/50; keine erneute App-/Gerätefreigabe behauptet.
+
+**Bereitstellung geprüft:** Remote-Branch `download-anker-e01-20261106` steht auf `8f1457daffc72742ff1d15560fb4a080133a119e`. Öffentliche neue ZIP über GitHub-HTTPS vollständig gelesen: HTTP200,22172417Bytes, obige SHA256 stimmt. Nachweis: `/workspace/.cache/anker/portable-signing/https-verification.json`. Dies bestätigt den Serverdownload; die Ausführung im Windows-Client bleibt offen.

@@ -154,6 +154,20 @@ Gerätetests, lokale Windows-Signierung und echte Installation sind weiterhin of
 
 **Git-Integration abgeschlossen:** Appstand in Commit `ab686481641eab085ad844cd82ae9d45eaa6cfb7` auf `entwicklung/anker-e01` gesichert, gepusht und per Fast-forward in `main` übernommen. Der Remote-Abgleich bestätigt denselben Commit auf beiden Branches. Der Paketbranch bleibt separat auf `529d37590c14f4d1f26e53228a2a6481ab8a0b1d`. Arbeitsbaum nach der Integration sauber, privates Original weiterhin lokal und ignoriert. GitHub-CI für den veröffentlichten Stand ist gestartet; lokale Abschlussnachweise stehen oben, ein Remote-Erfolg wird nur nach tatsächlich abgeschlossenem Lauf behauptet.
 
+### Signierhilfe2 – SDK-Abhängigkeit entfernen (06.11.2026)
+
+Nutzer meldete unter Windows „Android-Buildwerkzeuge nicht gefunden“. Der erste Helfer verlangte ein lokal auffindbares SDK, obwohl für die fertige APK nur Signatur und Metadatenprüfung benötigt werden. Der Fehler wurde mit der alten Hilfe bei absichtlich entfernten SDK-Variablen und ohne lokale SDK-Konfiguration reproduziert.
+
+- Die neue Hilfe benötigt Node, Java17+ und den vorhandenen Debugschlüssel. SDK-Suche und natives `aapt` entfallen. Java wird in `JAVA_HOME`, PATH und üblichen Installationsorten gesucht; nicht lesbare optionale Herstellerordner blockieren die Suche nicht.
+- Portable Bibliothek `com.android.tools.build:apksig:8.13.0` unverändert, mit enthaltener Apache-2.0-Lizenz und Herkunftsnachweis. Eigener dünner Java-Helfer aus `scripts/AnkerApkTool.java`, kompiliert mit `--release 17`; kein eigener AXML-Parser. JAR/Klasse werden zusätzlich per SHA256 geprüft.
+- APK-Prüfsumme, Paket, Zertifikat vor privatem Schlüsselzugriff und signiertes Ergebnis bleiben geprüft. Versionscodes werden vollständig als BigInt verglichen. Normale APK-Signaturen v1/v2/v3 und16-KB-Ausrichtung geprüft; keine inkrementelle Installation/v4-Sidecardatei nötig.
+- Repro plus10 neue echte kryptografische Integrationsfälle bestanden. Darunter Erfolg mit/ohne vorherige APK bei fehlendem SDK, falscher Schlüssel/Prüfsumme/Paket, höherer und sehr großer alter Versionscode, fehlender Schlüssel sowie beschädigte JAR/Klasse. Nur kurzlebige Testschlüssel, unverändert und anschließend entfernt; unabhängiges SDK-Werkzeug nur als Testorakel.
+- `Anker-Update-E01-Portable.zip`:22172417Bytes, SHA256 `1b46d36d431ecd4c5275ca0eacf1cd30a2202a19c6c81b36a2172abc914bb307`. Die App-APK im Paket bleibt bytegleich (`850e0844…`), Quellkennung2bb70a… unverändert. Keine App-/Planer-/Datenmodelländerung.
+
+Der separate Downloadbranch wurde auf `8f1457daffc72742ff1d15560fb4a080133a119e` aktualisiert. Die neue portable ZIP ist öffentlich abrufbar; auch der bisherige Windows-Dateiname verweist im aktuellen Branch auf dasselbe korrigierte Paket. Der neue Download wurde vollständig über HTTPS gelesen und gegen Größe und SHA256 geprüft (HTTP200, bytegleich).
+
+Windows-Ausführung und echte Installation sind weiterhin offen. Nächster Nutzerschritt: neues Paket vollständig in einen eigenen Ordner entpacken und dort den CMD-Starter ausführen; alte Signierhilfe nicht weiter verwenden. Keine Schlüsselübertragung oder Deinstallation.
+
 ---
 
 ## Historischer Verlauf (Angaben gelten für den damaligen Stand)

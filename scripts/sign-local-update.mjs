@@ -1,7 +1,7 @@
 // Signs a prepared APK with an EXISTING local key. No upload, install or key creation.
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { basename, delimiter, dirname, join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
@@ -20,26 +20,47 @@ function execute(command, args) {
   return result.stdout
 }
 
-function findTools(project) {
-  const roots = [process.env.ANDROID_HOME, process.env.ANDROID_SDK_ROOT]
-  const properties = join(project, 'android', 'local.properties')
-  if (existsSync(properties)) {
-    const match = /^sdk\.dir\s*=\s*(.+)$/m.exec(readFileSync(properties, 'utf8'))
-    if (match) roots.push(match[1].trim().replace(/\\([\\:= ])/g, '$1'))
-  }
-  if (process.env.LOCALAPPDATA) roots.push(join(process.env.LOCALAPPDATA, 'Android', 'Sdk'))
-  for (const root of roots.filter(Boolean)) {
-    const tools = join(root, 'build-tools')
-    if (!existsSync(tools)) continue
-    const versions = readdirSync(tools).sort((a, b) => b.localeCompare(a, 'en', { numeric: true }))
-    for (const version of versions) {
-      const dir = join(tools, version)
-      const jar = join(dir, 'lib', 'apksigner.jar')
-      const aapt = join(dir, process.platform === 'win32' ? 'aapt.exe' : 'aapt')
-      if (existsSync(jar) && existsSync(aapt)) return { jar, aapt }
+function findJava() {
+  const executable = process.platform === 'win32' ? 'java.exe' : 'java'
+  const home = process.env.JAVA_HOME?.trim().replace(/^"(.*)"$/, '$1')
+  const candidates = [process.env.ANKER_JAVA, home && join(home, 'bin', executable), 'java']
+  if (process.platform === 'win32') {
+    for (const base of [process.env.ProgramFiles, process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, 'Programs')].filter(Boolean)) {
+      candidates.push(join(base, 'Android', 'Android Studio', 'jbr', 'bin', executable))
+      for (const vendor of ['Java', 'Eclipse Adoptium', 'Microsoft']) {
+        const root = join(base, vendor)
+        if (!existsSync(root)) continue
+        let entries
+        try { entries = readdirSync(root, { withFileTypes: true }) } catch { continue }
+        for (const item of entries) {
+          if (item.isDirectory()) candidates.push(join(root, item.name, 'bin', executable))
+        }
+      }
     }
   }
-  throw new Error('Android-Buildwerkzeuge nicht gefunden. Bitte schick mir diese Fehlermeldung; dein Schlüssel wurde nicht verändert.')
+  for (const java of new Set(candidates.filter(Boolean))) {
+    const result = spawnSync(java, ['-version'], { encoding: 'utf8', timeout: 10_000 })
+    const version = /version\s+"(\d+)(?:\.(\d+))?/.exec(`${result.stderr ?? ''}\n${result.stdout ?? ''}`)
+    if (!result.error && result.status === 0 && version && Number(version[1]) >= 17) return java
+  }
+  throw new Error('Java 17 oder neuer wurde nicht gefunden. Bitte schick mir diese Meldung; ein Android-SDK ist nicht mehr nötig.')
+}
+
+function portableTools(info) {
+  const dir = join(folder, 'tools')
+  const jar = join(dir, 'apksig-8.13.0.jar')
+  const helper = join(dir, 'AnkerApkTool.class')
+  for (const [file, expected] of [[jar, info.tools?.apksigSha256], [helper, info.tools?.helperSha256]]) {
+    if (!/^[a-f0-9]{64}$/.test(expected ?? '') || !existsSync(file) || sha256(file) !== expected) {
+      throw new Error('Die beigepackten Signierwerkzeuge fehlen oder sind beschädigt. Bitte die neue ZIP vollständig entpacken.')
+    }
+  }
+  return [jar, dir].join(delimiter)
+}
+
+function versionCode(value) {
+  if (!/^\d+$/.test(String(value))) throw new Error('Ungültiger Versionscode im Updatepaket.')
+  return BigInt(value)
 }
 
 try {
@@ -52,22 +73,23 @@ try {
   const profile = process.env.USERPROFILE
   const key = process.argv[2] ?? (profile ? join(profile, '.android', 'debug.keystore') : '')
   if (!key || !existsSync(key)) throw new Error('Der bisherige debug.keystore wurde nicht gefunden. Es wird kein neuer Schlüssel erzeugt.')
+  console.log('Anker-Signierhilfe 2 – ohne Android-SDK')
   const project = process.env.ANKER_PROJECT ?? 'D:\\Projekt\\Anker'
-  const { jar, aapt } = findTools(project)
-  const java = process.env.JAVA_HOME ? join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java') : 'java'
-  const signer = (...args) => execute(java, ['-jar', jar, ...args])
+  const classpath = portableTools(info)
+  const java = findJava()
+  const tool = (...args) => execute(java, ['-cp', classpath, 'AnkerApkTool', ...args])
   const certificate = (file) => {
-    const text = signer('verify', '--print-certs', file)
-    const matches = [...text.matchAll(/^Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9:]+)\s*$/gm)]
+    const text = tool('verify', file)
+    const matches = [...text.matchAll(/^CERT_SHA256=([a-fA-F0-9]{64})\s*$/gm)]
     if (matches.length !== 1 || hex(matches[0][1]) !== expected) throw new Error('Das Zertifikat stimmt nicht mit deinem Windows-Signierbericht überein. Kein neues Update wird bereitgestellt.')
   }
   const metadata = (file) => {
-    const match = /package: name='([^']+)' versionCode='(\d+)'/.exec(execute(aapt, ['dump', 'badging', file]))
+    const match = /^PACKAGE=(\S+)\r?\nVERSION_CODE=(\d+)\s*$/.exec(tool('metadata', file))
     if (!match || match[1] !== info.applicationId) throw new Error('Die APK gehört nicht zur erwarteten Anker-App.')
-    return Number(match[2])
+    return versionCode(match[2])
   }
   const nextVersion = metadata(input)
-  if (nextVersion !== info.versionCode) throw new Error('Die APK-Version passt nicht zum Updatepaket.')
+  if (nextVersion !== versionCode(info.versionCode)) throw new Error('Die APK-Version passt nicht zum Updatepaket.')
   const previous = join(project, 'android', 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk')
   if (existsSync(previous)) {
     certificate(previous)
@@ -76,8 +98,9 @@ try {
   } else console.log('Keine frühere lokale APK gefunden. Android prüft beim Installieren zusätzlich die Kompatibilität zur installierten App.')
   rmSync(temporary, { force: true })
   rmSync(`${temporary}.idsig`, { force: true })
+  if (tool('key-certificate', key).trim() !== `CERT_SHA256=${expected}`) throw new Error('Der vorhandene Schlüssel passt nicht zum gemeldeten Zertifikat.')
   console.log('Signiere mit deinem vorhandenen Schlüssel. Die Datei bleibt auf diesem PC.')
-  signer('sign', '--ks', key, '--ks-key-alias', 'AndroidDebugKey', '--ks-pass', 'pass:android', '--key-pass', 'pass:android', '--out', temporary, input)
+  tool('sign', input, temporary, key, expected)
   certificate(temporary)
   if (metadata(temporary) !== nextVersion) throw new Error('Die Versionsprüfung nach dem Signieren ist fehlgeschlagen.')
   renameSync(temporary, output)
