@@ -56,8 +56,8 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
     const saved = focus ? focus.timer.durationMs / 60_000 : 25
     return WINDOWS.find((value) => value === saved) ?? 25
   })
-  const [partMinutes, setPartMinutes] = useState<Record<string, string>>({})
-  const duration = partId ? partMinutes[partId] ?? String(part?.timerMin ?? part?.estimateMin ?? 25) : String(minutes)
+  const [partMinutes, setPartMinutes] = useState(() => new Map<string, string>())
+  const duration = partId ? partMinutes.get(partId) ?? String(part?.timerMin ?? part?.estimateMin ?? 25) : String(minutes)
   const [interrupting, setInterrupting] = useState(false)
   const [resumeStep, setResumeStep] = useState(nextStep)
   const [note, setNote] = useState('')
@@ -149,7 +149,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
             {(!timer || expired) && (
               <div className="mt-6 space-y-3">
                 {!taskIsActionable(task, now) && <p className="text-sm text-muted">Für später vorgesehen. Du entscheidest, ob du jetzt damit anfangen möchtest.</p>}
-                {partId ? <label className="block space-y-1"><span>Dauer in Minuten</span><TextInput aria-label="Teilschritt-Timer Minuten" type="number" min="0.01" max="1440" step="any" inputMode="decimal" value={duration} onChange={(event) => setPartMinutes((current) => ({ ...current, [partId]: event.target.value }))} /></label> : <Segmented<FocusMinutes> label="Fokuszeit" value={minutes} onChange={setMinutes} options={WINDOWS.map((value) => ({ value, label: `${value} min` }))} />}
+                {partId ? <label className="block space-y-1"><span>Dauer in Minuten</span><TextInput aria-label="Teilschritt-Timer Minuten" type="number" min="0.01" max="1440" step="any" inputMode="decimal" value={duration} onChange={(event) => setPartMinutes((current) => new Map(current).set(partId, event.target.value))} /></label> : <Segmented<FocusMinutes> label="Fokuszeit" value={minutes} onChange={setMinutes} options={WINDOWS.map((value) => ({ value, label: `${value} min` }))} />}
                 {st.local.focus && !activeFocus && st.local.focus.timer.status === 'running' && <p className="text-sm text-muted">Der andere Timer läuft weiter, bis du diesen Fokus startest.</p>}
                 <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void start()}>{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'}</Button>
               </div>
