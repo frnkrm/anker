@@ -4,7 +4,9 @@ import { makeBackup, parseBackup } from '../core/export/backup'
 import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
 import { buildReminders } from '../core/reminders/build'
-import { zonedToUtc } from '../core/time'
+import { openSteps, routineCompleted, stepKey } from '../core/now'
+import { nextAction } from '../core/support'
+import { minutesOnPlanDay, zonedToUtc } from '../core/time'
 import type { LocalData, Settings } from '../core/types'
 import type { Rec } from '../data/types'
 import { planFor, useApp } from './store'
@@ -63,11 +65,120 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
 
   it('speichert Heute nicht als Ablehnung ohne falsche Erledigung oder XP', async () => {
     const a = { ...actionFor('evening'), action: 'skip' as const }
-    const xp = useApp.getState().game.xp
+    // Der installierte Spielstand bleibt stabil; ein fehlender Datensatz würde beim
+    // Laden einen neuen Kapitelstart aus dem inzwischen umgestellten Testdatum bilden.
+    await storage.repo!.put('game', 'main', useApp.getState().game)
+    const game = structuredClone(useApp.getState().game)
+    const plan = planFor(date)
+    const next = () => nextAction({ plan: planFor(date), log: useApp.getState().days[date], m: minutesOnPlanDay(date, a.at), nowMs: a.at, settings: useApp.getState().settings, inbox: [], work: [] }).action
+    expect(next()).toMatchObject({ type: 'step', routine: 'evening' })
     expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
     expect(useApp.getState().days[date]?.dismissed).toContain('evening')
     expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBeUndefined()
-    expect(useApp.getState().game.xp).toBe(xp)
+    expect(openSteps(plan, useApp.getState().days[date], 'evening')).toEqual([])
+    expect(routineCompleted(plan, useApp.getState().days[date], 'evening')).toBe(false)
+    expect(Object.values(useApp.getState().days[date]!.steps)).toEqual(plan.blocks.find((b) => b.routine === 'evening')!.steps!.map(() => 'not-needed'))
+    expect(next().type).not.toBe('step')
+    expect(useApp.getState().game).toEqual(game)
+    await useApp.getState().load()
+    expect(next().type).not.toBe('step')
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBeUndefined()
+    expect(useApp.getState().game).toEqual(game)
+    expect(await useApp.getState().applyReminderAction(a)).toBe('duplicate')
+    expect(buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, zonedToUtc(date, 0)).some((e) => e.key === 'evening')).toBe(false)
+  })
+
+  it('schließt mit Abend-Erledigt nur offene geplante Schritte und erhält frühere Entscheidungen', async () => {
+    const steps = planFor(date).blocks.find((b) => b.routine === 'evening')!.steps!
+    const previous = Object.fromEntries(steps.slice(0, 4).map((step, i) => [stepKey('evening', step.id), ['done', 'minimal', 'skipped', 'not-needed'][i]!]))
+    await useApp.getState().updateDay(date, (log) => ({ ...log, steps: { 'morning:water': 'done', ...previous } as typeof log.steps }))
+    const a = actionFor('evening')
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    expect(useApp.getState().days[date]).toMatchObject({ eveningRoutineDoneAt: a.at, steps: { 'morning:water': 'done', ...previous, [stepKey('evening', steps[4]!.id)]: 'done' } })
+    expect(openSteps(planFor(date), useApp.getState().days[date], 'evening')).toEqual([])
+    const game = structuredClone(useApp.getState().game)
+    await useApp.getState().load()
+    expect(openSteps(planFor(date), useApp.getState().days[date], 'evening')).toEqual([])
+    expect(await useApp.getState().applyReminderAction(a)).toBe('duplicate')
+    expect(useApp.getState().game).toEqual(game)
+  })
+
+  it('bestätigt die aktuell geplanten Minimalversionen und lässt frühere nicht geplante Schritte erhalten', async () => {
+    await useApp.getState().setOverride(date, { mode: 'wenig-energie' })
+    await useApp.getState().setStep(date, 'evening', 'nicht-mehr-geplant', 'skipped')
+    const steps = planFor(date).blocks.find((b) => b.routine === 'evening')!.steps!
+    expect(steps.some((step) => step.useMinimal)).toBe(true)
+    const a = actionFor('evening')
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    expect(useApp.getState().days[date]?.steps).toEqual({ 'evening:nicht-mehr-geplant': 'skipped', ...Object.fromEntries(steps.map((step) => [stepKey('evening', step.id), step.useMinimal ? 'minimal' : 'done'])) })
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBe(a.at)
+  })
+
+  it.each([
+    ['leave-10', 'leftAt', 'leave'],
+    ['pcstop-15', 'pcOffAt', 'pcstop'],
+  ] as const)('ordnet Erledigt bei %s der tatsächlichen Handlung zu', async (key, field, main) => {
+    const a = actionFor(key)
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    expect(useApp.getState().days[date]?.[field]).toBe(a.at)
+    expect(useApp.getState().days[date]?.dismissed ?? []).not.toContain(key)
+    const game = structuredClone(useApp.getState().game)
+    await useApp.getState().load()
+    expect(useApp.getState().days[date]?.[field]).toBe(a.at)
+    expect(await useApp.getState().applyReminderAction(a)).toBe('duplicate')
+    expect(useApp.getState().game).toEqual(game)
+    const reminders = buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, zonedToUtc(date, 0))
+    expect(reminders.some((event) => event.key === key || event.key === main)).toBe(false)
+  })
+
+  it('erhält bei Abend-entfällt frühere Schritte und vergibt auch nach späteren Änderungen keine Erledigung oder XP', async () => {
+    const steps = planFor(date).blocks.find((b) => b.routine === 'evening')!.steps!
+    const previous = Object.fromEntries(steps.slice(0, 4).map((step, i) => [stepKey('evening', step.id), ['done', 'minimal', 'skipped', 'not-needed'][i]!]))
+    await useApp.getState().updateDay(date, (log) => ({ ...log, steps: previous as typeof log.steps }))
+    const a = { ...actionFor('evening'), action: 'skip' as const }
+    const game = structuredClone(useApp.getState().game)
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    expect(useApp.getState().days[date]?.steps).toEqual({ ...previous, [stepKey('evening', steps[4]!.id)]: 'not-needed' })
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBeUndefined()
+    expect(useApp.getState().game).toEqual(game)
+    await useApp.getState().load()
+    await useApp.getState().updateDay(date, (log) => ({ ...log, changes: ['Eigene Notiz'] }))
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBeUndefined()
+    expect(useApp.getState().game).toEqual(game)
+  })
+
+  it('erlaubt nach Abend-entfällt eine bewusst neu erledigte Minimalhandlung ohne doppelte Punkte', async () => {
+    const a = { ...actionFor('evening'), action: 'skip' as const }
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    const game = structuredClone(useApp.getState().game)
+    const step = planFor(date).blocks.find((b) => b.routine === 'evening')!.steps!.find((step) => step.minimal)!
+    await useApp.getState().setStep(date, 'evening', step.id, undefined)
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBeUndefined()
+    expect(useApp.getState().game).toEqual(game)
+    await useApp.getState().setStep(date, 'evening', step.id, 'minimal')
+    expect(useApp.getState().days[date]?.eveningRoutineDoneAt).toBe(Date.now())
+    expect(useApp.getState().days[date]?.steps[stepKey('evening', step.id)]).toBe('minimal')
+    const earned = structuredClone(useApp.getState().game)
+    expect(earned.xp).toBeGreaterThan(game.xp)
+    await useApp.getState().load()
+    await useApp.getState().setStep(date, 'evening', step.id, 'minimal')
+    expect(useApp.getState().game).toEqual(earned)
+  })
+
+  it.each(['done', 'skip'] as const)('speichert Abend-%s mit Schritten und Receipt gemeinsam oder gar nicht', async (action) => {
+    const a = { ...actionFor('evening'), action }
+    const before = structuredClone(useApp.getState().days)
+    const game = structuredClone(useApp.getState().game)
+    vi.spyOn(storage.repo!, 'putMany').mockRejectedValueOnce(new Error('Disk full'))
+    await expect(useApp.getState().applyReminderAction(a)).rejects.toThrow('Disk full')
+    expect(useApp.getState().days).toEqual(before)
+    expect(useApp.getState().game).toEqual(game)
+    expect(await storage.repo!.get('days', date)).toBeUndefined()
+    expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
+    expect(openSteps(planFor(date), useApp.getState().days[date], 'evening')).toEqual([])
+    await useApp.getState().load()
+    expect(useApp.getState().days[date]?.reminderReceipts).toEqual([a.id])
+    expect(await useApp.getState().applyReminderAction(a)).toBe('duplicate')
   })
 
   it('erhält nach Transaktionsfehler die alten Daten und lässt eine gleichzeitige UI-Änderung erst danach durch', async () => {

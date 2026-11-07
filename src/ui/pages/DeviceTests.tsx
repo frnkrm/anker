@@ -72,6 +72,7 @@ const E03_HELP: Record<number, string[]> = {
 }
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (id === 21 || id === 67) return [{ label: 'Erinnerungen ansehen', to: '/einstellungen/erinnerungen' }, { label: 'Abendroutine ansehen', to: '/einstellungen/abendroutine' }, { label: 'Wirkung auf Jetzt vergleichen', to: '/' }]
   if (id === 96) return [{ label: 'Einschlafdauer ansehen', to: '/einstellungen/schlaf' }, { label: 'Stummen Hinweis auf Jetzt prüfen', to: '/' }]
   if (CAMPAIGN_LINKS[id]) return CAMPAIGN_LINKS[id]
   if (E03_LINKS[id]) return E03_LINKS[id]
@@ -100,6 +101,7 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (id === 21 || id === 67) return ['Nutze eine bewusst gewählte Test-Erinnerung und notiere vorher deine Zeiten. Die Links führen zu Erinnerungen, Abendroutine und Jetzt; ein Testwecker prüft diese Antworten nicht.', 'Bei Erledigt bestätigst du die angezeigte Handlung wirklich. Bei der Abendroutine werden nur noch offene geplante Schritte erledigt; bisherige Ergebnisse bleiben. Heute nicht lässt offene Abend-Schritte für heute entfallen, ohne neue Punkte oder Erledigt-Häkchen.', 'Bei geschlossener App ist die Auswahl zunächst sicher vorgemerkt und wird beim Öffnen übernommen. 5 Min später verschiebt nur die Erinnerung; auf Jetzt entsteht dadurch keine Erledigung. Ruhe/Fokus können eine normale Erinnerung unterdrücken. Nach zweimaligem Verschieben bleiben Erledigt und Heute nicht verfügbar.', 'Öffne Anker anschließend erneut und vergleiche den Zustand. Halte nur tatsächlich beobachtete Teile fest und stelle geänderte Testzeiten wieder zurück.']
   if (id === 96) return ['Notiere zuerst deine eigene Einschlafdauer. Ändere sie nur für deinen bewussten Versuch und stelle sie danach wieder her.', 'Öffne Jetzt zur Bettzeit. Lies den freiwilligen Fensterhinweis und entscheide selbst über die Android-Freigabe. Öffnen dieses Links startet den Hinweis nicht.', 'Prüfe eingeschalteten und gesperrten Bildschirm getrennt. Ohne tatsächliche Beobachtung bleiben diese Teile offen; der Hinweis ersetzt keinen Wecker.']
   if (CAMPAIGN_HELP[id]) return CAMPAIGN_HELP[id]
   if (E03_HELP[id]) return E03_HELP[id]

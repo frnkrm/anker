@@ -6,20 +6,24 @@ import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
 import { planFor, useApp } from '../state/store'
 import type { AnkerNativePlugin, ReminderActionInfo } from './native'
-import { drainActions, rescheduleAll } from './notifications'
+import { drainActions, rescheduleAll, setupNotifications } from './notifications'
 
 const mocks = vi.hoisted(() => ({
   repo: undefined as Repository | undefined,
   read: vi.fn<AnkerNativePlugin['drainReminderActions']>(),
   ack: vi.fn<AnkerNativePlugin['ackReminderActions']>(),
   sync: vi.fn<AnkerNativePlugin['syncReminders']>(),
+  listener: vi.fn<AnkerNativePlugin['addListener']>(),
 }))
 vi.mock('../data', () => ({ getRepository: async () => mocks.repo! }))
 vi.mock('./native', () => ({
-  AnkerNative: { drainReminderActions: mocks.read, ackReminderActions: mocks.ack, syncReminders: mocks.sync },
+  AnkerNative: { drainReminderActions: mocks.read, ackReminderActions: mocks.ack, syncReminders: mocks.sync, addListener: mocks.listener },
   isNative: () => true,
   safe: async <T>(fn: () => Promise<T>, fallback: T) => { try { return await fn() } catch { return fallback } },
 }))
+vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: {
+  getPending: async () => ({ notifications: [] }), getDeliveredNotifications: async () => ({ notifications: [] }),
+} }))
 
 const date = '2026-11-02'
 let queue: ReminderActionInfo[]
@@ -27,11 +31,12 @@ let queue: ReminderActionInfo[]
 beforeEach(async () => {
   vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(zonedToUtc(date, 17 * 60))
   mocks.repo = new MemoryRepository()
-  mocks.read.mockReset(); mocks.ack.mockReset(); mocks.sync.mockReset()
+  mocks.read.mockReset(); mocks.ack.mockReset(); mocks.sync.mockReset(); mocks.listener.mockReset()
   queue = []
   mocks.read.mockImplementation(async () => ({ actions: [...queue] }))
   mocks.ack.mockImplementation(async ({ ids }) => { queue = queue.filter((a) => !ids.includes(a.id)) })
   mocks.sync.mockResolvedValue()
+  mocks.listener.mockResolvedValue({ remove: async () => undefined })
   useApp.setState({ ready: false, settings: defaultSettings(date), local: emptyLocal() })
   await useApp.getState().load()
 })
@@ -45,6 +50,17 @@ function bedAction(): ReminderActionInfo {
 }
 
 describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen', () => {
+  it('verliert einen neuen Drain am Ende einer leeren Abfrage nicht', async () => {
+    const first = drainActions()
+    // Die leere Bridge-Antwort ist eingetroffen, ihr Abschluss läuft noch in Microtasks.
+    await Promise.resolve()
+    const action = bedAction(); queue = [action]
+    await drainActions(); await first
+    expect(queue).toEqual([])
+    expect(useApp.getState().days[date]?.bedAt).toBe(action.at)
+    expect(mocks.ack).toHaveBeenCalledExactlyOnceWith({ ids: [action.id] })
+  })
+
   it('bestätigt erst nach der Transaktion und fasst parallele Drains zusammen', async () => {
     const a = bedAction(); queue = [a]
     let entered!: () => void; let release!: () => void
@@ -123,5 +139,27 @@ describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen'
     const [old, current] = mocks.sync.mock.calls.map(([request]) => request)
     expect(current!.revisions[`${date}|bed`]).not.toBe(old!.revisions[`${date}|bed`])
     expect(current!.revisions[`${date}|bed`]).toBe(buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, Date.now()).find((e) => e.key === 'bed')!.revision)
+  })
+
+  it('versucht einen abgelehnten Listener erneut und richtet ihn bei parallelem Setup nur einmal ein', async () => {
+    mocks.listener.mockRejectedValueOnce(new Error('bridge temporarily unavailable'))
+    await expect(setupNotifications()).rejects.toThrow('temporarily unavailable')
+    let entered!: () => void; let release!: () => void
+    const reached = new Promise<void>((resolve) => { entered = resolve })
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    mocks.listener.mockImplementationOnce(async () => { entered(); await gate; return { remove: async () => undefined } })
+    const first = setupNotifications()
+    await reached
+    expect(setupNotifications()).toBe(first)
+    expect(mocks.listener).toHaveBeenCalledTimes(2)
+    release(); await first
+    await setupNotifications()
+    expect(mocks.listener).toHaveBeenCalledTimes(2)
+    const listener = mocks.listener.mock.calls[1]![1]
+    const action = bedAction(); queue = [action]
+    listener()
+    await drainActions()
+    expect(queue).toEqual([])
+    expect(useApp.getState().days[date]?.bedAt).toBe(action.at)
   })
 })

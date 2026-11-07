@@ -83,7 +83,10 @@ const localEffects = coalesceAsync(async () => {
   if (!useApp.getState().settings.onboarded) return
   if (replan) {
     await notificationSetup
-    if (isNative()) await attempt('Erinnerungsrückmeldung', drainActions)
+    if (isNative()) {
+      await attempt('Erinnerungseinrichtung', setupNotifications)
+      await attempt('Erinnerungsrückmeldung', drainActions)
+    }
     await attempt('Erinnerungsplanung', rescheduleAll)
     // syncAlarm führt seinen sichtbaren Fehlerstatus selbst, auch für direkte Aufrufer.
     try { await syncAlarm() } catch {

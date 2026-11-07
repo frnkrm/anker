@@ -96,7 +96,7 @@ object ReminderScheduler {
         AnkerPrefs.setReminderPolicy(ctx, policyJson.toString())
         AnkerPrefs.setReminderRules(ctx, rulesJson.toString())
         val consumed = consumedTokens(ctx)
-        val q = continueRules(ctx, ReminderLogic.replace(loadQueue(ctx), incoming.filter { !consumed.has(it.token) }, relevant, now, revisions), now)
+        val q = continueRules(ctx, ReminderLogic.replace(loadQueue(ctx), incoming, relevant, now, revisions, consumed.keys), now)
         saveQueue(ctx, q)
         val nm = ctx.getSystemService(NotificationManager::class.java)
         val slots = loadSlots(ctx)
@@ -172,15 +172,14 @@ object ReminderScheduler {
         AnkerPrefs.setReminderRuleConsumed(ctx, consumed.toString())
     }
 
-    private fun consumedTokens(ctx: Context): JSONObject = try { JSONObject(AnkerPrefs.reminderConsumedTokens(ctx)) } catch (_: Exception) { JSONObject() }
+    private fun consumedTokens(ctx: Context): Map<String, Long> = try {
+        val tokens = JSONObject(AnkerPrefs.reminderConsumedTokens(ctx))
+        tokens.keys().asSequence().associateWith { tokens.optLong(it) }
+    } catch (_: Exception) { emptyMap() }
 
     private fun consumeTokens(ctx: Context, entries: List<ReminderEntry>) {
-        val tokens = consumedTokens(ctx)
-        entries.filter { it.token.isNotEmpty() }.forEach { tokens.put(it.token, it.at) }
-        val keys = tokens.keys().asSequence().sortedByDescending { tokens.optLong(it) }.take(2048).toList()
-        val bounded = JSONObject()
-        keys.forEach { bounded.put(it, tokens.getLong(it)) }
-        AnkerPrefs.setReminderConsumedTokens(ctx, bounded.toString())
+        val tokens = ReminderLogic.consumeTokens(consumedTokens(ctx), entries)
+        AnkerPrefs.setReminderConsumedTokens(ctx, JSONObject(tokens).toString())
     }
 
     fun queueInfo(ctx: Context): Pair<Int, Long> {
@@ -243,7 +242,7 @@ object ReminderScheduler {
         var slots = loadSlots(ctx)
         val consumed = consumedTokens(ctx)
         for (e in r.due) {
-            if (consumed.has(e.token)) continue
+            if (e.token in consumed) continue
             if (!ReminderLogic.allowed(e, now, policy, AnkerPrefs.reminderFocusUntil(ctx))) continue
             val p = ReminderLogic.place(slots, e, now, reserved)
             // Bekannte App-/Kanalsperren verändern keine vorhandene Karte.
@@ -398,17 +397,21 @@ object ReminderScheduler {
         if (revisions.optString("$date|$key") != revision) return
         val queue = loadQueue(ctx)
         val actions = JSONArray(AnkerPrefs.reminderActions(ctx))
+        var nextConsumed: String? = null
         val next = when (action) {
             ACTION_SNOOZE -> {
-                if (ReminderLogic.allowed(source, now + ReminderLogic.SNOOZE_MS, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx))) ReminderLogic.snooze(queue, source, now) ?: queue
-                else ReminderLogic.withoutKey(queue, date, key)
+                if (ReminderLogic.allowed(source, now + ReminderLogic.SNOOZE_MS, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx))) {
+                    val snoozed = ReminderLogic.snooze(queue, source, now) ?: return
+                    nextConsumed = JSONObject(ReminderLogic.consumeSnoozeTokens(consumedTokens(ctx), queue, source)).toString()
+                    snoozed
+                } else ReminderLogic.withoutKey(queue, date, key)
             }
             else -> {
                 actions.put(JSONObject().put("id", "$token:$action").put("revision", revision).put("token", token).put("action", if (action == ACTION_DONE) "done" else "skip").put("key", key).put("date", date).put("at", now))
                 ReminderLogic.withoutKey(queue, date, key)
             }
         }
-        if (!AnkerPrefs.commitReminderAction(ctx, slotsJson(slots - occupant), queueJson(next), actions.toString())) return
+        if (!AnkerPrefs.commitReminderAction(ctx, slotsJson(slots - occupant), queueJson(next), actions.toString(), nextConsumed)) return
         nm.cancel(ReminderLogic.notificationId(occupant.slot))
         armNext(ctx, next)
         if (action != ACTION_SNOOZE) AnkerNativePlugin.notifyReminderAction()

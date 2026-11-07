@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 1.3.0-rc.5 – Antworten auf Alltags-Erinnerungen (2026-11-07)
+
+- „Erledigt“ aus der Abend-Erinnerung bestätigt die noch offenen geplanten Schritte; bereits gewählte Ergebnisse bleiben erhalten. Auch die Vorwarnungen für Losgehen und PC-Stopp übernehmen die bestätigte Handlung.
+- „Heute nicht“ lässt offene Abend-Schritte nur für diesen Tag entfallen. Keine neuen Erledigt-Häkchen oder Punkte; frühere echte Handlungen bleiben erhalten.
+- Vorübergehend fehlgeschlagene Listener werden erneut eingerichtet; Rückmeldungen am Ende eines laufenden Abgleichs gehen nicht mehr bis zur nächsten Appöffnung unter. Speichern und Empfangsbestätigung bleiben atomar und wiederholbar.
+- Zweimal „5 Min später“ erhält die anderen Antwortknöpfe. Der Abgleich holt ersetzte Wiederholungen nicht erneut zurück; bestehende Ruhe-/Fokusregeln gelten weiter.
+- Die vorhandenen Teststationen G21/G67 erklären den gezielten Geräteversuch. Historische Berichte bleiben erhalten; tatsächliche Samsung-Zustellung und Installation sind separat zu prüfen.
+
 ## 1.3.0-rc.4 – Anker Neu mit eigener Release-Signatur (2026-11-07)
 
 - Neue App-Kennung und Release-Signatur: direkte APK-Installation parallel zum bisherigen Anker.

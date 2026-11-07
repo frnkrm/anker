@@ -45,6 +45,7 @@ object ReminderLogic {
 
     /** So lange bleibt eine Meldung sichtbar, danach räumt Android sie weg. */
     const val VISIBLE_MS = 90 * 60_000L
+    const val MAX_CONSUMED_TOKENS = 2048
 
     fun notificationId(slot: Int) = FIRST_NOTIFICATION_ID + slot
 
@@ -57,13 +58,14 @@ object ReminderLogic {
     }
 
     /** Neue Planung aus der App. Nur weiterhin relevante verschobene Erinnerungen bleiben erhalten. */
-    fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null): List<ReminderEntry> {
+    fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null, consumed: Set<String> = emptySet()): List<ReminderEntry> {
         val current = old.filter { "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
         // Ein noch unterwegs befindlicher Receiver darf seinen frischen Termin nicht durch Appöffnung verlieren.
         val due = current.filter { it.at <= now && now - it.at <= STALE_MS }
         val snoozed = current.filter { it.snoozes > 0 && it.at > now }
-        val snoozedKeys = snoozed.map { it.date to it.key }.toSet()
-        return (due + snoozed + incoming.filter { it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
+        // Auch ein frisch fälliger Snooze ersetzt die alten Stufen, bis sein Receiver ihn verarbeitet.
+        val snoozedKeys = (snoozed + due.filter { it.snoozes > 0 }).map { it.date to it.key }.toSet()
+        return (due + snoozed + incoming.filter { it.token !in consumed && it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
     }
 
     /** Teilt in Fälliges und Restliches. Veraltetes fällt weg, je Schlüssel kommt nur die neueste Stufe. */
@@ -106,9 +108,19 @@ object ReminderLogic {
     fun snooze(queue: List<ReminderEntry>, source: ReminderEntry, now: Long): List<ReminderEntry>? {
         val n = source.snoozes + 1
         if (n > MAX_SNOOZE) return null
-        val next = source.copy(at = now + SNOOZE_MS, snoozes = n, actions = n < MAX_SNOOZE, token = java.util.UUID.randomUUID().toString())
+        // Der Scheduler blendet nur „5 Min später“ am Limit aus; Erledigt/Heute nicht bleiben erhalten.
+        val next = source.copy(at = now + SNOOZE_MS, snoozes = n, token = java.util.UUID.randomUUID().toString())
         return (withoutKey(queue, source.date, source.key) + next).sortedBy { it.at }
     }
+
+    /** Das bestehende begrenzte Ledger verhindert spätere Wiederaufnahme bereits verbrauchter Zustellungen. */
+    fun consumeTokens(consumed: Map<String, Long>, entries: List<ReminderEntry>): Map<String, Long> =
+        (consumed + entries.filter { it.token.isNotEmpty() }.associate { it.token to it.at })
+            .entries.sortedByDescending { it.value }.take(MAX_CONSUMED_TOKENS).associate { it.key to it.value }
+
+    /** Nur die ersetzten Zustellungen dieses Plans verbrauchen; die neue Snooze-UUID bleibt unberührt. */
+    fun consumeSnoozeTokens(consumed: Map<String, Long>, queue: List<ReminderEntry>, source: ReminderEntry): Map<String, Long> =
+        consumeTokens(consumed, listOf(source) + queue.filter { it.date == source.date && it.key == source.key && it.revision == source.revision })
 
     /** Sichtbare Meldungen, die laut aktuellem Plan nicht mehr relevant sind (erledigt, geändert, abgelaufen). */
     fun obsolete(slots: List<SlotEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null): List<SlotEntry> =

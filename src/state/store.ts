@@ -12,7 +12,7 @@ import { createCountdown, isFocusSession, pauseCountdown, remainingMs, resumeCou
 import { normaliseTask, recoveryFields, usableResume, validCaptureDraft } from '../core/recovery'
 import { nextTaskOccurrence, resolveTask, taskIsOpen, taskLearningKey, taskNextStep, taskTitle, validTaskFields, validTaskParts, validTaskRef } from '../core/tasks'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
-import { activePlanDate, routineCompleted, stepKey } from '../core/now'
+import { activePlanDate, openSteps, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
@@ -549,7 +549,14 @@ export const useApp = create<AppState>()((set, get) => ({
       const st = get()
       let log = fn(structuredClone(st.days[date] ?? emptyLog(date)))
       const plan = planFor(date, { ...st, days: { ...st.days, [date]: log } })
-      if (!log.eveningRoutineDoneAt && routineCompleted(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
+      const eveningDismissed = log.dismissed?.includes('evening')
+      const eveningResumed = eveningDismissed && plan.blocks.find((b) => b.routine === 'evening')?.steps?.some((step) => {
+        const key = stepKey('evening', step.id)
+        return (log.steps[key] === 'done' || log.steps[key] === 'minimal') && log.steps[key] !== st.days[date]?.steps[key]
+      })
+      // Eine spätere Notiz bestätigt keine entfallene Routine. Ein bewusst neu
+      // erledigter Schritt darf dagegen wieder nach den gemeinsamen Regeln zählen.
+      if (!log.eveningRoutineDoneAt && (!eveningDismissed || eveningResumed) && routineCompleted(plan, log, 'evening')) log.eveningRoutineDoneAt = Date.now()
       const a = applyAwards(plan, log, st.game, st.settings)
       log = a.log
       const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: log }]
@@ -621,7 +628,9 @@ export const useApp = create<AppState>()((set, get) => ({
       }
 
       const log = structuredClone(st.days[action.date] ?? emptyLog(action.date))
-      const field = ({ leave: 'leftAt', pcstop: 'pcOffAt', bed: 'bedAt', evening: 'eveningRoutineDoneAt' } as const)[action.key as 'leave' | 'pcstop' | 'bed' | 'evening']
+      const plan = planFor(action.date, st)
+      const fields = { leave: 'leftAt', 'leave-10': 'leftAt', pcstop: 'pcOffAt', 'pcstop-15': 'pcOffAt', bed: 'bedAt', evening: 'eveningRoutineDoneAt' } as const
+      const field = fields[action.key as keyof typeof fields]
       if (action.action === 'done' && field) {
         if (log[field] !== undefined) return 'obsolete'
         log[field] = action.at
@@ -629,8 +638,15 @@ export const useApp = create<AppState>()((set, get) => ({
         if (log.dismissed?.includes(action.key)) return 'obsolete'
         log.dismissed = [...(log.dismissed ?? []), action.key]
       }
+      if (action.key === 'evening') {
+        for (const step of openSteps(plan, log, 'evening')) {
+          log.steps[stepKey('evening', step.id)] = action.action === 'skip' ? 'not-needed' : step.useMinimal ? 'minimal' : 'done'
+        }
+        if (action.action === 'skip') log.override.adjusted = true
+      }
       log.reminderReceipts = withReminderReceipt(log.reminderReceipts, action.id)
-      const award = applyAwards(planFor(action.date, st), log, st.game, st.settings)
+      // Eine bewusste Ablehnung ist keine Handlung und verdient keine neuen Punkte.
+      const award = action.action === 'skip' ? { log, game: st.game, gained: 0 } : applyAwards(plan, log, st.game, st.settings)
       const records: Pick<Rec, 'collection' | 'id' | 'data'>[] = [{ collection: 'days', id: action.date, data: award.log }]
       if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
       await repo.putMany(records)

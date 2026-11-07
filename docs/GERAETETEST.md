@@ -11,6 +11,8 @@ Gerät: Samsung Galaxy S26 Ultra (Nutzerangabe vom 05.11.2026) · Android/One UI
 
 **Fehlermeldung vom 07.11.2026:** Beim Halten und Ziehen eines Routinegriffs scrollt laut Nutzer die ganze Seite. Installierte Buildkennung noch offen. Die Korrektur benötigt einen neuen Gerätetest; diese Meldung bestätigt keinen Erfolg von G95.
 
+**Neue Rückmeldung zu Erinnerungsaktionen:** Nach „Erledigt“, „5 Min später“ oder „Heute nicht“ verschwindet laut Nutzer die Benachrichtigung, in Anker ist jedoch keine Änderung erkennbar. Installierter Build noch offen. Der frühere Erfolg bei G23 gilt für seinen damaligen Stand. Für die Korrektur G21/G67 erneut beobachten; bisherige Berichte bleiben erhalten. Gewünschtes Verhalten: „Heute nicht“ lässt die Abendroutine für diesen Tag auch auf Jetzt entfallen, ohne Erledigt-Häkchen oder neue Punkte.
+
 ## Wecker
 
 **Zusatzprüfung für den aktuellen Audio-/Erinnerungsstand:** Vor dem Versuch Gerätebezeichnung, genaue Android-/One-UI-Version und Appversion/Build aus der Testseite notieren. G1/G2 prüfen tatsächlichen Ton getrennt von der Meldung; bei Bedarf laufende Medienwiedergabe/Anruf und Rückkehr vergleichen. G9/G10 prüfen Hintergrund und Neustart, G12 das reguläre Update, G14–16 Tonrechte/-wege. Exaktalarm- oder Benachrichtigungsrechte nur bewusst testweise ändern und danach wiederherstellen; betroffene Teilprüfung und ihre Grenze notieren. Ein grüner globaler Benachrichtigungspunkt bestätigt keine freigegebenen Einzelkanäle. Die neue Diagnose für Alltags-Erinnerungen zeigt Kanäle, nächste Warteschlangenzeit und Ruhe-/Fokuszeiten; auch ein angenommener Post oder eine Android-Karte bestätigt noch keine Wahrnehmung. Die alten Ergebnisse in der Tabelle bleiben Berichte ihrer damaligen Builds.
@@ -64,7 +66,7 @@ Gerät: Samsung Galaxy S26 Ultra (Nutzerangabe vom 05.11.2026) · Android/One UI
 
 | # | Vorgehen | Erwartet | Ergebnis |
 |---|---|---|---|
-| 21 | Tag mit vielen Erinnerungen ohne Reaktion | Höchstens drei Anker-Meldungen sichtbar | |
+| 21 | Alltags-Erinnerungen beobachten: höchstens drei Karten; bei bewusst gewählten Testhinweisen Erledigt, Heute nicht und 5 Min später ausprobieren, Anker erneut öffnen | Passende Änderung bleibt nach Wiederöffnung erhalten; Heute nicht lässt offene Abend-Schritte nur heute entfallen, ohne neue Erledigt-Haken/Punkte. Später erinnert erneut nach etwa fünf Minuten, sofern Ruhe/Fokus das erlauben; höchstens drei Karten | |
 | 22 | Wecker klingelt, drei Meldungen stehen | Wecker-Meldung bleibt, höchstens zwei normale daneben | ok, nur eine normale Meldung daneben |
 | 23 | Knöpfe Erledigt, 5 Min später, Heute nicht bei geschlossener App | Treffen die richtige Aufgabe, beim Öffnen stimmt die App | ok |
 | 24 | Drei Tage App nicht öffnen | Erinnerungen kommen weiter, kein Stau | |
@@ -138,7 +140,7 @@ Auch diese Fälle bleiben bis zum eigenen Versuch offen. Für Nacht-, Neustart- 
 | # | Vorgehen | Erwartet | Ergebnis |
 |---|---|---|---|
 | 66 | Erinnerung sichtbar lassen, dazugehörigen Termin oder Tagesplan verschieben/absagen; alten Button danach betätigen | Alte Meldung verschwindet bzw. ihre Aktion bleibt ohne neue Wirkung; neue Aufgabe, Zeit und Spielstand unverändert | |
-| 67 | Erledigt oder Heute nicht bei geschlossener App schnell mehrfach betätigen, App wieder öffnen | Eine passende gespeicherte Wirkung, keine doppelte Erledigung/XP und keine überschriebene Erledigungszeit; Heute nicht bleibt ohne Erledigt-Haken | |
+| 67 | Bei bewusst gewählter Abendroutine Erledigt oder Heute nicht aus einer Benachrichtigung wählen; Anker öffnen, Jetzt und Routine prüfen, erneut öffnen. Vorwarnungen Losgehen/PC-Stopp sowie zweimal 5 Min später bei Bedarf getrennt beobachten | Erledigt bestätigt nur noch offene geplante Abend-Schritte; vorhandene Ergebnisse bleiben. Heute nicht lässt offene Schritte nur heute entfallen, ohne neue Erledigt-Haken/Punkte. Vorwarnungs-Erledigt bestätigt echte Abfahrt bzw. PC aus. Keine doppelte Wirkung/XP; nach zweitem Später bleiben Erledigt/Heute nicht verfügbar | |
 | 68 | Normale Erinnerung mit Wiederholung vor Ruhezeit oder Film planen, Grenze und Wiederholungszeit abwarten; auch 5 Min später über die Grenze prüfen | Normale Stufe bleibt in Ruhe/Freizeit still; ausdrücklich kritischer Anker bleibt nach gewählter Regel erhalten | |
 | 69 | Eine Routine im Fokus starten und eine normale Erinnerung im laufenden Zeitfenster abwarten; danach Fokus verlassen | Normaler Hinweis stört den laufenden Fokus nicht; kritischer Anker bleibt; kein alter Meldungsstau beim Verlassen | |
 | 70 | Aktivitätsmessung außerhalb ihres Fensters vorbereiten, mehrere normale Meldungen und separaten Testalarm zusammen beobachten | Erforderliche Alarm- und Messanzeige bleiben sichtbar; gewöhnliche Anker-Meldungen werden nach Wichtigkeit reduziert, keine fremden Meldungen entfernt | |

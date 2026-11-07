@@ -1,4 +1,5 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
+import { coalesceAsync } from '../core/coalesced'
 import { buildReminders, reminderPolicy, reminderRevisions, reopenHint } from '../core/reminders/build'
 import { validReminderAction } from '../core/reminders/actions'
 import { knownReminderDates } from '../core/reminders/dates'
@@ -14,15 +15,24 @@ import { AnkerNative, isNative, safe, type ReminderActionInfo } from './native'
 export const HORIZON_DAYS = 14
 
 let setupDone = false
+let activeSetup: Promise<void> | undefined
+let legacyCleanupStarted = false
 
-export async function setupNotifications() {
-  if (!isNative() || setupDone) return
-  setupDone = true
-  await safe(cleanupLegacy, undefined)
-  await safe(async () => {
+export function setupNotifications(): Promise<void> {
+  if (!isNative()) return Promise.resolve()
+  if (activeSetup) return activeSetup
+  if (setupDone) return Promise.resolve()
+  const task = (async () => {
+    if (!legacyCleanupStarted) {
+      legacyCleanupStarted = true
+      await safe(cleanupLegacy, undefined)
+    }
     await AnkerNative.addListener('reminderAction', () => void drainActions())
-  }, undefined)
-  await drainActions()
+    setupDone = true
+    await drainActions()
+  })().finally(() => { if (activeSetup === task) activeSetup = undefined })
+  activeSetup = task
+  return task
 }
 
 /** Bis 1.0.1 lagen Erinnerungen im Plugin. Einmal abräumen, sonst kämen sie doppelt und ohne Slot-Grenze. */
@@ -107,11 +117,8 @@ async function scheduleSnapshot() {
 }
 
 /** Knöpfe in Meldungen wirken auch bei geschlossener App: Hier werden sie im Store nachgetragen. */
-let activeDrain: Promise<void> | undefined
-
-export function drainActions(): Promise<void> {
-  if (activeDrain) return activeDrain
-  const task = (async () => {
+export const drainActions = coalesceAsync(async () => {
+  try {
     for (;;) {
       const { actions } = await AnkerNative.drainReminderActions()
       if (!actions.length) return
@@ -133,13 +140,11 @@ export function drainActions(): Promise<void> {
       // Unknown legacy records without an ID need native migration; never spin or apply them blindly.
       if (!ids.length || legacy) return
     }
-  })().catch(() => {
+  } catch {
     console.warn('[Anker] Erinnerungsrückmeldung bleibt zur erneuten Verarbeitung erhalten.')
     useApp.getState().showToast('Deine Rückmeldung konnte noch nicht gespeichert werden. Anker versucht es beim nächsten Öffnen erneut.')
-  }).finally(() => { if (activeDrain === task) activeDrain = undefined })
-  activeDrain = task
-  return task
-}
+  }
+})
 
 export async function applyAction(a: ReminderActionInfo) {
   return useApp.getState().applyReminderAction(a)

@@ -162,8 +162,11 @@ object AnkerPrefs {
     fun setReminderRuleConsumed(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderRuleConsumed", json).commit()
     fun reminderConsumedTokens(ctx: Context): String = prefs(ctx).getString("reminderConsumedTokens", "{}") ?: "{}"
     fun setReminderConsumedTokens(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderConsumedTokens", json).commit()
-    fun commitReminderAction(ctx: Context, slots: String, queue: String, actions: String): Boolean =
-        prefs(ctx).edit().putString("reminderSlots", slots).putString("reminderQueue", queue).putString("reminderActions", actions).commit()
+    fun commitReminderAction(ctx: Context, slots: String, queue: String, actions: String, consumedTokens: String? = null): Boolean {
+        val edit = prefs(ctx).edit().putString("reminderSlots", slots).putString("reminderQueue", queue).putString("reminderActions", actions)
+        if (consumedTokens != null) edit.putString("reminderConsumedTokens", consumedTokens)
+        return edit.commit()
+    }
 
     fun reminderLastShown(ctx: Context, date: String, key: String): String? = prefs(ctx).getString("shown:$date|$key", null)
     fun setReminderLastShown(ctx: Context, date: String, key: String, json: String, slots: List<SlotEntry>, now: Long) {

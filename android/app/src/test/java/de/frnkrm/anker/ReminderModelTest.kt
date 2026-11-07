@@ -28,7 +28,8 @@ class ReminderModelTest {
         val queue = ReminderLogic.replace(listOf(first, latest), listOf(next), revisions.keys, now, revisions)
         assertEquals(listOf(latest), ReminderLogic.takeDue(queue, now).due)
         val remaining = ReminderLogic.takeDue(queue, now).remaining
-        assertEquals(listOf(next), remaining)
+        // Der fällige Snooze ersetzt auch eine noch zukünftige Originalstufe.
+        assertTrue(remaining.isEmpty())
         assertTrue(ReminderLogic.takeDue(remaining, now + 1).due.isEmpty())
     }
 
@@ -203,6 +204,64 @@ class ReminderModelTest {
     }
 
     @Test
+    fun frischerFaelligerSnoozeErsetztBeimAppAbgleichWeiterhinDieUrspruenglichenStufen() {
+        val snoozed = e("evening", 0, 2, now + ReminderLogic.SNOOZE_MS, snoozes = 1).copy(revision = "current", token = "snoozed")
+        val originalLater = snoozed.copy(at = now + 60 * 60_000, snoozes = 0, token = "original-escalation")
+        val revisions = mapOf("${snoozed.date}|${snoozed.key}" to snoozed.revision)
+        for (at in listOf(snoozed.at - 1, snoozed.at, snoozed.at + 1, snoozed.at + ReminderLogic.STALE_MS)) {
+            val q = ReminderLogic.replace(listOf(snoozed), listOf(originalLater), revisions.keys, at, revisions)
+            assertEquals("Ein noch frischer Snooze muss bei $at die alten Stufen ersetzen", listOf(snoozed), q)
+        }
+    }
+
+    @Test
+    fun abgelaufenerOderAndersRevidierterSnoozeBlockiertKeinenNeuenPlan() {
+        val snoozed = e("evening", 0, 2, now, snoozes = 1).copy(revision = "old", token = "snoozed")
+        val incoming = snoozed.copy(at = now + 60 * 60_000, snoozes = 0, token = "future")
+        val key = "${snoozed.date}|${snoozed.key}"
+        val stale = ReminderLogic.replace(listOf(snoozed), listOf(incoming), setOf(key), now + ReminderLogic.STALE_MS + 1, mapOf(key to "old"))
+        assertEquals(listOf(incoming), stale)
+        val changed = incoming.copy(revision = "new")
+        assertEquals(listOf(changed), ReminderLogic.replace(listOf(snoozed), listOf(changed), setOf(key), now, mapOf(key to "new")))
+        assertTrue(ReminderLogic.replace(listOf(snoozed), emptyList(), emptySet(), now, emptyMap()).isEmpty())
+    }
+
+    @Test
+    fun nachZugestelltemSnoozeHoltEinNeuerAbgleichKeineUrspruenglicheStufeZurueck() {
+        val source = e("evening", 0, 2).copy(revision = "current", token = "first")
+        val originalLater = source.copy(at = now + 60 * 60_000, token = "later")
+        val queue = listOf(source, originalLater)
+        val snoozed = ReminderLogic.snooze(queue, source, now)!!
+        val consumed = ReminderLogic.consumeSnoozeTokens(emptyMap(), queue, source)
+        assertEquals(setOf(source.token, originalLater.token), consumed.keys)
+        assertFalse(snoozed.single().token in consumed)
+        val due = ReminderLogic.takeDue(snoozed, now + ReminderLogic.SNOOZE_MS)
+        assertEquals(1, due.due.size)
+        val key = "${source.date}|${source.key}"
+        val after = ReminderLogic.replace(due.remaining, listOf(originalLater), setOf(key), now + ReminderLogic.SNOOZE_MS + 1, mapOf(key to source.revision), consumed.keys)
+        assertTrue("Eine durch Snooze ersetzte Originalstufe darf nach seiner Zustellung nicht zurückkommen", after.isEmpty())
+        val changed = originalLater.copy(revision = "changed-plan", token = "changed-delivery")
+        assertEquals(listOf(changed), ReminderLogic.replace(due.remaining, listOf(changed), setOf(key), now + ReminderLogic.SNOOZE_MS + 1, mapOf(key to changed.revision), consumed.keys))
+    }
+
+    @Test
+    fun snoozeVerbrauchtNurErsetztePlanrevisionUndBegrenztDasLedger() {
+        val source = e("evening", 0, 2).copy(revision = "current", token = "source")
+        val same = source.copy(token = "same", at = now + 100)
+        val otherKey = same.copy(key = "other", token = "other-key")
+        val otherDate = same.copy(date = "2026-11-05", token = "other-date")
+        val otherRevision = same.copy(revision = "new-plan", token = "other-revision")
+        val old = (0..ReminderLogic.MAX_CONSUMED_TOKENS).associate { "old-$it" to it.toLong() }
+        val ledger = ReminderLogic.consumeSnoozeTokens(old, listOf(same, otherKey, otherDate, otherRevision), source)
+        assertEquals(ReminderLogic.MAX_CONSUMED_TOKENS, ledger.size)
+        assertEquals(now, ledger[source.token])
+        assertEquals(now + 100, ledger[same.token])
+        assertFalse(otherKey.token in ledger || otherDate.token in ledger || otherRevision.token in ledger)
+        assertFalse("old-0" in ledger)
+        assertEquals(ledger, ReminderLogic.consumeTokens(ledger, listOf(source.copy(token = ""))))
+    }
+
+    @Test
     fun relevanzUnterscheidetTageMitGleichemSchluessel() {
         val old = e("evening", 0, 2, now + 300_000, snoozes = 1)
         val nextDay = old.copy(date = "2026-11-05")
@@ -231,6 +290,25 @@ class ReminderModelTest {
         assertNotNull(q1)
         assertEquals(1, q1!!.count { it.key == "leave" })
         assertNull(ReminderLogic.snooze(q1, source.copy(snoozes = 2), now))
+    }
+
+    @Test
+    fun nachZweitemVerschiebenBleibenErledigtUndHeuteNichtVerfuegbar() {
+        val source = e("evening", 0, 2).copy(revision = "current", token = "first-delivery")
+        val first = ReminderLogic.snooze(emptyList(), source, now)!!.single()
+        val second = ReminderLogic.snooze(emptyList(), first, now + ReminderLogic.SNOOZE_MS)!!.single()
+        assertEquals(2, second.snoozes)
+        assertEquals(now + 2 * ReminderLogic.SNOOZE_MS, second.at)
+        assertTrue("Erledigt und Heute nicht dürfen mit dem Snooze-Limit nicht verschwinden", second.actions)
+        assertEquals(source.revision, second.revision)
+        assertTrue(source.token != first.token && first.token != second.token)
+        assertNull(ReminderLogic.snooze(emptyList(), second, second.at))
+    }
+
+    @Test
+    fun verschiebenErfindetKeineAktionenFuerEineHinweiskarte() {
+        val source = e("hint", 2, 1).copy(actions = false)
+        assertFalse(ReminderLogic.snooze(emptyList(), source, now)!!.single().actions)
     }
 
     @Test

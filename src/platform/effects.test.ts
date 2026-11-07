@@ -130,19 +130,38 @@ describe('Ein sequenzierter lokaler Abgleich bei Start, Änderung und Resume', (
     expect(mocks.alarm).toHaveBeenCalledTimes(2)
   })
 
+  it('versucht die Listener-Einrichtung beim Resume erneut und liest Rückmeldungen vor dem neuen Spiegel', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    let available = false
+    const observed: string[] = []
+    mocks.setup.mockImplementation(async () => { observed.push('setup'); if (!available) throw new Error('bridge unavailable') })
+    mocks.drain.mockImplementation(async () => { observed.push('drain') })
+    mocks.schedule.mockImplementation(async () => { observed.push('schedule') })
+    const effects = await import('./effects')
+    effects.startEffects(); await effects.reconcileEffects()
+    const initialSetups = mocks.setup.mock.calls.length
+    observed.length = 0; available = true
+    mocks.resumed!({ isActive: true })
+    await effects.reconcileEffects()
+    expect(mocks.setup.mock.calls.length).toBeGreaterThan(initialSetups)
+    expect(observed.slice(0, 3)).toEqual(['setup', 'drain', 'schedule'])
+  })
+
   it('registriert beim wiederholten Start nur einen Takt und aktualisiert periodisch über dieselbe Queue', async () => {
     const effects = await import('./effects')
     effects.startEffects(); effects.startEffects()
     await effects.reconcileEffects()
     expect(mocks.subscribe).toHaveBeenCalledTimes(1)
     expect(mocks.addListener).toHaveBeenCalledTimes(1)
-    expect(mocks.setup).toHaveBeenCalledTimes(1)
+    const setups = mocks.setup.mock.calls.length
+    expect(setups).toBeGreaterThan(0)
     mocks.schedule.mockClear(); mocks.alarm.mockClear(); mocks.widget.mockClear(); mocks.traffic.mockClear()
     await vi.advanceTimersByTimeAsync(5 * 60_000)
     expect(mocks.widget).toHaveBeenCalledTimes(1)
     expect(mocks.schedule).not.toHaveBeenCalled()
     expect(mocks.alarm).not.toHaveBeenCalled()
     expect(mocks.traffic).toHaveBeenCalledTimes(1)
+    expect(mocks.setup).toHaveBeenCalledTimes(setups)
   })
 })
 
