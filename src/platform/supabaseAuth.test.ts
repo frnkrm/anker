@@ -21,6 +21,6 @@ it('meldet nach fehlgeschlagenem Austausch keinen falschen Login-Erfolg', async 
 })
 it('verwendet nur den vorgesehenen Auth-Rückweg und ignoriert fremde Links', async () => {
   const { listenForAuthLinks } = await import('./supabase'); listenForAuthLinks()
-  for (const url of ['broken', 'https://example.org?code=x', `${APP_ID}://inbox?code=x`, `${APP_ID}://login/other?code=x`]) await context.listener!({ url })
+  for (const url of ['broken', 'https://example.org?code=x', 'de.frnkrm.anker://login?code=x', `${APP_ID}://inbox?code=x`, `${APP_ID}://login/other?code=x`]) await context.listener!({ url })
   expect(context.exchange).not.toHaveBeenCalled(); expect(context.toast).not.toHaveBeenCalled()
 })

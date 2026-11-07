@@ -76,7 +76,7 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".AnkerWidget" android:exported="false" android:label="Anker">
+        <receiver android:name=".AnkerWidget" android:exported="false" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="de.frnkrm.anker.WIDGET_REFRESH" />

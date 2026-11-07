@@ -283,7 +283,7 @@ test('Native Momentaufnahme bleibt als Abfrage gekennzeichnet und plant beim Öf
       ],
       async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[] }) {
         if (method === 'removeListener') { listeners.delete(options.callbackId!); return {} }
-        if (plugin === 'App') return method === 'getLaunchUrl' ? { url: 'de.frnkrm.anker://now' } : { id: 'de.frnkrm.anker', version: 'Browserfixture', build: '0', name: 'Anker' }
+        if (plugin === 'App') return method === 'getLaunchUrl' ? { url: 'de.frnkrm.anker.mobile://now' } : { id: 'de.frnkrm.anker.mobile', version: 'Browserfixture', build: '0', name: 'Anker' }
         if (plugin === 'AnkerNative') {
           calls.push(method)
           if (method === 'getAlarmState' || method === 'syncAlarmConfig') return { ringing: false, snoozed: 0, scheduledAt: Date.parse('2026-11-07T06:30:00+01:00'), mainConfirmed: true, exact: true }

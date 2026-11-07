@@ -14,6 +14,12 @@ describe('Native App-Einstiege', () => {
     expect(nativeDestination(`${APP_ID}://smartwake`)).toBe('/wecker')
   })
 
+  it('übernimmt keine Öffnungslinks der getrennt installierten bisherigen App', () => {
+    for (const host of ['now', 'evening', 'inbox', 'recover', 'focus', 'alarm']) {
+      expect(nativeDestination(`de.frnkrm.anker://${host}`)).toBeUndefined()
+    }
+  })
+
   it('ignoriert unbekannte Hosts, fremde Schemes und eingeschleuste Pfade', () => {
     for (const url of ['kein Link', 'https://evening', `${APP_ID}://evening-evil`, `${APP_ID}://login?code=x`, `${APP_ID}://evening/arbeit`, `${APP_ID}://constructor`, `${APP_ID}://__proto__`, `${APP_ID}://toString`]) {
       expect(nativeDestination(url)).toBeUndefined()

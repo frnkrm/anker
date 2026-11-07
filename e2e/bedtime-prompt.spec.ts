@@ -59,7 +59,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
       ],
       async nativePromise(plugin: string, method: string, raw: Record<string, unknown> = {}) {
         if (method === 'removeListener') { listeners.delete(String(raw.callbackId)); return {} }
-        if (plugin === 'App') return method === 'getLaunchUrl' ? { url: 'de.frnkrm.anker://now' } : { id: 'de.frnkrm.anker', name: 'Anker', version: 'Browserfixture', build: '0' }
+        if (plugin === 'App') return method === 'getLaunchUrl' ? { url: 'de.frnkrm.anker.mobile://now' } : { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'Browserfixture', build: '0' }
         if (plugin === 'AnkerNative') {
           if (bedtime.includes(method)) probe.calls.push({ method, options: { ...raw } })
           if (method === 'getBedtimePromptState') {

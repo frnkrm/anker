@@ -53,7 +53,7 @@ export function automaticSyncEnableConfirmation(): () => void {
   return () => { if (generation === syncGeneration && useApp.getState().settings.integrations.sync === true) syncBlocked = false }
 }
 
-/** Magic-Link-Rückkehr in die Android-App (de.frnkrm.anker://login?code=…). */
+/** Magic-Link-Rückkehr in die Android-App (Schema aus APP_ID, Host login). */
 export function listenForAuthLinks() {
   if (!isNative() || !supabaseConfigured) return
   void App.addListener('appUrlOpen', async ({ url }) => {

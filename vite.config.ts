@@ -24,7 +24,7 @@ function appSourceFingerprint(): string {
   visit('supabase/functions/_shared')
   visit('android/app/src/main/java/de/frnkrm/anker')
   visit('android/app/src/main/res')
-  for (const path of ['index.html', 'package.json', 'package-lock.json', 'vite.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle', 'android/variables.gradle', 'android/build.gradle', 'android/gradle/wrapper/gradle-wrapper.properties']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
+  for (const path of ['index.html', 'package.json', 'package-lock.json', 'vite.config.ts', 'app.config.ts', 'capacitor.config.ts', 'android/app/src/main/AndroidManifest.xml', 'android/app/build.gradle', 'android/variables.gradle', 'android/build.gradle', 'android/gradle/wrapper/gradle-wrapper.properties']) hash.update(path).update('\0').update(readFileSync(root + path)).update('\0')
   hash.update(JSON.stringify(parseDeviceTestCatalog(readFileSync(root + 'docs/GERAETETEST.md', 'utf8'))))
   return hash.digest('hex')
 }

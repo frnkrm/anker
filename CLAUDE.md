@@ -101,7 +101,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 
 ## Fallstricke
 
-- Paketname `de.frnkrm.anker` steht in `app.config.ts`, `android/app/build.gradle`, Kotlin-Paket, Supabase-Redirect.
+- Die neue App-ID `de.frnkrm.anker.mobile` steht in `app.config.ts`, `android/app/build.gradle`, Ressourcen und Supabase-Redirect. Das Kotlin-Namespace und die Komponentenklassen bleiben `de.frnkrm.anker`; beim Anpassen nicht global ersetzen. Die bisherige App bleibt mit ihrer alten Kennung separat installiert.
 - Health-Connect-Plugin deklariert viele Rechte; das App-Manifest entfernt alle außer READ_EXERCISE/READ_STEPS.
 - Werbe-IDs (AD_ID, AdServices) werden im Manifest per `tools:node="remove"` entfernt; SocialLogin ohne Facebook (capacitor.config.ts).
 - Plan-Tag wechselt erst um 04:00 (`activePlanDate`), damit Bettzeiten nach Mitternacht zum Vortag gehören.

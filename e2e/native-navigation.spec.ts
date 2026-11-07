@@ -60,7 +60,7 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
         async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[]; until?: number; channel?: string }) {
           if (method === 'removeListener') { callbacks.delete(options.callbackId!); return {} }
           if (plugin === 'App' && method === 'getLaunchUrl') { probe.launchReads++; return { url: launchUrl } }
-          if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker', name: 'Anker', version: 'simulation', build: '0' }
+          if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'simulation', build: '0' }
           if (plugin === 'AnkerNative' && (method === 'getAlarmState' || method === 'syncAlarmConfig')) return { ...alarm }
           if (plugin === 'AnkerNative' && method === 'getAlarmDiagnostics') return { ...alarm, notificationsEnabled: true, fullScreen: true, alarmVolume: 5, alarmVolumeMax: 7, audioOk: probe.audioOk, interruptionFilter: 1, testResult: '', sdk: 36, device: 'Browser simulation', reminderDelivery: audio.reminderDelivery }
           if (plugin === 'AnkerNative' && method === 'playTestTone') {
@@ -116,7 +116,7 @@ async function probe(page: Page) {
 }
 
 test('Unterbrochener Ton bleibt eine Warnung; abgelehnter Testton meldet Fehler und lässt einen neuen Versuch zu', async ({ page }) => {
-  await nativeEntry(page, 'de.frnkrm.anker://now', false, { audioOk: false, toneBlocked: true })
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now', false, { audioOk: false, toneBlocked: true })
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
   await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
   await expect(page).toHaveURL(/\/wecker$/)
@@ -134,7 +134,7 @@ test('Unterbrochener Ton bleibt eine Warnung; abgelehnter Testton meldet Fehler 
 })
 
 test('Globale Freigabe verdeckt keinen blockierten Erinnerungskanal; Öffnen ändert keine Android-Freigabe', async ({ page }) => {
-  await nativeEntry(page, 'de.frnkrm.anker://now', false, { reminderDelivery: {
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now', false, { reminderDelivery: {
     channels: [{ id: 'sanft', importance: 0, blocked: true }, { id: 'uebergang', importance: 2, blocked: false }, { id: 'wecker', importance: -1, blocked: false }],
     nextAt: new Date('2026-11-06T02:20:00+01:00').getTime(), nextChannel: 'sanft',
     focusUntil: new Date('2026-11-06T02:10:00+01:00').getTime(), quietUntil: 0, planQuietUntil: 0,
@@ -158,7 +158,7 @@ test('Globale Freigabe verdeckt keinen blockierten Erinnerungskanal; Öffnen än
 
 for (const target of ['now', 'alarm']) {
   test(`Alter ${target}-Öffnungslink sperrt die Navigation bei Gute Nacht nicht`, async ({ page }) => {
-    await nativeEntry(page, `de.frnkrm.anker://${target}`)
+    await nativeEntry(page, `de.frnkrm.anker.mobile://${target}`)
     const before = await probe(page)
     await page.getByRole('link', { name: 'Mehr', exact: true }).click()
     await expect(page.getByRole('link', { name: /Gemeinsam testen/ })).toBeVisible()
@@ -176,10 +176,10 @@ for (const target of ['now', 'alarm']) {
 }
 
 test('Neue native Links und ein echter Klingelzustand bleiben nach Seitenwechsel erreichbar', async ({ page }) => {
-  await nativeEntry(page, 'de.frnkrm.anker://now')
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now')
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
   await expect(page.getByRole('link', { name: /Gemeinsam testen/ })).toBeVisible()
-  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker://evening' }))
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://evening' }))
   await expect(page).toHaveURL(/\/abend$/)
   await expect(page.getByRole('heading', { name: 'Abend & morgen', exact: true })).toBeVisible()
   await page.evaluate(() => {
@@ -188,13 +188,13 @@ test('Neue native Links und ein echter Klingelzustand bleiben nach Seitenwechsel
     bridge.emit('AnkerNative', 'alarmRinging', {})
   })
   await expect(page.getByRole('button', { name: 'Test beenden', exact: true })).toBeVisible()
-  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker://thoughts' }))
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://thoughts' }))
   await expect(page).toHaveURL(/\/wecker\/klingelt$/)
   expect((await probe(page)).launchReads).toBe(1)
 })
 
 test('Messnacht zeigt die Vorweckerpause vor Start, im Status und nach Messungsende', async ({ page }) => {
-  await nativeEntry(page, 'de.frnkrm.anker://now', true)
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now', true)
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
   await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
   await expect(page.getByText(/Beim Start wird der Vorwecker für diese Nacht pausiert/)).toBeVisible()
@@ -208,8 +208,8 @@ test('Messnacht zeigt die Vorweckerpause vor Start, im Status und nach Messungse
 })
 
 test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim Verlassen auf', async ({ page }) => {
-  await nativeEntry(page, 'de.frnkrm.anker://now')
-  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker://now' }))
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now')
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://now' }))
   // A real route transition without reloading the native session.
   await page.getByRole('link', { name: 'Tag', exact: true }).click()
   await page.evaluate(() => { history.pushState({}, '', '/fokus/morning'); window.dispatchEvent(new PopStateEvent('popstate')) })
@@ -222,7 +222,7 @@ test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim
 for (const width of [390, 320]) for (const scale of [1, 1.6]) {
   test(`Wecker-Formular und Diagnose bei ${width}px / ${scale}`, async ({ page }) => {
     await page.setViewportSize({width, height:844})
-    await nativeEntry(page, 'de.frnkrm.anker://now', true, {reminderDelivery: {
+    await nativeEntry(page, 'de.frnkrm.anker.mobile://now', true, {reminderDelivery: {
       channels: [{id:'sanft',importance:0,blocked:true},{id:'uebergang',importance:2,blocked:false},{id:'wecker',importance:-1,blocked:false}],
       nextAt:Date.parse('2026-11-06T02:20:00+01:00'),nextChannel:'sanft',focusUntil:Date.parse('2026-11-06T02:10:00+01:00'),quietUntil:0,planQuietUntil:0,storedSlots:2,activeNotifications:0,lastSyncAt:0,
     }}, scale)
