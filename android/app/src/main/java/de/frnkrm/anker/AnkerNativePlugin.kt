@@ -43,7 +43,7 @@ class AnkerNativePlugin : Plugin() {
     @Volatile private var voiceForeground = true
     private val voice by lazy { LocalVoiceController(context) }
     private val alarmTonePreview by lazy { AlarmTonePreview(context) }
-    override fun handleOnResume() { super.handleOnResume(); voiceForeground = true }
+    override fun handleOnResume() { super.handleOnResume(); voiceForeground = true; try { BedtimePromptController.onAppResume(context) } catch (_: Exception) { } }
     override fun handleOnPause() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); super.handleOnPause(); activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking(); alarmTonePreview.stop() } }
     override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy(); alarmTonePreview.stop() }; super.handleOnDestroy() }
 
@@ -72,6 +72,25 @@ class AnkerNativePlugin : Plugin() {
         }
     }
     @PluginMethod fun stopSpeaking(call: PluginCall) { speechLease.cancel(); activity.runOnUiThread { voice.stopSpeaking(); call.resolve() } }
+
+    // ---------- Einmaliger, stummer Schlafhinweis; eigener nativer Zustandsbesitzer ----------
+    private fun bedtime(call: PluginCall, action: () -> JSObject) { activity.runOnUiThread {
+        try { call.resolve(action()) } catch (e: Exception) { call.reject(e.message ?: "Der Schlafhinweis konnte nicht sicher geändert werden.") }
+    } }
+    @PluginMethod fun getBedtimePromptState(call: PluginCall) = bedtime(call) { BedtimePromptController.state(context) }
+    @PluginMethod fun startBedtimePrompt(call: PluginCall) = bedtime(call) {
+        val raw = call.data.opt("delayMinutes")
+        require(raw is Number && raw.toDouble().isFinite() && raw.toDouble() == raw.toInt().toDouble()) { "Die Einschlafzeit ist ungültig." }
+        BedtimePromptController.start(context, raw.toInt())
+    }
+    @PluginMethod fun stopBedtimePrompt(call: PluginCall) = bedtime(call) { BedtimePromptController.stop(context, call.getString("sessionId")) }
+    @PluginMethod fun ackBedtimePrompt(call: PluginCall) = bedtime(call) { BedtimePromptController.ack(context, call.getString("sessionId") ?: "") }
+    @PluginMethod fun openOverlayPermissionSettings(call: PluginCall) { activity.runOnUiThread {
+        try {
+            activity.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context.packageName}")))
+            call.resolve()
+        } catch (_: Exception) { call.reject("Die Einstellung für Anzeigen über anderen Apps ist nicht verfügbar.") }
+    } }
 
     // ---------- Freiwillige besuchsbezogene Ankunftshinweise ----------
 
@@ -122,12 +141,15 @@ class AnkerNativePlugin : Plugin() {
         private var instance: WeakReference<AnkerNativePlugin>? = null
 
         fun notifyRinging() {
+            BedtimePromptController.onAlarmStarted()
             instance?.get()?.notifyListeners("alarmRinging", JSObject(), true)
         }
 
         fun notifyReminderAction() {
             instance?.get()?.notifyListeners("reminderAction", JSObject(), true)
         }
+
+        fun notifyBedtimePromptChanged(state: JSObject) { instance?.get()?.notifyListeners("bedtimePromptChanged", state, true) }
     }
 
     override fun load() {

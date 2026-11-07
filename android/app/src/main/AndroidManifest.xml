@@ -69,6 +69,13 @@
         </receiver>
 
         <!-- Homescreen-Widget -->
+        <!-- Freiwilliger Schlafhinweis: eigener non-WAKEUP-Termin, keine Direct-Boot-Ausführung. -->
+        <receiver android:name=".BedtimePromptReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <receiver android:name=".AnkerWidget" android:exported="false" android:label="Anker">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -93,6 +100,8 @@
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Nur nach eigenem bewussten Special-Access-Schritt für den stummen Schlafhinweis. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Wecker-App: ab Android 13 fest erteilt und nicht entziehbar. Darunter gibt es nur das erteilbare Recht. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" tools:replace="android:maxSdkVersion" />
