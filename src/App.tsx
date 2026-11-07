@@ -31,6 +31,7 @@ const Work = lazy(() => import('./ui/pages/Work'))
 const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
 const Places = lazy(() => import('./ui/pages/Places'))
 const Check = lazy(() => import('./ui/pages/Check'))
+const TimeOverview = lazy(() => import('./ui/pages/TimeOverview'))
 const DeviceTests = lazy(() => import('./ui/pages/DeviceTests'))
 const PcStop = lazy(() => import('./ui/pages/PcStop'))
 const Connections = lazy(() => import('./ui/pages/Connections'))
@@ -214,6 +215,7 @@ export default function App() {
             <Route path="/vorbereitung" element={<Prep />} />
             <Route path="/rueckblick" element={<Review />} />
             <Route path="/check" element={<Check />} />
+            <Route path="/zeiten" element={<TimeOverview />} />
             <Route path="/geraetetest" element={<DeviceTests />} />
             <Route path="/wecker" element={<AlarmSetup />} />
             <Route path="/wecker/klingelt" element={<AlarmRinging />} />

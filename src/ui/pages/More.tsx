@@ -17,6 +17,7 @@ export default function More() {
       </Section>
       <Section title="Einrichtung">
         <Row label="⚙️ Einstellungen" to="/einstellungen" />
+        <Row label="🕰️ Zeitübersicht" sub="Zeiten, Hinweise und ihre Zusammenhänge" to="/zeiten" />
         <Row label="🚦 Einrichtungs-Check" to="/check" />
         <Row label="🧪 Gemeinsam testen" sub="Geführte Versuche und deine gespeicherten Ergebnisse" to="/geraetetest" />
         <Row label="⏰ Wecker & QR-Code" to="/wecker" />
