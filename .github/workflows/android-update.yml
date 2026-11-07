@@ -62,7 +62,7 @@ jobs:
                       raise ValueError()
                   if not re.fullmatch(re.escape('https://github.com/' + repo + '/actions/runs/') + r'[1-9]\d*', approved['ciRunURL']):
                       raise ValueError()
-                  if approved['publicCertificateSha256'].replace(':', '').lower() != '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad':
+                  if approved['publicCertificateSha256'].replace(':', '').lower() != 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a':
                       raise ValueError()
               except (KeyError, TypeError, ValueError):
                   raise SystemExit('Der freigegebene Update-Stand ist unvollständig oder ungültig. Keine andere SHA wird automatisch gewählt.') from None
@@ -195,7 +195,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import base64, hashlib, json, os, pathlib, re, shutil, subprocess, tempfile
-          expected_cert = '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad'
+          expected_cert = 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'
           root = pathlib.Path(os.environ['RUNNER_TEMP'])
           source = root / 'anker-input'
           output = root / 'anker-update'
@@ -209,7 +209,7 @@ jobs:
           if digest(metadata) != os.environ['ANKER_METADATA_SHA256'] or digest(apk) != os.environ['ANKER_UNSIGNED_SHA256']:
               raise SystemExit('Die Übergabeprüfsummen stimmen nicht.')
           proof = json.loads(metadata.read_text())
-          if proof.get('schemaVersion') != 1 or proof.get('applicationId') != 'de.frnkrm.anker' or proof.get('sourceCommit') != os.environ['ANKER_SOURCE_COMMIT'] or proof.get('unsignedApkSha256') != digest(apk):
+          if proof.get('schemaVersion') != 1 or proof.get('applicationId') != 'de.frnkrm.anker.mobile' or proof.get('sourceCommit') != os.environ['ANKER_SOURCE_COMMIT'] or proof.get('unsignedApkSha256') != digest(apk):
               raise SystemExit('Die Paketnachweise passen nicht zum gewählten Quellcommit.')
           ci = proof.get('ci', {})
           if ci != json.loads(os.environ['ANKER_EXPECTED_CI_PROOF']):
@@ -236,7 +236,7 @@ jobs:
           def inspect(path):
               text = tool([sdk / 'aapt', 'dump', 'badging', path]).stdout.decode()
               first = text.splitlines()[0]
-              for name, value in [('name', 'de.frnkrm.anker'), ('versionCode', code), ('versionName', version), ('compileSdkVersion', '36')]:
+              for name, value in [('name', 'de.frnkrm.anker.mobile'), ('versionCode', code), ('versionName', version), ('compileSdkVersion', '36')]:
                   match = re.search(r'\b' + name + r"='([^']*)'", first)
                   if not match or match[1] != value:
                       raise SystemExit('Tatsächliche APK-Metadaten stimmen nicht mit den Nachweisen überein.')
@@ -292,7 +292,7 @@ jobs:
               proof['signingRunnerHasCheckout'] = False
               proof['published'] = False
               (output / 'build-proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2) + '\n')
-              message = 'Signierte APK: ZIP am Handy entpacken und die APK über die vorhandene App installieren. Android verlangt deine Installationsbestätigung. Frühere Geräteberichte sind keine Prüfung dieses Builds.' if all(configured) else 'UNSIGNIERT: Diese APK ist noch nicht installierbar. Erst die vier Signiersecrets einmalig sicher vom PC einrichten oder die bisherige lokale Signierhilfe verwenden. Anker installiert lassen.'
+              message = 'Signierte APK: ZIP am Handy entpacken und Anker Neu neben der bisherigen Anker-App installieren. Die alte App mit ihren Daten installiert lassen; eine vollständige Sicherung in Anker Neu bewusst wiederherstellen und vergleichen. Android-Freigaben separat prüfen. Frühere Geräteberichte sind keine Prüfung dieses Builds.' if all(configured) else 'UNSIGNIERT: Diese APK ist noch nicht installierbar. Erst die vier Signiersecrets für den Release-Schlüssel von Anker Neu bereitstellen. Die bisherige Anker-App installiert lassen.'
               (output / 'INSTALLATION.txt').write_text(message + '\n')
               with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
                   summary.write('### Android-Update\n\n' + message + '\n\nCode: `' + code + '`, Version: `' + version + '`, Quellcommit: `' + proof['sourceCommit'] + '`.\n\nAPK-SHA256: `' + proof['apkSha256'] + '`.\n')

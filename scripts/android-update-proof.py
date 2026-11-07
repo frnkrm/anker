@@ -11,7 +11,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
 
-APPLICATION_ID = 'de.frnkrm.anker'
+APPLICATION_ID = 'de.frnkrm.anker.mobile'
 
 
 def sha256(path):

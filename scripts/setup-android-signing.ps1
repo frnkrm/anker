@@ -3,8 +3,8 @@
 param(
     [ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')]
     [string]$Repository = 'frnkrm/anker',
-    [string]$KeystorePath = "$env:USERPROFILE\.android\debug.keystore",
-    [string]$KeyAlias = 'AndroidDebugKey'
+    [string]$KeystorePath,
+    [string]$KeyAlias = 'anker-mobile-release'
 )
 
 Set-StrictMode -Version Latest
@@ -71,7 +71,7 @@ function Convert-AnkerSecureString {
 # Tests dürfen die Übergabefunktionen mit ausschließlich künstlichen Werten laden.
 if ($MyInvocation.InvocationName -eq '.') { return }
 
-$expectedCertificate = '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad'
+$expectedCertificate = 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'
 $storeSecure = $null
 $keySecure = $null
 $storeText = $null
@@ -79,6 +79,7 @@ $keyText = $null
 $keystoreBytes = $null
 $encoded = $null
 try {
+    if ([string]::IsNullOrWhiteSpace($KeystorePath)) { throw 'Den Pfad zum gesicherten Release-Keystore von Anker Neu ausdrücklich mit -KeystorePath angeben. Der frühere Debugschlüssel passt nicht zu dieser App.' }
     $gh = (Get-Command gh -CommandType Application -ErrorAction Stop).Source
     $keytool = (Get-Command keytool -CommandType Application -ErrorAction Stop).Source
     $null = Invoke-AnkerPrivateProcess -Executable $gh -Arguments @('auth', 'status')

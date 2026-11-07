@@ -47,16 +47,16 @@ SIGN_CODE = inline_python('Daten prüfen und gegebenenfalls mit bestehendem Schl
 
 class ProofTests(unittest.TestCase):
     def test_source_version_must_match_checked_in_defaults(self):
-        gradle = "versionCode((System.getenv('VERSION_CODE') ?: '10').toInteger())\nversionName(System.getenv('VERSION_NAME') ?: '1.3.0-rc.3')"
-        self.assertEqual(PROOF.source_version({'version': '1.3.0-rc.3'}, gradle), ('1.3.0-rc.3', '10'))
+        gradle = "versionCode((System.getenv('VERSION_CODE') ?: '11').toInteger())\nversionName(System.getenv('VERSION_NAME') ?: '1.3.0-rc.4')"
+        self.assertEqual(PROOF.source_version({'version': '1.3.0-rc.4'}, gradle), ('1.3.0-rc.4', '11'))
         with self.assertRaises(ValueError):
             PROOF.source_version({'version': '1.3.0-rc.2'}, gradle)
         with self.assertRaises(ValueError):
-            PROOF.source_version({'version': '1.3.0-rc.3'}, gradle.replace("'10'", "'0'"))
+            PROOF.source_version({'version': '1.3.0-rc.4'}, gradle.replace("'11'", "'0'"))
 
     def test_missing_apk_fields_rejected(self):
         with self.assertRaises(ValueError):
-            PROOF.apk_metadata("package: name='de.frnkrm.anker'")
+            PROOF.apk_metadata("package: name='de.frnkrm.anker.mobile'")
 
     def test_exact_ci_proof(self):
         value = {'headSha': SHA, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml'}
@@ -127,7 +127,7 @@ class CiGateTests(unittest.TestCase):
     def gate(self, *, sha=SHA, status='ahead', runs=None, branch='main', helper=True, manifest='valid'):
         with tempfile.TemporaryDirectory() as directory:
             run = {'head_sha': SHA, 'head_branch': branch, 'event': 'push', 'status': 'completed', 'conclusion': 'success', 'id': 42, 'html_url': 'https://github.com/example/repo/actions/runs/42'}
-            approved = {'schemaVersion': 1, 'sourceCommit': SHA, 'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'ciRunURL': run['html_url'], 'publicCertificateSha256': '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad'} if manifest == 'valid' else manifest
+            approved = {'schemaVersion': 1, 'sourceCommit': SHA, 'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.4', 'versionCode': 11, 'ciRunURL': run['html_url'], 'publicCertificateSha256': 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'} if manifest == 'valid' else manifest
             def response(request, **kwargs):
                 url = request.full_url
                 if '/contents/docs/AKTUELLER_UPDATESTAND.json?ref=main' in url:
@@ -165,7 +165,7 @@ class CiGateTests(unittest.TestCase):
 
     def test_bad_manifest_fields_fail_without_fallback(self):
         valid = self.gate(sha='')['approvedStand']
-        for name, value in [('sourceCommit', 'main'), ('sourceFingerprint', 'bad'), ('versionCode', '10'), ('ciRunURL', 'https://evil.example/run'), ('publicCertificateSha256', 'f' * 64), ('schemaVersion', 2)]:
+        for name, value in [('sourceCommit', 'main'), ('sourceFingerprint', 'bad'), ('versionCode', '11'), ('ciRunURL', 'https://evil.example/run'), ('publicCertificateSha256', 'f' * 64), ('schemaVersion', 2)]:
             with self.subTest(name=name), self.assertRaisesRegex(SystemExit, 'unvollständig oder ungültig'):
                 self.gate(sha='', manifest=dict(valid, **{name: value}))
 
@@ -204,7 +204,7 @@ class SigningTests(unittest.TestCase):
         source.mkdir()
         apk = source / 'unsigned.apk'
         apk.write_bytes(b'SYNTHETIC APK DATA; SDK TOOLS ARE MOCKED')
-        self.proof = {'schemaVersion': 1, 'applicationId': 'de.frnkrm.anker', 'versionName': '1.3.0-rc.3', 'versionCode': '10', 'sourceCommit': SHA, 'sourceIdentity': IDENTITY, 'unsignedApkSha256': PROOF.sha256(apk), 'ci': {'headSha': SHA, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml'}, 'nativeTests': {'freshRerun': True, 'totals': {'tests': 3, 'failures': 0, 'errors': 0, 'skipped': 0}}}
+        self.proof = {'schemaVersion': 1, 'applicationId': 'de.frnkrm.anker.mobile', 'versionName': '1.3.0-rc.4', 'versionCode': '11', 'sourceCommit': SHA, 'sourceIdentity': IDENTITY, 'unsignedApkSha256': PROOF.sha256(apk), 'ci': {'headSha': SHA, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml'}, 'nativeTests': {'freshRerun': True, 'totals': {'tests': 3, 'failures': 0, 'errors': 0, 'skipped': 0}}}
         self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
         sdk = self.root / 'sdk/build-tools/35.0.0'
         sdk.mkdir(parents=True)
@@ -215,7 +215,7 @@ class SigningTests(unittest.TestCase):
             with open(os.environ['FAKE_TOOL_LOG'], 'a') as log:
                 log.write(json.dumps({'tool': name, 'argv': sys.argv[1:], 'environmentSecretNames': sorted(k for k in os.environ if k.startswith('ANKER_ANDROID_') or k.startswith('ANKER_SIGN_'))}) + '\\n')
             if name == 'aapt':
-                print("package: name='de.frnkrm.anker' versionCode='10' versionName='1.3.0-rc.3' compileSdkVersion='36'")
+                print("package: name='de.frnkrm.anker.mobile' versionCode='11' versionName='1.3.0-rc.4' compileSdkVersion='36'")
                 print("sdkVersion:'26'\\ntargetSdkVersion:'36'")
             elif name == 'keytool':
                 sys.stdout.buffer.write(b'SYNTHETIC PUBLIC CERTIFICATE; NOT A REAL SIGNING KEY')
@@ -299,6 +299,12 @@ class SigningTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.tools(), [])
 
+    def test_legacy_app_id_is_rejected_before_any_private_tool(self):
+        self.proof['applicationId'] = 'de.frnkrm.anker'
+        result = self.execute(credentials=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.tools(), [])
+
     def test_wrong_ci_rejected(self):
         self.proof['ci']['headSha'] = 'c' * 40
         self.assertNotEqual(self.execute().returncode, 0)
@@ -308,7 +314,7 @@ class SigningTests(unittest.TestCase):
         self.assertNotEqual(self.execute().returncode, 0)
 
     def test_approved_manifest_must_match_actual_build(self):
-        approved = {'sourceFingerprint': 'c' * 64, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'publicCertificateSha256': FAKE_CERT_SHA}
+        approved = {'sourceFingerprint': 'c' * 64, 'versionName': '1.3.0-rc.4', 'versionCode': 11, 'publicCertificateSha256': FAKE_CERT_SHA}
         self.proof['ci']['approvedStand'] = approved
         self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
         result = self.execute(credentials=True)
@@ -316,7 +322,7 @@ class SigningTests(unittest.TestCase):
         self.assertEqual(self.tools(), [])
 
     def test_matching_approved_manifest_reaches_mock_signed_output(self):
-        approved = {'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'publicCertificateSha256': FAKE_CERT_SHA}
+        approved = {'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.4', 'versionCode': 11, 'publicCertificateSha256': FAKE_CERT_SHA}
         self.proof['ci']['approvedStand'] = approved
         self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
         result = self.execute(credentials=True)
@@ -367,6 +373,18 @@ Set-AnkerSigningSecrets -GhExecutable $Mock -TargetRepository 'example/repo' -Ke
                 self.assertEqual(row['argv'][3:], ['--repo', 'example/repo'])
                 self.assertNotIn(row['stdin'], str(row['argv']))
             self.assertNotIn('FAKE-STORE', result.stdout + result.stderr)
+
+    def test_missing_explicit_keystore_path_does_not_use_debug_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            log = root / 'gh-called'
+            mock = root / 'gh'
+            mock.write_text('#!/usr/bin/env python3\nimport os,pathlib\npathlib.Path(os.environ["ANKER_MISSING_PATH_LOG"]).touch()\n')
+            mock.chmod(0o755)
+            result = subprocess.run([self.pwsh, '-NoProfile', '-NonInteractive', '-File', str(ROOT / 'scripts/setup-android-signing.ps1')], env=dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'], ANKER_MISSING_PATH_LOG=str(log)), capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('-KeystorePath', result.stdout + result.stderr)
+            self.assertFalse(log.exists())
 
     def test_mock_gh_errors_are_redacted(self):
         with tempfile.TemporaryDirectory() as directory:
