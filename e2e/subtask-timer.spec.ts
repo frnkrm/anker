@@ -11,6 +11,20 @@ const START = new Date('2026-11-06T10:00:00+01:00').getTime()
 const ROUTE = '/aufgabe/work/teil-bericht'
 const local = (page: Page) => storedRecord<LocalData>(page, 'meta', 'local')
 
+async function widthDiagnostics(page: Page) {
+  return page.evaluate(() => ({
+    viewport: innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    font: getComputedStyle(document.body).fontFamily,
+    overflowing: Array.from(document.querySelectorAll<HTMLElement>('body *')).flatMap((element) => {
+      const box = element.getBoundingClientRect()
+      if (!box.width || (box.right <= innerWidth + 1 && box.left >= -1)) return []
+      const style = getComputedStyle(element)
+      return [{ tag: element.tagName, label: element.getAttribute('aria-label') ?? element.textContent?.trim().slice(0, 50), left: box.left, right: box.right, width: box.width, clientWidth: element.clientWidth, scrollWidth: element.scrollWidth, minWidth: style.minWidth, display: style.display, font: style.font, overflowWrap: style.overflowWrap }]
+    }).slice(0, 15),
+  }))
+}
+
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date(START))
   await page.goto('/start')
@@ -208,7 +222,16 @@ test('Freie Minuten sind per Tastatur bedienbar, ungültige Dauer bleibt ohne St
   await expect(page.getByRole('button', { name: 'Fokus starten', exact: true })).toBeFocused()
   await page.keyboard.press('Enter')
   await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(675_000)
+  const originalFont = await page.evaluate(() => document.body.style.fontFamily)
+  const widths = []
+  for (const font of ['"DejaVu Sans", sans-serif', 'monospace']) {
+    await page.evaluate((family) => { document.body.style.fontFamily = family }, font)
+    widths.push(await widthDiagnostics(page))
+  }
+  await page.evaluate((family) => { document.body.style.fontFamily = family }, originalFont)
+  await testInfo.attach('taskfocus-font-widths', { body: Buffer.from(JSON.stringify(widths, null, 2)), contentType: 'application/json' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+  for (const width of widths) expect(width.scrollWidth - width.viewport, JSON.stringify(width)).toBeLessThanOrEqual(1)
   for (const name of ['Pause', 'Timer beenden']) {
     const size = await page.getByRole('button', { name, exact: true }).boundingBox()
     expect(size!.height).toBeGreaterThanOrEqual(44)

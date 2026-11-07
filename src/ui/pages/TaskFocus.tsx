@@ -122,7 +122,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
 
       {error && <p role="alert" className="rounded-2xl border border-warm p-3 text-warm">{error}</p>}
 
-      <section className="flex flex-1 flex-col justify-center py-4">
+      <section className="flex min-w-0 flex-1 flex-col justify-center py-4">
         {open && (!!task.subtasks?.length || partId) && <label className="mb-5 block min-w-0 space-y-1"><span className="text-sm text-muted">Fokus für</span><select aria-label="Fokus für" disabled={busy} className="min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3" value={partId ?? ''} onChange={(event) => { setSearch({ teil: event.target.value }); setInterrupting(false) }}><option value="">Gesamte Aufgabe</option>{unavailablePart && <option value={partId}>Teilschritt nicht verfügbar</option>}{task.subtasks?.filter((item) => item.doneAt === undefined).map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
         {nextStep !== title && <p className="mb-2 break-words text-muted">{title}</p>}
         {part && !unavailablePart && <p className="mb-2 text-sm text-accent">Teilschritt</p>}
@@ -151,16 +151,16 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
                 {!taskIsActionable(task, now) && <p className="text-sm text-muted">Für später vorgesehen. Du entscheidest, ob du jetzt damit anfangen möchtest.</p>}
                 {partId ? <label className="block space-y-1"><span>Dauer in Minuten</span><TextInput aria-label="Teilschritt-Timer Minuten" type="number" min="0.01" max="1440" step="any" inputMode="decimal" value={duration} onChange={(event) => setPartMinutes((current) => new Map(current).set(partId, event.target.value))} /></label> : <Segmented<FocusMinutes> label="Fokuszeit" value={minutes} onChange={setMinutes} options={WINDOWS.map((value) => ({ value, label: `${value} min` }))} />}
                 {st.local.focus && !activeFocus && st.local.focus.timer.status === 'running' && <p className="text-sm text-muted">Der andere Timer läuft weiter, bis du diesen Fokus startest.</p>}
-                <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void start()}>{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'}</Button>
+                <Button disabled={busy} variant="primary" size="xl" className="min-w-0 w-full" onClick={() => void start()}><span className="min-w-0 [overflow-wrap:anywhere]">{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'}</span></Button>
               </div>
             )}
             {timer && !expired && (
-              <div className="mt-6 grid gap-3">
-                <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void (paused ? continueFocus() : partId ? completePart() : complete())}>{paused ? 'Weiter' : partId ? 'Teilschritt erledigt' : 'Erledigt'}</Button>
+              <div className="mt-6 grid min-w-0 grid-cols-1 gap-3">
+                <Button disabled={busy} variant="primary" size="xl" className="min-w-0 w-full" onClick={() => void (paused ? continueFocus() : partId ? completePart() : complete())}><span className="min-w-0 [overflow-wrap:anywhere]">{paused ? 'Weiter' : partId ? 'Teilschritt erledigt' : 'Erledigt'}</span></Button>
                 {!paused && <Button disabled={busy} size="lg" className="w-full" onClick={() => void run(() => st.pauseTaskFocus(reference, undefined, undefined, partId))}>Pause</Button>}
               </div>
             )}
-            {(!timer || paused || expired) && <Button disabled={busy} size="lg" className="mt-3 w-full" onClick={() => void (partId ? completePart() : complete())}>{partId ? 'Teilschritt erledigt' : 'Erledigt'}</Button>}
+            {(!timer || paused || expired) && <Button disabled={busy} size="lg" className="mt-3 min-w-0 w-full" onClick={() => void (partId ? completePart() : complete())}><span className="min-w-0 [overflow-wrap:anywhere]">{partId ? 'Teilschritt erledigt' : 'Erledigt'}</span></Button>}
             {timer && <Button disabled={busy} variant="ghost" size="lg" className="mt-3 w-full" onClick={() => void run(() => st.clearFocus(focus!.id))}>Timer beenden</Button>}
             {(!partId || activeFocus) && <Button disabled={busy} variant="ghost" size="lg" className="mt-3 w-full" aria-expanded={interrupting} onClick={beginInterruption}>Ich wurde unterbrochen</Button>}
           </>
