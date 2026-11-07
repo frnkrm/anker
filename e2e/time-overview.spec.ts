@@ -3,6 +3,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { defaultSettings, emptyLocal } from '../src/core/defaults'
 import { makeBackup } from '../src/core/export/backup'
 import { initialGame } from '../src/core/game'
+import { activePlanDate } from '../src/core/now'
+import { todayBerlin } from '../src/core/time'
 import type { TimeCatalogSnapshot } from '../src/core/timeCatalog'
 import type { LocalData, Settings, WorkTask } from '../src/core/types'
 import type { Rec } from '../src/data/types'
@@ -21,6 +23,9 @@ async function onboard(page: Page, at = START, running = false) {
   await page.getByRole('button', { name: /Passt, los/ }).click()
   await expect(page).toHaveURL(/\/$/)
   await expect.poll(async () => (await settings(page))?.onboarded).toBe(true)
+  // Die bewusste Ersteinrichtung wertet den Spieltag aus. Erst den bestätigten DB-Stand
+  // als Vergleichsbasis nehmen; das anschließende Lesen der Übersicht darf nichts ändern.
+  await expect.poll(async () => (await storedRecord<ReturnType<typeof initialGame>>(page, 'game', 'main'))?.lastEvaluated).toBe(activePlanDate(at, todayBerlin))
 }
 
 async function seedWork(page: Page, work: WorkTask[] = [{ id: 'catalog-work', title: 'Mein Bericht', nextStep: 'Tabelle öffnen', state: 'pending', createdAt: START, earliestStart: START + 30 * 60_000, deadline: START + 60 * 60_000 }]) {
