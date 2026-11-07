@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { App } from '@capacitor/app'
 import { BEDTIME_PROMPT_TEXT, BedtimeNative, bedtimePromptSupported, type BedtimePromptState } from '../../platform/bedtimePrompt'
 import { Button, Card } from './ui'
 
@@ -25,42 +26,50 @@ export function BedtimePrompt({ available, delayMinutes, nowMs }: { available: b
   const [error, setError] = useState('')
   const [settingsOpened, setSettingsOpened] = useState(false)
   const pending = useRef(false)
+  const foreground = useRef(true)
   const epoch = useRef(0)
   const latest = useRef<BedtimePromptState | undefined>(undefined)
   const refresh = useRef<((force?: boolean) => Promise<void>) | undefined>(undefined)
+  const flush = useRef<(() => void) | undefined>(undefined)
 
   useEffect(() => {
     if (!supported) return
     let active = true
     let reading: number | undefined
-    const read = async (force = false) => {
-      if ((pending.current || reading !== undefined) && !force) return
+    let queued = false
+    const flushQueued = () => { if (queued && active && !pending.current && reading === undefined) { queued = false; void read() } }
+    const read = async (force = false, queueOnBusy = true) => {
+      if ((pending.current || reading !== undefined) && !force) { if (queueOnBusy) queued = true; return }
       const request = ++epoch.current
-      reading = request
+      reading = request; queued = false
       try {
         const value = await BedtimeNative.getBedtimePromptState()
-        if (active && request === epoch.current) { latest.current = value; setState(value); setError('') }
+        if (active && request === epoch.current && !queued) { latest.current = value; setState(value); setError('') }
       } catch {
-        if (active && request === epoch.current) setError('Der Schlafhinweis-Status konnte nicht gelesen werden. Prüfe die installierte App-Version oder versuche es erneut.')
-      } finally { if (reading === request) reading = undefined }
+        if (active && request === epoch.current && !queued) setError('Der Schlafhinweis-Status konnte nicht gelesen werden. Prüfe die installierte App-Version oder versuche es erneut.')
+      } finally { if (reading === request) { reading = undefined; flushQueued() } }
     }
     refresh.current = read
+    flush.current = flushQueued
     void read()
-    const visible = () => { if (document.visibilityState === 'visible') void read() }
+    const visible = () => { if (document.visibilityState === 'visible' && foreground.current) void read() }
     document.addEventListener('visibilitychange', visible)
     window.addEventListener('focus', visible)
     // Nur Statusanzeige: Deadline und Lebenszyklus gehören vollständig Android.
     const interval = setInterval(() => {
-      if (document.visibilityState === 'visible' && latest.current?.phase === 'waiting') void read()
+      if (document.visibilityState === 'visible' && foreground.current && latest.current?.phase === 'waiting') void read(false, false)
     }, 2000)
-    const listener = BedtimeNative.addListener('bedtimePromptChanged', () => { void read() })
+    const appListener = App.addListener('appStateChange', ({ isActive }) => { foreground.current = isActive; if (isActive) visible() })
+    void appListener.catch(() => { /* Der zusätzliche Dokument-Abgleich bleibt verfügbar. */ })
+    const listener = BedtimeNative.addListener('bedtimePromptChanged', visible)
     void listener.catch(() => { /* Ältere Builds werden durch den Statusabruf erkennbar; Vordergrundabgleich bleibt. */ })
     return () => {
-      active = false; refresh.current = undefined
+      active = false; refresh.current = undefined; flush.current = undefined
       clearInterval(interval)
       document.removeEventListener('visibilitychange', visible)
       window.removeEventListener('focus', visible)
       void listener.then((handle) => handle.remove(), () => undefined)
+      void appListener.then((handle) => handle.remove(), () => undefined)
     }
   }, [supported])
 
@@ -69,23 +78,27 @@ export function BedtimePrompt({ available, delayMinutes, nowMs }: { available: b
     pending.current = true; ++epoch.current; setBusy(true); setError('')
     try { await action(); await refresh.current?.(true) }
     catch { setError('Der Schlafhinweis konnte nicht sicher aktualisiert werden. Bitte versuche es erneut.') }
-    finally { pending.current = false; setBusy(false) }
+    finally { pending.current = false; setBusy(false); flush.current?.() }
   }
   const waiting = state?.phase === 'waiting'
   const shown = state?.phase === 'shown'
   const finished = !!state?.sessionId && (state.phase === 'skipped' || state.phase === 'error')
   const validDelay = Number.isInteger(delayMinutes) && delayMinutes >= 0 && delayMinutes <= 60
+  const acknowledge = () => {
+    if (!state?.sessionId || !foreground.current || document.visibilityState !== 'visible') return
+    void run(() => BedtimeNative.ackBedtimePrompt({ sessionId: state.sessionId! }))
+  }
   if (!available && !waiting && !shown && !finished) return null
 
   return <Card className="min-w-0 space-y-3">
     <h2 className="break-words font-semibold">Stummer Schlafhinweis</h2>
     {!supported ? <p className="text-sm text-muted">Der Hinweis über anderen Apps ist nur in der Android-App verfügbar. Im Browser wird kein Schlafhinweis gestartet.</p> : <>
-      {shown ? <div role="status" className="space-y-3 rounded-2xl bg-surface-2 p-3">
-        <p className="break-words text-lg">{BEDTIME_PROMPT_TEXT}</p>
-        <Button disabled={busy || !state.sessionId} className="w-full" onClick={() => void run(() => BedtimeNative.ackBedtimePrompt({ sessionId: state.sessionId! }))}>Hinweis beenden</Button>
+      {shown ? <div role="status" className="space-y-3">
+        <p className="break-words">{BEDTIME_PROMPT_TEXT}</p>
+        <Button disabled={busy || !state.sessionId} className="w-full" onClick={acknowledge}>Hinweis beenden</Button>
       </div> : waiting ? <>
         <p role="status" className="text-sm text-muted">Schlafhinweis für diesen Start vorgemerkt.{state.dueAt !== undefined && Number.isFinite(state.dueAt) ? ` Vorgesehener Zeitpunkt: ${time(state.dueAt)}.${state.dueAt <= nowMs ? ' Der vorgesehene Zeitpunkt ist erreicht.' : ''}` : ''}</p>
-        <p className="text-sm text-muted">Wenn der Bildschirm ausgeschaltet oder das Handy gesperrt wird, entfällt dieser Hinweis. Er wird später nicht nachgeholt.</p>
+        <p className="text-sm text-muted">Der Hinweis erscheint nur, wenn der Bildschirm zum vorgesehenen Zeitpunkt eingeschaltet und das Handy entsperrt ist. Sonst entfällt er und wird später nicht nachgeholt.</p>
         {!state.exact && <p className="text-sm text-muted">Android kann den vorgesehenen Zeitpunkt verzögern.</p>}
         <Button disabled={busy} className="w-full" onClick={() => void run(() => BedtimeNative.stopBedtimePrompt({ sessionId: state.sessionId }))}>Schlafhinweis abbrechen</Button>
       </> : finished ? <>
