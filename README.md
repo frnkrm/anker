@@ -1,4 +1,6 @@
-# Anker-Update RC3
+# Historischer RC3-Zwischenstand – nicht der freigegebene Update-Download
+
+Die spätere GitHub-Prüfung dieses Stands fand einen 4-Pixel-Überlauf im Teilschritt-Fokus (208 von 209 Browserfällen bestanden). Die ZIP bleibt als historischer Beleg unverändert. Für das freigegebene Update ausschließlich die [aktuelle Anleitung auf main](https://github.com/frnkrm/anker/blob/main/docs/UPDATE_RC3.md) verwenden; der korrigierte Stand erhält einen eigenen Download.
 
 Vorbereitetes Update **1.3.0-rc.3 / Code 10**, Paket `de.frnkrm.anker`. Die ZIP enthält die unsignierte APK und die unveränderte lokale Signierhilfe 2. Zum Installieren zuerst lokal signieren; ausschließlich die erzeugte **Anker-RC3-Update.apk** verwenden und die vorhandene App installiert lassen. Kein Schlüssel oder Passwort gehört ins Repository oder in den Chat.
 
