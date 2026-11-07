@@ -322,6 +322,7 @@ class AnkerNativePlugin : Plugin() {
         o.put("reminderQueue", queue)
         o.put("reminderHorizon", horizon)
         o.put("remindersVisible", ReminderScheduler.visibleCount(ctx))
+        o.put("reminderDelivery", ReminderScheduler.diagnostics(ctx))
         val (rules, rulesFrom) = ReminderScheduler.ruleInfo(ctx)
         o.put("reminderRuleCount", rules)
         o.put("reminderRulesFrom", rulesFrom)
@@ -449,6 +450,16 @@ class AnkerNativePlugin : Plugin() {
                 .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                 .putExtra(Settings.EXTRA_CHANNEL_ID, AlarmService.CHANNEL),
         )
+    }
+
+    @PluginMethod
+    fun openReminderChannelSettings(call: PluginCall) {
+        val channel = call.getString("channel")
+        if (channel !in ReminderScheduler.CHANNEL_IDS) return call.reject("Unbekannter Erinnerungskanal")
+        ReminderScheduler.ensureChannels(context)
+        open(call, Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            .putExtra(Settings.EXTRA_CHANNEL_ID, channel))
     }
 
     @PluginMethod

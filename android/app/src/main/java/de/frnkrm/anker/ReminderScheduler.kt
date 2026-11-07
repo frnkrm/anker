@@ -25,6 +25,7 @@ object ReminderScheduler {
     const val ACTION_SNOOZE = "de.frnkrm.anker.REMINDER_SNOOZE"
     const val ACTION_SKIP = "de.frnkrm.anker.REMINDER_SKIP"
     const val ACTION_SWIPED = "de.frnkrm.anker.REMINDER_SWIPED"
+    val CHANNEL_IDS = listOf("sanft", "uebergang", "wecker")
     private const val EXTRA_KEY = "key"
     private const val EXTRA_DATE = "date"
     private const val EXTRA_SNOOZES = "snoozes"
@@ -104,6 +105,7 @@ object ReminderScheduler {
         saveSlots(ctx, slots - gone.toSet())
         onProtectedDisplaysChanged(ctx)
         armNext(ctx, q)
+        AnkerPrefs.setReminderLastSyncAt(ctx, now)
     }
 
     @Synchronized
@@ -192,8 +194,33 @@ object ReminderScheduler {
     }
 
     fun visibleCount(ctx: Context): Int {
+        return try {
+            ctx.getSystemService(NotificationManager::class.java).activeNotifications.count {
+                it.id in ReminderLogic.FIRST_NOTIFICATION_ID..ReminderLogic.notificationId(ReminderLogic.SLOT_LATEST)
+            }
+        } catch (_: Exception) { -1 }
+    }
+
+    /** Android-Snapshot und gespeicherte Planung getrennt; weder Quelle bestätigt eine Wahrnehmung. */
+    @Synchronized
+    fun diagnostics(ctx: Context): JSONObject {
         val now = System.currentTimeMillis()
-        return loadSlots(ctx).count { it.expiresAt > now }
+        val nm = ctx.getSystemService(NotificationManager::class.java)
+        val channels = JSONArray()
+        for (id in CHANNEL_IDS) {
+            val importance = nm.getNotificationChannel(id)?.importance ?: -1
+            channels.put(JSONObject().put("id", id).put("importance", importance).put("blocked", importance == NotificationManager.IMPORTANCE_NONE))
+        }
+        val next = loadQueue(ctx).filter { it.at >= now - ReminderLogic.STALE_MS }.minByOrNull { it.at }
+        val currentPolicy = policy(ctx)
+        return JSONObject().put("channels", channels)
+            .put("nextAt", next?.at ?: 0).put("nextChannel", next?.channel ?: "")
+            .put("focusUntil", AnkerPrefs.reminderFocusUntil(ctx).takeIf { it > now } ?: 0)
+            .put("quietUntil", ReminderLogic.quietUntil(now, currentPolicy))
+            .put("planQuietUntil", currentPolicy.ranges.filter { now >= it.from && now < it.to }.maxOfOrNull { it.to } ?: 0)
+            .put("storedSlots", loadSlots(ctx).count { it.expiresAt > now })
+            .put("activeNotifications", visibleCount(ctx))
+            .put("lastSyncAt", AnkerPrefs.reminderLastSyncAt(ctx))
     }
 
     // ---------- Vom System ----------
@@ -219,9 +246,15 @@ object ReminderScheduler {
             if (consumed.has(e.token)) continue
             if (!ReminderLogic.allowed(e, now, policy, AnkerPrefs.reminderFocusUntil(ctx))) continue
             val p = ReminderLogic.place(slots, e, now, reserved)
-            (slots - p.slots.toSet()).forEach { ctx.getSystemService(NotificationManager::class.java).cancel(ReminderLogic.notificationId(it.slot)) }
-            slots = p.slots
-            p.slot?.let { post(ctx, e, it) }
+            // Bekannte App-/Kanalsperren verändern keine vorhandene Karte.
+            if (p.slot != null && !canPost(ctx, e.channel)) continue
+            val beforePost = ReminderLogic.reserveBeforePost(slots, p)
+            (slots - beforePost.toSet()).forEach {
+                ctx.getSystemService(NotificationManager::class.java).cancel(ReminderLogic.notificationId(it.slot))
+            }
+            val accepted = p.slot?.let { post(ctx, e, it) } ?: false
+            slots = ReminderLogic.afterPostRequest(beforePost, p, accepted)
+            if (accepted) AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString(), slots, now)
         }
         consumeTokens(ctx, queue.filter { it.at <= now })
         saveSlots(ctx, slots)
@@ -278,7 +311,7 @@ object ReminderScheduler {
         }
     }
 
-    private fun ensureChannels(ctx: Context) {
+    fun ensureChannels(ctx: Context) {
         // Gleiche IDs wie in 1.0.x: vorhandene Kanäle und deine Einstellungen dazu bleiben unverändert
         val nm = ctx.getSystemService(NotificationManager::class.java)
         val defs = listOf(
@@ -300,8 +333,15 @@ object ReminderScheduler {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    private fun post(ctx: Context, e: ReminderEntry, slot: Int) {
+    private fun canPost(ctx: Context, channel: String): Boolean {
         ensureChannels(ctx)
+        val nm = ctx.getSystemService(NotificationManager::class.java)
+        return ReminderLogic.canPost(nm.areNotificationsEnabled(), nm.getNotificationChannel(channel)?.importance ?: -1)
+    }
+
+    private fun post(ctx: Context, e: ReminderEntry, slot: Int): Boolean {
+        if (!canPost(ctx, e.channel)) return false
+        val nm = ctx.getSystemService(NotificationManager::class.java)
         val launch = Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         ReminderLogic.tapDestination(e.key)?.let { destination ->
             launch.action = Intent.ACTION_VIEW
@@ -326,17 +366,12 @@ object ReminderScheduler {
             if (e.snoozes < ReminderLogic.MAX_SNOOZE) b.addAction(0, "5 Min später", actionIntent(ctx, ACTION_SNOOZE, e, slot, 2))
             b.addAction(0, "Heute nicht", actionIntent(ctx, ACTION_SKIP, e, slot, 3))
         }
-        try {
-            ctx.getSystemService(NotificationManager::class.java).notify(ReminderLogic.notificationId(slot), b.build())
+        return try {
+            nm.notify(ReminderLogic.notificationId(slot), b.build())
+            true
         } catch (_: SecurityException) {
-            // Benachrichtigungen nicht erlaubt: zeigt der Einrichtungs-Check an
+            false
         }
-        // Eintrag für „5 Min später“ merken, auch wenn die App geschlossen ist
-        rememberShown(ctx, e)
-    }
-
-    private fun rememberShown(ctx: Context, e: ReminderEntry) {
-        AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString())
     }
 
     @Synchronized

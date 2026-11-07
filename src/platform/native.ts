@@ -67,8 +67,24 @@ export interface AlarmDiagnostics extends AlarmStateInfo {
   remindersVisible: number
   reminderRuleCount?: number
   reminderRulesFrom?: number
+  reminderDelivery?: ReminderDeliveryDiagnostics
   sdk: number
   device: string
+}
+
+export type ReminderChannelId = 'sanft' | 'uebergang' | 'wecker'
+export interface ReminderDeliveryDiagnostics {
+  /** importance=-1: noch nicht angelegt;0: von Android blockiert. */
+  channels: { id: ReminderChannelId; importance: number; blocked: boolean }[]
+  nextAt: number
+  nextChannel: string
+  focusUntil: number
+  quietUntil: number
+  planQuietUntil: number
+  storedSlots: number
+  /** Von Android als aktiv geführt; -1 bei fehlender Auskunft. Kein Hör-/Wahrnehmungsnachweis. */
+  activeNotifications: number
+  lastSyncAt: number
 }
 
 export interface NativeReminder {
@@ -135,6 +151,7 @@ export interface AnkerNativePlugin {
   openFullScreenIntentSettings(): Promise<void>
   openExactAlarmSettings(): Promise<void>
   openAlarmChannelSettings(): Promise<void>
+  openReminderChannelSettings(o: { channel: ReminderChannelId }): Promise<void>
   openFocusSettings(): Promise<{ opened: boolean; destination: 'dnd' | 'settings' | 'unavailable' }>
   isIgnoringBatteryOptimizations(): Promise<{ granted: boolean }>
   openBatteryOptimizationSettings(): Promise<void>
@@ -183,6 +200,7 @@ const web: Partial<AnkerNativePlugin> = {
     return { granted: false }
   },
   async openFullScreenIntentSettings() {},
+  async openReminderChannelSettings() {},
   async openExactAlarmSettings() {},
   async openAlarmChannelSettings() {},
   async openFocusSettings() { return { opened: false, destination: 'unavailable' } },

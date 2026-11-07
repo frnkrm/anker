@@ -58,9 +58,12 @@ object ReminderLogic {
 
     /** Neue Planung aus der App. Nur weiterhin relevante verschobene Erinnerungen bleiben erhalten. */
     fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null): List<ReminderEntry> {
-        val snoozed = old.filter { it.snoozes > 0 && it.at > now && "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
+        val current = old.filter { "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
+        // Ein noch unterwegs befindlicher Receiver darf seinen frischen Termin nicht durch Appöffnung verlieren.
+        val due = current.filter { it.at <= now && now - it.at <= STALE_MS }
+        val snoozed = current.filter { it.snoozes > 0 && it.at > now }
         val snoozedKeys = snoozed.map { it.date to it.key }.toSet()
-        return (snoozed + incoming.filter { it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
+        return (due + snoozed + incoming.filter { it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
     }
 
     /** Teilt in Fälliges und Restliches. Veraltetes fällt weg, je Schlüssel kommt nur die neueste Stufe. */
@@ -114,15 +117,38 @@ object ReminderLogic {
     fun currentAction(slots: List<SlotEntry>, date: String, key: String, revision: String, token: String, now: Long): SlotEntry? =
         slots.firstOrNull { revision.isNotEmpty() && token.isNotEmpty() && it.expiresAt > now && it.date == date && it.key == key && it.revision == revision && it.token == token }
 
+    /** Andere IDs müssen vor dem Post weichen; dieselbe ID ersetzt Android ohne vierte Meldung. */
+    fun reserveBeforePost(before: List<SlotEntry>, placement: Placement): List<SlotEntry> =
+        if (placement.slot == null) placement.slots else before.filter { it.slot == placement.slot || it in placement.slots }
+
+    /** Bei nachträglichem Rechteentzug bleiben nur die noch nicht abgeräumten alten Karten. */
+    fun afterPostRequest(reserved: List<SlotEntry>, placement: Placement, accepted: Boolean): List<SlotEntry> =
+        if (placement.slot != null && !accepted) reserved else placement.slots
+
+    fun canPost(notificationsEnabled: Boolean, importance: Int): Boolean = notificationsEnabled && importance > 0
+
+    /** Quellen bleiben genau so lange erhalten wie ihre Karten, auch über Kalender- und Plantagsgrenzen. */
+    fun obsoleteShownKeys(stored: Set<String>, slots: List<SlotEntry>, now: Long): Set<String> {
+        val retained = slots.filter { it.expiresAt > now }.map { "shown:${it.date}|${it.key}" }.toSet()
+        return stored.filter { it.startsWith("shown:") && it !in retained }.toSet()
+    }
+
+    /** Ende der aktuell geltenden globalen Ruhezeit;0 bedeutet gerade keine Ruhezeit. */
+    fun quietUntil(now: Long, policy: ReminderPolicy): Long {
+        val local = java.time.Instant.ofEpochMilli(now).atZone(AlarmPlanner.ZONE)
+        val minute = local.hour * 60 + local.minute
+        val quiet = if (policy.quietStart <= policy.quietEnd) minute >= policy.quietStart && minute < policy.quietEnd
+            else minute >= policy.quietStart || minute < policy.quietEnd
+        if (!quiet) return 0
+        val date = if (policy.quietStart > policy.quietEnd && minute >= policy.quietStart) local.toLocalDate().plusDays(1) else local.toLocalDate()
+        return AlarmPlanner.toUtc(date, policy.quietEnd)
+    }
+
     /** Only explicitly critical anchors bypass global quiet and a currently running focus. */
     fun allowed(e: ReminderEntry, now: Long, policy: ReminderPolicy, focusUntil: Long): Boolean {
         if (!e.key.startsWith("go:") && !e.key.startsWith("prep:") && policy.ranges.any { now >= it.from && now < it.to }) return false
         if (e.critical) return true
         if (now < focusUntil) return false
-        val local = java.time.Instant.ofEpochMilli(now).atZone(AlarmPlanner.ZONE)
-        val minute = local.hour * 60 + local.minute
-        val quiet = if (policy.quietStart <= policy.quietEnd) minute >= policy.quietStart && minute < policy.quietEnd
-            else minute >= policy.quietStart || minute < policy.quietEnd
-        return !quiet
+        return quietUntil(now, policy) == 0L
     }
 }

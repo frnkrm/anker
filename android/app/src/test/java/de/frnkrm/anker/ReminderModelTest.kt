@@ -12,6 +12,86 @@ class ReminderModelTest {
     private fun e(key: String, slot: Int, rank: Int, at: Long = now, snoozes: Int = 0) =
         ReminderEntry(key, "2026-11-04", at, "sanft", key, "", true, slot, rank, true, snoozes)
 
+    @Test fun appAbgleichErhaeltFrischeFaelligeNochNichtZugestellteErinnerung() {
+        val due = e("morning", 0, 2, now - 60_000).copy(revision = "same", token = "pending")
+        val relevant = mapOf("${due.date}|${due.key}" to due.revision)
+        val queue = ReminderLogic.replace(listOf(due), emptyList(), relevant.keys, now, relevant)
+        assertEquals(listOf(due), ReminderLogic.takeDue(queue, now).due)
+        assertEquals(listOf(due), ReminderLogic.replace(queue, emptyList(), relevant.keys, now + 1, relevant))
+    }
+
+    @Test fun faelligeStufenUndSnoozeBleibenEinmaligOhneRueckstau() {
+        val first = e("evening", 0, 2, now - 5 * 60_000).copy(revision = "same", token = "first")
+        val latest = first.copy(at = now - 60_000, token = "latest", snoozes = 1)
+        val next = first.copy(at = now + 60_000, token = "future")
+        val revisions = mapOf("${first.date}|${first.key}" to first.revision)
+        val queue = ReminderLogic.replace(listOf(first, latest), listOf(next), revisions.keys, now, revisions)
+        assertEquals(listOf(latest), ReminderLogic.takeDue(queue, now).due)
+        val remaining = ReminderLogic.takeDue(queue, now).remaining
+        assertEquals(listOf(next), remaining)
+        assertTrue(ReminderLogic.takeDue(remaining, now + 1).due.isEmpty())
+    }
+
+    @Test fun abgleichHoltNurBisDreissigMinutenNachUndKeineEntfernteOderGeaenderteRevision() {
+        val due = e("morning", 0, 2, now - ReminderLogic.STALE_MS).copy(revision = "same", token = "pending")
+        val relevant = mapOf("${due.date}|${due.key}" to due.revision)
+        assertEquals(listOf(due), ReminderLogic.replace(listOf(due), emptyList(), relevant.keys, now, relevant))
+        assertTrue(ReminderLogic.replace(listOf(due), emptyList(), relevant.keys, now + 1, relevant).isEmpty())
+        assertTrue(ReminderLogic.replace(listOf(due), emptyList(), emptySet(), now, emptyMap()).isEmpty())
+        assertTrue(ReminderLogic.replace(listOf(due), emptyList(), relevant.keys, now, relevant.mapValues { "changed" }).isEmpty())
+    }
+
+    @Test fun abgelehnterErsatzDerselbenSlotIdBelegtKeinenNeuenSlotUndErhaeltDieKarte() {
+        val before = ReminderLogic.place(emptyList(), e("old", 0, 2), now, 0).slots
+        val placement = ReminderLogic.place(before, e("replacement", 0, 3), now, 0)
+        assertEquals(before, ReminderLogic.afterPostRequest(before, placement, false))
+        assertEquals(placement.slots, ReminderLogic.afterPostRequest(before, placement, true))
+        val first = ReminderLogic.place(emptyList(), e("new", 0, 2), now, 0)
+        assertTrue(ReminderLogic.afterPostRequest(emptyList(), first, false).isEmpty())
+        // Angenommene Anfrage ist nur ein logischer Slot; reale Android-Auskunft wird separat ermittelt.
+        assertEquals(listOf("new"), ReminderLogic.afterPostRequest(emptyList(), first, true).map { it.key })
+    }
+
+    @Test fun budgetWirdVorNeuerAndererSlotIdReserviertAuchWennPostDanachScheitert() {
+        val before = listOf(SlotEntry(0, "routine", "d", 2, now + 1000))
+        val placement = ReminderLogic.place(before, e("leave", 1, 4), now, 2)
+        val reserved = ReminderLogic.reserveBeforePost(before, placement)
+        assertTrue(reserved.isEmpty())
+        assertTrue(2 + (reserved.map { it.slot } + placement.slot!!).toSet().size <= 3)
+        assertTrue(ReminderLogic.afterPostRequest(reserved, placement, false).isEmpty())
+        assertEquals(listOf("leave"), ReminderLogic.afterPostRequest(reserved, placement, true).map { it.key })
+        val sameId = ReminderLogic.place(before, e("replacement", 0, 3), now, 2)
+        assertEquals(before, ReminderLogic.reserveBeforePost(before, sameId))
+    }
+
+    @Test fun globaleFreigabeUeberstimmtKeinenBlockiertenOderUnbekanntenKanal() {
+        assertFalse(ReminderLogic.canPost(true, 0))
+        assertFalse(ReminderLogic.canPost(true, -1))
+        assertFalse(ReminderLogic.canPost(false, 4))
+        assertTrue(ReminderLogic.canPost(true, 1)) // Sichtbar, aber bewusst ohne Ton zulässig.
+        assertTrue(ReminderLogic.canPost(true, 4))
+    }
+
+    @Test fun quellkarteUeberlebtMitternachtBisZumEigenenNeunzigMinutenLimit() {
+        val beforeMidnight = AlarmPlanner.toUtc(java.time.LocalDate.parse("2026-11-06"), 23 * 60 + 50)
+        val previous = SlotEntry(0, "evening", "2026-11-06", 2, beforeMidnight + ReminderLogic.VISIBLE_MS)
+        val afterMidnight = SlotEntry(1, "bed", "2026-11-07", 4, beforeMidnight + 30 * 60_000 + ReminderLogic.VISIBLE_MS)
+        val stored = setOf("shown:2026-11-06|evening", "shown:2026-11-07|bed", "shown:2026-11-05|old", "alarmState")
+        assertEquals(setOf("shown:2026-11-05|old"), ReminderLogic.obsoleteShownKeys(stored, listOf(previous, afterMidnight), beforeMidnight + 30 * 60_000))
+        assertEquals(setOf("shown:2026-11-06|evening", "shown:2026-11-05|old"), ReminderLogic.obsoleteShownKeys(stored, listOf(previous, afterMidnight), previous.expiresAt))
+    }
+
+    @Test fun ruhestandEndetAnSeinerGrenzeUndAbgelaufenerFokusBleibtNichtStill() {
+        val date = java.time.LocalDate.parse("2026-11-06")
+        val at = AlarmPlanner.toUtc(date, 23 * 60 + 40)
+        val end = AlarmPlanner.toUtc(date.plusDays(1), 5 * 60)
+        val quiet = ReminderPolicy(23 * 60 + 30, 5 * 60)
+        assertEquals(end, ReminderLogic.quietUntil(at, quiet))
+        assertEquals(0, ReminderLogic.quietUntil(end, quiet).toInt())
+        assertFalse(ReminderLogic.allowed(e("morning", 0, 2, end), end, ReminderPolicy(), end + 1))
+        assertTrue(ReminderLogic.allowed(e("morning", 0, 2, end), end, ReminderPolicy(), end))
+    }
+
     @Test fun alteButtonsRevisionenUndAbgelaufeneKartenAendernNichts() {
         val source = e("leave", 1, 4).copy(revision = "new-plan", token = "new-delivery")
         val slots = ReminderLogic.place(emptyList(), source, now, 0).slots

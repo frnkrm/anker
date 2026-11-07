@@ -154,6 +154,8 @@ object AnkerPrefs {
     fun setReminderPolicy(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderPolicy", json).commit()
     fun reminderFocusUntil(ctx: Context): Long = prefs(ctx).getLong("reminderFocusUntil", 0)
     fun setReminderFocusUntil(ctx: Context, until: Long) = prefs(ctx).edit().putLong("reminderFocusUntil", until).commit()
+    fun reminderLastSyncAt(ctx: Context): Long = prefs(ctx).getLong("reminderLastSyncAt", 0)
+    fun setReminderLastSyncAt(ctx: Context, at: Long) = prefs(ctx).edit().putLong("reminderLastSyncAt", at).commit()
     fun reminderRules(ctx: Context): String = prefs(ctx).getString("reminderRules", "{}") ?: "{}"
     fun setReminderRules(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderRules", json).commit()
     fun reminderRuleConsumed(ctx: Context): String = prefs(ctx).getString("reminderRuleConsumed", "{}") ?: "{}"
@@ -164,12 +166,11 @@ object AnkerPrefs {
         prefs(ctx).edit().putString("reminderSlots", slots).putString("reminderQueue", queue).putString("reminderActions", actions).commit()
 
     fun reminderLastShown(ctx: Context, date: String, key: String): String? = prefs(ctx).getString("shown:$date|$key", null)
-    fun setReminderLastShown(ctx: Context, date: String, key: String, json: String) {
+    fun setReminderLastShown(ctx: Context, date: String, key: String, json: String, slots: List<SlotEntry>, now: Long) {
         val p = prefs(ctx)
         val e = p.edit()
-        // Nur den aktuellen Tag aufheben
-        p.all.keys.filter { it.startsWith("shown:") && !it.startsWith("shown:$date") }.forEach { e.remove(it) }
-        e.putString("shown:$date|$key", json).apply()
+        ReminderLogic.obsoleteShownKeys(p.all.keys, slots, now).forEach { e.remove(it) }
+        e.putString("shown:$date|$key", json).commit()
     }
 
     // ---------- Widget ----------
