@@ -7,6 +7,7 @@ import type { Rec } from '../../data/types'
 import { printSheets, preparePrintSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
 import { pickTextFile, saveFile, shareLocalFile } from '../../platform/files'
 import { AnkerNative, isNative, safe } from '../../platform/native'
+import { requestNotificationPermission } from '../../platform/notifications'
 import { waitForPrintReady } from '../../platform/print'
 import { planFor, repository, today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
@@ -116,6 +117,9 @@ export function Backup() {
   const [msg, setMsg] = useState<string>()
   const [error, setError] = useState<string>()
   const [selection, setSelection] = useState<BackupSelection>({ ...COMPLETE_BACKUP })
+  const [params] = useSearchParams()
+  const [restore, setRestore] = useState(() => params.get('wiederherstellen') === '1')
+  const [restored, setRestored] = useState(false)
   const [candidate, setCandidate] = useState<{ records: Rec[]; preview: ImportPreview }>()
   const [busy, setBusy] = useState(false)
   const pending = useRef(false)
@@ -133,7 +137,7 @@ export function Backup() {
     { key: 'deviceTests', label: 'Testberichte und Testnotizen' },
   ]
   return (
-    <Page title="Sicherung" back="/mehr">
+    <Page className="settings-page" title="Sicherung" back="/mehr">
       <p className="px-1 text-muted">Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
       <p className="px-1 text-sm text-muted">Sicherungen sind nicht verschlüsselt. Eine vollständige Sicherung enthält auch Arbeitsaufgaben und private Protokolle. Du kannst unten bewusst Bereiche weglassen.</p>
       <details className="rounded-2xl border border-line bg-surface p-4">
@@ -160,6 +164,20 @@ export function Backup() {
       >
         Sicherung exportieren
       </Button>
+      <Card className="space-y-3">
+        <label className="flex min-h-11 items-start gap-3">
+          <input type="checkbox" checked={restore} disabled={busy} className="mt-1 h-5 w-5 shrink-0" onChange={(event) => {
+            const next = event.target.checked
+            void run(async () => {
+              const preview = candidate && previewImport(candidate.records, await repository().all(), next ? 'restore' : 'merge')
+              if (candidate && preview) setCandidate({ records: candidate.records, preview })
+              setRestore(next)
+            })
+          }} />
+          <span className="min-w-0 break-words">Werte aus dieser Sicherung wiederherstellen</span>
+        </label>
+        <p className="text-sm text-muted">{restore ? 'Die gewählten Werte werden auch aus einer älteren Sicherung übernommen. Andere Datensätze und ausgelassene Bereiche bleiben erhalten. Testberichte ergänzen frühere Belege; aktuelle Rückmeldungen bleiben bestehen.' : 'Normaler Import: Neuere Daten auf diesem Gerät bleiben erhalten. Für einen Umzug oder eine bewusste Wiederherstellung kannst du den Schalter wählen.'}</p>
+      </Card>
       <Button
         size="lg"
         className="w-full"
@@ -169,23 +187,34 @@ export function Backup() {
           const text = await pickTextFile()
           if (!text) return
           const records = parseBackup(text)
-          setCandidate({ records, preview: previewImport(records, await repository().all()) })
+          setCandidate({ records, preview: previewImport(records, await repository().all(), restore ? 'restore' : 'merge') })
         })}
       >
         Sicherung importieren
       </Button>
       {candidate && <Card className="space-y-3">
         <h2 className="font-semibold">Vor dem Import prüfen</h2>
-        <p>{candidate.preview.incoming} Einträge gelesen · {candidate.preview.changed} neuere Änderungen · {candidate.preview.skipped} ältere oder gleiche Versionen bleiben unangetastet.</p>
+        <p>{candidate.preview.incoming} Einträge gelesen · {candidate.preview.changed} {restore ? 'zur Wiederherstellung' : 'neuere Änderungen'} · {candidate.preview.skipped} {restore ? 'nicht zusätzlich übernommen' : 'ältere oder gleiche Versionen bleiben unangetastet'}.</p>
         {candidate.preview.deletions > 0 && <p className="text-sm text-muted">Enthält {candidate.preview.deletions} ausdrücklich gelöschte Datensätze.</p>}
         {candidate.preview.sensitive.length > 0 && <p className="text-sm text-muted">Private Bereiche in der Datei: {candidate.preview.sensitive.join(', ')}.</p>}
-        <p className="text-sm text-muted">Ausgelassene Bereiche einer Teilsicherung bleiben auf diesem Gerät erhalten. Beim Import werden neuere Änderungen nochmals geprüft.</p>
+        <p className="text-sm text-muted">Ausgelassene Bereiche einer Teilsicherung bleiben auf diesem Gerät erhalten. {restore ? 'Die Sicherungswerte ersetzen bewusst die entsprechenden Werte auf diesem Gerät; Originalzeiten in Aufgaben und Berichten bleiben erhalten.' : 'Beim Import werden neuere Änderungen nochmals geprüft.'}</p>
         <Button variant="primary" disabled={busy || candidate.preview.changed === 0} onClick={() => void run(async () => {
-          const n = await st.importRecords(candidate.records)
+          const n = await st.importRecords(candidate.records, restore ? 'restore' : 'merge')
           setCandidate(undefined)
-          setMsg(n ? `${n} Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
-        })}>Jetzt importieren</Button>
+          if (n && restore) setRestored(true)
+          setMsg(n ? restore ? `${n} Einträge aus der Sicherung wiederhergestellt. Andere Daten bleiben erhalten.` : `${n} Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
+        })}>{restore ? 'Sicherung jetzt wiederherstellen' : 'Jetzt importieren'}</Button>
         <Button variant="ghost" disabled={busy} onClick={() => setCandidate(undefined)}>Abbrechen</Button>
+      </Card>}
+      {restored && <Card className="space-y-3">
+        <h2 className="font-semibold">Übernommene Daten prüfen</h2>
+        <p className="text-sm text-muted">Vergleiche Routinen, Spielstand und nächste Weckzeit. Eine Sicherung überträgt keine Android-Freigaben. Nach einer Neuinstallation prüfst du Wecker und Benachrichtigungen in dieser App selbst.</p>
+        <Row label="Wecker & Benachrichtigungen prüfen" to="/wecker" />
+        {isNative() && <Button disabled={busy} className="w-full" onClick={() => void run(async () => {
+          const granted = await requestNotificationPermission()
+          setMsg(granted ? 'Android hat die Benachrichtigungsfreigabe bestätigt. Prüfe den weiteren Weckerstand in der Diagnose.' : 'Die Benachrichtigungsfreigabe ist noch nicht bestätigt. Du kannst sie später im Weckerstand prüfen.')
+        })}>Benachrichtigungen erlauben</Button>}
+        <p className="text-sm text-muted">Falls du aus einer anderen Installation umziehst: Lass sie bis zum Datenvergleich erhalten. Ihre Wecker laufen unabhängig; stelle sie erst nach deinem bewussten neuen Test selbst ab.</p>
       </Card>}
       {msg && <p role="status" className="px-1 text-muted">{msg}</p>}
       {error && <p role="alert" className="px-1 text-warm">{error}</p>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { applySchedule, deriveSchedule } from '../../core/defaults'
 import { THEME_LIST } from '../../core/game'
 import { fmtTime, WEEKDAYS } from '../../core/time'
@@ -7,7 +7,7 @@ import type { CommuteMode, MainGoal, Settings, ThemeId } from '../../core/types'
 import { isNative } from '../../platform/native'
 import { exactAlarmStatus, openExactAlarmSettings, requestNotificationPermission } from '../../platform/notifications'
 import { today, useApp } from '../../state/store'
-import { Button, Card, Segmented, Stepper, TimeStepper } from '../components/ui'
+import { Button, Card, Segmented, SettingRow, Stepper, TimeStepper } from '../components/ui'
 
 const GOALS: { value: MainGoal; label: string }[] = [
   { value: 'on-time-rested', label: 'Pünktlich und ausgeschlafen' },
@@ -32,7 +32,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pb-8 safe-top">
+    <div className="settings-page mx-auto flex min-h-dvh max-w-xl flex-col px-5 pb-8 safe-top">
       <div className="mb-6 flex gap-2 pt-2" aria-hidden="true">
         {[0, 1, ...(isNative() ? [2] : [])].map((i) => (
           <span key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-accent' : 'bg-surface-2'}`} />
@@ -45,11 +45,11 @@ export default function Onboarding() {
             <h1 className="text-3xl font-semibold">Hallo! ⚓</h1>
             <p className="mt-1 text-lg text-muted">Drei Angaben, dann plant Anker deinen Tag.</p>
           </div>
+          <Link to="/backup?wiederherstellen=1" className="flex min-h-12 items-center text-accent underline">Vorhandene Sicherung übernehmen</Link>
           <Card className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-lg">Arbeitsbeginn</span>
+            <SettingRow label={<span className="text-lg">Arbeitsbeginn</span>}>
               <TimeStepper label="Arbeitsbeginn" value={workStart} onChange={(v) => patch((x) => ({ ...x, work: x.work.map((w) => ({ ...w, start: v })) }))} />
-            </div>
+            </SettingRow>
             <div className="flex flex-wrap gap-2" aria-label="Arbeitstage">
               {WEEKDAYS.map((d, i) => (
                 <button
@@ -65,10 +65,9 @@ export default function Onboarding() {
             </div>
           </Card>
           <Card className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-lg">Fahrzeit</span>
+            <SettingRow label={<span className="text-lg">Fahrzeit</span>}>
               <Stepper label="Fahrzeit" value={s.commute.minutes} min={0} max={180} onChange={(v) => patch((x) => ({ ...x, commute: { ...x.commute, minutes: v } }))} />
-            </div>
+            </SettingRow>
             <Segmented<CommuteMode>
               label="Verkehrsmittel"
               value={s.commute.mode}
@@ -149,10 +148,9 @@ export default function Onboarding() {
 
 function Line({ label, value, onChange, night = false }: { label: string; value: number; onChange: (v: number) => void; night?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="text-lg">{label}</span>
+    <SettingRow label={<span className="text-lg">{label}</span>}>
       <TimeStepper label={label} value={value} onChange={onChange} night={night} />
-    </div>
+    </SettingRow>
   )
 }
 

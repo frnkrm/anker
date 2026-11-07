@@ -3,6 +3,7 @@ import type { Rec } from '../../data/types'
 import { isFocusSession, sameFocusTarget } from '../focus'
 import { localBusinessNote } from '../syncPrivacy'
 import { TIME_CATALOG_RECORD_ID } from '../timeCatalog'
+import { deviceTestsFromLocal, mergeDeviceTestReports, validDeviceTests } from '../deviceTests'
 import { object, validatedRecords } from './backupValidation'
 
 export { validatedRecords } from './backupValidation'
@@ -89,7 +90,7 @@ export function parseBackup(text: string): Rec[] {
 function preserveOmitted(current: unknown, incoming: unknown, path = ''): unknown {
   // Sitzungen und Rückwege sind vollständige Identitäten. Eine alte Elternreferenz
   // ohne partId darf niemals die Teilreferenz einer neueren lokalen Sitzung erben.
-  if (['local.focus', 'local.resume', 'local.captureDraft'].includes(path)) return incoming
+  if (['local.focus', 'local.resume', 'local.captureDraft'].includes(path) || /^local\.deviceTests\.reports\.[1-9]\d*$/.test(path)) return incoming
   if (!object(current) || !object(incoming)) return incoming
   return Object.fromEntries([...new Set([...Object.keys(current), ...Object.keys(incoming)])].map((key) => [
     key, Object.hasOwn(incoming, key) ? preserveOmitted(current[key], incoming[key], path ? `${path}.${key}` : key) : current[key],
@@ -107,6 +108,31 @@ function preserveWorkHistory(current: unknown, incoming: unknown, businessIds: R
   return { ...incoming, focusHistory: [...incomingHistory, ...retained] }
 }
 
+/** Normaler Import bleibt LWW; Wiederherstellen ist eine eigene bewusste Wahl. */
+export type BackupImportMode = 'merge' | 'restore'
+
+/** Ein Restore ergänzt Testbelege, überschreibt aber keine aktuelle Beobachtung. */
+function restoredTestEvidence(current: unknown, incoming: unknown, merged: unknown, at: number): unknown {
+  if (!object(incoming) || !Object.hasOwn(incoming, 'deviceTests') || !validDeviceTests(incoming.deviceTests) || !object(merged)) return merged
+  const before = deviceTestsFromLocal(current)
+  const imported = deviceTestsFromLocal(incoming)
+  const combined = mergeDeviceTestReports(before, { app: 'anker', exportedAt: new Date(at).toISOString(), reports: imported.reports, history: imported.history })
+  return { ...merged, deviceTests: { ...(object(merged.deviceTests) ? merged.deviceTests : {}), reports: combined.reports, history: combined.history } }
+}
+
+/** Nur gewählte Recordrevisionen werden neu gesetzt; echte Ereignis-/Berichtszeiten bleiben original. */
+function restoreCandidates(records: readonly Rec[], current: readonly Rec[], nowMs: number): Rec[] {
+  let latest = nowMs
+  for (const record of [...current, ...records]) latest = Math.max(latest, record.updated_at)
+  const revision = Math.floor(latest) + 1
+  if (!Number.isFinite(nowMs) || nowMs < 0 || !Number.isSafeInteger(revision) || !Number.isFinite(new Date(revision).getTime())) {
+    throw new Error('Der Datenzeitpunkt dieser Sicherung lässt sich nicht sicher wiederherstellen. Es wurde nichts übernommen.')
+  }
+  const selected = new Map<string, Rec>()
+  for (const record of records) if (remoteWins(selected.get(key(record)), record)) selected.set(key(record), record)
+  return [...selected.values()].map((record) => ({ ...record, updated_at: revision }))
+}
+
 export interface ImportPreview {
   records: Rec[]
   incoming: number
@@ -117,12 +143,14 @@ export interface ImportPreview {
 }
 
 /** Vorschau und unmittelbarer Store-Import benutzen dieselbe Projektion, keine zweite Import-Engine. */
-export function previewImport(incoming: unknown, current: readonly Rec[]): ImportPreview {
+export function previewImport(incoming: unknown, current: readonly Rec[], mode: BackupImportMode = 'merge', nowMs = Date.now()): ImportPreview {
+  if (mode !== 'merge' && mode !== 'restore') throw new Error('Dieser Importmodus ist nicht gültig.')
   const records = validatedRecords(incoming)
+  const candidates = mode === 'restore' ? restoreCandidates(records, current, nowMs) : records
   const previous = new Map(current.map((record) => [key(record), record]))
   const businessIds = new Set(current.filter((record) => record.collection === 'inbox' && !record.deleted && localBusinessNote(record.data)).map((record) => record.id))
   const winners = new Map<string, Rec>()
-  for (const record of records) {
+  for (const record of candidates) {
     const id = key(record)
     const before = winners.get(id) ?? previous.get(id)
     if (!remoteWins(before, record)) continue
@@ -131,7 +159,9 @@ export function previewImport(incoming: unknown, current: readonly Rec[]): Impor
     const merged = !record.deleted && ((record.collection === 'settings' && record.id === 'main') || (record.collection === 'meta' && record.id === 'local'))
       ? { ...record, data: preserveOmitted(beforeData, incomingData, record.collection === 'meta' ? 'local' : 'settings') }
       : record
-    winners.set(id, merged)
+    const finalRecord = mode === 'restore' && record.collection === 'meta' && record.id === 'local' && !record.deleted
+      ? { ...merged, data: restoredTestEvidence(beforeData, incomingData, merged.data, nowMs) } : merged
+    winners.set(id, finalRecord)
   }
   const prepared = validatedRecords([...winners.values()])
   const local = records.find((record) => !record.deleted && record.collection === 'meta' && record.id === 'local')?.data

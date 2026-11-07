@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
 import { coalesceAsync } from '../core/coalesced'
 import { validCalendarStatus, type CalendarStatus } from '../core/extras'
-import { previewImport, validatedRecords } from '../core/export/backup'
+import { previewImport, validatedRecords, type BackupImportMode } from '../core/export/backup'
 import type { AlarmPlanningStatus } from '../core/alarm'
 import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/defaults'
 import { eveningLocalFields } from '../core/evening'
@@ -149,8 +149,8 @@ interface AppState {
   /** Nachtragen oder korrigieren, mit Rückgängig */
   editWork(fn: (list: WorkSession[]) => WorkSession[]): Promise<void>
   undoWork(): Promise<void>
-  importRecords(recs: Rec[]): Promise<number>
-  mergeRecords(recs: Rec[], dirty?: boolean, accepted?: () => boolean): Promise<number>
+  importRecords(recs: Rec[], mode?: BackupImportMode): Promise<number>
+  mergeRecords(recs: Rec[], dirty?: boolean, accepted?: () => boolean, mode?: BackupImportMode): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
   showToast(t: string): void
@@ -1204,19 +1204,19 @@ export const useApp = create<AppState>()((set, get) => ({
     set({ alarmStatus: a })
   },
 
-  async importRecords(recs) {
+  async importRecords(recs, mode = 'merge') {
     // mergeRecords veröffentlicht bereits die gemeinsam vorbereitete Projektion.
-    return get().mergeRecords(recs, true)
+    return get().mergeRecords(recs, true, () => true, mode)
   },
 
-  mergeRecords(recs, dirty = false, accepted = () => true) {
+  mergeRecords(recs, dirty = false, accepted = () => true, mode = 'merge') {
     return atomic(async () => {
       if (!accepted()) return 0
       const checked = validatedRecords(recs)
       // Vorschau erst in der Schreibbarriere gegen den wirklich aktuellen Bestand berechnen.
       const current = await repo.all()
       if (!accepted()) return 0
-      const prepared = previewImport(checked, current).records
+      const prepared = previewImport(checked, current, mode).records
       let canonical = canonicalWeatherImport(prepared, current)
       const snapshot = [...new Map([...current, ...canonical].map((record) => [key(record), record])).values()]
       const projection = await readAppData(false, snapshot)
