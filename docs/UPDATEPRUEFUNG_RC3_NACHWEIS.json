@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "version": "1.3.0-rc.3",
+  "versionCode": 10,
+  "applicationId": "de.frnkrm.anker",
+  "sourceCommit": "20ee297dd7474ab500cc0d9f66396b60ad9141f8",
+  "sourceFingerprint": "7582f7e48a17e66a5ffc4d8747049615fb98bacfc9a3fa1716f438bf2aa551c6",
+  "baseline": {
+    "sourceCommit": "424e041309e82ec82804f0e951fa817bcd0ada70",
+    "version": "1.3.0-rc.2",
+    "versionCode": 9,
+    "privatePromptSha256": "8d00046a25990950a8e8342e9f9ecd6909de9bf091773e23b6650abe8842d4ca",
+    "privatePromptPublished": false
+  },
+  "implemented": {
+    "compatibleDependencyUpdates": true,
+    "audioFocusLifecycle": true,
+    "optionalSubtaskTimers": true,
+    "upcomingWorkOnNowMinutes": 60,
+    "upcomingWorkMaximum": 3,
+    "dailyReminderQueueAndChannelDiagnosis": true,
+    "silentBedtimePromptWithExplicitOverlayPermission": true,
+    "settingsAlignmentAndDirectInput": true,
+    "screenOffCalculationExplained": true,
+    "localDerivedTimeCatalog": "meta/time-catalog",
+    "timeCatalogExcludedFromBackupAndSync": true,
+    "timeCatalogDoesNotModifySourceLwwTimestamp": true,
+    "timeCatalogOnlySuggests": true,
+    "deviceTestDefaultIds": [
+      1,
+      21,
+      62,
+      92,
+      95,
+      96
+    ],
+    "deviceTestHistoryAndPreviewImportExport": true,
+    "manualGithubSigningWorkflowPrepared": true,
+    "clinicalInterventionAdded": false,
+    "paidProviderActivated": false,
+    "playPublished": false,
+    "dataMigration": false
+  },
+  "automatic": {
+    "vitest": {
+      "passed": 853,
+      "files": 86,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "finalHostedCiPassed": 209,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "localFullBeforeLayoutCorrection": {
+        "sourceCommit": "37a986066a928fc6f602e60b810d94e8bc870850",
+        "passed": 209,
+        "durationMs": 474734.08800000005,
+        "chromiumMajor": 155
+      },
+      "localFocusedAfterLayoutCorrection": {
+        "matchingRootSourceCommit": "20ee297dd7474ab500cc0d9f66396b60ad9141f8",
+        "passed": 9,
+        "durationMs": 57531.855,
+        "sourceHashes": {
+          "src/ui/pages/TaskFocus.tsx": "643ce7c93355c7e948098fe513b0d7b019dc82449fb98443f3824f9371a0b91e",
+          "e2e/subtask-timer.spec.ts": "76399197f32eecc42a7185eb98976b973a5b60f6fb6229a500ad776735cafc07"
+        },
+        "fonts": [
+          {
+            "viewport": 320,
+            "scrollWidth": 320,
+            "font": "\"DejaVu Sans\", sans-serif",
+            "overflowing": []
+          },
+          {
+            "viewport": 320,
+            "scrollWidth": 320,
+            "font": "monospace",
+            "overflowing": []
+          }
+        ]
+      }
+    },
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 1
+    },
+    "forcedTypecheck": "passed",
+    "productionBuild": "passed",
+    "powershellLogic": {
+      "passed": 19,
+      "runtime": "7.5.4 on Linux",
+      "windowsExecution": false
+    },
+    "androidUpdateMocks": {
+      "passed": 34,
+      "realSecrets": false,
+      "liveSigningWorkflowStarted": false
+    },
+    "updateGuidePowerShell": "parsed only with PowerShell 7.5.4; not executed on Windows"
+  },
+  "android": {
+    "nativeChecksAndExplicitWebOnlyReuse": {
+      "schemaVersion": 1,
+      "version": "1.3.0-rc.3",
+      "versionCode": 10,
+      "sourceIdentity": "9c3e1feb78a5c422e27fe71f68eeefc89194cb2f6c4437ccc1edbaa7ac6ede32",
+      "executedForSourceCommit": "37a986066a928fc6f602e60b810d94e8bc870850",
+      "executedForWebFingerprint": "9c3e1feb78a5c422e27fe71f68eeefc89194cb2f6c4437ccc1edbaa7ac6ede32",
+      "nativeInputsIdentitySha256": "a7fe150a519f3a17832a37fe43aa304b67be2f397fec741695da5d3d4149f3a9",
+      "dependencyInputsIdentitySha256": "a0261d874ae0a593909cc4ac0ad07eea80a90b100957a5034585c79144e97645",
+      "originalEvidencePath": "/workspace/.cache/anker/updatepruefung-rc3/package/native-check-result.json",
+      "originalFreshRerun": true,
+      "originalExecutionWithinThisRC3Task": true,
+      "freshRerun": false,
+      "nativeChecksExecutedNow": false,
+      "reusedForWebOnlyCorrection": true,
+      "reuseAuthorized": true,
+      "nativeInputsByteEqualToExecutedTests": true,
+      "dependencyInputsByteEqualToExecutedTests": true,
+      "nativeRootInputFilesVerified": 96,
+      "completeNativeNonWebInputFilesVerified": 108,
+      "nativeIsolatedInputsIdentitySha256": "c00e4b49877982125a3fd6de0c58a24a19b8e60c9460974a45f0b4e13452bce1",
+      "dependencyInputFilesVerified": 18711,
+      "dependencySymlinksVerified": 42,
+      "bothAarChecks": true,
+      "bothKotlinCompiles": true,
+      "junit": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 11
+      },
+      "junitSuites": [
+        {
+          "suite": "com.getcapacitor.myapp.ExampleUnitTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.AlarmModelTest",
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.AudioPlaybackLeaseTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.BedtimePromptModelTest",
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.GeofenceModelTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.PrintModelTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.ReminderModelTest",
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.ReminderRulesTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.SmartWakeModelTest",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.VoiceModelTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.WidgetModelTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "graphs": {
+        "debug": {
+          "externalComponents": 115,
+          "aars": 91,
+          "allAarsMatchPreviouslyReviewedAndroidXContent": true,
+          "maxDeclaredMinCompileSdk": 36,
+          "targetComponents": [
+            "androidx.activity:activity:1.13.0",
+            "androidx.appcompat:appcompat:1.8.0",
+            "androidx.core:core-ktx:1.18.0",
+            "androidx.core:core:1.18.0",
+            "androidx.webkit:webkit:1.18.0"
+          ]
+        },
+        "release": {
+          "externalComponents": 115,
+          "aars": 91,
+          "allAarsMatchPreviouslyReviewedAndroidXContent": true,
+          "maxDeclaredMinCompileSdk": 36,
+          "targetComponents": [
+            "androidx.activity:activity:1.13.0",
+            "androidx.appcompat:appcompat:1.8.0",
+            "androidx.core:core-ktx:1.18.0",
+            "androidx.core:core:1.18.0",
+            "androidx.webkit:webkit:1.18.0"
+          ]
+        }
+      },
+      "correctedWebBuild": {
+        "sourceCommit": "20ee297dd7474ab500cc0d9f66396b60ad9141f8",
+        "sourceFingerprint": "7582f7e48a17e66a5ffc4d8747049615fb98bacfc9a3fa1716f438bf2aa551c6"
+      },
+      "deviceTestingPerformed": false
+    },
+    "releaseBuild": "passed; offline lint cache miss resolved using unchanged official Maven dependencies",
+    "api": {
+      "min": 26,
+      "target": 36,
+      "compile": 36
+    },
+    "webAssetsByteEqual": 66,
+    "addedPermissions": [
+      "android.permission.SYSTEM_ALERT_WINDOW"
+    ],
+    "removedPermissions": [],
+    "zipalign16kb": true,
+    "unsigned": true,
+    "nativeLibrariesUnchanged": 16,
+    "elf64Libraries16kbChecked": 8,
+    "signingHelperVersion": 2,
+    "userKeyUsedInCloud": false,
+    "protectedPriorArtifactFilesUnchanged": 38
+  },
+  "package": {
+    "checkedAt": "2026-11-07T15:13:13.686519+00:00",
+    "httpStatus": 200,
+    "bytes": 22207489,
+    "sha256": "81aaea7818d58e254aacb215ec681132267003119a92c61c649c8f3e27833142",
+    "zipCrcAndEveryFileByteEqual": true,
+    "files": 10,
+    "downloadURL": "https://github.com/frnkrm/anker/raw/refs/heads/download-anker-rc3-final-20261107/Anker-Update-RC3-Final.zip",
+    "downloadBranch": "download-anker-rc3-final-20261107",
+    "downloadCommit": "7ce60fa3a8f71b25dffd6ece22ca359cdc3a29ed",
+    "zip": "Anker-Update-RC3-Final.zip",
+    "unsignedApkSha256": "9d593eac9971307897cd3420e2656d3620473387565cbd60ed05e31c10c20079",
+    "unsignedApkBytes": 37972843
+  },
+  "ci": {
+    "observedAt": "2026-11-07T15:11:58.977308+00:00",
+    "expectedCommit": "20ee297dd7474ab500cc0d9f66396b60ad9141f8",
+    "expectedBrowserTests": 209,
+    "expectedBranch": "main",
+    "expectedEvent": "push",
+    "runUrl": "https://github.com/frnkrm/anker/actions/runs/42384529210",
+    "jobUrl": "https://github.com/frnkrm/anker/actions/runs/42384529210/job/128439008030",
+    "source": "Anonymous public GitHub HTML; no authenticated raw logs",
+    "candidateRunIds": [
+      "42384529210",
+      "42383311464",
+      "42314785412",
+      "42289520357",
+      "42286857557",
+      "42283981487",
+      "42255441031",
+      "42254106105",
+      "42191095861",
+      "42152225401",
+      "42151067255",
+      "42147726040"
+    ],
+    "expectedCommitPresent": true,
+    "commitLinks": [
+      "20ee297dd7474ab500cc0d9f66396b60ad9141f8"
+    ],
+    "branches": [
+      "main"
+    ],
+    "expectedBranchConfirmed": true,
+    "event": "push",
+    "expectedEventConfirmed": true,
+    "jobIds": [
+      "128439008030"
+    ],
+    "runStatus": "Success",
+    "runDurationText": "7m 40s",
+    "steps": [
+      {
+        "name": "Set up job",
+        "number": "1",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:03:52Z",
+        "completed-at": "2026-11-07T15:03:53Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/1",
+        "durationSeconds": 1
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "number": "2",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:03:53Z",
+        "completed-at": "2026-11-07T15:03:54Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/2",
+        "durationSeconds": 1
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "number": "3",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:03:54Z",
+        "completed-at": "2026-11-07T15:03:55Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/3",
+        "durationSeconds": 1
+      },
+      {
+        "name": "Run npm ci",
+        "number": "4",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:03:55Z",
+        "completed-at": "2026-11-07T15:04:44Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/4",
+        "durationSeconds": 49
+      },
+      {
+        "name": "Run npm run lint",
+        "number": "5",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:04:44Z",
+        "completed-at": "2026-11-07T15:04:50Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/5",
+        "durationSeconds": 6
+      },
+      {
+        "name": "Run npm run typecheck",
+        "number": "6",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:04:50Z",
+        "completed-at": "2026-11-07T15:05:01Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/6",
+        "durationSeconds": 11
+      },
+      {
+        "name": "Run npm test",
+        "number": "7",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:01Z",
+        "completed-at": "2026-11-07T15:05:10Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/7",
+        "durationSeconds": 9
+      },
+      {
+        "name": "PC-Stopp mit PowerShell prüfen",
+        "number": "8",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:10Z",
+        "completed-at": "2026-11-07T15:05:13Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/8",
+        "durationSeconds": 3
+      },
+      {
+        "name": "Android-Updateprüfung ohne echte Schlüssel testen",
+        "number": "9",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:13Z",
+        "completed-at": "2026-11-07T15:05:16Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/9",
+        "durationSeconds": 3
+      },
+      {
+        "name": "Run npm run build",
+        "number": "10",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:16Z",
+        "completed-at": "2026-11-07T15:05:29Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/10",
+        "durationSeconds": 13
+      },
+      {
+        "name": "Playwright-Browser installieren",
+        "number": "11",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:29Z",
+        "completed-at": "2026-11-07T15:05:46Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/11",
+        "durationSeconds": 17
+      },
+      {
+        "name": "Playwright-Browsertests",
+        "number": "12",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:05:46Z",
+        "completed-at": "2026-11-07T15:11:21Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/12",
+        "durationSeconds": 335
+      },
+      {
+        "name": "Playwright-Fehlerberichte speichern",
+        "number": "13",
+        "conclusion": "skipped",
+        "started-at": "2026-11-07T15:11:21Z",
+        "completed-at": "2026-11-07T15:11:21Z",
+        "log-url": "",
+        "durationSeconds": 0
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "number": "25",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:11:21Z",
+        "completed-at": "2026-11-07T15:11:25Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/25",
+        "durationSeconds": 4
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "number": "26",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:11:25Z",
+        "completed-at": "2026-11-07T15:11:25Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/26",
+        "durationSeconds": 0
+      },
+      {
+        "name": "Complete job",
+        "number": "27",
+        "conclusion": "success",
+        "started-at": "2026-11-07T15:11:25Z",
+        "completed-at": "2026-11-07T15:11:25Z",
+        "log-url": "/frnkrm/anker/commit/20ee297dd7474ab500cc0d9f66396b60ad9141f8/checks/128439008030/logs/27",
+        "durationSeconds": 0
+      }
+    ],
+    "jobSucceeded": true,
+    "jobFailed": false,
+    "requiredSteps": {
+      "Set up job": "success",
+      "Run actions/checkout@v4": "success",
+      "Run actions/setup-node@v4": "success",
+      "Run npm ci": "success",
+      "Run npm run lint": "success",
+      "Run npm run typecheck": "success",
+      "Run npm test": "success",
+      "PC-Stopp mit PowerShell prüfen": "success",
+      "Android-Updateprüfung ohne echte Schlüssel testen": "success",
+      "Run npm run build": "success",
+      "Playwright-Browser installieren": "success",
+      "Playwright-Browsertests": "success",
+      "Post Run actions/setup-node@v4": "success",
+      "Post Run actions/checkout@v4": "success",
+      "Complete job": "success"
+    },
+    "requiredStepsSucceeded": true,
+    "allStepsSuccessfulOrExpectedSkipped": true,
+    "failedSteps": [],
+    "publicNotice": "Playwright-Browsertests 209 passed (5.6m)",
+    "browserSummaryText": "Playwright-Browsertests 209 passed (5.6m) ",
+    "browserNonPassCounts": {
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "interrupted": 0
+    },
+    "browserSummaryHasNoNonPassCounts": true,
+    "browserTestsFailed": 0,
+    "browserTestsFlaky": 0,
+    "browserTestsSkipped": 0,
+    "browserTestsInterrupted": 0,
+    "browserTestsPassed": 209,
+    "browserDurationText": "5.6m",
+    "expectedBrowserTestsConfirmed": true,
+    "publicAnnotations": [],
+    "annotationSummary": "2 warnings and 2 notices",
+    "annotationErrorCount": 0,
+    "annotationText": "Annotations 2 warnings and 2 notices Complete job Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/ Show more Show less Run npm run lint: src/ui/components/TaskAssistance.tsx#L41 The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function Show more Show less Playwright-Browsertests 209 passed (5.6m) Show more Show less \"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748 \" Show more Show less check check succeeded Nov 7, 2026 in 7m 36s background wait wait-all cancel parallel Loading Re-running jobs... You can’t perform that action at this time.",
+    "jobDurationText": "7m 36s",
+    "jobDurationSecondsFromSteps": 453,
+    "verifiedSuccess": true,
+    "zeroBrowserFailuresVerified": true,
+    "browserEvidenceBasis": "Successful Playwright step, exactly expected passed-count in its public annotation, no non-pass count or error annotation; authenticated raw logs not read.",
+    "pollAttempt": 11
+  },
+  "previousCiFailure": {
+    "sourceCommit": "37a986066a928fc6f602e60b810d94e8bc870850",
+    "run": "https://github.com/frnkrm/anker/actions/runs/42383311464",
+    "passed": 208,
+    "failed": 1,
+    "cause": "TaskFocus intrinsic grid minimum width; DejaVu Sans reproduced 4px overflow, monospace 43px; fixed without reducing text/font or weakening the assertion"
+  },
+  "realDevice": {
+    "androidRC3": "not run",
+    "windowsSigningAndInstallation": "not run",
+    "historicalReportsPreserved": true,
+    "overlayAndAutomaticForeground": "Samsung verification open; Android may limit foreground switch",
+    "alarmAudibilityAndReminderDelivery": "not verified by model/browser tests",
+    "actualInstalledVersionAndCertificate": "not independently read"
+  },
+  "deferred": [
+    "TypeScript 7 and Core 1.19.1/SDK37 migration",
+    "OCR and background-noise implementation",
+    "new therapy contents",
+    "Play account/payment/upload/rollout"
+  ],
+  "sources": {
+    "verified": "published npm/Maven artifacts and pinned AOSP source contracts described in the individual audit reports",
+    "notVerified": "blocked official Android17/Play, Samsung, competition and clinical sources; no clinical efficacy claim"
+  },
+  "sourceFreeze": {
+    "onlyOrdinaryDocumentationChangedAfterFreeze": true,
+    "deviceCatalogAndApplicationInputsUnchanged": true
+  }
+}

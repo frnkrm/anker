@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 1.3.0-rc.3 – gemeinsame Updateprüfung (2026-11-07)
+
+- Einstellungen und Zeit-/Dauerfelder einheitlich ausgerichtet; Bildschirmabstand und bereits abgestimmte Abendhinweise erklärt.
+- Lokale Zeitübersicht kategorisiert bestehende Quellen und bietet Prüfvorschläge, ohne etwas abzuschalten oder zu erledigen.
+- Optionale Teilschritt-Timer, nahe Arbeitszeiten auf Jetzt, native Audiofokus-/Erinnerungskorrekturen und einzelne Kanaldiagnose.
+- Bewusst gestarteter stummer Schlafhinweis mit freiwilliger Android-Fensterfreigabe; nur bei eingeschaltetem, entsperrtem Bildschirm vorgesehen.
+- Sechs empfohlene Geräteprüfungen sowie Berichtsexport, Importvorschau und unveränderte historische Belege.
+- Gezielte kompatible Abhängigkeiten und manueller GitHub-Signierweg vorbereitet. Kein Anbieter, Playkonto oder kostenpflichtiger Dienst aktiviert.
+
+853 Logik-/209 Browserfälle, 19 PowerShell- und 34 Update-Mockfälle grün. 116 native JUnit-Fälle wurden im selben RC3-Auftrag ausgeführt und nach dem reinen Weblayoutfix mit nachweislich gleichen Nativeinputs wiederverwendet. Neue Samsung-, Windows- und echte Signier-/Installationsprüfungen bleiben offen. [Update](docs/UPDATE_RC3.md) · [Nachweise](docs/UPDATEPRUEFUNG_RC3.md). Historische RC2-Nachweise und Funktionen bleiben erhalten.
+
 ## 1.3.0-rc.1 – E04–E09 (2026-11-06)
 
 Gemeinsamer geprüfter Updatekandidat, Code8. GitHub-CI21 grün auf240033c; neue asynchrone Testbarrieren gegen vorzeitige Navigation/Reloads sind mit echten IDB-Verzögerungen abgesichert. Automatisch780 Logik-/139 Browser-/87 Kotlinfälle und19 PowerShell-Fälle grün, unsignierte APK gebaut. Echte Android-Prüfungen des neuen Stands und echte Anbieter-/Windows-Ausführung bleiben offen. Tatsächliche automatische Nachweise, Integrationsstand und verbleibende Grenzen führen [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und [Testnachweise](docs/ANKER_TESTNACHWEISE.md). Ältere Versionsabschnitte bleiben als Verlauf erhalten.

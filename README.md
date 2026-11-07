@@ -1,6 +1,6 @@
 # ⚓ Anker
 
-**Korrekturupdate 1.3.0-rc.2 / Code9:** Routinen am Fingergriff sortieren, aktuelle Schritte bewahren und fehlende KI-Einrichtung direkt am Schalter erklären. Enthält weiterhin E04–E09. [Windows-Update und gezielter Handytest](docs/UPDATE_ROUTINEN_RC2.md).
+**Update 1.3.0-rc.3 / Code 10:** Ausgerichtete Einstellungen, Zeitübersicht mit freiwilligen Prüfvorschlägen, optionale Teilschritt-Timer, nahe Arbeitsaufgaben auf Jetzt, ehrliche Erinnerungsdiagnose, stummer Schlafhinweis und sechs kurze Updateprüfungen mit Berichthistorie. [Update und PowerShell-Anleitung](docs/UPDATE_RC3.md) · [Umfang und Nachweise](docs/UPDATEPRUEFUNG_RC3.md).
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 

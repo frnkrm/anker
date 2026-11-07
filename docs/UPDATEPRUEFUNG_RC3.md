@@ -1,6 +1,6 @@
 # RC3: Updateprüfung und gemeinsame Erweiterungen
 
-Stand: 7. November 2026. Dieser Überblick beschreibt den integrierten Arbeitsstand für das nächste Update. **Die endgültige Version, die gemeinsamen Abschlussprüfungen, der genaue CI-Commit und die Paket-Prüfsummen sind unten ausdrücklich noch offen.** Sie werden erst nach den tatsächlich abgeschlossenen Läufen eingetragen.
+Stand: 7. November 2026. Der integrierte Updatekandidat **1.3.0-rc.3 / Code 10** ist implementiert und im unten genannten automatischen Umfang geprüft. Neue echte Android- und Windows-Prüfungen bleiben getrennt offen.
 
 Ausgangspunkt ist **1.3.0-rc.2 / Code 9**, Commit `424e041309e82ec82804f0e951fa817bcd0ada70`. Der ältere RC1-Bezug des Prüfauftrags ist ein historischer Suchhinweis. Die danach korrigierte Routinensortierung und die Hinweise zur optionalen KI-Freigabe bleiben erhalten. Der private Auftragstext und private Schlüssel gehören nicht in diesen Bericht oder ins öffentliche Repository.
 
@@ -39,25 +39,25 @@ Der vorhandene Planer und der Store bleiben die fachliche Wahrheit. Die Zeitübe
 
 **Timerablauf und Planung sind keine erledigte Arbeit.** Restzeiten beruhen auf Zeitstempeln. Pause, Ansichtwechsel, abgelaufene Zeit, Starthilfe und Konfliktvorschläge erledigen nichts, vergeben keine XP und buchen keine Arbeitszeit. Alte Aufgaben-/Teilreferenzen dürfen nach Import oder Sync nicht versehentlich eine andere Sitzung fortsetzen.
 
-## Abschließende Nachweise – noch einzutragen
+## Abschließende automatische Nachweise
 
-Die Einzelberichte enthalten bereits ausgeführte Teilprüfungen. Ihre Zahlen werden hier nicht addiert oder als gemeinsamer Abschlusslauf ausgegeben. Alle folgenden Platzhalter sind **offen**, bis Quelle und Ergebnis tatsächlich feststehen.
+Die folgenden Werte gehören zum gemeinsamen finalen Stand. Frühere Teilprüfungen werden nicht zu diesen Testzahlen addiert. Details und Grenzen stehen im [maschinenlesbaren Nachweis](UPDATEPRUEFUNG_RC3_NACHWEIS.json).
 
 | Nachweis | Endgültiger Wert / Beleg |
 | --- | --- |
-| Appversion / Versionscode / Paketkennung | **[OFFEN: FINALE_VERSION_CODE_PAKET]** |
-| Geprüfter Quellcommit und Quellfingerabdruck | **[OFFEN: FINALER_COMMIT_UND_QUELLFINGERABDRUCK]** |
-| Logiktests | **[OFFEN: FINALE_VITEST_ZAHL_DATEIEN_ERGEBNIS_LOG]** |
-| Browserprüfungen einschließlich neuer Abläufe | **[OFFEN: FINALE_BROWSERZAHL_ERGEBNIS_SKIPS_RETRIES_LOG]** |
-| Lint, erzwungener Typecheck und Produktionsbuild | **[OFFEN: FINALE_ERGEBNISSE_UND_WARNUNGEN]** |
-| Android-AAR-/Kotlinvarianten, frische JUnit und Releasebuild | **[OFFEN: FINALE_NATIVE_ZAHLEN_ERGEBNIS_LOG]** |
-| Paket-/Webasset-/Berechtigungs-/16-KB-Prüfung | **[OFFEN: FINALE_PAKETPRUEFUNG]** |
-| Automatisierte Signier-/PowerShellprüfungen | **[OFFEN: FINALE_SIGNIERPRUEFUNGEN_UND_PLATTFORM]** |
-| GitHub-CI für exakt den freigegebenen Quellcommit | **[OFFEN: CI_URL_COMMIT_ERGEBNIS]** |
-| Unsigniertes APK: SHA-256 und Größe | **[OFFEN: UNSIGNIERTES_APK_SHA256_BYTES]** |
-| Falls tatsächlich erzeugt: signiertes APK und Zertifikatsabgleich | **[OFFEN: SIGNIERTES_APK_SHA256_BYTES_ZERTIFIKAT_ODER_NICHT_ERZEUGT]** |
-| Update-ZIP: SHA-256 und Größe | **[OFFEN: UPDATE_ZIP_SHA256_BYTES]** |
-| Tatsächlich erneut gelesener Download und freigegebener Update-Stand | **[OFFEN: DOWNLOAD_URL_PRUEFUNG_UND_FREIGABESTAND]** |
+| Appversion / Versionscode / Paketkennung | 1.3.0-rc.3 / Code 10 / `de.frnkrm.anker` |
+| Geprüfter Quellcommit und Quellfingerabdruck | `20ee297dd7474ab500cc0d9f66396b60ad9141f8` / `7582f7e48a17e66a5ffc4d8747049615fb98bacfc9a3fa1716f438bf2aa551c6` |
+| Logiktests | 853/853 in 86 Dateien; keine übersprungenen Fälle. `npm test` |
+| Browserprüfungen einschließlich neuer Abläufe | 209/209 im finalen CI; lokal zunächst 209/209 auf 37a, danach 9/9 korrigierte Fokusfälle einschließlich breiter Schriften. Keine Skips/Flakies/Retries. |
+| Lint, erzwungener Typecheck und Produktionsbuild | Lint 0 Fehler / 1 bestehende TaskAssistance-Warnung; `tsc -b --force` und Produktionsbuild erfolgreich. |
+| Android-AAR-/Kotlinvarianten, frische JUnit und Releasebuild | Beide AAR- und Kotlinvarianten sowie 116/116 JUnit-Fälle auf 37a im selben Auftrag frisch geprüft; nach reinem Weblayoutfix alle nativen Test-/Quell-/Dependencyhashs identisch bestätigt. Neues Release inklusive Lint erfolgreich; kein zweiter JUnit-Lauf behauptet. |
+| Paket-/Webasset-/Berechtigungs-/16-KB-Prüfung | Alle 66 Webdateien bytegleich; Paket/API/Version/Systemleisten geprüft; ausschließlich `SYSTEM_ALERT_WINDOW` neu. ZIP und acht ELF64-Bibliotheken auf 16 KB geprüft; 38 frühere Artefaktdateien unverändert. |
+| Automatisierte Signier-/PowerShellprüfungen | 19 PowerShell-Logikfälle unter 7.5.4/Linux sowie 34 Update-/Secret-Mockfälle grün. Anleitungsblock syntaktisch geprüft; kein echter Nutzerschlüssel und keine Windows-Signierung. |
+| GitHub-CI für exakt den freigegebenen Quellcommit | [GitHub-CI vollständig grün](https://github.com/frnkrm/anker/actions/runs/42384529210) auf exakt `20ee297dd7474ab500cc0d9f66396b60ad9141f8`, main/push; 209 Browserfälle und alle Pflichtschritte erfolgreich. |
+| Unsigniertes APK: SHA-256 und Größe | `9d593eac9971307897cd3420e2656d3620473387565cbd60ed05e31c10c20079` / 37972843 Bytes; lokale Signierung erforderlich. |
+| Falls tatsächlich erzeugt: signiertes APK und Zertifikatsabgleich | Nicht mit Nutzerschlüssel erzeugt. Bekannter öffentlicher Zertifikatsfingerabdruck wird von Signierhilfe und vorbereitetem Workflow geprüft; kein Geräteabgleich behauptet. |
+| Update-ZIP: SHA-256 und Größe | `81aaea7818d58e254aacb215ec681132267003119a92c61c649c8f3e27833142` / 22207489 Bytes |
+| Tatsächlich erneut gelesener Download und freigegebener Update-Stand | [Direkter ZIP-Download](https://github.com/frnkrm/anker/raw/refs/heads/download-anker-rc3-final-20261107/Anker-Update-RC3-Final.zip): HTTP 200, vollständiger SHA-/ZIP-Abgleich. Freigegebener Quellstand in `AKTUELLER_UPDATESTAND.json`. |
 
 Ein grüner Build bestätigt keine Hörbarkeit oder Benachrichtigungszustellung. Frühere RC2-Nachweise bleiben erhalten und gehören zu ihrem damaligen Stand. Der historische Nutzerbericht vom 6. November bestätigt Installation und sichtbaren Datenerhalt; er bestätigt keinen der neuen RC3-Gerätefälle.
 
