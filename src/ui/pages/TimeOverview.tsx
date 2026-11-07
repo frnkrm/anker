@@ -40,7 +40,8 @@ function Entry({ entry }: { entry: TimeCatalogEntry }) {
 /** Eine lokale, abgeleitete Übersicht. Lesen startet keine Hilfe und verändert keine Quelle. */
 export default function TimeOverview() {
   const st = useApp()
-  const now = useNow(30_000)
+  useNow(30_000) // Anzeige anstoßen; die Cacheprüfung braucht den aktuellen Zeitpunkt dieses Renders.
+  const now = Date.now()
   const snapshot = currentTimeCatalog(st, now)
   const [range, setRange] = useState<'today' | 'next'>('today')
   const [category, setCategory] = useState<TimeCategory | 'all'>('all')
@@ -48,6 +49,7 @@ export default function TimeOverview() {
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [ruleLimit, setRuleLimit] = useState(PAGE_SIZE)
   const [suggestionLimit, setSuggestionLimit] = useState(5)
+  const [rulesOpen, setRulesOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [nativeNote, setNativeNote] = useState('')
@@ -65,9 +67,12 @@ export default function TimeOverview() {
         if (Number.isFinite(startedAt) && startedAt > 0) runtime.tidy = { date, startedAt }
       } catch { /* Ein fehlender optionaler Aufräumtimer erzeugt keine erfundene Zeit. */ }
       if (isNative()) {
-        const [alarm, bedtime] = await Promise.allSettled([AnkerNative.getAlarmState(), BedtimeNative.getBedtimePromptState()] as const)
-        if (alarm.status === 'fulfilled') runtime.alarm = { observedAt: Date.now(), state: alarm.value }
-        if (bedtime.status === 'fulfilled') runtime.bedtimePrompt = { observedAt: Date.now(), state: bedtime.value }
+        const [alarm, bedtime] = await Promise.allSettled([
+          AnkerNative.getAlarmState().then((state) => ({ observedAt: Date.now(), state })),
+          BedtimeNative.getBedtimePromptState().then((state) => ({ observedAt: Date.now(), state })),
+        ] as const)
+        if (alarm.status === 'fulfilled') runtime.alarm = alarm.value
+        if (bedtime.status === 'fulfilled') runtime.bedtimePrompt = bedtime.value
         if (alarm.status === 'rejected' || bedtime.status === 'rejected') setNativeNote('Der Android-Status war nicht vollständig lesbar. Berechnete Zeiten bleiben als solche gekennzeichnet.')
       }
       await refreshCatalog(runtime)
@@ -121,6 +126,6 @@ export default function TimeOverview() {
       {timed.length > limit && <Button className="w-full" onClick={() => setLimit((current) => current + PAGE_SIZE)}>Weitere Zeiten anzeigen ({timed.length - limit})</Button>}
     </div>
 
-    {!!rules.length && <details className="min-w-0 space-y-3"><summary className="min-h-12 cursor-pointer py-3 font-medium">Ohne feste Uhrzeit & abgestimmte Hilfen ({rules.length})</summary><p className="text-sm text-muted">Diese Quellen sind bedingt, pausiert oder nicht aktiv. Ihre Bedeutung steht bei der jeweiligen Quelle.</p><ul className="min-w-0 rounded-2xl border border-line bg-surface px-3">{rules.slice(0, ruleLimit).map((entry) => <Entry key={entry.id} entry={entry} />)}</ul>{rules.length > ruleLimit && <Button onClick={() => setRuleLimit((current) => current + PAGE_SIZE)}>Weitere Quellen anzeigen ({rules.length - ruleLimit})</Button>}</details>}
+    {!!rules.length && <details open={rulesOpen} onToggle={(event) => setRulesOpen(event.currentTarget.open)} className="min-w-0 space-y-3"><summary className="min-h-12 cursor-pointer py-3 font-medium">Ohne feste Uhrzeit & abgestimmte Hilfen ({rules.length})</summary><p className="text-sm text-muted">Diese Quellen sind bedingt, pausiert oder nicht aktiv. Ihre Bedeutung steht bei der jeweiligen Quelle.</p><ul className="min-w-0 rounded-2xl border border-line bg-surface px-3">{rules.slice(0, ruleLimit).map((entry) => <Entry key={entry.id} entry={entry} />)}</ul>{rules.length > ruleLimit && <Button onClick={() => setRuleLimit((current) => current + PAGE_SIZE)}>Weitere Quellen anzeigen ({rules.length - ruleLimit})</Button>}</details>}
   </Page>
 }
