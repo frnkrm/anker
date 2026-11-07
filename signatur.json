@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "applicationId": "de.frnkrm.anker.mobile",
+  "appName": "Anker Neu",
+  "versionName": "1.3.0-rc.4",
+  "versionCode": 11,
+  "sourceCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+  "sourceFingerprint": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+  "signedApk": "Anker-Neu-Code11.apk",
+  "signedApkSha256": "c5b98debc3852283c382a9f73fddf9c22d70f4da6c55309bfe0be70ffbe5b045",
+  "signedApkBytes": 38034934,
+  "unsignedApkSha256": "1269a21834de14124724ed5bdaaedfdf6400baa0a5312fd24680e8fe61428378",
+  "certificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+  "signatureVerified": true,
+  "v2": true,
+  "v3": true,
+  "zipalign16kb": true,
+  "unsignedEntriesByteEqual": true,
+  "addedSignatureEntries": [
+    "META-INF/ANKER-MO.RSA",
+    "META-INF/ANKER-MO.SF",
+    "META-INF/MANIFEST.MF"
+  ],
+  "realAndroidInstallation": "not run",
+  "oldAppDataModified": false,
+  "privateKeyInDownload": false,
+  "privateKeyExternalBackup": "not configured",
+  "ci": "https://github.com/frnkrm/anker/actions/runs/42393476035",
+  "signedAt": "2026-11-07T17:01:43.963865+00:00"
+}
