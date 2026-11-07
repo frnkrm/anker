@@ -2,6 +2,8 @@
 
 ## 1.3.0-rc.6 – Kompakte Routinekarten (2026-11-07)
 
+875 Logik-/220 Browserfälle und CI28 grün. Signiertes Code13-Update mit [geprüftem ZIP-Handydownload](docs/INSTALLATION_ANKER_NEU.md); dieselbe Signatur wie Code11/12. Native122Fälle für unveränderte Inputs wiederverwendet. Neuer Samsung-Test offen.
+
 - Dauer, direkte Zahleneingabe und Einheit stehen in einer Zeile. Andere Einstellungsbereiche behalten ihre bisherigen Feldgrößen.
 - Griff, Sortierpfeile und Entfernen sind unter allen Eingaben gebündelt. Die Minimal-Version bleibt sichtbar; normale Karten sind220Pixel hoch.
 - Feste Touchflächen und geprüfte Textgrenzen verhindern Überlagerungen auch bei großer Schrift. Bestehende Sortier-/Speicherlogik und Nutzerdaten bleiben erhalten.

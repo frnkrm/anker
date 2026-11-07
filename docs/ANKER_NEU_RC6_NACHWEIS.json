@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "applicationId": "de.frnkrm.anker.mobile",
+  "appName": "Anker Neu",
+  "versionName": "1.3.0-rc.6",
+  "versionCode": 13,
+  "sourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+  "sourceFingerprint": "4f90a1d9e60e53d1860cdbffdad95ee3b121ad5242ed629f32fbc7164c17399b",
+  "signedApkSha256": "d4069d4a40e7ef7d84d8bfbd06b0c1b40d57e81fe3d1d653be338f5e623ca7fa",
+  "signedApkBytes": 38039030,
+  "certificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+  "signatureVerified": true,
+  "v2": true,
+  "v3": true,
+  "zipalign16kb": true,
+  "unsignedEntriesByteEqual": true,
+  "oldAppDataModified": false,
+  "privateKeyInDownload": false,
+  "signedAt": "2026-11-07T19:25:56.241601+00:00",
+  "ci": {
+    "url": "https://github.com/frnkrm/anker/actions/runs/42405382711",
+    "exactMainPushCommitVerified": true,
+    "successful": true,
+    "browserPassed": 220,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "configuredRetries": 0,
+    "rawAuthenticatedLogsRead": false
+  },
+  "tests": {
+    "vitest": 875,
+    "browserLocal": 220,
+    "browserCI": 220,
+    "nativeJUnit": 122,
+    "nativeSuites": 11,
+    "signingMocks": 36,
+    "pcStop": 19,
+    "allPassed": true
+  },
+  "nativeTestReuse": {
+    "schemaVersion": 1,
+    "reusedCurrentTaskNativeTests": true,
+    "nativeTestsExecutedNow": false,
+    "freshRerun": false,
+    "originalNativeReportPath": "/workspace/.cache/anker/routine-layout-rc6/native-check-result.json",
+    "originalNativeReportSha256": "9782c6eadab9674192fd7f28240450520edc8e70f088ed60f8d6ed4ac4b8e3c5",
+    "originalRuntimeFingerprint": "2d63c69417cc0620e97b43b1723768b1c043bac99bc2e46c0bf5e491abae4530",
+    "originalExecutionHeadContextOnly": "de5286a442d0e9aa304cd5b7904ef40063e7a7fd",
+    "originalExecutionHeadWasNotApprovedFinalCommit": true,
+    "originalFinalBindingPath": "/workspace/.cache/anker/routine-layout-rc6/FINAL-SOURCE-BOUND.json",
+    "junit": {
+      "tests": 122,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 11
+    },
+    "nativeRootInputFilesVerified": 96,
+    "completeNativeNonWebInputFilesVerified": 108,
+    "nativeNonWebInputIdentitySha256": "12713a8ec7248116c703f6192c296062a27e5959f8af29445e3061cee1d7df3f",
+    "dependencyFilesVerified": 18955,
+    "dependencyLinksVerified": 42,
+    "dependencyIdentitySha256": "52318f3aa05b50bfdc9b7ea4e84065b580bc4fcc08a8297028b40455a31c4c58",
+    "actualRootDependencyFilesVerified": 18954,
+    "verifiedGeneratedNativeDependencyConfig": {
+      "path": "@capgo/capacitor-social-login/android/gradle.properties",
+      "sha256": "509a0c74a17560237b006bd5e7dbbe62834ce7124d402bfb58bda275adb407d6",
+      "strictlyDerivedFromUnchangedProviderConfiguration": true
+    },
+    "correctedRuntimeFingerprint": "4f90a1d9e60e53d1860cdbffdad95ee3b121ad5242ed629f32fbc7164c17399b"
+  },
+  "finalSourceBinding": {
+    "schemaVersion": 1,
+    "finalSourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+    "runtimeFingerprint": "4f90a1d9e60e53d1860cdbffdad95ee3b121ad5242ed629f32fbc7164c17399b",
+    "reusedCurrentTaskNativeTests": true,
+    "nativeTestsExecutedNow": false,
+    "originalNativeReportPath": "/workspace/.cache/anker/routine-layout-rc6/native-check-result.json",
+    "originalNativeReportSha256": "9782c6eadab9674192fd7f28240450520edc8e70f088ed60f8d6ed4ac4b8e3c5",
+    "originalNativeExecutionRuntimeFingerprint": "2d63c69417cc0620e97b43b1723768b1c043bac99bc2e46c0bf5e491abae4530",
+    "originalExecutionHeadContextOnly": "de5286a442d0e9aa304cd5b7904ef40063e7a7fd",
+    "reuseWitnessPath": "/workspace/.cache/anker/routine-layout-rc6-final/native-tests-reuse.json",
+    "reuseWitnessSha256": "5ace7cbeae83cf194b6f209fa53082dc84c302c5e4dda656042fd4384dcd90db",
+    "committedSourceFilesVerified": 446,
+    "completeNativeTestConfigAndRootAndCachedDependencyBytesUnchanged": true,
+    "junitExecutedAgainDuringBinding": false
+  },
+  "download": {
+    "browser": "Chromium, automated; no physical Android test",
+    "url": "https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc6-20261107",
+    "suggestedFilename": "anker-download-anker-neu-rc6-20261107.zip",
+    "downloadCompleted": true,
+    "bytes": 21834438,
+    "sha256": "c65cec1b37a3285301210f2ff38469b36d459467adccdb84311bd0b5792e7a93",
+    "tlsValidationEnabled": true,
+    "archiveCRCValid": true,
+    "sameSignedAPKExactBytes": true,
+    "apkSha256": "d4069d4a40e7ef7d84d8bfbd06b0c1b40d57e81fe3d1d653be338f5e623ca7fa",
+    "archiveFiles": [
+      "anker-download-anker-neu-rc6-20261107/Anker-Neu-Code13.apk",
+      "anker-download-anker-neu-rc6-20261107/README.md",
+      "anker-download-anker-neu-rc6-20261107/signatur.json"
+    ],
+    "contentType": "application/zip",
+    "contentDisposition": "attachment",
+    "physicalAndroidDownload": "not yet confirmed"
+  },
+  "deviceValidation": {
+    "installation": "not run",
+    "routineTouchOnSamsung": "not run",
+    "newDeviceReportsAutoMarked": false
+  },
+  "keyCustody": {
+    "githubSecretsTransfer": "authorized; pending cloud API network access",
+    "durableExternalBackup": "not configured",
+    "privateValuesInRepositoryOrDownload": false
+  }
+}

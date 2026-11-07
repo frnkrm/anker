@@ -1,6 +1,6 @@
 # ⚓ Anker
 
-**Anker Neu 1.3.0-rc.5 / Code 12:** [Handy-Download als ZIP, ca. 22 MB](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc5-20261107) – kein PC nötig. Eigene App-Kennung und neue Signatur erhalten die bisherige Installation; Daten aus einer vollständigen Sicherung bewusst wiederherstellen. [Installation, Datenübernahme und geprüfte Grenzen](docs/INSTALLATION_ANKER_NEU.md).
+**Anker Neu 1.3.0-rc.6 / Code 13:** [Handy-Download als ZIP, ca. 22 MB](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc6-20261107) – kein PC nötig. Ein vorhandenes Anker Neu mit der enthaltenen APK aktualisieren. Für den ersten Umzug aus der bisherigen Anker-App die Datenübernahme in der Anleitung verwenden. [Installation, Datenübernahme und geprüfte Grenzen](docs/INSTALLATION_ANKER_NEU.md).
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
