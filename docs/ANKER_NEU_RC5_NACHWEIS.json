@@ -62,5 +62,22 @@
     "githubSecretsTransfer": "authorized; pending cloud API network access",
     "durableExternalBackup": "not configured",
     "privateValuesInRepositoryOrDownload": false
-  }
+  },
+  "distributionFallback": {
+    "browser": "Chromium, automated; no physical Android test",
+    "url": "https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc5-20261107",
+    "suggestedFilename": "anker-download-anker-neu-rc5-20261107.zip",
+    "downloadCompleted": true,
+    "bytes": 21833772,
+    "sha256": "07c2f387c1ac731b0a9782f51193176217abeff9a1f235bade27bcae7db7d413",
+    "tlsValidationEnabled": true,
+    "archiveCRCValid": true,
+    "onlyPublicDownloadFiles": true,
+    "sameSignedAPKExactBytes": true,
+    "apkSha256": "ae1aeceba25c0be70169c197e94f414759e556dab4619c1aab6ce08c7eb23ff4",
+    "physicalAndroidDownload": "not yet confirmed",
+    "contentType": "application/zip",
+    "contentDisposition": "attachment"
+  },
+  "downloadClientReport": "User reports the raw APK link hangs after the loading bar fills; phone browser not yet identified. Server-byte verification did not prove successful phone saving."
 }

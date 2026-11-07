@@ -1,20 +1,24 @@
 # Anker Neu direkt auf dem Handy installieren
 
-**1.3.0-rc.5 / Code 12**, neue App **Anker Neu**. [Signierte APK direkt herunterladen](https://github.com/frnkrm/anker/raw/refs/heads/download-anker-neu-rc5-20261107/Anker-Neu-Code12.apk). Für diesen fertigen Download sind weder PC noch PowerShell nötig.
+**1.3.0-rc.5 / Code 12**, neue App **Anker Neu**. [ZIP mit signierter APK herunterladen, ca. 22 MB](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc5-20261107). Für diesen fertigen Download sind weder PC noch PowerShell nötig.
 
-**Wenn Anker Neu bereits installiert ist:** Die APK darüber installieren und anschließend öffnen. Derselbe Release-Schlüssel und der höhere Versionscode ermöglichen ein Update ohne Deinstallation; Einstellungen, Aufgaben und Testberichte bleiben im bestehenden App-Speicher. Für einen ersten Umzug aus der bisherigen App gelten die Schritte unten.
+**Wenn Anker Neu bereits installiert ist:** Die ZIP entpacken, darin `Anker-Neu-Code12.apk` öffnen, darüber installieren und anschließend Anker Neu öffnen. Derselbe Release-Schlüssel und der höhere Versionscode ermöglichen ein Update ohne Deinstallation; Einstellungen, Aufgaben und Testberichte bleiben im bestehenden App-Speicher. Für einen ersten Umzug aus der bisherigen App gelten die Schritte unten.
 
 Die eigene Paketkennung `de.frnkrm.anker.mobile` und neue Release-Signatur erlauben eine separate Installation neben deiner bisherigen App. Android behandelt diese Datei nicht als Update des alten Pakets. Die bisherige App und ihre Daten bleiben installiert. Beide Apps verwenden denselben vorhandenen Planer und dasselbe Sicherungsformat; es wurde kein zweites Datenmodell eingeführt.
 
 ## So übernimmst du deine Daten
 
 1. In der bisherigen App **Mehr → Sicherung → Sicherung exportieren**. Für alle Daten die vier Bereiche ausgewählt lassen. Die JSON-Datei auf dem Handy speichern; sie muss hier nicht hochgeladen werden. Eine reine Testberichtsdatei ersetzt diese Datensicherung nicht.
-2. Die APK oben herunterladen und öffnen. Wenn Android nachfragt, die Installation aus dem bewusst verwendeten Browser erlauben. Danach **Anker Neu** öffnen. Die bisherige App zunächst behalten.
+2. Den ZIP-Link oben in Chrome oder Samsung Internet öffnen. Falls eine eingebettete Ansicht hängen bleibt: Link lange drücken, kopieren und in die Adresszeile des Browsers einfügen. Nach dem Download **Eigene Dateien → Downloads** öffnen, die ZIP entpacken und darin `Anker-Neu-Code12.apk` öffnen. Wenn Android nachfragt, die Installation aus dem bewusst verwendeten Browser/Dateimanager erlauben. Danach **Anker Neu** öffnen. Die bisherige App zunächst behalten.
 3. Auf der Startseite **Vorhandene Sicherung übernehmen** wählen, **Sicherung importieren**, deine JSON-Datei auswählen und die Vorschau prüfen. Die Wahl **Werte aus dieser Sicherung wiederherstellen** übernimmt auch ältere Einstellungen und deinen Spielstand gegenüber frischen Startwerten. Erst **Sicherung jetzt wiederherstellen** schreibt.
 4. Routinen, Spielstand, QR-Wert, Aufgaben und Arbeitszeiten vergleichen. Frühere Testberichte bleiben mit ihren Originalangaben in der Historie; sie werden nicht als frisch bestandene Tests ausgegeben.
 5. Über **Wecker & Benachrichtigungen prüfen** die neuen Android-Freigaben einrichten und den Wecker bewusst testen. Android-Berechtigungen, Anmeldungen und Widgets werden nicht durch die Sicherung übertragen. Beide Installationen können unabhängig wecken und erinnern: Die alten Wecker erst nach dem neuen Test selbst abstellen.
 
 Ohne Datenübernahme kannst du die neue App auch bewusst neu einrichten; die alte App bleibt davon unberührt. Ausführliche Hinweise: [Wiederherstellung](SICHERUNG_WIEDERHERSTELLEN.md).
+
+## Downloadprüfung
+
+Der Nutzer meldete einen hängenden direkten APK-Download. Die Raw-APK ist serverseitig vollständig erreichbar, hat aber keinen ausdrücklichen Attachment-Header; der genaue Fehler im Handyclient ist noch offen. Der neue ZIP-Link liefert `Content-Disposition: attachment` und wurde in Chromium vollständig als Datei gespeichert. Die ZIP ist 21833772 Bytes groß, ihre CRC geprüft und die enthaltene APK exakt bytegleich mit der signierten Code12-Datei. Keine neue Appversion oder Signatur. Die tatsächliche Speicherung auf dem Samsung ist erst nach Nutzerbestätigung belegt. [Direkte APK als alternative Datei](https://github.com/frnkrm/anker/raw/refs/heads/download-anker-neu-rc5-20261107/Anker-Neu-Code12.apk).
 
 ## Signatur und Schlüssel
 
