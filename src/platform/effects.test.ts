@@ -52,6 +52,21 @@ beforeEach(() => {
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks() })
 
 describe('Ein sequenzierter lokaler Abgleich bei Start, Änderung und Resume', () => {
+  it('wartet vor der Ersteinrichtung mit Planung und Fortschritt und übernimmt danach den normalen Abgleich', async () => {
+    mocks.state = { ...mocks.state, settings: { ...mocks.state.settings, onboarded: false } }
+    const sync = vi.fn(async () => undefined)
+    const effects = await import('./effects')
+    effects.startEffects({ sync })
+    await effects.reconcileEffects()
+    await vi.advanceTimersByTimeAsync(5 * 60_000)
+    for (const call of [mocks.schedule, mocks.alarm, mocks.widget, mocks.workout, mocks.state.evaluateProgress, mocks.traffic, sync]) expect(call).not.toHaveBeenCalled()
+    mocks.state = { ...mocks.state, settings: { ...mocks.state.settings, onboarded: true } }
+    mocks.changed!()
+    await effects.reconcileEffects()
+    await vi.advanceTimersByTimeAsync(0)
+    for (const call of [mocks.schedule, mocks.alarm, mocks.widget, mocks.workout, mocks.state.evaluateProgress, mocks.traffic, sync]) expect(call).toHaveBeenCalled()
+  })
+
   it('fasst schnelle Planänderungen und Resume zusammen, ohne laufende Schritte zu überholen', async () => {
     const effects = await import('./effects')
     effects.startEffects(); await effects.reconcileEffects()

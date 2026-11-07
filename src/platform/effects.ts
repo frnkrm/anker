@@ -79,6 +79,8 @@ async function attempt(label: string, work: () => Promise<unknown>): Promise<voi
 const localEffects = coalesceAsync(async () => {
   const replan = replanRequested
   replanRequested = false
+  // Ein frischer Start darf vor Einrichtung oder bewusster Wiederherstellung nichts planen.
+  if (!useApp.getState().settings.onboarded) return
   if (replan) {
     await notificationSetup
     if (isNative()) await attempt('Erinnerungsrückmeldung', drainActions)
@@ -106,6 +108,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   started = true
   // Optionale Dienste dürfen eine neue lokale Weckerplanung nicht auf ihre Netzantwort warten lassen.
   const optionalEffects = coalesceAsync(async () => {
+    if (!useApp.getState().settings.onboarded) return
     await attempt('Training', () => syncWorkout(today()))
     await attempt('Fortschritt', () => useApp.getState().evaluateProgress())
     await attempt('Fahrtschätzung', refreshRouteEstimates)
@@ -130,6 +133,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   }
   // Gleiche Queue auch für den Widget-Takt; ohne neue Planänderung ist kein voller Abgleich nötig.
   setInterval(() => {
+    if (!useApp.getState().settings.onboarded) return
     void localEffects().catch(() => console.warn('[Anker] Widget wird beim nächsten Anlass erneut versucht.'))
     // Prüft nur diskrete noch offene Gelegenheiten. Keine Anfrage bei jedem Takt.
     void attempt('Fahrtschätzung', refreshRouteEstimates)
