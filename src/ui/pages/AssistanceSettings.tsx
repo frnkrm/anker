@@ -4,7 +4,7 @@ import { ASSISTANCE_NOTICE_VERSION, assistanceAllowed, type AssistantCapabilitie
 import { AssistanceError, assistanceEnableConfirmation, assistantCapabilities, cancelAssistanceRequests } from '../../platform/assistance'
 import { supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Section, Toggle } from '../components/ui'
+import { Button, Card, Page, Section, SettingRow, Toggle } from '../components/ui'
 import { RouteCheckPreferences } from '../components/RouteEstimateCard'
 
 type Purpose = 'ai' | 'routes'
@@ -74,7 +74,7 @@ export default function AssistanceSettings() {
           : !acceptedAI
             ? 'Bestätige zuerst den Daten- und Kostenhinweis oben. Danach kannst du KI-Vorschläge bewusst erlauben.'
             : 'Die Verbindung ist geprüft und der Hinweis bestätigt. Du kannst KI-Vorschläge jetzt erlauben; eine Anfrage bestätigst du später gesondert.'
-  return <Page title="Optionale Vorschläge" back="/einstellungen">
+  return <Page className="settings-page" title="Optionale Vorschläge" back="/einstellungen">
     <Card className="space-y-3">
       <p>Lokale Teilschritt-Vorlagen und manuelle Fahrzeiten funktionieren weiterhin ohne diese Dienste. Beide Datenfreigaben sind eine eigene Wahl.</p>
       <p className="text-sm text-muted">Die App nutzt deinen eingerichteten Supabase-Server und dessen Anmeldung. Datensynchronisation muss dafür nicht eingeschaltet sein. Anbieter-Schlüssel gehören ausschließlich auf den Server.</p>
@@ -89,7 +89,9 @@ export default function AssistanceSettings() {
         <p className="text-sm">Empfänger: dein Supabase-Server und OpenAI. Übermittelt werden der von dir bearbeitbare Aufgabentext und die Detailtiefe. Beschreibung und nächster Schritt sind je Anfrage freiwillig abgewählt. Vor jedem Senden siehst du die Inhalte und bestätigst sie gesondert; berufliche Angaben prüfst du selbst.</p>
         <p className="text-sm text-muted">Es können Kosten bei OpenAI und deinem Server entstehen. Prüfe vor echter Aktivierung die <a className="text-accent underline" href="https://openai.com/api/pricing/" target="_blank" rel="noreferrer">aktuellen API-Preise</a> und <a className="text-accent underline" href="https://openai.com/policies/business-terms/" target="_blank" rel="noreferrer">Anbieterbedingungen</a>.</p>
         {!ai && <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" checked={acceptedAI} disabled={busy} onChange={(event) => acceptAI(event.target.checked)} /><span>Übertragung an OpenAI und mögliche Anbieter-/Serverkosten für KI-Vorschläge sind für mich in Ordnung.</span></label>}
-        <fieldset className="min-w-0 disabled:opacity-50" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured))}><div className="flex flex-wrap items-center justify-between gap-3"><span>KI-Vorschläge erlauben</span><Toggle label="KI-Vorschläge erlauben" checked={ai} onChange={(value) => void change('ai', value)} /></div></fieldset>
+        <fieldset className="min-w-0 disabled:opacity-50" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured))}><SettingRow label={<span>KI-Vorschläge erlauben</span>}>
+              <Toggle label="KI-Vorschläge erlauben" checked={ai} onChange={(value) => void change('ai', value)} />
+            </SettingRow></fieldset>
         {!ai && <div className="space-y-2">
           <p role="status" className="text-sm text-muted">{aiNextStep}</p>
           {supabaseConfigured && (!capabilities?.ai.configured || error) && <Button disabled={busy} onClick={() => void check()}>Verbindung für KI prüfen</Button>}
@@ -103,7 +105,9 @@ export default function AssistanceSettings() {
         <p className="text-sm">Empfänger: dein Supabase-Server und Google Routes. Übermittelt werden die für die gewählte Fahrt ausdrücklich freigegebenen Start-/Zieladressen, Verkehrsmittel und Abfahrtszeit. Aufgaben, Medikamente und Routinentexte werden nicht automatisch angehängt. Keine laufende Standortverfolgung.</p>
         <p className="text-sm text-muted">Anbieter und Server können Kosten verursachen. Prüfe die <a className="text-accent underline" href="https://mapsplatform.google.com/pricing/" target="_blank" rel="noreferrer">aktuellen Maps-Preise</a> und <a className="text-accent underline" href="https://cloud.google.com/maps-platform/terms" target="_blank" rel="noreferrer">Google-Maps-Bedingungen</a>. Eine Verkehrsfreigabe aktiviert keine automatischen Abrufe; dafür gibt es eine eigene Wahl bei deiner Fahrt.</p>
         {!routes && <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" checked={acceptedRoutes} disabled={busy} onChange={(event) => acceptRoutes(event.target.checked)} /><span>Übertragung der gewählten Fahrtdaten an Google Routes und mögliche Anbieter-/Serverkosten sind für mich in Ordnung.</span></label>}
-        <fieldset className="min-w-0" disabled={busy || (!routes && (!acceptedRoutes || !capabilities?.routes.configured))}><div className="flex flex-wrap items-center justify-between gap-3"><span>Verkehrsvorschläge erlauben</span><Toggle label="Verkehrsvorschläge erlauben" checked={routes} onChange={(value) => void change('routes', value)} /></div></fieldset>
+        <fieldset className="min-w-0" disabled={busy || (!routes && (!acceptedRoutes || !capabilities?.routes.configured))}><SettingRow label={<span>Verkehrsvorschläge erlauben</span>}>
+              <Toggle label="Verkehrsvorschläge erlauben" checked={routes} onChange={(value) => void change('routes', value)} />
+            </SettingRow></fieldset>
       </Card>
       <RouteCheckPreferences />
     </Section>

@@ -4,7 +4,7 @@ import { saveFile } from '../../platform/files'
 import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
 import { automaticSyncEnableConfirmation, cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
-import { Button, Card, Page, Section, TextInput, Toggle } from '../components/ui'
+import { Button, Card, Page, Section, SettingRow, TextInput, Toggle } from '../components/ui'
 
 export default function Connections() {
   const st = useApp()
@@ -55,7 +55,7 @@ export default function Connections() {
   }
 
   return (
-    <Page title="Kalender & Sync" back="/mehr">
+    <Page className="settings-page" title="Kalender & Sync" back="/mehr">
       <p className="px-1 text-muted">Alles hier ist optional. Anker läuft auch komplett offline.</p>
 
       <Section title="Sync zwischen Handy und PC">
@@ -66,7 +66,7 @@ export default function Connections() {
             <>
               <p>Angemeldet als {user.email}</p>
               <p className="text-sm text-muted">{lastSync ? `Zuletzt synchronisiert: ${new Date(lastSync).toLocaleString('de-DE')}` : 'Noch nicht synchronisiert.'}</p>
-              <div className="flex flex-wrap items-center justify-between gap-3"><span>Automatisch synchronisieren</span><fieldset disabled={syncBusy && !integ.sync}><Toggle label="Automatischer Sync" checked={integ.sync} onChange={(enabled) => {
+              <SettingRow label="Automatisch synchronisieren"><fieldset disabled={syncBusy && !integ.sync}><Toggle label="Automatischer Sync" checked={integ.sync} onChange={(enabled) => {
                 const intent = ++syncIntent.current
                 if (!enabled) {
                   syncEnabling.current = undefined
@@ -84,7 +84,7 @@ export default function Connections() {
                   confirm()
                   const result = await syncNow({ manual: true }); setLastSync(result.lastSync); setMsg(result.error ?? 'Automatischer Sync ist eingeschaltet.')
                 })
-              }} /></fieldset></div>
+              }} /></fieldset></SettingRow>
               <div className="flex gap-2">
                 <Button
                   disabled={syncBusy}
@@ -141,8 +141,7 @@ export default function Connections() {
             <p className="text-muted">Nicht konfiguriert. Anleitung im README (Google Cloud).</p>
           ) : gConnected ? (
             <>
-              <div className="flex items-center justify-between">
-                <span>Termine im Tagesplan</span>
+              <SettingRow label={<span>Termine im Tagesplan</span>}>
                 <Toggle
                   label="Termine lesen"
                   checked={integ.googleCalendar}
@@ -154,10 +153,9 @@ export default function Connections() {
                     else await st.setEvents([])
                   }}
                 />
-              </div>
+              </SettingRow>
               <p className="text-sm text-muted">Schreiben ist eine eigene Wahl: Beim Einschalten wird ein zusätzlicher Zugriff auf von Anker erstellte Kalender angefragt. Google erhält dafür deine Routinentitel und Zeiten. Fremde Termine werden nicht geändert.</p>
-              <div className="flex items-center justify-between">
-                <span>Routinen in einen eigenen Kalender „Anker“ schreiben</span>
+              <SettingRow label={<span>Routinen in einen eigenen Kalender „Anker“ schreiben</span>}>
                 <Toggle
                   label="Routinen schreiben"
                   checked={integ.writeCalendar}
@@ -171,7 +169,7 @@ export default function Connections() {
                     if (v) setMsg((await writeAnkerBlocks()) ? 'Kalender „Anker“ aktualisiert.' : 'Schreiben hat nicht geklappt.')
                   }}
                 />
-              </div>
+              </SettingRow>
               {integ.writeCalendar && !googleWriteAuthorized() && <Button onClick={async () => {
                 const accept = beginGoogleIntent()
                 if (!await connectGoogle(true, accept)) { if (accept()) setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt.'); return }

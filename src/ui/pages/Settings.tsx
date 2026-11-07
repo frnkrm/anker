@@ -9,7 +9,7 @@ import { WeatherSettings } from '../components/WeatherSettings'
 import { useApp } from '../../state/store'
 import { SortableList, type MoveResult } from '../components/Sortable'
 import { ExtraControls } from '../components/ExtraControls'
-import { Button, Card, Page, Row, Section, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
+import { Button, Card, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
 
@@ -46,7 +46,7 @@ export default function Settings() {
 
   const sug = deriveSchedule(s)
   return (
-    <Page title="Einstellungen" back="/mehr">
+    <Page className="settings-page" title="Einstellungen" back="/mehr">
       {s.suggestions.length > 0 && (
         <Section title="Vorschläge aus dem Wochenrückblick">
           {s.suggestions.map((x) => (
@@ -60,6 +60,7 @@ export default function Settings() {
         </Section>
       )}
       <Section title="Dein Tag">
+        <Row label="Zeitübersicht" sub="Geplante Zeiten und mögliche Doppelungen" to="/zeiten" />
         <Row label="Arbeit" sub={`${s.work.filter((w) => w.isWorkDay).length} Tage · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}${s.flex.latestStart !== null ? ` · spätestens ${fmtTime(s.flex.latestStart)}` : ''}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
         <Row label="Sport" sub={`${s.sport.days.filter(Boolean).length}× pro Woche`} to="/einstellungen/sport" />
@@ -95,33 +96,30 @@ function Work({ s, save }: { s: S; save: Save }) {
   const others = s.work.filter((w, i) => i !== 4 && w.isWorkDay).map((w) => w.durationMin)
   const friday = s.work[4]!
   return (
-    <Page title="Arbeit & Gleitzeit" back="/einstellungen">
+    <Page className="settings-page" title="Arbeit & Gleitzeit" back="/einstellungen">
       <Section title="Gleitzeit">
         <Card className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <span>Spätester Beginn</span>
+          <SettingRow label="Spätester Beginn">
             {s.flex.latestStart !== null ? (
-              <div className="flex items-center gap-2">
+              <>
                 <TimeField label="Spätester Arbeitsbeginn" value={s.flex.latestStart} onChange={(v) => flex({ latestStart: v })} />
                 <Button size="sm" variant="ghost" onClick={() => flex({ latestStart: null })}>
                   Aus
                 </Button>
-              </div>
+              </>
             ) : (
               <Button size="sm" onClick={() => flex({ latestStart: 9 * 60 })}>
                 Festlegen
               </Button>
             )}
-          </div>
+          </SettingRow>
           <p className="text-sm text-muted">Eine Grenze, kein Ziel. Ein Kundentermin kann früher liegen. Sie zählt für den Beginn am Arbeitsort oder im Homeoffice.</p>
-          <div className="flex items-center justify-between gap-2">
-            <span>Arbeit, Pause und Feierabend auf der Startseite</span>
+          <SettingRow label={<span>Arbeit, Pause und Feierabend auf der Startseite</span>}>
             <Toggle label="Zeiten erfassen anbieten" checked={s.flex.tracking} onChange={(v) => flex({ tracking: v })} />
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <span>Hinweise zu Pausen, Ruhezeit und Sonntag</span>
+          </SettingRow>
+          <SettingRow label={<span>Hinweise zu Pausen, Ruhezeit und Sonntag</span>}>
             <Toggle label="Hinweise zu Pausen und Ruhezeit" checked={s.flex.legalHints} onChange={(v) => flex({ legalHints: v })} />
-          </div>
+          </SettingRow>
           <label className="block space-y-1">
             <span>Nachricht, wenn es später wird</span>
             <TextInput aria-label="Nachricht, wenn es später wird" value={s.flex.lateMessage} onChange={(e) => flex({ lateMessage: e.target.value })} />
@@ -132,10 +130,9 @@ function Work({ s, save }: { s: S; save: Save }) {
       </Section>
       <Section title="Nach Feierabend">
         <Card className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <span>Arbeitsaufgaben nach Feierabend ruhigstellen</span>
+          <SettingRow label={<span>Arbeitsaufgaben nach Feierabend ruhigstellen</span>}>
             <Toggle label="Arbeitsaufgaben nach Feierabend ruhigstellen" checked={s.support.workAfterHoursQuiet} onChange={(v) => save((x) => ({ ...x, support: { ...x.support, workAfterHoursQuiet: v } }))} />
-          </div>
+          </SettingRow>
           <p className="text-sm text-muted">Auf der Startseite haben Abend und Erholung Vorrang. Arbeitsaufgaben bleiben unter Arbeit erreichbar; Fristmeldungen bleiben unverändert. Laufende Arbeit wird dadurch nicht beendet.</p>
         </Card>
       </Section>
@@ -143,35 +140,33 @@ function Work({ s, save }: { s: S; save: Save }) {
       <p className="px-1 text-muted">Die Aufstehzeit richtet sich nach dem frühesten Wunsch-Beginn.</p>
       {s.work.map((w, i) => (
         <Card key={i} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-medium">{WEEKDAYS_LONG[i]}</span>
+          <SettingRow label={<span className="text-lg font-medium">{WEEKDAYS_LONG[i]}</span>}>
             <Toggle label={`${WEEKDAYS_LONG[i]} Arbeitstag`} checked={w.isWorkDay} onChange={(v) => upd(i, { isWorkDay: v })} />
-          </div>
+          </SettingRow>
           {w.isWorkDay && (
             <>
-              <div className="flex items-center justify-between">
-                <span>Wunsch-Beginn</span>
+              <SettingRow label={<span>Wunsch-Beginn</span>}>
                 <TimeField label="Arbeitsbeginn" value={w.start} onChange={(v) => upd(i, { start: v })} />
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span>Soll netto, ohne Pause</span>
+              </SettingRow>
+              <SettingRow label={<span>Soll netto, ohne Pause</span>}>
                 <Stepper label="Arbeitsdauer" value={w.durationMin / 60} step={0.25} min={0.25} max={12} unit="h" onChange={(v) => upd(i, { durationMin: Math.round(v * 60) })} />
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span>Übliche Pause</span>
+              </SettingRow>
+              <SettingRow label={<span>Übliche Pause</span>}>
                 <Stepper label="Pause" value={w.pauseMin} step={5} min={0} max={180} onChange={(v) => upd(i, { pauseMin: v })} />
-              </div>
+              </SettingRow>
               <p className="text-sm text-muted">Feierabend etwa {fmtTime(w.start + w.durationMin + w.pauseMin)}</p>
-              <div className="flex items-center justify-between">
-                <span>Homeoffice</span>
+              <SettingRow label={<span>Homeoffice</span>}>
                 <Toggle label="Homeoffice" checked={w.homeOffice} onChange={(v) => upd(i, { homeOffice: v })} />
-              </div>
+              </SettingRow>
               <details className="space-y-3">
                 <summary className="min-h-11 py-2 text-muted">Weitere Wochenwerte</summary>
-                <label className="block space-y-1"><span>Spätester Beginn an diesem Wochentag</span><select aria-label={`${WEEKDAYS_LONG[i]} Startgrenze`} value={w.latestStart === undefined ? 'inherit' : w.latestStart === null ? 'off' : 'custom'} onChange={(event) => upd(i, { latestStart: event.target.value === 'inherit' ? undefined : event.target.value === 'off' ? null : s.flex.latestStart ?? w.start })} className="min-h-12 w-full rounded-xl bg-surface-2 px-3"><option value="inherit">Globale Grenze verwenden</option><option value="off">Keine Grenze an diesem Tag</option><option value="custom">Eigene Grenze</option></select></label>
-                {typeof w.latestStart === 'number' && <TimeField label={`${WEEKDAYS_LONG[i]} spätester Beginn`} value={w.latestStart} onChange={(value) => upd(i, { latestStart: value })} />}
-                <div className="flex flex-wrap items-center justify-between gap-2"><span>Freiwilliger Feierabendwunsch</span><Toggle label={`${WEEKDAYS_LONG[i]} Feierabendwunsch`} checked={w.endPreference !== undefined} onChange={(enabled) => upd(i, { endPreference: enabled ? w.start + w.durationMin + w.pauseMin : undefined })} /></div>
-                {w.endPreference !== undefined && <TimeField label={`${WEEKDAYS_LONG[i]} Feierabendwunsch Uhrzeit`} value={w.endPreference} onChange={(value) => upd(i, { endPreference: value })} />}
+                <label className="block space-y-1"><span>Spätester Beginn an diesem Wochentag</span><select aria-label={`${WEEKDAYS_LONG[i]} Startgrenze`} value={w.latestStart === undefined ? 'inherit' : w.latestStart === null ? 'off' : 'custom'} onChange={(event) => upd(i, { latestStart: event.target.value === 'inherit' ? undefined : event.target.value === 'off' ? null : s.flex.latestStart ?? w.start })} className="min-h-12 w-full rounded-xl bg-surface-2 px-3"><option value="inherit">Global</option><option value="off">Keine</option><option value="custom">Eigene</option></select></label>
+                <p className="text-sm text-muted">Global übernimmt deine allgemeine Grenze. Keine lässt diesen Tag ohne Startgrenze; Eigene verwendet die Uhrzeit unten.</p>
+                {typeof w.latestStart === 'number' && <SettingRow label="Eigene Startgrenze"><TimeField label={`${WEEKDAYS_LONG[i]} spätester Beginn`} value={w.latestStart} onChange={(value) => upd(i, { latestStart: value })} /></SettingRow>}
+                <SettingRow label={<span>Freiwilliger Feierabendwunsch</span>}>
+                  <Toggle label={`${WEEKDAYS_LONG[i]} Feierabendwunsch`} checked={w.endPreference !== undefined} onChange={(enabled) => upd(i, { endPreference: enabled ? w.start + w.durationMin + w.pauseMin : undefined })} />
+                </SettingRow>
+                {w.endPreference !== undefined && <SettingRow label="Gewünschter Feierabend"><TimeField label={`${WEEKDAYS_LONG[i]} Feierabendwunsch Uhrzeit`} value={w.endPreference} onChange={(value) => upd(i, { endPreference: value })} /></SettingRow>}
                 <p className="text-sm text-muted">Der Endwunsch ist vom Nettoziel getrennt. Tatsächlich gearbeitete Zeit entsteht nur durch deine Erfassung; Tagesänderungen überschreiben nicht diese Wochenwerte.</p>
               </details>
             </>
@@ -186,16 +181,14 @@ function Commute({ s, save }: { s: S; save: Save }) {
   const c = s.commute
   const set = (patch: Partial<S['commute']>) => save((x) => applySchedule({ ...x, commute: { ...x.commute, ...patch } }))
   return (
-    <Page title="Arbeitsweg" back="/einstellungen">
+    <Page className="settings-page" title="Arbeitsweg" back="/einstellungen">
       <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Dauer</span>
+        <SettingRow label={<span>Dauer</span>}>
           <Stepper label="Fahrzeit" value={c.minutes} max={180} onChange={(v) => set({ minutes: v })} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Puffer</span>
+        </SettingRow>
+        <SettingRow label={<span>Puffer</span>}>
           <Stepper label="Puffer" value={c.bufferMin} max={60} onChange={(v) => set({ bufferMin: v })} />
-        </div>
+        </SettingRow>
         <Segmented<CommuteMode>
           label="Verkehrsmittel"
           value={c.mode}
@@ -218,55 +211,51 @@ function Sleep({ s, save }: { s: S; save: Save }) {
   const manual = s.anchor.manual ?? {}
   const setSleep =(patch: Partial<S['sleep']>) => save((x) => applySchedule({ ...x, sleep: { ...x.sleep, ...patch } }))
   return (
-    <Page title="Schlaf & Anker" back="/einstellungen">
+    <Page className="settings-page" title="Schlaf & Anker" back="/einstellungen">
       <p className="px-1 text-sm text-muted">Tippe eine Uhrzeit oder Zahl direkt an, um sie einzugeben. Plus und Minus ändern sie in kleinen Schritten. Dauern werden beim Verlassen des Feldes übernommen.</p>
       <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Schlafbedarf</span>
+        <SettingRow label={<span>Schlafbedarf</span>}>
           <Stepper label="Schlafbedarf" value={s.sleep.needMin / 60} step={0.5} min={5} max={10} unit="h" onChange={(v) => setSleep({ needMin: Math.round(v * 60) })} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Einschlafzeit</span>
+        </SettingRow>
+        <SettingRow label={<span>Einschlafzeit</span>}>
           <Stepper label="Einschlafzeit" value={s.sleep.fallAsleepMin} max={60} onChange={(v) => setSleep({ fallAsleepMin: v })} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Bildschirm aus vor dem Bett</span>
+        </SettingRow>
+        <p className="text-sm text-muted">Deine geschätzte Einschlafzeit fließt in den Bettzeit-Vorschlag ein. Der stumme Schlafhinweis nutzt diese Dauer erst, wenn du ihn selbst startest.</p>
+        <SettingRow label={<span>Bildschirm aus vor dem Bett</span>}>
           <Stepper label="Bildschirm aus" value={s.sleep.screenOffMin} max={120} onChange={(v) => setSleep({ screenOffMin: v })} />
-        </div>
+        </SettingRow>
+        <p className="text-sm text-muted">Vorschlag: PC-Stopp so viele Minuten vor dem Bett. {manual.pcStop ? 'Dein von Hand gesetzter PC-Stopp bleibt dabei erhalten.' : 'Dein automatisch berechneter PC-Stopp passt sich an.'} Anker schaltet damit weder den Handybildschirm noch den PC automatisch aus.</p>
+        <p className="text-sm text-muted">Geplante Ruhe vor dem Bett: {s.support.windDown.enabled ? `zum Beispiel deine gewählte Tätigkeit „${s.support.windDown.activity}“.` : 'zum Beispiel ein ruhiges Hörbuch oder Lesen.'}</p>
+        {s.support.windDown.enabled && <p className="text-sm text-muted">Dein Abendübergang um {fmtTime(s.support.windDown.at)} ersetzt die PC-Stopp- und Bett-Erinnerungen durch einen Hinweis. Deine geplanten Zeiten bleiben bestehen; der Sperrbildschirm zeigt nur einen allgemeinen Text.</p>}
+        <Row label="Sanften Abendübergang einstellen" sub="Eigene ruhige Tätigkeit und Hinweiszeit" to="/einstellungen/abenduebergang" />
       </Card>
       <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="font-medium">Aufstehen (jeden Tag)</span>
+        <SettingRow label={<span className="font-medium">Aufstehen (jeden Tag)</span>}>
           <TimeStepper label="Aufstehzeit" value={s.anchor.wake} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wake: v, manual: { ...x.anchor.manual, wake: true } } }))} />
-        </div>
+        </SettingRow>
         <p className="-mt-2 text-sm text-muted">{manual.wake ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>PC-Stopp</span>
+        <SettingRow label={<span>PC-Stopp</span>}>
           <TimeStepper label="PC-Stopp" night value={s.pcStop} onChange={(v) => save((x) => ({ ...x, pcStop: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, pcStop: true } } }))} />
-        </div>
+        </SettingRow>
         <p className="-mt-2 text-sm text-muted">{manual.pcStop ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Bett</span>
+        <SettingRow label={<span>Bett</span>}>
           <TimeStepper label="Bettzeit" night value={s.bed} onChange={(v) => save((x) => ({ ...x, bed: v, anchor: { ...x.anchor, manual: { ...x.anchor.manual, bed: true } } }))} />
-        </div>
+        </SettingRow>
         <p className="-mt-2 text-sm text-muted">{manual.bed ? 'Von dir gesetzt, bleibt so.' : 'Automatisch berechnet.'}</p>
         <Button size="sm" onClick={() => save((x) => resetToSuggested(x))}>
           Vorschlag übernehmen ({fmtTime(sug.wake)} / {fmtTime(sug.pcStop)} / {fmtTime(sug.bed)})
         </Button>
       </Card>
       <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Toleranz Aufstehen</span>
+        <SettingRow label={<span>Toleranz Aufstehen</span>}>
           <Stepper label="Toleranz Aufstehen" value={s.anchor.wakeToleranceMin} max={60} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, wakeToleranceMin: v } }))} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Toleranz Wochenende</span>
+        </SettingRow>
+        <SettingRow label={<span>Toleranz Wochenende</span>}>
           <Stepper label="Toleranz Wochenende" value={s.anchor.weekendToleranceMin} step={15} max={180} onChange={(v) => save((x) => ({ ...x, anchor: { ...x.anchor, weekendToleranceMin: v } }))} />
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Bonus „früh im Bett“ bis</span>
+        </SettingRow>
+        <SettingRow label={<span>Bonus „früh im Bett“ bis</span>}>
           <TimeField label="Bonus bis" value={s.bedBonusLatest} onChange={(v) => save((x) => ({ ...x, bedBonusLatest: v < 720 ? v + 1440 : v }))} />
-        </div>
+        </SettingRow>
       </Card>
     </Page>
   )
@@ -275,7 +264,7 @@ function Sleep({ s, save }: { s: S; save: Save }) {
 function Sport({ s, save }: { s: S; save: Save }) {
   const set = (patch: Partial<S['sport']>) => save((x) => applySchedule({ ...x, sport: { ...x.sport, ...patch } }))
   return (
-    <Page title="Sport" back="/einstellungen">
+    <Page className="settings-page" title="Sport" back="/einstellungen">
       <Card className="space-y-4">
         <div className="flex flex-wrap gap-2" aria-label="Sporttage">
           {WEEKDAYS.map((d, i) => (
@@ -303,15 +292,13 @@ function Sport({ s, save }: { s: S; save: Save }) {
           ]}
           onChange={(v) => set({ time: v })}
         />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Dauer</span>
+        <SettingRow label={<span>Dauer</span>}>
           <Stepper label="Dauer" value={s.sport.durationMin} min={5} max={180} onChange={(v) => set({ durationMin: v })} />
-        </div>
+        </SettingRow>
         {s.sport.kind === 'gym' && (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Weg zum Studio</span>
+          <SettingRow label={<span>Weg zum Studio</span>}>
             <Stepper label="Weg zum Studio" value={s.sport.gymWayMin} max={60} onChange={(v) => set({ gymWayMin: v })} />
-          </div>
+          </SettingRow>
         )}
       </Card>
       <p className="px-1 text-muted">Tipp: Anfangs kurz zu Hause, später Fitnessstudio. Mit Health Connect wird Training automatisch abgehakt (Einrichtungs-Check).</p>
@@ -322,7 +309,7 @@ function Sport({ s, save }: { s: S; save: Save }) {
 function Evenings({ s, save }: { s: S; save: Save }) {
   const keys = Object.keys(EVENING_LABELS) as EveningPlan[]
   return (
-    <Page title="Abendpläne" back="/einstellungen">
+    <Page className="settings-page" title="Abendpläne" back="/einstellungen">
       <p className="px-1 text-muted">Standard pro Tag. Für heute spontan änderbar auf der Startseite.</p>
       {s.evenings.map((e, i) => (
         <Card key={i} className="space-y-2">
@@ -333,10 +320,9 @@ function Evenings({ s, save }: { s: S; save: Save }) {
       <Section title="Dauer">
         <Card className="space-y-3">
           {keys.map((k) => (
-            <div key={k} className="flex flex-wrap items-center justify-between gap-2">
-              <span>{EVENING_LABELS[k]}</span>
+            <SettingRow key={k} label={<span>{EVENING_LABELS[k]}</span>}>
               <Stepper label={`Dauer ${EVENING_LABELS[k]}`} value={s.eveningDurations[k]} step={15} min={15} max={360} onChange={(v) => save((x) => ({ ...x, eveningDurations: { ...x.eveningDurations, [k]: v } }))} />
-            </div>
+            </SettingRow>
           ))}
         </Card>
       </Section>
@@ -371,19 +357,21 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
     return result
   }
   return (
-    <Page title={r === 'morning' ? 'Morgenroutine' : 'Abendroutine'} back="/einstellungen">
+    <Page className="settings-page" title={r === 'morning' ? 'Morgenroutine' : 'Abendroutine'} back="/einstellungen">
       <p className="px-1 text-muted">
         {fmtDuration(sumMinutes(steps))} · Am Griff ⋮⋮ halten und ziehen oder mit ▲/▼ sortieren. Die Minimal-Version zählt genauso.
       </p>
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
-      <SortableList
+      <div className="settings-routine-list"><SortableList
         items={steps}
         onMove={move}
         render={(x) => (
           <div className="space-y-2 py-1">
             <TextInput aria-label="Schritt" value={x.title} onChange={(e) => upd(x.id, { title: e.target.value })} />
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <SettingRow label="Dauer">
               <Stepper label="Dauer" value={x.minutes} step={1} min={1} max={120} onChange={(v) => upd(x.id, { minutes: v })} />
+            </SettingRow>
+            <div className="flex justify-end">
               <button type="button" className="min-h-10 px-2 text-sm text-muted" onClick={() => edit((current) => current.filter((y) => y.id !== x.id))}>
                 Entfernen
               </button>
@@ -394,7 +382,7 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
             }} />
           </div>
         )}
-      />
+      /></div>
       <Button className="w-full" onClick={() => {
         const step = { id: randomId(8), title: 'Neuer Schritt', minutes: 5 }
         edit((current) => [...current, step])
@@ -409,7 +397,7 @@ function Reminders({ s, save }: { s: S; save: Save }) {
   const r = s.reminders
   const set = (patch: Partial<S['reminders']>) => save((x) => ({ ...x, reminders: { ...x.reminders, ...patch } }))
   return (
-    <Page title="Erinnerungen" back="/einstellungen">
+    <Page className="settings-page" title="Erinnerungen" back="/einstellungen">
       <Card className="space-y-3">
         <Segmented<ReminderIntensity>
           label="Intensität"
@@ -426,21 +414,18 @@ function Reminders({ s, save }: { s: S; save: Save }) {
           {r.intensity === 'normal' && 'Erinnerung, nach ein paar Minuten noch einmal.'}
           {r.intensity === 'persistent' && 'Erinnerung, Wiederholung, dann mit Ton und Vibration, bis du bestätigst.'}
         </p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Wiederholen nach</span>
+        <SettingRow label={<span>Wiederholen nach</span>}>
           <Stepper label="Wiederholen nach" value={r.repeatAfterMin} step={1} min={2} max={30} onChange={(v) => set({ repeatAfterMin: v })} />
-        </div>
+        </SettingRow>
       </Card>
       <Card className="space-y-3">
         <p className="font-medium">Ruhezeiten</p>
-        <div className="flex items-center justify-between">
-          <span>Von</span>
+        <SettingRow label={<span>Von</span>}>
           <TimeField label="Ruhezeit von" value={r.quietStart} onChange={(v) => set({ quietStart: v })} />
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Bis</span>
+        </SettingRow>
+        <SettingRow label={<span>Bis</span>}>
           <TimeField label="Ruhezeit bis" value={r.quietEnd} onChange={(v) => set({ quietEnd: v })} />
-        </div>
+        </SettingRow>
         <p className="text-sm text-muted">Harte Zeiten (Losgehen, PC-Stopp, Bett) kommen trotzdem.</p>
       </Card>
     </Page>
@@ -451,18 +436,16 @@ function EveningMode({ s, save }: { s: S; save: Save }) {
   const preset = s.support.eveningPreset
   const setPreset = (patch: Partial<typeof preset>) => save((x) => ({ ...x, support: { ...x.support, eveningPreset: { ...x.support.eveningPreset, ...patch } } }))
   return (
-    <Page title="Abendmodus" back="/einstellungen">
+    <Page className="settings-page" title="Abendmodus" back="/einstellungen">
       <Section hint="Nur ein Vorschlag auf der Startseite. Du entscheidest mit einem Tipp.">
         <Card className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span>Abends vorschlagen</span>
+          <SettingRow label={<span>Abends vorschlagen</span>}>
             <Toggle label="Abendmodus vorschlagen" checked={preset.enabled} onChange={(v) => setPreset({ enabled: v })} />
-          </div>
+          </SettingRow>
           {preset.enabled && (
-            <div className="flex items-center justify-between">
-              <span>Ab</span>
+            <SettingRow label={<span>Ab</span>}>
               <TimeField label="Abendmodus ab" value={preset.from} onChange={(v) => setPreset({ from: v })} />
-            </div>
+            </SettingRow>
           )}
         </Card>
       </Section>
@@ -476,8 +459,12 @@ function Supports({ s, save }: { s: S; save: Save }) {
   const setFocus = (patch: Partial<S['focus']>) => save((x) => ({ ...x, focus: { ...x.focus, ...patch } }))
   const sup = s.support
   const setSup = (patch: Partial<S['support']>) => save((x) => ({ ...x, support: { ...x.support, ...patch } }))
+  const [eveningChoice, setEveningChoice] = useState('')
+  const [morningChoice, setMorningChoice] = useState('')
+  const eveningStep = s.routines.evening.find((step) => step.id === eveningChoice) ?? s.routines.evening[0]
+  const morningStep = s.routines.morning.find((step) => step.id === morningChoice) ?? s.routines.morning[0]
   return (
-    <Page title="Alltagshilfen" back="/einstellungen">
+    <Page className="settings-page" title="Alltagshilfen" back="/einstellungen">
       <ExtraControls />
       <Section title="Fokus-Puls" hint="Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.">
         <Card className="space-y-3">
@@ -502,24 +489,21 @@ function Supports({ s, save }: { s: S; save: Save }) {
                 ]}
                 onChange={(v) => setFocus({ everyMin: v as 2 | 5 })}
               />
-              <div className="flex items-center justify-between">
-                <span>Zur Hälfte des Schritts</span>
+              <SettingRow label={<span>Zur Hälfte des Schritts</span>}>
                 <Toggle label="Zur Hälfte" checked={f.halfway} onChange={(v) => setFocus({ halfway: v })} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Eine Minute vor Ende</span>
+              </SettingRow>
+              <SettingRow label={<span>Eine Minute vor Ende</span>}>
                 <Toggle label="Eine Minute vor Ende" checked={f.lastMinute} onChange={(v) => setFocus({ lastMinute: v })} />
-              </div>
+              </SettingRow>
             </>
           )}
         </Card>
       </Section>
       <Section title="Ankommen nach der Arbeit" hint="Zwei bis drei kurze Schritte, bevor der Abend beginnt.">
         <Card className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span>Einschalten</span>
+          <SettingRow label={<span>Einschalten</span>}>
             <Toggle label="Ankommen" checked={sup.arrival.enabled} onChange={(v) => setSup({ arrival: { ...sup.arrival, enabled: v } })} />
-          </div>
+          </SettingRow>
           {sup.arrival.enabled &&
             sup.arrival.steps.map((step, i) => (
               <TextInput key={i} aria-label={`Schritt ${i + 1}`} value={step} onChange={(e) => setSup({ arrival: { ...sup.arrival, steps: sup.arrival.steps.map((x, j) => (j === i ? e.target.value : x)) } })} />
@@ -528,22 +512,18 @@ function Supports({ s, save }: { s: S; save: Save }) {
       </Section>
       <Section title="Wege und Übergänge" hint="Das sind echte Minuten: Parkplatz, Schuhe, Laptop-Start.">
         <Card className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Ankunftspuffer</span>
+          <SettingRow label={<span>Ankunftspuffer</span>}>
             <Stepper label="Ankunftspuffer" value={s.travel.arrivalBufferMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, arrivalBufferMin: v } }))} />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Fertig machen vor Terminen</span>
+          </SettingRow>
+          <SettingRow label={<span>Fertig machen vor Terminen</span>}>
             <Stepper label="Fertig machen" value={s.travel.prepMin} max={120} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, prepMin: v } }))} />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Rechnerstart im Homeoffice</span>
+          </SettingRow>
+          <SettingRow label={<span>Rechnerstart im Homeoffice</span>}>
             <Stepper label="Rechnerstart" value={s.travel.homeOfficeStartupMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, homeOfficeStartupMin: v } }))} />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span>Wach werden</span>
+          </SettingRow>
+          <SettingRow label={<span>Wach werden</span>}>
             <Stepper label="Wach werden" value={s.travel.activationMin} max={60} onChange={(v) => save((x) => ({ ...x, travel: { ...x.travel, activationMin: v } }))} />
-          </div>
+          </SettingRow>
         </Card>
       </Section>
       <Section title="Abends schon erledigt" hint="Nur was du hier setzt, gilt. Der Morgenschritt entfällt dann, zählt dort aber nicht als erledigt.">
@@ -568,20 +548,22 @@ function Supports({ s, save }: { s: S; save: Save }) {
               if (eveningStepId && morningStepId) save((x) => ({ ...x, routineLinks: [...x.routineLinks, { eveningStepId, morningStepId }] }))
             }}
           >
-            <select name="evening" aria-label="Abendschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
-              {s.routines.evening.map((x) => (
+            <select name="evening" aria-label="Abendschritt" value={eveningStep?.id ?? ''} onChange={(event) => setEveningChoice(event.target.value)} className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.evening.map((x, index) => (
                 <option key={x.id} value={x.id}>
-                  Abends: {x.title}
+                  {index + 1}. Schritt
                 </option>
               ))}
             </select>
-            <select name="morning" aria-label="Morgenschritt" className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
-              {s.routines.morning.map((x) => (
+            <p className="text-sm text-muted">Abends: {eveningStep?.title ?? 'Kein Schritt vorhanden'}</p>
+            <select name="morning" aria-label="Morgenschritt" value={morningStep?.id ?? ''} onChange={(event) => setMorningChoice(event.target.value)} className="min-h-12 w-full rounded-xl bg-surface-2 px-3">
+              {s.routines.morning.map((x, index) => (
                 <option key={x.id} value={x.id}>
-                  Morgens nicht nötig: {x.title}
+                  {index + 1}. Schritt
                 </option>
               ))}
             </select>
+            <p className="text-sm text-muted">Morgens nicht nötig: {morningStep?.title ?? 'Kein Schritt vorhanden'}</p>
             <Button type="submit" size="sm">
               Regel hinzufügen
             </Button>
@@ -593,10 +575,9 @@ function Supports({ s, save }: { s: S; save: Save }) {
       </Section>
       <Section title="Rückfrage und Homeoffice">
         <Card className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span>Beim Verschieben nach dem Grund fragen</span>
+          <SettingRow label={<span>Beim Verschieben nach dem Grund fragen</span>}>
             <Toggle label="Nach dem Grund fragen" checked={s.askReason} onChange={(v) => save((x) => ({ ...x, askReason: v }))} />
-          </div>
+          </SettingRow>
           <TextInput aria-label="Homeoffice-Vorlage" value={s.homeOfficeMessage} onChange={(e) => save((x) => ({ ...x, homeOfficeMessage: e.target.value }))} />
         </Card>
       </Section>
@@ -612,16 +593,14 @@ function Supports({ s, save }: { s: S; save: Save }) {
 
 function Look({ s, save }: { s: S; save: Save }) {
   return (
-    <Page title="Darstellung" back="/einstellungen">
+    <Page className="settings-page" title="Darstellung" back="/einstellungen">
       <Card className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span>Dunkles Design</span>
+        <SettingRow label={<span>Dunkles Design</span>}>
           <Toggle label="Dunkles Design" checked={s.appearance.dark} onChange={(v) => save((x) => ({ ...x, appearance: { ...x.appearance, dark: v } }))} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>Schriftgröße</span>
+        </SettingRow>
+        <SettingRow label={<span>Schriftgröße</span>}>
           <Stepper label="Schriftgröße" value={Math.round(s.appearance.fontScale * 100)} step={10} min={80} max={160} unit="%" onChange={(v) => save((x) => ({ ...x, appearance: { ...x.appearance, fontScale: v / 100 } }))} />
-        </div>
+        </SettingRow>
       </Card>
       <Section title="Thema">
         <div className="grid grid-cols-2 gap-2">

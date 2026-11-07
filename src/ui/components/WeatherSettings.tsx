@@ -4,7 +4,7 @@ import { currentWeatherProfile } from '../../core/weatherProfile'
 import type { Settings, WeatherProfile } from '../../core/types'
 import { findCity } from '../../platform/weather'
 import { useApp } from '../../state/store'
-import { Button, Card, Stepper, TextInput, Toggle } from './ui'
+import { Button, Card, SettingRow, Stepper, TextInput, Toggle } from './ui'
 
 const token = (profile: WeatherProfile | undefined) => JSON.stringify(profile && [profile.enabled, profile.city, profile.lat, profile.lng, profile.revision])
 
@@ -50,10 +50,9 @@ export function WeatherSettings({ s, save }: { s: Settings; save: (fn: (settings
   }
 
   return <Card className="space-y-3">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span>Wetterhinweise</span>
+    <SettingRow label={<span>Wetterhinweise</span>}>
       <Toggle label="Wetterhinweise" checked={!!profile?.enabled} onChange={(value) => void changeEnabled(value)} />
-    </div>
+    </SettingRow>
     <p className="text-sm text-muted">Freiwillig. Bei der Stadtsuche erhält Open-Meteo den eingegebenen Namen, für die Vorhersage die gewählten Koordinaten und deine IP-Adresse. Keine Termintitel und keine GPS-Abfrage.</p>
     <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); void chooseCity() }}>
       <TextInput aria-label="Ort für das Wetter" placeholder="Deine Stadt" value={city} maxLength={200} onChange={(event) => {
@@ -63,14 +62,12 @@ export function WeatherSettings({ s, save }: { s: Settings; save: (fn: (settings
     </form>
     {profile?.enabled && <p className="break-words text-sm text-muted">Gewählter Wetterort: {profile.city || 'Bei freigegebenen gespeicherten Orten'}. Nur Orte mit deiner eigenen Wetterfreigabe werden für einen Termin verwendet.</p>}
     {message && <p role="status" className="break-words text-sm text-muted">{message}</p>}
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span>Jacke unter</span>
+    <SettingRow label={<span>Jacke unter</span>}>
       <Stepper label="Jacke unter" value={s.weather.rules.jacketBelowC} step={1} min={-10} max={30} unit="°C" onChange={(value) => save((current) => ({ ...current, weather: { ...current.weather, rules: { ...current.weather.rules, jacketBelowC: value } } }))} />
-    </div>
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span>Regenschutz ab</span>
+    </SettingRow>
+    <SettingRow label={<span>Regenschutz ab</span>}>
       <Stepper label="Regenschutz ab" value={s.weather.rules.rainAbovePct} step={10} min={10} max={100} unit="%" onChange={(value) => save((current) => ({ ...current, weather: { ...current.weather, rules: { ...current.weather.rules, rainAbovePct: value } } }))} />
-    </div>
+    </SettingRow>
     {profile?.enabled && <Button size="sm" variant="ghost" onClick={() => void changeEnabled(false)}>Wetter ausschalten</Button>}
     <details className="text-sm text-muted">
       <summary className="min-h-11 py-2">Wetterdaten & Datenschutz</summary>

@@ -23,15 +23,15 @@ export function Button({
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-line bg-surface p-4 ${className}`}>{children}</div>
+  return <div className={`ui-card rounded-2xl border border-line bg-surface p-4 ${className}`}>{children}</div>
 }
 
-export function Page({ title, back, children, actions }: { title: string; back?: boolean | string; children: ReactNode; actions?: ReactNode }) {
+export function Page({ title, back, children, actions, className = '' }: { title: string; back?: boolean | string; children: ReactNode; actions?: ReactNode; className?: string }) {
   const nav = useNavigate()
   const heading = useRef<HTMLHeadingElement>(null)
   useLayoutEffect(() => { heading.current?.focus() }, [])
   return (
-    <div className="mx-auto max-w-xl px-4 pb-28 safe-top">
+    <div className={`mx-auto max-w-xl px-4 pb-28 safe-top ${className}`}>
       <header className="mb-4 flex min-h-12 items-center gap-2">
         {back && (
           <button type="button" aria-label="Zurück" onClick={() => (typeof back === 'string' ? nav(back) : nav(-1))} className="-ml-2 grid h-12 w-12 place-items-center rounded-2xl text-2xl text-muted active:bg-surface-2">
@@ -60,7 +60,7 @@ export function Row({ label, sub, children, to, onClick }: { label: ReactNode; s
   const inner = (
     <>
       <div className="min-w-0 flex-1">
-        <div className="truncate">{label}</div>
+        <div className="break-words">{label}</div>
         {sub && <div className="text-sm text-muted">{sub}</div>}
       </div>
       {children}
@@ -132,9 +132,14 @@ export function TimeField({ value, onChange, label }: { value: number; onChange:
         const m = parseTime(e.target.value)
         if (!Number.isNaN(m)) onChange(m)
       }}
-      className="min-h-12 min-w-0 max-w-full rounded-xl bg-surface-2 px-2 text-lg tabular-nums"
+      className="setting-value time-field rounded-xl bg-surface-2 tabular-nums"
     />
   )
+}
+
+/** Labels dürfen umbrechen; alle Zeit-/Zahlenfelder behalten dieselbe Bedienungsspalte. */
+export function SettingRow({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return <div className="setting-row"><div className="setting-label">{label}</div><div className="setting-row-control">{children}</div></div>
 }
 
 export function Stepper({ value, onChange, step = 5, min = 0, max = 600, unit = 'min', label }: { value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number; unit?: string; label: string }) {
@@ -148,18 +153,18 @@ export function Stepper({ value, onChange, step = 5, min = 0, max = 600, unit = 
     setDraft(undefined)
   }
   return (
-    <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1" role="group" aria-label={`${label} ändern`}>
-      <button type="button" aria-label={`${label} verringern`} onClick={() => onChange(Math.max(min, value - step))} className="h-[44px] w-[44px] rounded-xl bg-surface-2 text-xl">
+    <div className="setting-control" role="group" aria-label={`${label} ändern`}>
+      <button type="button" aria-label={`${label} verringern`} onClick={() => onChange(Math.max(min, value - step))} className="setting-adjust rounded-xl bg-surface-2 text-xl">
         −
       </button>
       <input type="number" inputMode={step < 1 ? 'decimal' : 'numeric'} aria-label={label} min={min} max={max} step="any"
         value={draft ?? value} onFocus={() => setDraft(String(value))} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
         onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-        className="min-h-11 w-[72px] min-w-0 rounded-xl bg-surface-2 px-1 text-center tabular-nums" />
-      <span className="text-sm text-muted">{unit}</span>
-      <button type="button" aria-label={`${label} erhöhen`} onClick={() => onChange(Math.min(max, value + step))} className="h-[44px] w-[44px] rounded-xl bg-surface-2 text-xl">
+        className="setting-value rounded-xl bg-surface-2 text-center tabular-nums" />
+      <button type="button" aria-label={`${label} erhöhen`} onClick={() => onChange(Math.min(max, value + step))} className="setting-adjust rounded-xl bg-surface-2 text-xl">
         +
       </button>
+      <span className="setting-unit text-sm text-muted">{unit}</span>
     </div>
   )
 }
@@ -171,12 +176,12 @@ export function TimeStepper({ value, onChange, label, night = false }: { value: 
     onChange(night && wall < 720 ? wall + 1440 : wall)
   }
   return (
-    <div className="flex max-w-full flex-wrap items-center justify-end gap-1" role="group" aria-label={`${label} ändern`}>
-      <button type="button" aria-label={`${label} früher`} onClick={() => set(value - 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
+    <div className="setting-control" role="group" aria-label={`${label} ändern`}>
+      <button type="button" aria-label={`${label} früher`} onClick={() => set(value - 5)} className="setting-adjust rounded-xl bg-surface-2 text-xl">
         −
       </button>
       <TimeField label={label} value={value} onChange={set} />
-      <button type="button" aria-label={`${label} später`} onClick={() => set(value + 5)} className="h-12 w-12 rounded-xl bg-surface-2 text-xl">
+      <button type="button" aria-label={`${label} später`} onClick={() => set(value + 5)} className="setting-adjust rounded-xl bg-surface-2 text-xl">
         +
       </button>
     </div>
@@ -226,7 +231,7 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
 }
 
 export function TextInput(p: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...p} className={`min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base placeholder:text-muted ${p.className ?? ''}`} />
+  return <input {...p} className={`min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3 text-base placeholder:text-muted ${p.className ?? ''}`} />
 }
 
 export function Progress({ value, className = '', label = 'Fortschritt' }: { value: number; className?: string; label?: string }) {

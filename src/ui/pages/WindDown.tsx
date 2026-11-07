@@ -4,7 +4,7 @@ import { fmtTime } from '../../core/time'
 import { isNative } from '../../platform/native'
 import { notificationPermission, requestNotificationPermission } from '../../platform/notifications'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Row, TextInput, TimeField, Toggle } from '../components/ui'
+import { Button, Card, Page, Row, SettingRow, TextInput, TimeField, Toggle } from '../components/ui'
 
 export default function WindDown() {
   const st = useApp()
@@ -18,7 +18,7 @@ export default function WindDown() {
   const quiet = inQuietHours(draft.at, st.settings)
 
   return (
-    <Page title="Sanfter Abendübergang" back="/einstellungen">
+    <Page className="settings-page" title="Sanfter Abendübergang" back="/einstellungen">
       <p className="text-muted">Wähle eine ruhige Tätigkeit, zu der du am Abend wechseln möchtest. Ein Hinweis zur gewählten Zeit reicht.</p>
       <form className="space-y-4" onSubmit={async (event) => {
         event.preventDefault()
@@ -35,18 +35,16 @@ export default function WindDown() {
         finally { savingRef.current = false; setSaving(false) }
       }}>
         <Card className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <span>Sanften Hinweis anbieten</span>
+          <SettingRow label={<span>Sanften Hinweis anbieten</span>}>
             <Toggle label="Sanften Abendübergang einschalten" checked={draft.enabled} onChange={(enabled) => setDraft({ ...draft, enabled })} />
-          </div>
+          </SettingRow>
           <label className="block space-y-1">
             <span className="block">Meine ruhige Tätigkeit</span>
             <TextInput aria-label="Meine ruhige Tätigkeit" maxLength={160} required value={draft.activity} onChange={(event) => setDraft({ ...draft, activity: event.target.value })} placeholder="Zum Beispiel: ruhige Musik hören" />
           </label>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span>Einmaliger Hinweis um</span>
+          <SettingRow label={<span>Einmaliger Hinweis um</span>}>
             <TimeField label="Abendübergang um" value={draft.at} onChange={(at) => setDraft({ ...draft, at })} />
-          </div>
+          </SettingRow>
           <p className="text-sm text-muted">Eingeschaltet ersetzt dies die PC-Stopp- und Bett-Erinnerungen durch einen sanften Hinweis pro Abend. Der Morgenwecker und deine geplanten Zeiten bleiben bestehen.</p>
           <p className="text-sm text-muted">Deine Tätigkeit siehst du in der App. Der Sperrbildschirm zeigt einen allgemeinen Hinweis.</p>
           {quiet && <p role="status" className="text-sm text-warm">{fmtTime(draft.at)} liegt in deinen Ruhezeiten. Dort bleibt auch dieser Hinweis still. Du kannst die Tätigkeit jederzeit unter Abend & morgen öffnen.</p>}

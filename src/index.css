@@ -84,6 +84,50 @@ input[type='time']::-webkit-calendar-picker-indicator {
   --picker-filter: invert(1);
 }
 
+/* Gemeinsame Zeit-/Dauerfelder: Einheiten verschieben weder Wert noch Plus. */
+.setting-control {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: start;
+  gap: 4px;
+  width: 256px;
+  max-width: 100%;
+}
+.setting-adjust { width: 44px; min-width: 44px; height: 44px; line-height: 1; }
+.setting-value {
+  box-sizing: border-box;
+  width: 160px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  font-size: 1rem;
+}
+.setting-control > .setting-value { width: 100%; }
+.setting-value[type='number'] { appearance: textfield; }
+.setting-value[type='number']::-webkit-inner-spin-button,
+.setting-value[type='number']::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.setting-unit { grid-column: 2; text-align: center; overflow-wrap: anywhere; }
+.setting-row { display: grid; gap: 8px; align-items: center; min-width: 0; }
+.setting-label { min-width: 0; overflow-wrap: anywhere; }
+.setting-row-control { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; width: 256px; max-width: 100%; justify-self: end; }
+.setting-row-control > .time-field { margin-inline-end: 48px; }
+.setting-row:has(> .setting-row-control > [role='switch']) { grid-template-columns: minmax(0, 1fr) auto; }
+.setting-row-control:has(> [role='switch']) { width: auto; }
+.settings-page { container: settings / inline-size; overflow-wrap: anywhere; padding-inline: 12px; }
+.settings-page .ui-card { padding: 14px; }
+.settings-page :where(input, select, textarea, button, fieldset) { min-width: 0; max-width: 100%; }
+.settings-page button { overflow-wrap: anywhere; }
+/* Der Sortiergriff behält seine eigene Bedienung; im schmalen Editor steht er über den Feldern. */
+@container settings (max-width: 440px) {
+  .settings-routine-list ol > li { flex-direction: column; }
+  .settings-routine-list ol > li > div:first-child { flex-direction: row; justify-content: space-between; }
+  .settings-routine-list ol > li > div:first-child > div { flex-direction: row; }
+}
+@container settings (min-width: 440px) {
+  .setting-row { grid-template-columns: minmax(0, 1fr) 256px; gap: 16px; }
+}
+
 @keyframes pop {
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.08); opacity: 1; }

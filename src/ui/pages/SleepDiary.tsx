@@ -42,7 +42,7 @@ export default function SleepDiary() {
   const hasData = rows.some((row) => SLEEP_EVENTS.some((key) => row.entry[key] !== undefined))
 
   return (
-    <Page title="Schlafüberblick" back="/abend">
+    <Page className="settings-page" title="Schlafüberblick" back="/abend">
       <p className="text-muted">Deine eigenen Angaben zu Müdigkeit, Bett und Aufstehen. Du trägst nur ein, was du festhalten möchtest.</p>
       <Card className="space-y-3">
         <h2 className="text-lg font-semibold">Einen Zeitpunkt festhalten</h2>
