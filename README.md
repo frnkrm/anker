@@ -1,6 +1,6 @@
 # ⚓ Anker
 
-**Update 1.3.0-rc.3 / Code 10:** Ausgerichtete Einstellungen, Zeitübersicht mit freiwilligen Prüfvorschlägen, optionale Teilschritt-Timer, nahe Arbeitsaufgaben auf Jetzt, ehrliche Erinnerungsdiagnose, stummer Schlafhinweis und sechs kurze Updateprüfungen mit Berichthistorie. [Update und PowerShell-Anleitung](docs/UPDATE_RC3.md) · [Umfang und Nachweise](docs/UPDATEPRUEFUNG_RC3.md).
+**Anker Neu 1.3.0-rc.4 / Code 11:** [Signierte APK direkt aufs Handy laden](https://github.com/frnkrm/anker/raw/refs/heads/download-anker-neu-rc4-20261107/Anker-Neu-Code11.apk) – kein PC nötig. Eigene App-Kennung und neue Signatur erhalten die bisherige Installation; Daten aus einer vollständigen Sicherung bewusst wiederherstellen. [Installation, Datenübernahme und geprüfte Grenzen](docs/INSTALLATION_ANKER_NEU.md).
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 

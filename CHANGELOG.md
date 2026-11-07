@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 1.3.0-rc.4 – Anker Neu mit eigener Release-Signatur (2026-11-07)
+
+- Neue App-Kennung und Release-Signatur: direkte APK-Installation parallel zum bisherigen Anker.
+- Bewusste Wiederherstellung älterer eigener Sicherungen mit Vorschau und atomarem Speichern; fehlende Bereiche und historische Testbelege bleiben erhalten. Standardimport bleibt LWW.
+- Ersteinrichtung bietet den Datenumzug direkt an; Felder passen auch bei 320 px/160 % Schrift. Planung und Fortschritt beginnen erst nach Einrichtung oder Übernahme.
+- 864 Logik-/211 Browser-/116 frisch ausgeführte native JUnit-Fälle und 36 Update-Mockfälle grün. Echte Cloud-Signierung und vollständiger öffentlicher Download geprüft; Samsung-Installation und externe Schlüsselsicherung bleiben offen.
+
+[Handyinstallation](docs/INSTALLATION_ANKER_NEU.md) · [Nachweis](docs/ANKER_NEU_RC4_NACHWEIS.json).
+
 ## 1.3.0-rc.3 – gemeinsame Updateprüfung (2026-11-07)
 
 - Einstellungen und Zeit-/Dauerfelder einheitlich ausgerichtet; Bildschirmabstand und bereits abgestimmte Abendhinweise erklärt.

@@ -101,6 +101,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 
 ## Fallstricke
 
+- Neue Release-Signatur B4:7F:…:B1:3A erhalten. Keinen neuen Schlüssel ohne ausdrücklichen Auftrag erzeugen; private Signierdateien gehören weder ins Repository noch in öffentliche Downloads. Die dauerhafte externe Schlüsselsicherung ist noch offen, siehe `docs/INSTALLATION_ANKER_NEU.md`.
 - Die neue App-ID `de.frnkrm.anker.mobile` steht in `app.config.ts`, `android/app/build.gradle`, Ressourcen und Supabase-Redirect. Das Kotlin-Namespace und die Komponentenklassen bleiben `de.frnkrm.anker`; beim Anpassen nicht global ersetzen. Die bisherige App bleibt mit ihrer alten Kennung separat installiert.
 - Health-Connect-Plugin deklariert viele Rechte; das App-Manifest entfernt alle außer READ_EXERCISE/READ_STEPS.
 - Werbe-IDs (AD_ID, AdServices) werden im Manifest per `tools:node="remove"` entfernt; SocialLogin ohne Facebook (capacitor.config.ts).

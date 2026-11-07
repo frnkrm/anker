@@ -1,0 +1,739 @@
+{
+  "schemaVersion": 1,
+  "versionName": "1.3.0-rc.4",
+  "versionCode": 11,
+  "applicationId": "de.frnkrm.anker.mobile",
+  "appName": "Anker Neu",
+  "sourceCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+  "sourceFingerprint": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+  "publicCertificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+  "signedApk": {
+    "name": "Anker-Neu-Code11.apk",
+    "sha256": "c5b98debc3852283c382a9f73fddf9c22d70f4da6c55309bfe0be70ffbe5b045",
+    "bytes": 38034934,
+    "signatureVerified": true,
+    "v2": true,
+    "v3": true,
+    "zipalign16kb": true,
+    "privateKeyIncluded": false
+  },
+  "download": {
+    "checkedAt": "2026-11-07T17:05:08.293010+00:00",
+    "httpStatus": 200,
+    "bytes": 38034934,
+    "sha256": "c5b98debc3852283c382a9f73fddf9c22d70f4da6c55309bfe0be70ffbe5b045",
+    "everyByteEqualToVerifiedSignedApk": true,
+    "downloadURL": "https://github.com/frnkrm/anker/raw/refs/heads/download-anker-neu-rc4-20261107/Anker-Neu-Code11.apk",
+    "downloadBranch": "download-anker-neu-rc4-20261107",
+    "downloadCommit": "a95c498182575ac68a5c1e70c436baef02af42a9"
+  },
+  "ci": {
+    "observedAt": "2026-11-07T17:00:52.076513+00:00",
+    "expectedCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+    "expectedBrowserTests": 211,
+    "expectedBranch": "main",
+    "expectedEvent": "push",
+    "runUrl": "https://github.com/frnkrm/anker/actions/runs/42393476035",
+    "jobUrl": "https://github.com/frnkrm/anker/actions/runs/42393476035/job/128465754108",
+    "source": "Anonymous public GitHub HTML; no authenticated raw logs",
+    "candidateRunIds": [
+      "42393476035",
+      "42384529210",
+      "42383311464",
+      "42314785412",
+      "42289520357",
+      "42286857557",
+      "42283981487",
+      "42255441031",
+      "42254106105",
+      "42191095861",
+      "42152225401",
+      "42151067255"
+    ],
+    "expectedCommitPresent": true,
+    "commitLinks": [
+      "2fad314a8a131218df2fa62dfd545c82972a0b2b"
+    ],
+    "branches": [
+      "main"
+    ],
+    "expectedBranchConfirmed": true,
+    "event": "push",
+    "expectedEventConfirmed": true,
+    "jobIds": [
+      "128465754108"
+    ],
+    "runStatus": "Success",
+    "runDurationText": "7m 48s",
+    "steps": [
+      {
+        "name": "Set up job",
+        "number": "1",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:52:35Z",
+        "completed-at": "2026-11-07T16:52:35Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/1",
+        "durationSeconds": 0
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "number": "2",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:52:35Z",
+        "completed-at": "2026-11-07T16:52:36Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/2",
+        "durationSeconds": 1
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "number": "3",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:52:36Z",
+        "completed-at": "2026-11-07T16:52:37Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/3",
+        "durationSeconds": 1
+      },
+      {
+        "name": "Run npm ci",
+        "number": "4",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:52:37Z",
+        "completed-at": "2026-11-07T16:53:25Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/4",
+        "durationSeconds": 48
+      },
+      {
+        "name": "Run npm run lint",
+        "number": "5",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:53:25Z",
+        "completed-at": "2026-11-07T16:53:32Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/5",
+        "durationSeconds": 7
+      },
+      {
+        "name": "Run npm run typecheck",
+        "number": "6",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:53:32Z",
+        "completed-at": "2026-11-07T16:53:44Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/6",
+        "durationSeconds": 12
+      },
+      {
+        "name": "Run npm test",
+        "number": "7",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:53:44Z",
+        "completed-at": "2026-11-07T16:53:53Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/7",
+        "durationSeconds": 9
+      },
+      {
+        "name": "PC-Stopp mit PowerShell prüfen",
+        "number": "8",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:53:53Z",
+        "completed-at": "2026-11-07T16:53:59Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/8",
+        "durationSeconds": 6
+      },
+      {
+        "name": "Android-Updateprüfung ohne echte Schlüssel testen",
+        "number": "9",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:53:59Z",
+        "completed-at": "2026-11-07T16:54:03Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/9",
+        "durationSeconds": 4
+      },
+      {
+        "name": "Run npm run build",
+        "number": "10",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:54:03Z",
+        "completed-at": "2026-11-07T16:54:16Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/10",
+        "durationSeconds": 13
+      },
+      {
+        "name": "Playwright-Browser installieren",
+        "number": "11",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:54:16Z",
+        "completed-at": "2026-11-07T16:54:34Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/11",
+        "durationSeconds": 18
+      },
+      {
+        "name": "Playwright-Browsertests",
+        "number": "12",
+        "conclusion": "success",
+        "started-at": "2026-11-07T16:54:34Z",
+        "completed-at": "2026-11-07T17:00:16Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/12",
+        "durationSeconds": 342
+      },
+      {
+        "name": "Playwright-Fehlerberichte speichern",
+        "number": "13",
+        "conclusion": "skipped",
+        "started-at": "2026-11-07T17:00:16Z",
+        "completed-at": "2026-11-07T17:00:16Z",
+        "log-url": "",
+        "durationSeconds": 0
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "number": "25",
+        "conclusion": "success",
+        "started-at": "2026-11-07T17:00:16Z",
+        "completed-at": "2026-11-07T17:00:18Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/25",
+        "durationSeconds": 2
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "number": "26",
+        "conclusion": "success",
+        "started-at": "2026-11-07T17:00:18Z",
+        "completed-at": "2026-11-07T17:00:18Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/26",
+        "durationSeconds": 0
+      },
+      {
+        "name": "Complete job",
+        "number": "27",
+        "conclusion": "success",
+        "started-at": "2026-11-07T17:00:18Z",
+        "completed-at": "2026-11-07T17:00:18Z",
+        "log-url": "/frnkrm/anker/commit/2fad314a8a131218df2fa62dfd545c82972a0b2b/checks/128465754108/logs/27",
+        "durationSeconds": 0
+      }
+    ],
+    "jobSucceeded": true,
+    "jobFailed": false,
+    "requiredSteps": {
+      "Set up job": "success",
+      "Run actions/checkout@v4": "success",
+      "Run actions/setup-node@v4": "success",
+      "Run npm ci": "success",
+      "Run npm run lint": "success",
+      "Run npm run typecheck": "success",
+      "Run npm test": "success",
+      "PC-Stopp mit PowerShell prüfen": "success",
+      "Android-Updateprüfung ohne echte Schlüssel testen": "success",
+      "Run npm run build": "success",
+      "Playwright-Browser installieren": "success",
+      "Playwright-Browsertests": "success",
+      "Post Run actions/setup-node@v4": "success",
+      "Post Run actions/checkout@v4": "success",
+      "Complete job": "success"
+    },
+    "requiredStepsSucceeded": true,
+    "allStepsSuccessfulOrExpectedSkipped": true,
+    "failedSteps": [],
+    "publicNotice": "Playwright-Browsertests 211 passed (5.7m)",
+    "browserSummaryText": "Playwright-Browsertests 211 passed (5.7m) ",
+    "browserNonPassCounts": {
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "interrupted": 0
+    },
+    "browserSummaryHasNoNonPassCounts": true,
+    "browserTestsFailed": 0,
+    "browserTestsFlaky": 0,
+    "browserTestsSkipped": 0,
+    "browserTestsInterrupted": 0,
+    "browserTestsPassed": 211,
+    "browserDurationText": "5.7m",
+    "expectedBrowserTestsConfirmed": true,
+    "publicAnnotations": [],
+    "annotationSummary": "2 warnings and 2 notices",
+    "annotationErrorCount": 0,
+    "annotationText": "Annotations 2 warnings and 2 notices Complete job Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/ Show more Show less Run npm run lint: src/ui/components/TaskAssistance.tsx#L41 The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function Show more Show less Playwright-Browsertests 211 passed (5.7m) Show more Show less \"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748 \" Show more Show less check check succeeded Nov 7, 2026 in 7m 45s background wait wait-all cancel parallel Loading Re-running jobs... You can’t perform that action at this time.",
+    "jobDurationText": "7m 45s",
+    "jobDurationSecondsFromSteps": 463,
+    "verifiedSuccess": true,
+    "zeroBrowserFailuresVerified": true,
+    "browserEvidenceBasis": "Successful Playwright step, exactly expected passed-count in its public annotation, no non-pass count or error annotation; authenticated raw logs not read.",
+    "pollAttempt": 11
+  },
+  "automatic": {
+    "vitest": {
+      "passed": 864,
+      "files": 88,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalHostedBrowser": {
+      "passed": 211,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0
+    },
+    "localTargetedFinalBackupAndTimeCases": {
+      "passed": 18,
+      "scope": "after explicit checkbox and completed-onboarding baseline corrections"
+    },
+    "updateSigningMocks": {
+      "passed": 36,
+      "realSecrets": false
+    },
+    "pcStop": {
+      "passed": 19,
+      "scope": "CI PowerShell logic; real Windows not run"
+    }
+  },
+  "unsignedNativeBuildProof": {
+    "schemaVersion": 1,
+    "applicationId": "de.frnkrm.anker.mobile",
+    "namespace": "de.frnkrm.anker",
+    "appName": "Anker Neu",
+    "versionName": "1.3.0-rc.4",
+    "versionCode": 11,
+    "sourceCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+    "sourceFingerprint": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+    "unsignedApk": "/workspace/artifacts/anker-mobile-rc4/Anker-Neu-Code11-unsigniert.apk",
+    "unsignedApkBytes": 37974019,
+    "unsignedApkSha256": "1269a21834de14124724ed5bdaaedfdf6400baa0a5312fd24680e8fe61428378",
+    "signing": "unsigned",
+    "expectedPublicCertificateSha256": "b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a",
+    "api": {
+      "min": 26,
+      "target": 36,
+      "compile": 36
+    },
+    "launcherComponent": "de.frnkrm.anker.mobile/de.frnkrm.anker.MainActivity",
+    "identity": {
+      "sourceShortcuts": [
+        "de.frnkrm.anker.mobile://focus",
+        "de.frnkrm.anker.mobile://inbox",
+        "de.frnkrm.anker.mobile://recover"
+      ],
+      "mergedManifests": [
+        {
+          "variant": "debug",
+          "package": "de.frnkrm.anker.mobile",
+          "launcherClass": "de.frnkrm.anker.MainActivity",
+          "launcherComponent": "de.frnkrm.anker.mobile/de.frnkrm.anker.MainActivity",
+          "ownComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.AnkerWidget",
+            "de.frnkrm.anker.BedtimePromptReceiver",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.GeofenceReceiver",
+            "de.frnkrm.anker.MainActivity",
+            "de.frnkrm.anker.ReminderReceiver",
+            "de.frnkrm.anker.SmartWakeService",
+            "de.frnkrm.anker.SmartWakeWindowReceiver"
+          ],
+          "directBootComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.ReminderReceiver"
+          ],
+          "authorities": [
+            "de.frnkrm.anker.mobile.androidx-startup",
+            "de.frnkrm.anker.mobile.fileprovider",
+            "de.frnkrm.anker.mobile.localnotifications.fileprovider",
+            "de.frnkrm.anker.mobile.mlkitinitprovider"
+          ],
+          "deepLinkSchemes": [
+            "de.frnkrm.anker.mobile"
+          ],
+          "allowBackup": false,
+          "debuggable": true,
+          "permissions": {
+            "count": 23,
+            "platformPermissionsUnchanged": 22,
+            "ownSignaturePermissionRenamedFrom": "de.frnkrm.anker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "ownSignaturePermissionRenamedTo": "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "addedPlatformPermissions": [],
+            "removedPlatformPermissions": [],
+            "names": [
+              "android.permission.ACCESS_BACKGROUND_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_NETWORK_STATE",
+              "android.permission.ACCESS_NOTIFICATION_POLICY",
+              "android.permission.FOREGROUND_SERVICE",
+              "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+              "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+              "android.permission.SYSTEM_ALERT_WINDOW",
+              "android.permission.USE_CREDENTIALS",
+              "android.permission.USE_EXACT_ALARM",
+              "android.permission.USE_FULL_SCREEN_INTENT",
+              "android.permission.VIBRATE",
+              "android.permission.WAKE_LOCK",
+              "android.permission.health.READ_EXERCISE",
+              "android.permission.health.READ_STEPS",
+              "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+            ]
+          }
+        },
+        {
+          "variant": "release",
+          "package": "de.frnkrm.anker.mobile",
+          "launcherClass": "de.frnkrm.anker.MainActivity",
+          "launcherComponent": "de.frnkrm.anker.mobile/de.frnkrm.anker.MainActivity",
+          "ownComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.AnkerWidget",
+            "de.frnkrm.anker.BedtimePromptReceiver",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.GeofenceReceiver",
+            "de.frnkrm.anker.MainActivity",
+            "de.frnkrm.anker.ReminderReceiver",
+            "de.frnkrm.anker.SmartWakeService",
+            "de.frnkrm.anker.SmartWakeWindowReceiver"
+          ],
+          "directBootComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.ReminderReceiver"
+          ],
+          "authorities": [
+            "de.frnkrm.anker.mobile.androidx-startup",
+            "de.frnkrm.anker.mobile.fileprovider",
+            "de.frnkrm.anker.mobile.localnotifications.fileprovider",
+            "de.frnkrm.anker.mobile.mlkitinitprovider"
+          ],
+          "deepLinkSchemes": [
+            "de.frnkrm.anker.mobile"
+          ],
+          "allowBackup": false,
+          "debuggable": false,
+          "permissions": {
+            "count": 23,
+            "platformPermissionsUnchanged": 22,
+            "ownSignaturePermissionRenamedFrom": "de.frnkrm.anker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "ownSignaturePermissionRenamedTo": "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "addedPlatformPermissions": [],
+            "removedPlatformPermissions": [],
+            "names": [
+              "android.permission.ACCESS_BACKGROUND_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_NETWORK_STATE",
+              "android.permission.ACCESS_NOTIFICATION_POLICY",
+              "android.permission.FOREGROUND_SERVICE",
+              "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+              "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+              "android.permission.SYSTEM_ALERT_WINDOW",
+              "android.permission.USE_CREDENTIALS",
+              "android.permission.USE_EXACT_ALARM",
+              "android.permission.USE_FULL_SCREEN_INTENT",
+              "android.permission.VIBRATE",
+              "android.permission.WAKE_LOCK",
+              "android.permission.health.READ_EXERCISE",
+              "android.permission.health.READ_STEPS",
+              "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+            ]
+          }
+        }
+      ],
+      "apk": {
+        "manifest": {
+          "package": "de.frnkrm.anker.mobile",
+          "launcherClass": "de.frnkrm.anker.MainActivity",
+          "launcherComponent": "de.frnkrm.anker.mobile/de.frnkrm.anker.MainActivity",
+          "ownComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.AnkerWidget",
+            "de.frnkrm.anker.BedtimePromptReceiver",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.GeofenceReceiver",
+            "de.frnkrm.anker.MainActivity",
+            "de.frnkrm.anker.ReminderReceiver",
+            "de.frnkrm.anker.SmartWakeService",
+            "de.frnkrm.anker.SmartWakeWindowReceiver"
+          ],
+          "directBootComponents": [
+            "de.frnkrm.anker.AlarmReceiver",
+            "de.frnkrm.anker.AlarmService",
+            "de.frnkrm.anker.BootReceiver",
+            "de.frnkrm.anker.ReminderReceiver"
+          ],
+          "authorities": [
+            "de.frnkrm.anker.mobile.androidx-startup",
+            "de.frnkrm.anker.mobile.fileprovider",
+            "de.frnkrm.anker.mobile.localnotifications.fileprovider",
+            "de.frnkrm.anker.mobile.mlkitinitprovider"
+          ],
+          "deepLinkSchemes": [
+            "de.frnkrm.anker.mobile"
+          ],
+          "allowBackup": false,
+          "debuggable": false,
+          "permissions": {
+            "count": 23,
+            "platformPermissionsUnchanged": 22,
+            "ownSignaturePermissionRenamedFrom": "de.frnkrm.anker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "ownSignaturePermissionRenamedTo": "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            "addedPlatformPermissions": [],
+            "removedPlatformPermissions": [],
+            "names": [
+              "android.permission.ACCESS_BACKGROUND_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_NETWORK_STATE",
+              "android.permission.ACCESS_NOTIFICATION_POLICY",
+              "android.permission.FOREGROUND_SERVICE",
+              "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+              "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+              "android.permission.SYSTEM_ALERT_WINDOW",
+              "android.permission.USE_CREDENTIALS",
+              "android.permission.USE_EXACT_ALARM",
+              "android.permission.USE_FULL_SCREEN_INTENT",
+              "android.permission.VIBRATE",
+              "android.permission.WAKE_LOCK",
+              "android.permission.health.READ_EXERCISE",
+              "android.permission.health.READ_STEPS",
+              "de.frnkrm.anker.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+            ]
+          }
+        },
+        "shortcuts": [
+          "de.frnkrm.anker.mobile://focus",
+          "de.frnkrm.anker.mobile://inbox",
+          "de.frnkrm.anker.mobile://recover"
+        ],
+        "declaredOwnClassesDefinedInDex": true,
+        "canonicalLoadedDexFiles": [
+          "classes.dex",
+          "classes2.dex",
+          "classes3.dex"
+        ],
+        "capacitorIdentityMatches": true
+      }
+    },
+    "nativeChecks": {
+      "version": "1.3.0-rc.4",
+      "versionCode": 11,
+      "sourceIdentity": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+      "freshRerun": true,
+      "bothAarChecks": true,
+      "bothKotlinCompiles": true,
+      "junit": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 11
+      },
+      "junitSuites": [
+        {
+          "suite": "com.getcapacitor.myapp.ExampleUnitTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.AlarmModelTest",
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.AudioPlaybackLeaseTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.BedtimePromptModelTest",
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.GeofenceModelTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.PrintModelTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.ReminderModelTest",
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.ReminderRulesTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.SmartWakeModelTest",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.VoiceModelTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "suite": "de.frnkrm.anker.WidgetModelTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "newlyExecutedTasks": 369,
+      "reportedTaskLinesIncludingLifecycleAndNoSource": 430,
+      "graphs": {
+        "debug": {
+          "externalComponents": 115,
+          "aars": 91,
+          "allAarsMatchPreviouslyReviewedAndroidXContent": true,
+          "maxDeclaredMinCompileSdk": 36,
+          "targetComponents": [
+            "androidx.activity:activity:1.13.0",
+            "androidx.appcompat:appcompat:1.8.0",
+            "androidx.core:core-ktx:1.18.0",
+            "androidx.core:core:1.18.0",
+            "androidx.webkit:webkit:1.18.0"
+          ]
+        },
+        "release": {
+          "externalComponents": 115,
+          "aars": 91,
+          "allAarsMatchPreviouslyReviewedAndroidXContent": true,
+          "maxDeclaredMinCompileSdk": 36,
+          "targetComponents": [
+            "androidx.activity:activity:1.13.0",
+            "androidx.appcompat:appcompat:1.8.0",
+            "androidx.core:core-ktx:1.18.0",
+            "androidx.core:core:1.18.0",
+            "androidx.webkit:webkit:1.18.0"
+          ]
+        }
+      },
+      "deviceTestingPerformed": false,
+      "historicalJUnitReused": false
+    },
+    "webAssetsByteEqual": 66,
+    "nativeLibrariesByteEqualToRC3Final": 16,
+    "elf64With16kbLoadSegments": [
+      "lib/arm64-v8a/libbarhopper_v3.so",
+      "lib/arm64-v8a/libimage_processing_util_jni.so",
+      "lib/arm64-v8a/libsqlcipher.so",
+      "lib/arm64-v8a/libsurface_util_jni.so",
+      "lib/x86_64/libbarhopper_v3.so",
+      "lib/x86_64/libimage_processing_util_jni.so",
+      "lib/x86_64/libsqlcipher.so",
+      "lib/x86_64/libsurface_util_jni.so"
+    ],
+    "zipalign16kb": true,
+    "protectedPriorArtifactFilesUnchanged": 105,
+    "protectedPriorEvidenceFilesUnchanged": 210,
+    "privateKeyAccessed": false,
+    "signedByThisBuilder": false,
+    "publishedByThisBuilder": false,
+    "realAndroidDeviceTest": "not run",
+    "oldApplicationIsDistinctPackage": true
+  },
+  "cloudSigningProof": {
+    "schemaVersion": 1,
+    "applicationId": "de.frnkrm.anker.mobile",
+    "appName": "Anker Neu",
+    "versionName": "1.3.0-rc.4",
+    "versionCode": 11,
+    "sourceCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+    "sourceFingerprint": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+    "signedApk": "/workspace/artifacts/anker-mobile-rc4/Anker-Neu-Code11.apk",
+    "signedApkSha256": "c5b98debc3852283c382a9f73fddf9c22d70f4da6c55309bfe0be70ffbe5b045",
+    "signedApkBytes": 38034934,
+    "unsignedApkSha256": "1269a21834de14124724ed5bdaaedfdf6400baa0a5312fd24680e8fe61428378",
+    "certificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+    "signatureVerified": true,
+    "v2": true,
+    "v3": true,
+    "zipalign16kb": true,
+    "unsignedEntriesByteEqual": true,
+    "addedSignatureEntries": [
+      "META-INF/ANKER-MO.RSA",
+      "META-INF/ANKER-MO.SF",
+      "META-INF/MANIFEST.MF"
+    ],
+    "realAndroidInstallation": "not run",
+    "oldAppDataModified": false,
+    "privateKeyInDownload": false,
+    "privateKeyExternalBackup": "not configured",
+    "ci": "https://github.com/frnkrm/anker/actions/runs/42393476035",
+    "signedAt": "2026-11-07T17:01:43.963865+00:00"
+  },
+  "restore": {
+    "explicitOnly": true,
+    "normalMergeUnchanged": true,
+    "preservesOmittedGroups": true,
+    "oldReportsRemainHistorical": true,
+    "beforeOnboardingAvailable": true,
+    "initialEffectsWaitForOnboarding": true,
+    "oldAppDataTouched": false
+  },
+  "keyCustody": {
+    "generatedWithExplicitUserAuthorization": true,
+    "privateOutsideRepository": true,
+    "privateInPublicDownload": false,
+    "durableExternalBackupConfigured": false,
+    "githubSecretsConfiguredByThisTask": false
+  },
+  "realDevice": {
+    "installationOnSamsung": "not run",
+    "dataMigrationOnPhone": "not run",
+    "notificationDeliveryAndAudibility": "not verified by automated tests"
+  },
+  "debugApk": {
+    "trackedInCurrentMain": false,
+    "neededForNewSigning": false,
+    "normalApkDoesNotContainPrivateSigningKey": true
+  }
+}

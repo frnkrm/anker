@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "20ee297dd7474ab500cc0d9f66396b60ad9141f8",
-  "sourceFingerprint": "7582f7e48a17e66a5ffc4d8747049615fb98bacfc9a3fa1716f438bf2aa551c6",
-  "versionName": "1.3.0-rc.3",
-  "versionCode": 10,
-  "ciRunURL": "https://github.com/frnkrm/anker/actions/runs/42384529210",
-  "publicCertificateSha256": "3F:75:45:F5:DD:8E:4F:8A:87:BE:F3:86:96:FB:16:28:4B:02:A2:D7:83:A0:F4:A3:5F:3B:2B:D0:84:D3:EA:AD"
+  "applicationId": "de.frnkrm.anker.mobile",
+  "sourceCommit": "2fad314a8a131218df2fa62dfd545c82972a0b2b",
+  "sourceFingerprint": "46e13c2813340e5579d4351ebd35ec38d9d5de7976fe8fa625aa7c4f0bd04673",
+  "versionName": "1.3.0-rc.4",
+  "versionCode": 11,
+  "ciRunURL": "https://github.com/frnkrm/anker/actions/runs/42393476035",
+  "publicCertificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A"
 }

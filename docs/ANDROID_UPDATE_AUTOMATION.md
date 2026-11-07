@@ -1,105 +1,39 @@
-# Android-Updates manuell in GitHub Actions bauen
+# Künftige Updates von Anker Neu signieren
 
-Stand: 7. November 2026. Vorbereitet ist ein ausschließlich manuell gestarteter APK-Build. Es wurden **keine privaten Schlüssel übertragen, keine Secrets eingerichtet und kein Workflow gestartet**. Echtes Signieren mit dem Nutzerschlüssel, Installation auf dessen Handy und Play-Verteilung sind noch nicht geprüft.
+Stand: 7. November 2026, **Anker Neu 1.3.0-rc.4 / Code 11**, Paket `de.frnkrm.anker.mobile`. Die [fertige signierte APK](INSTALLATION_ANKER_NEU.md) kann direkt am Handy installiert werden. Der private Release-Schlüssel wurde auf ausdrücklichen Nutzerwunsch geschützt in der aktuellen Cloud-Arbeitsumgebung erzeugt. Er liegt weder im Repository noch im öffentlichen APK-Download. Eine dauerhafte externe Sicherung und die GitHub-Signiersecrets wurden noch nicht eingerichtet.
 
-Nach einmaliger bewusster Einrichtung am PC kann GitHub ein signiertes APK bauen, das sich mit GitHub-Anmeldung am Handy herunterladen lässt. Pro Update ist dann kein PC nötig. Android verlangt weiterhin eine Installationsbestätigung. Die App installiert keine Updates selbst; der Workflow veröffentlicht keine Releases, Tags, Webseiten oder Play-Pakete und läuft weder bei Push noch bei Pull Requests automatisch.
+## Welche Signatur erhalten bleiben muss
 
-## Was der Workflow prüft
+Öffentliches SHA-256-Zertifikat: `B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A`. Alias: `anker-mobile-release`. Für spätere Updates dieser neuen App muss der zugehörige private Schlüssel erhalten bleiben. Die alte Debug-Signatur und das alte Paket `de.frnkrm.anker` sind ein historischer, anderer Installationsweg. Ein umbenannter Keystore oder die öffentliche Signatur aus einem APK ersetzen keinen privaten Schlüssel.
 
-`.github/workflows/android-update.yml` läuft nur mit `workflow_dispatch` auf dem Branch `main`. Das Feld `source_commit` kann leer bleiben: Dann liest ein eigener Resolvejob ohne Checkout ausschließlich die öffentliche JSON-Datei `docs/AKTUELLER_UPDATESTAND.json` auf main. Diese Datei benennt den zuletzt freigegebenen Codecommit; sie ist Daten und wird nicht ausgeführt. Schema, vollständige SHA, Quellfingerabdruck, Version, Versionscode, erwartetes öffentliches Zertifikat und CI-Link müssen gültig sein. Fehlt die Datei oder ist ein Feld falsch, bricht der Lauf verständlich ab. Es wird kein anderer Commit als Ersatz gesucht.
+Der bisherige Anker bleibt beim Umzug installiert. Die neue App übernimmt Daten erst aus einer bewusst gewählten Sicherung; Android-Freigaben, Widgets und Anmeldungen sind unabhängig. [Datenübernahme](SICHERUNG_WIEDERHERSTELLEN.md).
 
-Anschließend gilt für automatische und manuelle Auswahl dieselbe Prüfung: vollständige 40-stellige SHA, bereits erfolgreicher **push-CI-Lauf auf main**, Zugehörigkeit zur aktuellen main-Historie und vorhandene Prüfhilfe im gewählten Commit. Bei automatischer Auswahl muss genau der im Manifest verlinkte CI-Lauf diese Bedingungen erfüllen. Ältere Commits vor Einführung des Workflows werden früh abgelehnt. Für eine bewusste andere Auswahl kann weiterhin eine vollständige SHA in `source_commit` eingetragen werden; dann wird kein Manifest als Ersatz verwendet.
+## Vorbereiteter GitHub-Workflow
 
-Ein nachträglicher Dokumentationscommit mit `[skip ci]` hat oft keinen eigenen grünen CI-Lauf. In diesem Fall die SHA des gewünschten früheren grünen Codecommits angeben. Gebaut wird exakt dieser frühere Stand einschließlich seiner Dokumente. Es gibt keine pauschale Markdown-Ausnahme. Insbesondere **`GERAETETEST.md` ist ein Buildinput** des Gerätekatalogs: Soll eine Änderung daran im APK enthalten sein, benötigt der entsprechende Commit einen eigenen erfolgreichen CI-Lauf. Der Workflow setzt nicht still den neuesten main-Stand mit einem älteren CI-Nachweis gleich.
+`.github/workflows/android-update.yml` startet ausschließlich manuell per `workflow_dispatch` auf main. Ein leeres `source_commit` liest `docs/AKTUELLER_UPDATESTAND.json`: genaue volle SHA, Quellfingerabdruck, Version/Code, CI-Link und das neue öffentliche Zertifikat müssen passen. Der exakt benannte Codecommit muss einen erfolgreichen main-/Push-CI-Lauf besitzen und Vorfahr von main sein. Kein Ersatzcommit und keine pauschale Ausnahme für Dokumente werden gewählt; der Gerätekatalog ist ein Buildinput.
 
-Die bestehende CI liefert für den ausgewählten Commit Lint-, TypeScript-, Unit-, PC- und Browsertests. Sie wird nicht vollständig doppelt ausgeführt. Der neue Buildjob prüft zusätzlich seine Hilfsskripte mit künstlichen Daten, baut unter Node 24/JDK 21 die Produktionsassets neu, synchronisiert Capacitor und führt beide AAR-Metadatenprüfungen, beide Kotlin-Kompilierungen, die vollständige Debug-JUnit-Suite und das unsignierte Release neu aus. JUnit-Ergebnisse müssen nach Beginn dieses Builds entstanden sein, ohne Fehler oder übersprungene Fälle; jede vorhandene native `*Test.kt`-/`*Test.java`-Klasse muss im Bericht vorkommen.
+Der Buildjob verwendet Node 24/JDK 21, prüft beide AAR- und Kotlinvarianten, führt die vollständigen nativen JUnit-Klassen frisch aus und baut das unsignierte Release. Paket `de.frnkrm.anker.mobile`, Version, API 26/36/36, Assets, Quellfingerabdruck sowie ZIP-/ELF-16-KB-Ausrichtung werden geprüft. Die Signierung läuft auf einem getrennten Runner ohne Checkout/npm/Gradle oder Programme aus dem Buildartefakt. Digests, genaues grünes CI und Freigabedaten werden vor Nutzung von Secrets erneut verglichen. Das neue Paket und das neue Zertifikat werden strikt geprüft; ein altes Anker-Paket wird vor einem Signierversuch verworfen.
 
-Die Prüfhilfe vergleicht Paketkennung `de.frnkrm.anker`, Versionsname und Versionscode mit den eingecheckten Defaults in `package.json` und `android/app/build.gradle`, API 26/36/36, Quellfingerabdruck und sämtliche Produktionsassets mit dem APK. ZIP-Ausrichtung und 16-KB-ELF-Loadsegmente werden geprüft. Die Appversion wird durch den Workflow nicht verändert. Für ein späteres Update müssen die beabsichtigte Version und der Versionscode vorher im geprüften Quellstand stehen.
-
-Die Freigabedatei wird erst nach erfolgreicher CI als Dokumentationsnachtrag angelegt. Sie darf deshalb selbst in einem `[skip ci]`-Commit stehen: Ihre referenzierte Code-SHA muss trotzdem exakt geprüft sein. Die tatsächliche Buildversion und der Quellfingerabdruck müssen vor der Signierung zusätzlich zum freigegebenen Manifest passen. Der Signierjob vergleicht den gesamten öffentlichen CI-/Freigabenachweis direkt mit der Ausgabe des unabhängigen Resolvejobs. Ein Buildartefakt kann die Freigabe nicht still entfernen oder durch eine eigene Behauptung ersetzen. Das freigegebene APK entspricht damit dem ausdrücklich benannten Stand, nicht automatisch dem ungeprüften aktuellen main-HEAD.
-
-Der Signierjob läuft auf einem **anderen Runner**. Er verwendet keinen Checkout, kein npm, kein Gradle und keine Programme aus dem Buildartefakt. Nur `unsigned.apk` und `build-proof.json` werden übergeben; ihre SHA-256-Prüfsummen sind an die Buildjob-Ausgaben gebunden. Paketmetadaten, CI-/JUnit-Nachweise und ZIP-Ausrichtung werden dort erneut geprüft. Die Signierung nutzt die offiziellen Android-Buildtools und kleinen Inline-Code des Workflows. Build-/Installationsprozesse aus npm können deshalb nicht auf später im selben Runner verfügbare Signiersecrets warten.
-
-| Konfiguration im Repository | Ergebnis |
+| Signierkonfiguration | Ergebnis |
 | --- | --- |
-| Alle vier Signiersecrets fehlen | Klar als `UNSIGNIERT` bezeichnetes APK; noch nicht installierbar. |
-| Nur ein Teil ist vorhanden | Abbruch, kein fertiges Updateartefakt. |
-| Alle vier vorhanden, aber falsches Zertifikat/Passwort oder ungültiger Keystore | Abbruch; bei abweichendem Zertifikat schon vor der Signierung. |
-| Alle vier vorhanden und Signaturprüfung erfolgreich | APK mit `SIGNIERT` im Namen und öffentlichem Prüfbericht. Kompatibilität mit der tatsächlich installierten App bleibt separat zu prüfen. |
+| Alle vier Secrets fehlen | Klar bezeichnete UNSIGNIERT-Datei; kein installierbares Update. |
+| Unvollständig, falscher Schlüssel oder ungültiger Nachweis | Abbruch, kein fertiges signiertes Update. |
+| Vollständig, richtige Identität und erfolgreiche Prüfung | SIGNIERT-APK plus öffentlicher Prüfbericht. Echte Installation bleibt separat. |
 
-Vor und nach der Signierung muss exakt dieses öffentliche SHA-256-Zertifikat passen:
+Die nötigen Secret-Namen sind `ANKER_ANDROID_KEYSTORE_BASE64`, `ANKER_ANDROID_STORE_PASSWORD`, `ANKER_ANDROID_KEY_ALIAS` und `ANKER_ANDROID_KEY_PASSWORD`. Secretwerte und private Dateien gehören nicht in Chat, Git oder Logs. Base64 ist keine Verschlüsselung. Eine bewusste Einrichtung würde eine zusätzlich geschützte private Schlüsselkopie bei GitHub hinterlegen; diese Übertragung wurde noch nicht ausgeführt.
 
-```text
-3F:75:45:F5:DD:8E:4F:8A:87:BE:F3:86:96:FB:16:28:4B:02:A2:D7:83:A0:F4:A3:5F:3B:2B:D0:84:D3:EA:AD
-```
+Für eine eigene vorhandene P12-Sicherung stellt `scripts/setup-android-signing.ps1` einen geprüften Weg mit PowerShell 7.2+, Java/keytool und authentifizierter GitHub CLI bereit. Der Keystorepfad ist ausdrücklich anzugeben, Alias `anker-mobile-release`; es wird kein alter Windows-Debugpfad angenommen und kein Schlüssel erzeugt. Das Skript fragt Passwörter geschützt ab, prüft das öffentliche Zertifikat zuerst und überträgt Werte ausschließlich per stdin. Ein abweichendes Zertifikat bricht vor der Übertragung ab. Der aktuelle neue Schlüssel liegt zunächst in der Cloud; seine sichere zusätzliche Aufbewahrung muss vorher geklärt werden.
 
-## Einmalige Einrichtung am eigenen PC
+## Nach erfolgreicher Einrichtung am Handy
 
-Dieser Schritt bleibt eine bewusste lokale Nutzeraktion. Der private Keystore liegt bisher nur beim Nutzer; die Cloud hat ihn nicht erhalten. Der öffentliche Fingerabdruck oben ist nur eine Identifikation des Zertifikats und enthält keinen privaten Schlüssel. Er kann weder ein APK signieren noch den Keystore ersetzen.
+1. [Android-Update manuell bauen](https://github.com/frnkrm/anker/actions/workflows/android-update.yml) öffnen, **Run workflow**, Branch main, SHA-Feld für den freigegebenen Stand leer lassen.
+2. Nach Erfolg das endgültige Artefakt **Anker-Android-Update-…** herunterladen; die interne UNSIGNIERT-Übergabe ist nicht das Handy-Update.
+3. ZIP am Handy entpacken, `INSTALLATION.txt` lesen und nur die als SIGNIERT ausgewiesene APK öffnen. Android fragt nach Installation und gegebenenfalls Freigabe des Browsers/Dateimanagers.
 
-Voraussetzungen: PowerShell **7.2 oder neuer** (`pwsh`), Java mit `keytool`, aktuelle offizielle GitHub CLI (`gh`), Anmeldung mit `gh auth login` und Berechtigung, Actions-Secrets im richtigen Repository zu setzen. Den überprüften aktuellen Repositorystand lokal verwenden und die lesbare Datei `scripts/setup-android-signing.ps1` vor dem Start ansehen. Das Skript erzeugt keinen neuen Schlüssel.
+Ohne die einmalige Schlüsselaufbewahrung und Secret-Einrichtung erzeugt dieser Workflow weiterhin nur eine unsignierte Datei. Die bereits fertig signierte RC4-APK im Installationsleitfaden benötigt diesen Workflow nicht.
 
-Der folgende Aufruf enthält nur öffentliche Angaben und den lokalen Dateipfad. **Keine Passwörter an den Aufruf anhängen.** Falls der vorhandene Keystore oder Alias anders heißt, nur diese beiden Angaben anpassen:
+## Tatsächliche Nachweise und offene Grenzen
 
-```powershell
-pwsh -NoProfile -File .\scripts\setup-android-signing.ps1 `
-  -Repository frnkrm/anker `
-  -KeystorePath "$env:USERPROFILE\.android\debug.keystore" `
-  -KeyAlias AndroidDebugKey
-```
+36 Offline-/Mocktests prüfen Manifest-/Commit-/CI-Gates, die neue App-Kennung, falsche Zertifikate, fehlende/partielle Secrets, Hashmanipulation und geschützte Secretübergabe. Sie starteten keinen echten signierten Actions-Lauf. Das ausgelieferte RC4-APK wurde dagegen tatsächlich separat in der Cloud signiert und kryptografisch geprüft; [Nachweis](ANKER_NEU_RC4_NACHWEIS.json). Private Schlüssel wurden dabei nicht an GitHub übertragen.
 
-Das Skript fragt die beiden Passwörter mit `Read-Host -AsSecureString` ab und prüft zuerst lokal das öffentliche Zertifikat. Bei abweichendem Fingerabdruck überträgt es nichts. Die GitHub CLI erhält vier Werte ausschließlich über umgeleitetes **stdin**, verschlüsselt die Secretwerte clientseitig für das Repository und überträgt sie über ihre authentifizierte API-Verbindung:
-
-| Secretname | Inhalt |
-| --- | --- |
-| `ANKER_ANDROID_KEYSTORE_BASE64` | Base64 der bestehenden Keystoredatei. Base64 selbst ist keine Verschlüsselung; GitHub-Secretverschlüsselung schützt die Übertragung/Aufbewahrung. |
-| `ANKER_ANDROID_STORE_PASSWORD` | Passwort des bestehenden Keystores. |
-| `ANKER_ANDROID_KEY_ALIAS` | Alias des vorhandenen Schlüssels. |
-| `ANKER_ANDROID_KEY_PASSWORD` | Passwort dieses Schlüssels. |
-
-Keine dieser Angaben gehört in Chat, Zwischenablage, Repository, Shell-Befehlsargumente oder Logs. Das Skript schreibt keine temporäre Datei mit Secretwerten. Werkzeugsfehler werden ohne deren möglicherweise sensible Ausgaben gemeldet. Java erhält das Passwort über eine ausschließlich für den Kindprozess gesetzte Umgebungsvariable. Für die lokale Übergabe sind kurzzeitig Klartextwerte im Prozessspeicher erforderlich; eine vollständige Löschung verwalteter Zeichenketten aus dem Speicher wird nicht versprochen.
-
-**Nach diesem vom Nutzer ausgeführten Schritt existiert zusätzlich eine verschlüsselte Keystorekopie bei GitHub. Der private Schlüssel bleibt dann nicht ausschließlich auf dem PC.** Der signierende Actions-Runner entschlüsselt sie vorübergehend, legt sie in einem privaten temporären Verzeichnis mit Dateimodus 0600 ab und entfernt dieses Verzeichnis anschließend. Nur der Signierschritt erhält die Secrets. Das Original am PC wird nicht verändert; eine gesicherte Offline-Kopie bleibt erforderlich. Repositoryzugriff und die Möglichkeit, vertrauenswürdige Workflows auf main zu ändern, müssen entsprechend geschützt bleiben.
-
-Die vier Secret-Uploads erfolgen nacheinander. Ein Abbruch kann eine unvollständige Konfiguration hinterlassen; dann den sicheren lokalen Einrichtungsschritt vollständig erneut ausführen. Der Workflow lehnt Teilkonfigurationen ab. Keinen Schlüssel zur Fehlerbehebung neu erzeugen und keine Secretwerte zur Prüfung hierher schicken.
-
-## Ein Update ohne PC herunterladen
-
-1. **Actions → Android-Update manuell bauen → Run workflow** öffnen, Branch `main` wählen und **`source_commit` leer lassen**. Dann wird der zuletzt freigegebene Stand gewählt. Ist noch keiner freigegeben, nennt der Lauf das ausdrücklich; er baut keinen beliebigen Ersatzstand. Dieser Start erteilt keine Veröffentlichungsfreigabe.
-2. Optional für eine bewusste andere Auswahl: Im gewünschten grünen Lauf unter **Actions → CI** die vollständige Commit-SHA kopieren und in `source_commit` eintragen. Ein grüner Feature-Branch-Lauf oder verkürzte SHA genügt nicht. Für normale Updates ist dieser Schritt nicht erforderlich.
-3. Nach erfolgreichem Lauf das endgültige Artefakt **`Anker-Android-Update-…`** herunterladen. Das kurzlebige Artefakt `ANKER-INTERN-UNSIGNIERT-…` ist nur die interne Übergabe und kein Handy-Update.
-4. Mit GitHub-Anmeldung und passendem Repositoryzugriff funktioniert der Artefaktdownload auch im mobilen Browser. GitHub liefert eine ZIP: im Dateimanager entpacken, `INSTALLATION.txt` und `build-proof.json` ansehen und ausschließlich die beabsichtigte signierte APK öffnen. Finale Artefakte werden sieben Tage aufbewahrt; bei Bedarf einen neuen manuellen Lauf starten.
-5. Paket, Versionscode und öffentliches Zertifikat mit der installierten App vergleichen. Die vorhandene App installiert lassen. Android fragt nach der Installationsbestätigung und gegebenenfalls der Installationsberechtigung des verwendeten Browsers/Dateimanagers. Diese Berechtigung nur für den bewusst gewählten Installationsweg verwenden.
-
-Der Bericht enthält Quellcommit, CI-Link, Versionscode, Quellfingerabdruck, JUnit-/Assetbelege und APK-Prüfsumme. Er enthält keine Passwörter und keinen privaten Keystore. Eine gültig signierte Datei ist noch kein Beweis für erfolgreiches Aktualisieren auf einem unbekannten Gerät.
-
-## Wenn Android „App nicht installiert“ meldet
-
-Die frühere Systemleisten-Datei war als unsignierte Eingabe plus separat lokal zu erzeugende signierte Ausgabe vorbereitet. Aus der Cloud ist nicht feststellbar, welche Datei damals geöffnet wurde. Außerdem sind der installierte Versionscode, dessen Zertifikat, freier Speicher und die Android-/Herstellervorgaben unbekannt.
-
-Die vorhandene App **nicht deinstallieren und keine Appdaten löschen**, um den Fehler zu umgehen. Zuerst Dateiname/Prüfbericht, tatsächliche Signatur, `de.frnkrm.anker`, installierten und neuen Versionscode sowie den genauen Installationsfehler vergleichen. `INSTALL_FAILED_VERSION_DOWNGRADE` und `INSTALL_FAILED_UPDATE_INCOMPATIBLE` verlangen unterschiedliche Korrekturen. Ein späterer lokaler ADB-Befund kann nötig sein; er wurde hier nicht erhoben. Ein höherer Versionscode repariert kein falsches Zertifikat. Details einschließlich datenschonender Diagnose und Play-Grenzen stehen in [ANDROID_PLAY_ROADMAP.md](ANDROID_PLAY_ROADMAP.md).
-
-## Getestet und noch nicht nachgewiesen
-
-Die neue Offline-Testsuite wird mit `python3 scripts/test-android-update.py` ausgeführt. PowerShell 7.2+ muss für die beiden Secret-Übergabetests im PATH liegen; lokal kann `PWSH_PATH` auf die geprüfte Laufzeit gesetzt werden. Der Actions-Build verlangt vorhandenes `pwsh`, damit diese Tests dort nicht übersprungen werden. Die Tests verwenden ausschließlich künstliche Werte und Mockwerkzeuge: JSON-/Versions-/API-Grenzen, exakter CI-Commit, fehlender CI-/Helpernachweis, neue vollständige JUnit, manipulierte Assets, 16-KB-Ausrichtung, Artefaktdigests, Teilkonfiguration, abweichendes Zertifikat, Secretübergabe ausschließlich über stdin, redigierte Werkzeugfehler und separate Runner werden geprüft.
-
-Zusätzlich werden YAML, alle Inline-Pythonblöcke, Python-AST und der PowerShell-Parser geprüft. **Parser-, AST-, Shell- und Mocktests ersetzen weder eine echte kryptografische Signierung noch einen tatsächlichen Actions-/Geräte-/Storetest.** Der erste reale manuelle Lauf nach Integration und gegebenenfalls der bewussten lokalen Secret-Einrichtung bleibt offen. Ein neues APK erhält keine historischen Geräteprüfungen als vorgeblichen eigenen Nachweis.
-
-Lokaler Befund am 7. November 2026: **34/34 Offline-/Mocktests erfolgreich, keine übersprungen**, unter Python 3 und PowerShell 7.5.4. Die automatische Manifestauswahl ergänzt eigene Fälle für gültige Freigabe bis zur signierten Mockausgabe, fehlende Datei, fehlerhafte Felder, falschen CI-Link sowie Build-/Manifestabweichungen. YAML mit separater Trigger-/Berechtigungsprüfung, Python-/Inline-AST und PowerShell-Parser erfolgreich. Keine Netzwerk-Secretübertragung und kein echtes Signing in diesen Tests.
-
-## Verwendete offizielle Actions
-
-Die Tags wurden am 7. November 2026 direkt mit `git ls-remote` bei den offiziellen GitHub-Repositories aufgelöst. Der Workflow verwendet die vollständigen Commit-SHAs:
-
-| Offizielle Action / geprüfter Tag | Gepinnte SHA |
-| --- | --- |
-| [actions/checkout v6](https://github.com/actions/checkout) | `d23441a48e516b6c34aea4fa41551a30e30af803` |
-| [actions/setup-node v6](https://github.com/actions/setup-node) | `249970729cb0ef3589644e2896645e5dc5ba9c38` |
-| [actions/setup-java v5](https://github.com/actions/setup-java) | `b6effb05e454b25005698d916606bdc6ffcbf961` |
-| [gradle/actions v5](https://github.com/gradle/actions) | `4c125117fe7c5aed11272ec4213f602f012f89f2` |
-| [actions/upload-artifact v6](https://github.com/actions/upload-artifact) | `b7c566a772e6b6bfb58ed0dc250532a479d7789f` |
-| [actions/download-artifact v6](https://github.com/actions/download-artifact) | `018cc2cf5baa6db3ef3c5f8a56943fffe632ef53` |
-
-Die Buildtools sind auf `35.0.0`, die Plattform auf `android-36`, Java auf Major 21 und Node auf Major 24 festgelegt. Der GitHub-Runner und SDK-/Java-Distributionen bleiben externe Buildwerkzeuge; bitidentische Builds über beliebige zukünftige Runner werden nicht zugesagt. GitHub-Dokumentation: [workflow_dispatch](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch), [Artefaktdownload](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/downloading-workflow-artifacts), [gh secret set](https://cli.github.com/manual/gh_secret_set), [verschlüsselte Secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
-
-Für Play gibt es ausschließlich die getrennte [Roadmap](ANDROID_PLAY_ROADMAP.md): Konto-/Kostenentscheidung, aktuelle Google-Regeln, Gesundheits-/Datenschutzangaben, echte Tests und insbesondere der Übergang vom bisherigen Debugzertifikat zu Play App Signing sind offen. APK-Signierung und ein neuer Uploadschlüssel allein versprechen keinen nahtlosen Store-Updatepfad.
+[Historische RC3-Anleitung mit altem Zertifikat](https://github.com/frnkrm/anker/blob/f9b33ea69101d13fce3ef12f8846fed07637aaab/docs/ANDROID_UPDATE_AUTOMATION.md). Keine Tags, Releases, Google-Play-Veröffentlichung, kostenpflichtigen Dienste oder externen Nachrichten wurden durch die Neusignierung ausgelöst. Play benötigt weiterhin eigene Konto-, Signierungs-, Datenschutz- und Testentscheidungen; [Roadmap](ANDROID_PLAY_ROADMAP.md).
