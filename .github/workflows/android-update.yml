@@ -1,0 +1,251 @@
+name: Android-Update manuell bauen
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: 'Exakte 40-stellige SHA des gewünschten main-Codecommits mit erfolgreicher CI'
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: android-update-manual
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      metadata_sha256: ${{ steps.proof.outputs.metadata_sha256 }}
+      unsigned_apk_sha256: ${{ steps.proof.outputs.unsigned_apk_sha256 }}
+    steps:
+      - name: Exakten grünen CI-Commit auf main prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, urllib.error, urllib.request
+          sha = os.environ['ANKER_SOURCE_COMMIT']
+          if not re.fullmatch('[a-f0-9]{40}', sha):
+              raise SystemExit('Bitte die vollständige SHA aus dem erfolgreichen CI-Lauf eintragen.')
+          repo = os.environ['GITHUB_REPOSITORY']
+          def get(path):
+              request = urllib.request.Request('https://api.github.com/repos/' + repo + path, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+          comparison = get('/compare/' + sha + '...main')
+          if comparison['status'] not in ['ahead', 'identical']:
+              raise SystemExit('Der gewählte Commit gehört nicht zur main-Historie.')
+          runs = get('/actions/workflows/ci.yml/runs?head_sha=' + sha + '&event=push&status=success&per_page=100')['workflow_runs']
+          runs = [run for run in runs if run['head_sha'] == sha and run['head_branch'] == 'main' and run['event'] == 'push' and run['status'] == 'completed' and run['conclusion'] == 'success']
+          if not runs:
+              raise SystemExit('Keine erfolgreiche CI für exakt diesen Commit. Im grünen CI-Lauf dessen vollständige SHA kopieren; es gibt keine Docs-Ausnahme.')
+          try:
+              helper = get('/contents/scripts/android-update-proof.py?ref=' + sha)
+          except urllib.error.HTTPError as error:
+              if error.code == 404:
+                  raise SystemExit('Dieser ältere Commit enthält die Update-Prüfhilfe noch nicht. Einen grünen main-Codecommit nach Einführung dieses Workflows wählen.') from None
+              raise
+          if helper.get('type') != 'file':
+              raise SystemExit('Die Update-Prüfhilfe fehlt im gewählten Quellcommit.')
+          run = max(runs, key=lambda value: value['id'])
+          proof = {'headSha': sha, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml', 'runId': run['id'], 'url': run['html_url']}
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'anker-ci-proof.json').write_text(json.dumps(proof, indent=2) + '\n')
+          print('Geprüfte CI: ' + run['html_url'])
+          PY
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, 07.11.2026 geprüft
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+        with:
+          cache-read-only: true
+      - name: Android-SDK-Werkzeuge vorbereiten
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Update-Prüfhilfen und Secret-Übergabe mit ausschließlich künstlichen Werten testen
+        run: |
+          command -v pwsh
+          python3 scripts/test-android-update.py
+      - run: npm ci
+      - run: npm run build
+      - run: npx --no-install cap sync android
+      - name: Beide AAR- und Kotlinvarianten, frische JUnit und unsigniertes Release
+        run: |
+          test ! -e android/keystore.properties
+          date +%s > "$RUNNER_TEMP/anker-native-start.txt"
+          node scripts/gradle.mjs --no-daemon --max-workers=2 --console=plain --rerun-tasks \
+            :app:checkDebugAarMetadata :app:checkReleaseAarMetadata \
+            :app:compileDebugKotlin :app:compileReleaseKotlin \
+            :app:testDebugUnitTest :app:assembleRelease | tee "$RUNNER_TEMP/anker-native-build.log"
+      - name: Paket, Quellen, Assets und neue Testbelege prüfen
+        id: proof
+        env:
+          ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          python3 scripts/android-update-proof.py \
+            --apk android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            --output "$RUNNER_TEMP/anker-unsigned" \
+            --ci-proof "$RUNNER_TEMP/anker-ci-proof.json" \
+            --native-start "$RUNNER_TEMP/anker-native-start.txt" \
+            --native-log "$RUNNER_TEMP/anker-native-build.log"
+      - name: Ausschließlich unsignierte Daten an den getrennten Signierjob übergeben
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ANKER-INTERN-UNSIGNIERT-${{ github.run_id }}
+          path: ${{ runner.temp }}/anker-unsigned/
+          if-no-files-found: error
+          retention-days: 1
+
+  sign:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+    steps:
+      # Eigener Runner: kein Checkout, npm, Gradle oder Code aus dem Buildartefakt.
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Offizielle Android-Signierwerkzeuge vorbereiten
+        run: sdkmanager 'build-tools;35.0.0'
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: ANKER-INTERN-UNSIGNIERT-${{ github.run_id }}
+          path: ${{ runner.temp }}/anker-input/
+      - name: Daten prüfen und gegebenenfalls mit bestehendem Schlüssel signieren
+        env:
+          ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          ANKER_METADATA_SHA256: ${{ needs.build.outputs.metadata_sha256 }}
+          ANKER_UNSIGNED_SHA256: ${{ needs.build.outputs.unsigned_apk_sha256 }}
+          ANKER_ANDROID_KEYSTORE_BASE64: ${{ secrets.ANKER_ANDROID_KEYSTORE_BASE64 }}
+          ANKER_ANDROID_STORE_PASSWORD: ${{ secrets.ANKER_ANDROID_STORE_PASSWORD }}
+          ANKER_ANDROID_KEY_ALIAS: ${{ secrets.ANKER_ANDROID_KEY_ALIAS }}
+          ANKER_ANDROID_KEY_PASSWORD: ${{ secrets.ANKER_ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, re, shutil, subprocess, tempfile
+          expected_cert = '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad'
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          source = root / 'anker-input'
+          output = root / 'anker-update'
+          if {p.name for p in source.iterdir()} != {'unsigned.apk', 'build-proof.json'}:
+              raise SystemExit('Unerwarteter Artefaktinhalt; es wird kein Code aus dem Artefakt ausgeführt.')
+          if any(p.is_symlink() or not p.is_file() for p in source.iterdir()):
+              raise SystemExit('Die Übergabe darf ausschließlich reguläre Datendateien enthalten.')
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          metadata = source / 'build-proof.json'
+          apk = source / 'unsigned.apk'
+          if digest(metadata) != os.environ['ANKER_METADATA_SHA256'] or digest(apk) != os.environ['ANKER_UNSIGNED_SHA256']:
+              raise SystemExit('Die Übergabeprüfsummen stimmen nicht.')
+          proof = json.loads(metadata.read_text())
+          if proof.get('schemaVersion') != 1 or proof.get('applicationId') != 'de.frnkrm.anker' or proof.get('sourceCommit') != os.environ['ANKER_SOURCE_COMMIT'] or proof.get('unsignedApkSha256') != digest(apk):
+              raise SystemExit('Die Paketnachweise passen nicht zum gewählten Quellcommit.')
+          ci = proof.get('ci', {})
+          tests = proof.get('nativeTests', {})
+          totals = tests.get('totals', {})
+          if ci.get('headSha') != proof['sourceCommit'] or ci.get('headBranch') != 'main' or ci.get('conclusion') != 'success' or ci.get('event') != 'push' or ci.get('workflow') != 'ci.yml':
+              raise SystemExit('Der exakte grüne CI-Nachweis fehlt.')
+          if not re.fullmatch('[a-f0-9]{64}', proof.get('sourceIdentity', '')) or tests.get('freshRerun') is not True or not isinstance(totals.get('tests'), int) or totals['tests'] <= 0 or any(totals.get(key) != 0 for key in ['failures', 'errors', 'skipped']):
+              raise SystemExit('Quellfingerabdruck oder neue erfolgreiche JUnit fehlen.')
+          version, code = proof.get('versionName', ''), proof.get('versionCode', '')
+          if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?', version) or not re.fullmatch(r'[1-9]\d*', code) or not 0 < int(code) <= 2147483647:
+              raise SystemExit('Ungültige Paketversion.')
+          sdk = pathlib.Path(os.environ['ANDROID_HOME']) / 'build-tools/35.0.0'
+          public_env = {key: value for key, value in os.environ.items() if not key.startswith('ANKER_ANDROID_')}
+          def tool(arguments, environment=None, check=True):
+              result = subprocess.run([str(value) for value in arguments], env=environment or public_env, capture_output=True)
+              if check and result.returncode:
+                  raise SystemExit('Ein Signier- oder Prüfwerkzeug ist fehlgeschlagen; Secretwerte werden nicht ausgegeben.')
+              return result
+          def inspect(path):
+              text = tool([sdk / 'aapt', 'dump', 'badging', path]).stdout.decode()
+              first = text.splitlines()[0]
+              for name, value in [('name', 'de.frnkrm.anker'), ('versionCode', code), ('versionName', version), ('compileSdkVersion', '36')]:
+                  match = re.search(r'\b' + name + r"='([^']*)'", first)
+                  if not match or match[1] != value:
+                      raise SystemExit('Tatsächliche APK-Metadaten stimmen nicht mit den Nachweisen überein.')
+              if "sdkVersion:'26'" not in text or "targetSdkVersion:'36'" not in text:
+                  raise SystemExit('Unerwartete Android-API-Anforderungen.')
+              tool([sdk / 'zipalign', '-c', '-P', '16', '4', path])
+          inspect(apk)
+          if tool([sdk / 'apksigner', 'verify', apk], check=False).returncode == 0:
+              raise SystemExit('Der Buildjob darf nur eine unsignierte APK übergeben.')
+          names = ['ANKER_ANDROID_KEYSTORE_BASE64', 'ANKER_ANDROID_STORE_PASSWORD', 'ANKER_ANDROID_KEY_ALIAS', 'ANKER_ANDROID_KEY_PASSWORD']
+          configured = [bool(os.environ.get(name)) for name in names]
+          if any(configured) and not all(configured):
+              raise SystemExit('Die Signiersecrets sind unvollständig. Kein signiertes Update erzeugt.')
+          output.mkdir()
+          filename = 'Anker-' + version + '-Build' + code + ('-SIGNIERT.apk' if all(configured) else '-UNSIGNIERT.apk')
+          destination = output / filename
+          key_bytes = bytearray()
+          key_directory = None
+          try:
+              if all(configured):
+                  encoded = os.environ['ANKER_ANDROID_KEYSTORE_BASE64']
+                  if len(encoded) > 49152:
+                      raise SystemExit('Das Keystoresecret überschreitet das unterstützte Größenlimit.')
+                  try:
+                      key_bytes = bytearray(base64.b64decode(encoded, validate=True))
+                  except Exception:
+                      raise SystemExit('Das Keystoresecret ist kein gültiges Base64.') from None
+                  if not key_bytes:
+                      raise SystemExit('Das Keystoresecret ist leer.')
+                  key_directory = pathlib.Path(tempfile.mkdtemp(prefix='anker-signing-', dir=root))
+                  key_file = key_directory / 'existing.keystore'
+                  with open(key_file, 'xb') as stream:
+                      os.chmod(key_file, 0o600)
+                      stream.write(key_bytes)
+                  private_env = dict(public_env, ANKER_SIGN_STORE_PASSWORD=os.environ['ANKER_ANDROID_STORE_PASSWORD'], ANKER_SIGN_KEY_PASSWORD=os.environ['ANKER_ANDROID_KEY_PASSWORD'])
+                  certificate = tool(['keytool', '-exportcert', '-keystore', key_file, '-alias', os.environ['ANKER_ANDROID_KEY_ALIAS'], '-storepass:env', 'ANKER_SIGN_STORE_PASSWORD'], private_env).stdout
+                  if hashlib.sha256(certificate).hexdigest() != expected_cert:
+                      raise SystemExit('Der bestehende Schlüssel passt nicht zum bestätigten öffentlichen Zertifikat. Signierung abgebrochen.')
+                  tool([sdk / 'apksigner', 'sign', '--ks', key_file, '--ks-key-alias', os.environ['ANKER_ANDROID_KEY_ALIAS'], '--ks-pass', 'env:ANKER_SIGN_STORE_PASSWORD', '--key-pass', 'env:ANKER_SIGN_KEY_PASSWORD', '--v1-signing-enabled', 'true', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'true', '--v4-signing-enabled', 'false', '--out', destination, apk], private_env)
+                  verified = tool([sdk / 'apksigner', 'verify', '--verbose', '--print-certs', destination]).stdout.decode()
+                  signers = re.findall(r'^Signer #\d+ certificate SHA-256 digest: ([a-fA-F0-9:]+)\s*$', verified, re.M)
+                  if len(signers) != 1 or signers[0].replace(':', '').lower() != expected_cert:
+                      raise SystemExit('Die fertige APK trägt nicht genau das erwartete Zertifikat.')
+                  inspect(destination)
+                  proof['signing'] = 'signed'
+                  proof['certificateSha256'] = expected_cert
+              else:
+                  shutil.copyfile(apk, destination)
+                  proof['signing'] = 'unsigned'
+              proof['apkSha256'] = digest(destination)
+              proof['apkFile'] = filename
+              proof['installableApk'] = all(configured)
+              proof['signingRunnerHasCheckout'] = False
+              proof['published'] = False
+              (output / 'build-proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2) + '\n')
+              message = 'Signierte APK: ZIP am Handy entpacken und die APK über die vorhandene App installieren. Android verlangt deine Installationsbestätigung. Frühere Geräteberichte sind keine Prüfung dieses Builds.' if all(configured) else 'UNSIGNIERT: Diese APK ist noch nicht installierbar. Erst die vier Signiersecrets einmalig sicher vom PC einrichten oder die bisherige lokale Signierhilfe verwenden. Anker installiert lassen.'
+              (output / 'INSTALLATION.txt').write_text(message + '\n')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+                  summary.write('### Android-Update\n\n' + message + '\n\nCode: `' + code + '`, Version: `' + version + '`, Quellcommit: `' + proof['sourceCommit'] + '`.\n\nAPK-SHA256: `' + proof['apkSha256'] + '`.\n')
+          finally:
+              for index in range(len(key_bytes)):
+                  key_bytes[index] = 0
+              if key_directory is not None:
+                  shutil.rmtree(key_directory)
+          PY
+      - name: APK und öffentliche Prüfnachweise für den mobilen Download bereitstellen
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: Anker-Android-Update-${{ github.run_number }}
+          path: ${{ runner.temp }}/anker-update/
+          if-no-files-found: error
+          retention-days: 7
