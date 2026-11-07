@@ -13,6 +13,7 @@ import { validPlanningLocal } from '../travel'
 import { validWeatherLocal } from '../weatherProfile'
 import { validWorkSession } from '../worktime'
 import { validHomeOfficeContacts } from '../homeOfficeContact'
+import { TIME_CATALOG_RECORD_ID } from '../timeCatalog'
 
 export const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const text = (value: unknown): value is string => typeof value === 'string'
@@ -163,5 +164,11 @@ export function validatedRecords(value: unknown): Rec[] {
         break
     }
   }
-  return structuredClone(records) as Rec[]
+  return (structuredClone(records) as Rec[]).filter((record) => record.collection !== 'meta' || record.id !== TIME_CATALOG_RECORD_ID).map((record) => {
+    if (record.collection !== 'meta' || record.id !== 'local' || !object(record.data)) return record
+    // Ein importierter Cache ist weder Wahrheit noch ein versteckter Weg für ausgeschlossene Gruppen.
+    const data = { ...record.data }
+    delete data.timeCatalog
+    return { ...record, data }
+  })
 }

@@ -2,6 +2,7 @@ import type { DateStr } from './time'
 import type { FocusSession, StuckSession } from './focus'
 import type { AssistancePreferences } from './assistance'
 import type { ExtraLocal, ExtraSettings } from './extras'
+import type { TimeCatalogSnapshot } from './timeCatalog'
 
 export type StepTag = 'movement' | 'tidy' | 'face' | 'teeth' | 'prep' | 'inbox' | 'gymbag' | 'breakfast'
 
@@ -604,6 +605,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Abgeleitete lokale Leseübersicht. Niemals Planquelle, Sync- oder Backupinhalt. */
+  timeCatalog?: TimeCatalogSnapshot
   /** Bewusste Kontaktwahl je Homeoffice-Tag, kein Versand- oder Arbeitserfassungsnachweis. */
   homeOfficeContact?: Record<DateStr, { status: 'done' | 'not-needed' | 'later'; at: number; remindAt?: number }>
   /** Optionale Vorschlagsdienste: Zweckfreigaben und technische Abrufgrenzen ausschließlich lokal. */

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
+import { coalesceAsync } from '../core/coalesced'
 import { validCalendarStatus, type CalendarStatus } from '../core/extras'
 import { previewImport, validatedRecords } from '../core/export/backup'
 import type { AlarmPlanningStatus } from '../core/alarm'
@@ -16,6 +17,7 @@ import { buildDayPlan } from '../core/planner'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
 import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc, type DateStr } from '../core/time'
+import { buildTimeCatalog, currentTimeCatalog, TIME_CATALOG_RECORD_ID, timeCatalogPlanDates, validTimeCatalog, type TimeCatalogRuntime, type TimeCatalogSnapshot } from '../core/timeCatalog'
 import type {
   CalendarEvent,
   Commitment,
@@ -112,6 +114,8 @@ interface AppState {
   setEvents(e: CalendarEvent[]): Promise<void>
   applyCalendarSnapshot(events: CalendarEvent[], status: CalendarStatus, accept: () => boolean): Promise<boolean>
   saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
+  /** Rein lesende Zeitübersicht: erst beim bewussten Öffnen initialisieren. */
+  refreshTimeCatalog(runtime?: TimeCatalogRuntime): Promise<void>
   saveDeviceTests(fn: (progress: DeviceTestProgress) => DeviceTestProgress): Promise<void>
   setResume(r: ResumePoint | undefined): Promise<void>
   saveTomorrowStep(title: string, nextStep: string, resumeAt: number, remind?: boolean): Promise<string | undefined>
@@ -174,6 +178,30 @@ function atomic<T>(operation: () => Promise<T>): Promise<T> {
 }
 const listeners = new Set<() => void>()
 let changeTimer: ReturnType<typeof setTimeout> | undefined
+let timeCatalogUsed = false
+let timeCatalogRuntime: TimeCatalogRuntime | undefined
+
+/** LocalData enthält im UI den angefügten Cache; die echte private Quellgruppe bleibt cachefrei. */
+function sourceLocal(local: LocalData): LocalData {
+  const data = { ...local }
+  delete data.timeCatalog
+  return data
+}
+
+// Dieselbe lokale Schreibsperre wie alle Quelländerungen, kein weiterer Planer oder Writer.
+const refreshTimeCatalog = coalesceAsync(() => atomic(async () => {
+  const st = useApp.getState()
+  if (!st.ready) return
+  const now = Date.now()
+  if (currentTimeCatalog(st, now, timeCatalogRuntime ?? {})) return
+  const plans = timeCatalogPlanDates(st, now).map((date) => planFor(date, st))
+  const snapshot = buildTimeCatalog({ ...st, nowMs: now, plans, runtime: timeCatalogRuntime })
+  if (!validTimeCatalog(snapshot)) throw new Error('Die Zeitübersicht konnte nicht vollständig berechnet werden. Deine Originaldaten bleiben erhalten.')
+  const local = { ...st.local, timeCatalog: snapshot }
+  await repo.put('meta', TIME_CATALOG_RECORD_ID, snapshot)
+  useApp.setState({ local })
+  // Absichtlich kein changed(): ein Cachewrite plant keine Wecker/Erinnerungen neu.
+}))
 
 /** Registriert einen Callback für Plan-Änderungen (Erinnerungen, Widget, PC-Stopp, Sync). */
 export function onPlanChange(fn: () => void): () => void {
@@ -183,7 +211,12 @@ export function onPlanChange(fn: () => void): () => void {
 
 function changed() {
   clearTimeout(changeTimer)
-  changeTimer = setTimeout(() => listeners.forEach((fn) => fn()), 400)
+  changeTimer = setTimeout(() => {
+    listeners.forEach((fn) => fn())
+    if (timeCatalogUsed || useApp.getState().local.timeCatalog) void refreshTimeCatalog().catch(() => {
+      console.warn('Die lokale Zeitübersicht konnte nicht aktualisiert werden.')
+    })
+  }, 400)
 }
 
 interface TaskData { local: LocalData; inbox: InboxItem[] }
@@ -231,7 +264,7 @@ function changeWork(edit: (local: LocalData) => LocalData, undoable = false): Pr
     assertWorkChanges(before.local.workSessions, local.workSessions, Date.now())
     if (JSON.stringify(local) === JSON.stringify(before.local)) return
     const workUndo = undoable ? { before: structuredClone(before.local.workSessions), revision: JSON.stringify(local.workSessions) } : undefined
-    await repo.put('meta', 'local', local)
+    await repo.put('meta', 'local', sourceLocal(local))
     useApp.setState({ local, workUndo })
     changed()
   })
@@ -260,7 +293,7 @@ function editTaskData(edit: (data: TaskData) => void): Promise<void> {
       previous.delete(item.id)
     }
     for (const id of previous.keys()) records.push({ collection: 'inbox', id, data: null, deleted: true })
-    if (JSON.stringify(data.local) !== JSON.stringify(before.local)) records.push({ collection: 'meta', id: 'local', data: data.local })
+    if (JSON.stringify(data.local) !== JSON.stringify(before.local)) records.push({ collection: 'meta', id: 'local', data: sourceLocal(data.local) })
     if (!records.length) return
     await repo.putMany(records)
     useApp.setState({ local: data.local, inbox: data.inbox })
@@ -327,7 +360,7 @@ function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: Lo
     pauseChangedRoutine(local, log)
     const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: log } })
     const award = applyAwards(plan, log, st.game, st.settings)
-    const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: local }]
+    const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: sourceLocal(local) }]
     if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
     await repo.putMany(records)
     useApp.setState({ days: { ...st.days, [date]: award.log }, local, game: award.game })
@@ -412,6 +445,9 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const savedLocal = await source.get<LocalData>('meta', 'local')
   const savedRecovery = recoveryFields(savedLocal)
   const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...savedRecovery, deviceTests: deviceTestsFromLocal(savedLocal) }
+  // Alte/ungültige Cachekopien bleiben ohne Einfluss auf die echten Quelldaten.
+  const savedCatalog = await source.get<TimeCatalogSnapshot>('meta', TIME_CATALOG_RECORD_ID)
+  local.timeCatalog = validTimeCatalog(savedCatalog) ? savedCatalog : undefined
   if (!validPlanUndo(local.planUndo)) local.planUndo = undefined
   local.work = local.work.map(normaliseTask)
   local.resume = usableResume(local.resume, inbox, local.work)
@@ -430,7 +466,7 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const persistMigration = commitMigration && snapshot === undefined
   if ((weather.changed || recoveryCleanup) && persistMigration) await repo.putMany([
     ...(weather.changed ? [{ collection: 'settings' as const, id: 'main', data: weather.settings }] : []),
-    { collection: 'meta', id: 'local', data: weather.local },
+    { collection: 'meta', id: 'local', data: sourceLocal(weather.local) },
   ])
   return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !persistMigration, needsRecoveryCleanup: recoveryCleanup && !persistMigration }
 }
@@ -470,6 +506,12 @@ export const useApp = create<AppState>()((set, get) => ({
   events: [],
   local: emptyLocal(),
   celebrations: [],
+
+  refreshTimeCatalog(runtime) {
+    timeCatalogUsed = true
+    if (runtime !== undefined) timeCatalogRuntime = structuredClone(runtime)
+    return refreshTimeCatalog()
+  },
 
   async load() {
     if (pendingAtomicAction) await waitForAtomicActions()
@@ -573,7 +615,7 @@ export const useApp = create<AppState>()((set, get) => ({
           local.focusHistory = local.focusHistory?.filter((focus) => focus.target.kind === 'routine' || !sameRef(focus.target, ref))
         }
         local.reminderReceipts = withReminderReceipt(local.reminderReceipts, action.id)
-        await repo.putMany([{ collection: 'meta', id: 'local', data: local }])
+        await repo.putMany([{ collection: 'meta', id: 'local', data: sourceLocal(local) }])
         set({ local }); changed()
         return 'applied'
       }
@@ -926,7 +968,7 @@ export const useApp = create<AppState>()((set, get) => ({
       if (!accept()) return false
       if (!validCalendarStatus(status)) throw new Error('Der Kalenderstand ist ungültig.')
       const local = { ...get().local, extras: { ...get().local.extras, calendar: status } }
-      await repo.putMany([{ collection: 'meta', id: 'events', data: events }, { collection: 'meta', id: 'local', data: local }])
+      await repo.putMany([{ collection: 'meta', id: 'events', data: events }, { collection: 'meta', id: 'local', data: sourceLocal(local) }])
       set({ events, local }); changed()
       return true
     })
@@ -944,7 +986,7 @@ export const useApp = create<AppState>()((set, get) => ({
       const before = get().local
       const local = fn(structuredClone(before))
       stampTaskChanges(before.work, local.work)
-      await repo.put('meta', 'local', local)
+      await repo.put('meta', 'local', sourceLocal(local))
       set({ local })
     })
     changed()
@@ -954,7 +996,7 @@ export const useApp = create<AppState>()((set, get) => ({
     await atomic(async () => {
       const local = { ...get().local, deviceTests: fn(structuredClone(deviceTestsFromLocal(get().local))) }
       if (!validDeviceTests(local.deviceTests)) throw new Error('Die Testangaben sind ungültig.')
-      await repo.put('meta', 'local', local)
+      await repo.put('meta', 'local', sourceLocal(local))
       set({ local })
     })
   },
@@ -1050,7 +1092,7 @@ export const useApp = create<AppState>()((set, get) => ({
       pauseChangedRoutine(local, restored)
       const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: restored } })
       const award = applyAwards(plan, restored, st.game, st.settings)
-      const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: local }]
+      const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: sourceLocal(local) }]
       if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
       await repo.putMany(records)
       set({ days: { ...st.days, [date]: award.log }, local, game: award.game })
@@ -1152,7 +1194,7 @@ export const useApp = create<AppState>()((set, get) => ({
         throw new Error('Seit dieser Korrektur wurden Arbeitszeiten geändert. Deine neueren Zeiten bleiben erhalten; öffne den betreffenden Eintrag zum Korrigieren.')
       }
       const local = { ...state.local, workSessions: structuredClone(undo.before) }
-      await repo.put('meta', 'local', local)
+      await repo.put('meta', 'local', sourceLocal(local))
       set({ local, workUndo: undefined })
       changed()
     })
@@ -1184,7 +1226,7 @@ export const useApp = create<AppState>()((set, get) => ({
         const updated_at = Math.max(Date.now(), previous?.updated_at ?? 0) + 1
         if (!Number.isFinite(new Date(updated_at).getTime())) throw new Error('Der Datenzeitpunkt dieser Sicherung lässt sich nicht sicher übernehmen. Es wurde nichts importiert.')
         canonical = validatedRecords([...canonical.filter((record) => record.collection !== 'meta' || record.id !== 'local'),
-          { collection: 'meta', id: 'local', data: projection.data.local, updated_at, deleted: false }])
+          { collection: 'meta', id: 'local', data: sourceLocal(projection.data.local), updated_at, deleted: false }])
       }
       if (!accepted()) return 0
       const count = await repo.merge(canonical, { dirty })
