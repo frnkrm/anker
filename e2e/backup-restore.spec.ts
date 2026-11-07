@@ -65,7 +65,30 @@ test('Normaler Import überspringt alte Werte; die zusätzliche Wiederherstellun
   const incoming = [record('settings',settings())]
   await choose(page,incoming)
   await expect(page.getByRole('button',{name:'Jetzt importieren',exact:true})).toBeDisabled()
-  await checkbox.check()
+  // Eine echte offene IDB-Transaktion hält die neue Vorschau zurück, ohne Produktfunktionen zu mocken.
+  await page.evaluate(() => new Promise<void>((resolve,reject) => {
+    const state = window as unknown as { holdBackupModePreview:boolean }
+    state.holdBackupModePreview = true
+    const open = indexedDB.open('anker')
+    open.onerror = () => reject(open.error)
+    open.onsuccess = () => {
+      const db = open.result
+      const transaction = db.transaction('records','readwrite')
+      transaction.oncomplete = () => db.close()
+      const records = transaction.objectStore('records')
+      const keep = () => { const read = records.get(['settings','main']); read.onsuccess = () => { if (state.holdBackupModePreview) keep() } }
+      keep();resolve()
+    }
+  }))
+  try {
+    await checkbox.check()
+    await expect(checkbox).toBeChecked()
+    await expect(page.getByRole('button',{name:'Sicherung jetzt wiederherstellen',exact:true})).toBeDisabled()
+    await expect(page.getByRole('button',{name:'Sicherung exportieren',exact:true})).toBeDisabled()
+    await expect(page.getByText(/Einträge aus der Sicherung wiederhergestellt/)).toHaveCount(0)
+  } finally {
+    await page.evaluate(() => { (window as unknown as { holdBackupModePreview:boolean }).holdBackupModePreview = false })
+  }
   await expect(page.getByText(/1 Einträge gelesen · 1 zur Wiederherstellung/)).toBeVisible()
   await page.getByRole('button',{name:'Abbrechen',exact:true}).click()
   expect(await storedRecord<Settings>(page,'settings','main')).toEqual(before)
