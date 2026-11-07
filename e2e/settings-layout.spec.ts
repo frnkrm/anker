@@ -43,11 +43,11 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
             const box = node.getBoundingClientRect()
             return { x: box.x, width: box.width, height: box.height }
           })
-          return fields
+          return { fields, routine: !!group.closest('.settings-routine-list'), width: group.getBoundingClientRect().width }
         })
         const values = [...root.querySelectorAll<HTMLInputElement>('.setting-value')].filter(visible).map((node) => {
           const box = node.getBoundingClientRect()
-          return { x: box.x, width: box.width, height: box.height }
+          return { x: box.x, width: box.width, height: box.height, routine: !!node.closest('.settings-routine-list') }
         })
         // Einzeilige Freitexte dürfen beim Bearbeiten horizontal scrollen. Beschriftungen
         // und die vollständigen kurzen Zeit-/Zahlenwerte müssen ohne Abschneiden passen.
@@ -77,19 +77,22 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
       })
       expect(geometry.pageWidth, route).toBeLessThanOrEqual(geometry.viewport + 1)
       expect(geometry.clipped, route).toEqual([])
-      for (const fields of geometry.groups) {
+      for (const { fields, routine, width: controlWidth } of geometry.groups) {
         expect(fields, route).toHaveLength(3)
         const [minus, value, plus] = fields
         expect(minus!.width, route).toBeGreaterThanOrEqual(44)
         expect(plus!.width, route).toBeGreaterThanOrEqual(44)
         expect(minus!.height, route).toBeGreaterThanOrEqual(44)
         expect(plus!.height, route).toBeGreaterThanOrEqual(44)
-        expect(value!.width, route).toBeCloseTo(160, 0)
-        expect(value!.x - minus!.x, route).toBeCloseTo(48, 0)
-        expect(plus!.x - value!.x, route).toBeCloseTo(164, 0)
+        // Nur Routinekarten verwenden die kompakte Variante. Die übrigen
+        // Einstellungsfelder behalten ihre feste, gut lesbare Bedienungsspalte.
+        expect(controlWidth, route).toBeCloseTo(routine ? 196 : 256, 0)
+        expect(value!.width, route).toBeCloseTo(routine ? 60 : 160, 0)
+        expect(value!.x - minus!.x, route).toBeCloseTo(routine ? 46 : 48, 0)
+        expect(plus!.x - value!.x, route).toBeCloseTo(routine ? 106 : 164, 0)
       }
       for (const value of geometry.values) {
-        expect(value.width, route).toBeCloseTo(160, 0)
+        expect(value.width, route).toBeCloseTo(value.routine ? 60 : 160, 0)
         expect(value.height, route).toBeGreaterThanOrEqual(44)
       }
       if (geometry.values.length > 1) expect(Math.max(...geometry.values.map((value) => value.x)) - Math.min(...geometry.values.map((value) => value.x)), route).toBeLessThanOrEqual(1)

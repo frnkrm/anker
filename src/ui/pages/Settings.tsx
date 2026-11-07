@@ -359,23 +359,24 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
   return (
     <Page className="settings-page" title={r === 'morning' ? 'Morgenroutine' : 'Abendroutine'} back="/einstellungen">
       <p className="px-1 text-muted">
-        {fmtDuration(sumMinutes(steps))} · Am Griff ⋮⋮ halten und ziehen oder mit ▲/▼ sortieren. Die Minimal-Version zählt genauso.
+        {fmtDuration(sumMinutes(steps))} · Am Griff ⋮⋮ unten an der Karte ziehen oder mit ▲/▼ sortieren. Die Minimal-Version zählt genauso.
       </p>
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
       <div className="settings-routine-list"><SortableList
         items={steps}
         onMove={move}
+        controlsPosition="bottom"
+        renderActions={(x) => (
+          <button type="button" className="min-h-11 px-2 text-sm text-muted" onClick={() => edit((current) => current.filter((y) => y.id !== x.id))}>
+            Entfernen
+          </button>
+        )}
         render={(x) => (
-          <div className="space-y-2 py-1">
+          <div className="routine-fields">
             <TextInput aria-label="Schritt" value={x.title} onChange={(e) => upd(x.id, { title: e.target.value })} />
             <SettingRow label="Dauer">
               <Stepper label="Dauer" value={x.minutes} step={1} min={1} max={120} onChange={(v) => upd(x.id, { minutes: v })} />
             </SettingRow>
-            <div className="flex justify-end">
-              <button type="button" className="min-h-10 px-2 text-sm text-muted" onClick={() => edit((current) => current.filter((y) => y.id !== x.id))}>
-                Entfernen
-              </button>
-            </div>
             <TextInput aria-label="Minimal-Version" placeholder="Minimal-Version, z. B. 1 Liegestütz" value={x.minimal?.title ?? ''} onChange={(e) => {
               const title = e.target.value
               edit((current) => current.map((step) => step.id === x.id ? { ...step, minimal: title ? { title, minutes: step.minimal?.minutes ?? 1 } : undefined } : step))

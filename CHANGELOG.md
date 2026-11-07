@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 1.3.0-rc.6 – Kompakte Routinekarten (2026-11-07)
+
+- Dauer, direkte Zahleneingabe und Einheit stehen in einer Zeile. Andere Einstellungsbereiche behalten ihre bisherigen Feldgrößen.
+- Griff, Sortierpfeile und Entfernen sind unter allen Eingaben gebündelt. Die Minimal-Version bleibt sichtbar; normale Karten sind220Pixel hoch.
+- Feste Touchflächen und geprüfte Textgrenzen verhindern Überlagerungen auch bei großer Schrift. Bestehende Sortier-/Speicherlogik und Nutzerdaten bleiben erhalten.
+- G95 begleitet den gezielten Handyversuch; Gesamtprüfung und neuer Android-Gerätebericht werden getrennt dokumentiert. [Details](docs/UI_ROUTINEN_RC6.md).
+
 ## 1.3.0-rc.5 – Antworten auf Alltags-Erinnerungen (2026-11-07)
 
 875 Logik-/215 Browser-/122 frische native JUnit-Fälle und CI26 grün. Signiertes Code12-Update mit derselben Release-Signatur wie Code11 und vollständig geprüftem [Handydownload](docs/INSTALLATION_ANKER_NEU.md). Neue Samsung-Prüfung offen.

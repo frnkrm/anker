@@ -30,7 +30,12 @@ function position(drag: Drag, clientY: number): Drag {
  * Einfache Drag-&-Drop-Liste ohne Zusatzbibliothek: am Griff ziehen (Maus oder Finger).
  * Zusätzlich Hoch/Runter-Knöpfe für Tastatur und Screenreader.
  */
-export function SortableList<T extends { id: string }>({ items, onMove, onChange, render }: { items: T[]; render: (item: T, index: number) => ReactNode } & Sorting<T>) {
+export function SortableList<T extends { id: string }>({ items, onMove, onChange, render, controlsPosition = 'side', renderActions }: {
+  items: T[]
+  render: (item: T, index: number) => ReactNode
+  controlsPosition?: 'side' | 'bottom'
+  renderActions?: (item: T, index: number) => ReactNode
+} & Sorting<T>) {
   const listRef = useRef<HTMLOListElement>(null)
   const dragRef = useRef<Drag | null>(null)
   const handleRef = useRef<HTMLButtonElement | null>(null)
@@ -86,13 +91,8 @@ export function SortableList<T extends { id: string }>({ items, onMove, onChange
       <ol ref={listRef} className="space-y-2">
       {items.map((item, i) => {
         const dragging = drag?.id === item.id
-        return (
-          <li
-            key={item.id}
-            style={dragging ? { transform: `translateY(${drag.dy}px)`, zIndex: 10, position: 'relative' } : undefined}
-            className={`flex items-stretch gap-2 rounded-2xl bg-surface p-2 ${dragging ? 'shadow-xl ring-2 ring-accent' : ''} ${drag?.targetId === item.id && !dragging ? 'ring-2 ring-accent/40' : ''}`}
-          >
-            <div className="flex flex-col items-center justify-center gap-1">
+        const controls = (
+            <div className={controlsPosition === 'bottom' ? 'sortable-footer flex items-center gap-1' : 'flex flex-col items-center justify-center gap-1'}>
               <button
                 type="button"
                 aria-label={`Eintrag ${i + 1} zum Verschieben ziehen`}
@@ -135,7 +135,7 @@ export function SortableList<T extends { id: string }>({ items, onMove, onChange
               >
                 ⋮⋮
               </button>
-              <div className="flex flex-col">
+              <div className={`sortable-move-buttons ${controlsPosition === 'bottom' ? 'flex shrink-0' : 'flex flex-col'}`}>
                 <button type="button" aria-label={`Eintrag ${i + 1} nach oben`} className="h-11 w-11 text-muted disabled:opacity-30" disabled={i === 0} aria-disabled={busy || i === 0} onClick={() => { if (items[i - 1]) void move(item.id, items[i - 1]!.id) }}>
                   ▲
                 </button>
@@ -143,8 +143,17 @@ export function SortableList<T extends { id: string }>({ items, onMove, onChange
                   ▼
                 </button>
               </div>
+              {renderActions && <div className="sortable-actions ml-auto min-w-0">{renderActions(item, i)}</div>}
             </div>
-            <div className="min-w-0 flex-1">{render(item, i)}</div>
+        )
+        const content = <div className="min-w-0 flex-1">{render(item, i)}</div>
+        return (
+          <li
+            key={item.id}
+            style={dragging ? { transform: `translateY(${drag.dy}px)`, zIndex: 10, position: 'relative' } : undefined}
+            className={`flex items-stretch gap-2 rounded-2xl bg-surface p-2 ${controlsPosition === 'bottom' ? 'flex-col' : ''} ${dragging ? 'shadow-xl ring-2 ring-accent' : ''} ${drag?.targetId === item.id && !dragging ? 'ring-2 ring-accent/40' : ''}`}
+          >
+            {controlsPosition === 'bottom' ? <>{content}{controls}</> : <>{controls}{content}</>}
           </li>
         )
       })}

@@ -139,14 +139,17 @@ test('Abgebrochene Touchgeste ordnet nichts um; der nächste Griff funktioniert'
   await assertSaved(page, routine, [steps[1]!, steps[0]!, ...steps.slice(2)], seeded)
 })
 
-test('Schnelle Textänderungen vor dem Touchsortieren bleiben mit allen Schrittwerten gespeichert', async ({ page }) => {
+test('Schnelle Text- und Daueränderungen vor dem Touchsortieren bleiben mit allen Schrittwerten gespeichert', async ({ page }) => {
   const routine = routines[0]!
   const { steps, seeded } = await setup(page, routine)
   await page.getByRole('textbox', { name: 'Schritt', exact: true }).nth(0).fill('Wasser mit neuem Titel')
   await page.getByRole('textbox', { name: 'Minimal-Version', exact: true }).nth(0).fill('Ein kleiner Schluck')
+  const duration = page.getByRole('spinbutton', { name: 'Dauer', exact: true }).nth(0)
+  await duration.fill('17')
+  await duration.press('Tab')
   // No DB barrier between editing and sorting: queued saves must keep the latest fields.
   await drag(page, await center(handle(page, 0)), await target(page, 1, 'abwärts'))
-  const edited = { ...steps[0]!, title: 'Wasser mit neuem Titel', minimal: { ...steps[0]!.minimal!, title: 'Ein kleiner Schluck' } }
+  const edited = { ...steps[0]!, title: 'Wasser mit neuem Titel', minutes: 17, minimal: { ...steps[0]!.minimal!, title: 'Ein kleiner Schluck' } }
   await assertSaved(page, routine, [steps[1]!, edited, ...steps.slice(2)], seeded)
 })
 

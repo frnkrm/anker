@@ -118,12 +118,21 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .settings-page .ui-card { padding: 14px; }
 .settings-page :where(input, select, textarea, button, fieldset) { min-width: 0; max-width: 100%; }
 .settings-page button { overflow-wrap: anywhere; }
-/* Der Sortiergriff behält seine eigene Bedienung; im schmalen Editor steht er über den Feldern. */
-@container settings (max-width: 440px) {
-  .settings-routine-list ol > li { flex-direction: column; }
-  .settings-routine-list ol > li > div:first-child { flex-direction: row; justify-content: space-between; }
-  .settings-routine-list ol > li > div:first-child > div { flex-direction: row; }
-}
+/* Kompakte Routinekarten: feste Touchflächen, Dauer neben dem Label, alle Aktionen unten. */
+.settings-routine-list ol > li { padding: 8px; gap: 8px; }
+.routine-fields { display: grid; gap: 8px; }
+.routine-fields > input { min-height: 44px; padding: 6px 10px; line-height: 1.5; }
+.settings-routine-list .setting-row { grid-template-columns: minmax(0, 1fr) 196px; gap: 8px; }
+.settings-routine-list .setting-row-control { width: 196px; }
+.settings-routine-list .setting-control { width: 196px; grid-template-columns: 44px 60px minmax(0, 1fr) 44px; align-items: center; gap: 2px; }
+.settings-routine-list .setting-control > button:first-of-type { grid-column: 1; grid-row: 1; }
+.settings-routine-list .setting-value { grid-column: 2; grid-row: 1; width: 60px; }
+.settings-routine-list .setting-control > button:last-of-type { grid-column: 4; grid-row: 1; }
+.settings-routine-list .setting-unit { grid-column: 3; grid-row: 1; white-space: nowrap; overflow-wrap: normal; }
+.settings-routine-list .sortable-footer { gap: 4px; min-width: 0; }
+.settings-routine-list .sortable-footer > button { width: 44px; min-width: 44px; height: 48px; font-size: 20px; line-height: 1; white-space: nowrap; }
+.settings-routine-list .sortable-move-buttons > button { width: 44px; min-width: 44px; height: 44px; }
+.settings-routine-list .sortable-actions > button { min-height: 44px; padding: 4px 8px; }
 @container settings (min-width: 440px) {
   .setting-row { grid-template-columns: minmax(0, 1fr) 256px; gap: 16px; }
 }
