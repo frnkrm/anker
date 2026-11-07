@@ -3,6 +3,9 @@ package de.frnkrm.anker
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -11,6 +14,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import com.getcapacitor.JSObject
 import java.lang.ref.WeakReference
 import java.util.Locale
@@ -35,6 +39,9 @@ class LocalVoiceController(private val context: Context) {
     private var speechGeneration = 0
     private var pendingSpeech: String? = null
     private var pendingSpeechResult: ((JSObject) -> Unit)? = null
+    private var speechFocus: AudioFocusRequest? = null
+    private val speechAudioLease = AudioPlaybackLease()
+    private var speakingUtterance: String? = null
     private var destroyed = false
     init { current = WeakReference(this) }
 
@@ -91,10 +98,21 @@ class LocalVoiceController(private val context: Context) {
 
     fun stopSpeaking() {
         speechGeneration++
+        speechAudioLease.cancel()
+        speakingUtterance = null
         pendingSpeech = null
         pendingSpeechResult?.invoke(result("cancelled")); pendingSpeechResult = null
         try { tts?.stop() } catch (_: Exception) { }
+        speechFocus?.let { request ->
+            try { context.getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(request) } catch (_: Exception) { }
+        }
+        speechFocus = null
     }
+
+    private fun speechFinished(id: String?) { handler.post {
+        if (id != null && id == speakingUtterance) stopSpeaking()
+    } }
+
     private fun speakPending() {
         val text = pendingSpeech ?: return
         val callback = pendingSpeechResult ?: return
@@ -103,9 +121,28 @@ class LocalVoiceController(private val context: Context) {
         val engine = tts ?: run { callback(result("unavailable")); return }
         val voice = engine.voices?.filter { !it.isNetworkConnectionRequired && it.locale.language == Locale.GERMAN.language }?.sortedBy { it.name }?.firstOrNull()
         if (voice == null) { callback(result("unavailable")); return }
-        engine.voice = voice
-        val value = engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "anker-local-$speechGeneration")
-        callback(result(if (value == TextToSpeech.SUCCESS) "spoken" else "unavailable"))
+        try {
+            // Ein freiwilliger Hinweis ist gewöhnliche Sprache, kein Alarm oder Hintergrunddienst.
+            val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+            if (engine.setAudioAttributes(attributes) != TextToSpeech.SUCCESS) { callback(result("unavailable")); return }
+            engine.voice = voice
+            val generation = speechGeneration
+            val focusId = speechAudioLease.begin()
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                .setAudioAttributes(attributes).setWillPauseWhenDucked(true)
+                .setOnAudioFocusChangeListener({ change ->
+                    if (change < 0 && speechAudioLease.lose(focusId, false)) stopSpeaking()
+                }, handler).build()
+            speechFocus = request
+            val granted = context.getSystemService(AudioManager::class.java)?.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            if (!speechAudioLease.requested(focusId, granted)) { stopSpeaking(); callback(result("unavailable")); return }
+            val id = "anker-local-$generation"
+            speakingUtterance = id
+            val value = engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
+            if (value != TextToSpeech.SUCCESS) stopSpeaking()
+            callback(result(if (value == TextToSpeech.SUCCESS) "spoken" else "unavailable"))
+        } catch (_: Exception) { stopSpeaking(); callback(result("unavailable")) }
     }
     fun speak(text: String, callback: (JSObject) -> Unit) {
         stopSpeaking()
@@ -126,6 +163,13 @@ class LocalVoiceController(private val context: Context) {
                 if (destroyed) return@post
                 ttsChecked = true
                 ttsReady = status == TextToSpeech.SUCCESS
+                if (ttsReady) tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) { }
+                    override fun onDone(utteranceId: String?) { speechFinished(utteranceId) }
+                    @Suppress("OVERRIDE_DEPRECATION")
+                    override fun onError(utteranceId: String?) { speechFinished(utteranceId) }
+                    override fun onStop(utteranceId: String?, interrupted: Boolean) { speechFinished(utteranceId) }
+                })
                 if (ttsReady) speakPending() else { pendingSpeechResult?.invoke(result("unavailable")); pendingSpeechResult = null; pendingSpeech = null }
             } }
         } catch (_: Exception) { pendingSpeechResult?.invoke(result("unavailable")); pendingSpeechResult = null; pendingSpeech = null }

@@ -8,15 +8,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -47,9 +42,10 @@ class AnkerNativePlugin : Plugin() {
     private val speechLease = VoiceRequestLease()
     @Volatile private var voiceForeground = true
     private val voice by lazy { LocalVoiceController(context) }
+    private val alarmTonePreview by lazy { AlarmTonePreview(context) }
     override fun handleOnResume() { super.handleOnResume(); voiceForeground = true }
-    override fun handleOnPause() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); super.handleOnPause(); activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking() } }
-    override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy() }; super.handleOnDestroy() }
+    override fun handleOnPause() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); super.handleOnPause(); activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking(); alarmTonePreview.stop() } }
+    override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy(); alarmTonePreview.stop() }; super.handleOnDestroy() }
 
     @PluginMethod fun getVoiceCapabilities(call: PluginCall) { activity.runOnUiThread { call.resolve(voice.capabilities()) } }
     @PluginMethod fun startDictation(call: PluginCall) {
@@ -282,24 +278,8 @@ class AnkerNativePlugin : Plugin() {
     /** Kurzer Probeton über den Wecker-Kanal. Ändert keine Lautstärke. */
     @PluginMethod
     fun playTestTone(call: PluginCall) {
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        try {
-            val p = MediaPlayer().apply {
-                setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
-                setDataSource(context, uri)
-                prepare()
-                start()
-            }
-            Handler(Looper.getMainLooper()).postDelayed({
-                try {
-                    p.stop()
-                } catch (_: Exception) {
-                }
-                p.release()
-            }, 3000)
-            ok(call, "ok" to true)
-        } catch (_: Exception) {
-            ok(call, "ok" to false)
+        activity.runOnUiThread {
+            ok(call, "ok" to (voiceForeground && alarmTonePreview.play()))
         }
     }
 

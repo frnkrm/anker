@@ -176,6 +176,7 @@ class SmartWakeService : Service(), SensorEventListener {
         if (now < windowAt || now >= targetAt) return
         try {
             // Eigene Sprachausgabe und Diktat dürfen die Messung nicht stören oder selbst auslösen.
+            AlarmTonePreview.stopForPriorityAudio()
             LocalVoiceController.silenceForAlarm()
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) throw SecurityException("Mikrofonfreigabe fehlt")
             val sm = getSystemService(SensorManager::class.java)

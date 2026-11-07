@@ -95,7 +95,9 @@ class AlarmService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var screenLock: PowerManager.WakeLock? = null
     private var focus: AudioFocusRequest? = null
+    private val audioLease = AudioPlaybackLease()
     private var activeKind: AlarmKind? = null
+    private var activeStartedAt = 0L
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -111,6 +113,7 @@ class AlarmService : Service() {
         // startForeground immer zuerst: Android beendet die App sonst nach startForegroundService
         if (!startInForeground(kind ?: AlarmKind.MAIN)) {
             AnkerPrefs.setAlarmError(this, "foreground_denied")
+            AnkerPrefs.setAudioOk(this, false)
             postFallback(this)
             stopSelf()
             return START_NOT_STICKY
@@ -124,8 +127,9 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
         // Doppelte Starts erzeugen keine zweite Klingel-Instanz
-        if (activeKind != kind) {
+        if (activeKind != kind || activeStartedAt != s.ringStartedAt) {
             activeKind = kind
+            activeStartedAt = s.ringStartedAt
             stopSound()
             startRinging(kind, kind.timeoutMs - (now - s.ringStartedAt))
             wakeScreen()
@@ -232,13 +236,8 @@ class AlarmService : Service() {
         wakeLock = getSystemService(PowerManager::class.java)
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "anker:alarm")
             ?.apply { acquire(remainingMs.coerceAtLeast(1000) + 5000) }
-        val am = getSystemService(AudioManager::class.java)
-        focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(alarmAttributes()).build()
-            .also { am?.requestAudioFocus(it) }
-
         val gentle = kind == AlarmKind.PRE_WAKE || kind == AlarmKind.WAKE_CHECK
-        val audioOk = playFirstAvailable(if (gentle) 0.6f else 1f)
-        AnkerPrefs.setAudioOk(this, audioOk)
+        requestAlarmAudio(kind, activeStartedAt, if (gentle) 0.6f else 1f)
 
         vibrator = if (Build.VERSION.SDK_INT >= 31) {
             getSystemService(VibratorManager::class.java)?.defaultVibrator
@@ -250,13 +249,51 @@ class AlarmService : Service() {
         vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0), AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build())
     }
 
+    private fun requestAlarmAudio(kind: AlarmKind, startedAt: Long, volume: Float) {
+        val id = audioLease.begin()
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            .setAudioAttributes(alarmAttributes())
+            .setWillPauseWhenDucked(true)
+            .setOnAudioFocusChangeListener({ change ->
+                when (change) {
+                    AudioManager.AUDIOFOCUS_GAIN -> if (audioLease.gain(id)) {
+                        val state = AlarmController.state(this)
+                        if (activeKind == kind && state.ringing == kind && state.ringStartedAt == startedAt && !AlarmMachine.ringExpired(state, System.currentTimeMillis())) {
+                            AnkerPrefs.setAudioOk(this, playFirstAvailable(volume))
+                        } else {
+                            audioLease.cancel()
+                        }
+                    }
+                    AudioManager.AUDIOFOCUS_LOSS,
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> if (audioLease.lose(id, change != AudioManager.AUDIOFOCUS_LOSS)) {
+                        stopPlayback()
+                        AnkerPrefs.setAudioOk(this, false)
+                    }
+                }
+            }, handler)
+            .build()
+        focus = request
+        val granted = try {
+            getSystemService(AudioManager::class.java)?.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } catch (_: Exception) { false }
+        // Weder abgelehnter noch verzögerter Fokus bestätigt eine laufende Tonausgabe.
+        AnkerPrefs.setAudioOk(this, audioLease.requested(id, granted) && playFirstAvailable(volume))
+        if (!granted) {
+            try { getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(request) } catch (_: Exception) { }
+            focus = null
+        }
+    }
+
     /** Wecker-Ton, sonst Benachrichtigungs- oder Klingelton, zuletzt ein erzeugter Ton. */
     private fun playFirstAvailable(volume: Float): Boolean {
         val types = intArrayOf(RingtoneManager.TYPE_ALARM, RingtoneManager.TYPE_NOTIFICATION, RingtoneManager.TYPE_RINGTONE)
         for (t in types) {
             val uri = RingtoneManager.getDefaultUri(t) ?: continue
+            var candidate: MediaPlayer? = null
             try {
-                player = MediaPlayer().apply {
+                candidate = MediaPlayer()
+                candidate.apply {
                     setAudioAttributes(alarmAttributes())
                     setDataSource(this@AlarmService, uri)
                     isLooping = true
@@ -264,21 +301,23 @@ class AlarmService : Service() {
                     prepare()
                     start()
                 }
+                player = candidate
                 return true
             } catch (_: Exception) {
-                player?.release()
-                player = null
+                candidate?.release()
             }
         }
         return try {
-            tone = ToneGenerator(AudioManager.STREAM_ALARM, (volume * 100).toInt()).also { it.startTone(ToneGenerator.TONE_CDMA_HIGH_L) }
-            true
+            val fallback = ToneGenerator(AudioManager.STREAM_ALARM, (volume * 100).toInt())
+            tone = fallback
+            fallback.startTone(ToneGenerator.TONE_CDMA_HIGH_L)
         } catch (_: Exception) {
             false
         }
     }
 
-    private fun stopSound() {
+    /** Fokusverlust stoppt nur den Ton; Alarmzustand, Vibration und Sicherheitslimit bleiben aktiv. */
+    private fun stopPlayback() {
         player?.run {
             try {
                 stop()
@@ -289,6 +328,11 @@ class AlarmService : Service() {
         player = null
         tone?.release()
         tone = null
+    }
+
+    private fun stopSound() {
+        audioLease.cancel()
+        stopPlayback()
         vibrator?.cancel()
         focus?.let { getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(it) }
         focus = null

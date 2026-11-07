@@ -121,6 +121,7 @@ object AlarmController {
     }
 
     private fun startRinging(ctx: Context) {
+        AlarmTonePreview.stopForPriorityAudio()
         LocalVoiceController.silenceForAlarm()
         ReminderScheduler.onAlarmStarted(ctx)
         try {
@@ -128,6 +129,7 @@ object AlarmController {
         } catch (e: Exception) {
             // Sollte mit exaktem Alarm erlaubt sein. Falls nicht: sichtbarer Ersatz statt Stille.
             AnkerPrefs.setAlarmError(ctx, "ring_start_failed")
+            AnkerPrefs.setAudioOk(ctx, false)
             AlarmService.postFallback(ctx)
         }
     }
