@@ -182,6 +182,15 @@ describe('Abgeleitete Zeitübersicht', () => {
     expect(bedtime.at).toBeGreaterThan(zonedToUtc(addDays(far, 1), 30))
   })
 
+  it('führt einen beendeten Schlafhinweis mit alter Fälligkeit als Quelle ohne Termin', () => {
+    for (const dueAt of [now - 86400_000, now + 20 * 60_000]) {
+      const result = build(state(), now, { bedtimePrompt: { observedAt: now, state: { phase: 'idle', sessionId: 'stopped', dueAt } } })
+      const entry = result.entries.find((item) => item.functionId === 'sleep.native-prompt')!
+      expect(entry).toMatchObject({ status: 'inactive', evidence: 'native-snapshot', source: { refId: 'stopped', route: '/' } })
+      expect(entry.at).toBeUndefined()
+    }
+  })
+
   it('projiziert Pausen ohne erfundene Endzeit und zeigt Aufräumen nur aus einem tatsächlichen lokalen Start', () => {
     const st = state()
     st.local.focus = { id: 'focus', target: { kind: 'work', id: 'w', partId: 'p' }, timer: pauseCountdown(createCountdown(600, now - 60_000), now) }
