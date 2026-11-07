@@ -35,7 +35,19 @@
     },
     "typescript": "passed",
     "productionBuild": "passed",
-    "powershellUpdateBlock": "parsed with PowerShell7.5.4; not run on Windows"
+    "powershellUpdateBlock": "parsed with PowerShell7.5.4; not run on Windows",
+    "legacyTaskDetailsAdditional": {
+      "passed": 3,
+      "scope": "separate ad-hoc browser run against same final dist, not counted in CI156",
+      "chromium": "155.0.8059.79",
+      "tests": [
+        "Legacy-Teilschritte: Tastatursortierung bleibt samt echtem Teilabschluss nach Reload erhalten",
+        "Legacy-Teilschritte: echte IDB-Schreibbarriere sperrt gemeinsame Bearbeitung bis zur Persistenz",
+        "Legacy-Teilschritte: fehlgeschlagener echter IDB-Put zeigt Fehler ohne falsche Erfolgsansage und bleibt erneut sortierbar"
+      ],
+      "realIndexedDBWriteBarrier": true,
+      "injectedIDBPutQuotaExceededError": true
+    }
   },
   "android": {
     "releaseBuild": "passed offline; 484 tasks, 44 executed, 440 up-to-date",
@@ -66,10 +78,30 @@
     "files": 10,
     "downloadBranch": "download-anker-routinen-rc2-20261107",
     "downloadURL": "https://github.com/frnkrm/anker/raw/refs/heads/download-anker-routinen-rc2-20261107/Anker-Routinen-Update.zip",
-    "publicDownloadVerified": false
+    "publicDownloadVerified": true,
+    "httpStatus": 200,
+    "downloadCommit": "a582e46192d08f8bac14f7e72ef8bb56d80051c9"
   },
   "ci": {
-    "status": "pending"
+    "status": "success",
+    "commit": "41b9521c9e63c0266b7aed4f531b3bcb87649543",
+    "run": "https://github.com/frnkrm/anker/actions/runs/42314785412",
+    "job": "https://github.com/frnkrm/anker/actions/runs/42314785412/job/128224631853",
+    "browserPassed": 156,
+    "browserDuration": "4.3m",
+    "jobDuration": "6m 15s",
+    "requiredSteps": {
+      "Run npm ci": "success",
+      "Run npm run lint": "success",
+      "Run npm run typecheck": "success",
+      "Run npm test": "success",
+      "PC-Stopp mit PowerShell prüfen": "success",
+      "Run npm run build": "success",
+      "Playwright-Browser installieren": "success",
+      "Playwright-Browsertests": "success"
+    },
+    "verifiedSuccess": true,
+    "evidenceSource": "Anonymous public GitHub HTML; no authenticated raw logs"
   },
   "realDevice": {
     "android": "open; G95 routine sorting and G93 configuration prerequisites",
