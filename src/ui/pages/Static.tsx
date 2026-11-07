@@ -167,11 +167,18 @@ export function Backup() {
       <Card className="space-y-3">
         <label className="flex min-h-11 items-start gap-3">
           <input type="checkbox" checked={restore} disabled={busy} className="mt-1 h-5 w-5 shrink-0" onChange={(event) => {
+            if (pending.current) return
+            const previous = restore
             const next = event.target.checked
+            setRestore(next)
             void run(async () => {
-              const preview = candidate && previewImport(candidate.records, await repository().all(), next ? 'restore' : 'merge')
-              if (candidate && preview) setCandidate({ records: candidate.records, preview })
-              setRestore(next)
+              try {
+                const preview = candidate && previewImport(candidate.records, await repository().all(), next ? 'restore' : 'merge')
+                if (candidate && preview) setCandidate({ records: candidate.records, preview })
+              } catch (reason) {
+                setRestore(previous)
+                throw reason
+              }
             })
           }} />
           <span className="min-w-0 break-words">Werte aus dieser Sicherung wiederherstellen</span>
