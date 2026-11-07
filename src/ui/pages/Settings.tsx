@@ -225,7 +225,7 @@ function Sleep({ s, save }: { s: S; save: Save }) {
           <Stepper label="Bildschirm aus" value={s.sleep.screenOffMin} max={120} onChange={(v) => setSleep({ screenOffMin: v })} />
         </SettingRow>
         <p className="text-sm text-muted">Vorschlag: PC-Stopp so viele Minuten vor dem Bett. {manual.pcStop ? 'Dein von Hand gesetzter PC-Stopp bleibt dabei erhalten.' : 'Dein automatisch berechneter PC-Stopp passt sich an.'} Anker schaltet damit weder den Handybildschirm noch den PC automatisch aus.</p>
-        <p className="text-sm text-muted">Geplante Ruhe vor dem Bett: {s.support.windDown.enabled ? `zum Beispiel deine gewählte Tätigkeit „${s.support.windDown.activity}“.` : 'zum Beispiel ein ruhiges Hörbuch oder Lesen.'}</p>
+        <p className="text-sm text-muted">Die Pause soll dir Abstand vom Scrollen und Zeit zum Runterkommen geben. Geplante Ruhe vor dem Bett: {s.support.windDown.enabled ? `zum Beispiel deine gewählte Tätigkeit „${s.support.windDown.activity}“.` : 'zum Beispiel ein ruhiges Hörbuch oder Lesen.'}</p>
         {s.support.windDown.enabled && <p className="text-sm text-muted">Dein Abendübergang um {fmtTime(s.support.windDown.at)} ersetzt die PC-Stopp- und Bett-Erinnerungen durch einen Hinweis. Deine geplanten Zeiten bleiben bestehen; der Sperrbildschirm zeigt nur einen allgemeinen Text.</p>}
         <Row label="Sanften Abendübergang einstellen" sub="Eigene ruhige Tätigkeit und Hinweiszeit" to="/einstellungen/abenduebergang" />
       </Card>

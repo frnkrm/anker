@@ -1,6 +1,8 @@
 /// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 import { expect, test, type Page } from '@playwright/test'
 import { defaultSettings } from '../src/core/defaults'
+import type { ReminderDeliveryDiagnostics } from '../src/platform/native'
 
 interface BridgeProbe {
   launchReads: number
@@ -8,14 +10,24 @@ interface BridgeProbe {
   listeners: Record<string, number>
   emit: (plugin: string, event: string, value: { url: string } | Record<string, never>) => void
   setRinging: (ringing: boolean) => void
+  audioOk: boolean
+  toneBlocked: boolean
+  toneCalls: number
+  reminderChannelOpens: string[]
 }
 
 /** Browser simulation of Capacitor entry events, not an Android execution test. */
-async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = false) {
+async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = false, audio: { audioOk?: boolean; toneBlocked?: boolean; reminderDelivery?: ReminderDeliveryDiagnostics } = {}, layoutFontScale?: number) {
   const settings = { ...defaultSettings('2026-11-05'), onboarded: true }
+  if (layoutFontScale !== undefined) {
+    settings.appearance.fontScale = layoutFontScale
+    settings.alarm.wakeCheckEnabled = true
+    settings.alarm.medicationEnabled = true
+    settings.alarm.medicationReminderAt = 7 * 60
+  }
   settings.alarm.preWakeEnabled = measurementEnabled
   settings.alarm.smartWake.enabled = measurementEnabled
-  await page.addInitScript(({ launchUrl, settings }) => {
+  await page.addInitScript(({ launchUrl, settings, audio }) => {
     const callbacks = new Map<string, { plugin: string; event: string; callback: (value: unknown) => void }>()
     let nextId = 0
     const alarm = { ringing: false, kind: null as string | null, snoozed: 0, scheduledAt: new Date('2026-11-06T06:30:00+01:00').getTime(), preWakeAt: new Date('2026-11-06T06:00:00+01:00').getTime() as number | null, preWakePausedForTargetAt: 0, exact: true, mainConfirmed: true, preWakeConfirmed: true }
@@ -24,6 +36,10 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
     const probe: BridgeProbe = {
       launchReads: 0,
       focusUntil: 0,
+      audioOk: audio.audioOk ?? true,
+      toneBlocked: audio.toneBlocked ?? false,
+      toneCalls: 0,
+      reminderChannelOpens: [],
       listeners: {},
       emit(plugin, event, value) {
         for (const entry of [...callbacks.values()]) {
@@ -38,15 +54,21 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
       Capacitor: {
         PluginHeaders: [
           { name: 'App', methods: ['getLaunchUrl', 'getInfo', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
-          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
+          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'playTestTone', 'openReminderChannelSettings', 'getBedtimePromptState', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
           { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'executeSet', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
         ],
-        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[]; until?: number }) {
+        async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[]; until?: number; channel?: string }) {
           if (method === 'removeListener') { callbacks.delete(options.callbackId!); return {} }
           if (plugin === 'App' && method === 'getLaunchUrl') { probe.launchReads++; return { url: launchUrl } }
           if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker', name: 'Anker', version: 'simulation', build: '0' }
           if (plugin === 'AnkerNative' && (method === 'getAlarmState' || method === 'syncAlarmConfig')) return { ...alarm }
-          if (plugin === 'AnkerNative' && method === 'getAlarmDiagnostics') return { ...alarm, notificationsEnabled: true, fullScreen: true, alarmVolume: 5, alarmVolumeMax: 7, audioOk: true, interruptionFilter: 1, testResult: '', sdk: 36, device: 'Browser simulation' }
+          if (plugin === 'AnkerNative' && method === 'getAlarmDiagnostics') return { ...alarm, notificationsEnabled: true, fullScreen: true, alarmVolume: 5, alarmVolumeMax: 7, audioOk: probe.audioOk, interruptionFilter: 1, testResult: '', sdk: 36, device: 'Browser simulation', reminderDelivery: audio.reminderDelivery }
+          if (plugin === 'AnkerNative' && method === 'playTestTone') {
+            probe.toneCalls++
+            return { ok: !probe.toneBlocked }
+          }
+          if (plugin === 'AnkerNative' && method === 'getBedtimePromptState') return { phase: 'idle', overlayPermission: false, exact: true }
+          if (plugin === 'AnkerNative' && method === 'openReminderChannelSettings') { probe.reminderChannelOpens.push(options.channel!); return {} }
           if (plugin === 'AnkerNative' && method === 'getSmartWakeState') return { active: measurementActive, phase: measurementActive ? 'waiting' : 'stopped', targetAt: alarm.scheduledAt, windowAt: alarm.scheduledAt - 45 * 60_000, hasMotion: true, microphoneGranted: true, preWakePausedForTargetAt: alarm.preWakePausedForTargetAt, message: measurementActive ? 'Vorbereitet.' : 'Beendet.' }
           if (plugin === 'AnkerNative' && method === 'startSmartWake') { measurementActive = true; alarm.preWakeAt = null; alarm.preWakePausedForTargetAt = alarm.scheduledAt; return {} }
           if (plugin === 'AnkerNative' && method === 'stopSmartWake') { measurementActive = false; return {} }
@@ -78,7 +100,7 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
         },
       },
     })
-  }, { launchUrl, settings })
+  }, { launchUrl, settings, audio })
   await page.clock.setFixedTime(new Date('2026-11-06T02:00:00+01:00'))
   await page.goto('/')
   await expect.poll(async () => (await probe(page)).launchReads).toBe(1)
@@ -92,6 +114,47 @@ async function probe(page: Page) {
     return { launchReads: bridge.launchReads, listeners: bridge.listeners }
   })
 }
+
+test('Unterbrochener Ton bleibt eine Warnung; abgelehnter Testton meldet Fehler und lässt einen neuen Versuch zu', async ({ page }) => {
+  await nativeEntry(page, 'de.frnkrm.anker://now', false, { audioOk: false, toneBlocked: true })
+  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
+  await expect(page).toHaveURL(/\/wecker$/)
+  await expect(page.getByText('Die letzte Tonausgabe war unterbrochen oder konnte nicht starten', { exact: true })).toBeVisible()
+  await expect(page.getByText('Beim letzten Klingeln gab es keinen Ton', { exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Testton', exact: true }).click()
+  const message = page.getByText('Der Testton konnte nicht starten. Prüfe andere Audioausgaben und versuche es bei geöffneter App erneut.', { exact: true })
+  await expect(message).toBeVisible()
+  await expect(page.getByText('Von dir als hörbar bestätigt', { exact: true })).toHaveCount(0)
+  await page.evaluate(() => { (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.toneBlocked = false })
+  await page.getByRole('button', { name: 'Testton', exact: true }).click()
+  await expect(message).toHaveCount(0)
+  expect(await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.toneCalls)).toBe(2)
+  await expect(page.getByText('Von dir als hörbar bestätigt', { exact: true })).toHaveCount(0)
+})
+
+test('Globale Freigabe verdeckt keinen blockierten Erinnerungskanal; Öffnen ändert keine Android-Freigabe', async ({ page }) => {
+  await nativeEntry(page, 'de.frnkrm.anker://now', false, { reminderDelivery: {
+    channels: [{ id: 'sanft', importance: 0, blocked: true }, { id: 'uebergang', importance: 2, blocked: false }, { id: 'wecker', importance: -1, blocked: false }],
+    nextAt: new Date('2026-11-06T02:20:00+01:00').getTime(), nextChannel: 'sanft',
+    focusUntil: new Date('2026-11-06T02:10:00+01:00').getTime(), quietUntil: 0, planQuietUntil: 0,
+    storedSlots: 2, activeNotifications: 0, lastSyncAt: 0,
+  } })
+  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
+  await expect(page).toHaveURL(/\/wecker$/)
+  const diagnosis = page.getByRole('region', { name: 'Alltags-Erinnerungen', exact: true })
+  await expect(diagnosis.getByText('Sanfte Hinweise: in Android blockiert', { exact: true })).toBeVisible()
+  await expect(diagnosis.getByText('Übergangshinweise: zugelassen', { exact: true })).toBeVisible()
+  await expect(diagnosis.getByText('Weckerbezogene Hinweise: noch nicht angelegt', { exact: true })).toBeVisible()
+  await expect(diagnosis.getByText('Android meldet aktuell 0 Alltagskarten. Gespeicherte Plätze: 2. Das bestätigt noch nicht, dass du einen Hinweis gesehen hast.', { exact: true })).toBeVisible()
+  await expect(diagnosis.getByText(/Fokusschutz bis/)).toBeVisible()
+  await expect(diagnosis.getByText('Seit dieser Diagnoseversion wurde noch kein erfolgreicher Erinnerungsabgleich erfasst.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Ohne sie siehst du die Wecker-Meldung nicht.', { exact: true })).toHaveCount(0)
+  await diagnosis.getByRole('button', { name: 'Sanfte Hinweise in Android öffnen', exact: true }).click()
+  expect(await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.reminderChannelOpens)).toEqual(['sanft'])
+  await expect(diagnosis.getByText('Sanfte Hinweise: in Android blockiert', { exact: true })).toBeVisible()
+})
 
 for (const target of ['now', 'alarm']) {
   test(`Alter ${target}-Öffnungslink sperrt die Navigation bei Gute Nacht nicht`, async ({ page }) => {
@@ -155,3 +218,46 @@ test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim
   await page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true }).click()
   await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.focusUntil)).toBe(0)
 })
+
+for (const width of [390, 320]) for (const scale of [1, 1.6]) {
+  test(`Wecker-Formular und Diagnose bei ${width}px / ${scale}`, async ({ page }) => {
+    await page.setViewportSize({width, height:844})
+    await nativeEntry(page, 'de.frnkrm.anker://now', true, {reminderDelivery: {
+      channels: [{id:'sanft',importance:0,blocked:true},{id:'uebergang',importance:2,blocked:false},{id:'wecker',importance:-1,blocked:false}],
+      nextAt:Date.parse('2026-11-06T02:20:00+01:00'),nextChannel:'sanft',focusUntil:Date.parse('2026-11-06T02:10:00+01:00'),quietUntil:0,planQuietUntil:0,storedSlots:2,activeNotifications:0,lastSyncAt:0,
+    }}, scale)
+    await page.getByRole('link', {name:'Mehr', exact:true}).click()
+    await page.getByRole('link', {name:/Wecker & QR-Code/}).click()
+    await expect(page.getByRole('heading',{level:1,name:'Wecker',exact:true})).toBeVisible()
+    await expect(page.getByRole('region',{name:'Alltags-Erinnerungen'})).toBeVisible()
+    for (const summary of await page.locator('details > summary').all()) await summary.click()
+    const geometry = await page.locator('.settings-page').evaluate(root => {
+      const visible=(node:HTMLElement)=>node.getClientRects().length>0
+      const values=[...root.querySelectorAll<HTMLInputElement>('.setting-value')].filter(visible).map(node=>{
+        const rect=node.getBoundingClientRect();return {x:rect.x,width:rect.width,height:rect.height}
+      })
+      const clipped=[...root.querySelectorAll<HTMLElement>('p,h1,h2,h3,summary,.setting-label,.setting-unit,.setting-value,button')].filter(visible)
+        .filter(node=>node.scrollWidth>node.clientWidth+1 || getComputedStyle(node).textOverflow==='ellipsis')
+        .map(node=>({tag:node.tagName,label:node.getAttribute('aria-label')||node.textContent?.slice(0,100),width:node.clientWidth,content:node.scrollWidth}))
+      return {values,clipped,pageWidth:document.documentElement.scrollWidth,viewport:innerWidth}
+    })
+    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport+1)
+    expect(geometry.clipped).toEqual([])
+    expect(geometry.values).toHaveLength(4)
+    for(const value of geometry.values) {expect(value.width).toBeCloseTo(160,0);expect(value.height).toBeGreaterThanOrEqual(44)}
+    expect(Math.max(...geometry.values.map(value=>value.x))-Math.min(...geometry.values.map(value=>value.x))).toBeLessThanOrEqual(1)
+    await page.getByRole('button',{name:'Vorwecker Minuten erhöhen',exact:true}).click()
+    await expect(page.getByRole('spinbutton',{name:'Vorwecker Minuten',exact:true})).toHaveValue('35')
+    await page.getByRole('button',{name:'Wachheits-Check Minuten verringern',exact:true}).click()
+    await expect(page.getByRole('spinbutton',{name:'Wachheits-Check Minuten',exact:true})).toHaveValue('4')
+    await page.getByLabel('Erinnerungszeit',{exact:true}).fill('07:25')
+    await expect(page.getByLabel('Erinnerungszeit',{exact:true})).toHaveValue('07:25')
+    await page.getByRole('radio',{name:'5',exact:true}).click()
+    await expect(page.getByRole('radio',{name:'5',exact:true})).toHaveAttribute('aria-checked','true')
+    if(width===320 && scale===1.6) {
+      await page.screenshot({path:'/tmp/anker-alarm-layout-320-160.png',fullPage:true})
+      await page.getByRole('region',{name:'Alltags-Erinnerungen'}).screenshot({path:'/tmp/anker-alarm-diagnosis-320-160.png'})
+      await page.getByRole('group',{name:'Vorwecker Minuten ändern',exact:true}).screenshot({path:'/tmp/anker-alarm-prewake-320-160.png'})
+    }
+  })
+}

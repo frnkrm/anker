@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { alarmPlanningStatus, STOP_METHOD_LABEL } from '../../core/alarm'
 import { randomId } from '../../core/defaults'
 import { fmtTime, todayBerlin, utcToZoned } from '../../core/time'
 import type { AlarmPreferences, MedsStatus } from '../../core/types'
 import { makeMathTask, syncAlarm } from '../../platform/alarm'
-import { AnkerNative, isNative, safe, type AlarmDiagnostics, type AlarmKindWire } from '../../platform/native'
+import { AnkerNative, isNative, safe, type AlarmDiagnostics, type AlarmKindWire, type ReminderChannelId } from '../../platform/native'
 import { scanQr } from '../../platform/qr'
 import { today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
 import { SmartWake } from '../components/SmartWake'
-import { Ampel, Button, Card, Page, Row, Section, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
+import { Ampel, Button, Card, Page, Row, Section, SettingRow, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
 
 export function fmtDateTime(ms: number): string {
   const z = utcToZoned(ms)
@@ -28,18 +28,18 @@ const TEST_LABEL: Record<string, string> = {
 }
 
 /** Eine Zeile mit echtem Android-Wert und, falls nötig, dem Weg in die richtige Systemansicht. */
-function DiagRow({ state, label, hint, action, run }: { state: 'ok' | 'warn' | 'off'; label: string; hint?: string; action?: string; run?: () => void }) {
+function DiagRow({ state, label, hint, action, actionLabel, run, disabled }: { state: 'ok' | 'warn' | 'off'; label: string; hint?: string; action?: string; actionLabel?: string; run?: () => void; disabled?: boolean }) {
   return (
-    <Card className="flex items-start gap-3">
+    <Card className="flex flex-wrap items-start gap-3">
       <span className="mt-1.5">
         <Ampel state={state} />
       </span>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1 basis-[12ch] break-words">
         <p className="font-medium">{label}</p>
         {hint && <p className="text-sm text-muted">{hint}</p>}
       </div>
       {action && run && (
-        <Button size="sm" onClick={run}>
+        <Button size="sm" onClick={run} disabled={disabled} aria-label={actionLabel}>
           {action}
         </Button>
       )}
@@ -52,6 +52,29 @@ export function AlarmDiagnosis() {
   const enabled = useApp((s) => s.settings.alarm.enabled)
   const [d, setD] = useState<AlarmDiagnostics>()
   const [failed, setFailed] = useState(false)
+  const [toneError, setToneError] = useState('')
+  const [toneBusy, setToneBusy] = useState(false)
+  const [channelError, setChannelError] = useState('')
+  const tonePending = useRef(false)
+  const playTone = async () => {
+    if (tonePending.current) return
+    tonePending.current = true
+    setToneBusy(true); setToneError('')
+    try {
+      const result = await AnkerNative.playTestTone()
+      if (!result.ok) throw new Error('Audio nicht verfügbar')
+    } catch {
+      setToneError('Der Testton konnte nicht starten. Prüfe andere Audioausgaben und versuche es bei geöffneter App erneut.')
+    } finally {
+      tonePending.current = false
+      setToneBusy(false)
+    }
+  }
+  const openReminderChannel = async (channel: ReminderChannelId) => {
+    setChannelError('')
+    try { await AnkerNative.openReminderChannelSettings({ channel }) }
+    catch { setChannelError('Die Android-Kanaleinstellungen konnten nicht geöffnet werden. Öffne Anker unter Android → Apps → Benachrichtigungen.') }
+  }
   const load = useCallback(() => {
     AnkerNative.getAlarmDiagnostics().then(
       (x) => {
@@ -89,10 +112,27 @@ export function AlarmDiagnosis() {
       {d.reminderRuleCount !== undefined && <DiagRow state="off" label={`${d.reminderRuleCount} wichtige Wochenregeln hinterlegt`} hint={d.reminderRulesFrom ? `Ab ${fmtDateTime(d.reminderRulesFrom)} führen sie deine gespeicherten Basiszeiten fort. Öffne Anker für neue Tagesänderungen. Die Anzeige bestätigt noch keine Zustellung.` : 'Öffne Anker nach einer Planänderung, damit deine Hinweise aktualisiert werden.'} />}
       {d.missedMainAt > 0 && <DiagRow state="warn" label={`Termin nicht regulär ausgelöst: ${fmtDateTime(d.missedMainAt)}`} hint="Die Ursache ist unbekannt. Danach wurde weitergeplant; prüfe die aktuelle Planung und den Testton." />}
       <DiagRow state={d.testResult === 'heard' ? 'ok' : 'warn'} label="Letzter Test" hint={`${TEST_LABEL[d.testResult] ?? ''}${d.testResultAt ? ` (${fmtDateTime(d.testResultAt)})` : ''}`} />
-      <DiagRow state={quietVolume ? 'warn' : 'ok'} label={`Wecker-Lautstärke: ${d.alarmVolume} von ${d.alarmVolumeMax}`} hint={quietVolume ? 'Das ist leise. Stelle sie mit den Lauter-Tasten höher, während ein Testton läuft. Anker ändert sie nicht von selbst.' : undefined} action="Testton" run={() => void AnkerNative.playTestTone()} />
+      <DiagRow state={quietVolume ? 'warn' : 'ok'} label={`Wecker-Lautstärke: ${d.alarmVolume} von ${d.alarmVolumeMax}`} hint={quietVolume ? 'Das ist leise. Stelle sie mit den Lauter-Tasten höher, während ein Testton läuft. Anker ändert sie nicht von selbst.' : undefined} action="Testton" disabled={toneBusy} run={() => void playTone()} />
+      {toneError && <p role="alert" className="px-1 text-sm text-warm">{toneError}</p>}
       {(d.bluetooth || d.wired) && <DiagRow state="warn" label={d.bluetooth ? 'Bluetooth-Audio verbunden' : 'Kopfhörer verbunden'} hint="Der Ton kann dort zusätzlich oder statt am Handy zu hören sein. Mach einen Test mit deiner üblichen Nacht-Einstellung." />}
-      {!d.audioOk && <DiagRow state="warn" label="Beim letzten Klingeln gab es keinen Ton" hint="Nur die Vibration lief. Prüfe den Wecker-Ton in den Android-Einstellungen." />}
+      {!d.audioOk && <DiagRow state="warn" label="Die letzte Tonausgabe war unterbrochen oder konnte nicht starten" hint="Prüfe die Hörbarkeit mit einem Test. Auch andere Audioausgaben oder Android-Regeln können den Ton unterbrechen." />}
       <DiagRow state={d.notificationsEnabled ? 'ok' : 'warn'} label="Benachrichtigungen" hint={d.notificationsEnabled ? undefined : 'Ohne sie siehst du die Wecker-Meldung nicht.'} action={d.notificationsEnabled ? undefined : 'Öffnen'} run={() => void AnkerNative.openAppSettings()} />
+      {d.reminderDelivery && <section aria-label="Alltags-Erinnerungen" className="space-y-3 rounded-2xl border border-line p-3">
+        <h3 className="font-semibold">Alltags-Erinnerungen</h3>
+        <p className="text-sm text-muted">Diese Werte zeigen die einzelnen Kanäle und die aktuelle Zustellplanung.</p>
+        {d.reminderDelivery.channels.map((channel) => {
+          const name = { sanft: 'Sanfte Hinweise', uebergang: 'Übergangshinweise', wecker: 'Weckerbezogene Hinweise' }[channel.id]
+          const state = channel.importance < 0 ? 'off' : channel.blocked ? 'warn' : 'ok'
+          return <DiagRow key={channel.id} state={state} label={`${name}: ${channel.importance < 0 ? 'noch nicht angelegt' : channel.blocked ? 'in Android blockiert' : 'zugelassen'}`} hint={channel.importance > 0 && channel.importance < 3 ? 'Dieser Kanal ist leise eingestellt.' : channel.blocked ? 'Die allgemeine Freigabe allein schaltet diesen Kanal nicht ein.' : undefined} action="Öffnen" actionLabel={`${name} in Android öffnen`} run={() => void openReminderChannel(channel.id)} />
+        })}
+        {channelError && <p role="alert" className="text-sm text-warm">{channelError}</p>}
+        {d.reminderDelivery.focusUntil > Date.now() && <p className="text-sm text-muted">Fokusschutz bis {fmtDateTime(d.reminderDelivery.focusUntil)}. Normale Hinweise werden während des Fokus unterdrückt.</p>}
+        {Math.max(d.reminderDelivery.quietUntil, d.reminderDelivery.planQuietUntil) > Date.now() && <p className="text-sm text-muted">Ruhezeit bis {fmtDateTime(Math.max(d.reminderDelivery.quietUntil, d.reminderDelivery.planQuietUntil))}.</p>}
+        <p className="text-sm text-muted">{d.reminderDelivery.nextAt > 0 ? `${d.reminderDelivery.nextAt <= Date.now() ? 'Noch fälliger' : 'Nächster'} Warteschlangenhinweis: ${fmtDateTime(d.reminderDelivery.nextAt)}.` : 'Kein Zeitpunkt in der aktuellen Warteschlange.'}</p>
+        <p className="text-sm text-muted">{d.reminderDelivery.activeNotifications < 0 ? 'Android konnte die aktuell eingetragenen Alltagskarten nicht melden.' : `Android meldet aktuell ${d.reminderDelivery.activeNotifications} Alltagskarten.`} Gespeicherte Plätze: {d.reminderDelivery.storedSlots}. Das bestätigt noch nicht, dass du einen Hinweis gesehen hast.</p>
+        <p className="text-xs text-muted">{d.reminderDelivery.lastSyncAt > 0 ? `Letzter Erinnerungsabgleich: ${fmtDateTime(d.reminderDelivery.lastSyncAt)}.` : 'Seit dieser Diagnoseversion wurde noch kein erfolgreicher Erinnerungsabgleich erfasst.'}</p>
+        <Link to="/einstellungen/erinnerungen" className="flex min-h-11 items-center text-accent">Ruhezeiten und Erinnerungen einstellen</Link>
+      </section>}
       <DiagRow state={d.exact ? 'ok' : 'warn'} label="Exakte Wecker" hint={d.exact ? undefined : 'Ohne dieses Recht kann sich der Wecker verspäten.'} action={d.exact ? undefined : 'Erlauben'} run={() => void AnkerNative.openExactAlarmSettings()} />
       <DiagRow state={d.fullScreen ? 'ok' : 'warn'} label="Vollbild über dem Sperrbildschirm" hint={d.fullScreen ? undefined : 'Sonst erscheint nur eine Meldung. Teste den Ton unabhängig davon.'} action={d.fullScreen ? undefined : 'Erlauben'} run={() => void AnkerNative.openFullScreenIntentSettings()} />
       <DiagRow
@@ -107,7 +147,7 @@ export function AlarmDiagnosis() {
       <details className="px-1 text-sm text-muted">
         <summary className="min-h-10 py-2">Technische Angaben</summary>
         <p>
-          {d.device}, Android-API {d.sdk}. Letzter Abgleich: {d.lastReconcileAt ? fmtDateTime(d.lastReconcileAt) : 'nie'} ({d.lastReconcileReason || 'unbekannt'}). Vom System gemeldeter nächster Wecker: {d.systemNextAt ? fmtDateTime(d.systemNextAt) : 'keiner'}. Fehler: {d.error || 'keiner'}. Erinnerungen: {d.reminderQueue} geplant bis {d.reminderHorizon ? fmtDateTime(d.reminderHorizon) : 'nie'}, {d.remindersVisible} sichtbar.
+          {d.device}, Android-API {d.sdk}. Letzter Abgleich: {d.lastReconcileAt ? fmtDateTime(d.lastReconcileAt) : 'nie'} ({d.lastReconcileReason || 'unbekannt'}). Vom System gemeldeter nächster Wecker: {d.systemNextAt ? fmtDateTime(d.systemNextAt) : 'keiner'}. Fehler: {d.error || 'keiner'}. Erinnerungen: {d.reminderQueue} geplant bis {d.reminderHorizon ? fmtDateTime(d.reminderHorizon) : 'nie'}, {d.remindersVisible < 0 ? 'aktuelle Android-Karten nicht abfragbar' : `${d.remindersVisible} aktuell bei Android eingetragen`}.
         </p>
       </details>
       <Card>
@@ -126,72 +166,67 @@ export function AlarmSetup() {
   const [testing, setTesting] = useState(false)
 
   return (
-    <Page title="Wecker" back="/mehr">
+    <Page className="settings-page" title="Wecker" back="/mehr">
       <Row label="Wecker gemeinsam testen" sub="Geführte Schritte, direkter Teststart und deine Beobachtung" to="/geraetetest" />
-      <Card className="flex items-center gap-3">
-        <div className="flex-1">
+      <Card>
+        <SettingRow label={<div>
           <p className="text-lg font-medium">Aufstehen um {fmtTime(s.anchor.wake)}</p>
           <p className="text-sm text-muted">Jeden Tag gleich, außer an Kranktagen. Plant sich selbst weiter, auch wenn die App zu ist.</p>
-        </div>
-        <Toggle label="Wecker" checked={a.enabled} onChange={(v) => set({ enabled: v })} />
+        </div>}>
+          <Toggle label="Wecker" checked={a.enabled} onChange={(v) => set({ enabled: v })} />
+        </SettingRow>
       </Card>
 
-      <SmartWake />
+      <div className="[&_.setting-control]:ml-auto"><SmartWake /></div>
       <Section title="Optional">
         <Card className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <p className="font-medium">Vorwecker</p>
-              <p className="text-sm text-muted">Ein früherer, sanfter Ton. Der Hauptwecker bleibt unabhängig davon geplant.</p>
-            </div>
+          <SettingRow label={<div>
+            <p className="font-medium">Vorwecker</p>
+            <p className="text-sm text-muted">Ein früherer, sanfter Ton. Der Hauptwecker bleibt unabhängig davon geplant.</p>
+          </div>}>
             <Toggle label="Vorwecker" checked={a.preWakeEnabled} onChange={(v) => set({ preWakeEnabled: v })} />
-          </div>
+          </SettingRow>
           {a.preWakeEnabled && (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>Wie lange vorher</span>
+            <SettingRow label="Wie lange vorher">
               <Stepper label="Vorwecker Minuten" value={a.preWakeLeadMinutes} step={5} min={5} max={120} onChange={(v) => set({ preWakeLeadMinutes: v })} />
-            </div>
+            </SettingRow>
           )}
         </Card>
         <Card className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <p className="font-medium">Wachheits-Check</p>
-              <p className="text-sm text-muted">Einmal kurz nachfragen, nachdem du den Wecker beendet hast. Keine Wiederholung.</p>
-            </div>
+          <SettingRow label={<div>
+            <p className="font-medium">Wachheits-Check</p>
+            <p className="text-sm text-muted">Einmal kurz nachfragen, nachdem du den Wecker beendet hast. Keine Wiederholung.</p>
+          </div>}>
             <Toggle label="Wachheits-Check" checked={a.wakeCheckEnabled} onChange={(v) => set({ wakeCheckEnabled: v })} />
-          </div>
+          </SettingRow>
           {a.wakeCheckEnabled && (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>Nach</span>
+            <SettingRow label="Nach">
               <Stepper label="Wachheits-Check Minuten" value={a.wakeCheckDelayMinutes} step={1} min={3} max={10} onChange={(v) => set({ wakeCheckDelayMinutes: v })} />
-            </div>
+            </SettingRow>
           )}
         </Card>
         <Card className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <p className="font-medium">Privates Einnahmeprotokoll</p>
-              <p className="text-sm text-muted">Nur ein Notizbuch für dich. Bleibt auf dem Gerät, wird nicht synchronisiert und sagt dir nie, was oder wann du etwas nehmen sollst. Das klärst du mit deiner Ärztin oder deinem Arzt.</p>
-            </div>
+          <SettingRow label={<div>
+            <p className="font-medium">Privates Einnahmeprotokoll</p>
+            <p className="text-sm text-muted">Nur ein Notizbuch für dich. Bleibt auf dem Gerät, wird nicht synchronisiert und sagt dir nie, was oder wann du etwas nehmen sollst. Das klärst du mit deiner Ärztin oder deinem Arzt.</p>
+          </div>}>
             <Toggle label="Einnahmeprotokoll" checked={a.medicationEnabled} onChange={(v) => set({ medicationEnabled: v, ...(v ? {} : { medicationReminderAt: null }) })} />
-          </div>
+          </SettingRow>
           {a.medicationEnabled && (
-            <div className="flex items-center justify-between gap-3">
-              <span>Eigene Erinnerung</span>
+            <SettingRow label="Eigene Erinnerung">
               {a.medicationReminderAt === null ? (
                 <Button size="sm" onClick={() => set({ medicationReminderAt: s.anchor.wake })}>
                   Hinzufügen
                 </Button>
               ) : (
-                <div className="flex items-center gap-2">
+                <>
                   <TimeField label="Erinnerungszeit" value={a.medicationReminderAt} onChange={(v) => set({ medicationReminderAt: v })} />
                   <Button size="sm" variant="ghost" onClick={() => set({ medicationReminderAt: null })}>
                     Entfernen
                   </Button>
-                </div>
+                </>
               )}
-            </div>
+            </SettingRow>
           )}
         </Card>
       </Section>
@@ -217,8 +252,7 @@ export function AlarmSetup() {
       <Section title="Wenn der QR-Code nicht geht">
         <Card className="space-y-3">
           <p className="text-sm text-muted">Unter „Anderen Weg wählen“ gibt es Rechenaufgaben und immer auch einen Notfall-Stopp ohne Lesen und Rechnen.</p>
-          <div className="flex items-center justify-between gap-2">
-            <span>Rechenaufgaben</span>
+          <SettingRow label="Rechenaufgaben">
             <Segmented<number>
               label="Anzahl Rechenaufgaben"
               value={a.mathTasks}
@@ -229,7 +263,7 @@ export function AlarmSetup() {
               ]}
               onChange={(v) => set({ mathTasks: v as AlarmPreferences['mathTasks'] })}
             />
-          </div>
+          </SettingRow>
         </Card>
       </Section>
 

@@ -5,8 +5,9 @@ import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
 import { resumeRoute, usableResume } from '../../core/recovery'
 import { resolveTask, taskIsOpen, taskNextStep, taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
-import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, type NextAction } from '../../core/support'
-import { addDays, fmtDuration, fmtTime, weekday } from '../../core/time'
+import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
+import { addDays, fmtDuration, fmtTime, utcToZoned, weekday } from '../../core/time'
+import { upcomingWorkTasks } from '../../core/upcomingWork'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
@@ -19,12 +20,13 @@ import { WorkBar } from '../components/WorkControls'
 import { GeofenceSuggestions } from '../components/GeofenceVisit'
 import { HomeOfficeContact } from '../components/HomeOfficeContact'
 import { InboxSheet } from '../components/Shell'
+import { BedtimePrompt } from '../components/BedtimePrompt'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
 
 /**
  * Die Startseite beantwortet nur eine Frage: Was mache ich jetzt?
- * Eine Hauptaktion und höchstens zwei weitere sind sichtbar, alles andere liegt hinter „Mehr“.
+ * Eine Hauptaktion und höchstens zwei weitere; nahe Arbeitszeiten stehen als ruhiger Zusatz darunter.
  */
 export default function Now() {
   const { date, plan, log, m, now } = useToday()
@@ -46,6 +48,7 @@ export default function Now() {
   const mode = currentMode(log)
   const suggestion = suggestedMode(st.settings, log, m)
   const behind = isBehind(plan, log, m)
+  const upcoming = workTasksQuiet(input) ? [] : upcomingWorkTasks(st.local.work, now)
   const readyToReview = st.inbox.filter((item) => reviewDue(item, now)).length + pendingTomorrowSteps(st.local.tomorrowSteps, now).length
 
   return (
@@ -81,6 +84,17 @@ export default function Now() {
         )}
       </section>
 
+      <BedtimePrompt available={['bed', 'night', 'sleep'].includes(a.type)} delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} />
+      {upcoming.length > 0 && <aside aria-label="Demnächst bei der Arbeit" className="mb-3 space-y-2 rounded-2xl border border-line p-3">
+        <h2 className="text-sm font-medium text-muted">Demnächst bei der Arbeit</h2>
+        {upcoming.map((entry) => {
+          const at = utcToZoned(entry.at)
+          return <Link key={entry.task.id} to={`/aufgabe/work/${encodeURIComponent(entry.task.id)}`} className="flex min-h-11 min-w-0 flex-col justify-center rounded-xl px-2 py-2 hover:bg-surface-2">
+            <span className="text-sm text-muted">{entry.kind === 'start' ? 'Ab' : 'Frist'} {at.date !== utcToZoned(now).date ? 'morgen ' : ''}{fmtTime(at.minutes)}</span>
+            <span className="break-words [overflow-wrap:anywhere]">{taskTitle(entry.task)}</span>
+          </Link>
+        })}
+      </aside>}
       {!dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
       <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
       <GeofenceSuggestions />

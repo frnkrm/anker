@@ -19,6 +19,8 @@ jobs:
       - run: npm test
       - name: PC-Stopp mit PowerShell prüfen
         run: npm run test:pc
+      - name: Android-Updateprüfung ohne echte Schlüssel testen
+        run: python3 scripts/test-android-update.py
       - run: npm run build
       - name: Playwright-Browser installieren
         run: npx playwright install --with-deps chromium

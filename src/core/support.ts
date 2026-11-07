@@ -167,6 +167,14 @@ export const SESSION_LABEL: Record<WorkSessionKind, string> = {
 
 const FIXED: NowAction['type'][] = ['sleep', 'night', 'wake', 'leave', 'pcoff', 'bed']
 
+/** Derselbe freiwillige Feierabend-Schutz gilt für Hauptaktion und zusätzliche Arbeitshinweise. */
+export function workTasksQuiet(i: Pick<NextInput, 'settings' | 'sessions' | 'plan' | 'nowMs' | 'm'>): boolean {
+  if (i.plan.dayType === 'sick') return true
+  if (!i.settings.support.workAfterHoursQuiet) return false
+  const actual = currentWorkActual(i.sessions ?? [], i.plan.date, i.nowMs)
+  return !actual.open && !!(actual.closed || i.plan.workInfo?.closed || i.plan.workEnd === undefined || i.m >= i.plan.workEnd)
+}
+
 /** Wählt genau eine Handlung. Reihenfolge: Sicherheit und feste Zeiten, gefährdete Arbeit, Wiedereinstieg, Heutiges, Routine, Pause. */
 export function nextAction(i: NextInput): NextView {
   const base = nowView(i.plan, i.log, i.m)
@@ -212,8 +220,7 @@ export function nextAction(i: NextInput): NextView {
   if (i.plan.dayType === 'sick') return view(a, hardReason)
 
   // Freiwilliger Feierabend-Schutz: laufende Einsätze bleiben bedienbar, private Aufgaben unverändert.
-  const quietWork = i.settings.support.workAfterHoursQuiet && !actual.open
-    && (actual.closed || i.plan.workInfo?.closed || i.plan.workEnd === undefined || i.m >= i.plan.workEnd)
+  const quietWork = workTasksQuiet(i)
 
   const activeWork = quietWork ? undefined : openWork(i.work).find((task) => task.state === 'active')
   const activePrivate = tasksFor(i.inbox, i.plan.date).find((task) => task.state === 'active')

@@ -184,7 +184,7 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   }
   if (!s.support.windDown.enabled && !sick && !log?.pcOffAt && !plan.openEnd) {
     out.push({ key: 'pcstop-15', at: plan.pcStop - 15, channel: 'sanft', title: 'In 15 Minuten PC-Stopp', body: `Um ${t(plan.pcStop)} ist Schluss. Runde in Ruhe beenden.`, escalate: false })
-    out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Bildschirm aus, runterkommen. Gut gemacht heute.', escalate: true, hard: true })
+    out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Eine Pause vom Scrollen schafft Zeit zum Runterkommen. Zum Beispiel kurz lesen oder ruhige Musik hören.', escalate: true, hard: true })
   }
   if (!s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })

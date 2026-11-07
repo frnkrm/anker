@@ -13,6 +13,8 @@ Gerät: Samsung Galaxy S26 Ultra (Nutzerangabe vom 05.11.2026) · Android/One UI
 
 ## Wecker
 
+**Zusatzprüfung für den aktuellen Audio-/Erinnerungsstand:** Vor dem Versuch Gerätebezeichnung, genaue Android-/One-UI-Version und Appversion/Build aus der Testseite notieren. G1/G2 prüfen tatsächlichen Ton getrennt von der Meldung; bei Bedarf laufende Medienwiedergabe/Anruf und Rückkehr vergleichen. G9/G10 prüfen Hintergrund und Neustart, G12 das reguläre Update, G14–16 Tonrechte/-wege. Exaktalarm- oder Benachrichtigungsrechte nur bewusst testweise ändern und danach wiederherstellen; betroffene Teilprüfung und ihre Grenze notieren. Ein grüner globaler Benachrichtigungspunkt bestätigt keine freigegebenen Einzelkanäle. Die neue Diagnose für Alltags-Erinnerungen zeigt Kanäle, nächste Warteschlangenzeit und Ruhe-/Fokuszeiten; auch ein angenommener Post oder eine Android-Karte bestätigt noch keine Wahrnehmung. Die alten Ergebnisse in der Tabelle bleiben Berichte ihrer damaligen Builds.
+
 | # | Vorgehen | Erwartet | Ergebnis |
 |---|---|---|---|
 | 1 | Entsperrt, **Wecker testen** | Ton, Vibration, Klingelbildschirm, Frage „gut hörbar?“ | ok |
@@ -188,3 +190,19 @@ Die Links öffnen nur Seiten. Sie starten weder Fokus noch Arbeitszeit, Wecker, 
 | 93 | Optionale KI- und Verkehrsvorschläge zunächst ausgeschaltet ansehen; nur bei gewünschter Einrichtung einen Vorschlag anfordern, prüfen, ablehnen oder bewusst übernehmen | Ohne Freigabe keine externe Anfrage. Vorschlag nennt Grenzen und ändert vor Übernahme nichts; ohne Anmeldung, Konfiguration oder Netz bleibt die lokale Planung nutzbar. Nicht eingerichtete Dienste bleiben ungeprüft | |
 | 94 | Gewünschte optionale Spracheingabe, Google-Kalender-Übernahme und Besuchserinnerung einzeln öffnen; Ablehnung oder Abbruch und nur freiwillig einen echten Ablauf prüfen | Nur ausdrückliche Freigabe aktiviert die jeweilige Hilfe. Sprache wird vor Übernahme geprüft, importierter Termin bleibt bewusst gewählt; Besuchshinweis erledigt nichts und bestätigt keine automatische Zeiterfassung | |
 | 95 | In Morgen- und Abendroutine am Griff halten, einen Schritt nach unten und zurück nach oben ziehen; außerhalb des Griffs wischen und nach erneutem Öffnen Reihenfolge, Texte und Dauern vergleichen. Zusätzlich nach Wunsch große Schrift/Tastatur, Ausdruck/PDF und Appöffnung über echte Benachrichtigung/Widget prüfen | Nur Ziehen am Griff sortiert; Wischen im übrigen Inhalt scrollt. Reihenfolge bleibt gespeichert, Texte, Dauern und Minimal-Versionen bleiben erhalten; ▲/▼ bleiben bedienbar. Systemleisten und Navigation verdecken nichts, Ausdruck vollständig; echte Zustellung, Ton und Langzeitverhalten nur nach tatsächlicher Beobachtung bestätigen | |
+
+## Stummer Schlafhinweis
+
+Diese zusätzliche Prüfung ist freiwillig. Der Hinweis ist ein bestmöglich zugestellter Einmalhinweis, kein Ersatz für einen Wecker. Er braucht die selbst gewährte Android-Spezialfreigabe „Über anderen Apps anzeigen“. Die App zeigt sich ohne diese Freigabe nicht über anderen Apps. Hauptwecker und bisherige Berichte bleiben erhalten.
+
+| # | Vorgehen | Erwartet | Ergebnis |
+|---|---|---|---|
+| 96 | Eigene Einschlafdauer notieren, für einen kurzen Versuch auf1Minute setzen. Zur Bettzeit auf Jetzt die Fensterfreigabe bewusst öffnen und danach den stummen Hinweis ausdrücklich starten. Eine andere App bei eingeschaltetem, entsperrtem Bildschirm verwenden. Optional zweiter Durchlauf mit ausgeschaltetem/gesperrtem Bildschirm zur Fälligkeit; anschließend eigene Dauer wiederherstellen | Beim erlaubten, pünktlichen Versuch erscheint ein klar beschriftetes stummes Fenster und gegebenenfalls Jetzt; ein sichtbarer Jetzt-Knopf bleibt der manuelle Rückweg, falls Android den automatischen Wechsel begrenzt. Kein Ton, keine Vibration, kein Aufwecken des Displays. Bei ausgeschaltetem/gesperrtem Bildschirm oder veraltetem Signal keine spätere Überraschung beim Entsperren. Schließen/Abbrechen wirkt nur auf diesen Hinweis, keine Erledigung/XP/Arbeitszeit/Weckeränderung. Nur tatsächlich beobachtete Teile bestätigen | |
+
+## Kurzer Update-Test und Berichtsdatei (RC3)
+
+Unter **Mehr → Gemeinsam testen** werden zunächst sechs empfohlene Stationen gezeigt: G1, G21, G62, G92, G95 und G96. Die vollständige Liste und die zehn E04–E09-Stationen bleiben bei Bedarf erreichbar. Es ist nicht nötig, sämtliche alten Fälle vor jedem Update zu wiederholen.
+
+Vor einem Update **„Testberichte als Datei exportieren“** wählen und diese JSON-Datei aufbewahren. Sie kann hier für die nächste Auswertung angehängt und in Anker über **„Testberichte aus Datei prüfen“** zunächst als Vorschau geöffnet werden. Ein Import erhält frühere Beobachtungen mit ihren ursprünglichen Build-/Plattformangaben in der Historie; er behauptet keine neue Geräteprüfung und überschreibt keine aktuellen Ergebnisse. Der Export ist ein Bericht und ersetzt keine vollständige Datensicherung.
+
+Bei G92 lassen sich zusätzlich die freiwilligen Teilschritt-Timer an einer eigenen Testaufgabe prüfen: Dauer bewusst wählen, starten, pausieren und nach Wiederöffnung vergleichen. Timerablauf allein darf weder Teilaufgabe noch Gesamtaufgabe erledigen und keine Arbeitszeit oder XP buchen. Den neuen Teil nur dann als beobachtet notieren, wenn er tatsächlich ausprobiert wurde. Alte Berichte werden dadurch nicht nachträglich erweitert.
