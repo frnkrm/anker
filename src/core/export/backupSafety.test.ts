@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { defaultSettings, emptyLocal } from '../defaults'
 import { initialGame } from '../game'
+import { createCountdown, pauseCountdown } from '../focus'
 import type { LocalData } from '../types'
 import type { Collection, Rec } from '../../data/types'
 import { makeBackup, parseBackup, previewImport } from './backup'
@@ -155,6 +156,21 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(preview.records[0]?.data).toMatchObject({ work: (target.data as LocalData).work, meds: (target.data as LocalData).meds, handover: (incoming.data as LocalData).handover })
     expect(current).toEqual(before)
     expect((preview.records[0]?.data as LocalData).handover).toEqual((incoming.data as LocalData).handover)
+  })
+
+  it('erhält beim privaten Teilimport auch geschäftlich zugeordnete Inbox-Teilarchive; eine volle Arbeitsliste bleibt explizit', () => {
+    const timer = pauseCountdown(createCountdown(120, at), at + 30_000)
+    const business = { id: 'business', text: 'Geschäftsaufnahme', status: 'task', createdAt: at, captureContext: 'Arbeit' }
+    const businessFocus = { id: 'business-focus', target: { kind: 'task', id: business.id, partId: 'a' }, timer }
+    const workFocus = { id: 'work-focus', target: { kind: 'work', id: 'work', partId: 'b' }, timer }
+    const privateFocus = { id: 'private-focus', target: { kind: 'task', id: 'private', partId: 'c' }, timer }
+    const records = [record('inbox', business.id, business), record('meta', 'local', { work: [], focusHistory: [businessFocus, workFocus, privateFocus] })]
+    const partial = makeBackup(records, new Date(at), { work: false }).records.map((r) => ({ ...r, updated_at: at + 1 }))
+    expect(JSON.stringify(partial)).not.toContain('business-focus')
+    const imported = previewImport(partial, records).records.find((r) => r.collection === 'meta')?.data as LocalData
+    expect(imported.focusHistory).toEqual([privateFocus, businessFocus, workFocus])
+    const full = { ...record('meta', 'local', { work: [], focusHistory: [privateFocus] }), updated_at: at + 1 }
+    expect((previewImport([full], records).records[0]?.data as LocalData).focusHistory).toEqual([privateFocus])
   })
 
   it('berechnet doppelte Recordversionen monoton und unterscheidet echte Löschung von Auslassung', () => {

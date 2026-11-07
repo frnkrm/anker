@@ -1,5 +1,6 @@
 import { key, remoteWins } from '../../data/merge'
 import type { Rec } from '../../data/types'
+import { isFocusSession, sameFocusTarget } from '../focus'
 import { localBusinessNote } from '../syncPrivacy'
 import { object, validatedRecords } from './backupValidation'
 
@@ -89,6 +90,17 @@ function preserveOmitted(current: unknown, incoming: unknown, path = ''): unknow
   ]))
 }
 
+/** Eine Sicherung ohne Arbeitsgruppe enthält nur den privaten Teil des Fokusarchivs. */
+function preserveWorkHistory(current: unknown, incoming: unknown, businessIds: ReadonlySet<string>): unknown {
+  if (!object(current) || !object(incoming) || Object.hasOwn(incoming, 'work')
+    || !Array.isArray(current.focusHistory) || !Array.isArray(incoming.focusHistory)) return incoming
+  const incomingHistory = incoming.focusHistory.filter(isFocusSession)
+  const retained = current.focusHistory.filter(isFocusSession).filter((focus) =>
+    (focus.target.kind === 'work' || focus.target.kind === 'task' && businessIds.has(focus.target.id))
+    && !incomingHistory.some((next) => sameFocusTarget(next.target, focus.target)))
+  return { ...incoming, focusHistory: [...incomingHistory, ...retained] }
+}
+
 export interface ImportPreview {
   records: Rec[]
   incoming: number
@@ -102,13 +114,16 @@ export interface ImportPreview {
 export function previewImport(incoming: unknown, current: readonly Rec[]): ImportPreview {
   const records = validatedRecords(incoming)
   const previous = new Map(current.map((record) => [key(record), record]))
+  const businessIds = new Set(current.filter((record) => record.collection === 'inbox' && !record.deleted && localBusinessNote(record.data)).map((record) => record.id))
   const winners = new Map<string, Rec>()
   for (const record of records) {
     const id = key(record)
     const before = winners.get(id) ?? previous.get(id)
     if (!remoteWins(before, record)) continue
+    const beforeData = before?.deleted ? undefined : before?.data
+    const incomingData = record.collection === 'meta' && record.id === 'local' ? preserveWorkHistory(beforeData, record.data, businessIds) : record.data
     const merged = !record.deleted && ((record.collection === 'settings' && record.id === 'main') || (record.collection === 'meta' && record.id === 'local'))
-      ? { ...record, data: preserveOmitted(before?.deleted ? undefined : before?.data, record.data, record.collection === 'meta' ? 'local' : 'settings') }
+      ? { ...record, data: preserveOmitted(beforeData, incomingData, record.collection === 'meta' ? 'local' : 'settings') }
       : record
     winners.set(id, merged)
   }
