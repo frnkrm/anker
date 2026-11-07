@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       source_commit:
-        description: 'Exakte 40-stellige SHA des gewünschten main-Codecommits mit erfolgreicher CI'
-        required: true
+        description: 'Leer: letzter freigegebener Update-Stand. Optional: vollständige grüne main-Commit-SHA'
+        required: false
         type: string
 
 permissions: {}
@@ -15,36 +15,67 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  resolve:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       actions: read
     outputs:
-      metadata_sha256: ${{ steps.proof.outputs.metadata_sha256 }}
-      unsigned_apk_sha256: ${{ steps.proof.outputs.unsigned_apk_sha256 }}
+      source_commit: ${{ steps.resolve.outputs.source_commit }}
+      ci_proof: ${{ steps.resolve.outputs.ci_proof }}
     steps:
       - name: Exakten grünen CI-Commit auf main prüfen
+        id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
           ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
         run: |
           python3 - <<'PY'
-          import json, os, pathlib, re, urllib.error, urllib.request
-          sha = os.environ['ANKER_SOURCE_COMMIT']
-          if not re.fullmatch('[a-f0-9]{40}', sha):
-              raise SystemExit('Bitte die vollständige SHA aus dem erfolgreichen CI-Lauf eintragen.')
+          import base64, json, os, pathlib, re, urllib.error, urllib.request
+          sha = os.environ.get('ANKER_SOURCE_COMMIT', '')
           repo = os.environ['GITHUB_REPOSITORY']
           def get(path):
               request = urllib.request.Request('https://api.github.com/repos/' + repo + path, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
               with urllib.request.urlopen(request, timeout=30) as response:
                   return json.load(response)
+          approved = None
+          if not sha:
+              try:
+                  file = get('/contents/docs/AKTUELLER_UPDATESTAND.json?ref=main')
+              except urllib.error.HTTPError as error:
+                  if error.code == 404:
+                      raise SystemExit('Noch kein freigegebener Update-Stand vorhanden. Einen vollständigen grünen main-Commit manuell angeben oder die Freigabe abwarten.') from None
+                  raise
+              try:
+                  if file.get('type') != 'file' or file.get('encoding') != 'base64' or not 0 < file.get('size', 0) <= 16384:
+                      raise ValueError()
+                  approved = json.loads(base64.b64decode(''.join(file['content'].split()), validate=True))
+                  if not isinstance(approved, dict) or type(approved.get('schemaVersion')) is not int or approved['schemaVersion'] != 1:
+                      raise ValueError()
+                  for name in ['sourceCommit', 'sourceFingerprint', 'versionName', 'ciRunURL', 'publicCertificateSha256']:
+                      if not isinstance(approved.get(name), str):
+                          raise ValueError()
+                  if not re.fullmatch('[a-f0-9]{40}', approved['sourceCommit']) or not re.fullmatch('[a-f0-9]{64}', approved['sourceFingerprint']):
+                      raise ValueError()
+                  if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?', approved['versionName']) or type(approved.get('versionCode')) is not int or not 0 < approved['versionCode'] <= 2147483647:
+                      raise ValueError()
+                  if not re.fullmatch(re.escape('https://github.com/' + repo + '/actions/runs/') + r'[1-9]\d*', approved['ciRunURL']):
+                      raise ValueError()
+                  if approved['publicCertificateSha256'].replace(':', '').lower() != '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad':
+                      raise ValueError()
+              except (KeyError, TypeError, ValueError):
+                  raise SystemExit('Der freigegebene Update-Stand ist unvollständig oder ungültig. Keine andere SHA wird automatisch gewählt.') from None
+              sha = approved['sourceCommit']
+          if not re.fullmatch('[a-f0-9]{40}', sha):
+              raise SystemExit('Bitte die vollständige SHA aus dem erfolgreichen CI-Lauf eintragen oder das Feld für den freigegebenen Stand leer lassen.')
           comparison = get('/compare/' + sha + '...main')
           if comparison['status'] not in ['ahead', 'identical']:
               raise SystemExit('Der gewählte Commit gehört nicht zur main-Historie.')
           runs = get('/actions/workflows/ci.yml/runs?head_sha=' + sha + '&event=push&status=success&per_page=100')['workflow_runs']
           runs = [run for run in runs if run['head_sha'] == sha and run['head_branch'] == 'main' and run['event'] == 'push' and run['status'] == 'completed' and run['conclusion'] == 'success']
+          if approved is not None:
+              runs = [run for run in runs if run['html_url'] == approved['ciRunURL']]
           if not runs:
               raise SystemExit('Keine erfolgreiche CI für exakt diesen Commit. Im grünen CI-Lauf dessen vollständige SHA kopieren; es gibt keine Docs-Ausnahme.')
           try:
@@ -57,12 +88,35 @@ jobs:
               raise SystemExit('Die Update-Prüfhilfe fehlt im gewählten Quellcommit.')
           run = max(runs, key=lambda value: value['id'])
           proof = {'headSha': sha, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml', 'runId': run['id'], 'url': run['html_url']}
+          if approved is not None:
+              proof['approvedStand'] = approved
           pathlib.Path(os.environ['RUNNER_TEMP'], 'anker-ci-proof.json').write_text(json.dumps(proof, indent=2) + '\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('source_commit=' + sha + '\nci_proof=' + json.dumps(proof, separators=(',', ':')) + '\n')
+          print('Gewählter Stand: ' + sha + (' (letzte Freigabe)' if approved is not None else ' (manuelle Auswahl)'))
           print('Geprüfte CI: ' + run['html_url'])
+          PY
+
+  build:
+    needs: resolve
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      metadata_sha256: ${{ steps.proof.outputs.metadata_sha256 }}
+      unsigned_apk_sha256: ${{ steps.proof.outputs.unsigned_apk_sha256 }}
+    steps:
+      - name: Öffentlichen CI-Nachweis des getrennten Resolvejobs übernehmen
+        env:
+          ANKER_CI_PROOF: ${{ needs.resolve.outputs.ci_proof }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'anker-ci-proof.json').write_text(os.environ['ANKER_CI_PROOF'] + '\n')
           PY
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, 07.11.2026 geprüft
         with:
-          ref: ${{ inputs.source_commit }}
+          ref: ${{ needs.resolve.outputs.source_commit }}
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -95,7 +149,7 @@ jobs:
       - name: Paket, Quellen, Assets und neue Testbelege prüfen
         id: proof
         env:
-          ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          ANKER_SOURCE_COMMIT: ${{ needs.resolve.outputs.source_commit }}
         run: |
           python3 scripts/android-update-proof.py \
             --apk android/app/build/outputs/apk/release/app-release-unsigned.apk \
@@ -112,7 +166,7 @@ jobs:
           retention-days: 1
 
   sign:
-    needs: build
+    needs: [resolve, build]
     runs-on: ubuntu-24.04
     permissions:
       actions: read
@@ -130,7 +184,8 @@ jobs:
           path: ${{ runner.temp }}/anker-input/
       - name: Daten prüfen und gegebenenfalls mit bestehendem Schlüssel signieren
         env:
-          ANKER_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          ANKER_SOURCE_COMMIT: ${{ needs.resolve.outputs.source_commit }}
+          ANKER_EXPECTED_CI_PROOF: ${{ needs.resolve.outputs.ci_proof }}
           ANKER_METADATA_SHA256: ${{ needs.build.outputs.metadata_sha256 }}
           ANKER_UNSIGNED_SHA256: ${{ needs.build.outputs.unsigned_apk_sha256 }}
           ANKER_ANDROID_KEYSTORE_BASE64: ${{ secrets.ANKER_ANDROID_KEYSTORE_BASE64 }}
@@ -157,6 +212,8 @@ jobs:
           if proof.get('schemaVersion') != 1 or proof.get('applicationId') != 'de.frnkrm.anker' or proof.get('sourceCommit') != os.environ['ANKER_SOURCE_COMMIT'] or proof.get('unsignedApkSha256') != digest(apk):
               raise SystemExit('Die Paketnachweise passen nicht zum gewählten Quellcommit.')
           ci = proof.get('ci', {})
+          if ci != json.loads(os.environ['ANKER_EXPECTED_CI_PROOF']):
+              raise SystemExit('Die Paketnachweise stimmen nicht mit dem unabhängigen Resolvejob überein.')
           tests = proof.get('nativeTests', {})
           totals = tests.get('totals', {})
           if ci.get('headSha') != proof['sourceCommit'] or ci.get('headBranch') != 'main' or ci.get('conclusion') != 'success' or ci.get('event') != 'push' or ci.get('workflow') != 'ci.yml':
@@ -166,6 +223,9 @@ jobs:
           version, code = proof.get('versionName', ''), proof.get('versionCode', '')
           if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?', version) or not re.fullmatch(r'[1-9]\d*', code) or not 0 < int(code) <= 2147483647:
               raise SystemExit('Ungültige Paketversion.')
+          approved = ci.get('approvedStand')
+          if approved is not None and (approved['sourceFingerprint'] != proof['sourceIdentity'] or approved['versionName'] != version or str(approved['versionCode']) != code or approved['publicCertificateSha256'].replace(':', '').lower() != expected_cert):
+              raise SystemExit('Der tatsächliche Build passt nicht zum freigegebenen Update-Stand. Keine Signierung.')
           sdk = pathlib.Path(os.environ['ANDROID_HOME']) / 'build-tools/35.0.0'
           public_env = {key: value for key, value in os.environ.items() if not key.startswith('ANKER_ANDROID_')}
           def tool(arguments, environment=None, check=True):

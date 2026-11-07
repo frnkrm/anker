@@ -35,6 +35,7 @@ FAKE_CERT_SHA = hashlib.sha256(FAKE_CERT).hexdigest()
 def inline_python(step_name):
     section = WORKFLOW.split('      - name: ' + step_name + '\n', 1)[1].split('\n      - ', 1)[0]
     lines = section.split('        run: |\n', 1)[1].splitlines()
+    lines = lines[:lines.index('          PY') + 1]
     body = '\n'.join(line[10:] for line in lines)
     assert body.startswith("python3 - <<'PY'\n") and body.endswith('\nPY')
     return body.removeprefix("python3 - <<'PY'\n").removesuffix('\nPY')
@@ -123,21 +124,55 @@ class ProofTests(unittest.TestCase):
 
 
 class CiGateTests(unittest.TestCase):
-    def gate(self, *, sha=SHA, status='ahead', runs=None, branch='main', helper=True):
+    def gate(self, *, sha=SHA, status='ahead', runs=None, branch='main', helper=True, manifest='valid'):
         with tempfile.TemporaryDirectory() as directory:
             run = {'head_sha': SHA, 'head_branch': branch, 'event': 'push', 'status': 'completed', 'conclusion': 'success', 'id': 42, 'html_url': 'https://github.com/example/repo/actions/runs/42'}
-            responses = iter([{'status': status}, {'workflow_runs': [run] if runs is None else runs}, {'type': 'file'}])
+            approved = {'schemaVersion': 1, 'sourceCommit': SHA, 'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'ciRunURL': run['html_url'], 'publicCertificateSha256': '3f7545f5dd8e4f8a87bef38696fb16284b02a2d783a0f4a35f3b2bd084d3eaad'} if manifest == 'valid' else manifest
             def response(request, **kwargs):
-                if '/contents/' in request.full_url and not helper:
-                    raise urllib.error.HTTPError(request.full_url, 404, 'Not Found', {}, None)
-                return io.BytesIO(json.dumps(next(responses)).encode())
-            env = {'ANKER_SOURCE_COMMIT': sha, 'GITHUB_REPOSITORY': 'example/repo', 'GH_TOKEN': 'FAKE-TOKEN', 'RUNNER_TEMP': directory}
+                url = request.full_url
+                if '/contents/docs/AKTUELLER_UPDATESTAND.json?ref=main' in url:
+                    if approved is None:
+                        raise urllib.error.HTTPError(url, 404, 'Not Found', {}, None)
+                    raw = json.dumps(approved).encode()
+                    value = {'type': 'file', 'encoding': 'base64', 'size': len(raw), 'content': base64.b64encode(raw).decode()}
+                elif '/compare/' in url:
+                    value = {'status': status}
+                elif '/actions/workflows/' in url:
+                    value = {'workflow_runs': [run] if runs is None else runs}
+                elif '/contents/scripts/android-update-proof.py?ref=' in url:
+                    if not helper:
+                        raise urllib.error.HTTPError(url, 404, 'Not Found', {}, None)
+                    value = {'type': 'file'}
+                else:
+                    raise AssertionError('Unexpected GitHub API request: ' + url)
+                return io.BytesIO(json.dumps(value).encode())
+            env = {'ANKER_SOURCE_COMMIT': sha, 'GITHUB_REPOSITORY': 'example/repo', 'GH_TOKEN': 'FAKE-TOKEN', 'RUNNER_TEMP': directory, 'GITHUB_OUTPUT': str(Path(directory, 'output'))}
             with patch.dict(os.environ, env), patch('urllib.request.urlopen', side_effect=response), contextlib.redirect_stdout(io.StringIO()):
                 exec(compile(CI_CODE, '<ci-gate>', 'exec'), {})
             return json.loads(Path(directory, 'anker-ci-proof.json').read_text())
 
     def test_exact_main_ancestor_green_commit_accepted(self):
         self.assertEqual(self.gate()['headSha'], SHA)
+
+    def test_empty_input_selects_only_approved_manifest_commit(self):
+        proof = self.gate(sha='')
+        self.assertEqual(proof['headSha'], SHA)
+        self.assertEqual(proof['approvedStand']['sourceFingerprint'], IDENTITY)
+
+    def test_missing_manifest_fails_without_fallback(self):
+        with self.assertRaisesRegex(SystemExit, 'Noch kein freigegebener'):
+            self.gate(sha='', manifest=None)
+
+    def test_bad_manifest_fields_fail_without_fallback(self):
+        valid = self.gate(sha='')['approvedStand']
+        for name, value in [('sourceCommit', 'main'), ('sourceFingerprint', 'bad'), ('versionCode', '10'), ('ciRunURL', 'https://evil.example/run'), ('publicCertificateSha256', 'f' * 64), ('schemaVersion', 2)]:
+            with self.subTest(name=name), self.assertRaisesRegex(SystemExit, 'unvollständig oder ungültig'):
+                self.gate(sha='', manifest=dict(valid, **{name: value}))
+
+    def test_manifest_run_must_be_the_exact_successful_main_run(self):
+        valid = self.gate(sha='')['approvedStand']
+        with self.assertRaisesRegex(SystemExit, 'Keine erfolgreiche CI'):
+            self.gate(sha='', manifest=dict(valid, ciRunURL='https://github.com/example/repo/actions/runs/99'))
 
     def test_docs_head_without_exact_ci_rejected(self):
         with self.assertRaises(SystemExit):
@@ -170,6 +205,7 @@ class SigningTests(unittest.TestCase):
         apk = source / 'unsigned.apk'
         apk.write_bytes(b'SYNTHETIC APK DATA; SDK TOOLS ARE MOCKED')
         self.proof = {'schemaVersion': 1, 'applicationId': 'de.frnkrm.anker', 'versionName': '1.3.0-rc.3', 'versionCode': '10', 'sourceCommit': SHA, 'sourceIdentity': IDENTITY, 'unsignedApkSha256': PROOF.sha256(apk), 'ci': {'headSha': SHA, 'headBranch': 'main', 'conclusion': 'success', 'event': 'push', 'workflow': 'ci.yml'}, 'nativeTests': {'freshRerun': True, 'totals': {'tests': 3, 'failures': 0, 'errors': 0, 'skipped': 0}}}
+        self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
         sdk = self.root / 'sdk/build-tools/35.0.0'
         sdk.mkdir(parents=True)
         mock = self.root / 'fake-tool'
@@ -207,6 +243,7 @@ class SigningTests(unittest.TestCase):
         metadata = self.root / 'anker-input/build-proof.json'
         metadata.write_text(json.dumps(self.proof))
         self.env['ANKER_METADATA_SHA256'] = PROOF.sha256(metadata)
+        self.env['ANKER_EXPECTED_CI_PROOF'] = json.dumps(self.trusted_ci)
         if credentials:
             self.env.update(ANKER_ANDROID_KEYSTORE_BASE64=base64.b64encode(b'FAKE-KEYSTORE-NOT-A-KEY').decode(), ANKER_ANDROID_STORE_PASSWORD='FAKE-STORE-PASSWORD', ANKER_ANDROID_KEY_ALIAS='FAKE-ALIAS', ANKER_ANDROID_KEY_PASSWORD='FAKE-KEY-PASSWORD')
         self.env.update(extra)
@@ -270,6 +307,29 @@ class SigningTests(unittest.TestCase):
         self.proof['nativeTests']['freshRerun'] = False
         self.assertNotEqual(self.execute().returncode, 0)
 
+    def test_approved_manifest_must_match_actual_build(self):
+        approved = {'sourceFingerprint': 'c' * 64, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'publicCertificateSha256': FAKE_CERT_SHA}
+        self.proof['ci']['approvedStand'] = approved
+        self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
+        result = self.execute(credentials=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.tools(), [])
+
+    def test_matching_approved_manifest_reaches_mock_signed_output(self):
+        approved = {'sourceFingerprint': IDENTITY, 'versionName': '1.3.0-rc.3', 'versionCode': 10, 'publicCertificateSha256': FAKE_CERT_SHA}
+        self.proof['ci']['approvedStand'] = approved
+        self.trusted_ci = json.loads(json.dumps(self.proof['ci']))
+        result = self.execute(credentials=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        receipt = json.loads((self.root / 'anker-update/build-proof.json').read_text())
+        self.assertTrue(receipt['installableApk'])
+        self.assertEqual(receipt['ci']['approvedStand'], approved)
+
+    def test_approved_manifest_cannot_be_removed_by_build_data(self):
+        self.trusted_ci['approvedStand'] = {'sourceFingerprint': IDENTITY}
+        self.assertNotEqual(self.execute().returncode, 0)
+        self.assertEqual(self.tools(), [])
+
     def test_extra_artifact_file_rejected(self):
         (self.root / 'anker-input/run-me.py').write_text('raise Exception("never executed")')
         result = self.execute()
@@ -329,14 +389,15 @@ class WorkflowBoundaryTests(unittest.TestCase):
     def test_inline_python_compiles(self):
         compile(CI_CODE, '<workflow-ci-gate>', 'exec')
         compile(SIGN_CODE, '<workflow-sign>', 'exec')
+        compile(inline_python('Öffentlichen CI-Nachweis des getrennten Resolvejobs übernehmen'), '<workflow-transfer>', 'exec')
 
     def test_signing_job_has_no_checkout_or_build_execution(self):
         build, sign = WORKFLOW.split('\n  sign:\n', 1)
         self.assertNotIn('${{ secrets.', build)
         self.assertNotRegex(sign, r'uses: (?:actions/checkout|actions/setup-node|gradle/)')
         self.assertNotRegex(sign, r'(?m)^\s+(?:- run: |run: )(?:npm|npx|node|bash|pwsh)')
-        self.assertIn('needs: build', sign)
-        self.assertEqual(re.findall(r'^  ([a-z_]+):$', WORKFLOW, re.M), ['workflow_dispatch', 'build', 'sign'])
+        self.assertIn('needs: [resolve, build]', sign)
+        self.assertEqual(re.findall(r'^  ([a-z_]+):$', WORKFLOW, re.M), ['workflow_dispatch', 'resolve', 'build', 'sign'])
 
     def test_actions_are_official_and_pinned(self):
         actions = re.findall(r'uses: ([^\s]+)', WORKFLOW)
