@@ -1,5 +1,5 @@
 import { isFocusSession, isStuckSession, validFocus, validStuck } from './focus'
-import { resolveTask, taskIsOpen, taskNextStep, taskTitle, validTaskFields, validTaskRef } from './tasks'
+import { resolveTask, taskIsOpen, taskNextStep, taskTitle, validTaskFields, validTaskParts, validTaskRef } from './tasks'
 import type { InboxItem, LocalData, ResumePoint, WorkTask } from './types'
 
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -11,6 +11,8 @@ export function validResume(value: unknown): value is ResumePoint {
   return object(value) && ['task', 'work', 'step', 'free'].includes(String(value.kind))
     && typeof value.title === 'string' && timestamp(value.at)
     && ['nextStep', 'refId', 'route', 'note'].every((key) => optionalText(value[key]))
+    && (value.partId === undefined || ((value.kind === 'task' || value.kind === 'work') && typeof value.refId === 'string' && !!value.refId.trim()
+      && typeof value.partId === 'string' && !!value.partId.trim() && value.partId.length <= 500))
     && (value.route === undefined || internalRoute(value.route))
 }
 
@@ -60,13 +62,15 @@ export function usableResume(resume: ResumePoint | undefined, inbox: readonly In
   if (resume.refId && (resume.kind === 'task' || resume.kind === 'work')) {
     const item = resolveTask({ kind: resume.kind, id: resume.refId }, inbox, work)
     if (!item || !taskIsOpen(item)) return undefined
-    return { ...resume, title: taskTitle(item), nextStep: taskNextStep(item, taskTitle(item)), ...(item.resumeNote !== undefined ? { note: item.resumeNote } : {}) }
+    const part = resume.partId === undefined ? undefined : item.subtasks?.find((part) => part.id === resume.partId && part.doneAt === undefined)
+    if (resume.partId !== undefined && !part) return undefined
+    return { ...resume, title: taskTitle(item), nextStep: part?.title ?? taskNextStep(item, taskTitle(item)), ...(item.resumeNote !== undefined ? { note: item.resumeNote } : {}) }
   }
   return resume
 }
 
 export function resumeRoute(resume: ResumePoint): string | undefined {
-  if ((resume.kind === 'task' || resume.kind === 'work') && resume.refId) return `/aufgabe/${resume.kind}/${encodeURIComponent(resume.refId)}`
+  if ((resume.kind === 'task' || resume.kind === 'work') && resume.refId) return `/aufgabe/${resume.kind}/${encodeURIComponent(resume.refId)}${resume.partId === undefined ? '' : `?teil=${encodeURIComponent(resume.partId)}`}`
   return internalRoute(resume.route) ? resume.route : undefined
 }
 
@@ -75,6 +79,13 @@ const taskFields = ['reminderRevision', 'description', 'why', 'nextStep', 'resum
 /** Bestehende gültige Angaben bleiben exakt erhalten; kaputte optionale Felder werden nicht ausgeführt. */
 export function normaliseTask<T extends InboxItem | WorkTask>(task: T): T {
   const next = { ...task }
+  // Ein beschädigtes neues Dauerfeld darf ältere Titel und echte Teilabschlüsse nicht entfernen.
+  if (Array.isArray(next.subtasks)) next.subtasks = next.subtasks.map((part) => {
+    if (!part || typeof part !== 'object' || part.timerMin === undefined || validTaskParts([part])) return part
+    const previous = { ...part }
+    delete previous.timerMin
+    return validTaskParts([previous]) ? previous : part
+  })
   for (const key of taskFields) if (!validTaskFields({ [key]: next[key] })) delete next[key]
   if ('linkedTo' in next && next.linkedTo !== undefined && !validTaskRef(next.linkedTo)) delete next.linkedTo
   return next

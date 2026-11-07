@@ -67,7 +67,8 @@ export function validTaskParts(value: unknown): value is TaskPart[] {
   return value.every((part) => {
     if (!object(part) || !nonempty(part.id) || !nonempty(part.title) || ids.has(part.id)) return false
     ids.add(part.id)
-    return (part.estimateMin === undefined || minutes(part.estimateMin)) && (part.doneAt === undefined || timestamp(part.doneAt))
+    return (part.estimateMin === undefined || minutes(part.estimateMin)) && (part.timerMin === undefined || minutes(part.timerMin))
+      && (part.doneAt === undefined || timestamp(part.doneAt))
   })
 }
 

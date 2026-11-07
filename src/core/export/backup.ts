@@ -79,10 +79,13 @@ export function parseBackup(text: string): Rec[] {
 }
 
 /** Nur fehlende Objektfelder ergänzen. Vorhandene Werte/Listen bleiben weiterhin pro Record LWW. */
-function preserveOmitted(current: unknown, incoming: unknown): unknown {
+function preserveOmitted(current: unknown, incoming: unknown, path = ''): unknown {
+  // Sitzungen und Rückwege sind vollständige Identitäten. Eine alte Elternreferenz
+  // ohne partId darf niemals die Teilreferenz einer neueren lokalen Sitzung erben.
+  if (['local.focus', 'local.resume', 'local.captureDraft'].includes(path)) return incoming
   if (!object(current) || !object(incoming)) return incoming
   return Object.fromEntries([...new Set([...Object.keys(current), ...Object.keys(incoming)])].map((key) => [
-    key, Object.hasOwn(incoming, key) ? preserveOmitted(current[key], incoming[key]) : current[key],
+    key, Object.hasOwn(incoming, key) ? preserveOmitted(current[key], incoming[key], path ? `${path}.${key}` : key) : current[key],
   ]))
 }
 
@@ -105,7 +108,7 @@ export function previewImport(incoming: unknown, current: readonly Rec[]): Impor
     const before = winners.get(id) ?? previous.get(id)
     if (!remoteWins(before, record)) continue
     const merged = !record.deleted && ((record.collection === 'settings' && record.id === 'main') || (record.collection === 'meta' && record.id === 'local'))
-      ? { ...record, data: preserveOmitted(before?.deleted ? undefined : before?.data, record.data) }
+      ? { ...record, data: preserveOmitted(before?.deleted ? undefined : before?.data, record.data, record.collection === 'meta' ? 'local' : 'settings') }
       : record
     winners.set(id, merged)
   }

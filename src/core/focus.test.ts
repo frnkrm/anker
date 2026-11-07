@@ -101,10 +101,14 @@ describe('Eine Fokusreferenz und ein davon unabhängiger Hilfetimer', () => {
     expect(sameFocusTarget(a, { ...a, date: '2026-11-07' })).toBe(false)
     expect(sameFocusTarget(a, { ...a, minimal: true })).toBe(false)
     expect(sameFocusTarget({ kind: 'work', id: 'x' }, { kind: 'task', id: 'x' })).toBe(false)
+    expect(sameFocusTarget({ kind: 'work', id: 'x' }, { kind: 'work', id: 'x', partId: 'a' })).toBe(false)
+    expect(sameFocusTarget({ kind: 'work', id: 'x', partId: 'a' }, { kind: 'work', id: 'x', partId: 'b' })).toBe(false)
+    expect(sameFocusTarget({ kind: 'work', id: 'x', partId: 'a' }, { kind: 'work', id: 'x', partId: 'a' })).toBe(true)
+    expect(sameFocusTarget({ kind: 'task', id: 'x:part:a' }, { kind: 'task', id: 'x', partId: 'a' })).toBe(false)
   })
   it('weist defekte Referenzen und versteckten Autostart-Status zurück', () => {
     const timer = createCountdown(120, now)
-    for (const target of [{ kind: 'work', id: '' }, { kind: 'routine', date: '2026-02-31', routine: 'morning', stepId: 'x', minimal: false }, { kind: 'routine', date: '2026-11-06', routine: 'nope', stepId: 'x', minimal: false }]) {
+    for (const target of [{ kind: 'work', id: '' }, { kind: 'task', id: 'x', partId: '' }, { kind: 'task', id: 'x', partId: 42 }, { kind: 'routine', date: '2026-02-31', routine: 'morning', stepId: 'x', minimal: false }, { kind: 'routine', date: '2026-11-06', routine: 'nope', stepId: 'x', minimal: false }]) {
       expect(isFocusSession({ id: 'x', target, timer })).toBe(false)
     }
     expect(isStuckSession({ contextKey: '', level: 0 })).toBe(false)

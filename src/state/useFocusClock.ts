@@ -8,6 +8,8 @@ import { AnkerNative, isNative, safe } from '../platform/native'
 import { mirrorReminderFocus } from '../platform/notifications'
 import { today, useApp } from './store'
 
+const currentPath = () => window.location.pathname + window.location.search
+
 /** Die Deadline läuft ohne Hintergrund-Ticks weiter; sichtbar wird nur die Anzeige aktualisiert. */
 export function useFocusClock(timer?: CountdownState, active = true): number {
   const [now, setNow] = useState(Date.now())
@@ -35,7 +37,8 @@ export function useFocusClock(timer?: CountdownState, active = true): number {
 export function useFocusPulse(session?: FocusSession, suppliedNow?: number): void {
   // Bei einer Router-Transition kann die URL bereits wechseln, bevor diese Ansicht unmountet.
   // An den gerenderten Fokuspfad binden, nicht an eine erst später gelesene Browseradresse.
-  const sourcePath = useLocation().pathname
+  const location = useLocation()
+  const sourcePath = location.pathname + location.search
   const ownNow = useFocusClock(suppliedNow === undefined ? session?.timer : undefined, suppliedNow === undefined)
   const now = suppliedNow ?? ownNow
   const config = useApp((state) => state.settings.focus)
@@ -78,23 +81,23 @@ export function useFocusPulse(session?: FocusSession, suppliedNow?: number): voi
     }
     const previous = last.current.elapsed
     last.current.elapsed = elapsed
-    const blocked = window.location.pathname !== sourcePath || document.visibilityState !== 'visible' || inQuietHours(minutesOnPlanDay(today(), now), useApp.getState().settings)
+    const blocked = currentPath() !== sourcePath || document.visibilityState !== 'visible' || inQuietHours(minutesOnPlanDay(today(), now), useApp.getState().settings)
     const mark = pulseMark(session.timer, spoken && config.pulse === 'off' ? { ...config, pulse: 'gentle' } : config, now, previous, blocked)
     if (mark === undefined || !isNative()) return
     const sessionId = session.id
     void safe(async () => {
       await useApp.getState().updateFocus(sessionId, (current) => ({ ...current, timer: checkpointPulse(current.timer, mark) }))
-      if (liveSession.current !== sessionId || window.location.pathname !== sourcePath) return
+      if (liveSession.current !== sessionId || currentPath() !== sourcePath) return
       const alarm = await AnkerNative.getAlarmState()
       const state = useApp.getState()
       const current = state.local.focus
       const at = Date.now()
-      if (liveSession.current !== sessionId || window.location.pathname !== sourcePath || alarm.ringing || document.visibilityState !== 'visible' || (state.settings.focus.pulse === 'off' && !extraSettings(state.settings.extras).spokenCues)
+      if (liveSession.current !== sessionId || currentPath() !== sourcePath || alarm.ringing || document.visibilityState !== 'visible' || (state.settings.focus.pulse === 'off' && !extraSettings(state.settings.extras).spokenCues)
         || current?.id !== sessionId || current.timer.status !== 'running' || remainingMs(current.timer, at) === 0
         || inQuietHours(minutesOnPlanDay(today(), at), state.settings)) return
       if (state.settings.focus.pulse !== 'off') await safe(() => AnkerNative.vibratePulse({ strength: state.settings.focus.pulse === 'strong' ? 'strong' : 'gentle' }), undefined)
       const latest = useApp.getState()
-      if (liveSession.current !== sessionId || window.location.pathname !== sourcePath || !extraSettings(latest.settings.extras).spokenCues
+      if (liveSession.current !== sessionId || currentPath() !== sourcePath || !extraSettings(latest.settings.extras).spokenCues
         || latest.local.focus?.id !== sessionId || latest.local.focus.timer.status !== 'running' || document.visibilityState !== 'visible'
         || inQuietHours(minutesOnPlanDay(today(), Date.now()), latest.settings)) return
       const minutes = Math.ceil(remainingMs(latest.local.focus.timer, Date.now()) / 60_000)

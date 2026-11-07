@@ -176,5 +176,8 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     const settings = record('settings', 'main', { version: 1, onboarded: true, alarm: { enabled: true, qrSecret: 'BEHALTEN' } })
     const partial = { ...record('settings', 'main', { version: 1, onboarded: true, alarm: { enabled: false } }), updated_at: at + 1 }
     expect(previewImport([partial], [settings]).records[0]?.data).toEqual({ version: 1, onboarded: true, alarm: { enabled: false, qrSecret: 'BEHALTEN' } })
+    const focusSettings = record('settings', 'main', { version: 1, onboarded: true, focus: { pulse: 'gentle', everyMin: 2, halfway: true } })
+    const partialFocus = { ...record('settings', 'main', { version: 1, onboarded: true, focus: { pulse: 'off' } }), updated_at: at + 1 }
+    expect(previewImport([partialFocus], [focusSettings]).records[0]?.data).toEqual({ version: 1, onboarded: true, focus: { pulse: 'off', everyMin: 2, halfway: true } })
   })
 })

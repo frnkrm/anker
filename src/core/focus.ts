@@ -10,9 +10,11 @@ export type CountdownState = {
   | { status: 'paused'; remainingMs: number; pausedAt: number }
 )
 
+export type TaskFocusTarget = TaskRef & { partId?: string }
+
 export type FocusTarget =
   | { kind: 'routine'; date: string; routine: RoutineId; stepId: string; minimal: boolean }
-  | TaskRef
+  | TaskFocusTarget
 
 export interface FocusSession {
   id: string
@@ -42,7 +44,7 @@ export function validCountdown(value: unknown): value is CountdownState {
 
 export function validFocusTarget(value: unknown): value is FocusTarget {
   if (!object(value)) return false
-  if (value.kind === 'task' || value.kind === 'work') return text(value.id)
+  if (value.kind === 'task' || value.kind === 'work') return text(value.id) && (value.partId === undefined || text(value.partId))
   if (value.kind !== 'routine' || !text(value.stepId) || typeof value.minimal !== 'boolean'
     || !['morning', 'evening'].includes(String(value.routine)) || typeof value.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.date)) return false
   const date = new Date(`${value.date}T12:00:00Z`)
@@ -70,7 +72,7 @@ export function validStuck(value: unknown): boolean {
 export function focusTargetKey(target: FocusTarget): string {
   return target.kind === 'routine'
     ? `routine:${target.date}:${target.routine}:${target.stepId}:${target.minimal ? 'minimal' : 'full'}`
-    : `${target.kind}:${target.id}`
+    : JSON.stringify([target.kind, target.id, target.partId ?? null])
 }
 
 export function sameFocusTarget(a: FocusTarget, b: FocusTarget): boolean {

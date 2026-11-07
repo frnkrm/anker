@@ -330,6 +330,8 @@ export interface TaskPart {
   id: string
   title: string
   estimateMin?: number
+  /** Bewusst gewählte Timerdauer; weder Schätzung noch tatsächlich gearbeitete Zeit. */
+  timerMin?: number
   doneAt?: number
 }
 export interface TaskFields {
@@ -407,6 +409,8 @@ export interface ResumePoint {
   title: string
   nextStep?: string
   refId?: string
+  /** Stabile Teilschritt-ID innerhalb der referenzierten Aufgabe. */
+  partId?: string
   at: number
   /** Konkreter Rückweg, statt den Merker beim Wiederfinden nur zu löschen. */
   route?: string

@@ -7,7 +7,7 @@ import { defaultSettings, emptyLocal, migrateSettings, randomId } from '../core/
 import { eveningLocalFields } from '../core/evening'
 import { restoreCommitments, routineCoverage, validPlanUndo } from '../core/flexible'
 import { deviceTestsFromLocal, validDeviceTests } from '../core/deviceTests'
-import { createCountdown, isFocusSession, pauseCountdown, remainingMs, resumeCountdown, sameFocusTarget, validFocusTarget, validStuck, type FocusSession, type FocusTarget, type StuckSession } from '../core/focus'
+import { createCountdown, isFocusSession, pauseCountdown, remainingMs, resumeCountdown, sameFocusTarget, validFocusTarget, validStuck, type FocusSession, type FocusTarget, type StuckSession, type TaskFocusTarget } from '../core/focus'
 import { normaliseTask, recoveryFields, usableResume, validCaptureDraft } from '../core/recovery'
 import { nextTaskOccurrence, resolveTask, taskIsOpen, taskLearningKey, taskNextStep, taskTitle, validTaskFields, validTaskParts, validTaskRef } from '../core/tasks'
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
@@ -93,8 +93,8 @@ interface AppState {
   setTaskState(ref: TaskRef, state: TaskState): Promise<void>
   completeTask(ref: TaskRef, done: boolean, minimal?: boolean, confirmedMinutes?: number): Promise<void>
   removeTask(ref: TaskRef): Promise<void>
-  startTaskFocus(ref: TaskRef, minutes?: number): Promise<void>
-  pauseTaskFocus(ref: TaskRef, nextStep?: string, note?: string): Promise<void>
+  startTaskFocus(ref: TaskRef, minutes?: number, partId?: string): Promise<void>
+  pauseTaskFocus(ref: TaskRef, nextStep?: string, note?: string, partId?: string): Promise<void>
   setTaskPartDone(ref: TaskRef, partId: string, done: boolean): Promise<void>
   replaceTaskParts(ref: TaskRef, parts: TaskPart[], expected?: TaskSuggestionExpectation): Promise<void>
   moveInboxToWork(id: string): Promise<void>
@@ -193,6 +193,13 @@ function focusedOn(local: LocalData, ref: TaskRef): boolean {
   return !!target && target.kind !== 'routine' && sameRef(target, ref)
 }
 
+/** Eine Teilreferenz darf bei alten Import-/Syncständen niemals zum Elternfokus werden. */
+function taskFocusIsOpen(target: TaskFocusTarget, data: TaskData): boolean {
+  const task = resolveTask(target, data.inbox, data.local.work)
+  return !!task && taskIsOpen(task) && (target.partId === undefined
+    || !!task.subtasks?.some((part) => part.id === target.partId && part.doneAt === undefined))
+}
+
 function archiveFocus(data: TaskData): void {
   const focus = data.local.focus
   if (!focus) return
@@ -238,13 +245,11 @@ function editTaskData(edit: (data: TaskData) => void): Promise<void> {
     edit(data)
     data.local.resume = usableResume(data.local.resume, data.inbox, data.local.work)
     if (data.local.focus?.target.kind !== 'routine' && data.local.focus) {
-      const target = resolveTask(data.local.focus.target, data.inbox, data.local.work)
-      if (!target || !taskIsOpen(target)) data.local.focus = undefined
+      if (!taskFocusIsOpen(data.local.focus.target, data)) data.local.focus = undefined
     }
     data.local.focusHistory = data.local.focusHistory?.filter((focus) => {
       if (focus.target.kind === 'routine') return focus.target.date === today() && !before.days[focus.target.date]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
-      const task = resolveTask(focus.target, data.inbox, data.local.work)
-      return !!task && taskIsOpen(task)
+      return taskFocusIsOpen(focus.target, data)
     })
     stampTaskChanges(before.inbox, data.inbox)
     stampTaskChanges(before.local.work, data.local.work)
@@ -405,22 +410,29 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const reviews = await source.list<WeeklyReview>('reviews')
   const events = (await source.get<CalendarEvent[]>('meta', 'events')) ?? []
   const savedLocal = await source.get<LocalData>('meta', 'local')
-  const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...recoveryFields(savedLocal), deviceTests: deviceTestsFromLocal(savedLocal) }
+  const savedRecovery = recoveryFields(savedLocal)
+  const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...savedRecovery, deviceTests: deviceTestsFromLocal(savedLocal) }
   if (!validPlanUndo(local.planUndo)) local.planUndo = undefined
   local.work = local.work.map(normaliseTask)
   local.resume = usableResume(local.resume, inbox, local.work)
   const relevant = (focus: FocusSession): boolean => focus.target.kind === 'routine'
     ? focus.target.date === t && !days[t]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
-    : !!resolveTask(focus.target, inbox, local.work) && taskIsOpen(resolveTask(focus.target, inbox, local.work)!)
+    : taskFocusIsOpen(focus.target, { inbox, local })
   if (local.focus && !relevant(local.focus)) local.focus = undefined
   local.focusHistory = local.focusHistory?.filter(relevant)
+  // Ungültige Teilreferenzen dauerhaft vergessen, damit ein späterer alter Taskrecord
+  // dieselbe laufende Deadline nicht ohne bewussten Start wiederbeleben kann.
+  const recoveryCleanup = !!(savedRecovery.focus && savedRecovery.focus.target.kind !== 'routine'
+    && savedRecovery.focus.target.partId !== undefined && !local.focus)
+    || !!savedRecovery.focusHistory?.some((focus) => focus.target.kind !== 'routine' && focus.target.partId !== undefined && !relevant(focus))
+    || !!(savedRecovery.resume?.partId !== undefined && !local.resume)
   const weather = migrateWeatherState(migrateSettings(settings, t), local)
   const persistMigration = commitMigration && snapshot === undefined
-  if (weather.changed && persistMigration) await repo.putMany([
-    { collection: 'settings', id: 'main', data: weather.settings },
+  if ((weather.changed || recoveryCleanup) && persistMigration) await repo.putMany([
+    ...(weather.changed ? [{ collection: 'settings' as const, id: 'main', data: weather.settings }] : []),
     { collection: 'meta', id: 'local', data: weather.local },
   ])
-  return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !persistMigration }
+  return { data: { settings: weather.settings, game, days, inbox, reviews, events, local: weather.local }, needsWeatherMigration: weather.changed && !persistMigration, needsRecoveryCleanup: recoveryCleanup && !persistMigration }
 }
 
 /** Die bestehende E09-Vorschau hat LWW und fehlende Privatfelder bereits aufgelöst.
@@ -465,13 +477,13 @@ export const useApp = create<AppState>()((set, get) => ({
     for (;;) {
       const before = get()
       await persistence
-      const { data: loaded, needsWeatherMigration } = await readAppData(false)
+      const { data: loaded, needsWeatherMigration, needsRecoveryCleanup } = await readAppData(false)
       const current = get()
       // Read again after concurrent edits settle: keep optimistic changes visible while also
       // picking up newly synced records instead of hiding an entire changed collection.
       const conflicted = (Object.keys(loaded) as (keyof typeof loaded)[]).some((field) => current[field] !== before[field])
       if (conflicted) continue
-      if (needsWeatherMigration) {
+      if (needsWeatherMigration || needsRecoveryCleanup) {
         // Nach dem optimistischen Lesen unter derselben UI-Schreibsperre neu lesen.
         await atomic(async () => { set({ ...(await readAppData()).data, ready: true }) })
       } else set({ ...loaded, ready: true })
@@ -676,28 +688,43 @@ export const useApp = create<AppState>()((set, get) => ({
     })
   },
 
-  startTaskFocus(ref, minutes = 25) {
+  startTaskFocus(ref, minutes, partId) {
     return editTask(ref, (task, data) => {
       if (!taskIsOpen(task)) return
+      const target: TaskFocusTarget = { kind: ref.kind, id: ref.id, ...(partId !== undefined ? { partId } : {}) }
+      if (!validFocusTarget(target)) throw new Error('Der Teilschritt ist ungültig.')
+      const part = partId === undefined ? undefined : task.subtasks?.find((part) => part.id === partId && part.doneAt === undefined)
+      // Ein verspäteter Start aus einer alten Ansicht darf weder einen anderen Fokus
+      // pausieren noch die fehlende Teilreferenz in eine ganze Aufgabe umdeuten.
+      if (partId !== undefined && !part) return
+      const duration = minutes ?? part?.timerMin ?? part?.estimateMin ?? 25
+      if (!Number.isFinite(duration) || duration <= 0 || duration > 1440) throw new Error('Wähle eine Dauer über 0 und bis 1440 Minuten.')
       const focus = data.local.focus
-      if (focus && !sameFocusTarget(focus.target, ref)) archiveFocus(data)
+      if (focus && !sameFocusTarget(focus.target, target)) archiveFocus(data)
       task.state = 'active'; task.startedAt ??= Date.now()
-      const previous = focus && sameFocusTarget(focus.target, ref) ? focus : archivedFocus(data, ref)
+      const previous = focus && sameFocusTarget(focus.target, target) ? focus : archivedFocus(data, target)
       if (previous && remainingMs(previous.timer, Date.now()) > 0) data.local.focus = { ...previous, timer: resumeCountdown(previous.timer, Date.now()) }
-      else data.local.focus = { id: randomId(), target: ref, timer: createCountdown(minutes * 60, Date.now()) }
+      else {
+        if (part) part.timerMin = duration
+        data.local.focus = { id: randomId(), target, timer: createCountdown(duration * 60, Date.now()) }
+      }
     })
   },
 
-  pauseTaskFocus(ref, nextStep, note) {
+  pauseTaskFocus(ref, nextStep, note, expectedPartId) {
     return editTask(ref, (task, data) => {
       if (!taskIsOpen(task)) return
-      if (nextStep !== undefined) task.nextStep = nextStep
       const saved = data.local.resume
+      const target = focusedOn(data.local, ref) ? data.local.focus?.target : undefined
+      if (expectedPartId !== undefined && (!target || target.kind === 'routine' || target.partId !== expectedPartId)) return
+      const partId = target && target.kind !== 'routine' ? target.partId : saved?.kind === ref.kind && saved.refId === ref.id ? saved.partId : undefined
+      const part = task.subtasks?.find((part) => part.id === partId)
+      if (nextStep !== undefined && (!part || nextStep.trim() !== part.title.trim())) task.nextStep = nextStep
       if (note !== undefined) task.resumeNote = note.trim() || undefined
       else if (task.resumeNote === undefined && saved?.kind === ref.kind && saved.refId === ref.id) task.resumeNote = saved.note
       task.state = 'paused'
       if (focusedOn(data.local, ref) && data.local.focus) data.local.focus.timer = pauseCountdown(data.local.focus.timer, Date.now())
-      data.local.resume = { kind: ref.kind, title: taskTitle(task), nextStep: taskNextStep(task, taskTitle(task)), refId: ref.id, at: Date.now(), route: `/aufgabe/${ref.kind}/${encodeURIComponent(ref.id)}`, ...(task.resumeNote ? { note: task.resumeNote } : {}) }
+      data.local.resume = { kind: ref.kind, title: taskTitle(task), nextStep: taskNextStep(task, taskTitle(task)), refId: ref.id, ...(partId !== undefined ? { partId } : {}), at: Date.now(), route: `/aufgabe/${ref.kind}/${encodeURIComponent(ref.id)}`, ...(task.resumeNote ? { note: task.resumeNote } : {}) }
     })
   },
 
@@ -727,8 +754,8 @@ export const useApp = create<AppState>()((set, get) => ({
       data.inbox = data.inbox.filter((note) => note.id !== id)
       for (const note of data.inbox) if (note.linkedTo?.kind === 'task' && note.linkedTo.id === id) note.linkedTo = { kind: 'work', id }
       if (data.local.resume?.kind === 'task' && data.local.resume.refId === id) data.local.resume = { ...data.local.resume, kind: 'work', route: `/aufgabe/work/${encodeURIComponent(id)}` }
-      if (focusedOn(data.local, { kind: 'task', id }) && data.local.focus) data.local.focus.target = { kind: 'work', id }
-      for (const focus of data.local.focusHistory ?? []) if (focus.target.kind === 'task' && focus.target.id === id) focus.target = { kind: 'work', id }
+      if (focusedOn(data.local, { kind: 'task', id }) && data.local.focus && data.local.focus.target.kind !== 'routine') data.local.focus.target = { ...data.local.focus.target, kind: 'work' }
+      for (const focus of data.local.focusHistory ?? []) if (focus.target.kind === 'task' && focus.target.id === id) focus.target = { ...focus.target, kind: 'work' }
       if (data.local.captureDraft?.context?.kind === 'task' && data.local.captureDraft.context.refId === id) data.local.captureDraft.context.kind = 'work'
     })
   },
@@ -758,7 +785,7 @@ export const useApp = create<AppState>()((set, get) => ({
         const st = get()
         if (target.date !== today() || st.days[target.date]?.steps[stepKey(target.routine, target.stepId)]
           || !planFor(target.date, st).blocks.some((block) => block.routine === target.routine && block.steps?.some((step) => step.id === target.stepId))) return
-      }
+      } else if (!taskFocusIsOpen(target, data)) return
       if (data.local.focus && sameFocusTarget(data.local.focus.target, target)) return
       const previous = data.local.focus
       if (previous) archiveFocus(data)
@@ -1148,10 +1175,17 @@ export const useApp = create<AppState>()((set, get) => ({
       const current = await repo.all()
       if (!accepted()) return 0
       const prepared = previewImport(checked, current).records
-      const canonical = canonicalWeatherImport(prepared, current)
+      let canonical = canonicalWeatherImport(prepared, current)
       const snapshot = [...new Map([...current, ...canonical].map((record) => [key(record), record])).values()]
       const projection = await readAppData(false, snapshot)
       if (projection.needsWeatherMigration) throw new Error('Die Wetterdaten konnten nicht vollständig für den Import vorbereitet werden. Es wurde nichts importiert.')
+      if (projection.needsRecoveryCleanup && !canonical.some((record) => record.collection === 'meta' && record.id === 'local' && record.deleted)) {
+        const previous = snapshot.find((record) => record.collection === 'meta' && record.id === 'local')
+        const updated_at = Math.max(Date.now(), previous?.updated_at ?? 0) + 1
+        if (!Number.isFinite(new Date(updated_at).getTime())) throw new Error('Der Datenzeitpunkt dieser Sicherung lässt sich nicht sicher übernehmen. Es wurde nichts importiert.')
+        canonical = validatedRecords([...canonical.filter((record) => record.collection !== 'meta' || record.id !== 'local'),
+          { collection: 'meta', id: 'local', data: projection.data.local, updated_at, deleted: false }])
+      }
       if (!accepted()) return 0
       const count = await repo.merge(canonical, { dirty })
       // Bevor die nächste lokale Detailänderung beginnt, muss sie die übernommenen Daten sehen.

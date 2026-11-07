@@ -20,6 +20,16 @@ describe('Wiedereinstieg und additive Altdatenübernahme', () => {
     expect(usableResume({ ...resume, kind: 'task' }, [{ id: work.id, text: 'Nur Notiz', status: 'open', createdAt: at }], [])).toBeUndefined()
   })
 
+  it('behält den gewählten Teilschritt nach Umbenennen und verwechselt ihn nie mit dem nächsten offenen Schritt', () => {
+    const point = { ...resume, partId: 'zweiter' }
+    const task = { ...work, subtasks: [{ id: 'erster', title: 'Zuerst' }, { id: 'zweiter', title: 'Neu benannt' }] }
+    expect(usableResume(point, [], [task])).toMatchObject({ partId: 'zweiter', nextStep: 'Neu benannt' })
+    expect(usableResume(point, [], [{ ...task, subtasks: [{ id: 'erster', title: 'Zuerst' }] }])).toBeUndefined()
+    expect(usableResume(point, [], [{ ...task, subtasks: [{ id: 'zweiter', title: 'Erledigt', doneAt: at }] }])).toBeUndefined()
+    expect(resumeRoute({ ...point, partId: 'a/b?#', route: '/veraltet' })).toBe('/aufgabe/work/bericht?teil=a%2Fb%3F%23')
+    for (const extra of [{ partId: '' }, { partId: 7 }, { partId: 'a', refId: undefined }, { partId: 'a', kind: 'free' }]) expect(validResume({ ...point, ...extra })).toBe(false)
+  })
+
   it('verwendet die kanonische Referenz statt einer veralteten Route und kodiert IDs', () => {
     expect(resumeRoute({ ...resume, refId: 'a/b?#', route: '/veraltet' })).toBe('/aufgabe/work/a%2Fb%3F%23')
     expect(resumeRoute({ kind: 'step', title: 'Zähne', at, route: '/fokus/morning' })).toBe('/fokus/morning')
@@ -47,6 +57,12 @@ describe('Wiedereinstieg und additive Altdatenübernahme', () => {
     expect(source.estimateMin).toBe(-5)
     const note: InboxItem = { id: 'note', text: 'Wichtig', createdAt: at, status: 'kept', linkedTo: { kind: 'work', id: work.id } }
     expect(normaliseTask(note)).toEqual(note)
+  })
+
+  it('verliert bei beschädigtem neuem Timerdauerfeld keine alten Teiltitel oder Erledigungen', () => {
+    const task = { ...work, subtasks: [{ id: 'alt', title: 'Erhalten', doneAt: at, timerMin: -1 }] }
+    expect(normaliseTask(task).subtasks).toEqual([{ id: 'alt', title: 'Erhalten', doneAt: at }])
+    expect(task.subtasks[0]?.timerMin).toBe(-1)
   })
 
   it('übernimmt nur gültige pausierte historische Uhren und startet keine beschädigten Daten', () => {
