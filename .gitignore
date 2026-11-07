@@ -18,3 +18,8 @@ android/capacitor-cordova-android-plugins
 
 # Private original instructions; publish only the generalized technical version.
 /docs/auftraege/ANKER_CODEX_MASTERPROMPT_v6_Gesamtauftrag.md
+
+# Private signing material for the separately installable mobile build.
+*.p12
+*.pfx
+signing-private.json
