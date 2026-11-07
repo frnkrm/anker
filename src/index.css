@@ -122,11 +122,12 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .settings-routine-list ol > li { padding: 8px; gap: 8px; }
 .routine-fields { display: grid; gap: 8px; }
 .routine-fields > input { min-height: 44px; padding: 6px 10px; line-height: 1.5; }
-.settings-routine-list .setting-row { grid-template-columns: minmax(0, 1fr) 196px; gap: 8px; }
-.settings-routine-list .setting-row-control { width: 196px; }
-.settings-routine-list .setting-control { width: 196px; grid-template-columns: 44px 60px minmax(0, 1fr) 44px; align-items: center; gap: 2px; }
+.settings-routine-list .setting-row { grid-template-columns: max-content minmax(0, 1fr); gap: 2px; }
+.settings-routine-list .setting-label { white-space: nowrap; }
+.settings-routine-list .setting-row-control { width: 196px; min-width: 0; }
+.settings-routine-list .setting-control { width: 196px; grid-template-columns: 44px minmax(max(44px, calc(3ch + 4px)), 1fr) max-content 44px; align-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
 .settings-routine-list .setting-control > button:first-of-type { grid-column: 1; grid-row: 1; }
-.settings-routine-list .setting-value { grid-column: 2; grid-row: 1; width: 60px; }
+.settings-routine-list .setting-value { grid-column: 2; grid-row: 1; width: 100%; padding-inline: 2px; }
 .settings-routine-list .setting-control > button:last-of-type { grid-column: 4; grid-row: 1; }
 .settings-routine-list .setting-unit { grid-column: 3; grid-row: 1; white-space: nowrap; overflow-wrap: normal; }
 .settings-routine-list .sortable-footer { gap: 4px; min-width: 0; }

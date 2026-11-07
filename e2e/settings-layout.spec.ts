@@ -41,9 +41,11 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
         const groups = [...root.querySelectorAll<HTMLElement>('.setting-control')].filter(visible).map((group) => {
           const fields = [...group.querySelectorAll<HTMLElement>('button,input')].map((node) => {
             const box = node.getBoundingClientRect()
-            return { x: box.x, width: box.width, height: box.height }
+            return { x: box.x, right: box.right, y: box.y, width: box.width, height: box.height }
           })
-          return { fields, routine: !!group.closest('.settings-routine-list'), width: group.getBoundingClientRect().width }
+          const unit = group.querySelector<HTMLElement>('.setting-unit')?.getBoundingClientRect()
+          const box = group.getBoundingClientRect()
+          return { fields, unit: unit ? { x: unit.x, right: unit.right } : null, routine: !!group.closest('.settings-routine-list'), x: box.x, right: box.right, width: box.width }
         })
         const values = [...root.querySelectorAll<HTMLInputElement>('.setting-value')].filter(visible).map((node) => {
           const box = node.getBoundingClientRect()
@@ -55,6 +57,13 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
           .filter((node) => node.scrollWidth > node.clientWidth + 1 || getComputedStyle(node).textOverflow === 'ellipsis')
           .map((node) => ({ tag: node.tagName, label: node.getAttribute('aria-label') || node.textContent?.slice(0, 100), width: node.clientWidth, content: node.scrollWidth }))
         const context = document.createElement('canvas').getContext('2d')!
+        for (const input of [...root.querySelectorAll<HTMLInputElement>('.settings-routine-list input.setting-value')].filter(visible)) {
+          const style = getComputedStyle(input)
+          context.font = style.font
+          const textWidth = context.measureText(input.value).width
+          const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+          if (textWidth > available) clipped.push({ tag: 'NUMBER', label: input.getAttribute('aria-label') ?? '', width: available, content: textWidth })
+        }
         for (const select of [...root.querySelectorAll<HTMLSelectElement>('select')].filter(visible)) {
           const style = getComputedStyle(select)
           context.font = style.font
@@ -77,22 +86,37 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
       })
       expect(geometry.pageWidth, route).toBeLessThanOrEqual(geometry.viewport + 1)
       expect(geometry.clipped, route).toEqual([])
-      for (const { fields, routine, width: controlWidth } of geometry.groups) {
+      for (const { fields, unit, routine, x, right, width: controlWidth } of geometry.groups) {
         expect(fields, route).toHaveLength(3)
         const [minus, value, plus] = fields
         expect(minus!.width, route).toBeGreaterThanOrEqual(44)
         expect(plus!.width, route).toBeGreaterThanOrEqual(44)
         expect(minus!.height, route).toBeGreaterThanOrEqual(44)
         expect(plus!.height, route).toBeGreaterThanOrEqual(44)
-        // Nur Routinekarten verwenden die kompakte Variante. Die übrigen
-        // Einstellungsfelder behalten ihre feste, gut lesbare Bedienungsspalte.
-        expect(controlWidth, route).toBeCloseTo(routine ? 196 : 256, 0)
-        expect(value!.width, route).toBeCloseTo(routine ? 60 : 160, 0)
-        expect(value!.x - minus!.x, route).toBeCloseTo(routine ? 46 : 48, 0)
-        expect(plus!.x - value!.x, route).toBeCloseTo(routine ? 106 : 164, 0)
+        if (routine) {
+          // Die Routinevariante darf Platz an Zahl und Einheit verteilen. Jede
+          // Spalte bleibt getrennt und die gesamte Bedienung innerhalb 196px.
+          expect(controlWidth, route).toBeLessThanOrEqual(196)
+          expect(value!.width, route).toBeGreaterThanOrEqual(44)
+          expect(unit, route).not.toBeNull()
+          expect(minus!.x, route).toBeCloseTo(x, 0)
+          expect(value!.x - minus!.right, route).toBeCloseTo(2, 0)
+          expect(unit!.x - value!.right, route).toBeCloseTo(2, 0)
+          expect(plus!.x - unit!.right, route).toBeCloseTo(2, 0)
+          expect(plus!.right, route).toBeCloseTo(right, 0)
+          expect(value!.y + value!.height / 2, route).toBeCloseTo(minus!.y + minus!.height / 2, 0)
+          expect(plus!.y + plus!.height / 2, route).toBeCloseTo(minus!.y + minus!.height / 2, 0)
+        } else {
+          // Andere Einstellungsfelder behalten exakt ihre vorhandenen Maße.
+          expect(controlWidth, route).toBeCloseTo(256, 0)
+          expect(value!.width, route).toBeCloseTo(160, 0)
+          expect(value!.x - minus!.x, route).toBeCloseTo(48, 0)
+          expect(plus!.x - value!.x, route).toBeCloseTo(164, 0)
+        }
       }
       for (const value of geometry.values) {
-        expect(value.width, route).toBeCloseTo(value.routine ? 60 : 160, 0)
+        if (value.routine) expect(value.width, route).toBeGreaterThanOrEqual(44)
+        else expect(value.width, route).toBeCloseTo(160, 0)
         expect(value.height, route).toBeGreaterThanOrEqual(44)
       }
       if (geometry.values.length > 1) expect(Math.max(...geometry.values.map((value) => value.x)) - Math.min(...geometry.values.map((value) => value.x)), route).toBeLessThanOrEqual(1)

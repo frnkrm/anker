@@ -27,8 +27,17 @@ async function setup(page: Page, fontScale: number) {
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
 }
 
-for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
-  test(`Routinekarten: Dauer daneben und Sortieren/Entfernen unten bei ${width}px und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
+const viewports: { width: number; fontScale: number; availableWidth?: number }[] = [
+  { width: 390, fontScale: 1 }, { width: 390, fontScale: 1.6 },
+  { width: 320, fontScale: 1 }, { width: 320, fontScale: 1.6 },
+  // Die Seitenbreite ist unabhängig davon, ob der Browser für seine Scrollbar
+  // Platz reserviert. So prüfen alle Browser denselben zusätzlichen Engpass.
+  { width: 305, fontScale: 1.6, availableWidth: 305 },
+]
+
+for (const { width, fontScale, availableWidth } of viewports) {
+  const widthLabel = availableWidth ? `${availableWidth}px verfügbarer Seitenbreite` : `${width}px`
+  test(`Routinekarten: Dauer daneben und Sortieren/Entfernen unten bei ${widthLabel} und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await setup(page, fontScale)
     for (const routine of routines) {
@@ -36,6 +45,12 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
       await expect(page.getByRole('heading', { name: routine.heading, exact: true })).toBeVisible()
       const cards = page.locator('.settings-routine-list ol > li')
       await expect(cards).toHaveCount(3)
+      if (availableWidth) {
+        const measuredWidth = (await page.locator('.settings-page').boundingBox())!.width
+        const viewport = page.viewportSize()!
+        await page.setViewportSize({ width: Math.round(viewport.width + availableWidth - measuredWidth), height: viewport.height })
+        await expect.poll(async () => (await page.locator('.settings-page').boundingBox())!.width, routine.heading).toBeCloseTo(availableWidth, 0)
+      }
       const geometry = await cards.evaluateAll((nodes) => {
         const rect = (node: Element | Range) => {
           const box = node.getBoundingClientRect()
@@ -121,7 +136,16 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
           expect(overlapX > 1 && overlapY > 1, `${context}: ${a.name} überlagert ${b.name}`).toBe(false)
         }
       }
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), routine.heading).toBeLessThanOrEqual(width + 1)
+      const pageGeometry = await page.locator('.settings-page').evaluate((root) => ({
+        width: root.getBoundingClientRect().width,
+        scrollWidth: root.scrollWidth,
+        clientWidth: root.clientWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: innerWidth,
+      }))
+      expect(pageGeometry.documentWidth, routine.heading).toBeLessThanOrEqual(pageGeometry.viewportWidth + 1)
+      expect(pageGeometry.scrollWidth, routine.heading).toBeLessThanOrEqual(pageGeometry.clientWidth + 1)
+      if (availableWidth) expect(Math.abs(pageGeometry.width - availableWidth), routine.heading).toBeLessThanOrEqual(1)
       if (width === 390 && fontScale === 1) {
         for (const item of geometry) expect(item.card.height, routine.heading).toBeLessThanOrEqual(240)
         const navTop = await page.getByRole('navigation').evaluateAll((nodes) => Math.min(innerHeight, ...nodes.map((node) => node.getBoundingClientRect().top)))
