@@ -1,0 +1,11 @@
+{
+  "version": "1.3.0-rc.6",
+  "code": 13,
+  "sampleDate": "2026-11-09",
+  "pages": 100,
+  "checkedPngInventory": true,
+  "browserErrorsScope": "Abschließende ergänzende Aufnahmen; Hauptseiten separat anhand Manifest und Bilddateien geprüft.",
+  "imageCount": 158,
+  "problems": [],
+  "browserErrors": []
+}

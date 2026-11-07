@@ -1,0 +1,245 @@
+{
+  "simulation": true,
+  "realAndroid": false,
+  "fullPageNavigation": "Nur für Gesamtansichten steht die Hauptnavigation am Ende des Inhalts statt fixiert über dem Seiteninhalt. Handyansichten bleiben unverändert.",
+  "captures": [
+    {
+      "id": "wecker-main",
+      "title": "Hauptwecker klingelt",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-main.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-andere-wege",
+      "title": "Wecker: andere Wege zum Beenden",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-andere-wege.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Alternative Wege zum QR-Scanner.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-rechenaufgabe",
+      "title": "Wecker: Rechenaufgaben",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-rechenaufgabe.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Erste von drei Beispiel-Rechenaufgaben.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-notfallstopp",
+      "title": "Wecker: Notfall-Stopp",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-notfallstopp.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Zehn-Sekunden-Wartezeit; keine Hardwarebedienung simuliert.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-snooze",
+      "title": "Wecker nach dem Schlummern",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-snooze.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-prewake",
+      "title": "Vorwecker klingelt",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-prewake.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-wakecheck",
+      "title": "Wachheits-Check",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-wakecheck.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-test",
+      "title": "Testwecker klingelt",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-test.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "wecker-test-hoerbarkeit",
+      "title": "Testwecker: Hörbarkeit bestätigen",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker/klingelt",
+      "file": "native-simulation/SIMULATION__wecker-test-hoerbarkeit.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Die Frage wird gezeigt; es wird keine Hörbarkeit bestätigt.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "einrichtung-android-freigaben",
+      "title": "Einrichtung: Android-Freigaben",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/start",
+      "file": "native-simulation/SIMULATION__einrichtung-android-freigaben.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Dritter Einrichtungsschritt. Die Android-Systemdialoge selbst sind nicht erfasst.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "weckfenster-bereit",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker",
+      "file": "native-simulation/SIMULATION__weckfenster-bereit.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Option eingeschaltet, Sensoren nicht aktiv. Statuswerte simuliert.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4184
+    },
+    {
+      "id": "weckfenster-bereit__gesamt",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker",
+      "file": "native-simulation/SIMULATION__weckfenster-bereit__gesamt.png",
+      "kind": "Gesamtansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Option eingeschaltet, Sensoren nicht aktiv. Statuswerte simuliert.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4184
+    },
+    {
+      "id": "weckfenster-vorbereitet",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker",
+      "file": "native-simulation/SIMULATION__weckfenster-vorbereitet.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Nur Statusanzeige simuliert. Keine Sensoren, Mikrofonaufnahmen oder Schlafphasenmessung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4302
+    },
+    {
+      "id": "weckfenster-vorbereitet__gesamt",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/wecker",
+      "file": "native-simulation/SIMULATION__weckfenster-vorbereitet__gesamt.png",
+      "kind": "Gesamtansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Nur Statusanzeige simuliert. Keine Sensoren, Mikrofonaufnahmen oder Schlafphasenmessung.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4302
+    },
+    {
+      "id": "schlafhinweis-idle",
+      "title": "Stummer Schlafhinweis: bewusst starten",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/",
+      "file": "native-simulation/SIMULATION__schlafhinweis-idle.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "schlafhinweis-waiting",
+      "title": "Stummer Schlafhinweis: vorgemerkt",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/",
+      "file": "native-simulation/SIMULATION__schlafhinweis-waiting.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    },
+    {
+      "id": "schlafhinweis-shown",
+      "title": "Stummer Schlafhinweis: Zeitpunkt erreicht",
+      "category": "Android-Ansichten (Browser-Simulation)",
+      "route": "/",
+      "file": "native-simulation/SIMULATION__schlafhinweis-shown.png",
+      "kind": "Handyansicht",
+      "description": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844
+    }
+  ]
+}

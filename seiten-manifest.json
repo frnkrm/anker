@@ -1,0 +1,2156 @@
+[
+  {
+    "number": 1,
+    "group": "01-seiten",
+    "title": "Ersteinrichtung – Angaben",
+    "route": "/start",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1052,
+    "files": [
+      "01-seiten/001-ersteinrichtung-angaben.png",
+      "01-seiten/001-ersteinrichtung-angaben-gesamt.png"
+    ],
+    "heading": [
+      "Hallo! ⚓"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 2,
+    "group": "01-seiten",
+    "title": "Ersteinrichtung – Anker und Thema",
+    "route": "/start",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1048,
+    "files": [
+      "01-seiten/002-ersteinrichtung-anker-und-thema.png",
+      "01-seiten/002-ersteinrichtung-anker-und-thema-gesamt.png"
+    ],
+    "heading": [
+      "Dein Anker"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 3,
+    "group": "01-seiten",
+    "title": "Jetzt",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "01-seiten/003-jetzt.png",
+      "01-seiten/003-jetzt-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 4,
+    "group": "01-seiten",
+    "title": "Tag – Heute",
+    "route": "/tag",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2755,
+    "files": [
+      "01-seiten/004-tag-heute.png",
+      "01-seiten/004-tag-heute-gesamt.png"
+    ],
+    "heading": [
+      "Heute"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 5,
+    "group": "01-seiten",
+    "title": "Mehr",
+    "route": "/mehr",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1636,
+    "files": [
+      "01-seiten/005-mehr.png",
+      "01-seiten/005-mehr-gesamt.png"
+    ],
+    "heading": [
+      "Mehr"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 6,
+    "group": "01-seiten",
+    "title": "Arbeit",
+    "route": "/arbeit",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1218,
+    "files": [
+      "01-seiten/006-arbeit.png",
+      "01-seiten/006-arbeit-gesamt.png"
+    ],
+    "heading": [
+      "Arbeit"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 7,
+    "group": "01-seiten",
+    "title": "Arbeitszeit",
+    "route": "/arbeitszeit",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1866,
+    "files": [
+      "01-seiten/007-arbeitszeit.png",
+      "01-seiten/007-arbeitszeit-gesamt.png"
+    ],
+    "heading": [
+      "Arbeitszeit"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 8,
+    "group": "01-seiten",
+    "title": "Orte und manuelle Wege",
+    "route": "/orte",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/008-orte-und-manuelle-wege.png"
+    ],
+    "heading": [
+      "Orte & manuelle Wege"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 9,
+    "group": "01-seiten",
+    "title": "Spiel",
+    "route": "/spiel",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2087,
+    "files": [
+      "01-seiten/009-spiel.png",
+      "01-seiten/009-spiel-gesamt.png"
+    ],
+    "heading": [
+      "⚓ Seefahrt"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 10,
+    "group": "01-seiten",
+    "title": "Belohnungen",
+    "route": "/spiel/shop",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 868,
+    "files": [
+      "01-seiten/010-belohnungen.png"
+    ],
+    "heading": [
+      "Belohnungen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 11,
+    "group": "01-seiten",
+    "title": "Gedanken und private Aufgaben",
+    "route": "/inbox",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1314,
+    "files": [
+      "01-seiten/011-gedanken-und-private-aufgaben.png",
+      "01-seiten/011-gedanken-und-private-aufgaben-gesamt.png"
+    ],
+    "heading": [
+      "Gedanken"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 12,
+    "group": "01-seiten",
+    "title": "Abend und morgen",
+    "route": "/abend",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1578,
+    "files": [
+      "01-seiten/012-abend-und-morgen.png",
+      "01-seiten/012-abend-und-morgen-gesamt.png"
+    ],
+    "heading": [
+      "Abend & morgen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 13,
+    "group": "01-seiten",
+    "title": "Schlafüberblick",
+    "route": "/schlaf",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2130,
+    "files": [
+      "01-seiten/013-schlafuberblick.png",
+      "01-seiten/013-schlafuberblick-gesamt.png"
+    ],
+    "heading": [
+      "Schlafüberblick"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 14,
+    "group": "01-seiten",
+    "title": "Essen und Vorkochen",
+    "route": "/essen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1034,
+    "files": [
+      "01-seiten/014-essen-und-vorkochen.png",
+      "01-seiten/014-essen-und-vorkochen-gesamt.png"
+    ],
+    "heading": [
+      "Essen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 15,
+    "group": "01-seiten",
+    "title": "Aufräumen",
+    "route": "/aufraeumen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 874,
+    "files": [
+      "01-seiten/015-aufraumen.png"
+    ],
+    "heading": [
+      "Aufräumen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 16,
+    "group": "01-seiten",
+    "title": "Vorbereitung für morgen",
+    "route": "/vorbereitung",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/016-vorbereitung-fur-morgen.png"
+    ],
+    "heading": [
+      "Für morgen vorbereiten"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 17,
+    "group": "01-seiten",
+    "title": "Wochenrückblick",
+    "route": "/rueckblick",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/017-wochenruckblick.png"
+    ],
+    "heading": [
+      "Wochenrückblick"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 18,
+    "group": "01-seiten",
+    "title": "Einrichtungs-Check",
+    "route": "/check",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/018-einrichtungs-check.png"
+    ],
+    "heading": [
+      "Einrichtungs-Check"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 19,
+    "group": "01-seiten",
+    "title": "Zeitübersicht",
+    "route": "/zeiten",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 5246,
+    "files": [
+      "01-seiten/019-zeitubersicht.png",
+      "01-seiten/019-zeitubersicht-gesamt.png"
+    ],
+    "heading": [
+      "Zeitübersicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 20,
+    "group": "01-seiten",
+    "title": "Gemeinsam testen",
+    "route": "/geraetetest",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 3316,
+    "files": [
+      "01-seiten/020-gemeinsam-testen.png",
+      "01-seiten/020-gemeinsam-testen-gesamt.png"
+    ],
+    "heading": [
+      "Gemeinsam testen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 21,
+    "group": "01-seiten",
+    "title": "Wecker",
+    "route": "/wecker",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1706,
+    "files": [
+      "01-seiten/021-wecker.png",
+      "01-seiten/021-wecker-gesamt.png"
+    ],
+    "heading": [
+      "Wecker"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 22,
+    "group": "01-seiten",
+    "title": "PC-Stopp",
+    "route": "/pc-stopp",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1208,
+    "files": [
+      "01-seiten/022-pc-stopp.png",
+      "01-seiten/022-pc-stopp-gesamt.png"
+    ],
+    "heading": [
+      "PC-Stopp"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 23,
+    "group": "01-seiten",
+    "title": "Kalender und Sync",
+    "route": "/verbindungen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 932,
+    "files": [
+      "01-seiten/023-kalender-und-sync.png",
+      "01-seiten/023-kalender-und-sync-gesamt.png"
+    ],
+    "heading": [
+      "Kalender & Sync"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 24,
+    "group": "01-seiten",
+    "title": "Drucken",
+    "route": "/druck",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1340,
+    "files": [
+      "01-seiten/024-drucken.png",
+      "01-seiten/024-drucken-gesamt.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 25,
+    "group": "01-seiten",
+    "title": "Hilfe und Anlaufstellen",
+    "route": "/hilfe",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1826,
+    "files": [
+      "01-seiten/025-hilfe-und-anlaufstellen.png",
+      "01-seiten/025-hilfe-und-anlaufstellen-gesamt.png"
+    ],
+    "heading": [
+      "Hilfe & Anlaufstellen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 26,
+    "group": "01-seiten",
+    "title": "Sicherung",
+    "route": "/backup",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/026-sicherung.png"
+    ],
+    "heading": [
+      "Sicherung"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 27,
+    "group": "01-seiten",
+    "title": "Morgenroutine – Fokus",
+    "route": "/fokus/morning",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/027-morgenroutine-fokus.png"
+    ],
+    "heading": [
+      "Ein Schluck Wasser"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 28,
+    "group": "01-seiten",
+    "title": "Abendroutine – Fokus",
+    "route": "/fokus/evening",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/028-abendroutine-fokus.png"
+    ],
+    "heading": [
+      "10 Minuten aufräumen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 29,
+    "group": "01-seiten",
+    "title": "Arbeitsaufgabe – Fokusauswahl",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/029-arbeitsaufgabe-fokusauswahl.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 30,
+    "group": "01-seiten",
+    "title": "Private Aufgabe – Fokusauswahl",
+    "route": "/aufgabe/task/demo-privat",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/030-private-aufgabe-fokusauswahl.png"
+    ],
+    "heading": [
+      "Wäschekorb zur Maschine stellen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 31,
+    "group": "01-seiten",
+    "title": "Teilschritt – Timer wählen",
+    "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/031-teilschritt-timer-wahlen.png"
+    ],
+    "heading": [
+      "Stichpunkte sammeln"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 32,
+    "group": "01-seiten",
+    "title": "Gedanke festhalten",
+    "route": "/gedanke",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/032-gedanke-festhalten.png"
+    ],
+    "heading": [],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 33,
+    "group": "01-seiten",
+    "title": "Wiedereinstieg",
+    "route": "/wiedereinstieg",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/033-wiedereinstieg.png"
+    ],
+    "heading": [],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 34,
+    "group": "02-einstellungen",
+    "title": "Einstellungen – Übersicht",
+    "route": "/einstellungen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1596,
+    "files": [
+      "02-einstellungen/034-einstellungen-ubersicht.png",
+      "02-einstellungen/034-einstellungen-ubersicht-gesamt.png"
+    ],
+    "heading": [
+      "Einstellungen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 35,
+    "group": "02-einstellungen",
+    "title": "Arbeit und Gleitzeit",
+    "route": "/einstellungen/arbeit",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 4166,
+    "files": [
+      "02-einstellungen/035-arbeit-und-gleitzeit.png",
+      "02-einstellungen/035-arbeit-und-gleitzeit-gesamt.png"
+    ],
+    "heading": [
+      "Arbeit & Gleitzeit"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 36,
+    "group": "02-einstellungen",
+    "title": "Arbeitsweg",
+    "route": "/einstellungen/weg",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/036-arbeitsweg.png"
+    ],
+    "heading": [
+      "Arbeitsweg"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 37,
+    "group": "02-einstellungen",
+    "title": "Schlaf und Anker",
+    "route": "/einstellungen/schlaf",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1906,
+    "files": [
+      "02-einstellungen/037-schlaf-und-anker.png",
+      "02-einstellungen/037-schlaf-und-anker-gesamt.png"
+    ],
+    "heading": [
+      "Schlaf & Anker"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 38,
+    "group": "02-einstellungen",
+    "title": "Sport",
+    "route": "/einstellungen/sport",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/038-sport.png"
+    ],
+    "heading": [
+      "Sport"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 39,
+    "group": "02-einstellungen",
+    "title": "Abendpläne",
+    "route": "/einstellungen/abende",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2108,
+    "files": [
+      "02-einstellungen/039-abendplane.png",
+      "02-einstellungen/039-abendplane-gesamt.png"
+    ],
+    "heading": [
+      "Abendpläne"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 40,
+    "group": "02-einstellungen",
+    "title": "Abendmodus",
+    "route": "/einstellungen/abendmodus",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/040-abendmodus.png"
+    ],
+    "heading": [
+      "Abendmodus"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 41,
+    "group": "02-einstellungen",
+    "title": "Morgenroutine – Editor",
+    "route": "/einstellungen/morgenroutine",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2156,
+    "files": [
+      "02-einstellungen/041-morgenroutine-editor.png",
+      "02-einstellungen/041-morgenroutine-editor-gesamt.png"
+    ],
+    "heading": [
+      "Morgenroutine"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 42,
+    "group": "02-einstellungen",
+    "title": "Abendroutine – Editor",
+    "route": "/einstellungen/abendroutine",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1472,
+    "files": [
+      "02-einstellungen/042-abendroutine-editor.png",
+      "02-einstellungen/042-abendroutine-editor-gesamt.png"
+    ],
+    "heading": [
+      "Abendroutine"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 43,
+    "group": "02-einstellungen",
+    "title": "Erinnerungen",
+    "route": "/einstellungen/erinnerungen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/043-erinnerungen.png"
+    ],
+    "heading": [
+      "Erinnerungen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 44,
+    "group": "02-einstellungen",
+    "title": "Darstellung",
+    "route": "/einstellungen/darstellung",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/044-darstellung.png"
+    ],
+    "heading": [
+      "Darstellung"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 45,
+    "group": "02-einstellungen",
+    "title": "Alltagshilfen",
+    "route": "/einstellungen/hilfen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2950,
+    "files": [
+      "02-einstellungen/045-alltagshilfen.png",
+      "02-einstellungen/045-alltagshilfen-gesamt.png"
+    ],
+    "heading": [
+      "Alltagshilfen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 46,
+    "group": "02-einstellungen",
+    "title": "Sanfter Abendübergang",
+    "route": "/einstellungen/abenduebergang",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1020,
+    "files": [
+      "02-einstellungen/046-sanfter-abendubergang.png",
+      "02-einstellungen/046-sanfter-abendubergang-gesamt.png"
+    ],
+    "heading": [
+      "Sanfter Abendübergang"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 47,
+    "group": "02-einstellungen",
+    "title": "Optionale Vorschläge",
+    "route": "/einstellungen/assistenz",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2204,
+    "files": [
+      "02-einstellungen/047-optionale-vorschlage.png",
+      "02-einstellungen/047-optionale-vorschlage-gesamt.png"
+    ],
+    "heading": [
+      "Optionale Vorschläge"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 48,
+    "group": "04-zustaende",
+    "title": "Tag – Morgen",
+    "route": "/tag",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2088,
+    "files": [
+      "04-zustaende/048-tag-morgen.png",
+      "04-zustaende/048-tag-morgen-gesamt.png"
+    ],
+    "heading": [
+      "Morgen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 49,
+    "group": "04-zustaende",
+    "title": "Tag – weiterer Tag",
+    "route": "/tag",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2088,
+    "files": [
+      "04-zustaende/049-tag-weiterer-tag.png",
+      "04-zustaende/049-tag-weiterer-tag-gesamt.png"
+    ],
+    "heading": [
+      "Mittwoch"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 50,
+    "group": "04-zustaende",
+    "title": "Druck – Morgenroutine",
+    "route": "/druck?typ=morning",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 960,
+    "files": [
+      "04-zustaende/050-druck-morgenroutine.png",
+      "04-zustaende/050-druck-morgenroutine-gesamt.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 51,
+    "group": "04-zustaende",
+    "title": "Druck – Abendroutine",
+    "route": "/druck?typ=evening",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/051-druck-abendroutine.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 52,
+    "group": "04-zustaende",
+    "title": "Druck – beide Routinen",
+    "route": "/druck?typ=both",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1340,
+    "files": [
+      "04-zustaende/052-druck-beide-routinen.png",
+      "04-zustaende/052-druck-beide-routinen-gesamt.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 53,
+    "group": "04-zustaende",
+    "title": "Druck – Demo-Wecker-QR",
+    "route": "/druck?typ=qr",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 936,
+    "files": [
+      "04-zustaende/053-druck-demo-wecker-qr.png",
+      "04-zustaende/053-druck-demo-wecker-qr-gesamt.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 54,
+    "group": "04-zustaende",
+    "title": "Druck – Haustür-Check",
+    "route": "/druck?typ=door",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/054-druck-haustur-check.png"
+    ],
+    "heading": [
+      "Druckansicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 55,
+    "group": "04-zustaende",
+    "title": "Sicherung – Wiederherstellung",
+    "route": "/backup?wiederherstellen=1",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/055-sicherung-wiederherstellung.png"
+    ],
+    "heading": [
+      "Sicherung"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 56,
+    "group": "04-zustaende",
+    "title": "Test 95 – Routinekarten",
+    "route": "/geraetetest?fall=95",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 4532,
+    "files": [
+      "04-zustaende/056-test-95-routinekarten.png",
+      "04-zustaende/056-test-95-routinekarten-gesamt.png"
+    ],
+    "heading": [
+      "Gemeinsam testen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 57,
+    "group": "04-zustaende",
+    "title": "Test 96 – Schlafhinweis",
+    "route": "/geraetetest?fall=96",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 4052,
+    "files": [
+      "04-zustaende/057-test-96-schlafhinweis.png",
+      "04-zustaende/057-test-96-schlafhinweis-gesamt.png"
+    ],
+    "heading": [
+      "Gemeinsam testen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 58,
+    "group": "03-dialoge",
+    "title": "Ort hinzufügen – alle Felder",
+    "route": "/orte",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1862,
+    "files": [
+      "03-dialoge/058-ort-hinzufugen-alle-felder.png",
+      "03-dialoge/058-ort-hinzufugen-alle-felder-gesamt.png"
+    ],
+    "heading": [
+      "Orte & manuelle Wege"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 59,
+    "group": "03-dialoge",
+    "title": "Arbeitsaufgabe – Details und Teilschritte",
+    "route": "/arbeit",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 3531,
+    "files": [
+      "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte.png",
+      "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte-gesamt.png"
+    ],
+    "heading": [
+      "Arbeit"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 60,
+    "group": "03-dialoge",
+    "title": "Private Aufgabe – Details und Teilschritte",
+    "route": "/inbox",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 3311,
+    "files": [
+      "03-dialoge/060-private-aufgabe-details-und-teilschritte.png",
+      "03-dialoge/060-private-aufgabe-details-und-teilschritte-gesamt.png"
+    ],
+    "heading": [
+      "Gedanken"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 61,
+    "group": "04-zustaende",
+    "title": "Arbeitszeit – Wochenübersicht und Nachtrag",
+    "route": "/arbeitszeit",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2128,
+    "files": [
+      "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag.png",
+      "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag-gesamt.png"
+    ],
+    "heading": [
+      "Arbeitszeit"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 62,
+    "group": "03-dialoge",
+    "title": "Sicherung – Exportauswahl",
+    "route": "/backup",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1032,
+    "files": [
+      "03-dialoge/062-sicherung-exportauswahl.png",
+      "03-dialoge/062-sicherung-exportauswahl-gesamt.png"
+    ],
+    "heading": [
+      "Sicherung"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 63,
+    "group": "03-dialoge",
+    "title": "Abend – Idee parken und nächsten Schritt merken",
+    "route": "/abend",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2420,
+    "files": [
+      "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken.png",
+      "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png"
+    ],
+    "heading": [
+      "Abend & morgen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 64,
+    "group": "03-dialoge",
+    "title": "Schlafüberblick – Angaben korrigieren",
+    "route": "/schlaf",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2694,
+    "files": [
+      "03-dialoge/064-schlafuberblick-angaben-korrigieren.png",
+      "03-dialoge/064-schlafuberblick-angaben-korrigieren-gesamt.png"
+    ],
+    "heading": [
+      "Schlafüberblick"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 65,
+    "group": "04-zustaende",
+    "title": "Jetzt – Plan und Optionen geöffnet",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1997,
+    "files": [
+      "04-zustaende/065-jetzt-plan-und-optionen-geoffnet.png",
+      "04-zustaende/065-jetzt-plan-und-optionen-geoffnet-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 66,
+    "group": "03-dialoge",
+    "title": "Heute – Tagesart und Unterstützungsmodus",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/066-heute-tagesart-und-unterstutzungsmodus.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 67,
+    "group": "03-dialoge",
+    "title": "Ganz klein anfangen",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/067-ganz-klein-anfangen.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 68,
+    "group": "03-dialoge",
+    "title": "Heute anders – Auswahl",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/068-heute-anders-auswahl.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 69,
+    "group": "03-dialoge",
+    "title": "Heute anders – Termin planen",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/069-heute-anders-termin-planen.png",
+      "03-dialoge/069-heute-anders-termin-planen-dialog-teil-2.png",
+      "03-dialoge/069-heute-anders-termin-planen-dialog-teil-3.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 70,
+    "group": "03-dialoge",
+    "title": "Heute anders – Arbeit anpassen",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/070-heute-anders-arbeit-anpassen.png",
+      "03-dialoge/070-heute-anders-arbeit-anpassen-dialog-teil-2.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 71,
+    "group": "03-dialoge",
+    "title": "Heute anders – Routine verschieben",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/071-heute-anders-routine-verschieben.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 72,
+    "group": "03-dialoge",
+    "title": "Heute anders – Nicht nötig",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/072-heute-anders-nicht-notig.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 73,
+    "group": "03-dialoge",
+    "title": "Heute anders – Abendzeit",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/073-heute-anders-abendzeit.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 74,
+    "group": "03-dialoge",
+    "title": "Heute anders – Morgen vorbereiten",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/074-heute-anders-morgen-vorbereiten.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 75,
+    "group": "03-dialoge",
+    "title": "Heute anders – Morgenroutine heute",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1043,
+    "files": [
+      "03-dialoge/075-heute-anders-morgenroutine-heute.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 76,
+    "group": "03-dialoge",
+    "title": "Dein Abend – PC-Stopp anpassen",
+    "route": "/pc-stopp",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1208,
+    "files": [
+      "03-dialoge/076-dein-abend-pc-stopp-anpassen.png"
+    ],
+    "heading": [
+      "PC-Stopp"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 77,
+    "group": "04-zustaende",
+    "title": "Arbeitsfokus – Timer läuft",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/077-arbeitsfokus-timer-lauft.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 78,
+    "group": "04-zustaende",
+    "title": "Arbeitsfokus – Pause",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/078-arbeitsfokus-pause.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 79,
+    "group": "03-dialoge",
+    "title": "Arbeitsfokus – Wiedereinstieg festhalten",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1110,
+    "files": [
+      "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten.png",
+      "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 80,
+    "group": "04-zustaende",
+    "title": "Teilschritt – Timer läuft",
+    "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/080-teilschritt-timer-lauft.png"
+    ],
+    "heading": [
+      "Stichpunkte sammeln"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 81,
+    "group": "04-zustaende",
+    "title": "Jetzt – 07.05 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 929,
+    "files": [
+      "04-zustaende/081-jetzt-07-05-uhr.png",
+      "04-zustaende/081-jetzt-07-05-uhr-gesamt.png"
+    ],
+    "heading": [
+      "Ein Schluck Wasser"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 82,
+    "group": "04-zustaende",
+    "title": "Jetzt – 16.30 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 989,
+    "files": [
+      "04-zustaende/082-jetzt-16-30-uhr.png",
+      "04-zustaende/082-jetzt-16-30-uhr-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 83,
+    "group": "04-zustaende",
+    "title": "Jetzt – 19.00 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 965,
+    "files": [
+      "04-zustaende/083-jetzt-19-00-uhr.png",
+      "04-zustaende/083-jetzt-19-00-uhr-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 84,
+    "group": "04-zustaende",
+    "title": "Jetzt – 21.45 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 965,
+    "files": [
+      "04-zustaende/084-jetzt-21-45-uhr.png",
+      "04-zustaende/084-jetzt-21-45-uhr-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 85,
+    "group": "04-zustaende",
+    "title": "Jetzt – 22.05 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 965,
+    "files": [
+      "04-zustaende/085-jetzt-22-05-uhr.png",
+      "04-zustaende/085-jetzt-22-05-uhr-gesamt.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 86,
+    "group": "04-zustaende",
+    "title": "Jetzt – 22.45 Uhr",
+    "route": "/",
+    "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/086-jetzt-22-45-uhr.png"
+    ],
+    "heading": [
+      "Ab ins Bett"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 87,
+    "group": "04-zustaende",
+    "title": "Fokus-Shortcut – aktuelles Ziel",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "Der Shortcut führt in die aktuelle Aufgabe oder Routine; er hat keine zweite Aufgabenplanung.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "04-zustaende/087-fokus-shortcut-aktuelles-ziel.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 88,
+    "group": "02-einstellungen",
+    "title": "Wecker – optionale Einstellungen geöffnet",
+    "route": "/wecker",
+    "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2590,
+    "files": [
+      "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet.png",
+      "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet-gesamt.png"
+    ],
+    "heading": [
+      "Wecker"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 89,
+    "group": "02-einstellungen",
+    "title": "Abendmodus – Optionen geöffnet",
+    "route": "/einstellungen/abendmodus",
+    "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "02-einstellungen/089-abendmodus-optionen-geoffnet.png"
+    ],
+    "heading": [
+      "Abendmodus"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 90,
+    "group": "02-einstellungen",
+    "title": "Alltagshilfen – Optionen",
+    "route": "/einstellungen/hilfen",
+    "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 3070,
+    "files": [
+      "02-einstellungen/090-alltagshilfen-optionen.png",
+      "02-einstellungen/090-alltagshilfen-optionen-gesamt.png"
+    ],
+    "heading": [
+      "Alltagshilfen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 91,
+    "group": "04-zustaende",
+    "title": "Jetzt – Abend mit ausgeblendeten Arbeitsaufgaben",
+    "route": "/",
+    "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 869,
+    "files": [
+      "04-zustaende/091-jetzt-abend-mit-ausgeblendeten-arbeitsaufgaben.png"
+    ],
+    "heading": [
+      "Tasche ablegen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 92,
+    "group": "04-zustaende",
+    "title": "Jetzt – Abendübergang mit Abendruhe",
+    "route": "/",
+    "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 998,
+    "files": [
+      "04-zustaende/092-jetzt-abendubergang-mit-abendruhe.png",
+      "04-zustaende/092-jetzt-abendubergang-mit-abendruhe-gesamt.png"
+    ],
+    "heading": [
+      "Wäschekorb zur Maschine stellen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 93,
+    "group": "04-zustaende",
+    "title": "Jetzt – vor dem Bett mit Abendruhe",
+    "route": "/",
+    "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 974,
+    "files": [
+      "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe.png",
+      "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe-gesamt.png"
+    ],
+    "heading": [
+      "10 Minuten aufräumen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 94,
+    "group": "03-dialoge",
+    "title": "Aufgabe – eigener Grund",
+    "route": "/aufgabe/work/demo-bericht",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 974,
+    "files": [
+      "03-dialoge/094-aufgabe-eigener-grund.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 95,
+    "group": "03-dialoge",
+    "title": "Heute länger arbeiten",
+    "route": "/",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 1997,
+    "files": [
+      "03-dialoge/095-heute-langer-arbeiten.png"
+    ],
+    "heading": [
+      "Dokument öffnen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 96,
+    "group": "04-zustaende",
+    "title": "Zeitübersicht – bedingte Hilfen und Regeln",
+    "route": "/zeiten",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 6955,
+    "files": [
+      "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln.png",
+      "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln-gesamt.png"
+    ],
+    "heading": [
+      "Zeitübersicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 97,
+    "group": "04-zustaende",
+    "title": "Zeitübersicht – Demnächst",
+    "route": "/zeiten",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 8593,
+    "files": [
+      "04-zustaende/097-zeitubersicht-demnachst.png",
+      "04-zustaende/097-zeitubersicht-demnachst-gesamt.png"
+    ],
+    "heading": [
+      "Zeitübersicht"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 98,
+    "group": "03-dialoge",
+    "title": "Freigabe – lokales Diktieren",
+    "route": "/einstellungen/hilfen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2950,
+    "files": [
+      "03-dialoge/098-freigabe-lokales-diktieren.png"
+    ],
+    "heading": [
+      "Alltagshilfen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 99,
+    "group": "03-dialoge",
+    "title": "Freigabe – Zeitinfos vorlesen",
+    "route": "/einstellungen/hilfen",
+    "note": "",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 2950,
+    "files": [
+      "03-dialoge/099-freigabe-zeitinfos-vorlesen.png"
+    ],
+    "heading": [
+      "Alltagshilfen"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  },
+  {
+    "number": 100,
+    "group": "01-seiten",
+    "title": "Fokus starten – Auswahl",
+    "route": "/fokus-start",
+    "note": "Wenn gerade keine nächste Aufgabe oder Routine ansteht, bietet dieser Shortcut eine bewusste Auswahl an.",
+    "simulatedNative": false,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    },
+    "height": 844,
+    "files": [
+      "01-seiten/100-fokus-starten-auswahl.png"
+    ],
+    "heading": [
+      "Fokus starten"
+    ],
+    "fullPageNavigation": "Bei Gesamtansichten steht die feste Hauptnavigation einmalig unter dem Seiteninhalt, damit kein Inhalt verdeckt wird. Handyansichten unverändert."
+  }
+]

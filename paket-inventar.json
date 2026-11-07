@@ -1,0 +1,4758 @@
+{
+  "schemaVersion": 1,
+  "package": "Anker Screenshotpaket",
+  "version": "1.3.0-rc.6",
+  "versionCode": 13,
+  "sourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+  "generatedAt": "2026-11-07T21:11:47+01:00",
+  "timeZone": "Europe/Berlin",
+  "sampleDay": "2026-11-09",
+  "sampleTime": "10:00; weitere Tageszustände ausdrücklich als Varianten",
+  "nativeFixture": "Kontrollierte Browser-Simulation; Nachtansichten um 23:30",
+  "syntheticDataOnly": true,
+  "realAndroidProof": false,
+  "applicationChanged": false,
+  "fullPageCaptureNote": "Nur für Gesamtansichten wird die sonst feststehende Anker-Navigation durch eine Aufnahmeoption einmal unter dem vollständigen Inhalt angeordnet. So verdeckt sie keine Stelle in einem langen Bild. Die Handyansichten zeigen die normale feste Navigation; der Appcode bleibt unverändert.",
+  "counts": {
+    "screenshots": 175,
+    "mainScreenshots": 158,
+    "simulatedNativeScreenshots": 17,
+    "mainCapturedViews": 100,
+    "simulatedNativeManifestEntries": 17,
+    "uniqueRoutes": 56,
+    "groups": {
+      "01-seiten": 53,
+      "02-einstellungen": 28,
+      "04-zustaende": 45,
+      "03-dialoge": 32,
+      "native-simulation": 17
+    }
+  },
+  "omittedAndroidSystemSurfaces": [
+    "Android-Systemdialoge für Berechtigungen, Akku und Nicht stören",
+    "echter Sperrbildschirm, Always-on-Display und Android-Systemleisten",
+    "echte Benachrichtigungen und deren Android-Antwortaktionen",
+    "Homescreen-Widget und Launcher-Schnellzugriffe auf einem echten Handy",
+    "QR-Kamerabild, Android-Dateiauswahl, Teilen- und Druck-Systemdialoge",
+    "das Android-Fenster über anderen Apps und deren tatsächliches Minimieren",
+    "echter Weckton, Sensor-/Mikrofonmessung und Schlafphasen oder Schlafqualität",
+    "externe Anbieter-, Google-Anmelde- und Play-Store-Oberflächen"
+  ],
+  "pngHeadersAndChunkCrcVerified": true,
+  "sha256SumsScope": "Alle Dateien im Paket außer SHA256SUMS selbst.",
+  "captures": [
+    {
+      "id": "seite-001",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Angaben",
+      "route": "/start",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/001-ersteinrichtung-angaben.png",
+        "01-seiten/001-ersteinrichtung-angaben-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-002",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Anker und Thema",
+      "route": "/start",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/002-ersteinrichtung-anker-und-thema.png",
+        "01-seiten/002-ersteinrichtung-anker-und-thema-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-003",
+      "group": "01-seiten",
+      "title": "Jetzt",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/003-jetzt.png",
+        "01-seiten/003-jetzt-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-004",
+      "group": "01-seiten",
+      "title": "Tag – Heute",
+      "route": "/tag",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/004-tag-heute.png",
+        "01-seiten/004-tag-heute-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-005",
+      "group": "01-seiten",
+      "title": "Mehr",
+      "route": "/mehr",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/005-mehr.png",
+        "01-seiten/005-mehr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-006",
+      "group": "01-seiten",
+      "title": "Arbeit",
+      "route": "/arbeit",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/006-arbeit.png",
+        "01-seiten/006-arbeit-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-007",
+      "group": "01-seiten",
+      "title": "Arbeitszeit",
+      "route": "/arbeitszeit",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/007-arbeitszeit.png",
+        "01-seiten/007-arbeitszeit-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-008",
+      "group": "01-seiten",
+      "title": "Orte und manuelle Wege",
+      "route": "/orte",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/008-orte-und-manuelle-wege.png"
+      ]
+    },
+    {
+      "id": "seite-009",
+      "group": "01-seiten",
+      "title": "Spiel",
+      "route": "/spiel",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/009-spiel.png",
+        "01-seiten/009-spiel-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-010",
+      "group": "01-seiten",
+      "title": "Belohnungen",
+      "route": "/spiel/shop",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/010-belohnungen.png"
+      ]
+    },
+    {
+      "id": "seite-011",
+      "group": "01-seiten",
+      "title": "Gedanken und private Aufgaben",
+      "route": "/inbox",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/011-gedanken-und-private-aufgaben.png",
+        "01-seiten/011-gedanken-und-private-aufgaben-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-012",
+      "group": "01-seiten",
+      "title": "Abend und morgen",
+      "route": "/abend",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/012-abend-und-morgen.png",
+        "01-seiten/012-abend-und-morgen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-013",
+      "group": "01-seiten",
+      "title": "Schlafüberblick",
+      "route": "/schlaf",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/013-schlafuberblick.png",
+        "01-seiten/013-schlafuberblick-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-014",
+      "group": "01-seiten",
+      "title": "Essen und Vorkochen",
+      "route": "/essen",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/014-essen-und-vorkochen.png",
+        "01-seiten/014-essen-und-vorkochen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-015",
+      "group": "01-seiten",
+      "title": "Aufräumen",
+      "route": "/aufraeumen",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/015-aufraumen.png"
+      ]
+    },
+    {
+      "id": "seite-016",
+      "group": "01-seiten",
+      "title": "Vorbereitung für morgen",
+      "route": "/vorbereitung",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/016-vorbereitung-fur-morgen.png"
+      ]
+    },
+    {
+      "id": "seite-017",
+      "group": "01-seiten",
+      "title": "Wochenrückblick",
+      "route": "/rueckblick",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/017-wochenruckblick.png"
+      ]
+    },
+    {
+      "id": "seite-018",
+      "group": "01-seiten",
+      "title": "Einrichtungs-Check",
+      "route": "/check",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/018-einrichtungs-check.png"
+      ]
+    },
+    {
+      "id": "seite-019",
+      "group": "01-seiten",
+      "title": "Zeitübersicht",
+      "route": "/zeiten",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/019-zeitubersicht.png",
+        "01-seiten/019-zeitubersicht-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-020",
+      "group": "01-seiten",
+      "title": "Gemeinsam testen",
+      "route": "/geraetetest",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/020-gemeinsam-testen.png",
+        "01-seiten/020-gemeinsam-testen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-021",
+      "group": "01-seiten",
+      "title": "Wecker",
+      "route": "/wecker",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/021-wecker.png",
+        "01-seiten/021-wecker-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-022",
+      "group": "01-seiten",
+      "title": "PC-Stopp",
+      "route": "/pc-stopp",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/022-pc-stopp.png",
+        "01-seiten/022-pc-stopp-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-023",
+      "group": "01-seiten",
+      "title": "Kalender und Sync",
+      "route": "/verbindungen",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/023-kalender-und-sync.png",
+        "01-seiten/023-kalender-und-sync-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-024",
+      "group": "01-seiten",
+      "title": "Drucken",
+      "route": "/druck",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/024-drucken.png",
+        "01-seiten/024-drucken-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-025",
+      "group": "01-seiten",
+      "title": "Hilfe und Anlaufstellen",
+      "route": "/hilfe",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/025-hilfe-und-anlaufstellen.png",
+        "01-seiten/025-hilfe-und-anlaufstellen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-026",
+      "group": "01-seiten",
+      "title": "Sicherung",
+      "route": "/backup",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/026-sicherung.png"
+      ]
+    },
+    {
+      "id": "seite-027",
+      "group": "01-seiten",
+      "title": "Morgenroutine – Fokus",
+      "route": "/fokus/morning",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/027-morgenroutine-fokus.png"
+      ]
+    },
+    {
+      "id": "seite-028",
+      "group": "01-seiten",
+      "title": "Abendroutine – Fokus",
+      "route": "/fokus/evening",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/028-abendroutine-fokus.png"
+      ]
+    },
+    {
+      "id": "seite-029",
+      "group": "01-seiten",
+      "title": "Arbeitsaufgabe – Fokusauswahl",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/029-arbeitsaufgabe-fokusauswahl.png"
+      ]
+    },
+    {
+      "id": "seite-030",
+      "group": "01-seiten",
+      "title": "Private Aufgabe – Fokusauswahl",
+      "route": "/aufgabe/task/demo-privat",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/030-private-aufgabe-fokusauswahl.png"
+      ]
+    },
+    {
+      "id": "seite-031",
+      "group": "01-seiten",
+      "title": "Teilschritt – Timer wählen",
+      "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/031-teilschritt-timer-wahlen.png"
+      ]
+    },
+    {
+      "id": "seite-032",
+      "group": "01-seiten",
+      "title": "Gedanke festhalten",
+      "route": "/gedanke",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/032-gedanke-festhalten.png"
+      ]
+    },
+    {
+      "id": "seite-033",
+      "group": "01-seiten",
+      "title": "Wiedereinstieg",
+      "route": "/wiedereinstieg",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/033-wiedereinstieg.png"
+      ]
+    },
+    {
+      "id": "seite-034",
+      "group": "02-einstellungen",
+      "title": "Einstellungen – Übersicht",
+      "route": "/einstellungen",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/034-einstellungen-ubersicht.png",
+        "02-einstellungen/034-einstellungen-ubersicht-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-035",
+      "group": "02-einstellungen",
+      "title": "Arbeit und Gleitzeit",
+      "route": "/einstellungen/arbeit",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/035-arbeit-und-gleitzeit.png",
+        "02-einstellungen/035-arbeit-und-gleitzeit-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-036",
+      "group": "02-einstellungen",
+      "title": "Arbeitsweg",
+      "route": "/einstellungen/weg",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/036-arbeitsweg.png"
+      ]
+    },
+    {
+      "id": "seite-037",
+      "group": "02-einstellungen",
+      "title": "Schlaf und Anker",
+      "route": "/einstellungen/schlaf",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/037-schlaf-und-anker.png",
+        "02-einstellungen/037-schlaf-und-anker-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-038",
+      "group": "02-einstellungen",
+      "title": "Sport",
+      "route": "/einstellungen/sport",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/038-sport.png"
+      ]
+    },
+    {
+      "id": "seite-039",
+      "group": "02-einstellungen",
+      "title": "Abendpläne",
+      "route": "/einstellungen/abende",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/039-abendplane.png",
+        "02-einstellungen/039-abendplane-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-040",
+      "group": "02-einstellungen",
+      "title": "Abendmodus",
+      "route": "/einstellungen/abendmodus",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/040-abendmodus.png"
+      ]
+    },
+    {
+      "id": "seite-041",
+      "group": "02-einstellungen",
+      "title": "Morgenroutine – Editor",
+      "route": "/einstellungen/morgenroutine",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/041-morgenroutine-editor.png",
+        "02-einstellungen/041-morgenroutine-editor-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-042",
+      "group": "02-einstellungen",
+      "title": "Abendroutine – Editor",
+      "route": "/einstellungen/abendroutine",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/042-abendroutine-editor.png",
+        "02-einstellungen/042-abendroutine-editor-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-043",
+      "group": "02-einstellungen",
+      "title": "Erinnerungen",
+      "route": "/einstellungen/erinnerungen",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/043-erinnerungen.png"
+      ]
+    },
+    {
+      "id": "seite-044",
+      "group": "02-einstellungen",
+      "title": "Darstellung",
+      "route": "/einstellungen/darstellung",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/044-darstellung.png"
+      ]
+    },
+    {
+      "id": "seite-045",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen",
+      "route": "/einstellungen/hilfen",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/045-alltagshilfen.png",
+        "02-einstellungen/045-alltagshilfen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-046",
+      "group": "02-einstellungen",
+      "title": "Sanfter Abendübergang",
+      "route": "/einstellungen/abenduebergang",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/046-sanfter-abendubergang.png",
+        "02-einstellungen/046-sanfter-abendubergang-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-047",
+      "group": "02-einstellungen",
+      "title": "Optionale Vorschläge",
+      "route": "/einstellungen/assistenz",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/047-optionale-vorschlage.png",
+        "02-einstellungen/047-optionale-vorschlage-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-048",
+      "group": "04-zustaende",
+      "title": "Tag – Morgen",
+      "route": "/tag",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/048-tag-morgen.png",
+        "04-zustaende/048-tag-morgen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-049",
+      "group": "04-zustaende",
+      "title": "Tag – weiterer Tag",
+      "route": "/tag",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/049-tag-weiterer-tag.png",
+        "04-zustaende/049-tag-weiterer-tag-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-050",
+      "group": "04-zustaende",
+      "title": "Druck – Morgenroutine",
+      "route": "/druck?typ=morning",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/050-druck-morgenroutine.png",
+        "04-zustaende/050-druck-morgenroutine-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-051",
+      "group": "04-zustaende",
+      "title": "Druck – Abendroutine",
+      "route": "/druck?typ=evening",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/051-druck-abendroutine.png"
+      ]
+    },
+    {
+      "id": "seite-052",
+      "group": "04-zustaende",
+      "title": "Druck – beide Routinen",
+      "route": "/druck?typ=both",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/052-druck-beide-routinen.png",
+        "04-zustaende/052-druck-beide-routinen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-053",
+      "group": "04-zustaende",
+      "title": "Druck – Demo-Wecker-QR",
+      "route": "/druck?typ=qr",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/053-druck-demo-wecker-qr.png",
+        "04-zustaende/053-druck-demo-wecker-qr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-054",
+      "group": "04-zustaende",
+      "title": "Druck – Haustür-Check",
+      "route": "/druck?typ=door",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/054-druck-haustur-check.png"
+      ]
+    },
+    {
+      "id": "seite-055",
+      "group": "04-zustaende",
+      "title": "Sicherung – Wiederherstellung",
+      "route": "/backup?wiederherstellen=1",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/055-sicherung-wiederherstellung.png"
+      ]
+    },
+    {
+      "id": "seite-056",
+      "group": "04-zustaende",
+      "title": "Test 95 – Routinekarten",
+      "route": "/geraetetest?fall=95",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/056-test-95-routinekarten.png",
+        "04-zustaende/056-test-95-routinekarten-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-057",
+      "group": "04-zustaende",
+      "title": "Test 96 – Schlafhinweis",
+      "route": "/geraetetest?fall=96",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/057-test-96-schlafhinweis.png",
+        "04-zustaende/057-test-96-schlafhinweis-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-058",
+      "group": "03-dialoge",
+      "title": "Ort hinzufügen – alle Felder",
+      "route": "/orte",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/058-ort-hinzufugen-alle-felder.png",
+        "03-dialoge/058-ort-hinzufugen-alle-felder-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-059",
+      "group": "03-dialoge",
+      "title": "Arbeitsaufgabe – Details und Teilschritte",
+      "route": "/arbeit",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte.png",
+        "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-060",
+      "group": "03-dialoge",
+      "title": "Private Aufgabe – Details und Teilschritte",
+      "route": "/inbox",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/060-private-aufgabe-details-und-teilschritte.png",
+        "03-dialoge/060-private-aufgabe-details-und-teilschritte-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-061",
+      "group": "04-zustaende",
+      "title": "Arbeitszeit – Wochenübersicht und Nachtrag",
+      "route": "/arbeitszeit",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag.png",
+        "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-062",
+      "group": "03-dialoge",
+      "title": "Sicherung – Exportauswahl",
+      "route": "/backup",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/062-sicherung-exportauswahl.png",
+        "03-dialoge/062-sicherung-exportauswahl-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-063",
+      "group": "03-dialoge",
+      "title": "Abend – Idee parken und nächsten Schritt merken",
+      "route": "/abend",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken.png",
+        "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-064",
+      "group": "03-dialoge",
+      "title": "Schlafüberblick – Angaben korrigieren",
+      "route": "/schlaf",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/064-schlafuberblick-angaben-korrigieren.png",
+        "03-dialoge/064-schlafuberblick-angaben-korrigieren-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-065",
+      "group": "04-zustaende",
+      "title": "Jetzt – Plan und Optionen geöffnet",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/065-jetzt-plan-und-optionen-geoffnet.png",
+        "04-zustaende/065-jetzt-plan-und-optionen-geoffnet-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-066",
+      "group": "03-dialoge",
+      "title": "Heute – Tagesart und Unterstützungsmodus",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/066-heute-tagesart-und-unterstutzungsmodus.png"
+      ]
+    },
+    {
+      "id": "seite-067",
+      "group": "03-dialoge",
+      "title": "Ganz klein anfangen",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/067-ganz-klein-anfangen.png"
+      ]
+    },
+    {
+      "id": "seite-068",
+      "group": "03-dialoge",
+      "title": "Heute anders – Auswahl",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/068-heute-anders-auswahl.png"
+      ]
+    },
+    {
+      "id": "seite-069",
+      "group": "03-dialoge",
+      "title": "Heute anders – Termin planen",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/069-heute-anders-termin-planen.png",
+        "03-dialoge/069-heute-anders-termin-planen-dialog-teil-2.png",
+        "03-dialoge/069-heute-anders-termin-planen-dialog-teil-3.png"
+      ]
+    },
+    {
+      "id": "seite-070",
+      "group": "03-dialoge",
+      "title": "Heute anders – Arbeit anpassen",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/070-heute-anders-arbeit-anpassen.png",
+        "03-dialoge/070-heute-anders-arbeit-anpassen-dialog-teil-2.png"
+      ]
+    },
+    {
+      "id": "seite-071",
+      "group": "03-dialoge",
+      "title": "Heute anders – Routine verschieben",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/071-heute-anders-routine-verschieben.png"
+      ]
+    },
+    {
+      "id": "seite-072",
+      "group": "03-dialoge",
+      "title": "Heute anders – Nicht nötig",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/072-heute-anders-nicht-notig.png"
+      ]
+    },
+    {
+      "id": "seite-073",
+      "group": "03-dialoge",
+      "title": "Heute anders – Abendzeit",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/073-heute-anders-abendzeit.png"
+      ]
+    },
+    {
+      "id": "seite-074",
+      "group": "03-dialoge",
+      "title": "Heute anders – Morgen vorbereiten",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/074-heute-anders-morgen-vorbereiten.png"
+      ]
+    },
+    {
+      "id": "seite-075",
+      "group": "03-dialoge",
+      "title": "Heute anders – Morgenroutine heute",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/075-heute-anders-morgenroutine-heute.png"
+      ]
+    },
+    {
+      "id": "seite-076",
+      "group": "03-dialoge",
+      "title": "Dein Abend – PC-Stopp anpassen",
+      "route": "/pc-stopp",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/076-dein-abend-pc-stopp-anpassen.png"
+      ]
+    },
+    {
+      "id": "seite-077",
+      "group": "04-zustaende",
+      "title": "Arbeitsfokus – Timer läuft",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/077-arbeitsfokus-timer-lauft.png"
+      ]
+    },
+    {
+      "id": "seite-078",
+      "group": "04-zustaende",
+      "title": "Arbeitsfokus – Pause",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/078-arbeitsfokus-pause.png"
+      ]
+    },
+    {
+      "id": "seite-079",
+      "group": "03-dialoge",
+      "title": "Arbeitsfokus – Wiedereinstieg festhalten",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten.png",
+        "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-080",
+      "group": "04-zustaende",
+      "title": "Teilschritt – Timer läuft",
+      "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/080-teilschritt-timer-lauft.png"
+      ]
+    },
+    {
+      "id": "seite-081",
+      "group": "04-zustaende",
+      "title": "Jetzt – 07.05 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/081-jetzt-07-05-uhr.png",
+        "04-zustaende/081-jetzt-07-05-uhr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-082",
+      "group": "04-zustaende",
+      "title": "Jetzt – 16.30 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/082-jetzt-16-30-uhr.png",
+        "04-zustaende/082-jetzt-16-30-uhr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-083",
+      "group": "04-zustaende",
+      "title": "Jetzt – 19.00 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/083-jetzt-19-00-uhr.png",
+        "04-zustaende/083-jetzt-19-00-uhr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-084",
+      "group": "04-zustaende",
+      "title": "Jetzt – 21.45 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/084-jetzt-21-45-uhr.png",
+        "04-zustaende/084-jetzt-21-45-uhr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-085",
+      "group": "04-zustaende",
+      "title": "Jetzt – 22.05 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/085-jetzt-22-05-uhr.png",
+        "04-zustaende/085-jetzt-22-05-uhr-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-086",
+      "group": "04-zustaende",
+      "title": "Jetzt – 22.45 Uhr",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/086-jetzt-22-45-uhr.png"
+      ]
+    },
+    {
+      "id": "seite-087",
+      "group": "04-zustaende",
+      "title": "Fokus-Shortcut – aktuelles Ziel",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/087-fokus-shortcut-aktuelles-ziel.png"
+      ]
+    },
+    {
+      "id": "seite-088",
+      "group": "02-einstellungen",
+      "title": "Wecker – optionale Einstellungen geöffnet",
+      "route": "/wecker",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet.png",
+        "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-089",
+      "group": "02-einstellungen",
+      "title": "Abendmodus – Optionen geöffnet",
+      "route": "/einstellungen/abendmodus",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/089-abendmodus-optionen-geoffnet.png"
+      ]
+    },
+    {
+      "id": "seite-090",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen – Optionen",
+      "route": "/einstellungen/hilfen",
+      "simulatedNative": false,
+      "files": [
+        "02-einstellungen/090-alltagshilfen-optionen.png",
+        "02-einstellungen/090-alltagshilfen-optionen-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-091",
+      "group": "04-zustaende",
+      "title": "Jetzt – Abend mit ausgeblendeten Arbeitsaufgaben",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/091-jetzt-abend-mit-ausgeblendeten-arbeitsaufgaben.png"
+      ]
+    },
+    {
+      "id": "seite-092",
+      "group": "04-zustaende",
+      "title": "Jetzt – Abendübergang mit Abendruhe",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/092-jetzt-abendubergang-mit-abendruhe.png",
+        "04-zustaende/092-jetzt-abendubergang-mit-abendruhe-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-093",
+      "group": "04-zustaende",
+      "title": "Jetzt – vor dem Bett mit Abendruhe",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe.png",
+        "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-094",
+      "group": "03-dialoge",
+      "title": "Aufgabe – eigener Grund",
+      "route": "/aufgabe/work/demo-bericht",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/094-aufgabe-eigener-grund.png"
+      ]
+    },
+    {
+      "id": "seite-095",
+      "group": "03-dialoge",
+      "title": "Heute länger arbeiten",
+      "route": "/",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/095-heute-langer-arbeiten.png"
+      ]
+    },
+    {
+      "id": "seite-096",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – bedingte Hilfen und Regeln",
+      "route": "/zeiten",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln.png",
+        "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-097",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – Demnächst",
+      "route": "/zeiten",
+      "simulatedNative": false,
+      "files": [
+        "04-zustaende/097-zeitubersicht-demnachst.png",
+        "04-zustaende/097-zeitubersicht-demnachst-gesamt.png"
+      ]
+    },
+    {
+      "id": "seite-098",
+      "group": "03-dialoge",
+      "title": "Freigabe – lokales Diktieren",
+      "route": "/einstellungen/hilfen",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/098-freigabe-lokales-diktieren.png"
+      ]
+    },
+    {
+      "id": "seite-099",
+      "group": "03-dialoge",
+      "title": "Freigabe – Zeitinfos vorlesen",
+      "route": "/einstellungen/hilfen",
+      "simulatedNative": false,
+      "files": [
+        "03-dialoge/099-freigabe-zeitinfos-vorlesen.png"
+      ]
+    },
+    {
+      "id": "seite-100",
+      "group": "01-seiten",
+      "title": "Fokus starten – Auswahl",
+      "route": "/fokus-start",
+      "simulatedNative": false,
+      "files": [
+        "01-seiten/100-fokus-starten-auswahl.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-main",
+      "group": "native-simulation",
+      "title": "Hauptwecker klingelt",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-main.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-andere-wege",
+      "group": "native-simulation",
+      "title": "Wecker: andere Wege zum Beenden",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-andere-wege.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-rechenaufgabe",
+      "group": "native-simulation",
+      "title": "Wecker: Rechenaufgaben",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-rechenaufgabe.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-notfallstopp",
+      "group": "native-simulation",
+      "title": "Wecker: Notfall-Stopp",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-notfallstopp.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-snooze",
+      "group": "native-simulation",
+      "title": "Wecker nach dem Schlummern",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-snooze.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-prewake",
+      "group": "native-simulation",
+      "title": "Vorwecker klingelt",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-prewake.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-wakecheck",
+      "group": "native-simulation",
+      "title": "Wachheits-Check",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-wakecheck.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-test",
+      "group": "native-simulation",
+      "title": "Testwecker klingelt",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-test.png"
+      ]
+    },
+    {
+      "id": "simulation-wecker-test-hoerbarkeit",
+      "group": "native-simulation",
+      "title": "Testwecker: Hörbarkeit bestätigen",
+      "route": "/wecker/klingelt",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__wecker-test-hoerbarkeit.png"
+      ]
+    },
+    {
+      "id": "simulation-einrichtung-android-freigaben",
+      "group": "native-simulation",
+      "title": "Einrichtung: Android-Freigaben",
+      "route": "/start",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__einrichtung-android-freigaben.png"
+      ]
+    },
+    {
+      "id": "simulation-weckfenster-bereit",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "route": "/wecker",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__weckfenster-bereit.png"
+      ]
+    },
+    {
+      "id": "simulation-weckfenster-bereit__gesamt",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "route": "/wecker",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__weckfenster-bereit__gesamt.png"
+      ]
+    },
+    {
+      "id": "simulation-weckfenster-vorbereitet",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "route": "/wecker",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__weckfenster-vorbereitet.png"
+      ]
+    },
+    {
+      "id": "simulation-weckfenster-vorbereitet__gesamt",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "route": "/wecker",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__weckfenster-vorbereitet__gesamt.png"
+      ]
+    },
+    {
+      "id": "simulation-schlafhinweis-idle",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: bewusst starten",
+      "route": "/",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__schlafhinweis-idle.png"
+      ]
+    },
+    {
+      "id": "simulation-schlafhinweis-waiting",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: vorgemerkt",
+      "route": "/",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__schlafhinweis-waiting.png"
+      ]
+    },
+    {
+      "id": "simulation-schlafhinweis-shown",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: Zeitpunkt erreicht",
+      "route": "/",
+      "simulatedNative": true,
+      "files": [
+        "native-simulation/SIMULATION__schlafhinweis-shown.png"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "id": "seite-001",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Angaben",
+      "route": "/start",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/001-ersteinrichtung-angaben.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1052,
+      "width": 780,
+      "height": 1688,
+      "bytes": 91486,
+      "sha256": "0103c165a1a1c04a843249af98f98aa27c65f49901e1cb67f814d0af7e83d6f3"
+    },
+    {
+      "id": "seite-001",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Angaben",
+      "route": "/start",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/001-ersteinrichtung-angaben-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1052,
+      "width": 780,
+      "height": 2104,
+      "bytes": 106442,
+      "sha256": "7e5507ccc6876285be65a22091ab8d7fe6925458496c5c207f89d272557ec9cb"
+    },
+    {
+      "id": "seite-002",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Anker und Thema",
+      "route": "/start",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/002-ersteinrichtung-anker-und-thema.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1048,
+      "width": 780,
+      "height": 1688,
+      "bytes": 146345,
+      "sha256": "87d2cd1c3a7c39ffc234a5ee56f92d5c8ebd3d6961ab03b30370cca4023721ec"
+    },
+    {
+      "id": "seite-002",
+      "group": "01-seiten",
+      "title": "Ersteinrichtung – Anker und Thema",
+      "route": "/start",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/002-ersteinrichtung-anker-und-thema-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1048,
+      "width": 780,
+      "height": 2096,
+      "bytes": 165398,
+      "sha256": "fec05c70db1ea3319e013404d2fdfe1b1c838f4d58f7c987055be978cf915b47"
+    },
+    {
+      "id": "seite-003",
+      "group": "01-seiten",
+      "title": "Jetzt",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/003-jetzt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 147840,
+      "sha256": "38cb0eb6c119097545bdd2a63440657d54c2a74a7bd41efa74f3001641de45e9"
+    },
+    {
+      "id": "seite-003",
+      "group": "01-seiten",
+      "title": "Jetzt",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/003-jetzt-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 2232,
+      "bytes": 170267,
+      "sha256": "89c9b88249b7c162e488d4f016177127a25075da8b5240b67ae2be0b5bbc62ee"
+    },
+    {
+      "id": "seite-004",
+      "group": "01-seiten",
+      "title": "Tag – Heute",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/004-tag-heute.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2755,
+      "width": 780,
+      "height": 1688,
+      "bytes": 134885,
+      "sha256": "cdfe4bd50663f384ff6567d14291ea347d034800145103e998048921468ef25b"
+    },
+    {
+      "id": "seite-004",
+      "group": "01-seiten",
+      "title": "Tag – Heute",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/004-tag-heute-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2755,
+      "width": 780,
+      "height": 5656,
+      "bytes": 444867,
+      "sha256": "41054e99be870b3256a5d18b552223bb42501629d69cef1837e49550fd6e7af7"
+    },
+    {
+      "id": "seite-005",
+      "group": "01-seiten",
+      "title": "Mehr",
+      "route": "/mehr",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/005-mehr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1636,
+      "width": 780,
+      "height": 1688,
+      "bytes": 128020,
+      "sha256": "9838921f0e5e09c6dfed9017766e937f549af9681952b402f5f18a10f5e56ba8"
+    },
+    {
+      "id": "seite-005",
+      "group": "01-seiten",
+      "title": "Mehr",
+      "route": "/mehr",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/005-mehr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1636,
+      "width": 780,
+      "height": 3418,
+      "bytes": 235149,
+      "sha256": "8ad629334070613f0802195783f991bcf877505cfb1d49d7a67086c1ceda9670"
+    },
+    {
+      "id": "seite-006",
+      "group": "01-seiten",
+      "title": "Arbeit",
+      "route": "/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/006-arbeit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1218,
+      "width": 780,
+      "height": 1688,
+      "bytes": 123334,
+      "sha256": "5e90483b0d8c98f2f0dd5e9f475b287560fdeae2dcf6fb2fb1a8d1273ae929b9"
+    },
+    {
+      "id": "seite-006",
+      "group": "01-seiten",
+      "title": "Arbeit",
+      "route": "/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/006-arbeit-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1218,
+      "width": 780,
+      "height": 2582,
+      "bytes": 175548,
+      "sha256": "4be8ec7950255bc47c903dc23bce49a6fb471f8f9c8bca3d97ede741120888e6"
+    },
+    {
+      "id": "seite-007",
+      "group": "01-seiten",
+      "title": "Arbeitszeit",
+      "route": "/arbeitszeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/007-arbeitszeit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1866,
+      "width": 780,
+      "height": 1688,
+      "bytes": 129501,
+      "sha256": "736c6c3e3f8840a3ccf8bcca21e5dabc0bddf5f7e07f29b7cbb6b451ccc4fa13"
+    },
+    {
+      "id": "seite-007",
+      "group": "01-seiten",
+      "title": "Arbeitszeit",
+      "route": "/arbeitszeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/007-arbeitszeit-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1866,
+      "width": 780,
+      "height": 3878,
+      "bytes": 276487,
+      "sha256": "228f0b10cd717e8344c2a5dc5e073e8f2310bd546774e0f40f33b03fc9a58606"
+    },
+    {
+      "id": "seite-008",
+      "group": "01-seiten",
+      "title": "Orte und manuelle Wege",
+      "route": "/orte",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/008-orte-und-manuelle-wege.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 117177,
+      "sha256": "e056ecfde5559f71e708d81057bb465d90a75865e3f6a212f4ad4e2e8a7e8af2"
+    },
+    {
+      "id": "seite-009",
+      "group": "01-seiten",
+      "title": "Spiel",
+      "route": "/spiel",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/009-spiel.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2087,
+      "width": 780,
+      "height": 1688,
+      "bytes": 124282,
+      "sha256": "42d72a14080a7e2991401070bbc5daa7625d842bf4e4d893209eec55bfb03936"
+    },
+    {
+      "id": "seite-009",
+      "group": "01-seiten",
+      "title": "Spiel",
+      "route": "/spiel",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/009-spiel-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2087,
+      "width": 780,
+      "height": 4320,
+      "bytes": 312136,
+      "sha256": "e03f054e4167dc211b3b7b2a32c49155dfe6ae97b3ce606fa86e9b65cc3afbf3"
+    },
+    {
+      "id": "seite-010",
+      "group": "01-seiten",
+      "title": "Belohnungen",
+      "route": "/spiel/shop",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/010-belohnungen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 868,
+      "width": 780,
+      "height": 1688,
+      "bytes": 114228,
+      "sha256": "30b04e4d083cfcdfa7334a8a207252e2c2868f76c1816f5ac145bdf7251f21d7"
+    },
+    {
+      "id": "seite-011",
+      "group": "01-seiten",
+      "title": "Gedanken und private Aufgaben",
+      "route": "/inbox",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/011-gedanken-und-private-aufgaben.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1314,
+      "width": 780,
+      "height": 1688,
+      "bytes": 130115,
+      "sha256": "e0e7338898508438b0ea9ced8dad6c467aea1c0411a8155ea91e092e624b7aca"
+    },
+    {
+      "id": "seite-011",
+      "group": "01-seiten",
+      "title": "Gedanken und private Aufgaben",
+      "route": "/inbox",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/011-gedanken-und-private-aufgaben-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1314,
+      "width": 780,
+      "height": 2774,
+      "bytes": 196350,
+      "sha256": "8e08709ea45555f9a53730ca08fb56186d1bde046fb33aa3b68b6d4157485577"
+    },
+    {
+      "id": "seite-012",
+      "group": "01-seiten",
+      "title": "Abend und morgen",
+      "route": "/abend",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/012-abend-und-morgen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1578,
+      "width": 780,
+      "height": 1688,
+      "bytes": 168459,
+      "sha256": "2f49d5461566d2bc7ab9fac8d0dfc75e25150fec563c4f77b456908ade64fb57"
+    },
+    {
+      "id": "seite-012",
+      "group": "01-seiten",
+      "title": "Abend und morgen",
+      "route": "/abend",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/012-abend-und-morgen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1578,
+      "width": 780,
+      "height": 3302,
+      "bytes": 286334,
+      "sha256": "be6b7666469a03e9b898083c367880462109165ec34a86d22a07a4e5fa65e134"
+    },
+    {
+      "id": "seite-013",
+      "group": "01-seiten",
+      "title": "Schlafüberblick",
+      "route": "/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/013-schlafuberblick.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2130,
+      "width": 780,
+      "height": 1688,
+      "bytes": 164224,
+      "sha256": "3c9266b76d4ef8d3f0dfb755f2406a484f160c2aef0278d21265a2d4c90b50cd"
+    },
+    {
+      "id": "seite-013",
+      "group": "01-seiten",
+      "title": "Schlafüberblick",
+      "route": "/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/013-schlafuberblick-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2130,
+      "width": 780,
+      "height": 4406,
+      "bytes": 442568,
+      "sha256": "40e41a6332211245f337136b27b1f016eeaef73e9ecaf6c9dd345f80aa3c173c"
+    },
+    {
+      "id": "seite-014",
+      "group": "01-seiten",
+      "title": "Essen und Vorkochen",
+      "route": "/essen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/014-essen-und-vorkochen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1034,
+      "width": 780,
+      "height": 1688,
+      "bytes": 119050,
+      "sha256": "b497be3fa584ff6dcdd0cb0898024bd239fc883895f119deea1b730e6d622b06"
+    },
+    {
+      "id": "seite-014",
+      "group": "01-seiten",
+      "title": "Essen und Vorkochen",
+      "route": "/essen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/014-essen-und-vorkochen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1034,
+      "width": 780,
+      "height": 2214,
+      "bytes": 127283,
+      "sha256": "aeeb0cfcf465af020da0c94e19664b7cfcdda3d417c918708b555bd158d810a8"
+    },
+    {
+      "id": "seite-015",
+      "group": "01-seiten",
+      "title": "Aufräumen",
+      "route": "/aufraeumen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/015-aufraumen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 874,
+      "width": 780,
+      "height": 1688,
+      "bytes": 84510,
+      "sha256": "7677fe9751c3884b8491a47fb542b364694277d58d84f330190b2843ff4b5f95"
+    },
+    {
+      "id": "seite-016",
+      "group": "01-seiten",
+      "title": "Vorbereitung für morgen",
+      "route": "/vorbereitung",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/016-vorbereitung-fur-morgen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 103000,
+      "sha256": "07b9eb82a1de2dd845cdc0594f99a2ea4f49a0d1f29e8e92166f6e5e5b45dc30"
+    },
+    {
+      "id": "seite-017",
+      "group": "01-seiten",
+      "title": "Wochenrückblick",
+      "route": "/rueckblick",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/017-wochenruckblick.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 88591,
+      "sha256": "e7e4dab9cccd023d143f9e9f9d21542dad9e4b7b2d449de2212318e7221e7b24"
+    },
+    {
+      "id": "seite-018",
+      "group": "01-seiten",
+      "title": "Einrichtungs-Check",
+      "route": "/check",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/018-einrichtungs-check.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 128957,
+      "sha256": "d46ce73531158ae24d9912f8a06356cbdb1965c40c99ca1243f88d75b99d8c53"
+    },
+    {
+      "id": "seite-019",
+      "group": "01-seiten",
+      "title": "Zeitübersicht",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/019-zeitubersicht.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 5246,
+      "width": 780,
+      "height": 1688,
+      "bytes": 150555,
+      "sha256": "064d74f13ff69492f958e31d88fb0fa2ded421889604b83f37f3461e168b4331"
+    },
+    {
+      "id": "seite-019",
+      "group": "01-seiten",
+      "title": "Zeitübersicht",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/019-zeitubersicht-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 5246,
+      "width": 780,
+      "height": 10638,
+      "bytes": 752585,
+      "sha256": "4544a6c8a8fb2f3b722e87b526c01f3525c5e1a3c0983be17af4a95e0b3c31d9"
+    },
+    {
+      "id": "seite-020",
+      "group": "01-seiten",
+      "title": "Gemeinsam testen",
+      "route": "/geraetetest",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/020-gemeinsam-testen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3316,
+      "width": 780,
+      "height": 1688,
+      "bytes": 232141,
+      "sha256": "00d4dfad39b58fd1524bb30edb5d8c8cefe9664721d44be2c679c39498470bf8"
+    },
+    {
+      "id": "seite-020",
+      "group": "01-seiten",
+      "title": "Gemeinsam testen",
+      "route": "/geraetetest",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/020-gemeinsam-testen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3316,
+      "width": 780,
+      "height": 6778,
+      "bytes": 771988,
+      "sha256": "7012e6b672d358a25154bf561d58042e6e34ee4386e51bb716b3416d1143aa49"
+    },
+    {
+      "id": "seite-021",
+      "group": "01-seiten",
+      "title": "Wecker",
+      "route": "/wecker",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/021-wecker.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1706,
+      "width": 780,
+      "height": 1688,
+      "bytes": 184499,
+      "sha256": "592469e59b84ead4cafb1472bf635f472365191328d4c9a66b10312911ff9942"
+    },
+    {
+      "id": "seite-021",
+      "group": "01-seiten",
+      "title": "Wecker",
+      "route": "/wecker",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/021-wecker-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1706,
+      "width": 780,
+      "height": 3558,
+      "bytes": 320370,
+      "sha256": "1f1b66be0ee997dbbedeec9c6f6bf4b9e0b5117240d54dd1272c906db239fe75"
+    },
+    {
+      "id": "seite-022",
+      "group": "01-seiten",
+      "title": "PC-Stopp",
+      "route": "/pc-stopp",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/022-pc-stopp.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1208,
+      "width": 780,
+      "height": 1688,
+      "bytes": 183471,
+      "sha256": "0872141635882806be840e1384965cb34a75365b756e4ab050502365b24688e3"
+    },
+    {
+      "id": "seite-022",
+      "group": "01-seiten",
+      "title": "PC-Stopp",
+      "route": "/pc-stopp",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/022-pc-stopp-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1208,
+      "width": 780,
+      "height": 2562,
+      "bytes": 273868,
+      "sha256": "f31f2d56dd8ffdea7a05c5255bfc7b30ca1ae77ed646a5f950771ec4334116a5"
+    },
+    {
+      "id": "seite-023",
+      "group": "01-seiten",
+      "title": "Kalender und Sync",
+      "route": "/verbindungen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/023-kalender-und-sync.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 932,
+      "width": 780,
+      "height": 1688,
+      "bytes": 209147,
+      "sha256": "55940cbc28f9609b02314da945fb4b0694aedac751a2e36759ea71166761b7ab"
+    },
+    {
+      "id": "seite-023",
+      "group": "01-seiten",
+      "title": "Kalender und Sync",
+      "route": "/verbindungen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/023-kalender-und-sync-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 932,
+      "width": 780,
+      "height": 2010,
+      "bytes": 224583,
+      "sha256": "fe73ec0fb835bf88786387e34cfe39f6f8b769e27598d0f8fb0d4af11025698d"
+    },
+    {
+      "id": "seite-024",
+      "group": "01-seiten",
+      "title": "Drucken",
+      "route": "/druck",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/024-drucken.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1340,
+      "width": 780,
+      "height": 1688,
+      "bytes": 116111,
+      "sha256": "cf1824d5a49f3d17894d604a269bdbe961bca77a2b292b10508b2fcb55a04aea"
+    },
+    {
+      "id": "seite-024",
+      "group": "01-seiten",
+      "title": "Drucken",
+      "route": "/druck",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/024-drucken-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1340,
+      "width": 780,
+      "height": 2680,
+      "bytes": 166942,
+      "sha256": "14708e0e243be5244a0218063b4e2d271a3f950bee1c67a3ae6e3a33cae7c66f"
+    },
+    {
+      "id": "seite-025",
+      "group": "01-seiten",
+      "title": "Hilfe und Anlaufstellen",
+      "route": "/hilfe",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/025-hilfe-und-anlaufstellen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1826,
+      "width": 780,
+      "height": 1688,
+      "bytes": 200446,
+      "sha256": "6ffbb08a0061bbf0b8ba368223745660b313df42427d657b7cedde543e5d52b5"
+    },
+    {
+      "id": "seite-025",
+      "group": "01-seiten",
+      "title": "Hilfe und Anlaufstellen",
+      "route": "/hilfe",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "01-seiten/025-hilfe-und-anlaufstellen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1826,
+      "width": 780,
+      "height": 3798,
+      "bytes": 468530,
+      "sha256": "91fdbd05b42a0353d9333bcc573afaf46a06833548bb1f8b1ebb27bad348e9c7"
+    },
+    {
+      "id": "seite-026",
+      "group": "01-seiten",
+      "title": "Sicherung",
+      "route": "/backup",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/026-sicherung.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 146775,
+      "sha256": "27d88001106f5e47c93409ae0d37b7a54adc79042c6e93e44477b18075f763ef"
+    },
+    {
+      "id": "seite-027",
+      "group": "01-seiten",
+      "title": "Morgenroutine – Fokus",
+      "route": "/fokus/morning",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/027-morgenroutine-fokus.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 70723,
+      "sha256": "5ce786bb281ff64a88f352b1445a4d29a2d21341aa45f4810e64febb209854b7"
+    },
+    {
+      "id": "seite-028",
+      "group": "01-seiten",
+      "title": "Abendroutine – Fokus",
+      "route": "/fokus/evening",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/028-abendroutine-fokus.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 77981,
+      "sha256": "a16189c7e19de557a37cbb214e6eb6dbb027144dd4139df932f2670ba96d24f6"
+    },
+    {
+      "id": "seite-029",
+      "group": "01-seiten",
+      "title": "Arbeitsaufgabe – Fokusauswahl",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/029-arbeitsaufgabe-fokusauswahl.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 75018,
+      "sha256": "9f6baa12d0281a97b570a82d2c011432aa1d821a5284f62f2a34057b0641da06"
+    },
+    {
+      "id": "seite-030",
+      "group": "01-seiten",
+      "title": "Private Aufgabe – Fokusauswahl",
+      "route": "/aufgabe/task/demo-privat",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/030-private-aufgabe-fokusauswahl.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 80597,
+      "sha256": "bb980bca63467be4ad8fca5eb631709c2b3a0c61774166d120caadb6e3504391"
+    },
+    {
+      "id": "seite-031",
+      "group": "01-seiten",
+      "title": "Teilschritt – Timer wählen",
+      "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/031-teilschritt-timer-wahlen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 73873,
+      "sha256": "9f20ce6093e8b7c1873c7d87ad98dd7935bd2067ec73e4ed1f321691e100b08e"
+    },
+    {
+      "id": "seite-032",
+      "group": "01-seiten",
+      "title": "Gedanke festhalten",
+      "route": "/gedanke",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/032-gedanke-festhalten.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 42270,
+      "sha256": "d61d0c6aef3dff54f2605023772a25725f0c43a2b5cd2eb4d375c4aa00808d19"
+    },
+    {
+      "id": "seite-033",
+      "group": "01-seiten",
+      "title": "Wiedereinstieg",
+      "route": "/wiedereinstieg",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/033-wiedereinstieg.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 42020,
+      "sha256": "524c7071451d21570da47a4da610e0b6ebf386d4f13ea14e8048841d28109010"
+    },
+    {
+      "id": "seite-034",
+      "group": "02-einstellungen",
+      "title": "Einstellungen – Übersicht",
+      "route": "/einstellungen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/034-einstellungen-ubersicht.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1596,
+      "width": 780,
+      "height": 1688,
+      "bytes": 142771,
+      "sha256": "445f2eddefc852e6ebff00ba4c62b92ea5acbb321f6d5157ab50b256f9e80739"
+    },
+    {
+      "id": "seite-034",
+      "group": "02-einstellungen",
+      "title": "Einstellungen – Übersicht",
+      "route": "/einstellungen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/034-einstellungen-ubersicht-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1596,
+      "width": 780,
+      "height": 3338,
+      "bytes": 244469,
+      "sha256": "b4c7e15b1baf4e59638f6ffc388313569e1b1061232f96b45f2e231e9ddcdc02"
+    },
+    {
+      "id": "seite-035",
+      "group": "02-einstellungen",
+      "title": "Arbeit und Gleitzeit",
+      "route": "/einstellungen/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/035-arbeit-und-gleitzeit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4166,
+      "width": 780,
+      "height": 1688,
+      "bytes": 184339,
+      "sha256": "68eb135a507fe958459e0734df14d0c5197cb6c9ae5ba2efd2c856227510215e"
+    },
+    {
+      "id": "seite-035",
+      "group": "02-einstellungen",
+      "title": "Arbeit und Gleitzeit",
+      "route": "/einstellungen/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/035-arbeit-und-gleitzeit-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4166,
+      "width": 780,
+      "height": 8478,
+      "bytes": 592436,
+      "sha256": "e44110281285578c6c1d525f1e01b165f004ac80717b157541d3791ea371fb73"
+    },
+    {
+      "id": "seite-036",
+      "group": "02-einstellungen",
+      "title": "Arbeitsweg",
+      "route": "/einstellungen/weg",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/036-arbeitsweg.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 68334,
+      "sha256": "2a6fb151a8da9e7fa5dc1bffc0c5be9edba524ca4e61baf23b6d41d2cdfbe723"
+    },
+    {
+      "id": "seite-037",
+      "group": "02-einstellungen",
+      "title": "Schlaf und Anker",
+      "route": "/einstellungen/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/037-schlaf-und-anker.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1906,
+      "width": 780,
+      "height": 1688,
+      "bytes": 175809,
+      "sha256": "554632d5d0f6e5c4151279eeea70a8b047e3f2bfdcc1279610253248e18fb148"
+    },
+    {
+      "id": "seite-037",
+      "group": "02-einstellungen",
+      "title": "Schlaf und Anker",
+      "route": "/einstellungen/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/037-schlaf-und-anker-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1906,
+      "width": 780,
+      "height": 3958,
+      "bytes": 335951,
+      "sha256": "18cb285cdf9685a6909bd638f62014585c17f5d80714a4dedebd6c4f6904d1e6"
+    },
+    {
+      "id": "seite-038",
+      "group": "02-einstellungen",
+      "title": "Sport",
+      "route": "/einstellungen/sport",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/038-sport.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 90206,
+      "sha256": "cbe2253afd0e1bed508e74dda55b5506f4615a7d2ba8b89aea4f81277f21a479"
+    },
+    {
+      "id": "seite-039",
+      "group": "02-einstellungen",
+      "title": "Abendpläne",
+      "route": "/einstellungen/abende",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/039-abendplane.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2108,
+      "width": 780,
+      "height": 1688,
+      "bytes": 109245,
+      "sha256": "cde4f510a8a0b3a088ada2e2bf5f2123c11e3190a92a0d3269c4ecb4fac39ff3"
+    },
+    {
+      "id": "seite-039",
+      "group": "02-einstellungen",
+      "title": "Abendpläne",
+      "route": "/einstellungen/abende",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/039-abendplane-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2108,
+      "width": 780,
+      "height": 4362,
+      "bytes": 214193,
+      "sha256": "b59764b2cf67fc6cdae816c67630dd3725f07be3dff4e309d85fe9aac337d09c"
+    },
+    {
+      "id": "seite-040",
+      "group": "02-einstellungen",
+      "title": "Abendmodus",
+      "route": "/einstellungen/abendmodus",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/040-abendmodus.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 54181,
+      "sha256": "38030b89eac98af05a1d25f62a95ace5bee3827e2794015de9394726340383ba"
+    },
+    {
+      "id": "seite-041",
+      "group": "02-einstellungen",
+      "title": "Morgenroutine – Editor",
+      "route": "/einstellungen/morgenroutine",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/041-morgenroutine-editor.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2156,
+      "width": 780,
+      "height": 1688,
+      "bytes": 109598,
+      "sha256": "77f754b5396755301a58ce8041d5c4c1e148f5e3e281725087f002db0fe9def3"
+    },
+    {
+      "id": "seite-041",
+      "group": "02-einstellungen",
+      "title": "Morgenroutine – Editor",
+      "route": "/einstellungen/morgenroutine",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/041-morgenroutine-editor-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2156,
+      "width": 780,
+      "height": 4458,
+      "bytes": 230765,
+      "sha256": "37f39bb1d9dd275e9ec8b62dc96afb59c7de6e9d4e7764acfddbd4168f2410ab"
+    },
+    {
+      "id": "seite-042",
+      "group": "02-einstellungen",
+      "title": "Abendroutine – Editor",
+      "route": "/einstellungen/abendroutine",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/042-abendroutine-editor.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1472,
+      "width": 780,
+      "height": 1688,
+      "bytes": 116546,
+      "sha256": "46bb4a437105ace157fbbdb8200b541876bfb0586a1d05cc4b894b1de14f5d80"
+    },
+    {
+      "id": "seite-042",
+      "group": "02-einstellungen",
+      "title": "Abendroutine – Editor",
+      "route": "/einstellungen/abendroutine",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/042-abendroutine-editor-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1472,
+      "width": 780,
+      "height": 3090,
+      "bytes": 170144,
+      "sha256": "0222f8b07d429d96ebebb096527a938ab0d08f426f6fc96ca62d38d35d2944c0"
+    },
+    {
+      "id": "seite-043",
+      "group": "02-einstellungen",
+      "title": "Erinnerungen",
+      "route": "/einstellungen/erinnerungen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/043-erinnerungen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 83131,
+      "sha256": "bea9d28c98d078adbd4ddfbf3e7ff117b258ba49e2be694c786926f8abb0e255"
+    },
+    {
+      "id": "seite-044",
+      "group": "02-einstellungen",
+      "title": "Darstellung",
+      "route": "/einstellungen/darstellung",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/044-darstellung.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 84099,
+      "sha256": "a8d1d32b07a7aaee83d625086a8cb179b5da97c7ce907c06b13dc9328d8d544b"
+    },
+    {
+      "id": "seite-045",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen",
+      "route": "/einstellungen/hilfen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/045-alltagshilfen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2950,
+      "width": 780,
+      "height": 1688,
+      "bytes": 198888,
+      "sha256": "bcc161725b72520a5579a42c64b326a9d142419819fd8894b26392df0031cb35"
+    },
+    {
+      "id": "seite-045",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen",
+      "route": "/einstellungen/hilfen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/045-alltagshilfen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2950,
+      "width": 780,
+      "height": 6046,
+      "bytes": 507810,
+      "sha256": "4de2ab31f9282057996f370a6e6675265f91d6ae1f858b399cba09d96b679bec"
+    },
+    {
+      "id": "seite-046",
+      "group": "02-einstellungen",
+      "title": "Sanfter Abendübergang",
+      "route": "/einstellungen/abenduebergang",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/046-sanfter-abendubergang.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1020,
+      "width": 780,
+      "height": 1688,
+      "bytes": 179672,
+      "sha256": "509920fa0d635e832e03de09d5f99713adb4b68f0ba398df105efc1c44641871"
+    },
+    {
+      "id": "seite-046",
+      "group": "02-einstellungen",
+      "title": "Sanfter Abendübergang",
+      "route": "/einstellungen/abenduebergang",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/046-sanfter-abendubergang-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1020,
+      "width": 780,
+      "height": 2186,
+      "bytes": 196222,
+      "sha256": "430b95bb54ca3de1ced3104a2e9025348a5a87c851093abb537b90d6eb9db004"
+    },
+    {
+      "id": "seite-047",
+      "group": "02-einstellungen",
+      "title": "Optionale Vorschläge",
+      "route": "/einstellungen/assistenz",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/047-optionale-vorschlage.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2204,
+      "width": 780,
+      "height": 1688,
+      "bytes": 235590,
+      "sha256": "4d0ec5d42a9d96503efd0f9188f04c2cc4f56a8e89f40c6ab20fe57d4c0c7be5"
+    },
+    {
+      "id": "seite-047",
+      "group": "02-einstellungen",
+      "title": "Optionale Vorschläge",
+      "route": "/einstellungen/assistenz",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/047-optionale-vorschlage-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2204,
+      "width": 780,
+      "height": 4554,
+      "bytes": 631742,
+      "sha256": "e121bbd161800d1d56d09e772d2e1fcf39d49c2f8f2b8add1933b6d35b9c4147"
+    },
+    {
+      "id": "seite-048",
+      "group": "04-zustaende",
+      "title": "Tag – Morgen",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/048-tag-morgen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2088,
+      "width": 780,
+      "height": 1688,
+      "bytes": 138039,
+      "sha256": "cfea76098ad0217e90aa4ab7b3573898941c798c28caf60b4a7789669fe2a0a1"
+    },
+    {
+      "id": "seite-048",
+      "group": "04-zustaende",
+      "title": "Tag – Morgen",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/048-tag-morgen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2088,
+      "width": 780,
+      "height": 4322,
+      "bytes": 347850,
+      "sha256": "f0e5cc068801cc7c47fbf75c3067fb16bc606f7bc676f19680a7abcb9789aa1f"
+    },
+    {
+      "id": "seite-049",
+      "group": "04-zustaende",
+      "title": "Tag – weiterer Tag",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/049-tag-weiterer-tag.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2088,
+      "width": 780,
+      "height": 1688,
+      "bytes": 137888,
+      "sha256": "32db7fc5974d2552a9fc611357d910b5082acfaeadd30a171df9bbe043e6819b"
+    },
+    {
+      "id": "seite-049",
+      "group": "04-zustaende",
+      "title": "Tag – weiterer Tag",
+      "route": "/tag",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/049-tag-weiterer-tag-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2088,
+      "width": 780,
+      "height": 4322,
+      "bytes": 347692,
+      "sha256": "d885987f8ce89f37b07670642dfd6ec26cd6c022c5d5f6b058af485c3dd1da53"
+    },
+    {
+      "id": "seite-050",
+      "group": "04-zustaende",
+      "title": "Druck – Morgenroutine",
+      "route": "/druck?typ=morning",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/050-druck-morgenroutine.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 960,
+      "width": 780,
+      "height": 1688,
+      "bytes": 117482,
+      "sha256": "9be62791cc266ec3711ea568b80d3cf3b50747af34943d6cfc9568d9a67c1e1a"
+    },
+    {
+      "id": "seite-050",
+      "group": "04-zustaende",
+      "title": "Druck – Morgenroutine",
+      "route": "/druck?typ=morning",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/050-druck-morgenroutine-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 960,
+      "width": 780,
+      "height": 1920,
+      "bytes": 119639,
+      "sha256": "54b23190c25bd8a19468bdc1e6bcd46d5739d31a0cd744a1cb23ee3e3ce5e9c2"
+    },
+    {
+      "id": "seite-051",
+      "group": "04-zustaende",
+      "title": "Druck – Abendroutine",
+      "route": "/druck?typ=evening",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/051-druck-abendroutine.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 103746,
+      "sha256": "9d8a05e30ab80594b60769351f44cfbdc0ad9a1ae9188b2da554a070cac51f9e"
+    },
+    {
+      "id": "seite-052",
+      "group": "04-zustaende",
+      "title": "Druck – beide Routinen",
+      "route": "/druck?typ=both",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/052-druck-beide-routinen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1340,
+      "width": 780,
+      "height": 1688,
+      "bytes": 116111,
+      "sha256": "cf1824d5a49f3d17894d604a269bdbe961bca77a2b292b10508b2fcb55a04aea"
+    },
+    {
+      "id": "seite-052",
+      "group": "04-zustaende",
+      "title": "Druck – beide Routinen",
+      "route": "/druck?typ=both",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/052-druck-beide-routinen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1340,
+      "width": 780,
+      "height": 2680,
+      "bytes": 166942,
+      "sha256": "14708e0e243be5244a0218063b4e2d271a3f950bee1c67a3ae6e3a33cae7c66f"
+    },
+    {
+      "id": "seite-053",
+      "group": "04-zustaende",
+      "title": "Druck – Demo-Wecker-QR",
+      "route": "/druck?typ=qr",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/053-druck-demo-wecker-qr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 936,
+      "width": 780,
+      "height": 1688,
+      "bytes": 72221,
+      "sha256": "1785880e5ea5708ef47af822a81ed8946d18dbce3611cc4ae899709647a5e5b9"
+    },
+    {
+      "id": "seite-053",
+      "group": "04-zustaende",
+      "title": "Druck – Demo-Wecker-QR",
+      "route": "/druck?typ=qr",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/053-druck-demo-wecker-qr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 936,
+      "width": 780,
+      "height": 1872,
+      "bytes": 73394,
+      "sha256": "9a50a45b5b8b9eeb59fce8459e77b1c1a02b336691e2daf28a7565e655010bd3"
+    },
+    {
+      "id": "seite-054",
+      "group": "04-zustaende",
+      "title": "Druck – Haustür-Check",
+      "route": "/druck?typ=door",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/054-druck-haustur-check.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 70258,
+      "sha256": "66a2ccf20c97c232763908fcb14e9eacac385f891bec9daefb86c969f5de2323"
+    },
+    {
+      "id": "seite-055",
+      "group": "04-zustaende",
+      "title": "Sicherung – Wiederherstellung",
+      "route": "/backup?wiederherstellen=1",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/055-sicherung-wiederherstellung.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 157727,
+      "sha256": "b3e3f94a5b0b7312091b95200589e67eb88856945e33c93fc820cc1b76ae2152"
+    },
+    {
+      "id": "seite-056",
+      "group": "04-zustaende",
+      "title": "Test 95 – Routinekarten",
+      "route": "/geraetetest?fall=95",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/056-test-95-routinekarten.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4532,
+      "width": 780,
+      "height": 1688,
+      "bytes": 232141,
+      "sha256": "00d4dfad39b58fd1524bb30edb5d8c8cefe9664721d44be2c679c39498470bf8"
+    },
+    {
+      "id": "seite-056",
+      "group": "04-zustaende",
+      "title": "Test 95 – Routinekarten",
+      "route": "/geraetetest?fall=95",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/056-test-95-routinekarten-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4532,
+      "width": 780,
+      "height": 9210,
+      "bytes": 1131629,
+      "sha256": "69e3e8e89811654a68118bd016d1978a152071282fc078415f3e6c4da2cc9e2c"
+    },
+    {
+      "id": "seite-057",
+      "group": "04-zustaende",
+      "title": "Test 96 – Schlafhinweis",
+      "route": "/geraetetest?fall=96",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/057-test-96-schlafhinweis.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4052,
+      "width": 780,
+      "height": 1688,
+      "bytes": 232141,
+      "sha256": "00d4dfad39b58fd1524bb30edb5d8c8cefe9664721d44be2c679c39498470bf8"
+    },
+    {
+      "id": "seite-057",
+      "group": "04-zustaende",
+      "title": "Test 96 – Schlafhinweis",
+      "route": "/geraetetest?fall=96",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/057-test-96-schlafhinweis-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 4052,
+      "width": 780,
+      "height": 8250,
+      "bytes": 1003015,
+      "sha256": "343d3d4572e0f1ccf356e7744b5a90d6f552aa4cd65616cd927b234b34531922"
+    },
+    {
+      "id": "seite-058",
+      "group": "03-dialoge",
+      "title": "Ort hinzufügen – alle Felder",
+      "route": "/orte",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/058-ort-hinzufugen-alle-felder.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1862,
+      "width": 780,
+      "height": 1688,
+      "bytes": 122902,
+      "sha256": "e130e14265dc18b08dfb715a40c233e65495f73b58c21b1175c4d68fc54fd41e"
+    },
+    {
+      "id": "seite-058",
+      "group": "03-dialoge",
+      "title": "Ort hinzufügen – alle Felder",
+      "route": "/orte",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/058-ort-hinzufugen-alle-felder-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1862,
+      "width": 780,
+      "height": 3870,
+      "bytes": 308798,
+      "sha256": "e0eaa916bc50e48ffc419b51dbf1e4fba989138366da391239f762f36c5301e4"
+    },
+    {
+      "id": "seite-059",
+      "group": "03-dialoge",
+      "title": "Arbeitsaufgabe – Details und Teilschritte",
+      "route": "/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3531,
+      "width": 780,
+      "height": 1688,
+      "bytes": 135327,
+      "sha256": "cced89f7e967f66ccec44fb15d5c11aa751452af7ca468dee12ea1a8bfcb680c"
+    },
+    {
+      "id": "seite-059",
+      "group": "03-dialoge",
+      "title": "Arbeitsaufgabe – Details und Teilschritte",
+      "route": "/arbeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3531,
+      "width": 780,
+      "height": 7208,
+      "bytes": 457103,
+      "sha256": "ccea4d70e6fddf47cbbbce0b571b65e44eadbbc9db1c60aab6fd1c34733fe048"
+    },
+    {
+      "id": "seite-060",
+      "group": "03-dialoge",
+      "title": "Private Aufgabe – Details und Teilschritte",
+      "route": "/inbox",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/060-private-aufgabe-details-und-teilschritte.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3311,
+      "width": 780,
+      "height": 1688,
+      "bytes": 130115,
+      "sha256": "e0e7338898508438b0ea9ced8dad6c467aea1c0411a8155ea91e092e624b7aca"
+    },
+    {
+      "id": "seite-060",
+      "group": "03-dialoge",
+      "title": "Private Aufgabe – Details und Teilschritte",
+      "route": "/inbox",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/060-private-aufgabe-details-und-teilschritte-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3311,
+      "width": 780,
+      "height": 6768,
+      "bytes": 439757,
+      "sha256": "7c830b62861422b087fe1b622a3de8c5a325db6d92739a028399f276a5e32342"
+    },
+    {
+      "id": "seite-061",
+      "group": "04-zustaende",
+      "title": "Arbeitszeit – Wochenübersicht und Nachtrag",
+      "route": "/arbeitszeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2128,
+      "width": 780,
+      "height": 1688,
+      "bytes": 129588,
+      "sha256": "62bb6b0fafa7996c80447f268a07c6cbcbf2ecbe0b897d81df12f2dce2960f8d"
+    },
+    {
+      "id": "seite-061",
+      "group": "04-zustaende",
+      "title": "Arbeitszeit – Wochenübersicht und Nachtrag",
+      "route": "/arbeitszeit",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/061-arbeitszeit-wochenubersicht-und-nachtrag-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2128,
+      "width": 780,
+      "height": 4402,
+      "bytes": 297445,
+      "sha256": "6215aad6093496f070488276c22bbae23dc3e077a66bc30bee4653bb08a583b8"
+    },
+    {
+      "id": "seite-062",
+      "group": "03-dialoge",
+      "title": "Sicherung – Exportauswahl",
+      "route": "/backup",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/062-sicherung-exportauswahl.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1032,
+      "width": 780,
+      "height": 1688,
+      "bytes": 192449,
+      "sha256": "338feee4d371da8d3c1630e850d68b5bd1e51ebc823bc08bba2c952f1b1014a0"
+    },
+    {
+      "id": "seite-062",
+      "group": "03-dialoge",
+      "title": "Sicherung – Exportauswahl",
+      "route": "/backup",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/062-sicherung-exportauswahl-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1032,
+      "width": 780,
+      "height": 2210,
+      "bytes": 220550,
+      "sha256": "2a9b5919b3a9a1166d3791d6aee053734465df98a7e7d8c48ef58888dd9e148c"
+    },
+    {
+      "id": "seite-063",
+      "group": "03-dialoge",
+      "title": "Abend – Idee parken und nächsten Schritt merken",
+      "route": "/abend",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2420,
+      "width": 780,
+      "height": 1688,
+      "bytes": 156817,
+      "sha256": "c42818bc94485d0e5b50f142fe6af28f7e4f114cd5856b6ec06dc05c16f8299e"
+    },
+    {
+      "id": "seite-063",
+      "group": "03-dialoge",
+      "title": "Abend – Idee parken und nächsten Schritt merken",
+      "route": "/abend",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2420,
+      "width": 780,
+      "height": 4986,
+      "bytes": 414368,
+      "sha256": "059ef1a7c82a1305f5c56bb215ee600349b80f26b95113469778b542b1aec5bf"
+    },
+    {
+      "id": "seite-064",
+      "group": "03-dialoge",
+      "title": "Schlafüberblick – Angaben korrigieren",
+      "route": "/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/064-schlafuberblick-angaben-korrigieren.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2694,
+      "width": 780,
+      "height": 1688,
+      "bytes": 149623,
+      "sha256": "48e953a202e03638df048994fbf1f74df61d0c8d929d4bb08208df3ea280c5c8"
+    },
+    {
+      "id": "seite-064",
+      "group": "03-dialoge",
+      "title": "Schlafüberblick – Angaben korrigieren",
+      "route": "/schlaf",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/064-schlafuberblick-angaben-korrigieren-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2694,
+      "width": 780,
+      "height": 5534,
+      "bytes": 533694,
+      "sha256": "98c0009177a08ef2d34a2ae1f5d0bde0c3a2e15f686d75b3acae963ead9fde3a"
+    },
+    {
+      "id": "seite-065",
+      "group": "04-zustaende",
+      "title": "Jetzt – Plan und Optionen geöffnet",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/065-jetzt-plan-und-optionen-geoffnet.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1997,
+      "width": 780,
+      "height": 1688,
+      "bytes": 147840,
+      "sha256": "38cb0eb6c119097545bdd2a63440657d54c2a74a7bd41efa74f3001641de45e9"
+    },
+    {
+      "id": "seite-065",
+      "group": "04-zustaende",
+      "title": "Jetzt – Plan und Optionen geöffnet",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/065-jetzt-plan-und-optionen-geoffnet-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1997,
+      "width": 780,
+      "height": 4140,
+      "bytes": 323919,
+      "sha256": "c55830cd759ff444a255292fcfd9cd6a848564b24c772ea4b682432befc45d6e"
+    },
+    {
+      "id": "seite-066",
+      "group": "03-dialoge",
+      "title": "Heute – Tagesart und Unterstützungsmodus",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/066-heute-tagesart-und-unterstutzungsmodus.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 122210,
+      "sha256": "5e091e6472329dcc2f94b71bae5d95612aa04794b6f14abccba210a0750f87bd"
+    },
+    {
+      "id": "seite-067",
+      "group": "03-dialoge",
+      "title": "Ganz klein anfangen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/067-ganz-klein-anfangen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 111996,
+      "sha256": "a90f0524fa5391e8dd17980d6d4f532a6a15162f21be601038bb855cf742677e"
+    },
+    {
+      "id": "seite-068",
+      "group": "03-dialoge",
+      "title": "Heute anders – Auswahl",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/068-heute-anders-auswahl.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 112909,
+      "sha256": "dbf5852dcf2df8f72e072022b51f280fdc76bb7740121376406c87d29dc5c2e4"
+    },
+    {
+      "id": "seite-069",
+      "group": "03-dialoge",
+      "title": "Heute anders – Termin planen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/069-heute-anders-termin-planen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 123641,
+      "sha256": "e4bd607b9b788ffc1ccb170598c401eb0b382e86b506196d1d6287ed440151fe"
+    },
+    {
+      "id": "seite-069",
+      "group": "03-dialoge",
+      "title": "Heute anders – Termin planen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Dialog · Scrollteil 2",
+      "file": "03-dialoge/069-heute-anders-termin-planen-dialog-teil-2.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 124828,
+      "sha256": "48856de6af823a096074a824a1d81085a4a336f4280b1408bbc01d4708f13f60"
+    },
+    {
+      "id": "seite-069",
+      "group": "03-dialoge",
+      "title": "Heute anders – Termin planen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Dialog · Scrollteil 3",
+      "file": "03-dialoge/069-heute-anders-termin-planen-dialog-teil-3.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 159882,
+      "sha256": "6e45deac159ae8507c1d12a3bc9dd2f0cd93ea7262188a0500d5499e21639388"
+    },
+    {
+      "id": "seite-070",
+      "group": "03-dialoge",
+      "title": "Heute anders – Arbeit anpassen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/070-heute-anders-arbeit-anpassen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 102296,
+      "sha256": "10226e8b3c6b5e5407b482ef143d441d9b601beb87599fc785ca42c2685337af"
+    },
+    {
+      "id": "seite-070",
+      "group": "03-dialoge",
+      "title": "Heute anders – Arbeit anpassen",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Dialog · Scrollteil 2",
+      "file": "03-dialoge/070-heute-anders-arbeit-anpassen-dialog-teil-2.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 102290,
+      "sha256": "aee7a70b03699de6965e48d92707f8f2528df890e149bf7ab8733b483874fd9f"
+    },
+    {
+      "id": "seite-071",
+      "group": "03-dialoge",
+      "title": "Heute anders – Routine verschieben",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/071-heute-anders-routine-verschieben.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 113983,
+      "sha256": "7bc42024182df0ea5b0959fc8975d9e3a24471f047e1da6f5fad9b3bbde9a7fe"
+    },
+    {
+      "id": "seite-072",
+      "group": "03-dialoge",
+      "title": "Heute anders – Nicht nötig",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/072-heute-anders-nicht-notig.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 121385,
+      "sha256": "ee264fdfebf971b84a579cf88d4264297cbf268b2d19e32d861f2bc4cc97018a"
+    },
+    {
+      "id": "seite-073",
+      "group": "03-dialoge",
+      "title": "Heute anders – Abendzeit",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/073-heute-anders-abendzeit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 136226,
+      "sha256": "a9c1b8b462aab0e28d76db182646629f04bc9ac51939d60c6a31b8de874dd2c4"
+    },
+    {
+      "id": "seite-074",
+      "group": "03-dialoge",
+      "title": "Heute anders – Morgen vorbereiten",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/074-heute-anders-morgen-vorbereiten.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 121863,
+      "sha256": "4c79f24b386aa13d8a39e1e637386df7c763ba5e63e8e83bf2ac700c4b417ab7"
+    },
+    {
+      "id": "seite-075",
+      "group": "03-dialoge",
+      "title": "Heute anders – Morgenroutine heute",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/075-heute-anders-morgenroutine-heute.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1043,
+      "width": 780,
+      "height": 1688,
+      "bytes": 121863,
+      "sha256": "4c79f24b386aa13d8a39e1e637386df7c763ba5e63e8e83bf2ac700c4b417ab7"
+    },
+    {
+      "id": "seite-076",
+      "group": "03-dialoge",
+      "title": "Dein Abend – PC-Stopp anpassen",
+      "route": "/pc-stopp",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/076-dein-abend-pc-stopp-anpassen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1208,
+      "width": 780,
+      "height": 1688,
+      "bytes": 131127,
+      "sha256": "fd4487aae522403540798bb2e45cf73934f156226fed98b59433a5468e85fecb"
+    },
+    {
+      "id": "seite-077",
+      "group": "04-zustaende",
+      "title": "Arbeitsfokus – Timer läuft",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/077-arbeitsfokus-timer-lauft.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 82028,
+      "sha256": "a7eb2fdbbc41abb0444592105cb61679828b884a7e28f03d1605a6a506d5809b"
+    },
+    {
+      "id": "seite-078",
+      "group": "04-zustaende",
+      "title": "Arbeitsfokus – Pause",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/078-arbeitsfokus-pause.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 81271,
+      "sha256": "be320831ade85666627b09e7896030ed7fe23998739d77a4533daf4915524786"
+    },
+    {
+      "id": "seite-079",
+      "group": "03-dialoge",
+      "title": "Arbeitsfokus – Wiedereinstieg festhalten",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1110,
+      "width": 780,
+      "height": 1688,
+      "bytes": 94219,
+      "sha256": "ee3c690fef87fda1bebfda9dfbb179bbfaa5ede6404399e0384ec6f5ee23d236"
+    },
+    {
+      "id": "seite-079",
+      "group": "03-dialoge",
+      "title": "Arbeitsfokus – Wiedereinstieg festhalten",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1110,
+      "width": 780,
+      "height": 2220,
+      "bytes": 116011,
+      "sha256": "c0b7000ce48729bf7674e54459755e2fe84f51e7f02e8b840274f26af3bba6a7"
+    },
+    {
+      "id": "seite-080",
+      "group": "04-zustaende",
+      "title": "Teilschritt – Timer läuft",
+      "route": "/aufgabe/work/demo-bericht?teil=demo-teil1",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/080-teilschritt-timer-lauft.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 89273,
+      "sha256": "4db7b67e98990f38f94acee12d4e37303bb447fc47225d2c9a6faa6a40d4adc6"
+    },
+    {
+      "id": "seite-081",
+      "group": "04-zustaende",
+      "title": "Jetzt – 07.05 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/081-jetzt-07-05-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 929,
+      "width": 780,
+      "height": 1688,
+      "bytes": 142610,
+      "sha256": "51126cf180703eebf095196999b963ba27241685a8ecbc8db0fe90fc34d9ae93"
+    },
+    {
+      "id": "seite-081",
+      "group": "04-zustaende",
+      "title": "Jetzt – 07.05 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/081-jetzt-07-05-uhr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 929,
+      "width": 780,
+      "height": 2004,
+      "bytes": 152023,
+      "sha256": "16afbf077bf435879334a2fff02a7decd4a4554844e15e599fdbb2022398df91"
+    },
+    {
+      "id": "seite-082",
+      "group": "04-zustaende",
+      "title": "Jetzt – 16.30 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/082-jetzt-16-30-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 989,
+      "width": 780,
+      "height": 1688,
+      "bytes": 170546,
+      "sha256": "729203f191248fda5791d37b40046312a2170c163454fd3d1fdb111a6fb3ac96"
+    },
+    {
+      "id": "seite-082",
+      "group": "04-zustaende",
+      "title": "Jetzt – 16.30 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/082-jetzt-16-30-uhr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 989,
+      "width": 780,
+      "height": 2124,
+      "bytes": 180975,
+      "sha256": "176a1ed51574491a50f32f6909e11a990d0bb46d2f015ebf17d04bf67daaa139"
+    },
+    {
+      "id": "seite-083",
+      "group": "04-zustaende",
+      "title": "Jetzt – 19.00 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/083-jetzt-19-00-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 1688,
+      "bytes": 163504,
+      "sha256": "452fa3b0f20bbbc2b28e11e21bc20ddc8866c8697d75d77189158efab68244c8"
+    },
+    {
+      "id": "seite-083",
+      "group": "04-zustaende",
+      "title": "Jetzt – 19.00 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/083-jetzt-19-00-uhr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 2076,
+      "bytes": 174564,
+      "sha256": "5a016ef0836b377c23f32ef71337e6f279e4521fc6f3d3d47a87f430facbec0d"
+    },
+    {
+      "id": "seite-084",
+      "group": "04-zustaende",
+      "title": "Jetzt – 21.45 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/084-jetzt-21-45-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 1688,
+      "bytes": 163869,
+      "sha256": "6032ce479e85fb63d4391b7de9715df443da4583d5f1a753e1e384ec606d5e3e"
+    },
+    {
+      "id": "seite-084",
+      "group": "04-zustaende",
+      "title": "Jetzt – 21.45 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/084-jetzt-21-45-uhr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 2076,
+      "bytes": 174925,
+      "sha256": "2e07709d40198b1a27f30231fb22078475b8f1140e7e27ced7f2b2b1fa0654c1"
+    },
+    {
+      "id": "seite-085",
+      "group": "04-zustaende",
+      "title": "Jetzt – 22.05 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/085-jetzt-22-05-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 1688,
+      "bytes": 162794,
+      "sha256": "156de50ffcc49e50ddcdaad7dc27bd5b3f1fbbf145e8530ec7f3a6e2ea96c514"
+    },
+    {
+      "id": "seite-085",
+      "group": "04-zustaende",
+      "title": "Jetzt – 22.05 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/085-jetzt-22-05-uhr-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 965,
+      "width": 780,
+      "height": 2076,
+      "bytes": 173808,
+      "sha256": "dfe56b0bdf7f5b274b3418a4c2c41a27e4f098e30b35cebaea0a53f5b5a3a218"
+    },
+    {
+      "id": "seite-086",
+      "group": "04-zustaende",
+      "title": "Jetzt – 22.45 Uhr",
+      "route": "/",
+      "note": "Beispielzustand bei geänderter Browser-Uhr; keine echten Handlungen oder Sensorereignisse.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/086-jetzt-22-45-uhr.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 137174,
+      "sha256": "334a9e9590411d76e9a7d3e7bdfde6f829b7c97984f8384a47c3c894762694b9"
+    },
+    {
+      "id": "seite-087",
+      "group": "04-zustaende",
+      "title": "Fokus-Shortcut – aktuelles Ziel",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "Der Shortcut führt in die aktuelle Aufgabe oder Routine; er hat keine zweite Aufgabenplanung.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/087-fokus-shortcut-aktuelles-ziel.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 82028,
+      "sha256": "a7eb2fdbbc41abb0444592105cb61679828b884a7e28f03d1605a6a506d5809b"
+    },
+    {
+      "id": "seite-088",
+      "group": "02-einstellungen",
+      "title": "Wecker – optionale Einstellungen geöffnet",
+      "route": "/wecker",
+      "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2590,
+      "width": 780,
+      "height": 1688,
+      "bytes": 177288,
+      "sha256": "4b4fb163954a0da93e8ca1d7ac420bfdb1739503a6dd5e543a1fde54ee03144f"
+    },
+    {
+      "id": "seite-088",
+      "group": "02-einstellungen",
+      "title": "Wecker – optionale Einstellungen geöffnet",
+      "route": "/wecker",
+      "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/088-wecker-optionale-einstellungen-geoffnet-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2590,
+      "width": 780,
+      "height": 5326,
+      "bytes": 482539,
+      "sha256": "9599424bc78afc7be2417c74dfbfafebf4e4ea0682b062142fd10bbbde7b93d7"
+    },
+    {
+      "id": "seite-089",
+      "group": "02-einstellungen",
+      "title": "Abendmodus – Optionen geöffnet",
+      "route": "/einstellungen/abendmodus",
+      "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/089-abendmodus-optionen-geoffnet.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 60603,
+      "sha256": "416c3b12be858b9baa679cf53ec7dd21742f6bbe5b5bb6b1e6f391ca730d9e88"
+    },
+    {
+      "id": "seite-090",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen – Optionen",
+      "route": "/einstellungen/hilfen",
+      "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "02-einstellungen/090-alltagshilfen-optionen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3070,
+      "width": 780,
+      "height": 1688,
+      "bytes": 198888,
+      "sha256": "bcc161725b72520a5579a42c64b326a9d142419819fd8894b26392df0031cb35"
+    },
+    {
+      "id": "seite-090",
+      "group": "02-einstellungen",
+      "title": "Alltagshilfen – Optionen",
+      "route": "/einstellungen/hilfen",
+      "note": "Optionen nur in der isolierten Beispieldatenbank aktiviert. Im Browser startet keine nächtliche Messung.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "02-einstellungen/090-alltagshilfen-optionen-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 3070,
+      "width": 780,
+      "height": 6286,
+      "bytes": 521474,
+      "sha256": "3cba9be144795b518542270dda003ea23e4c7f3c9443a5bc2da098104bfee5f1"
+    },
+    {
+      "id": "seite-091",
+      "group": "04-zustaende",
+      "title": "Jetzt – Abend mit ausgeblendeten Arbeitsaufgaben",
+      "route": "/",
+      "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/091-jetzt-abend-mit-ausgeblendeten-arbeitsaufgaben.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 869,
+      "width": 780,
+      "height": 1688,
+      "bytes": 137821,
+      "sha256": "b285b23579cc762548d931ec777892e0276adb488697049b80778cb8909ebdcd"
+    },
+    {
+      "id": "seite-092",
+      "group": "04-zustaende",
+      "title": "Jetzt – Abendübergang mit Abendruhe",
+      "route": "/",
+      "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/092-jetzt-abendubergang-mit-abendruhe.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 998,
+      "width": 780,
+      "height": 1688,
+      "bytes": 154977,
+      "sha256": "42edee698615d71a3e30b943aae4923a566fe1507630321e44e59a4619a8bb0a"
+    },
+    {
+      "id": "seite-092",
+      "group": "04-zustaende",
+      "title": "Jetzt – Abendübergang mit Abendruhe",
+      "route": "/",
+      "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/092-jetzt-abendubergang-mit-abendruhe-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 998,
+      "width": 780,
+      "height": 2142,
+      "bytes": 170093,
+      "sha256": "dde35a968d3cb15da57810f58bd83a66bc007c3f97b846f9e1b040807f5e51ff"
+    },
+    {
+      "id": "seite-093",
+      "group": "04-zustaende",
+      "title": "Jetzt – vor dem Bett mit Abendruhe",
+      "route": "/",
+      "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 974,
+      "width": 780,
+      "height": 1688,
+      "bytes": 148986,
+      "sha256": "aa1d22b0255134bf5d68b979ab465b9d868991c687ec78a2c968306b87e42f3d"
+    },
+    {
+      "id": "seite-093",
+      "group": "04-zustaende",
+      "title": "Jetzt – vor dem Bett mit Abendruhe",
+      "route": "/",
+      "note": "Der vorhandene freiwillige Schalter für Ruhe nach der Arbeit ist für diese Aufnahme eingeschaltet.",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/093-jetzt-vor-dem-bett-mit-abendruhe-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 974,
+      "width": 780,
+      "height": 2094,
+      "bytes": 161459,
+      "sha256": "bb9308429560c36860d99dc2190c998c7f718ca60c8800ed64da1c6a14a0ea28"
+    },
+    {
+      "id": "seite-094",
+      "group": "03-dialoge",
+      "title": "Aufgabe – eigener Grund",
+      "route": "/aufgabe/work/demo-bericht",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/094-aufgabe-eigener-grund.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 974,
+      "width": 780,
+      "height": 1688,
+      "bytes": 105655,
+      "sha256": "31a07c6e01b53115daa716538eb67c34101acd6761893a9152d329fb460f2a1b"
+    },
+    {
+      "id": "seite-095",
+      "group": "03-dialoge",
+      "title": "Heute länger arbeiten",
+      "route": "/",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/095-heute-langer-arbeiten.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 1997,
+      "width": 780,
+      "height": 1688,
+      "bytes": 113820,
+      "sha256": "22c9bef7a1ab6490a3bd5673848c5c226e0bb181686cc0d9a7e77222a4a97440"
+    },
+    {
+      "id": "seite-096",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – bedingte Hilfen und Regeln",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 6955,
+      "width": 780,
+      "height": 1688,
+      "bytes": 150555,
+      "sha256": "064d74f13ff69492f958e31d88fb0fa2ded421889604b83f37f3461e168b4331"
+    },
+    {
+      "id": "seite-096",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – bedingte Hilfen und Regeln",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/096-zeitubersicht-bedingte-hilfen-und-regeln-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 6955,
+      "width": 780,
+      "height": 14056,
+      "bytes": 1032292,
+      "sha256": "48b214b5184b822401c9abaf898ed80abfe811908e35580e2d53c0744f077592"
+    },
+    {
+      "id": "seite-097",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – Demnächst",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "04-zustaende/097-zeitubersicht-demnachst.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 8593,
+      "width": 780,
+      "height": 1688,
+      "bytes": 149098,
+      "sha256": "a1bf2bdf43a149875180ef886f92058bd699f195466452e5005f51f7b60df946"
+    },
+    {
+      "id": "seite-097",
+      "group": "04-zustaende",
+      "title": "Zeitübersicht – Demnächst",
+      "route": "/zeiten",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "04-zustaende/097-zeitubersicht-demnachst-gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 8593,
+      "width": 780,
+      "height": 17332,
+      "bytes": 1291760,
+      "sha256": "6bcee285a5f04104d8844e85a9d349cc9264e389d37457c491ce9b0c7f1904d3"
+    },
+    {
+      "id": "seite-098",
+      "group": "03-dialoge",
+      "title": "Freigabe – lokales Diktieren",
+      "route": "/einstellungen/hilfen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/098-freigabe-lokales-diktieren.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2950,
+      "width": 780,
+      "height": 1688,
+      "bytes": 192421,
+      "sha256": "d4af03d75b33de466c1a4dac1eb49d33c3f0436d008df8317d21bd97d9604b5a"
+    },
+    {
+      "id": "seite-099",
+      "group": "03-dialoge",
+      "title": "Freigabe – Zeitinfos vorlesen",
+      "route": "/einstellungen/hilfen",
+      "note": "",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "03-dialoge/099-freigabe-zeitinfos-vorlesen.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 2950,
+      "width": 780,
+      "height": 1688,
+      "bytes": 199622,
+      "sha256": "cdb61d6df9c75b2504328a4eabb49f0bdf121f5a7e33a670d64c3f26b1619d54"
+    },
+    {
+      "id": "seite-100",
+      "group": "01-seiten",
+      "title": "Fokus starten – Auswahl",
+      "route": "/fokus-start",
+      "note": "Wenn gerade keine nächste Aufgabe oder Routine ansteht, bietet dieser Shortcut eine bewusste Auswahl an.",
+      "simulatedNative": false,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "01-seiten/100-fokus-starten-auswahl.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 57617,
+      "sha256": "60b1da70f00dae0e0b7066df3cd2908a1ab95158e1795a36a8ef8aff920883b6"
+    },
+    {
+      "id": "simulation-wecker-main",
+      "group": "native-simulation",
+      "title": "Hauptwecker klingelt",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-main.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 54884,
+      "sha256": "9d850b837d567fa60e2956fd5b114d75b50148379ed7a6ed99c1643ab064a068"
+    },
+    {
+      "id": "simulation-wecker-andere-wege",
+      "group": "native-simulation",
+      "title": "Wecker: andere Wege zum Beenden",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Alternative Wege zum QR-Scanner.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-andere-wege.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 54344,
+      "sha256": "4be5e1fb15bb1419b784fec6b69bcabf5f42f084c86e30aa8b5460d4bf733fb0"
+    },
+    {
+      "id": "simulation-wecker-rechenaufgabe",
+      "group": "native-simulation",
+      "title": "Wecker: Rechenaufgaben",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Erste von drei Beispiel-Rechenaufgaben.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-rechenaufgabe.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 49533,
+      "sha256": "989cec229457c1d071e5bd44ce326368248a6da2c9ed8100771bbf06a89514a0"
+    },
+    {
+      "id": "simulation-wecker-notfallstopp",
+      "group": "native-simulation",
+      "title": "Wecker: Notfall-Stopp",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Zehn-Sekunden-Wartezeit; keine Hardwarebedienung simuliert.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-notfallstopp.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 44860,
+      "sha256": "a1be6f8d1def7cb391ee04baecd75b2c9893c8aa2dbc8f85863e43139156de68"
+    },
+    {
+      "id": "simulation-wecker-snooze",
+      "group": "native-simulation",
+      "title": "Wecker nach dem Schlummern",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-snooze.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 46169,
+      "sha256": "806f107e01c647693cb791a1ac6ee693cc7b262da002ecbb1570465931b4d86b"
+    },
+    {
+      "id": "simulation-wecker-prewake",
+      "group": "native-simulation",
+      "title": "Vorwecker klingelt",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-prewake.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 63589,
+      "sha256": "b0d040b23dfcfd393ad3650cde9efed7d0376ff0d34b0cf06af58854e6a6f9bd"
+    },
+    {
+      "id": "simulation-wecker-wakecheck",
+      "group": "native-simulation",
+      "title": "Wachheits-Check",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-wakecheck.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 30817,
+      "sha256": "727b35e74897a41f54852e16b560e49566eb18fc5e6a1f0d2b79a9bfb2508845"
+    },
+    {
+      "id": "simulation-wecker-test",
+      "group": "native-simulation",
+      "title": "Testwecker klingelt",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Klingelzustand wird durch eine kontrollierte Capacitor-Brücke bereitgestellt. Kein Ton und keine echte Weckerzustellung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-test.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 44162,
+      "sha256": "2b1c5937383cabb5c14d1af1364aeb4e9be0a41c2cd3552fcbb4f06e0d413828"
+    },
+    {
+      "id": "simulation-wecker-test-hoerbarkeit",
+      "group": "native-simulation",
+      "title": "Testwecker: Hörbarkeit bestätigen",
+      "route": "/wecker/klingelt",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Die Frage wird gezeigt; es wird keine Hörbarkeit bestätigt.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__wecker-test-hoerbarkeit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 51886,
+      "sha256": "cfd0fe35fcb8e51cff993370debe04505abac8ee64b9d9b39e7c56c67913beaa"
+    },
+    {
+      "id": "simulation-einrichtung-android-freigaben",
+      "group": "native-simulation",
+      "title": "Einrichtung: Android-Freigaben",
+      "route": "/start",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Dritter Einrichtungsschritt. Die Android-Systemdialoge selbst sind nicht erfasst.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__einrichtung-android-freigaben.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 53060,
+      "sha256": "66b4291d7dc0ca5c2aa499cf26ba9b6987473f229b83372b97d5275b1feff434"
+    },
+    {
+      "id": "simulation-weckfenster-bereit",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "route": "/wecker",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Option eingeschaltet, Sensoren nicht aktiv. Statuswerte simuliert.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__weckfenster-bereit.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4184,
+      "width": 780,
+      "height": 1688,
+      "bytes": 172799,
+      "sha256": "fa63ab966a5252c985831949daf2bdd1e0b89dce37bc4a3c4efd4b001dcb2274"
+    },
+    {
+      "id": "simulation-weckfenster-bereit__gesamt",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: bereit zum Start",
+      "route": "/wecker",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Option eingeschaltet, Sensoren nicht aktiv. Statuswerte simuliert.",
+      "simulatedNative": true,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "native-simulation/SIMULATION__weckfenster-bereit__gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4184,
+      "width": 780,
+      "height": 8514,
+      "bytes": 818879,
+      "sha256": "591e19304eeab997bd427ffb4e37c4172d56595be9e0650441798b1c71c96fcb"
+    },
+    {
+      "id": "simulation-weckfenster-vorbereitet",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "route": "/wecker",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Nur Statusanzeige simuliert. Keine Sensoren, Mikrofonaufnahmen oder Schlafphasenmessung.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__weckfenster-vorbereitet.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4302,
+      "width": 780,
+      "height": 1688,
+      "bytes": 182955,
+      "sha256": "5461080e64255c8e58a19d6fd2bb8bba4508fc5fc4d06ce5e47045c866bae6c1"
+    },
+    {
+      "id": "simulation-weckfenster-vorbereitet__gesamt",
+      "group": "native-simulation",
+      "title": "Aktivitäts-Weckfenster: vorbereitet, Vorwecker pausiert",
+      "route": "/wecker",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Nur Statusanzeige simuliert. Keine Sensoren, Mikrofonaufnahmen oder Schlafphasenmessung.",
+      "simulatedNative": true,
+      "kind": "Gesamtansicht · lange Seite",
+      "file": "native-simulation/SIMULATION__weckfenster-vorbereitet__gesamt.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 4302,
+      "width": 780,
+      "height": 8750,
+      "bytes": 851549,
+      "sha256": "ad677f0757855953427d7227dfa4aad77213675be957981c5202780cd084271c"
+    },
+    {
+      "id": "simulation-schlafhinweis-idle",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: bewusst starten",
+      "route": "/",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__schlafhinweis-idle.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 115604,
+      "sha256": "317582734fbe8a65ff142daadd41fc52a17eb7d0a93b5155093ae8ec5cae52b5"
+    },
+    {
+      "id": "simulation-schlafhinweis-waiting",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: vorgemerkt",
+      "route": "/",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__schlafhinweis-waiting.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 126413,
+      "sha256": "5d5864cda370370efe7afa0ebb02dfd2d7730e7479bb3eea8c81ebfdbe64a3df"
+    },
+    {
+      "id": "simulation-schlafhinweis-shown",
+      "group": "native-simulation",
+      "title": "Stummer Schlafhinweis: Zeitpunkt erreicht",
+      "route": "/",
+      "note": "Browser-Simulation mit Beispieldaten. Kein Android-Gerätebeleg. Anker-Inhalt auf Jetzt. Das Android-Fenster über fremden Apps und der Bildschirm-/Sperrzustand sind nicht erfasst.",
+      "simulatedNative": true,
+      "kind": "Handyansicht · sichtbarer Ausschnitt",
+      "file": "native-simulation/SIMULATION__schlafhinweis-shown.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentHeight": 844,
+      "width": 780,
+      "height": 1688,
+      "bytes": 94923,
+      "sha256": "6b965f725bcb9b96351cbfe8c406e001379601471ddf59dd51a2cfa095185776"
+    }
+  ]
+}
