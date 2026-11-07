@@ -19,7 +19,7 @@ function Entry({ entry }: { entry: TimeCatalogEntry }) {
       <summary className="min-h-12 cursor-pointer space-y-1 py-2">
         <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="shrink-0 font-medium tabular-nums">{entry.at === undefined ? 'Ohne feste Uhrzeit' : <><time dateTime={new Date(entry.at).toISOString()}>{timeLabel.format(entry.at)}</time>{entry.endAt !== undefined && entry.endAt > entry.at && <> – <time dateTime={new Date(entry.endAt).toISOString()}>{timeLabel.format(entry.endAt)}</time></>}</>}</span>
-          <span className="min-w-0 flex-1 break-words font-medium">{entry.label}</span>
+          <span className="min-w-0 basis-full flex-1 break-words font-medium sm:basis-0">{entry.label}</span>
         </span>
         <span className="block break-words text-sm text-muted">{TIME_CATEGORIES[entry.category]} · {TIME_STATUS_LABELS[entry.status]} · {entry.evidence === 'native-snapshot' ? 'Nativer Status ausgelesen' : 'Berechnet'}</span>
       </summary>
