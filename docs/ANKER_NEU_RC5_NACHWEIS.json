@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "applicationId": "de.frnkrm.anker.mobile",
+  "appName": "Anker Neu",
+  "versionName": "1.3.0-rc.5",
+  "versionCode": 12,
+  "sourceCommit": "3ecbc198022eb89906a8e72107d245be7f8703bd",
+  "sourceFingerprint": "d3df94c5a1bc0ee42af11b87aaab7aca8eb8e8068618700b7ed9a6d1a480c96f",
+  "signedApkSha256": "ae1aeceba25c0be70169c197e94f414759e556dab4619c1aab6ce08c7eb23ff4",
+  "signedApkBytes": 38039030,
+  "certificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+  "signatureVerified": true,
+  "v2": true,
+  "v3": true,
+  "zipalign16kb": true,
+  "unsignedEntriesByteEqual": true,
+  "oldAppDataModified": false,
+  "privateKeyInDownload": false,
+  "signedAt": "2026-11-07T18:14:57.861277+00:00",
+  "ci": {
+    "url": "https://github.com/frnkrm/anker/actions/runs/42399563581",
+    "exactCommitVerified": true,
+    "successful": true,
+    "browserPassed": 215,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "rawAuthenticatedLogsRead": false
+  },
+  "tests": {
+    "vitest": 875,
+    "browserLocal": 215,
+    "browserCI": 215,
+    "nativeJUnit": 122,
+    "nativeSuites": 11,
+    "signingMocks": 36,
+    "pcStop": 19,
+    "allPassed": true
+  },
+  "nativeProvenance": {
+    "freshTestsExecutedBeforeCommitBinding": true,
+    "originalReportSha256": "5341bc2844f64563cf8b09d4b71020d24040a976fe76d43a06c40e03ce5ff6c1",
+    "executionHeadContextOnly": "6eefc80dffa7bea064e2cb81f78bff32f71eb4ac",
+    "finalCommitBoundAfterByteEquality": true,
+    "runtimeAndNativeDependencyInputsByteEqual": true
+  },
+  "download": {
+    "url": "https://github.com/frnkrm/anker/raw/refs/heads/download-anker-neu-rc5-20261107/Anker-Neu-Code12.apk",
+    "httpStatus": 200,
+    "bytes": 38039030,
+    "sha256": "ae1aeceba25c0be70169c197e94f414759e556dab4619c1aab6ce08c7eb23ff4",
+    "exactBytesCompared": true,
+    "branchCommit": "4011b6822143f29f6e400254ed5a722991e93f9a",
+    "verifiedAt": "2026-11-07T18:17:34.968433+00:00"
+  },
+  "deviceValidation": {
+    "installation": "not run",
+    "notificationActionsOnSamsung": "not run",
+    "newDeviceReportsAutoMarked": false
+  },
+  "keyCustody": {
+    "githubSecretsTransfer": "authorized; pending cloud API network access",
+    "durableExternalBackup": "not configured",
+    "privateValuesInRepositoryOrDownload": false
+  }
+}

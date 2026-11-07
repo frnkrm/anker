@@ -1,6 +1,6 @@
 # Künftige Updates von Anker Neu signieren
 
-Stand: 7. November 2026, **Anker Neu 1.3.0-rc.4 / Code 11**, Paket `de.frnkrm.anker.mobile`. Die [fertige signierte APK](INSTALLATION_ANKER_NEU.md) kann direkt am Handy installiert werden. Der private Release-Schlüssel wurde auf ausdrücklichen Nutzerwunsch geschützt in der aktuellen Cloud-Arbeitsumgebung erzeugt. Er liegt weder im Repository noch im öffentlichen APK-Download. Eine dauerhafte externe Sicherung und die GitHub-Signiersecrets wurden noch nicht eingerichtet.
+Stand: 7. November 2026, **Anker Neu 1.3.0-rc.5 / Code 12**, Paket `de.frnkrm.anker.mobile`. Die [fertige signierte APK](INSTALLATION_ANKER_NEU.md) kann direkt am Handy installiert werden. Der private Release-Schlüssel wurde auf ausdrücklichen Nutzerwunsch geschützt in der aktuellen Cloud-Arbeitsumgebung erzeugt. Er liegt weder im Repository noch im öffentlichen APK-Download. Eine dauerhafte externe Sicherung und die GitHub-Signiersecrets wurden noch nicht eingerichtet.
 
 ## Welche Signatur erhalten bleiben muss
 
@@ -30,10 +30,10 @@ Für eine eigene vorhandene P12-Sicherung stellt `scripts/setup-android-signing.
 2. Nach Erfolg das endgültige Artefakt **Anker-Android-Update-…** herunterladen; die interne UNSIGNIERT-Übergabe ist nicht das Handy-Update.
 3. ZIP am Handy entpacken, `INSTALLATION.txt` lesen und nur die als SIGNIERT ausgewiesene APK öffnen. Android fragt nach Installation und gegebenenfalls Freigabe des Browsers/Dateimanagers.
 
-Ohne die einmalige Schlüsselaufbewahrung und Secret-Einrichtung erzeugt dieser Workflow weiterhin nur eine unsignierte Datei. Die bereits fertig signierte RC4-APK im Installationsleitfaden benötigt diesen Workflow nicht.
+Ohne die einmalige Schlüsselaufbewahrung und Secret-Einrichtung erzeugt dieser Workflow weiterhin nur eine unsignierte Datei. Die bereits fertig signierte RC5-APK im Installationsleitfaden benötigt diesen Workflow nicht.
 
 ## Tatsächliche Nachweise und offene Grenzen
 
-36 Offline-/Mocktests prüfen Manifest-/Commit-/CI-Gates, die neue App-Kennung, falsche Zertifikate, fehlende/partielle Secrets, Hashmanipulation und geschützte Secretübergabe. Sie starteten keinen echten signierten Actions-Lauf. Das ausgelieferte RC4-APK wurde dagegen tatsächlich separat in der Cloud signiert und kryptografisch geprüft; [Nachweis](ANKER_NEU_RC4_NACHWEIS.json). Private Schlüssel wurden dabei nicht an GitHub übertragen.
+36 Offline-/Mocktests prüfen Manifest-/Commit-/CI-Gates, die neue App-Kennung, falsche Zertifikate, fehlende/partielle Secrets, Hashmanipulation und geschützte Secretübergabe. Sie starteten keinen echten signierten Actions-Lauf. Das ausgelieferte RC5-APK wurde dagegen tatsächlich separat in der Cloud signiert und kryptografisch geprüft; [Nachweis](ANKER_NEU_RC5_NACHWEIS.json). Private Schlüssel wurden dabei nicht an GitHub übertragen.
 
 [Historische RC3-Anleitung mit altem Zertifikat](https://github.com/frnkrm/anker/blob/f9b33ea69101d13fce3ef12f8846fed07637aaab/docs/ANDROID_UPDATE_AUTOMATION.md). Keine Tags, Releases, Google-Play-Veröffentlichung, kostenpflichtigen Dienste oder externen Nachrichten wurden durch die Neusignierung ausgelöst. Play benötigt weiterhin eigene Konto-, Signierungs-, Datenschutz- und Testentscheidungen; [Roadmap](ANDROID_PLAY_ROADMAP.md).

@@ -2,6 +2,8 @@
 
 ## 1.3.0-rc.5 – Antworten auf Alltags-Erinnerungen (2026-11-07)
 
+875 Logik-/215 Browser-/122 frische native JUnit-Fälle und CI26 grün. Signiertes Code12-Update mit derselben Release-Signatur wie Code11 und vollständig geprüftem [Handydownload](docs/INSTALLATION_ANKER_NEU.md). Neue Samsung-Prüfung offen.
+
 - „Erledigt“ aus der Abend-Erinnerung bestätigt die noch offenen geplanten Schritte; bereits gewählte Ergebnisse bleiben erhalten. Auch die Vorwarnungen für Losgehen und PC-Stopp übernehmen die bestätigte Handlung.
 - „Heute nicht“ lässt offene Abend-Schritte nur für diesen Tag entfallen. Keine neuen Erledigt-Häkchen oder Punkte; frühere echte Handlungen bleiben erhalten.
 - Vorübergehend fehlgeschlagene Listener werden erneut eingerichtet; Rückmeldungen am Ende eines laufenden Abgleichs gehen nicht mehr bis zur nächsten Appöffnung unter. Speichern und Empfangsbestätigung bleiben atomar und wiederholbar.
