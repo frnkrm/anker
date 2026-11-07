@@ -3,10 +3,13 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import catalog, { BUILD_FINGERPRINT } from 'virtual:anker-device-tests'
 import { version as webVersion } from '../../../package.json'
-import { DEVICE_TEST_CAMPAIGN_GROUP, DEVICE_TEST_SUITE, TEST_RESULT_LABEL, currentTestReport, deviceTestsFromLocal, type DeviceTestCase } from '../../core/deviceTests'
+import { DEVICE_TEST_CAMPAIGN_GROUP, DEVICE_TEST_SHORT_GROUP, DEVICE_TEST_SHORT_IDS, DEVICE_TEST_SUITE, TEST_RESULT_LABEL,
+  currentTestReport, deviceTestEvidence, deviceTestImportSummary, deviceTestsFromLocal, exportDeviceTestReports,
+  mergeDeviceTestReports, parseDeviceTestReportFile, reopenDeviceTestReport, saveDeviceTestReport,
+  type DeviceTestCase, type DeviceTestReportFile } from '../../core/deviceTests'
 import { fmtTime } from '../../core/time'
 import type { DeviceTestReport, DeviceTestResult } from '../../core/types'
-import { saveFile } from '../../platform/files'
+import { pickTextFile, saveFile } from '../../platform/files'
 import { AnkerNative, isNative } from '../../platform/native'
 import { useApp } from '../../state/store'
 import { Button, Card, Page, Row, Section, TextInput } from '../components/ui'
@@ -69,6 +72,7 @@ const E03_HELP: Record<number, string[]> = {
 }
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (id === 96) return [{ label: 'Einschlafdauer ansehen', to: '/einstellungen/schlaf' }, { label: 'Stummen Hinweis auf Jetzt prüfen', to: '/' }]
   if (CAMPAIGN_LINKS[id]) return CAMPAIGN_LINKS[id]
   if (E03_LINKS[id]) return E03_LINKS[id]
   if (id === 75) return [{ label: 'Jetzt mit Testbegleitung öffnen', to: '/' }, { label: 'Aufgabe für eigene Fokusprüfung wählen', to: '/arbeit' }, { label: 'Schrift & Tastatur prüfen', to: '/einstellungen/darstellung' }]
@@ -96,6 +100,7 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (id === 96) return ['Notiere zuerst deine eigene Einschlafdauer. Ändere sie nur für deinen bewussten Versuch und stelle sie danach wieder her.', 'Öffne Jetzt zur Bettzeit. Lies den freiwilligen Fensterhinweis und entscheide selbst über die Android-Freigabe. Öffnen dieses Links startet den Hinweis nicht.', 'Prüfe eingeschalteten und gesperrten Bildschirm getrennt. Ohne tatsächliche Beobachtung bleiben diese Teile offen; der Hinweis ersetzt keinen Wecker.']
   if (CAMPAIGN_HELP[id]) return CAMPAIGN_HELP[id]
   if (E03_HELP[id]) return E03_HELP[id]
   if (id === 75) return ['Öffne zuerst „Jetzt mit Testbegleitung“. Prüfe oben Uhr und Akku sowie den Knopf „Zurück zu Test 75“. Für den Fokus wähle in Arbeit eine Aufgabe und starte sie erst bewusst selbst.', 'Drehe das Handy ins Querformat und zurück. Vergleiche bei Bedarf Gesten- und Drei-Tasten-Navigation in den Android-Einstellungen; stelle danach deine übliche Navigation wieder her.', 'Öffne „Schrift & Tastatur prüfen“, tippe in das Schriftgrößenfeld und schließe die Tastatur wieder. Du brauchst keinen Wert zu ändern. Notiere obere und untere Abstände sowie Tastatur und Drehung getrennt; ungeprüfte Teile bleiben offen.']
@@ -125,48 +130,74 @@ export default function DeviceTests() {
   const progress = useApp((s) => s.local.deviceTests)
   const saved = deviceTestsFromLocal({ deviceTests: progress })
   const [params, setParams] = useSearchParams()
-  const [group, setGroup] = useState(() => Number(params.get('fall') ?? saved.activeId ?? 1) >= 86 ? DEVICE_TEST_CAMPAIGN_GROUP : 'Alle')
+  const [group, setGroup] = useState(() => params.get('auswahl') === 'kurz' || !params.has('fall') ? DEVICE_TEST_SHORT_GROUP
+    : Number(params.get('fall')) >= 86 && Number(params.get('fall')) <= 95 ? DEVICE_TEST_CAMPAIGN_GROUP : 'Alle')
   const [onlyOpen, setOnlyOpen] = useState(false)
+  const [reportBusy, setReportBusy] = useState(false)
   const platform = isNative() ? 'android' : 'web'
   const requested = Number(params.get('fall') ?? saved.activeId ?? 1)
-  const visible = catalog.filter((test) => (group === 'Alle' || test.group === group) && (!onlyOpen || currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result !== 'passed'))
+  const short = catalog.filter((test) => DEVICE_TEST_SHORT_IDS.some((id) => id === test.id))
+  const visible = catalog.filter((test) => (group === 'Alle' || group === DEVICE_TEST_SHORT_GROUP && short.includes(test) || test.group === group)
+    && (!onlyOpen || currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result !== 'passed'))
   const selected = visible.find((test) => test.id === requested) ?? visible[0]
   const passed = catalog.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
   const campaign = catalog.filter((test) => test.group === DEVICE_TEST_CAMPAIGN_GROUP)
   const campaignPassed = campaign.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
-  const select = (id: number) => setParams({ fall: String(id) })
+  const earlier = catalog.map((test) => ({ test, previous: deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous })).filter((entry) => entry.previous.length)
+  const neverTested = catalog.filter((test) => !saved.reports[test.id] && !saved.history?.[test.id]?.length).length
+  const shortPassed = short.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
+  const select = (id: number, selectedGroup = group) => setParams({ fall: String(id), ...(selectedGroup === DEVICE_TEST_SHORT_GROUP ? { auswahl: 'kurz' } : {}) })
 
   return <Page title="Gemeinsam testen" back="/mehr">
     <Card className="space-y-2">
       <p>Ein Versuch nach dem anderen. Du kannst jederzeit aufhören und später weitermachen.</p>
-      <p className="text-sm text-muted">{campaignPassed} von {campaign.length} Abschlussstationen {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Frühere Geräteberichte bleiben erhalten; sie werden für diesen Stand nicht automatisch abgehakt.</p>
+      <p>{shortPassed} von {short.length} kurzen Updateprüfungen für diesen Stand {platform === 'android' ? 'auf Android' : 'im Browser'} als „Hat geklappt“ gemeldet.</p>
+      <p className="font-medium">Früher geprüft: {earlier.length} Testpunkte mit erhaltenen Rückmeldungen.</p>
+      <p className="text-sm text-muted">Noch nie geprüft: {neverTested} freiwillige Testpunkte. Frühere Rückmeldungen bleiben auch bei einem neuen Codestand vorhanden.</p>
+      <p className="text-sm text-muted">Ein Update löscht deine Berichte nicht. Ältere Belege bleiben unten sichtbar; ein anderer Codestand erhält dadurch keinen neuen Gerätehaken.</p>
       {platform === 'web' && <p className="text-sm text-warm">Du bist in der Web-Version. Klingeln, Sperrbildschirm, Sensoren, Android-Widgets und Android-Druck lassen sich nur auf dem Handy prüfen. Deine Einträge hier bleiben Browserberichte.</p>}
     </Card>
+    <Section title="Berichte vor dem Update sichern">
+      <p className="px-1 text-sm text-muted">Exportiere deine Beobachtungen als Datei. Du kannst sie selbst zusenden und später mit Vorschau wieder übernehmen. Die Datei enthält deine Notizen und Geräteangaben.</p>
+      <ReportTransfer disabled={reportBusy} onBusy={setReportBusy} />
+    </Section>
+    {earlier.length > 0 && <Section title="Früher geprüft – weiterhin erhalten">
+      <p className="px-1 text-sm text-muted">Diese Rückmeldungen bleiben echte frühere Beobachtungen mit ihrer ursprünglichen Plattform und Version.</p>
+      <div className="space-y-2">{earlier.slice(0, 3).map(({ test, previous }) => <Card key={test.id} className="space-y-2">
+        <p className="break-words text-sm">Test {test.id}: {TEST_RESULT_LABEL[previous[0]!.result]} · {previous[0]!.platform === 'android' ? 'Android' : 'Browser'} · {fmtDateTime(previous[0]!.at)} · App {previous[0]!.appVersion} ({previous[0]!.build})</p>
+        <Button size="sm" onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(test.id, 'Alle') }}>Belege zu Test {test.id} ansehen</Button>
+      </Card>)}</div>
+      {earlier.length > 3 && <details className="rounded-2xl border border-line p-3"><summary className="min-h-11 py-2">Alle {earlier.length} früher geprüften Testpunkte anzeigen</summary>
+        <div className="space-y-2">{earlier.slice(3).map(({ test, previous }) => <Row key={test.id} label={`Test ${test.id}: ${TEST_RESULT_LABEL[previous[0]!.result]} – früher geprüft`} onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(test.id, 'Alle') }} />)}</div>
+      </details>}
+    </Section>}
     <Section title="Womit möchtest du anfangen?">
-      <p className="px-1 text-muted">Zehn Stationen führen dich durch das Zusammenspiel. Nutze eine kleine Testaufgabe oder einen Testtermin. Du musst die alten Einzelfälle nicht alle nacheinander abarbeiten; ungeprüfte Teile dürfen offen bleiben.</p>
-      <Button variant="primary" onClick={() => { setGroup(DEVICE_TEST_CAMPAIGN_GROUP); setOnlyOpen(false); select(86) }}>Gemeinsamer Abschlusslauf</Button>
+      <p className="px-1 text-muted">Für einen kurzen Updatecheck reichen zunächst {short.length} ausgewählte Originalfälle. Wähle nur, was du heute ausprobieren möchtest. Die vollständigen Einzelfälle bleiben freiwillig verfügbar.</p>
+      <Button variant="primary" onClick={() => { setGroup(DEVICE_TEST_SHORT_GROUP); setOnlyOpen(false); select(1, DEVICE_TEST_SHORT_GROUP) }}>Kurzer Updatecheck</Button>
+      <Button onClick={() => { setGroup(DEVICE_TEST_CAMPAIGN_GROUP); setOnlyOpen(false); select(86, DEVICE_TEST_CAMPAIGN_GROUP) }}>Gemeinsamer Abschlusslauf</Button>
+      <p className="px-1 text-sm text-muted">Optional: {campaignPassed} von {campaign.length} Abschlussstationen {platform === 'android' ? 'auf Android' : 'im Browser'} gemeldet. Dieser ältere ausführliche Lauf ist keine Pflicht.</p>
       <details className="rounded-2xl border border-line p-3">
         <summary className="min-h-11 py-2">Einzelne Bereiche prüfen</summary>
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(1) }}>Erster Weckertest</Button>
-        <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66) }}>Erinnerungen & Druck prüfen</Button>
-        <Button onClick={() => { setGroup('E03: Aufgaben und Wiedereinstieg'); setOnlyOpen(false); select(76) }}>Aufgaben & Wiedereinstieg prüfen</Button>
-        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(53) }}>Weckfenster prüfen</Button>
-        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62) }}>Zeiteingabe prüfen</Button>
-        <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75) }}>Systemleisten prüfen</Button>
+        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(1, 'Alle') }}>Erster Weckertest</Button>
+        <Button onClick={() => { setGroup('E02: Erinnerungen und Papier'); setOnlyOpen(false); select(66, 'E02: Erinnerungen und Papier') }}>Erinnerungen & Druck prüfen</Button>
+        <Button onClick={() => { setGroup('E03: Aufgaben und Wiedereinstieg'); setOnlyOpen(false); select(76, 'E03: Aufgaben und Wiedereinstieg') }}>Aufgaben & Wiedereinstieg prüfen</Button>
+        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(53, 'Alle') }}>Weckfenster prüfen</Button>
+        <Button onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(62, 'Alle') }}>Zeiteingabe prüfen</Button>
+        <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75, 'Android-Systemleisten') }}>Systemleisten prüfen</Button>
       </div>
       </details>
       <label className="block space-y-1"><span>Bereich</span><select aria-label="Testbereich" className={SELECT_CLASS} value={group} onChange={(e) => { setGroup(e.target.value); setParams({}) }}>
-        {['Alle', ...new Set(catalog.map((test) => test.group))].map((name) => <option key={name}>{name}</option>)}
+        {[DEVICE_TEST_SHORT_GROUP, 'Alle', ...new Set(catalog.map((test) => test.group))].map((name) => <option key={name}>{name}</option>)}
       </select></label>
-      <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />Nur noch nicht bestandene Tests</label>
+      <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />Für diesen Stand noch offen (frühere Belege bleiben sichtbar)</label>
       <label className="block space-y-1"><span>Test auswählen</span><select aria-label="Test auswählen" className={SELECT_CLASS} value={selected?.id ?? ''} onChange={(e) => select(Number(e.target.value))}>
         <option value="" disabled>{visible.length ? 'Test auswählen' : 'Hier ist gerade nichts offen'}</option>
-        {visible.map((test) => <option key={test.id} value={test.id}>{currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed' ? '✓ ' : ''}{test.id}: {test.action}</option>)}
+        {visible.map((test) => <option key={test.id} value={test.id}>{currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed' ? '✓ ' : deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous.length ? 'Früher geprüft · ' : !saved.reports[test.id] ? 'Noch nie geprüft · ' : ''}{test.id}: {test.action}</option>)}
       </select></label>
     </Section>
     {selected ? <>
-      <TestView key={selected.id} test={selected} />
+      <TestView key={selected.id} test={selected} transferBusy={reportBusy} onBusy={setReportBusy} />
       <div className="flex flex-wrap gap-2">
         <Button disabled={selected === visible[0]} onClick={() => select(visible[Math.max(0, visible.indexOf(selected) - 1)]!.id)}>Vorheriger Test</Button>
         <Button disabled={selected === visible.at(-1)} onClick={() => select(visible[Math.min(visible.length - 1, visible.indexOf(selected) + 1)]!.id)}>Nächster Test</Button>
@@ -175,30 +206,31 @@ export default function DeviceTests() {
     <Section title="Nachweise getrennt halten">
       <p className="px-1 text-sm text-muted">Im gesamten freiwilligen Katalog: {passed} von {catalog.length} {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Die Einzelfälle sind keine Pflichtliste.</p>
       <Card><p className="text-sm text-muted">Logik, Speicherung und Bedienwege werden zusätzlich automatisch geprüft. Das bestätigt keinen Ton und kein Vollbild auf deinem Handy. Hier setzt nur deine bewusste Rückmeldung einen Haken. Es gibt dafür weder Punkte noch Strafen.</p></Card>
-      <ReportExport />
     </Section>
   </Page>
 }
 
-function TestView({ test }: { test: DeviceTestCase }) {
+function TestView({ test, transferBusy, onBusy }: { test: DeviceTestCase; transferBusy: boolean; onBusy: (busy: boolean) => void }) {
   const nav = useNavigate()
   const st = useApp()
   const progress = deviceTestsFromLocal(st.local)
-  const report = progress.reports[test.id]
+  const storedReport = progress.reports[test.id]
+  const { current: report, previous } = deviceTestEvidence(progress, test.id, isNative() ? 'android' : 'web', BUILD_FINGERPRINT)
   const draft = progress.drafts?.[test.id]
   const native = isNative()
   const alarmTools = native && test.id <= 75
-  const [note, setNote] = useState(draft?.note ?? report?.note ?? '')
+  const [note, setNote] = useState(draft?.note ?? storedReport?.note ?? '')
   const [device, setDevice] = useState(draft?.device ?? progress.device ?? '')
   const [os, setOs] = useState(draft?.os ?? progress.os ?? '')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [comparison, setComparison] = useState('')
+  const [historyLimit, setHistoryLimit] = useState(10)
   const run = async (action: () => Promise<void>) => {
-    if (busy) return
-    setBusy(true); setError(''); setStatus('')
-    try { await action() } catch { setError('Das hat nicht geklappt. Es wurde kein Testerfolg eingetragen. Versuche es erneut.') } finally { setBusy(false) }
+    if (busy || transferBusy) return
+    setBusy(true); onBusy(true); setError(''); setStatus('')
+    try { await action() } catch { setError('Das hat nicht geklappt. Es wurde kein Testerfolg eingetragen. Versuche es erneut.') } finally { setBusy(false); onBusy(false) }
   }
   const saveDraft = () => st.saveDeviceTests((p) => ({ ...p, device, os, drafts: { ...p.drafts, [test.id]: { note, device, os } } }))
   const draftBlur = () => void saveDraft().catch(() => setError('Der Notizentwurf konnte nicht gespeichert werden. Bitte kopiere deinen Text vor dem Verlassen.'))
@@ -221,7 +253,7 @@ function TestView({ test }: { test: DeviceTestCase }) {
   const saveResult = async (result: DeviceTestResult) => {
     const info = native ? await CapApp.getInfo().catch(() => ({ version: webVersion, build: 'Nicht ermittelt' })) : { version: webVersion, build: 'Web' }
     const next: DeviceTestReport = { result, note: note.trim(), at: Date.now(), platform: native ? 'android' : 'web', device: device.trim() || 'Nicht angegeben', os: os.trim() || 'Nicht angegeben', appVersion: info.version, build: info.build, suiteVersion: DEVICE_TEST_SUITE, buildFingerprint: BUILD_FINGERPRINT }
-    await st.saveDeviceTests((p) => ({ ...p, activeId: test.id, device: device.trim(), os: os.trim(), reports: { ...p.reports, [test.id]: next } }))
+    await st.saveDeviceTests((p) => ({ ...saveDeviceTestReport(p, test.id, next), activeId: test.id, device: device.trim(), os: os.trim() }))
     setStatus(`Deine Rückmeldung wurde gespeichert: ${TEST_RESULT_LABEL[result]}.`)
   }
 
@@ -245,18 +277,29 @@ function TestView({ test }: { test: DeviceTestCase }) {
     </Card>
     <Card className="space-y-3">
       <h2 className="text-lg font-medium">Deine Beobachtung</h2>
-      <label className="block space-y-1"><span>Gerät (optional)</span><TextInput aria-label="Testgerät" value={device} placeholder="Zum Beispiel Galaxy S26 Ultra" onChange={(e) => setDevice(e.target.value)} onBlur={draftBlur} /></label>
-      <label className="block space-y-1"><span>Android / One UI oder Browser (optional)</span><TextInput aria-label="Systemversion beim Test" value={os} placeholder="In den Systemeinstellungen unter Telefoninfo" onChange={(e) => setOs(e.target.value)} onBlur={draftBlur} /></label>
-      <label className="block space-y-1"><span>Was hast du beobachtet? (optional)</span><textarea aria-label="Testbeobachtung" rows={3} value={note} onChange={(e) => setNote(e.target.value)} onBlur={draftBlur} className="w-full rounded-xl bg-surface-2 p-3" /></label>
+      <label className="block space-y-1"><span>Gerät (optional)</span><TextInput aria-label="Testgerät" maxLength={1024} value={device} placeholder="Zum Beispiel Galaxy S26 Ultra" onChange={(e) => setDevice(e.target.value)} onBlur={draftBlur} /></label>
+      <label className="block space-y-1"><span>Android / One UI oder Browser (optional)</span><TextInput aria-label="Systemversion beim Test" maxLength={1024} value={os} placeholder="In den Systemeinstellungen unter Telefoninfo" onChange={(e) => setOs(e.target.value)} onBlur={draftBlur} /></label>
+      <label className="block space-y-1"><span>Was hast du beobachtet? (optional)</span><textarea aria-label="Testbeobachtung" maxLength={100000} rows={3} value={note} onChange={(e) => setNote(e.target.value)} onBlur={draftBlur} className="w-full rounded-xl bg-surface-2 p-3" /></label>
       <p className="text-sm text-muted">Deine Notiz bleibt beim Verlassen des Feldes als Entwurf gespeichert. Ein Entwurf setzt keinen Haken.</p>
       <p className="text-sm text-muted">Tippe erst nach deinem Versuch auf das passende Ergebnis. „Nicht relevant“ zählt nicht als bestanden.</p>
-      <div className="flex flex-wrap gap-2">{(Object.keys(TEST_RESULT_LABEL) as DeviceTestResult[]).map((result) => <Button key={result} disabled={busy} variant={result === 'passed' ? 'primary' : 'secondary'} onClick={() => void run(() => saveResult(result))}>{result === 'passed' ? '✓ ' : ''}{TEST_RESULT_LABEL[result]}</Button>)}</div>
+      <div className="flex flex-wrap gap-2">{(Object.keys(TEST_RESULT_LABEL) as DeviceTestResult[]).map((result) => <Button key={result} disabled={busy || transferBusy} variant={result === 'passed' ? 'primary' : 'secondary'} onClick={() => void run(() => saveResult(result))}>{result === 'passed' ? '✓ ' : ''}{TEST_RESULT_LABEL[result]}</Button>)}</div>
       {report && <div className="space-y-2 text-sm">
         <p>{report.platform === 'android' ? 'Dein Android-Bericht' : 'Dein Browserbericht'}: {TEST_RESULT_LABEL[report.result]} · {fmtDateTime(report.at)} · App {report.appVersion} ({report.build}) · {report.device} · {report.os}</p>
         <p className="text-muted">Codestand: {report.buildFingerprint?.slice(0, 12) ?? 'Nicht ermittelt'}</p>
-        {(report.suiteVersion !== DEVICE_TEST_SUITE || report.buildFingerprint !== BUILD_FINGERPRINT) && <p className="text-warm">Dieses Ergebnis gehört zu einem anderen Codestand. Es bleibt erhalten und zählt für diesen Stand als offen.</p>}
-        <Button size="sm" disabled={busy} onClick={() => void run(async () => { await st.saveDeviceTests((p) => { const reports = { ...p.reports }; const drafts = { ...p.drafts }; delete reports[test.id]; delete drafts[test.id]; return { ...p, reports, drafts } }); setNote(''); setStatus('Nur dieser Testbericht wurde entfernt. Deine Alltagsdaten bleiben erhalten.') })}>Diesen Test wieder öffnen</Button>
       </div>}
+      {previous.length > 0 && <div className="space-y-2 rounded-xl border border-line p-3">
+        <p className="font-medium">Früher geprüft: {previous.length} erhaltene {previous.length === 1 ? 'Rückmeldung' : 'Rückmeldungen'} zu Test {test.id}</p>
+        <p className="text-sm text-muted">Frühere und übernommene Belege setzen keinen neuen Haken für diesen Stand.</p>
+        <details open={previous.length <= 3}><summary className="min-h-11 py-2">Frühere Berichte zu diesem Test ansehen</summary>
+          <ul className="space-y-3">{previous.slice(0, historyLimit).map((entry, index) => <li key={index} className="break-words text-sm [overflow-wrap:anywhere]">
+            <p>{TEST_RESULT_LABEL[entry.result]} · {entry.platform === 'android' ? 'Android' : 'Browser'} · {fmtDateTime(entry.at)} · App {entry.appVersion} ({entry.build})</p>
+            <p>{entry.device} · {entry.os} · Suite {entry.suiteVersion} · Codestand {entry.buildFingerprint?.slice(0, 12) ?? 'Nicht ermittelt'}</p>
+            {entry.note && <p className="whitespace-pre-wrap">{entry.note}</p>}
+          </li>)}</ul>
+          {previous.length > historyLimit && <Button size="sm" onClick={() => setHistoryLimit((limit) => limit + 10)}>Weitere frühere Berichte anzeigen ({previous.length - historyLimit})</Button>}
+        </details>
+      </div>}
+      {storedReport && <Button size="sm" disabled={busy || transferBusy} onClick={() => void run(async () => { await st.saveDeviceTests((p) => reopenDeviceTestReport(p, test.id)); setNote(''); setStatus('Der Test ist wieder offen. Dein bisheriger Bericht bleibt als früherer Beleg erhalten.') })}>Diesen Test wieder öffnen</Button>}
       {status && <p role="status">{status}</p>}
       {error && <p role="alert" className="text-warm">{error}</p>}
       {progress.activeId !== undefined && <Button size="sm" variant="ghost" disabled={busy} onClick={() => void run(async () => { await st.saveDeviceTests((p) => ({ ...p, activeId: undefined })); setStatus('Testbegleitung pausiert. Deine Ergebnisse bleiben gespeichert.') })}>Testbegleitung pausieren</Button>}
@@ -264,14 +307,53 @@ function TestView({ test }: { test: DeviceTestCase }) {
   </Section>
 }
 
-function ReportExport() {
+function ReportTransfer({ disabled, onBusy }: { disabled: boolean; onBusy: (busy: boolean) => void }) {
   const progress = useApp((s) => s.local.deviceTests)
   const [message, setMessage] = useState('')
-  return <>
-    <Button onClick={async () => {
-      try { await saveFile('anker-testberichte.json', JSON.stringify({ app: 'anker', exportedAt: new Date().toISOString(), reports: progress?.reports ?? {} }, null, 2), 'application/json'); setMessage('Datei an den Download bzw. das Teilen-Menü übergeben. Du entscheidest, ob du sie weitergibst.') }
-      catch { setMessage('Export nicht abgeschlossen. Deine Berichte bleiben in der App.') }
-    }}>Testberichte als Datei exportieren</Button>
+  const [error, setError] = useState('')
+  const [incoming, setIncoming] = useState<DeviceTestReportFile>()
+  const summary = incoming && deviceTestImportSummary(deviceTestsFromLocal({ deviceTests: progress }), incoming)
+  const run = async (action: () => Promise<void>) => {
+    if (disabled) return
+    onBusy(true); setMessage(''); setError('')
+    try { await action() } catch (cause) { setError(cause instanceof Error ? cause.message : 'Die Datei konnte nicht verarbeitet werden. Deine Berichte bleiben erhalten.') }
+    finally { onBusy(false) }
+  }
+  return <div className="space-y-3">
+    <div className="flex flex-wrap gap-2">
+      <Button disabled={disabled} onClick={() => void run(async () => {
+        const file = exportDeviceTestReports(deviceTestsFromLocal(useApp.getState().local))
+        await saveFile('anker-testberichte.json', JSON.stringify(file, null, 2), 'application/json')
+        setMessage('Datei an den Download bzw. das Teilen-Menü übergeben. Du entscheidest, ob du sie weitergibst.')
+      })}>Testberichte als Datei exportieren</Button>
+      <Button disabled={disabled} onClick={() => void run(async () => {
+        const text = await pickTextFile()
+        if (text === null) return
+        setIncoming(undefined)
+        setIncoming(parseDeviceTestReportFile(text))
+      })}>Testberichte aus Datei prüfen</Button>
+    </div>
+    <p className="text-sm text-muted">JSON bis 5 MB, höchstens 10.000 Berichte und 1.000 frühere Belege je Test. Die Dateiauswahl speichert noch nichts.</p>
+    {incoming && summary && <Card className="space-y-3">
+      <h2 className="text-lg font-medium">Importvorschau – noch nichts übernommen</h2>
+      <p>{summary.reports} erhaltene Rückmeldungen: {summary.android} Android, {summary.web} Browser. Export vom {fmtDateTime(Date.parse(incoming.exportedAt))}.</p>
+      <p>{summary.added} bisher unbekannte Testpunkte. Bei {summary.preserved} Testpunkten bleibt deine maßgebliche Rückmeldung unverändert.</p>
+      <p className="text-sm text-muted">Die Datei ergänzt frühere Belege mit ihrem ursprünglichen Ergebnis, Datum, Gerät, App-Version und Codestand. Sie bestätigt keinen neuen Versuch auf diesem Stand. Vorhandene Probleme werden nicht überschrieben.</p>
+      <ul className="space-y-2 text-sm [overflow-wrap:anywhere]">{[...new Set([...Object.keys(incoming.reports), ...Object.keys(incoming.history ?? {})])].slice(0, 5).map((id) => {
+        const report = incoming.reports[id] ?? incoming.history?.[id]?.[0]
+        return report && <li key={id}>Test {id}: {TEST_RESULT_LABEL[report.result]} · {report.platform === 'android' ? 'Android' : 'Browser'} · {fmtDateTime(report.at)} · App {report.appVersion} ({report.build}) · {report.device}</li>
+      })}</ul>
+      {new Set([...Object.keys(incoming.reports), ...Object.keys(incoming.history ?? {})]).size > 5 && <p className="text-sm text-muted">Vorschau zeigt die ersten fünf Testpunkte. Beim Übernehmen bleiben alle gültigen Berichte erhalten.</p>}
+      <div className="flex flex-wrap gap-2">
+        <Button disabled={disabled} variant="primary" onClick={() => void run(async () => {
+          await useApp.getState().saveLocal((local) => ({ ...local, deviceTests: mergeDeviceTestReports(deviceTestsFromLocal(local), incoming) }))
+          setIncoming(undefined)
+          setMessage('Die früheren Belege wurden gespeichert. Deine bisherigen Rückmeldungen bleiben erhalten.')
+        })}>Berichte als frühere Belege übernehmen</Button>
+        <Button disabled={disabled} onClick={() => setIncoming(undefined)}>Importvorschau verwerfen</Button>
+      </div>
+    </Card>}
     {message && <p role="status" className="text-sm text-muted">{message}</p>}
-  </>
+    {error && <p role="alert" className="text-warm">{error}</p>}
+  </div>
 }

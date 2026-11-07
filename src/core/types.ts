@@ -592,6 +592,8 @@ export interface DeviceTestReport {
 
 export interface DeviceTestProgress {
   reports: Record<string, DeviceTestReport>
+  /** Frühere bewusste Beobachtungen bleiben mit ihrer ursprünglichen Plattform und Buildkennung erhalten. */
+  history?: Record<string, DeviceTestReport[]>
   drafts?: Record<string, { note: string; device: string; os: string }>
   activeId?: number
   device?: string
