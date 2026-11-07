@@ -116,7 +116,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 px-5 pb-8 safe-top">
       <header className="flex min-h-12 items-center justify-between gap-2">
         <Link to={back} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl text-muted" aria-label="Aufgabenfokus verlassen">‹</Link>
-        <p className="min-w-0 flex-1 text-center text-sm text-muted">{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</p>
+        <p className="min-w-0 flex-1 break-words text-center text-sm text-muted">{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</p>
         {open && !unavailablePart && <div className="flex w-12 shrink-0"><InboxButton context={context} /></div>}
       </header>
 
@@ -140,7 +140,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
           <>
             {timer && (
               <div className="mt-7 space-y-3 text-center">
-                <div role="timer" aria-live="off" aria-label={`Restzeit ${countdownText(timer, now)}`} className="text-5xl font-light tabular-nums sm:text-6xl">{countdownText(timer, now)}</div>
+                <div role="timer" aria-live="off" aria-label={`Restzeit ${countdownText(timer, now)}`} className={`${countdownText(timer, now).length > 5 ? 'text-3xl sm:text-5xl' : 'text-5xl sm:text-6xl'} font-light tabular-nums`}>{countdownText(timer, now)}</div>
                 <Progress label="Abgelaufene Fokuszeit" value={timer.durationMs ? Math.min(1, elapsedMs(timer, now) / timer.durationMs) : 0} />
                 <p className="text-sm text-muted">{paused ? 'Pausiert' : `Zeitfenster bis ${clockTime(timer.deadlineAt)}`} · verstrichen: {Math.floor(elapsedMs(timer, now) / 60_000)} min</p>
                 {expired && <p className="text-muted">Zeitfenster zu Ende. Du entscheidest, ob du weiterarbeitest, abschließt oder pausierst.</p>}
