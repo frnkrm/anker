@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { createCountdown, pauseCountdown, remainingMs, resumeCountdown } from '../../core/focus'
+import { createCountdown, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
 import { stuckLadder, type NextAction } from '../../core/support'
 import { today, useApp } from '../../state/store'
 import { useFocusClock } from '../../state/useFocusClock'
@@ -20,13 +20,15 @@ function Ring({ left, total }: { left: number; total: number }) {
   )
 }
 
-function contextKey(action: NextAction, date: string): string {
+function contextKey(action: NextAction, date: string, focus?: FocusTarget): string {
+  // Alte Elternmerker bleiben lesbar; nur ein konkreter Teil bekommt einen eigenen Schlüssel.
+  const taskKey = (kind: 'task' | 'work', id: string, partId?: string) => partId ? focusTargetKey({ kind, id, partId }) : `${kind}:${id}`
   if (action.type === 'step') return `${date}:step:${action.routine}:${action.step.id}`
-  if (action.type === 'task') return `task:${action.task.id}`
-  if (action.type === 'worktask') return `work:${action.task.id}`
+  if (action.type === 'task') return taskKey('task', action.task.id, focus?.kind === 'task' && focus.id === action.task.id ? focus.partId : undefined)
+  if (action.type === 'worktask') return taskKey('work', action.task.id, focus?.kind === 'work' && focus.id === action.task.id ? focus.partId : undefined)
   if (action.type === 'resume') {
     const resume = action.resume
-    if (resume.refId && (resume.kind === 'task' || resume.kind === 'work')) return `${resume.kind}:${resume.refId}`
+    if (resume.refId && (resume.kind === 'task' || resume.kind === 'work')) return taskKey(resume.kind, resume.refId, resume.partId)
     const routine = resume.kind === 'step' && resume.refId ? /^(\d{4}-\d{2}-\d{2}):(morning|evening):(.+)$/.exec(resume.refId) : undefined
     if (routine) return `${routine[1]}:step:${routine[2]}:${routine[3]}`
     return `resume:${resume.kind}:${resume.at}`
@@ -39,12 +41,12 @@ function contextKey(action: NextAction, date: string): string {
 /** Eigener Hilfetimer. Öffnen, Pause und Fertig verändern weder Fokus noch Aufgabenstatus. */
 export function StuckSheet({ open, onClose, action }: { open: boolean; onClose: () => void; action: NextAction }) {
   const st = useApp()
-  const [captured, setCaptured] = useState({ shown: open, action, date: today() })
+  const [captured, setCaptured] = useState({ shown: open, action, date: today(), focus: st.local.focus?.target })
   // Während einer offenen Hilfe bleibt die gewählte Aufgabe stabil, auch wenn Jetzt neu plant.
-  if (captured.shown !== open) setCaptured({ shown: open, action: open ? action : captured.action, date: open ? today() : captured.date })
+  if (captured.shown !== open) setCaptured({ shown: open, action: open ? action : captured.action, date: open ? today() : captured.date, focus: open ? st.local.focus?.target : captured.focus })
   const source = captured.action
   const ladder = stuckLadder(source)
-  const key = contextKey(source, captured.date)
+  const key = contextKey(source, captured.date, captured.focus)
   const saved = st.local.stuck?.contextKey === key ? st.local.stuck : undefined
   const level = Math.min(saved?.level ?? 0, ladder.length - 1)
   const step = ladder[level]!

@@ -44,8 +44,13 @@ export function QuickFocus() {
         : action.type === 'task' ? { kind: 'task' as const, id: action.task.id }
           : action.type === 'resume' && (action.resume.kind === 'work' || action.resume.kind === 'task') && action.resume.refId ? { kind: action.resume.kind, id: action.resume.refId } : undefined
       if (ref) {
-        await state.startTaskFocus(ref)
-        if (active) nav(`/aufgabe/${ref.kind}/${encodeURIComponent(ref.id)}`, { replace: true })
+        const focusTarget = state.local.focus?.target
+        const saved = state.local.resume
+        const partId = action.type === 'resume' ? action.resume.partId
+          : focusTarget?.kind === ref.kind && focusTarget.id === ref.id ? focusTarget.partId
+            : saved?.kind === ref.kind && saved.refId === ref.id ? saved.partId : undefined
+        await state.startTaskFocus(ref, undefined, partId)
+        if (active) nav(`/aufgabe/${ref.kind}/${encodeURIComponent(ref.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`, { replace: true })
       } else if (action.type === 'resume' && resumeRoute(action.resume)) nav(resumeRoute(action.resume)!, { replace: true })
       else if (active) setChoice(true)
     }

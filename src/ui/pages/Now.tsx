@@ -220,8 +220,10 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
     const step = st.settings.routines[target.routine].find((item) => item.id === target.stepId)
     if (step && !st.days[target.date]?.steps[`${target.routine}:${target.stepId}`]) point = { kind: 'step', title: step.title, refId: step.id, route: `/fokus/${target.routine}`, at: focus.timer.startedAt }
   } else if (focus) {
-    const task = resolveTask(focus.target, st.inbox, st.local.work)
-    if (task && taskIsOpen(task)) point = { kind: focus.target.kind, refId: focus.target.id, title: taskTitle(task), nextStep: taskNextStep(task, taskTitle(task)), at: focus.timer.startedAt, note: task.resumeNote ?? (point?.kind === focus.target.kind && point.refId === focus.target.id ? point.note : undefined) }
+    const target = focus.target
+    const task = resolveTask(target, st.inbox, st.local.work)
+    const part = target.partId ? task?.subtasks?.find((item) => item.id === target.partId && item.doneAt === undefined) : undefined
+    if (task && taskIsOpen(task) && (!target.partId || part)) point = { kind: target.kind, refId: target.id, ...(part ? { partId: part.id } : {}), title: taskTitle(task), nextStep: part?.title ?? taskNextStep(task, taskTitle(task)), at: focus.timer.startedAt, note: task.resumeNote ?? (point?.kind === target.kind && point.refId === target.id ? point.note : undefined) }
   }
   if (point?.kind === 'work' && st.settings.support.workAfterHoursQuiet && !st.local.workSessions.some((session) => session.endAt === undefined)
     && (plan.workEnd === undefined || m >= plan.workEnd || plan.workInfo?.closed)) point = undefined
@@ -233,7 +235,7 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
       <Button variant="primary" size="lg" className="w-full" onClick={async () => {
         try {
           if (!current) { onSmall(); return }
-          if ((current.kind === 'task' || current.kind === 'work') && current.refId) await st.startTaskFocus({ kind: current.kind, id: current.refId })
+          if ((current.kind === 'task' || current.kind === 'work') && current.refId) await st.startTaskFocus({ kind: current.kind, id: current.refId }, undefined, current.partId)
           const route = resumeRoute(current)
           onClose()
           if (route) nav(route)
@@ -249,6 +251,11 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
 function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
   const st = useApp()
   const nav = useNavigate()
+  const partFor = (kind: 'task' | 'work', id: string) => {
+    const target = st.local.focus?.target
+    const resume = st.local.resume
+    return target?.kind === kind && target.id === id ? target.partId : resume?.kind === kind && resume.refId === id ? resume.partId : undefined
+  }
   const StuckButton = (
     <Button variant="ghost" size="lg" className="flex-1" onClick={onStuck}>
       Ich hänge fest
@@ -301,7 +308,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
     case 'worktask':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={async () => { await st.startTaskFocus({ kind: 'work', id: a.task.id }, a.focusMinutes ?? 25); nav(`/aufgabe/work/${encodeURIComponent(a.task.id)}`) }}>
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => { const partId = partFor('work', a.task.id); await st.startTaskFocus({ kind: 'work', id: a.task.id }, partId ? undefined : a.focusMinutes ?? 25, partId); nav(`/aufgabe/work/${encodeURIComponent(a.task.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`) }}>
             {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
           </Button>
           <div className="flex gap-2">
@@ -315,7 +322,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
     case 'task':
       return (
         <>
-          <Button variant="primary" size="xl" className="w-full" onClick={async () => { await st.startTaskFocus({ kind: 'task', id: a.task.id }, a.focusMinutes ?? 25); nav(`/aufgabe/task/${encodeURIComponent(a.task.id)}`) }}>
+          <Button variant="primary" size="xl" className="w-full" onClick={async () => { const partId = partFor('task', a.task.id); await st.startTaskFocus({ kind: 'task', id: a.task.id }, partId ? undefined : a.focusMinutes ?? 25, partId); nav(`/aufgabe/task/${encodeURIComponent(a.task.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`) }}>
             {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
           </Button>
           <div className="flex gap-2">
@@ -330,7 +337,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
       return (
         <>
           <Button variant="primary" size="xl" className="w-full" onClick={async () => {
-            if ((a.resume.kind === 'work' || a.resume.kind === 'task') && a.resume.refId) await st.startTaskFocus({ kind: a.resume.kind, id: a.resume.refId })
+            if ((a.resume.kind === 'work' || a.resume.kind === 'task') && a.resume.refId) await st.startTaskFocus({ kind: a.resume.kind, id: a.resume.refId }, undefined, a.resume.partId)
             const route = resumeRoute(a.resume)
             if (route) nav(route)
             else onStuck()

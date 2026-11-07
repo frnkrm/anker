@@ -42,13 +42,17 @@ export function TaskCard({ taskRef, task, first = false, children, moveToTop }: 
   const [interrupt, setInterrupt] = useState(false)
   const { busy, error, message, run } = useTaskAction()
   const title = taskTitle(task)
-  const next = taskNextStep(task, title)
   const risk = 'title' in task ? deadlineRisk(task, Date.now()) : 'none'
   const riskText = { none: undefined, today: 'Frist ist heute', soon: 'Frist rückt näher', past: 'Frist erreicht' }[risk]
   const inProgress = task.state === 'active' || task.state === 'paused'
+  const focused = st.local.focus?.target
+  const resume = st.local.resume
+  const partId = inProgress ? focused?.kind === taskRef.kind && focused.id === taskRef.id ? focused.partId
+    : resume?.kind === taskRef.kind && resume.refId === taskRef.id ? resume.partId : undefined : undefined
+  const next = task.subtasks?.find((part) => part.id === partId && part.doneAt === undefined)?.title ?? taskNextStep(task, title)
   const start = () => run(async () => {
-    await st.startTaskFocus(taskRef, minutes)
-    nav(`/aufgabe/${taskRef.kind}/${encodeURIComponent(taskRef.id)}`)
+    await st.startTaskFocus(taskRef, partId ? undefined : minutes, partId)
+    nav(`/aufgabe/${taskRef.kind}/${encodeURIComponent(taskRef.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`)
   })
   const later = () => {
     const date = addDays(today(), 1)
@@ -63,7 +67,7 @@ export function TaskCard({ taskRef, task, first = false, children, moveToTop }: 
     {task.earliestStart !== undefined && task.earliestStart > Date.now() && <p className="text-sm text-muted">Vorgemerkt ab {toBerlinDateTimeInput(task.earliestStart).replace('T', ' ')}</p>}
     {riskText && <p className="text-sm text-warm">{riskText}</p>}
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" variant="primary" disabled={busy} onClick={start}>{task.state === 'paused' || task.state === 'active' ? 'Weiterarbeiten' : 'Starten'} · {minutes} min</Button>
+      <Button size="sm" variant="primary" disabled={busy} onClick={start}>{inProgress ? 'Weiterarbeiten' : 'Starten'}{partId ? '' : ` · ${minutes} min`}</Button>
       <Button size="sm" disabled={busy} onClick={() => run(() => st.completeTask(taskRef, true))}>Erledigt</Button>
       <Button size="sm" variant="ghost" onClick={() => setDetails(!details)} aria-expanded={details}>Details</Button>
     </div>
@@ -73,7 +77,7 @@ export function TaskCard({ taskRef, task, first = false, children, moveToTop }: 
       const form = new FormData(event.currentTarget)
       const nextStep = String(form.get('next') ?? '').trim()
       const note = String(form.get('note') ?? '').trim()
-      void run(async () => { await st.pauseTaskFocus(taskRef, nextStep || undefined, note); setInterrupt(false) }, 'Gemerkt. Dein nächster Schritt bleibt erhalten.')
+      void run(async () => { await st.pauseTaskFocus(taskRef, nextStep || undefined, note, partId); setInterrupt(false) }, 'Gemerkt. Dein nächster Schritt bleibt erhalten.')
     }}>
       <TextInput name="next" aria-label="Wo machst du weiter?" defaultValue={next !== title ? next : ''} placeholder="Zum Beispiel: Tabelle öffnen" />
       <TextInput name="note" aria-label="Wenn ich zurückkomme" defaultValue={task.resumeNote ?? ''} placeholder="Wenn ich zurückkomme … (freiwillig)" />
@@ -101,6 +105,7 @@ export function TaskCard({ taskRef, task, first = false, children, moveToTop }: 
 
 function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | WorkTask }) {
   const st = useApp()
+  const nav = useNavigate()
   const title = taskTitle(task)
   const [draft, setDraft] = useState({
     title, description: task.description ?? '', why: task.why ?? '', nextStep: task.nextStep ?? '', estimate: task.estimateMin?.toString() ?? '',
@@ -173,6 +178,7 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
             if (next && next !== part.title) void run(() => st.replaceTaskParts(taskRef, parts.map((old) => old.id === part.id ? { ...old, title: next } : old)), 'Teilschritt gespeichert.')
           }}><TextInput name="title" aria-label={`Text Teilschritt ${index + 1}`} defaultValue={part.title} key={part.id + part.title} required /><Button type="submit" size="sm">Teilschritt speichern</Button></form>}
           <div className="flex flex-wrap gap-2"><Stepper label={`Minuten Teilschritt ${index + 1}`} value={part.estimateMin ?? 2} min={1} max={480} onChange={(value) => void run(() => st.replaceTaskParts(taskRef, parts.map((old) => old.id === part.id ? { ...old, estimateMin: value } : old)))} />{part.doneAt === undefined && <Button size="sm" variant="ghost" onClick={() => run(() => st.replaceTaskParts(taskRef, parts.filter((old) => old.id !== part.id)))}>Teilschritt entfernen</Button>}</div>
+          {part.doneAt === undefined && taskIsOpen(task) && <Button size="sm" className="min-h-11" disabled={busy} onClick={() => nav(`/aufgabe/${taskRef.kind}/${encodeURIComponent(taskRef.id)}?teil=${encodeURIComponent(part.id)}`)} aria-label={`Timer wählen: ${part.title}`}>Timer wählen</Button>}
         </div>} />
       </fieldset>
       <form className="flex flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); if (partTitle.trim()) void run(async () => { await st.replaceTaskParts(taskRef, [...parts, { id: randomId(), title: partTitle.trim() }]); setPartTitle('') }, 'Teilschritt ergänzt.') }}><TextInput aria-label="Eigener Teilschritt" placeholder="Eigener kleiner Schritt" value={partTitle} onChange={(event) => setPartTitle(event.target.value)} /><Button type="submit" size="sm" disabled={busy || !partTitle.trim()}>Teilschritt ergänzen</Button></form>
