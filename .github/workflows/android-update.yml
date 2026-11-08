@@ -292,7 +292,7 @@ jobs:
               proof['signingRunnerHasCheckout'] = False
               proof['published'] = False
               (output / 'build-proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2) + '\n')
-              message = 'Signierte APK: ZIP am Handy entpacken und Anker Neu neben der bisherigen Anker-App installieren. Die alte App mit ihren Daten installiert lassen; eine vollständige Sicherung in Anker Neu bewusst wiederherstellen und vergleichen. Android-Freigaben separat prüfen. Frühere Geräteberichte sind keine Prüfung dieses Builds.' if all(configured) else 'UNSIGNIERT: Diese APK ist noch nicht installierbar. Erst die vier Signiersecrets für den Release-Schlüssel von Anker Neu bereitstellen. Die bisherige Anker-App installiert lassen.'
+              message = 'Signierte APK: ZIP entpacken und Anker installieren. Die Paketkennung und Release-Signatur sind dieselben wie bei Anker Neu; eine vorhandene Installation kann damit aktualisiert werden. Android-Freigaben separat prüfen. Frühere Geräteberichte sind keine Prüfung dieses Builds.' if all(configured) else 'UNSIGNIERT: Diese APK ist noch nicht installierbar. Erst die vier Signiersecrets für den bestehenden Release-Schlüssel von Anker bereitstellen. Private Schlüssel niemals in das Repository oder in Downloadpakete legen.'
               (output / 'INSTALLATION.txt').write_text(message + '\n')
               with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
                   summary.write('### Android-Update\n\n' + message + '\n\nCode: `' + code + '`, Version: `' + version + '`, Quellcommit: `' + proof['sourceCommit'] + '`.\n\nAPK-SHA256: `' + proof['apkSha256'] + '`.\n')
