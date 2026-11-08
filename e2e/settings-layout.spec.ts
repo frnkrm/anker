@@ -3,6 +3,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { Settings } from '../src/core/types'
 import { seedRecords, storedRecord } from './helpers/storage'
+import { chooseValue } from './helpers/controls'
 
 async function setup(page: Page, fontScale = 1) {
   await page.goto('/start')
@@ -34,8 +35,9 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
     for (const route of routes) {
       await page.goto(route)
       await expect(page.locator('.settings-page')).toBeVisible()
-      for (const summary of await page.locator('details > summary').all()) await summary.click()
+      for (const summary of await page.locator('details > summary').all()) if (!(await summary.evaluate((node) => (node.parentElement as HTMLDetailsElement).open))) await summary.click()
       if (route === '/schlaf') await page.getByRole('button', { name: 'Nachtragen und korrigieren', exact: true }).click()
+      await expect(page.locator('select,input[type="time"]')).toHaveCount(0)
       const geometry = await page.locator('.settings-page').evaluate((root) => {
         const visible = (node: HTMLElement) => node.getClientRects().length > 0
         const groups = [...root.querySelectorAll<HTMLElement>('.setting-control')].filter(visible).map((group) => {
@@ -64,23 +66,12 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
           const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
           if (textWidth > available) clipped.push({ tag: 'NUMBER', label: input.getAttribute('aria-label') ?? '', width: available, content: textWidth })
         }
-        for (const select of [...root.querySelectorAll<HTMLSelectElement>('select')].filter(visible)) {
-          const style = getComputedStyle(select)
-          context.font = style.font
-          const textWidth = context.measureText(select.selectedOptions[0]?.textContent?.trim() ?? '').width
-          const available = select.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 20
-          if (textWidth > available) clipped.push({ tag: 'SELECT', label: select.getAttribute('aria-label') ?? '', width: available, content: textWidth })
-        }
-        // Native Zeitfelder können intern abschneiden, ohne scrollWidth zu vergrößern.
-        // Die Browserlokale kann zusätzlich AM/PM benötigen; den Picker mit reservieren.
-        for (const input of [...root.querySelectorAll<HTMLInputElement>("input[type='time']")].filter(visible)) {
-          const [hour, minute] = input.value.split(':').map(Number)
+        for (const input of [...root.querySelectorAll<HTMLInputElement>('.time-field')].filter(visible)) {
           const style = getComputedStyle(input)
           context.font = style.font
-          const display = new Intl.DateTimeFormat(navigator.language, { hour: '2-digit', minute: '2-digit' }).format(new Date(2026, 0, 1, hour!, minute!))
-          const textWidth = context.measureText(display).width
-          const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 24
-          if (textWidth > available) clipped.push({ tag: 'TIME', label: input.getAttribute('aria-label') ?? '', width: available, content: textWidth })
+          const textWidth = context.measureText(input.value).width
+          const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+          if (!/^\d{2}:\d{2}$/.test(input.value) || textWidth > available) clipped.push({ tag: 'TIME24H', label: input.getAttribute('aria-label') ?? '', width: available, content: textWidth })
         }
         return { groups, values, clipped, pageWidth: document.documentElement.scrollWidth, viewport: innerWidth }
       })
@@ -172,6 +163,7 @@ test('Schlaf-Erklärungen erhalten manuelle Zeiten und benennen den vorhandenen 
   await page.getByRole('spinbutton', { name: 'Bildschirm aus', exact: true }).press('Tab')
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.sleep.screenOffMin).toBe(45)
   expect((await storedRecord<Settings>(page, 'settings', 'main'))?.pcStop).toBe(settings.pcStop)
+  await page.getByText('Wie diese Zeiten zusammenhängen', { exact: true }).click()
   await expect(page.getByText(/Dein von Hand gesetzter PC-Stopp bleibt dabei erhalten/)).toBeVisible()
   await expect(page.getByText(/weder den Handybildschirm noch den PC automatisch aus/)).toBeVisible()
   await expect(page.getByText(/In Ruhe ein paar Seiten lesen/)).toBeVisible()
@@ -179,6 +171,8 @@ test('Schlaf-Erklärungen erhalten manuelle Zeiten und benennen den vorhandenen 
   await expect(page.getByText(/erst, wenn du ihn selbst startest/)).toBeVisible()
   await expect(page.getByRole('link', { name: /Sanften Abendübergang einstellen/ })).toHaveAttribute('href', '/einstellungen/abenduebergang')
   await page.goto('/einstellungen')
+  await expect(page.getByRole('link', { name: /Zeitübersicht/ })).toHaveCount(0)
+  await page.getByRole('switch', { name: 'Test- und Entwicklerwerkzeuge anzeigen', exact: true }).click()
   await expect(page.getByRole('link', { name: /Zeitübersicht/ })).toHaveAttribute('href', '/zeiten')
 })
 
@@ -192,8 +186,9 @@ test('Lange Routinentitel bleiben neben kompakten Auswahlen lesbar und Regeln sp
   morning.title = 'Alle nötigen Unterlagen und meine vorbereitete Tasche an der Tür bereitlegen'
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
   await page.goto('/einstellungen/hilfen')
-  await page.getByLabel('Abendschritt', { exact: true }).selectOption(evening.id)
-  await page.getByLabel('Morgenschritt', { exact: true }).selectOption(morning.id)
+  await page.getByText('Abends schon erledigt', { exact: true }).click()
+  await chooseValue(page, 'Abendschritt', evening.id)
+  await chooseValue(page, 'Morgenschritt', morning.id)
   await expect(page.getByText(`Abends: ${evening.title}`, { exact: true })).toBeVisible()
   await expect(page.getByText(`Morgens nicht nötig: ${morning.title}`, { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Regel hinzufügen', exact: true }).click()

@@ -6,11 +6,13 @@ import { initialGame } from '../src/core/game'
 import { widgetEntry } from '../src/core/now'
 import { buildDayPlan } from '../src/core/planner'
 import { nextAction } from '../src/core/support'
+import { planConflicts } from '../src/core/planConflicts'
 import { zonedToUtc } from '../src/core/time'
 import type { Commitment, DayLog, GameState, LocalData, Settings } from '../src/core/types'
 import type { AssistantRequest } from '../src/core/assistance'
 import { installAssistanceBackend, startAssistanceServer } from './helpers/assistance-server'
 import { seedRecords, storedRecord } from './helpers/storage'
+import { fillDate, expandDetails, chooseValue } from './helpers/controls'
 
 const DATE = '2026-11-02'
 const TOMORROW = '2026-11-03'
@@ -70,14 +72,14 @@ async function fixture(page: Page) {
   await clock(page, 750)
   await page.reload()
   await expect(page.getByText('Feierabend frühestens', { exact: true })).toBeVisible()
-  await page.getByLabel('Pause voraussichtlich bis', { exact: true }).fill(`${DATE}T13:30`)
+  await fillDate(page, 'Pause voraussichtlich bis', `${DATE}T13:30`)
   await page.getByRole('button', { name: 'Endschätzung merken', exact: true }).click()
   await expect.poll(async () => (await local(page))?.workSessions[0]?.breaks[0]?.expectedEndAt).toBe(zonedToUtc(DATE, 810))
   return requests
 }
 async function traffic(page: Page) {
   await page.goto(`${server.url}/tag`)
-  await page.getByText('Wegdetails', { exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await page.getByRole('button', { name: 'Fahrtzeit prüfen', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Fahrtzeit bewusst prüfen', exact: true })
   await dialog.getByRole('button', { name: 'Diese Daten senden und Schätzung anfragen', exact: true }).click()
@@ -111,11 +113,13 @@ test('Q84: längere echte Pause und neuer Verkehr bleiben ein gemeinsamer Plan m
   expect(plan.workInfo?.forecastEnd).toBe(1050)
   expect(plan.legs?.find((leg) => leg.commitment.id === visit.id)?.leave).toBe(1000)
   expect(plan.conflicts).toHaveLength(1)
-  const conflict = plan.conflicts![0]!
-  await expect(page.getByText(conflict + ' Ändern kannst nur du: Einen Termin hier absagen oder mit der anderen Seite verschieben.', { exact: true })).toHaveCount(1)
+  const conflict = planConflicts(plan)[0]!
+  expect(conflict).toBeTruthy()
+  await expect(page.getByText(conflict.summary, { exact: true })).toHaveCount(1)
   await page.getByRole('link', { name: 'Jetzt', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Pause läuft', exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: conflict + ' Ansehen', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('link', { name: '1 Hinweis für heute ›', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('complementary', { name: 'Überschneidung prüfen', exact: true })).toHaveCount(0)
   await expect(page.locator('header')).toContainText('16:40')
   expect(widget).toMatchObject({ action: 'Pause läuft', hardLabel: 'Losgehen', hardTime: '16:40' })
   expect(JSON.stringify(widget)).not.toContain(PRIVATE)
@@ -182,13 +186,14 @@ test('Q84: freie Tagesänderung und Rücknahme bewahren echte Arbeits- und Reise
 test('Q84: einmalige Weckwahl und offene Ist-Pause überstehen bewussten Offline-Backup-Roundtrip', async ({ page, browser }) => {
   await fixture(page)
   await page.goto(`${server.url}/tag`)
-  await page.getByRole('radio', { name: 'Morgen', exact: true }).click()
+  await page.getByRole('radio', { name: 'Di', exact: true }).click()
   await page.getByRole('button', { name: 'Morgen anders', exact: true }).click()
   await page.getByRole('button', { name: 'Ich habe morgen einen Termin', exact: true }).click()
   await page.getByRole('textbox', { name: 'Was hast du vor?', exact: true }).fill('Früher Remote-Termin')
+  await page.getByRole('button', { name: 'Weg & Details', exact: true }).click()
   await page.getByRole('radio', { name: 'Termin', exact: true }).click()
   await page.getByLabel('Beginn', { exact: true }).fill('07:30')
-  await page.getByRole('radiogroup', { name: 'Termin findet statt', exact: true }).getByRole('radio', { name: 'Remote', exact: true }).click()
+  await chooseValue(page, 'Ort des Termins', 'remote')
   await page.getByRole('button', { name: 'So übernehmen', exact: true }).click()
   const apply = page.getByRole('button', { name: 'Einmalig 06:45 im Plan verwenden', exact: true })
   await expect(apply).toBeVisible()

@@ -2,6 +2,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { LocalData, Settings } from '../src/core/types'
 import { storedRecord } from './helpers/storage'
+import { fillDate } from './helpers/controls'
 
 async function onboard(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-02T10:00:00+01:00'))
@@ -15,6 +16,7 @@ test('Auswahlgruppen unterstützen Pfeile, Anfang und Ende; nur die gewählte Op
   await onboard(page)
   await page.goto('/einstellungen/hilfen')
   await expect(page.getByRole('heading', { name: 'Alltagshilfen', exact: true })).toBeFocused()
+  await page.locator('summary').filter({ hasText: /^Fokus-Puls$/ }).click()
   const group = page.getByRole('radiogroup', { name: 'Fokus-Puls', exact: true })
   const off = group.getByRole('radio', { name: 'Aus', exact: true })
   const gentle = group.getByRole('radio', { name: 'Sanft', exact: true })
@@ -32,6 +34,10 @@ test('Auswahlgruppen unterstützen Pfeile, Anfang und Ende; nur die gewählte Op
   await expect(gentle).toHaveAttribute('tabindex', '-1')
   await expect(strong).toHaveAttribute('tabindex', '-1')
   await page.keyboard.press('Tab')
+  const arrival = page.locator('summary').filter({ hasText: /^Ankommen nach der Arbeit$/ })
+  await expect(arrival).toBeFocused()
+  await arrival.press('Enter')
+  await page.keyboard.press('Tab')
   await expect(page.getByRole('switch', { name: 'Ankommen', exact: true })).toBeFocused()
 })
 
@@ -39,19 +45,21 @@ test('Routinen bleiben ohne Ziehen tastaturbedienbar und haben ausreichend groß
   await onboard(page)
   await page.goto('/einstellungen/morgenroutine')
   const before = (await storedRecord<Settings>(page, 'settings', 'main'))!.routines.morning.map((step) => step.id)
+  await page.locator('.routine-detail summary').nth(1).click()
   const button = page.getByRole('button', { name: 'Eintrag 2 nach oben', exact: true })
   const box = await button.boundingBox()
   expect(box!.width).toBeGreaterThanOrEqual(44)
   expect(box!.height).toBeGreaterThanOrEqual(44)
   await button.focus(); await button.press('Enter')
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines.morning[0]?.id).toBe(before[1])
-  await expect(page.getByRole('status')).toHaveText('Eintrag von Position 2 auf 1 verschoben.')
+  await expect(page.getByRole('status').filter({ hasText: 'Eintrag von Position 2 auf 1 verschoben.' })).toHaveText('Eintrag von Position 2 auf 1 verschoben.')
 })
 
 test('Freiwillige Probe lässt sich per Tastatur starten, zeigt höchstens drei Punkte und löscht nur ihre Antworten', async ({ page }) => {
   await onboard(page)
   const settings = await storedRecord<Settings>(page, 'settings', 'main')
-  await page.goto('/tag')
+  await page.goto('/rueckblick')
+  await page.locator('summary').filter({ hasText: /^Hilft mir Anker\?$/ }).click()
   await page.getByRole('button', { name: 'Freiwillig ausprobieren: Hilft mir Anker?', exact: true }).press('Enter')
   const seven = page.getByRole('button', { name: '7 Tage', exact: true })
   await seven.focus(); await seven.press('Space')
@@ -60,6 +68,7 @@ test('Freiwillige Probe lässt sich per Tastatur starten, zeigt höchstens drei 
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.trial?.answers['2026-11-02']).toBe('ja')
   await page.clock.setFixedTime(new Date('2026-11-09T10:00:00+01:00'))
   await page.reload()
+  await page.locator('summary').filter({ hasText: /^Hilft mir Anker\?$/ }).click()
   const summary = page.getByRole('heading', { name: 'Die Probezeit ist vorbei', exact: true }).locator('..')
   await expect(summary).toBeVisible()
   await expect(summary.getByRole('listitem')).toHaveCount(2)
@@ -83,6 +92,7 @@ test('Reduzierte Bewegung gilt auch für Schalter und bewusstes Bearbeiten von S
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await onboard(page)
   await page.goto('/einstellungen/hilfen')
+  await page.locator('summary').filter({ hasText: /^Ankommen nach der Arbeit$/ }).click()
   const toggle = page.getByRole('switch', { name: 'Ankommen', exact: true })
   expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   expect(await toggle.locator('span').last().evaluate((node) => getComputedStyle(node).transitionDuration)).toBe('0s')
@@ -96,6 +106,73 @@ test('Reduzierte Bewegung gilt auch für Schalter und bewusstes Bearbeiten von S
       else scroll(options ?? 0, y ?? 0)
     }
   })
+  await page.locator('summary').filter({ hasText: /^Nacht auf Mo\., 02\.11\.$/ }).click()
   await page.getByRole('button', { name: 'Nacht 2026-11-01 bearbeiten', exact: true }).click()
   expect(await page.evaluate(() => (window as unknown as { __scrollBehavior: string | undefined }).__scrollBehavior)).toBe('auto')
+})
+
+test('Ein Seitenlink im Sheet verbraucht dessen Hilfseintrag und erzeugt keine unsichtbare Zurück-Schleife', async ({ page }) => {
+  await onboard(page)
+  await page.goto('/arbeit')
+  await page.getByRole('link', { name: 'Jetzt', exact: true }).click()
+  await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
+  await page.getByRole('link', { name: 'Ganzen Tag ansehen ›', exact: true }).click()
+  await expect(page).toHaveURL(/\/tag$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/arbeit$/)
+})
+
+test('Zurück schließt verschachtelte Auswahl zuerst und stellt den Fokus auf Heute anpassen wieder her', async ({ page }) => {
+  await onboard(page)
+  const opener = page.getByRole('button', { name: 'Heute anpassen', exact: true })
+  await opener.click()
+  await page.getByRole('combobox', { name: 'Unterstützung', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Unterstützung', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(1)
+  await page.goBack()
+  await expect(page.getByRole('dialog', { name: 'Heute anpassen', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(1)
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page).toHaveURL(/\/$/)
+  await expect(opener).toBeFocused()
+  expect(await page.locator('#root').evaluate((node) => node.hasAttribute('inert'))).toBe(false)
+})
+
+test.describe('Feste deutsche Anzeige auf englischen Geräten', () => {
+  test.use({ locale: 'en-US' })
+
+  test('24h-Zeit lässt sich nach einer ungültigen Eingabe schnell korrigieren und übersteht einen Neustart', async ({ page }) => {
+    await onboard(page)
+    await page.goto('/einstellungen/schlaf')
+    const clock = page.getByRole('textbox', { name: 'Aufstehzeit', exact: true })
+    const before = (await storedRecord<Settings>(page, 'settings', 'main'))!.anchor.wake
+    await clock.fill('25:99'); await clock.blur()
+    await expect(clock).toHaveAttribute('aria-invalid', 'true')
+    expect((await storedRecord<Settings>(page, 'settings', 'main'))!.anchor.wake).toBe(before)
+    await clock.fill('0730'); await clock.blur()
+    await expect(clock).toHaveValue('07:30')
+    await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.anchor.wake).toBe(450)
+    await page.reload()
+    await expect(page.getByRole('textbox', { name: 'Aufstehzeit', exact: true })).toHaveValue('07:30')
+  })
+
+  test('Leeres Pflichtdatum erklärt den blockierten Schlaf-Nachtrag und speichert erst nach Korrektur', async ({ page }) => {
+    await onboard(page)
+    await page.goto('/schlaf')
+    await page.getByRole('button', { name: 'Nachtragen und korrigieren', exact: true }).click()
+    const before = await storedRecord<LocalData>(page, 'meta', 'local')
+    await fillDate(page, 'Nacht vom', '')
+    await page.getByRole('button', { name: 'Angaben speichern', exact: true }).click()
+    await expect(page.getByRole('alert')).toHaveText('Bitte wähle ein gültiges Datum.')
+    await expect(page.getByRole('button', { name: 'Nacht vom', exact: true })).toBeFocused()
+    expect(await storedRecord<LocalData>(page, 'meta', 'local')).toEqual(before)
+    await fillDate(page, 'Nacht vom', '2026-11-01')
+    await expect(page.getByRole('button', { name: 'Nacht vom', exact: true })).toContainText('01.11.2026')
+    await fillDate(page, 'Ins Bett gegangen', '2026-11-01T23:00')
+    await page.getByRole('button', { name: 'Angaben speichern', exact: true }).click()
+    await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.sleepDiary['2026-11-01']?.bedAt).toBe(Date.parse('2026-11-01T23:00:00+01:00'))
+  })
 })

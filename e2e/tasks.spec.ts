@@ -27,8 +27,26 @@ async function clock(page: Page, at: number) {
   await page.locator('body').dispatchEvent('visibilitychange', { bubbles: true })
 }
 
+/** Ein Dokumentwechsel wartet auf Dialog und den asynchron aufgeräumten Modal-Verlauf. */
+async function sheetsClosed(page: Page) {
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
+}
+
+/** Erst nach dem geladenen Einstieg entscheiden; ein Neustart rendert den Fokus verzögert. */
+async function openCapture(page: Page) {
+  const direct = page.getByRole('button', { name: 'Gedanken festhalten', exact: true })
+  const adjust = page.getByRole('button', { name: 'Heute anpassen', exact: true })
+  await expect(direct.or(adjust).first()).toBeVisible()
+  if (await direct.isVisible()) await direct.click()
+  else {
+    await adjust.click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Gedanke festhalten', exact: true }).click()
+  }
+}
+
 async function capture(page: Page, text: string) {
-  await page.getByRole('button', { name: 'Gedanken festhalten', exact: true }).click()
+  await openCapture(page)
   await page.getByRole('textbox', { name: 'Gedanke', exact: true }).fill(text)
   await expect.poll(async () => (await local(page))?.captureDraft?.text).toBe(text)
   const id = (await local(page))!.captureDraft!.id
@@ -46,13 +64,13 @@ test('Fokus-Capture erhält einen unfertigen Entwurf beim Neustart und kehrt zum
   await expect.poll(async () => (await local(page))?.focus?.id).toBeTruthy()
   const before = (await local(page))!.focus!
   const heading = await page.getByRole('heading', { level: 1 }).innerText()
-  await page.getByRole('button', { name: 'Gedanken festhalten', exact: true }).click()
+  await openCapture(page)
   await page.getByRole('textbox', { name: 'Gedanke', exact: true }).fill('Die Idee bleibt eine Notiz')
   await expect.poll(async () => (await local(page))?.captureDraft?.text).toBe('Die Idee bleibt eine Notiz')
   const draft = (await local(page))!.captureDraft!
   expect(draft.context).toMatchObject({ kind: 'step', title: heading, route: '/fokus/evening' })
   await page.reload()
-  await page.getByRole('button', { name: 'Gedanken festhalten', exact: true }).click()
+  await openCapture(page)
   await expect(page.getByRole('textbox', { name: 'Gedanke', exact: true })).toHaveValue(draft.text)
   await page.getByRole('button', { name: 'Merken', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -76,7 +94,7 @@ test('Arbeitsunterbrechung findet nach drei Tagen denselben nächsten Schritt, T
   await page.getByRole('textbox', { name: 'Neue Aufgabe', exact: true }).fill('Vertraulicher Kundenbericht')
   await page.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
   const card = page.getByRole('heading', { name: 'Vertraulicher Kundenbericht', exact: true }).locator('..')
-  await card.getByRole('button', { name: 'Starten · 25 min', exact: true }).click()
+  await card.getByRole('button', { name: /^Starten/ }).click()
   await expect(page).toHaveURL(/\/aufgabe\/work\//)
   const initial = (await local(page))!.focus!
   const id = await capture(page, 'Privater Einfall neben der Arbeit')
@@ -85,7 +103,8 @@ test('Arbeitsunterbrechung findet nach drei Tagen denselben nächsten Schritt, T
   expect(note.captureContext).toBe('Arbeit')
   expect(JSON.stringify(note)).not.toContain('Vertraulicher Kundenbericht')
   await clock(page, START + 5 * 60_000)
-  await page.getByRole('button', { name: 'Ich wurde unterbrochen', exact: true }).click()
+  await page.getByRole('button', { name: 'Stopp', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Unterbrochen – Wiedereinstieg merken', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nächster kleiner Schritt', exact: true }).fill('Tabelle öffnen')
   await page.getByRole('textbox', { name: 'Wenn ich zurückkomme', exact: true }).fill('Die zweite Zeile ansehen')
   await page.getByRole('button', { name: 'Pause und Wiedereinstieg merken', exact: true }).click()
@@ -143,7 +162,7 @@ test('Altbackup bleibt nach echter Offline-Migration, Nichtnutzung und Arbeits-U
   const card = page.getByRole('heading', { name: 'Alter Arbeitsauftrag', exact: true }).locator('..')
   await card.getByRole('button', { name: 'Details', exact: true }).click()
   await card.getByRole('textbox', { name: 'Nächster Schritt', exact: true }).fill('Alte Datei öffnen')
-  await card.getByRole('button', { name: 'Details speichern', exact: true }).click()
+  await card.getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect(card.getByText('Details gespeichert.', { exact: true })).toBeVisible()
   await card.getByRole('button', { name: 'Erledigt', exact: true }).click()
   await expect.poll(async () => (await local(page))?.work[0]?.done).toBe(true)
@@ -163,8 +182,9 @@ test('Bewusst morgen eingeplanter Gedanke nutzt in Tagesplan und Jetzt dieselbe 
   await onboard(page)
   const id = await capture(page, 'Schublade ordnen')
   await page.getByRole('dialog').getByRole('button', { name: 'Weiter', exact: true }).click()
+  await sheetsClosed(page)
   await page.goto('/inbox')
-  await page.getByRole('button', { name: 'Morgen erledigen', exact: true }).click()
+  await page.getByRole('button', { name: 'Für morgen einplanen', exact: true }).click()
   await expect.poll(async () => (await storedRecord<InboxItem>(page, 'inbox', id))?.taskDate).toBe('2026-11-03')
   expect((await storedRecord<InboxItem>(page, 'inbox', id))?.done).not.toBe(true)
   const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
@@ -183,6 +203,8 @@ test('Bewusst morgen eingeplanter Gedanke nutzt in Tagesplan und Jetzt dieselbe 
   await page.goto('/tag')
   await expect(page.getByRole('heading', { name: 'Schublade ordnen', exact: true })).toHaveCount(0)
   await page.goto('/inbox')
+  await page.getByRole('radio', { name: 'Private Aufgaben', exact: true }).click()
+  await page.getByText('Erledigt (1)', { exact: true }).click()
   await page.getByRole('button', { name: 'Schublade ordnen zurücknehmen', exact: true }).click()
   await expect.poll(async () => (await storedRecord<InboxItem>(page, 'inbox', id))?.done).toBe(false)
   await page.goto('/tag')

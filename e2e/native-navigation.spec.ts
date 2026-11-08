@@ -105,7 +105,7 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
   await page.goto('/')
   await expect.poll(async () => (await probe(page)).launchReads).toBe(1)
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Gute Nacht')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ab ins Bett')
 }
 
 async function probe(page: Page) {
@@ -118,7 +118,7 @@ async function probe(page: Page) {
 test('Unterbrochener Ton bleibt eine Warnung; abgelehnter Testton meldet Fehler und lässt einen neuen Versuch zu', async ({ page }) => {
   await nativeEntry(page, 'de.frnkrm.anker.mobile://now', false, { audioOk: false, toneBlocked: true })
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
+  await page.getByRole('link', { name: /Schlaf & Wecker/ }).click()
   await expect(page).toHaveURL(/\/wecker$/)
   await expect(page.getByText('Die letzte Tonausgabe war unterbrochen oder konnte nicht starten', { exact: true })).toBeVisible()
   await expect(page.getByText('Beim letzten Klingeln gab es keinen Ton', { exact: true })).toHaveCount(0)
@@ -141,7 +141,7 @@ test('Globale Freigabe verdeckt keinen blockierten Erinnerungskanal; Öffnen än
     storedSlots: 2, activeNotifications: 0, lastSyncAt: 0,
   } })
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
+  await page.getByRole('link', { name: /Schlaf & Wecker/ }).click()
   await expect(page).toHaveURL(/\/wecker$/)
   const diagnosis = page.getByRole('region', { name: 'Alltags-Erinnerungen', exact: true })
   await expect(diagnosis.getByText('Sanfte Hinweise: in Android blockiert', { exact: true })).toBeVisible()
@@ -161,8 +161,8 @@ for (const target of ['now', 'alarm']) {
     await nativeEntry(page, `de.frnkrm.anker.mobile://${target}`)
     const before = await probe(page)
     await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-    await expect(page.getByRole('link', { name: /Gemeinsam testen/ })).toBeVisible()
-    await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
+    await expect(page.getByRole('link', { name: /Einstellungen/ })).toBeVisible()
+    await page.evaluate(() => { history.pushState({}, '', '/geraetetest'); window.dispatchEvent(new PopStateEvent('popstate')) })
     await expect(page.getByLabel('Test auswählen', { exact: true })).toBeVisible()
     await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
     await page.getByRole('button', { name: 'Zeiteingabe prüfen', exact: true }).click()
@@ -178,10 +178,10 @@ for (const target of ['now', 'alarm']) {
 test('Neue native Links und ein echter Klingelzustand bleiben nach Seitenwechsel erreichbar', async ({ page }) => {
   await nativeEntry(page, 'de.frnkrm.anker.mobile://now')
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await expect(page.getByRole('link', { name: /Gemeinsam testen/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Einstellungen/ })).toBeVisible()
   await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://evening' }))
   await expect(page).toHaveURL(/\/abend$/)
-  await expect(page.getByRole('heading', { name: 'Abend & morgen', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Abend & Alltag', exact: true })).toBeVisible()
   await page.evaluate(() => {
     const bridge = (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge
     bridge.setRinging(true)
@@ -196,7 +196,7 @@ test('Neue native Links und ein echter Klingelzustand bleiben nach Seitenwechsel
 test('Messnacht zeigt die Vorweckerpause vor Start, im Status und nach Messungsende', async ({ page }) => {
   await nativeEntry(page, 'de.frnkrm.anker.mobile://now', true)
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await page.getByRole('link', { name: /Wecker & QR-Code/ }).click()
+  await page.getByRole('link', { name: /Schlaf & Wecker/ }).click()
   await expect(page.getByText(/Beim Start wird der Vorwecker für diese Nacht pausiert/)).toBeVisible()
   await page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true }).click()
   await expect(page.getByText(/Vorwecker für .* pausiert\./)).toBeVisible()
@@ -211,11 +211,11 @@ test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim
   await nativeEntry(page, 'de.frnkrm.anker.mobile://now')
   await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://now' }))
   // A real route transition without reloading the native session.
-  await page.getByRole('link', { name: 'Tag', exact: true }).click()
+  await page.getByRole('link', { name: 'Heute', exact: true }).click()
   await page.evaluate(() => { history.pushState({}, '', '/fokus/morning'); window.dispatchEvent(new PopStateEvent('popstate')) })
-  await expect(page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Zurück', exact: true })).toBeVisible()
   await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.focusUntil)).toBeGreaterThan(new Date('2026-11-06T02:00:00+01:00').getTime())
-  await page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true }).click()
+  await page.getByRole('button', { name: 'Zurück', exact: true }).click()
   await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.focusUntil)).toBe(0)
 })
 
@@ -227,8 +227,8 @@ for (const width of [390, 320]) for (const scale of [1, 1.6]) {
       nextAt:Date.parse('2026-11-06T02:20:00+01:00'),nextChannel:'sanft',focusUntil:Date.parse('2026-11-06T02:10:00+01:00'),quietUntil:0,planQuietUntil:0,storedSlots:2,activeNotifications:0,lastSyncAt:0,
     }}, scale)
     await page.getByRole('link', {name:'Mehr', exact:true}).click()
-    await page.getByRole('link', {name:/Wecker & QR-Code/}).click()
-    await expect(page.getByRole('heading',{level:1,name:'Wecker',exact:true})).toBeVisible()
+    await page.getByRole('link', {name:/Schlaf & Wecker/}).click()
+    await expect(page.getByRole('heading',{level:1,name:'Schlaf & Wecker',exact:true})).toBeVisible()
     await expect(page.getByRole('region',{name:'Alltags-Erinnerungen'})).toBeVisible()
     for (const summary of await page.locator('details > summary').all()) await summary.click()
     const geometry = await page.locator('.settings-page').evaluate(root => {

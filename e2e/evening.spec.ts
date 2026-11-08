@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { DayLog, Settings } from '../src/core/types'
+import { openTodayAdjust } from './helpers/controls'
 import { storedRecord } from './helpers/storage'
 
 async function onboard(page: Page) {
@@ -46,7 +47,7 @@ test('Abendroutine bietet nach PC-Stopp und Bettzeit keine neue Freizeit an', as
 
 test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', async ({ page }) => {
   await onboard(page)
-  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  await openTodayAdjust(page)
   await page.getByRole('dialog').getByText('Weitere Möglichkeiten', { exact: true }).click()
   await page.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()
   await page.getByRole('button', { name: 'Weiß ich noch nicht', exact: true }).click()
@@ -59,14 +60,13 @@ test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', a
 
 test('Abendeinstellungen sind gebündelt und optionale Schalter bleiben eine eigene Wahl', async ({ page }) => {
   await onboard(page)
-  await expect(page.getByRole('button', { name: /Plan & Optionen/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Heute anpassen', exact: true })).toBeVisible()
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Mehr' })).toBeVisible()
   await page.goto('/einstellungen')
-  const evening = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Abend & Schlaf', exact: true }) })
-  for (const name of ['Schlaf & Anker', 'Abendpläne', 'Abendroutine', 'Abendmodus']) {
-    await expect(evening.getByRole('link', { name: new RegExp(name) })).toBeVisible()
-  }
-  await evening.getByRole('link', { name: /Abendmodus/ }).click()
+  const planning = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Planung', exact: true }) })
+  for (const section of ['schlaf', 'abend', 'routinen']) await expect(planning.locator(`a[href="/einstellungen/${section}"]`)).toBeVisible()
+  await page.goto('/einstellungen/abendmodus')
+  await expect(page).toHaveURL(/\/einstellungen\/abend#modus$/)
   const preset = page.getByRole('switch', { name: 'Abendmodus vorschlagen', exact: true })
   await expect(preset).toHaveAttribute('aria-checked', 'false')
   await preset.click()
@@ -76,10 +76,10 @@ test('Abendeinstellungen sind gebündelt und optionale Schalter bleiben eine eig
 
   await page.goto('/einstellungen/arbeit')
   const quiet = page.getByRole('switch', { name: 'Arbeitsaufgaben nach Feierabend ruhigstellen', exact: true })
-  await expect(quiet).toHaveAttribute('aria-checked', 'false')
-  await quiet.click()
-  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.support.workAfterHoursQuiet).toBe(true)
-  await page.reload()
   await expect(quiet).toHaveAttribute('aria-checked', 'true')
-  await expect(page.getByText('Auf der Startseite haben Abend und Erholung Vorrang. Arbeitsaufgaben bleiben unter Arbeit erreichbar; Fristmeldungen bleiben unverändert. Laufende Arbeit wird dadurch nicht beendet.', { exact: true })).toBeVisible()
+  await quiet.click()
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.support.workAfterHoursQuiet).toBe(false)
+  await page.reload()
+  await expect(quiet).toHaveAttribute('aria-checked', 'false')
+  await expect(page.getByRole('heading', { name: 'Nach Feierabend', exact: true })).toBeVisible()
 })

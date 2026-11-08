@@ -1,3 +1,4 @@
+import { expandDetails } from './helpers/controls'
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { emptyLocal } from '../src/core/defaults'
@@ -49,12 +50,14 @@ async function prepare(page: Page) {
     }
   }), { ...emptyLocal(), commitments: [visit], places: [{ id: 'geo-place', label: 'Besuchsort', latitude: 52, longitude: 13 }] })
   await page.goto('/tag')
+  await expandDetails(page, 'Weg & Vorbereitung')
   await expect(page.getByText('Optionaler Standorthinweis', { exact: true })).toBeVisible()
 }
 async function android(page: Page) {
   await page.evaluate(() => { (window as unknown as { CapacitorCustomPlatform: { name: string } }).CapacitorCustomPlatform.name = 'android' })
   await page.getByRole('link', { name: 'Jetzt', exact: true }).click()
-  await page.getByRole('link', { name: 'Tag', exact: true }).click()
+  await page.getByRole('link', { name: 'Heute', exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await page.getByText('Optionaler Standorthinweis', { exact: true }).click()
 }
 async function select(page: Page) {

@@ -15,14 +15,16 @@ async function onboard(page: Page) {
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
 }
 async function openHomeoffice(page: Page) {
-  await page.getByRole('button', { name: /^(Arbeitstag|Homeoffice) ▾$/ }).click()
+  await page.getByRole('button', { name: 'Heute anpassen: Tagesart und Modus', exact: true }).click()
+  await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await page.getByRole('button', { name: 'Homeoffice und Abendplan', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'Homeoffice', exact: true }).getByRole('radio', { name: 'Ja', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Homeoffice-Kontakt', exact: true })).toBeVisible()
 }
 async function closeDay(page: Page) { await page.getByRole('dialog').getByRole('button', { name: 'Fertig', exact: true }).click() }
 async function expectHomeofficeReady(page: Page) {
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('button', { name: 'Homeoffice ▾', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Heute anpassen: Tagesart und Modus', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Arbeit (Homeoffice)', exact: true })).toBeVisible()
 }
 
@@ -61,7 +63,7 @@ test('Bewusstes Später fragt frühestens nach30Minuten einmal ruhig nach und wi
   await expect.poll(async () => (await local(page))?.homeOfficeContact?.[date]).toEqual({ status: 'later', at: start, remindAt: start + 30 * 60_000 })
   await expect(page.getByRole('region', { name: 'Einmalige Homeoffice-Rückfrage', exact: true })).toHaveCount(0)
   // Now vor dem Uhrwechsel wirklich verlassen: kein alter Mount darf die Einmalrückfrage verbrauchen.
-  await page.getByRole('link', { name: 'Tag', exact: true }).click()
+  await page.getByRole('link', { name: 'Heute', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Heute', exact: true })).toBeVisible()
   await expect(page).toHaveURL(/\/tag$/)
   await page.clock.setFixedTime(new Date(start + 30 * 60_000))

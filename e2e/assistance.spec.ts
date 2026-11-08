@@ -33,7 +33,7 @@ async function createWork(page: Page) {
   return card
 }
 async function openAI(page: Page) {
-  await page.getByText('KI-Vorschlag (freiwillig)', { exact: true }).click()
+  await page.getByText('KI-Vorschlag', { exact: true }).click()
   await page.getByRole('textbox', { name: 'Text für den KI-Vorschlag', exact: true }).fill('Neutraler Text für einen ersten Schritt')
   await page.getByRole('checkbox', { name: 'Diesen Inhalt für diese Anfrage an OpenAI freigeben', exact: true }).check()
   await page.getByRole('button', { name: 'KI-Vorschlag anfordern', exact: true }).click()
@@ -71,9 +71,10 @@ test('Explizit freigegebene Inhalte liefern nur editierbare Vorschläge; bewusst
   const requests = await installAssistanceBackend(page)
   await onboard(page); await enableAI(page)
   const card = await createWork(page)
+  if (!await card.getByRole('textbox', { name: 'Beschreibung', exact: true }).isVisible()) await card.getByText('Weitere Angaben', { exact: true }).click()
   await card.getByRole('textbox', { name: 'Beschreibung', exact: true }).fill('Geheime Kundendaten bleiben lokal')
   await card.getByRole('textbox', { name: 'Nächster Schritt', exact: true }).fill('Vertrauliche Akte öffnen')
-  await card.getByRole('button', { name: 'Details speichern', exact: true }).click()
+  await card.getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect(card.getByText('Details gespeichert.', { exact: true })).toBeVisible()
   await card.getByRole('button', { name: 'In kleine Schritte zerlegen', exact: true }).click()
   await card.getByRole('button', { name: 'Vorschlag übernehmen', exact: true }).click()
@@ -134,7 +135,7 @@ test('Abbruch und während der Anfrage bearbeitete Aufgabe verhindern späte Pla
   await page.getByRole('button', { name: 'KI-Vorschlag anfordern', exact: true }).click()
   await expect.poll(() => requests.length).toBe(2)
   await card.getByRole('textbox', { name: 'Nächster Schritt', exact: true }).fill('Inzwischen selbst entschieden')
-  await card.getByRole('button', { name: 'Details speichern', exact: true }).click()
+  await card.getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.work[0]?.nextStep).toBe('Inzwischen selbst entschieden')
   finish()
   await expect(page.getByText(/Die Aufgabe hat sich geändert. Prüfe den Inhalt vor/)).toBeVisible()

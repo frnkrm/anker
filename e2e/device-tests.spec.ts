@@ -1,3 +1,4 @@
+import { chooseValue, choiceValues } from './helpers/controls'
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
@@ -28,12 +29,13 @@ async function settings(page: Page): Promise<{ pcStop: number; bed: number; comm
 
 test('Testseite beginnt offen und speichert ausschließlich bewusst berichtete Browserergebnisse', async ({ page }) => {
   await onboard(page)
-  await page.goto('/mehr')
+  await page.goto('/einstellungen')
+  await page.getByRole('switch', { name: 'Test- und Entwicklerwerkzeuge anzeigen', exact: true }).click()
   await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
   await expect(page.getByText(/0 von 96 im Browser/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
-  await page.getByLabel('Testbereich', { exact: true }).selectOption('Alle')
-  await page.getByLabel('Test auswählen', { exact: true }).selectOption('3')
+  await chooseValue(page, 'Testbereich', 'Alle')
+  await chooseValue(page, 'Test auswählen', '3')
   await expect(page.getByRole('heading', { name: 'Test 3 · Wecker', exact: true })).toBeVisible()
   await page.getByLabel('Testbeobachtung').fill('Plan angesehen, Ton am Handy noch offen')
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
@@ -158,7 +160,7 @@ test('Nachtzeiten aus der Ersteinrichtung bleiben beim späteren Neuberechnen ge
 test('Bereichsfilter steuert auch den sichtbaren Versuch und die Navigation bis zur leeren Auswahl', async ({ page }) => {
   await onboard(page)
   await page.goto('/geraetetest')
-  await page.getByLabel('Testbereich', { exact: true }).selectOption('Befund Vollbild (05.11.2026)')
+  await chooseValue(page, 'Testbereich', 'Befund Vollbild (05.11.2026)')
   await expect(page.getByRole('heading', { name: /Test 47 ·/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Vorheriger Test', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: '✓ Hat geklappt', exact: true }).click()
@@ -197,7 +199,7 @@ test('E02-Prüfwege führen zu Erinnerungen und Papier und bleiben bis zur Rück
   await expect(page).toHaveURL(/\/einstellungen\/erinnerungen$/)
   await page.getByRole('link', { name: 'Zurück zu Test 66', exact: true }).click()
   await expect(page.getByText(/0 von 96 im Browser/)).toBeVisible()
-  await page.getByLabel('Test auswählen', { exact: true }).selectOption('73')
+  await chooseValue(page, 'Test auswählen', '73')
   await expect(page.getByRole('heading', { name: 'Test 73 · E02: Erinnerungen und Papier', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Druckauswahl öffnen', exact: true }).click()
   await expect(page).toHaveURL(/\/druck$/)
@@ -278,7 +280,7 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Aufgaben & Wiedereinstieg prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 76 · E03: Aufgaben und Wiedereinstieg', exact: true })).toBeVisible()
-  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('E03: Aufgaben und Wiedereinstieg')
+  await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('E03: Aufgaben und Wiedereinstieg')
   await expect(page.getByRole('button', { name: 'Vorheriger Test', exact: true })).toBeDisabled()
   const destinations: [number, string, RegExp][] = [
     [76, 'Aufgabe zum Fokus wählen', /\/arbeit$/],
@@ -293,7 +295,7 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
     [85, 'Aktuellen Stand auf Jetzt ansehen', /\/$/],
   ]
   for (const [id, label, destination] of destinations) {
-    await page.getByLabel('Test auswählen', { exact: true }).selectOption(String(id))
+    await chooseValue(page, 'Test auswählen', String(id))
     await expect(page.getByRole('heading', { name: `Test ${id} · E03: Aufgaben und Wiedereinstieg`, exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Druckauswahl öffnen', exact: true })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
@@ -323,17 +325,17 @@ test('Gemeinsamer Abschlusslauf bündelt genau zehn freiwillige Stationen und er
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[3]).toMatchObject({ note: 'Einzeltest bleibt erhalten', result: 'partial' })
   await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 86 · Gemeinsamer Abschlusslauf: E04–E09', exact: true })).toBeVisible()
-  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
-  expect(await page.getByLabel('Test auswählen', { exact: true }).locator('option:not([disabled])').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))).toEqual(Array.from({ length: 10 }, (_, index) => String(86 + index)))
+  await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Gemeinsamer Abschlusslauf: E04–E09')
+  expect(await choiceValues(page, 'Test auswählen')).toEqual(Array.from({ length: 10 }, (_, index) => String(86 + index)))
   await expect(page.getByText(/0 von 10 Abschlussstationen im Browser/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Vorheriger Test', exact: true })).toBeDisabled()
-  await page.getByLabel('Test auswählen', { exact: true }).selectOption('95')
+  await chooseValue(page, 'Test auswählen', '95')
   await expect(page.getByRole('button', { name: 'Nächster Test', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
   // Teilweise erhöht den Bestanden-Zähler nicht. Er war schon vor diesem Speichervorgang bei 0.
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
   await page.reload()
-  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Gemeinsamer Abschlusslauf: E04–E09')
+  await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Gemeinsamer Abschlusslauf: E04–E09')
   const local = await storedRecord<LocalData>(page, 'meta', 'local')
   expect(local?.deviceTests?.reports[3]).toMatchObject({ note: 'Einzeltest bleibt erhalten', result: 'partial' })
   expect(local?.deviceTests?.reports[95]).toMatchObject({ result: 'partial', platform: 'web' })
@@ -349,7 +351,7 @@ test('Ein wartender Bericht wird erst nach echter IDB-Persistenz als gespeichert
   await page.getByRole('button', { name: 'Teilweise', exact: true }).click()
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests?.reports[3]).toMatchObject({ result: 'partial', note: 'Alter Einzelbericht bleibt' })
   await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
-  await page.getByLabel('Test auswählen', { exact: true }).selectOption('95')
+  await chooseValue(page, 'Test auswählen', '95')
   // Echte IndexedDB-Schreibbarriere, keine verzögerte Produktfunktion oder feste Wartezeit.
   await page.evaluate(() => new Promise<void>((resolve, reject) => {
     const state = window as unknown as { holdDeviceReportWrite: boolean }
@@ -400,12 +402,12 @@ test('Abschlussstationen führen begleitet durch vorhandene Bereiche und starten
     [92, 'Testaufgabe bewusst wählen', /\/arbeit$/],
     [93, 'Lokalen Plan ohne Dienst öffnen', /\/tag$/],
     [94, 'Kalender und Integrationen öffnen', /\/verbindungen$/],
-    [95, 'Morgenroutine sortieren', /\/einstellungen\/morgenroutine$/],
-    [95, 'Abendroutine sortieren', /\/einstellungen\/abendroutine$/],
+    [95, 'Morgenroutine sortieren', /\/einstellungen\/routinen#morning$/],
+    [95, 'Abendroutine sortieren', /\/einstellungen\/routinen#evening$/],
     [95, 'Darstellung und Eingabe öffnen', /\/einstellungen\/darstellung$/],
   ]
   for (const [id, label, destination] of destinations) {
-    await page.getByLabel('Test auswählen', { exact: true }).selectOption(String(id))
+    await chooseValue(page, 'Test auswählen', String(id))
     await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
     await page.getByRole('button', { name: label, exact: true }).click()
     await expect(page).toHaveURL(destination)

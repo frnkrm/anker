@@ -4,6 +4,7 @@ import { emptyLocal } from '../src/core/defaults'
 import type { FocusSession } from '../src/core/focus'
 import type { GameState, InboxItem, LocalData, Settings, WorkTask } from '../src/core/types'
 import { seedRecords, storedRecord } from './helpers/storage'
+import { chooseValue } from './helpers/controls'
 
 test.use({ hasTouch: true })
 
@@ -53,10 +54,41 @@ async function at(page: Page, ms: number) {
   await page.locator('body').dispatchEvent('visibilitychange', { bubbles: true })
 }
 
+/** Vor einem Dokumentwechsel muss auch der geschlossene Modal-Verlauf aufgeräumt sein. */
+async function sheetsClosed(page: Page) {
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
+}
+
+async function target(page: Page, partId: string) {
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  const visibleChoice = page.getByRole('radiogroup', { name: 'Fokus für', exact: true })
+  await expect(visibleChoice.or(page.getByRole('button', { name: 'Stopp', exact: true })).first()).toBeVisible()
+  if (!await visibleChoice.isVisible()) {
+    await page.getByRole('button', { name: 'Stopp', exact: true }).click()
+    await page.getByRole('dialog').getByText('Anderen Schritt wählen', { exact: true }).click()
+  }
+  await chooseValue(page, 'Fokus für', partId, await page.getByRole('dialog').count() ? page.getByRole('dialog').last() : page)
+}
+
+async function duration(page: Page, minutes: string) {
+  await page.getByRole('radiogroup', { name: 'Teilschritt-Timer Minuten', exact: true }).getByRole('radio', { name: /Eigene/ }).click()
+  const dialog = page.getByRole('dialog').last()
+  const field = dialog.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten in Minuten', exact: true })
+  await field.fill(minutes)
+  await field.blur()
+  await dialog.getByRole('button', { name: 'Übernehmen', exact: true }).click()
+}
+
+async function stop(page: Page) {
+  await page.getByRole('button', { name: 'Stopp', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Einfach beenden', exact: true }).click()
+}
+
 async function start(page: Page, partId: string, minutes: string) {
-  await page.getByRole('combobox', { name: 'Fokus für', exact: true }).selectOption(partId)
-  await page.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten', exact: true }).fill(minutes)
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+  await target(page, partId)
+  await duration(page, minutes)
+  await page.getByRole('button', { name: /^Fokus starten/ }).click()
   await expect.poll(async () => {
     const target = (await local(page))?.focus?.target
     return target?.kind === 'work' ? target.partId : undefined
@@ -70,7 +102,7 @@ test('Bewusster freier Teilschritt-Timer erhält Pause und Reload; Ablauf bucht 
   const xp = (await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? 0
   await page.goto(`${ROUTE}?teil=teil-a`)
   await expect(page.getByRole('heading', { name: 'Tabelle öffnen', exact: true })).toBeVisible()
-  await expect(page.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten' })).toHaveValue('7')
+  await expect(page.getByRole('radiogroup', { name: 'Teilschritt-Timer Minuten' }).getByRole('radio', { name: 'Eigene · 7 min', exact: true })).toHaveAttribute('aria-checked', 'true')
   await at(page, START + 120_000)
   expect((await local(page))?.focus).toBeUndefined()
   const initial = await start(page, 'teil-a', '3.5')
@@ -99,11 +131,11 @@ test('Bewusster freier Teilschritt-Timer erhält Pause und Reload; Ablauf bucht 
   expect(after.work[0]!.subtasks!.every((part) => part.doneAt === undefined)).toBe(true)
   expect(after.workSessions).toEqual([])
   expect((await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? 0).toBe(xp)
-  await page.getByRole('button', { name: 'Timer beenden', exact: true }).click()
+  await stop(page)
   await expect.poll(async () => (await local(page))?.focus).toBeUndefined()
   await page.reload()
   await expect(page.getByRole('timer')).toHaveCount(0)
-  await expect(page.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten' })).toHaveValue('3.5')
+  await expect(page.getByRole('radiogroup', { name: 'Teilschritt-Timer Minuten' }).getByRole('radio', { name: 'Eigene · 3,5 min', exact: true })).toHaveAttribute('aria-checked', 'true')
 })
 
 test('Teilschritte A und B sowie ganze Aufgabe behalten eigene Timer und wechseln erst auf Start', async ({ page }) => {
@@ -112,7 +144,7 @@ test('Teilschritte A und B sowie ganze Aufgabe behalten eigene Timer und wechsel
   await page.goto(ROUTE)
   const first = await start(page, 'teil-a', '7')
   await at(page, START + 20_000)
-  await page.getByRole('combobox', { name: 'Fokus für' }).selectOption('teil-b')
+  await target(page, 'teil-b')
   expect((await local(page))?.focus).toEqual(first)
   const second = await start(page, 'teil-b', '2')
   expect(second.id).not.toBe(first.id)
@@ -120,14 +152,14 @@ test('Teilschritte A und B sowie ganze Aufgabe behalten eigene Timer und wechsel
   if (archivedA.timer.status !== 'paused') throw new Error('Archivpause fehlt')
   expect(archivedA.timer.remainingMs).toBe(400_000)
   await at(page, START + 40_000)
-  await page.getByRole('combobox', { name: 'Fokus für' }).selectOption('')
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+  await target(page, '')
+  await page.getByRole('button', { name: /^Fokus starten/ }).click()
   await expect.poll(async () => (await local(page))?.focus?.id).not.toBe(second.id)
   const parent = await focus(page)
   expect(parent.target).toEqual({ kind: 'work', id: 'teil-bericht' })
   expect(parent.timer.durationMs).toBe(25 * 60_000)
   await at(page, START + 50_000)
-  await page.getByRole('combobox', { name: 'Fokus für' }).selectOption('teil-a')
+  await target(page, 'teil-a')
   await expect(page.getByRole('timer')).toHaveText('6:40')
   expect((await local(page))?.focus?.id).toBe(parent.id)
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
@@ -160,7 +192,7 @@ test('Details wählen den Timer ohne Start; Umbenennen erhält ID und Restzeit, 
   card = page.getByRole('heading', { name: 'Bericht', exact: true }).locator('..')
   await card.getByRole('button', { name: 'Details', exact: true }).click()
   await card.getByRole('textbox', { name: 'Text Teilschritt 1', exact: true }).fill('Aktuelle Tabelle öffnen')
-  await card.getByRole('button', { name: 'Teilschritt speichern', exact: true }).first().click()
+  await card.getByRole('textbox', { name: 'Text Teilschritt 1', exact: true }).blur()
   await expect.poll(async () => (await local(page))?.work[0]?.subtasks?.[0]?.title).toBe('Aktuelle Tabelle öffnen')
   await card.getByRole('button', { name: 'Eintrag 1 nach unten', exact: true }).click()
   await expect.poll(async () => (await local(page))?.work[0]?.subtasks?.[1]?.id).toBe('teil-a')
@@ -193,14 +225,14 @@ for (const state of ['erledigt', 'entfernt'] as const) {
     await onboard(page)
     await seedWork(page, { subtasks: state === 'erledigt' ? [{ id: 'teil-a', title: 'Tabelle öffnen', doneAt: START - 1 }] : [{ id: 'teil-b', title: 'Zahlen prüfen' }] })
     await page.goto(ROUTE)
-    await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+    await page.getByRole('button', { name: /^Fokus starten/ }).click()
     const parent = await focus(page)
     await page.goto(`${ROUTE}?teil=teil-a`)
     await expect(page.getByRole('heading', { name: 'Teilschritt nicht verfügbar', exact: true })).toBeVisible()
     await expect(page.getByRole('timer')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Fokus starten', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Fokus starten/ })).toHaveCount(0)
     expect((await local(page))?.focus).toEqual(parent)
-    await page.getByRole('combobox', { name: 'Fokus für' }).selectOption('')
+    await target(page, '')
     await expect(page.getByRole('timer')).toHaveText('25:00')
     expect((await local(page))?.focus).toEqual(parent)
   })
@@ -212,14 +244,17 @@ test('Freie Minuten sind per Tastatur bedienbar, ungültige Dauer bleibt ohne St
   await page.setViewportSize({ width: 320, height: 740 })
   await page.goto(`${ROUTE}?teil=teil-a`)
   await page.evaluate(() => document.documentElement.style.fontSize = '160%')
-  const minutes = page.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten' })
+  await page.getByRole('radiogroup', { name: 'Teilschritt-Timer Minuten' }).getByRole('radio', { name: /Eigene/ }).click()
+  const picker = page.getByRole('dialog').last()
+  const minutes = picker.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten in Minuten', exact: true })
   await minutes.fill('0')
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).tap()
-  await expect(page.getByRole('alert')).toHaveText('Wähle eine Dauer über 0 bis 1440 Minuten.')
+  await minutes.blur()
+  await expect(minutes).toHaveValue('0.01')
   expect((await local(page))?.focus).toBeUndefined()
   await minutes.fill('11.25')
   await minutes.press('Tab')
-  await expect(page.getByRole('button', { name: 'Fokus starten', exact: true })).toBeFocused()
+  await picker.getByRole('button', { name: 'Übernehmen', exact: true }).click()
+  await page.getByRole('button', { name: /^Fokus starten/ }).focus()
   await page.keyboard.press('Enter')
   await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(675_000)
   const originalFont = await page.evaluate(() => document.body.style.fontFamily)
@@ -232,15 +267,15 @@ test('Freie Minuten sind per Tastatur bedienbar, ungültige Dauer bleibt ohne St
   await testInfo.attach('taskfocus-font-widths', { body: Buffer.from(JSON.stringify(widths, null, 2)), contentType: 'application/json' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
   for (const width of widths) expect(width.scrollWidth - width.viewport, JSON.stringify(width)).toBeLessThanOrEqual(1)
-  for (const name of ['Pause', 'Timer beenden']) {
+  for (const name of ['Pause', 'Stopp']) {
     const size = await page.getByRole('button', { name, exact: true }).boundingBox()
     expect(size!.height).toBeGreaterThanOrEqual(44)
   }
   await page.screenshot({ path: testInfo.outputPath('teilschritt-320.png'), fullPage: true })
-  await page.getByRole('button', { name: 'Timer beenden', exact: true }).click()
+  await stop(page)
   await expect.poll(async () => (await local(page))?.focus).toBeUndefined()
-  await minutes.fill('1440')
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+  await duration(page, '1440')
+  await page.getByRole('button', { name: /^Fokus starten/ }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(86_400_000)
   await expect(page.getByRole('timer')).toHaveText('1440:00')
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
@@ -256,7 +291,7 @@ test('Arbeitskarte und Fokusshortcut setzen denselben pausierten Teilschritt for
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('paused')
   await page.goto('/arbeit')
   const card = page.getByRole('heading', { name: 'Bericht', exact: true }).locator('..')
-  await card.getByRole('button', { name: 'Weiterarbeiten', exact: true }).click()
+  await card.getByRole('button', { name: /^Weiter/ }).click()
   await expect(page).toHaveURL(/\?teil=teil-a$/)
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
   expect((await local(page))?.focus?.id).toBe(initial.id)
@@ -313,8 +348,8 @@ test('Arbeits-Capture behält den Teilkontext lokal; private Teilschritte nutzen
   await page.goto('/aufgabe/task/privat?teil=constructor')
   await expect(page.getByRole('heading', { name: 'Papier stapeln', exact: true })).toBeVisible()
   expect((await local(page))?.focus).toEqual(workFocus)
-  await page.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten' }).fill('4.25')
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+  await duration(page, '4.25')
+  await page.getByRole('button', { name: /^Fokus starten/ }).click()
   await expect.poll(async () => (await local(page))?.focus?.target).toEqual({ kind: 'task', id: task.id, partId: 'constructor' })
   expect((await storedRecord<InboxItem>(page, 'inbox', task.id))?.subtasks?.[0]?.timerMin).toBe(4.25)
   expect((await local(page))?.workSessions).toEqual([])
@@ -335,6 +370,7 @@ test('Starthilfe verwechselt beim Wechsel zwischen Teilschritten keine gespeiche
   await expect.poll(async () => (await local(page))?.stuck?.timer?.status).toBe('paused')
   const saved = (await local(page))!.stuck!
   await page.keyboard.press('Escape')
+  await sheetsClosed(page)
   await page.goto(`${ROUTE}?teil=teil-b`)
   await start(page, 'teil-b', '2')
   await page.goto('/')
@@ -344,6 +380,7 @@ test('Starthilfe verwechselt beim Wechsel zwischen Teilschritten keine gespeiche
   await expect(dialog.getByRole('button', { name: 'Weiter', exact: true })).toHaveCount(0)
   expect((await local(page))?.stuck).toEqual(saved)
   await page.keyboard.press('Escape')
+  await sheetsClosed(page)
   await page.goto(`${ROUTE}?teil=teil-a`)
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.focus?.target).toEqual({ kind: 'work', id: 'teil-bericht', partId: 'teil-a' })

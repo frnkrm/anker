@@ -63,7 +63,7 @@ test('Routinepause und Restzeit überstehen Neuladen; Zeitablauf erledigt keinen
   await at(page, START + 3_600_000)
   await page.reload()
   await expect(page.getByRole('timer')).toHaveText(text)
-  await expect(page.getByText('Pausiert. Die Restzeit bleibt erhalten.', { exact: true })).toBeVisible()
+  await expect(page.locator('.ring-timer-pause')).toContainText('Pausiert')
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
   const resumed = await focus(page)
@@ -72,7 +72,7 @@ test('Routinepause und Restzeit überstehen Neuladen; Zeitablauf erledigt keinen
   expect(resumed.timer.deadlineAt).toBe(START + 3_600_000 + paused.timer.remainingMs)
   await at(page, resumed.timer.deadlineAt + 1000)
   await expect(page.getByRole('timer')).toHaveText('0:00')
-  await expect(page.getByText('Zeitfenster zu Ende. Du kannst in Ruhe weitermachen oder selbst abschließen.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zeitfenster zu Ende. Du entscheidest, wann du abschließt.', { exact: true })).toBeVisible()
   const day = await storedRecord<DayLog>(page, 'days', '2026-11-02')
   if (initial.target.kind !== 'routine') throw new Error('Routinenreferenz fehlt')
   expect(day?.steps[`evening:${initial.target.stepId}`]).toBeUndefined()
@@ -100,7 +100,7 @@ test('Starthilfe wartet auf Start und bewahrt ihre Pause getrennt vom Routinenfo
   await page.reload()
   await page.getByRole('button', { name: 'Ich hänge fest', exact: true }).click()
   await expect(page.getByRole('timer')).toHaveText('1:30')
-  await expect(page.getByText('Pausiert. Die Restzeit bleibt erhalten.', { exact: true })).toBeVisible()
+  await expect(page.locator('.ring-timer-pause')).toContainText('Pausiert')
   expect((await local(page))?.focus).toEqual(previousFocus)
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.stuck?.timer?.status).toBe('running')
@@ -115,6 +115,7 @@ test('Nur übersprungene Routinen bekommen keine fertige Routine und keine Erled
   const xp = (await storedRecord<GameState>(page, 'game', 'main'))?.xp ?? initialGame('2026-11-02').xp
   await page.goto('/fokus/evening')
   const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
   for (const item of settings.routines.evening) {
     await page.getByRole('button', { name: 'Überspringen', exact: true }).click()
     await expect.poll(async () => (await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.steps[`evening:${item.id}`]).toBe('skipped')
@@ -134,7 +135,7 @@ test('Aufgaben-Deep-Link startet erst bewusst; Pause und neues Zeitfenster buche
   await expect(page.getByRole('timer')).toHaveCount(0)
   await at(page, START + 180_000)
   expect((await local(page))?.focus).toBeUndefined()
-  await page.getByRole('button', { name: 'Fokus starten', exact: true }).click()
+  await page.getByRole('button', { name: /^Fokus starten/ }).click()
   const initial = await focus(page)
   expect(initial.timer.durationMs).toBe(25 * 60_000)
   expect((await local(page))?.workSessions).toEqual([])
@@ -153,7 +154,7 @@ test('Aufgaben-Deep-Link startet erst bewusst; Pause und neues Zeitfenster buche
   await expect(page.getByRole('timer')).toHaveText('0:00')
   expect((await local(page))?.work[0]?.done).not.toBe(true)
   await page.getByRole('radio', { name: '40 min', exact: true }).click()
-  await page.getByRole('button', { name: 'Neues Zeitfenster starten', exact: true }).click()
+  await page.getByRole('button', { name: /^Neues Zeitfenster starten/ }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(40 * 60_000)
   expect((await focus(page)).id).not.toBe(initial.id)
   expect((await local(page))?.workSessions).toEqual([])
@@ -241,10 +242,10 @@ test('Zusammenfallende Fokusmarken senden nur einen Brückenaufruf; ausgeschalte
   await page.clock.setFixedTime(new Date(START + 120_000))
   await expect.poll(() => pulseCount(page)).toBe(1)
   await expect.poll(async () => (await focus(page)).timer.pulseCheckpointMs).toBe(120_000)
-  const toggle = page.getByRole('button', { name: /Fokus-Puls umschalten/ })
-  await toggle.click()
+  await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await page.getByRole('radiogroup', { name: 'Fokus-Puls', exact: true }).getByRole('radio', { name: 'Deutlich', exact: true }).click()
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.focus.pulse).toBe('strong')
-  await toggle.click()
+  await page.getByRole('radiogroup', { name: 'Fokus-Puls', exact: true }).getByRole('radio', { name: 'Aus', exact: true }).click()
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.focus.pulse).toBe('off')
   await page.clock.setFixedTime(new Date(START + 180_000))
   await expect(page.getByRole('timer')).toHaveText('1:00')
@@ -256,7 +257,7 @@ test('Verspätete native Pulsantwort bleibt nach Verlassen des Fokus ohne Vibrat
   await page.evaluate(() => { (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.hold = true })
   await page.clock.setFixedTime(new Date(START + 120_000))
   await expect.poll(() => page.evaluate(() => (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe.pending)).toBeGreaterThan(0)
-  await page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true }).click()
+  await page.getByRole('button', { name: 'Zurück', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
   await page.evaluate(() => {
     const probe = (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe
@@ -277,7 +278,7 @@ test('Begonnene Navigation verwirft den alten Puls schon vor dem React-Unmount',
   // Diese bewusste Plattformsimulation hält genau dieses Zwischenstadium fest.
   await page.evaluate(() => history.pushState(null, '', '/'))
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('link', { name: 'Fokus-Modus verlassen', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Zurück', exact: true })).toBeVisible()
   await page.evaluate(() => {
     const probe = (window as unknown as { __pulseProbe: PulseProbe }).__pulseProbe
     probe.hold = false

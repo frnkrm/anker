@@ -33,7 +33,7 @@ test('Importvorschau verändert nichts; erst bewusster Import übernimmt neue Fe
   expect(await storedRecord<Settings>(page, 'settings', 'main')).toEqual(before)
   await choose(page, incoming)
   await page.getByRole('button', { name: 'Jetzt importieren', exact: true }).click()
-  await expect(page.getByText('1 Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.', { exact: true })).toBeVisible()
+  await expect(page.getByText('1 Eintrag übernommen. Neuere Daten auf dem Gerät bleiben erhalten.', { exact: true })).toBeVisible()
   const after = (await storedRecord<Settings>(page, 'settings', 'main'))!
   expect(after.themeId).toBe('piraten')
   expect(after.alarm.qrSecret).toBe(before.alarm.qrSecret)
@@ -94,7 +94,7 @@ test('Eine Teilsicherung löscht keine bewusst ausgelassenen Arbeitsaufgaben im 
   await page.goto('/backup')
   await choose(page, [entry('meta', 'local', { handover: { '2026-11-02': { open: 'Übernommener Stand', next: 'Datei öffnen' } } })])
   await page.getByRole('button', { name: 'Jetzt importieren', exact: true }).click()
-  await expect(page.getByText('1 Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.', { exact: true })).toBeVisible()
+  await expect(page.getByText('1 Eintrag übernommen. Neuere Daten auf dem Gerät bleiben erhalten.', { exact: true })).toBeVisible()
   const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
   expect(local.work).toEqual(work)
   expect(local.handover['2026-11-02']?.next).toBe('Datei öffnen')

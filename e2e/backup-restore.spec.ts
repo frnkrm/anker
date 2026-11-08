@@ -89,11 +89,11 @@ test('Normaler Import überspringt alte Werte; die zusätzliche Wiederherstellun
   } finally {
     await page.evaluate(() => { (window as unknown as { holdBackupModePreview:boolean }).holdBackupModePreview = false })
   }
-  await expect(page.getByText(/1 Einträge gelesen · 1 zur Wiederherstellung/)).toBeVisible()
+  await expect(page.getByText(/1 Eintrag gelesen · 1 zur Wiederherstellung/)).toBeVisible()
   await page.getByRole('button',{name:'Abbrechen',exact:true}).click()
   expect(await storedRecord<Settings>(page,'settings','main')).toEqual(before)
   await choose(page,incoming)
   await page.getByRole('button',{name:'Sicherung jetzt wiederherstellen',exact:true}).click()
-  await expect(page.getByRole('status')).toContainText('1 Einträge aus der Sicherung wiederhergestellt')
+  await expect(page.getByRole('status')).toContainText('1 Eintrag aus der Sicherung wiederhergestellt')
   expect((await storedRecord<Settings>(page,'settings','main'))?.themeId).toBe('piraten')
 })

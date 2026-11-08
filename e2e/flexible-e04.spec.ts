@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
+import { chooseValue, openTodayAdjust } from './helpers/controls'
 import { emptyLocal } from '../src/core/defaults'
 import { initialGame } from '../src/core/game'
 import { zonedToUtc } from '../src/core/time'
@@ -36,10 +37,18 @@ async function seed(page: Page, records: { collection: Collection; id: string; d
 }
 
 async function different(page: Page) {
-  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
-  const dialog = page.getByRole('dialog')
+  const menu = await openTodayAdjust(page)
+  await menu.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await menu.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  const dialog = page.getByRole('dialog').last()
   await expect(dialog.getByRole('button', { name: 'Ich habe heute etwas anderes vor', exact: true })).toBeVisible()
   return dialog
+}
+
+/** Ein Dokumentwechsel wartet auch auf das asynchrone Aufräumen des Modal-Verlaufseintrags. */
+async function sheetsClosed(page: Page) {
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
 }
 
 test('Tages-Undo bewahrt vorhandene Verabredung und nimmt nur die neue Planung zurück', async ({ page }) => {
@@ -69,8 +78,9 @@ test('Heute anders ist direkt im Fokus erreichbar und Verschieben pausiert diese
   await expect.poll(async () => (await local(page))?.focus?.id).toBeTruthy()
   const before = (await local(page))!.focus!
   await page.clock.setFixedTime(new Date(start + 30_000))
-  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
-  const dialog = page.getByRole('dialog')
+  await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
+  const dialog = page.getByRole('dialog').last()
   await expect(dialog.getByRole('button', { name: 'Länger wach bleiben', exact: true })).toHaveCount(0)
   await dialog.getByRole('button', { name: 'Diese Routine später', exact: true }).click()
   await dialog.getByRole('button', { name: 'In einer Stunde', exact: true }).click()
@@ -81,7 +91,8 @@ test('Heute anders ist direkt im Fokus erreichbar und Verschieben pausiert diese
   expect((await day(page))?.steps).toEqual({})
   await page.reload()
   await page.goto('/fokus/evening')
-  await expect(page.getByText('Pausiert. Die Restzeit bleibt erhalten.', { exact: true })).toBeVisible()
+  await expect(page.locator('.ring-timer.is-paused')).toBeVisible()
+  await expect(page.locator('.ring-timer-pause')).toContainText('Pausiert')
   expect((await local(page))?.focus?.id).toBe(before.id)
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
@@ -91,22 +102,23 @@ test('Freie Abendverlängerung und offenes Ende stimmen auf PC-Seite und im Tage
   await onboard(page)
   const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
   await page.goto('/pc-stopp')
-  await page.getByRole('button', { name: 'Abendzeit ändern', exact: true }).click()
+  await page.getByRole('button', { name: 'Zeit ändern', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: '+30 Minuten', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect.poll(async () => (await day(page))?.override.lateUntil).toBe(settings.pcStop + 30)
-  await page.getByRole('button', { name: 'Abendzeit ändern', exact: true }).click()
+  await page.getByRole('button', { name: 'Zeit ändern', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: '+1 Stunde', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect.poll(async () => (await day(page))?.override.lateUntil).toBe(settings.pcStop + 90)
-  await page.getByRole('button', { name: 'Abendzeit ändern', exact: true }).click()
+  await page.getByRole('button', { name: 'Zeit ändern', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Weiß ich noch nicht', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect.poll(async () => (await day(page))?.override.lateUntil).toBe('open')
   await expect(page.getByText('Ohne festen PC-Stopp', { exact: true })).toBeVisible()
   await expect(page.getByText('03:59', { exact: true })).toHaveCount(0)
+  await page.getByText('Verbindung und bereitgestellten Plan ansehen', { exact: true }).click()
   await page.getByRole('button', { name: 'Plan einmalig bereitstellen', exact: true }).click()
-  await expect(page.getByRole('status')).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Kein Server eingerichtet.' })).toBeVisible()
   await expect(page.getByText(/Der PC weiß Bescheid/)).toHaveCount(0)
   await page.reload()
   await expect(page.getByText('Ohne festen PC-Stopp', { exact: true })).toBeVisible()
@@ -118,23 +130,26 @@ test('Vorabendregel ist nachvollziehbar, tagesweise übersteuerbar und im Tagesd
   await onboard(page)
   await seed(page, [{ collection: 'days', id: '2026-11-05', data: { date: '2026-11-05', override: {}, steps: { 'evening:prep': 'done' } } }])
   await page.goto('/einstellungen/hilfen')
-  await page.getByLabel('Abendschritt', { exact: true }).selectOption('prep')
-  await page.getByLabel('Morgenschritt', { exact: true }).selectOption('dress')
+  await page.getByText('Abends schon erledigt', { exact: true }).click()
+  await chooseValue(page, 'Abendschritt', 'prep')
+  await chooseValue(page, 'Morgenschritt', 'dress')
   await page.getByRole('button', { name: 'Regel hinzufügen', exact: true }).click()
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routineLinks.length).toBe(1)
+  await sheetsClosed(page)
   await page.goto(`/druck?typ=morning&tag=${date}`)
-  await expect(page.locator('[data-sheet="morning"]')).toContainText('Schon versorgt: Anziehen (Vorabend 2026-11-05: Morgen vorbereiten)')
+  await expect(page.locator('[data-sheet="morning"]')).toContainText('Schon versorgt: Anziehen (Vorabend 05.11.2026: Morgen vorbereiten)')
   await page.goto('/')
   const dialog = await different(page)
   await dialog.getByText('Weitere Möglichkeiten', { exact: true }).click()
   await dialog.getByRole('button', { name: 'Morgenroutine heute prüfen', exact: true }).click()
-  await expect(dialog.getByText(/2026-11-05: Morgen vorbereiten/)).toBeVisible()
+  await expect(dialog.getByText(/Do\., 05\.11\.: Morgen vorbereiten/)).toBeVisible()
   const checkbox = dialog.getByRole('checkbox', { name: 'Anziehen morgens versorgt', exact: true })
   await expect(checkbox).toBeChecked()
   await checkbox.click()
   await expect(checkbox).not.toBeChecked()
   await expect.poll(async () => (await day(page))?.override.uncoveredSteps).toEqual(['morning:dress'])
   await dialog.getByRole('button', { name: 'Fertig', exact: true }).click()
+  await sheetsClosed(page)
   await page.goto(`/druck?typ=morning&tag=${date}`)
   await expect(page.locator('[data-sheet="morning"]')).not.toContainText('Schon versorgt: Anziehen')
   await expect(page.locator('[data-sheet="morning"]')).toContainText('Anziehen')
@@ -203,7 +218,7 @@ test('Eine ausdrücklich gewählte Weckänderung zeigt im Web nur Planbestätigu
   changed.work[5] = { ...changed.work[5]!, isWorkDay: true, start: 600, homeOffice: true }
   await seed(page, [{ collection: 'settings', id: 'main', data: changed }])
   await page.goto('/pc-stopp')
-  await page.getByRole('button', { name: 'Abendzeit ändern', exact: true }).click()
+  await page.getByRole('button', { name: 'Zeit ändern', exact: true }).click()
   const dialog = page.getByRole('dialog')
   const choice = dialog.getByRole('checkbox', { name: /Nur morgen so wecken/ })
   await expect(choice).toBeVisible()

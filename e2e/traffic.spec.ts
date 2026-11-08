@@ -1,3 +1,4 @@
+import { chooseValue, expandDetails } from './helpers/controls'
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import type { AssistantRequest } from '../src/core/assistance'
@@ -40,7 +41,7 @@ async function seed(page: Page, consentedPlaces = true, extra: Partial<Commitmen
   await page.goto(`${server.url}/tag`)
 }
 async function open(page: Page) {
-  await page.getByText('Wegdetails', { exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await page.getByRole('button', { name: 'Fahrtzeit prüfen', exact: true }).click()
   return page.getByRole('dialog', { name: 'Fahrtzeit bewusst prüfen', exact: true })
 }
@@ -70,7 +71,7 @@ test('E07: Vorschau sendet nichts, Quelle wird sichtbar und nur Übernehmen spei
   expect(JSON.stringify(local)).not.toMatch(/Google Routes|fetchedAt|trafficAware|durationMin/)
   expect((await storedRecord<Settings>(page, 'settings', 'main'))!.anchor).toEqual(beforeSettings.anchor)
   await page.reload()
-  await page.getByText('Wegdetails', { exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await expect(page.getByText('Bisher etwa 70 Minuten aus deiner Planung.', { exact: true })).toBeVisible()
   await expect(page.getByText('Vorschlag: etwa 70 Minuten', { exact: true })).toHaveCount(0)
 })
@@ -83,9 +84,12 @@ test('E07: unfreigegebene Orte und Namen werden nicht ergänzt; manuelle Angaben
   const destination = dialog.getByRole('textbox', { name: 'Ziel für die Fahrtschätzung' })
   await expect(start).toHaveValue(''); await expect(destination).toHaveValue('')
   await start.fill('Manuelle Startadresse'); await destination.fill('Manuelle Zieladresse')
-  await dialog.getByLabel('Verkehrsmittel für die Schätzung').selectOption('transit')
+  await chooseValue(page, 'Verkehrsmittel für die Schätzung', 'transit', dialog)
   const send = dialog.getByRole('button', { name: 'Diese Daten senden und Schätzung anfragen', exact: true })
-  await expect(send).toBeDisabled(); expect(requests).toEqual([])
+  await expect(send).toBeEnabled()
+  await send.click()
+  await expect(dialog.getByRole('alert')).toContainText('freigegeben')
+  expect(requests).toEqual([])
   await dialog.getByRole('checkbox', { name: 'Diese eingegebenen Orte für diese Anfrage freigeben', exact: true }).check()
   await send.click()
   await expect(page.getByText('Vorschlag: etwa 55 Minuten', { exact: true })).toBeVisible()
@@ -113,7 +117,7 @@ test('E07: Verbindungsfehler erhalten manuelle Wege und auch große Schrift blei
 test('E07: unterwegs wird weder eine Anfrage noch eine Reiseentscheidung angeboten', async ({ page }) => {
   const requests = await installAssistanceBackend(page, async (input, route) => { await route.fulfill({ json: reply(input) }) })
   await seed(page, true, { leftAt: NOW - 60_000 })
-  await page.getByText('Wegdetails', { exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await expect(page.getByRole('button', { name: 'Fahrtzeit prüfen', exact: true })).toHaveCount(0)
   expect(requests).toEqual([])
 })

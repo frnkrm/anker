@@ -1,10 +1,10 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { defaultSettings, emptyLocal } from '../src/core/defaults'
-import { initialGame } from '../src/core/game'
+import { initialGame, XP } from '../src/core/game'
 import type { BedtimePromptState } from '../src/platform/bedtimePrompt'
 import type { Settings } from '../src/core/types'
-import { storedRecord } from './helpers/storage'
+import { seedRecords, storedRecord } from './helpers/storage'
 
 const START = Date.parse('2026-11-06T23:30:00+01:00')
 const TEXT = 'Deine geplante Einschlafzeit ist erreicht. Du entscheidest, wie du weitermachst.'
@@ -25,6 +25,7 @@ interface BedtimeProbe {
 async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean } = {}) {
   const settings = { ...defaultSettings('2026-11-06'), onboarded: true }
   settings.sleep.fallAsleepMin = options.delay ?? 15
+  settings.sleep.bedtimePromptEnabled = true
   const now = options.daytime ? Date.parse('2026-11-06T10:00:00+01:00') : START
   await page.clock.setFixedTime(new Date(now))
   await page.addInitScript(({ settings, local, game, options, now }) => {
@@ -115,8 +116,9 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
     } })
   }, { settings, local: emptyLocal(), game: initialGame('2026-11-06'), options, now })
   await page.goto('/')
-  if (!options.daytime || options.waiting) await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toBeVisible()
-  await expect.poll(async () => (await probe(page)).calls.filter((call) => call.method === 'getBedtimePromptState').length).toBeGreaterThan(0)
+  if (!options.daytime) await expect(page.getByRole('heading', { name: 'Ab ins Bett', exact: true })).toBeVisible()
+  if (options.waiting) await openControls(page)
+  if (!options.daytime || options.waiting) await expect.poll(async () => (await probe(page)).calls.filter((call) => call.method === 'getBedtimePromptState').length).toBeGreaterThan(0)
 }
 
 async function probe(page: Page) {
@@ -128,36 +130,51 @@ async function probe(page: Page) {
 const starts = async (page: Page) => (await probe(page)).calls.filter((call) => call.method === 'startBedtimePrompt')
 const stored = async (page: Page) => (await probe(page)).records.map((row) => ({ collection: row.collection, id: row.id, data: row.data })).sort((a, b) => `${a.collection}:${a.id}`.localeCompare(`${b.collection}:${b.id}`))
 
-test('Android-Freigabe und bewusstes Starten bleiben getrennt und ändern keine Alltagsdaten', async ({ page }) => {
+async function openControls(page: Page) {
+  if (!(await page.getByRole('dialog', { name: 'Heute anpassen', exact: true }).count())) {
+    await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
+    await page.getByRole('dialog').getByText('Weitere Möglichkeiten', { exact: true }).click()
+  }
+  await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toBeVisible()
+}
+async function closeControls(page: Page) { await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0) }
+const withoutBedRewards = async (page: Page) => (await stored(page)).filter((row) => !['days', 'game'].includes(row.collection))
+
+test('Eigene Aktivierung und Android-Freigabe starten nichts; die kombinierte Betthandlung startet bewusst', async ({ page }) => {
   await nativeBedtime(page)
   expect(await starts(page)).toEqual([])
+  await openControls(page)
   await page.getByRole('button', { name: 'Android-Freigabe einrichten', exact: true }).click()
   expect((await probe(page)).calls.filter((call) => call.method === 'openOverlayPermissionSettings')).toHaveLength(1)
   expect(await starts(page)).toEqual([])
   await page.evaluate(() => (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.grant(true))
-  await expect(page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true })).toBeVisible()
+  await expect(page.getByText('Bereit. „Ich liege im Bett“ startet den Hinweis nach deiner Einschlafzeit.', { exact: true })).toBeVisible()
   expect(await starts(page)).toEqual([])
-  const before = await stored(page)
-  await page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true })).toBeVisible()
+  const before = await withoutBedRewards(page)
+  const xpBefore = JSON.parse((await probe(page)).records.find(row => row.collection === 'game')!.data).xp
+  await closeControls(page)
+  await page.getByRole('button', { name: 'Ich liege im Bett', exact: true }).click()
+  await expect.poll(async () => (await starts(page)).length).toBe(1)
   expect((await starts(page))[0]?.options.delayMinutes).toBe(15)
+  const day = (await probe(page)).records.find((row) => row.collection === 'days')
+  expect(JSON.parse(day!.data).bedAt).toBe(START)
+  expect(JSON.parse((await probe(page)).records.find(row => row.collection === 'game')!.data).xp).toBe(xpBefore + XP.bonusBed)
+  await openControls(page)
   await page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true })).toBeVisible()
-  expect(await stored(page)).toEqual(before)
+  await expect(page.getByText('Bereit. „Ich liege im Bett“ startet den Hinweis nach deiner Einschlafzeit.', { exact: true })).toBeVisible()
+  expect(await withoutBedRewards(page)).toEqual(before)
 })
 
-test('Nur ein nativer shown-Status zeigt die Info; Bestätigen erhält Navigation und beendet keine Alltagsaufgabe', async ({ page }) => {
+test('Nur nativer shown-Status zeigt die Info; Bestätigen erhält Navigation und alle gespeicherten Handlungen', async ({ page }) => {
   await nativeBedtime(page, { granted: true })
-  await page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true }).click()
+  await page.getByRole('button', { name: 'Ich liege im Bett', exact: true }).click()
+  await openControls(page)
   const before = await stored(page)
   const sessionId = (await probe(page)).state.sessionId
   await page.clock.setFixedTime(new Date(START + 20 * 60_000))
   await page.locator('body').dispatchEvent('visibilitychange', { bubbles: true })
   await expect(page.getByText(TEXT, { exact: true })).toHaveCount(0)
-  await page.evaluate(() => {
-    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
-    value.appActive(false); value.phase('shown')
-  })
+  await page.evaluate(() => { const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe; value.appActive(false); value.phase('shown') })
   await expect(page.getByText(TEXT, { exact: true })).toHaveCount(0)
   expect((await probe(page)).calls.filter((call) => call.method === 'ackBedtimePrompt')).toHaveLength(0)
   await page.evaluate(() => (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.appActive(true))
@@ -170,63 +187,61 @@ test('Nur ein nativer shown-Status zeigt die Info; Bestätigen erhält Navigatio
   await expect(page.getByText(TEXT, { exact: true })).toHaveCount(0)
   expect((await probe(page)).calls.find((call) => call.method === 'ackBedtimePrompt')?.options.sessionId).toBe(sessionId)
   expect(await stored(page)).toEqual(before)
+  await closeControls(page)
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
   await expect(page).toHaveURL(/\/mehr$/)
   await expect(page.getByRole('heading', { name: 'Mehr', exact: true })).toBeVisible()
 })
 
-test('Ausgelassener Hinweis wird nach Rückkehr nicht neu gestartet; bekannte Sitzung bleibt außerhalb der Bettzeit erreichbar', async ({ page }) => {
+test('Bekannte Sitzung bleibt tagsüber erreichbar; ausgelassener Hinweis startet nach Rückkehr nicht neu', async ({ page }) => {
   await nativeBedtime(page, { granted: true, daytime: true, waiting: true })
   await expect(page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true })).toBeVisible()
   expect(await starts(page)).toEqual([])
   await page.evaluate(() => (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.phase('skipped', 'locked'))
   await expect(page.getByText('Das Handy war gesperrt. Dieser Schlafhinweis wurde ausgelassen.', { exact: true })).toBeVisible()
-  await page.reload()
+  await page.reload(); await openControls(page)
   await expect(page.getByText('Das Handy war gesperrt. Dieser Schlafhinweis wurde ausgelassen.', { exact: true })).toBeVisible()
   expect(await starts(page)).toEqual([])
   await page.getByRole('button', { name: 'Status schließen', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Das Handy war gesperrt. Dieser Schlafhinweis wurde ausgelassen.', { exact: true })).toHaveCount(0)
 })
 
-test('Späte Statusantwort kann den bereits abgebrochenen Hinweis nicht wieder als aktiv anzeigen', async ({ page }) => {
+test('Späte Statusantwort macht einen abgebrochenen Hinweis nicht wieder aktiv', async ({ page }) => {
   await nativeBedtime(page, { granted: true, waiting: true })
   await page.evaluate(() => { (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.holdNextRead = true })
   await page.locator('body').dispatchEvent('visibilitychange', { bubbles: true })
   await expect.poll(async () => (await probe(page)).pendingReads).toBe(1)
   await page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true })).toBeVisible()
+  await expect(page.getByText('Bereit. „Ich liege im Bett“ startet den Hinweis nach deiner Einschlafzeit.', { exact: true })).toBeVisible()
   await page.evaluate(() => { for (const release of (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.release.splice(0)) release() })
   await expect.poll(async () => (await probe(page)).pendingReads).toBe(0)
   await expect(page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true })).toHaveCount(0)
   expect((await probe(page)).state.phase).toBe('idle')
 })
 
-test('Native Zustandsänderung während eines gehaltenen Reads wird anschließend frisch gelesen', async ({ page }) => {
+test('Native Zustandsänderung während eines gehaltenen Reads wird frisch gelesen', async ({ page }) => {
   await nativeBedtime(page, { granted: true, waiting: true })
   await page.evaluate(() => (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.phase('shown'))
   await expect(page.getByText(TEXT, { exact: true })).toBeVisible()
   await page.evaluate(() => { (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.holdNextRead = true })
   await page.locator('body').dispatchEvent('visibilitychange', { bubbles: true })
   await expect.poll(async () => (await probe(page)).pendingReads).toBe(1)
-  await page.evaluate(() => {
-    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
-    value.phase('skipped', 'expired')
-    for (const release of value.release.splice(0)) release()
-  })
+  await page.evaluate(() => { const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe; value.phase('skipped', 'expired'); for (const release of value.release.splice(0)) release() })
   await expect(page.getByText('Der vorgesehene Zeitpunkt ist verstrichen. Dieser Schlafhinweis wird nicht nachgeholt.', { exact: true })).toBeVisible()
   await expect(page.getByText(TEXT, { exact: true })).toHaveCount(0)
   expect((await probe(page)).calls.filter((call) => call.method === 'ackBedtimePrompt')).toHaveLength(0)
 })
 
-test('Null Minuten starten erst bewusst; große Schrift und Tastatur behalten den stillen Hinweis bedienbar', async ({ page }, testInfo) => {
+test('Null Minuten starten nur bewusst; große Schrift und Tastatur halten den Hinweis bedienbar', async ({ page }, testInfo) => {
   await nativeBedtime(page, { granted: true, delay: 0 })
   expect(await starts(page)).toEqual([])
   await page.setViewportSize({ width: 320, height: 740 })
   await page.evaluate(() => document.documentElement.style.fontSize = '160%')
-  const button = page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true })
+  const button = page.getByRole('button', { name: 'Ich liege im Bett', exact: true })
   await button.focus(); await page.keyboard.press('Enter')
   await expect(page.getByText(TEXT, { exact: true })).toBeVisible()
   expect((await starts(page))[0]?.options.delayMinutes).toBe(0)
+  await openControls(page)
   const done = page.getByRole('button', { name: 'Hinweis beenden', exact: true })
   expect((await done.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
@@ -235,30 +250,33 @@ test('Null Minuten starten erst bewusst; große Schrift und Tastatur behalten de
   await expect(page.getByText(TEXT, { exact: true })).toHaveCount(0)
 })
 
-test('Die vorhandene Einschlafdauer von 60 Minuten wird unverändert an den bewussten Start übergeben', async ({ page }) => {
+test('Einschlafdauer60Minuten wird unverändert an den bewussten Bettstart übergeben', async ({ page }) => {
   await nativeBedtime(page, { granted: true, delay: 60 })
   expect(await starts(page)).toEqual([])
-  await expect(page.getByText(/eingestellten Einschlafzeit \(60 min\)/)).toBeVisible()
-  await page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Schlafhinweis abbrechen', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Ich liege im Bett', exact: true }).click()
+  await expect.poll(async () => (await starts(page)).length).toBe(1)
   expect((await starts(page))[0]?.options.delayMinutes).toBe(60)
   expect((await probe(page)).state.dueAt).toBe(START + 3_600_000)
 })
 
-test('Im Tageskontext ohne Sitzung erscheint kein Start', async ({ page }) => {
+test('Im Tageskontext ohne Sitzung erscheint kein Schlafhinweis-Start', async ({ page }) => {
   await nativeBedtime(page, { granted: true, daytime: true })
   await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toHaveCount(0)
   expect(await starts(page)).toEqual([])
 })
 
-test('Web bleibt ohne nativen Start und beschreibt die Android-Grenze', async ({ page }) => {
+test('Web startet keine native Messung und beschreibt die Grenze nur bei aktivierter Option', async ({ page }) => {
   await page.clock.setFixedTime(new Date(START))
   await page.goto('/start')
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await page.getByRole('button', { name: /Passt, los/ }).click()
   await expect(page).toHaveURL(/\/$/)
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
-  await expect(page.getByText('Der Hinweis über anderen Apps ist nur in der Android-App verfügbar. Im Browser wird kein Schlafhinweis gestartet.', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Ich gehe ins Bett – stummen Hinweis starten', exact: true })).toHaveCount(0)
+  const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  expect(settings.sleep.bedtimePromptEnabled).toBe(false)
+  await expect(page.getByText('Im Browser wird kein Schlafhinweis gestartet.', { exact: true })).toHaveCount(0)
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: { ...settings, sleep: { ...settings.sleep, bedtimePromptEnabled: true } } }])
+  await page.reload()
+  await expect(page.getByText('Im Browser wird kein Schlafhinweis gestartet.', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Android-Freigabe einrichten', exact: true })).toHaveCount(0)
 })

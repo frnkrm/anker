@@ -31,11 +31,12 @@ async function setup(page: Page, routine: typeof routines[number]) {
     { id: `${routine.id}-prep`, title: 'Tasche vorbereiten', minutes: 7, tag: 'prep', minimal: { title: 'Schlüssel hinlegen', minutes: 1 } },
     { id: `${routine.id}-last`, title: 'Eigener Schritt ohne Minimal-Version', minutes: 9 },
   ]
+  steps.push(...Array.from({ length: 6 }, (_, index) => ({ id: `${routine.id}-extra-${index}`, title: `Weiterer eigener Schritt ${index + 1}`, minutes: index + 1 })))
   const seeded = { ...settings, routines: { ...settings.routines, [routine.id]: steps } }
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: seeded }])
   await page.goto(routine.path)
   await expect(page.getByRole('heading', { name: routine.heading, exact: true })).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'Schritt', exact: true })).toHaveCount(steps.length)
+  await expect(page.locator('input[aria-label="Schritt"]')).toHaveCount(steps.length)
   return { steps, seeded }
 }
 
@@ -77,9 +78,15 @@ async function drag(page: Page, from: Point, to: Point, end: 'touchEnd' | 'touch
 async function target(page: Page, index: number, direction: 'abwärts' | 'aufwärts' = 'aufwärts') {
   const row = await handle(page, index).locator('xpath=ancestor::li').boundingBox()
   expect(row).not.toBeNull()
-  const point = await center(handle(page, index))
-  // Cross the adjacent row's midpoint clearly in either direction.
-  return { x: point.x, y: point.y + row!.height / 4 * (direction === 'abwärts' ? 1 : -1) }
+  const sourceIndex = index + (direction === 'abwärts' ? -1 : 1)
+  const source = await handle(page, sourceIndex).locator('xpath=ancestor::li').boundingBox()
+  const grip = await center(handle(page, sourceIndex))
+  expect(source).not.toBeNull()
+  // Keep the grabbed point's offset from its own card centre: an expanded source
+  // can be much taller than the collapsed adjacent target. Move its centre just
+  // across that neighbour, without accidentally dragging it across later rows.
+  const offset = source!.y + source!.height / 2 - grip.y
+  return { x: grip.x, y: row!.y + row!.height / 2 - offset + row!.height / 4 * (direction === 'abwärts' ? 1 : -1) }
 }
 
 async function assertSaved(page: Page, routine: typeof routines[number], expected: RoutineStep[], seeded: Settings) {
@@ -88,7 +95,7 @@ async function assertSaved(page: Page, routine: typeof routines[number], expecte
   expect((await storedRecord<Settings>(page, 'settings', 'main'))!.routines[other]).toEqual(seeded.routines[other])
   await page.reload()
   await expect(page.getByRole('heading', { name: routine.heading, exact: true })).toBeVisible()
-  await expect.poll(() => page.getByRole('textbox', { name: 'Schritt', exact: true }).evaluateAll((nodes) => nodes.map((node) => (node as HTMLInputElement).value))).toEqual(expected.map((step) => step.title))
+  await expect.poll(() => page.locator('input[aria-label="Schritt"]').evaluateAll((nodes) => nodes.map((node) => (node as HTMLInputElement).value))).toEqual(expected.map((step) => step.title))
   expect((await storedRecord<Settings>(page, 'settings', 'main'))!.routines[routine.id]).toEqual(expected)
 }
 
@@ -142,7 +149,8 @@ test('Abgebrochene Touchgeste ordnet nichts um; der nächste Griff funktioniert'
 test('Schnelle Text- und Daueränderungen vor dem Touchsortieren bleiben mit allen Schrittwerten gespeichert', async ({ page }) => {
   const routine = routines[0]!
   const { steps, seeded } = await setup(page, routine)
-  await page.getByRole('textbox', { name: 'Schritt', exact: true }).nth(0).fill('Wasser mit neuem Titel')
+  await page.locator('.routine-summary').first().click()
+  await page.locator('input[aria-label="Schritt"]').nth(0).fill('Wasser mit neuem Titel')
   await page.getByRole('textbox', { name: 'Minimal-Version', exact: true }).nth(0).fill('Ein kleiner Schluck')
   const duration = page.getByRole('spinbutton', { name: 'Dauer', exact: true }).nth(0)
   await duration.fill('17')
@@ -156,14 +164,15 @@ test('Schnelle Text- und Daueränderungen vor dem Touchsortieren bleiben mit all
 test('Sortiertasten behalten den Tastaturfokus für wiederholtes Verschieben und ihre genaue Ansage', async ({ page }) => {
   const routine = routines[0]!
   const { steps, seeded } = await setup(page, routine)
+  await page.locator('.routine-summary').nth(2).click()
   const up = page.getByRole('button', { name: 'Eintrag 3 nach oben', exact: true })
   await up.focus()
   await up.press('Enter')
-  await expect(page.getByRole('status')).toHaveText('Eintrag von Position 3 auf 2 verschoben.')
+  await expect(page.locator('.settings-routine-list [role="status"]')).toHaveText('Eintrag von Position 3 auf 2 verschoben.')
   const movedUp = page.getByRole('button', { name: 'Eintrag 2 nach oben', exact: true })
   await expect(movedUp).toBeFocused()
   await movedUp.press('Enter')
-  await expect(page.getByRole('status')).toHaveText('Eintrag von Position 2 auf 1 verschoben.')
+  await expect(page.locator('.settings-routine-list [role="status"]')).toHaveText('Eintrag von Position 2 auf 1 verschoben.')
   await assertSaved(page, routine, [steps[2]!, steps[0]!, steps[1]!, ...steps.slice(3)], seeded)
 })
 
@@ -191,6 +200,7 @@ test('Maus sortiert in beide Richtungen; Rechtsziehen verändert die Reihenfolge
 test('Entfernen während einer Touchgeste gibt den nächsten Sortiergriff wieder frei', async ({ page }) => {
   const routine = routines[0]!
   const { steps, seeded } = await setup(page, routine)
+  await page.locator('.routine-summary').first().click()
   const first = await center(handle(page, 0))
   const session = await page.context().newCDPSession(page)
   try {
@@ -198,7 +208,7 @@ test('Entfernen während einer Touchgeste gibt den nächsten Sortiergriff wieder
     await moveFinger(page, session, first, await target(page, 1, 'abwärts'))
     // A second UI action can remove the captured element while touch remains down.
     await page.getByRole('button', { name: 'Entfernen', exact: true }).nth(0).press('Enter')
-    await expect(page.getByRole('textbox', { name: 'Schritt', exact: true })).toHaveCount(steps.length - 1)
+    await expect(page.locator('input[aria-label="Schritt"]')).toHaveCount(steps.length - 1)
     await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines.morning).toEqual(steps.slice(1))
     await input(session, 'touchEnd', [])
   } finally {

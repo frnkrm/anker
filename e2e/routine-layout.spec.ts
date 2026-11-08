@@ -37,7 +37,7 @@ const viewports: { width: number; fontScale: number; availableWidth?: number }[]
 
 for (const { width, fontScale, availableWidth } of viewports) {
   const widthLabel = availableWidth ? `${availableWidth}px verfügbarer Seitenbreite` : `${width}px`
-  test(`Routinekarten: Dauer daneben und Sortieren/Entfernen unten bei ${widthLabel} und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
+  test(`Routinezeilen: Griff links, Details erreichbar und Dauer ohne Überlagerung bei ${widthLabel} und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await setup(page, fontScale)
     for (const routine of routines) {
@@ -51,6 +51,22 @@ for (const { width, fontScale, availableWidth } of viewports) {
         await page.setViewportSize({ width: Math.round(viewport.width + availableWidth - measuredWidth), height: viewport.height })
         await expect.poll(async () => (await page.locator('.settings-page').boundingBox())!.width, routine.heading).toBeCloseTo(availableWidth, 0)
       }
+      const collapsed = await cards.evaluateAll((nodes) => nodes.map((node) => {
+        const box = node.getBoundingClientRect()
+        const grip = node.querySelector('button[aria-label$="zum Verschieben ziehen"]')!.getBoundingClientRect()
+        const summary = node.querySelector('summary')!.getBoundingClientRect()
+        return { height: box.height, gripX: grip.x, gripBottom: grip.bottom, summaryX: summary.x, summaryRight: summary.right, cardRight: box.right }
+      }))
+      for (const item of collapsed) {
+        expect(item.gripX).toBeLessThan(item.summaryX)
+        expect(item.summaryRight).toBeLessThanOrEqual(item.cardRight + 1)
+      }
+      if (width === 390 && fontScale === 1) {
+        for (const item of collapsed) expect(item.height).toBeLessThanOrEqual(120)
+        const navTop = await page.getByRole('navigation', { name: 'Hauptnavigation' }).evaluate((node) => node.getBoundingClientRect().top)
+        expect(collapsed[1]!.gripBottom).toBeLessThanOrEqual(navTop)
+      }
+      for (const summary of await cards.locator('summary').all()) await summary.click()
       const geometry = await cards.evaluateAll((nodes) => {
         const rect = (node: Element | Range) => {
           const box = node.getBoundingClientRect()
@@ -94,16 +110,14 @@ for (const { width, fontScale, availableWidth } of viewports) {
       })
       for (const [index, item] of geometry.entries()) {
         const context = `${routine.heading}, Karte ${index + 1}`
-        expect(item.duration.x, context).toBeGreaterThan(item.label.right)
+        const inline = Math.min(item.duration.bottom, item.label.bottom) - Math.max(item.duration.y, item.label.y) > 0
+        if (inline) expect(item.duration.x, context).toBeGreaterThanOrEqual(item.label.right)
+        else expect(item.duration.y, context).toBeGreaterThanOrEqual(item.label.bottom)
         expect(item.labelLines, `${context}: Dauer bleibt vollständig in einer Zeile`).toBe(1)
         expect(item.label.height, `${context}: Dauer bleibt vollständig in einer Zeile`).toBeLessThanOrEqual(item.labelLineHeight + 1)
         expect(item.numberFits, `${context}: vollständiger Minutenwert`).toBe(true)
-        expect(Math.min(item.duration.bottom, item.label.bottom) - Math.max(item.duration.y, item.label.y), context).toBeGreaterThan(0)
-        const inputsBottom = Math.max(...item.inputs.map((input) => input.bottom))
-        expect(item.remove.y, context).toBeGreaterThanOrEqual(inputsBottom)
-        expect(item.grip.y, context).toBeGreaterThanOrEqual(inputsBottom)
-        expect(Math.min(item.remove.bottom, item.grip.bottom) - Math.max(item.remove.y, item.grip.y), context).toBeGreaterThan(0)
-        expect(item.card.bottom - Math.max(item.remove.bottom, item.grip.bottom), context).toBeLessThanOrEqual(12)
+        expect(item.grip.x, context).toBeLessThan(Math.min(...item.inputs.map((input) => input.x)))
+        expect(item.remove.x, context).toBeLessThanOrEqual(item.card.right)
         const visibleParts = [...item.controls, { name: 'Beschriftung Dauer', ...item.label }, { name: 'Einheit min', ...item.unit }]
         for (const part of visibleParts) {
           expect(part.x, `${context}: ${part.name}`).toBeGreaterThanOrEqual(item.card.x - 1)
@@ -146,15 +160,7 @@ for (const { width, fontScale, availableWidth } of viewports) {
       expect(pageGeometry.documentWidth, routine.heading).toBeLessThanOrEqual(pageGeometry.viewportWidth + 1)
       expect(pageGeometry.scrollWidth, routine.heading).toBeLessThanOrEqual(pageGeometry.clientWidth + 1)
       if (availableWidth) expect(Math.abs(pageGeometry.width - availableWidth), routine.heading).toBeLessThanOrEqual(1)
-      if (width === 390 && fontScale === 1) {
-        for (const item of geometry) expect(item.card.height, routine.heading).toBeLessThanOrEqual(240)
-        const navTop = await page.getByRole('navigation').evaluateAll((nodes) => Math.min(innerHeight, ...nodes.map((node) => node.getBoundingClientRect().top)))
-        // Beide Griffe müssen ohne Scrollen erreichbar sein, damit die kompakte
-        // Darstellung den bereits separat geprüften echten Touchdrag erleichtert.
-        expect(geometry[0]!.grip.y, routine.heading).toBeGreaterThanOrEqual(0)
-        expect(geometry[1]!.grip.bottom, routine.heading).toBeLessThanOrEqual(navTop)
-        expect(await page.evaluate(() => scrollY), routine.heading).toBe(0)
-      }
+
     }
   })
 }

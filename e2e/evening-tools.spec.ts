@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { Settings } from '../src/core/types'
+import { fillDate } from './helpers/controls'
 import { storedRecord } from './helpers/storage'
 
 async function onboard(page: Page) {
@@ -13,24 +14,40 @@ async function onboard(page: Page) {
 test('Idee ruht bis zur gewählten Zeit und erscheint als Gedanke ohne neue Aufgabe', async ({ page }) => {
   await onboard(page)
   await page.goto('/mehr')
-  await page.getByRole('link', { name: /Abend & morgen/ }).click()
+  await page.getByRole('link', { name: /Abend & Alltag/ }).click()
   await page.getByRole('button', { name: 'Idee parken', exact: true }).click()
   await page.getByLabel('Gedanke für später', { exact: true }).fill('Idee für ein Bild')
-  await page.getByLabel('Wieder ansehen am', { exact: true }).fill('2026-11-03T11:00')
+  await fillDate(page, 'Wieder ansehen am', '2026-11-03T11:00')
   await expect(page.getByRole('checkbox', { name: 'Einmal erinnern' })).not.toBeChecked()
   await page.getByRole('button', { name: 'Gedanken parken', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Geparkte Ideen', exact: true })).toBeVisible()
+  await expect(page.getByText('Geparkte Gedanken (1)', { exact: true })).toBeVisible()
   await page.goto('/inbox')
-  await expect(page.getByRole('heading', { name: 'Für später geparkt', exact: true })).toBeVisible()
+  await expect(page.getByText('Geparkte Gedanken (1)', { exact: true })).toBeVisible()
+  await page.getByText('Geparkte Gedanken (1)', { exact: true }).click()
   await expect(page.getByRole('button', { name: 'Durchsehen', exact: true })).toHaveCount(0)
   await page.reload()
+  await page.getByText('Geparkte Gedanken (1)', { exact: true }).click()
   await expect(page.getByText('Idee für ein Bild', { exact: true })).toBeVisible()
   await page.clock.setFixedTime(new Date('2026-11-03T11:00:00+01:00'))
   await page.reload()
   await expect(page.getByRole('button', { name: 'Durchsehen', exact: true })).toBeVisible()
-  await expect(page.getByText('Für jetzt wieder vorgelegt. Du entscheidest, was daraus wird.', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Eingeplant', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Für später geparkt', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Jetzt wieder zum Ansehen da. Du entscheidest, was daraus wird.', { exact: true })).toBeVisible()
+  const thoughtRows = await page.evaluate(() => new Promise<{ text: string; status: string }[]>((resolve, reject) => {
+    const request = indexedDB.open('anker')
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => {
+      const db = request.result
+      const transaction = db.transaction('records', 'readonly')
+      const read = transaction.objectStore('records').getAll()
+      let rows: { text: string; status: string }[] = []
+      read.onsuccess = () => { rows = (read.result as { collection: string; data: { text: string; status: string } }[]).filter(row => row.collection === 'inbox').map(row => row.data) }
+      transaction.oncomplete = () => { db.close(); resolve(rows) }
+      transaction.onabort = () => { db.close(); reject(transaction.error) }
+    }
+  }))
+  expect(thoughtRows).toContainEqual(expect.objectContaining({ text: 'Idee für ein Bild', status: 'open' }))
+  expect(thoughtRows.filter(row => row.status === 'task')).toHaveLength(0)
+  await expect(page.getByText('Geparkte Gedanken (1)', { exact: true })).toHaveCount(0)
 })
 
 test('Privater nächster Schritt bleibt über Tage und Neustart bis zur bewussten Erledigung', async ({ page }) => {
@@ -39,9 +56,9 @@ test('Privater nächster Schritt bleibt über Tage und Neustart bis zur bewusste
   await page.getByRole('button', { name: 'Nächsten Schritt merken', exact: true }).click()
   await page.getByLabel('Freizeitaktivität', { exact: true }).fill('Modell bauen')
   await page.getByLabel('Nächster kleiner Schritt', { exact: true }).fill('Die zwei Teile bereitlegen')
-  await page.getByLabel('Weiter am', { exact: true }).fill('2026-11-03T18:00')
+  await fillDate(page, 'Weiter am', '2026-11-03T18:00')
   await page.getByRole('button', { name: 'Nächsten Schritt speichern', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Für später gespeichert', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Geparkt', exact: true })).toBeVisible()
   await expect(page.getByText('Dein nächster Schritt ist gespeichert.', { exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByText('Nächster Schritt: Die zwei Teile bereitlegen', { exact: true })).toBeVisible()
@@ -57,15 +74,17 @@ test('Privater nächster Schritt bleibt über Tage und Neustart bis zur bewusste
 
 test('Sanfter Übergang wird bewusst gewählt und zeigt die eigene Aktivität nach Neuladen', async ({ page }) => {
   await onboard(page)
-  await page.goto('/einstellungen')
-  await page.getByRole('link', { name: /Sanfter Abendübergang/ }).click()
+  await page.goto('/einstellungen/abenduebergang')
+  await expect(page).toHaveURL(/\/einstellungen\/abend#uebergang$/)
   const enable = page.getByRole('switch', { name: 'Sanften Abendübergang einschalten', exact: true })
   await expect(enable).toHaveAttribute('aria-checked', 'false')
-  await page.getByLabel('Meine ruhige Tätigkeit', { exact: true }).fill('Ruhige Musik hören')
-  await page.getByLabel('Abendübergang um', { exact: true }).fill('21:10')
   await enable.click()
-  await page.getByRole('button', { name: 'Übergang speichern', exact: true }).click()
-  await expect(page.getByText('Einstellung gespeichert.', { exact: true })).toBeVisible()
+  await page.getByLabel('Meine ruhige Tätigkeit', { exact: true }).fill('Ruhige Musik hören')
+  await page.getByLabel('Meine ruhige Tätigkeit', { exact: true }).blur()
+  await page.getByLabel('Abendübergang um', { exact: true }).fill('21:10')
+  await page.getByLabel('Abendübergang um', { exact: true }).blur()
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.support.windDown.at).toBe(21 * 60 + 10)
+  await expect(page.getByText('Gespeichert', { exact: true })).toBeVisible()
   await page.reload()
   await expect(enable).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByLabel('Abendübergang um', { exact: true })).toHaveValue('21:10')
@@ -76,27 +95,29 @@ test('Sanfter Übergang wird bewusst gewählt und zeigt die eigene Aktivität na
 test('Schlafangaben bleiben freiwillig, korrigierbar und löschbar ohne behauptete Schlafmessung', async ({ page }) => {
   await onboard(page)
   await page.goto('/schlaf')
-  await expect(page.getByText(/Noch keine Angaben in diesen sieben Nächten/)).toBeVisible()
+  await expect(page.getByText('Keine Angaben', { exact: true })).toHaveCount(7)
   await page.getByRole('button', { name: 'Nachtragen und korrigieren', exact: true }).click()
-  await page.getByLabel('Nacht vom', { exact: true }).fill('2026-11-01')
-  await page.getByLabel('Müde geworden', { exact: true }).fill('2026-11-02T00:10')
-  await page.getByLabel('Ins Bett gegangen', { exact: true }).fill('2026-11-01T23:30')
-  await page.getByLabel('Aufgestanden', { exact: true }).fill('2026-11-02T07:15')
+  await fillDate(page, 'Nacht vom', '2026-11-01')
+  await fillDate(page, 'Müde geworden', '2026-11-02T00:10')
+  await fillDate(page, 'Ins Bett gegangen', '2026-11-01T23:30')
+  await fillDate(page, 'Aufgestanden', '2026-11-02T07:15')
   await page.getByRole('button', { name: 'Angaben speichern', exact: true }).click()
   await expect(page.getByText('Deine Angaben wurden gespeichert.', { exact: true })).toBeVisible()
   await page.reload()
-  await expect(page.getByText('Zeit zwischen Bett und Aufstehen: 7 h 45 min', { exact: true })).toBeVisible()
+  await expect(page.getByText('Bett bis Aufstehen: 7 h 45 min', { exact: true })).toBeVisible()
+  await page.locator('summary').filter({ hasText: 'Bett bis Aufstehen: 7 h 45 min' }).click()
   await page.getByRole('button', { name: 'Nacht 2026-11-01 bearbeiten', exact: true }).click()
-  await page.getByLabel('Aufgestanden', { exact: true }).fill('2026-11-01T20:00')
+  await fillDate(page, 'Aufgestanden', '2026-11-01T20:00')
   await page.getByRole('button', { name: 'Angaben speichern', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('Aufstehen muss nach dem Zubettgehen liegen')
   await page.reload()
-  await expect(page.getByText('Zeit zwischen Bett und Aufstehen: 7 h 45 min', { exact: true })).toBeVisible()
+  await expect(page.getByText('Bett bis Aufstehen: 7 h 45 min', { exact: true })).toBeVisible()
+  await page.locator('summary').filter({ hasText: 'Bett bis Aufstehen: 7 h 45 min' }).click()
   await page.getByRole('button', { name: 'Nacht 2026-11-01 bearbeiten', exact: true }).click()
   await page.getByRole('button', { name: 'Angaben dieser Nacht löschen', exact: true }).click()
-  await expect(page.getByText(/Noch keine Angaben in diesen sieben Nächten/)).toBeVisible()
+  await expect(page.getByText('Keine Angaben', { exact: true })).toHaveCount(7)
   await page.reload()
-  await expect(page.getByText(/Noch keine Angaben in diesen sieben Nächten/)).toBeVisible()
+  await expect(page.getByText('Keine Angaben', { exact: true })).toHaveCount(7)
 })
 
 test('Aktivitäts-Weckfenster bleibt freiwillig und startet im Web keine Sensoren', async ({ page }) => {

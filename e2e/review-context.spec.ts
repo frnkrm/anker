@@ -3,6 +3,14 @@ import { expect, test, type Page } from '@playwright/test'
 import { emptyLocal } from '../src/core/defaults'
 import type { Commitment, DayLog, LocalData, Settings } from '../src/core/types'
 import { storedRecord } from './helpers/storage'
+import { openTodayAdjust } from './helpers/controls'
+
+async function changeToday(page: Page) {
+  const adjust = await openTodayAdjust(page)
+  await adjust.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await adjust.getByRole('button', { name: 'Heute anders', exact: true }).click()
+}
+
 
 const date = '2026-11-09'
 const visit: Commitment = { id: 'fixed', date, label: 'Fester Termin', context: 'personal', commitment: 'hard', start: 18 * 60, end: 19 * 60, locationKind: 'onsite', placeLabel: 'Bekannter Ort', travelMin: 45, arrivalBufferMin: 5, prepMin: 0 }
@@ -57,16 +65,17 @@ test('Knapp nach Feierabend beginnt der direkte Weg am Büro und erzeugt keinen 
 
 test('Eine echte laufende Arbeit ohne Tagesziel meldet keinen erfundenen Zielerfolg', async ({ page }) => {
   await onboard(page); await seed(page, true, true)
-  await page.goto('/')
-  await expect(page.getByTestId('workbar')).toContainText('Arbeit läuft seit 09:30.')
-  await expect(page.getByTestId('workbar')).not.toContainText('Dein Ziel ist erreicht')
+  await page.goto('/arbeitszeit')
+  const tracker = page.getByRole('complementary', { name: 'Arbeitszeit im Überblick', exact: true })
+  await expect(tracker).toContainText('Arbeit seit 09:30')
+  await expect(tracker).not.toContainText('Dein Ziel ist erreicht')
   await expect(page.getByRole('button', { name: 'Feierabend', exact: true })).toBeVisible()
 })
 
 for (const failure of ['missing', 'rejected'] as const) test(`Arbeitsnachricht: ${failure} Clipboard erzeugt keinen falschen Kopiererfolg`, async ({ page }) => {
   await page.addInitScript((failure) => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: failure === 'missing' ? undefined : { writeText: async () => { throw new Error('nicht erlaubt') } } }) }, failure)
   await onboard(page)
-  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  await changeToday(page)
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Arbeit heute anders', exact: true }).click()
   await dialog.getByLabel('Arbeitsbeginn heute', { exact: true }).fill('10:00')
@@ -96,7 +105,7 @@ test('Die lange Abendvorschau nennt an der Sommerzeitgrenze die reale Schlafgele
   }), settings)
   await page.clock.setFixedTime(new Date('2026-03-28T20:00:00+01:00'))
   await page.goto('/')
-  await page.getByRole('button', { name: 'Heute anders', exact: true }).click()
+  await changeToday(page)
   const dialog = page.getByRole('dialog')
   await dialog.getByText('Weitere Möglichkeiten', { exact: true }).click()
   await dialog.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()

@@ -29,6 +29,7 @@ test('Routinen öffnen direkt ihre Druckauswahl; QR und andere Auswahl ändern k
   const before = await savedSettings(page)
   for (const [routine, title] of [['morning', 'Morgenroutine'], ['evening', 'Abendroutine']] as const) {
     await page.goto(`/fokus/${routine}`)
+    await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
     await page.getByRole('link', { name: `${title} drucken`, exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/druck\\?typ=${routine}$`))
     await expect(page.locator('[data-sheet]')).toHaveCount(1)
@@ -136,6 +137,7 @@ async function mockPrintAdapter(page: Page, opened: boolean, shareCancelled: boo
   await onboard(page)
   await page.evaluate(() => { (window as unknown as { CapacitorCustomPlatform: { name: string } }).CapacitorCustomPlatform.name = 'android' })
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await page.getByRole('link', { name: /Einstellungen/ }).click()
   await page.getByRole('link', { name: /Druckansicht/ }).click()
 }
 

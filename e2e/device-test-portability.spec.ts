@@ -1,3 +1,4 @@
+import { chooseValue, choiceValues } from './helpers/controls'
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
@@ -31,15 +32,15 @@ async function downloadReports(page: Page) {
 
 test('Sechs kurze Originalfälle sind Standard; alle 96 bleiben freiwillig erreichbar', async ({ page }) => {
   await onboard(page)
-  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Kurzer Updatecheck')
-  expect(await page.getByLabel('Test auswählen', { exact: true }).locator('option:not([disabled])').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))).toEqual(['1', '21', '62', '92', '95', '96'])
+  await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Kurzer Updatecheck')
+  expect(await choiceValues(page, 'Test auswählen')).toEqual(['1', '21', '62', '92', '95', '96'])
   await expect(page.getByText('Noch nie geprüft: 96 freiwillige Testpunkte.', { exact: false })).toBeVisible()
-  await page.getByLabel('Testbereich', { exact: true }).selectOption('Alle')
-  await expect(page.getByLabel('Test auswählen', { exact: true }).locator('option:not([disabled])')).toHaveCount(96)
+  await chooseValue(page, 'Testbereich', 'Alle')
+  expect(await choiceValues(page, 'Test auswählen')).toHaveLength(96)
   await page.getByRole('button', { name: 'Kurzer Updatecheck', exact: true }).click()
-  await page.getByLabel('Test auswählen', { exact: true }).selectOption('96')
+  await chooseValue(page, 'Test auswählen', '96')
   await page.reload()
-  await expect(page.getByLabel('Testbereich', { exact: true })).toHaveValue('Kurzer Updatecheck')
+  await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Kurzer Updatecheck')
   await expect(page.getByRole('heading', { name: 'Test 96 · Stummer Schlafhinweis', exact: true })).toBeVisible()
 })
 
@@ -60,7 +61,7 @@ test('Altdatei hat vor Bestätigung keine Wirkung; Historie bleibt sichtbar und 
   await expect(page.getByText('Noch nie geprüft: 94 freiwillige Testpunkte.', { exact: false })).toBeVisible()
   await expect(page.getByText('Am Handy früher geprüft', { exact: true })).toBeVisible()
   await page.getByRole('checkbox', { name: /Für diesen Stand noch offen/ }).check()
-  await expect(page.getByLabel('Test auswählen', { exact: true }).locator('option:checked')).toContainText('Früher geprüft')
+  await expect(page.getByLabel('Test auswählen', { exact: true })).toContainText('Früher geprüft')
   const saved = (await storedRecord<LocalData>(page, 'meta', 'local'))?.deviceTests
   expect(saved?.reports).toEqual({})
   expect(saved?.history?.[1]).toEqual([old])

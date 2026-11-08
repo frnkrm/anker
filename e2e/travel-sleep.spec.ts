@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
+import { chooseValue } from './helpers/controls'
 import type { DayLog, GameState, LocalData, Settings } from '../src/core/types'
 import { storedRecord } from './helpers/storage'
 
@@ -39,10 +40,11 @@ async function place(page: Page) {
   await page.goto('/orte')
   await page.getByRole('button', { name: 'Ort hinzufügen', exact: true }).click()
   await page.getByRole('textbox', { name: 'Name des Orts', exact: true }).fill('Kunde B')
-  await page.getByLabel('Art des Orts', { exact: true }).selectOption('customer')
-  await page.getByText('Adresse, Wege & freiwillige Angaben', { exact: true }).click()
+  await page.getByText('Adresse und weitere Angaben', { exact: true }).click()
+  await chooseValue(page, 'Art des Orts', 'customer')
   await page.getByRole('textbox', { name: 'Adresse des Orts', exact: true }).fill('Musterstraße 1, Köln')
   await page.getByRole('spinbutton', { name: 'Weg von Zuhause', exact: true }).fill('45')
+  await page.getByText('Weitere Wege', { exact: true }).click()
   await page.getByRole('spinbutton', { name: 'Weg von Büro', exact: true }).fill('20')
   await page.getByRole('textbox', { name: 'Dinge am Ort', exact: true }).fill('Laptop\nLadekabel')
   await page.getByRole('button', { name: 'Ort speichern', exact: true }).click()
@@ -52,7 +54,7 @@ async function place(page: Page) {
 
 async function tomorrow(page: Page) {
   await page.goto('/tag')
-  await page.getByRole('radio', { name: 'Morgen', exact: true }).click()
+  await page.getByRole('radio', { name: 'Di', exact: true }).click()
 }
 
 async function customerForm(page: Page) {
@@ -60,7 +62,8 @@ async function customerForm(page: Page) {
   await page.getByRole('button', { name: 'Morgen anders', exact: true }).click()
   await page.getByRole('button', { name: 'Ich habe morgen einen Termin', exact: true }).click()
   await page.getByRole('textbox', { name: 'Was hast du vor?', exact: true }).fill('Kundenbesuch')
-  await page.getByRole('radio', { name: 'Kunde', exact: true }).click()
+  await page.getByRole('button', { name: 'Weg & Details', exact: true }).click()
+  await chooseValue(page, 'Art', 'customer')
   await page.getByLabel('Beginn', { exact: true }).fill('09:00')
 }
 
@@ -92,8 +95,9 @@ test('Unklarer Kundenort bleibt offen; bewusst Remote ergibt im Homeoffice erst 
   await expect(page.getByText('Ort noch offen. Es wurde keine Fahrt oder sichere spätere Weckzeit angenommen.', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /Einmalig .* im Plan verwenden/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'Termin bearbeiten', exact: true }).click()
-  await page.getByRole('radiogroup', { name: 'Termin findet statt', exact: true }).getByRole('radio', { name: 'Remote', exact: true }).click()
-  await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click()
+  await page.getByRole('button', { name: 'Weg & Details', exact: true }).click()
+  await page.getByRole('radiogroup', { name: 'Ort des Termins', exact: true }).getByRole('radio', { name: 'Remote', exact: true }).click()
+  await page.getByRole('button', { name: 'Änderungen übernehmen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.commitments[0]?.locationKind).toBe('remote')
   expect((await local(page))?.commitments[0]?.id).toBe(id)
   await expect(page.getByRole('button', { name: 'Einmalig 08:45 im Plan verwenden', exact: true })).toBeVisible()
@@ -110,8 +114,7 @@ test('Kundenweg und Vorbereitung liefern Q65/Q66, bleiben dieselbe Instanz und v
   const saved = await place(page)
   const game = await storedRecord<GameState>(page, 'game', 'main')
   await customerForm(page)
-  await page.getByRole('button', { name: 'Weg & Vorbereitung', exact: true }).click()
-  await page.getByLabel('Gespeicherter Ort', { exact: true }).selectOption(saved.id)
+  await chooseValue(page, 'Gespeicherter Ort', saved.id)
   await page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten', exact: true }).fill('45')
   await page.getByRole('spinbutton', { name: 'Ankunftspuffer Termin', exact: true }).fill('10')
   await page.getByRole('spinbutton', { name: 'Vorbereitung Termin', exact: true }).fill('30')
@@ -122,13 +125,14 @@ test('Kundenweg und Vorbereitung liefern Q65/Q66, bleiben dieselbe Instanz und v
   await expect(page.getByRole('button', { name: 'Einmalig 07:25 im Plan verwenden', exact: true })).toBeVisible()
   expect((await storedRecord<DayLog>(page, 'days', TOMORROW))?.override.wakeOverride).toBeUndefined()
   await page.getByRole('button', { name: 'Termin bearbeiten', exact: true }).click()
+  await page.getByRole('button', { name: 'Weg & Details', exact: true }).click()
   await page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten', exact: true }).fill('60')
-  await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click()
+  await page.getByRole('button', { name: 'Änderungen übernehmen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.commitments[0]?.travelMin).toBe(60)
   expect((await local(page))?.commitments).toHaveLength(1); expect((await local(page))?.commitments[0]?.id).toBe(id)
   await page.getByRole('button', { name: 'Einmalig 07:10 im Plan verwenden', exact: true }).click()
   await expect.poll(async () => (await storedRecord<DayLog>(page, 'days', TOMORROW))?.override.wakeOverride).toBe(430)
-  await page.reload(); await page.getByRole('radio', { name: 'Morgen', exact: true }).click()
+  await page.reload(); await page.getByRole('radio', { name: 'Di', exact: true }).click()
   await expect(page.getByText(/Für diesen Tag im Plan:/)).toContainText('07:10')
   const standard = (await storedRecord<Settings>(page, 'settings', 'main'))!.anchor.wake
   await page.getByRole('button', { name: `Zurück zu ${String(Math.floor(standard / 60)).padStart(2, '0')}:${String(standard % 60).padStart(2, '0')}`, exact: true }).click()
@@ -149,12 +153,11 @@ test('Kalenderquelle wird bewusst einmal verknüpft und Maps bleibt ein manuelle
     }
   }), { date: TOMORROW })
   await customerForm(page)
-  await page.getByRole('button', { name: 'Weg & Vorbereitung', exact: true }).click()
-  await page.getByRole('radiogroup', { name: 'Termin findet statt', exact: true }).getByRole('radio', { name: 'Vor Ort', exact: true }).click()
+  await page.getByRole('radiogroup', { name: 'Ort des Termins', exact: true }).getByRole('radio', { name: 'Vor Ort', exact: true }).click()
   await page.getByRole('textbox', { name: 'Ort', exact: true }).fill('Kunde B')
   await page.getByRole('textbox', { name: 'Adresse', exact: true }).fill('Musterstraße 1, Köln')
   await page.getByRole('spinbutton', { name: 'Fahrzeit in Minuten', exact: true }).fill('45')
-  await page.getByLabel('Kalendertermin verbinden', { exact: true }).selectOption('external-one')
+  await chooseValue(page, 'Kalendertermin verbinden', 'external-one')
   await page.getByRole('button', { name: 'So übernehmen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.commitments[0]?.source?.id).toBe('external-one')
   const timeline = page.getByRole('list', { name: 'Tageslinie', exact: true })

@@ -71,7 +71,7 @@ for (const barrier of ['Arbeits-Write', 'Settings-Write']) test(`Ein wartendes E
   await onboard(page)
   if (barrier === 'Arbeits-Write') {
     await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-    await page.getByRole('link', { name: /💼 Arbeit/ }).click()
+    await page.getByRole('link', { name: /^Arbeit/ }).click()
     await page.getByRole('textbox', { name: 'Neue Aufgabe', exact: true }).fill('Lokale Testaufgabe für Schreibbarriere')
   }
   let navigationRequested!: () => void; let allowNavigation!: () => void
@@ -85,12 +85,13 @@ for (const barrier of ['Arbeits-Write', 'Settings-Write']) test(`Ein wartendes E
       await page.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
       await expect.poll(async () => (await heldRecordsProbe(page)).writes.some((write) => write.collection === 'meta' && write.id === 'local')).toBe(true)
       await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+      await page.getByRole('link', { name: /^Einstellungen/ }).click()
       await page.getByRole('link', { name: /Kalender.*Sync/ }).click()
     }
     await page.getByRole('switch', { name: 'Automatischer Sync', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Jetzt synchronisieren', exact: true })).toBeDisabled()
     if (barrier === 'Settings-Write') await expect.poll(async () => (await heldRecordsProbe(page)).writes.some((write) => write.collection === 'settings' && write.id === 'main' && write.sync === true)).toBe(true)
-    await page.getByRole('link', { name: 'Tag', exact: true }).click()
+    await page.getByRole('link', { name: 'Heute', exact: true }).click()
     await navigating
     await expect(page.getByRole('heading', { name: 'Kalender & Sync', exact: true })).toBeVisible()
     expect((await heldRecordsProbe(page)).phase).toBe('held')
@@ -106,7 +107,8 @@ for (const barrier of ['Arbeits-Write', 'Settings-Write']) test(`Ein wartendes E
   await expect.poll(async () => (await heldRecordsProbe(page)).writes.some((write) => write.collection === 'settings' && write.id === 'main' && write.sync === false && write.committed)).toBe(true)
   expect((await heldRecordsProbe(page)).writes.some((write) => write.aborted)).toBe(false)
   await page.getByRole('link', { name: 'Mehr', exact: true }).click()
-  await page.getByRole('link', { name: /Kalender.*Sync/ }).click()
+  await page.getByRole('link', { name: /^Einstellungen/ }).click()
+      await page.getByRole('link', { name: /Kalender.*Sync/ }).click()
   await expect(page.getByRole('switch', { name: 'Automatischer Sync', exact: true })).not.toBeChecked()
   expect((await settings(page))?.integrations.sync).toBe(false)
   expect(uploads).toEqual([])

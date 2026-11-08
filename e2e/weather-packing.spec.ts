@@ -1,3 +1,4 @@
+import { chooseValue, expandDetails } from './helpers/controls'
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { emptyLocal } from '../src/core/defaults'
@@ -65,7 +66,7 @@ test('Kundenwetter nutzt freigegebenen Zielort und frühes Stundenfenster; Packl
   expect(requests[0]).not.toContain('Wetterziel')
   expect(requests[0]).not.toContain('Materialbesuch')
   await expect(page.getByRole('checkbox', { name: /für Materialbesuch vorbereitet$/ })).toHaveCount(3)
-  await page.getByRole('button', { name: '1 weitere Dinge', exact: true }).click()
+  await page.getByRole('button', { name: '1 weiteres Ding', exact: true }).click()
   await expect(page.getByRole('checkbox', { name: /für Materialbesuch vorbereitet$/ })).toHaveCount(4)
   const laptop = page.getByRole('checkbox', { name: 'Laptop für Materialbesuch vorbereitet', exact: true })
   await laptop.click()
@@ -74,7 +75,8 @@ test('Kundenwetter nutzt freigegebenen Zielort und frühes Stundenfenster; Packl
   await page.reload()
   await expect(page.getByRole('checkbox', { name: 'Laptop für Materialbesuch vorbereitet', exact: true })).toBeChecked()
   await page.goto('/tag')
-  await page.getByRole('radio', { name: 'Morgen', exact: true }).click()
+  await page.getByRole('radio', { name: 'Sa', exact: true }).click()
+  await expandDetails(page, 'Weg & Vorbereitung')
   await expect(page.getByRole('checkbox', { name: 'Laptop für Materialbesuch vorbereitet', exact: true })).toBeChecked()
   expect((await local(page))?.commitments[0]?.arrivedAt).toBeUndefined()
   expect((await local(page))?.workSessions).toEqual([])
@@ -91,6 +93,7 @@ test('Bewusste Stadtsuche speichert Koordinaten nur lokal, Ortswechsel lädt pas
   data.places![0]!.externalUse = { weather: false }
   await seed(page, data)
   await page.goto('/einstellungen/hilfen')
+  await expandDetails(page, 'Wetter')
   await page.getByRole('textbox', { name: 'Ort für das Wetter', exact: true }).fill('Ort B')
   await page.getByRole('button', { name: 'Stadt suchen & Wetter einschalten', exact: true }).click()
   await expect.poll(async () => (await local(page))?.weatherProfile?.city).toBe('Wetterstadt B')
@@ -114,6 +117,7 @@ test('Fehlende Wetterwerte zeigen keine null Grad und ausgeschaltetes Wetter sta
   await expect(page.getByRole('checkbox', { name: 'Laptop für Materialbesuch vorbereitet', exact: true })).toBeVisible()
   expect(requests).toBe(0)
   await page.goto('/einstellungen/hilfen')
+  await expandDetails(page, 'Wetter')
   await page.getByRole('switch', { name: 'Wetterhinweise', exact: true }).click()
   await expect.poll(async () => (await local(page))?.weatherProfile?.enabled).toBe(true)
   await page.goto('/vorbereitung')
@@ -135,7 +139,7 @@ test('Offline bleiben ältere Wetterdaten beschriftet und Packvorlagen lassen si
   await expect(page.getByText(/Ältere Vorhersage, Stand/)).toBeVisible()
   await page.getByText('Packvorlagen anpassen', { exact: true }).click()
   await page.getByRole('textbox', { name: 'Neue Packvorlage', exact: true }).fill('Unterwegs')
-  await page.getByRole('combobox', { name: 'Art der Packvorlage', exact: true }).selectOption('going-out')
+  await chooseValue(page, 'Art der Packvorlage', 'going-out')
   await page.getByRole('button', { name: 'Packvorlage anlegen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.packTemplates?.length).toBe(4)
   const card = page.getByText('Unterwegs · Ausgehen', { exact: true }).locator('..')
@@ -145,7 +149,7 @@ test('Offline bleiben ältere Wetterdaten beschriftet und Packvorlagen lassen si
   expect((await local(page))?.commitments[0]?.items).toEqual(['Laptop', 'Netzteil', 'Unterlagen', 'Schlüssel'])
   await page.getByRole('button', { name: 'Packliste bearbeiten', exact: true }).click()
   const templateId = (await local(page))!.packTemplates!.find((template) => template.label === 'Unterwegs')!.id
-  await page.getByRole('combobox', { name: 'Packvorlage Materialbesuch', exact: true }).selectOption(templateId)
+  await chooseValue(page, 'Packvorlage Materialbesuch', templateId)
   await page.getByRole('button', { name: 'Vorlage ergänzen', exact: true }).click()
   await expect.poll(async () => (await local(page))?.commitments[0]?.items?.length).toBe(6)
   await page.reload()
