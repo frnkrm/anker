@@ -289,10 +289,22 @@ test('Sonntagseinsatz: geplant, gestartet, beendet, der Tag bleibt frei', async 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Update einspielen')
   await page.getByRole('button', { name: 'Einsatz starten' }).click()
   await expect(page.getByText(/Läuft seit 09:20/)).toBeVisible()
-  await page.waitForTimeout(500)
+  const startAt = Date.parse('2026-11-08T09:20:00+01:00')
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.workSessions.find(session => session.label === 'Update einspielen')?.startAt).toBe(startAt)
+  const started = (await storedRecord<LocalData>(page, 'meta', 'local'))!.workSessions.find(session => session.label === 'Update einspielen')!
+  expect(started.commitmentId).toBeTruthy()
   await page.clock.setFixedTime(new Date('2026-11-08T09:35:00+01:00'))
   await page.reload()
   await page.getByRole('button', { name: 'Einsatz beenden' }).click()
+  // Die Klickzustellung und 15 projizierte Minuten beweisen noch keinen abgeschlossenen Write.
+  // Vor dem harten Dokumentwechsel müssen Sitzung und Remote-Termin gemeinsam persistiert sein.
+  const endAt = Date.parse('2026-11-08T09:35:00+01:00')
+  await expect.poll(async () => {
+    const local = await storedRecord<LocalData>(page, 'meta', 'local')
+    const session = local?.workSessions.find(item => item.id === started.id)
+    const commitment = local?.commitments.find(item => item.id === started.commitmentId)
+    return { startAt: session?.startAt, endAt: session?.endAt, backAt: commitment?.backAt }
+  }).toEqual({ startAt, endAt, backAt: endAt })
   await page.goto('/arbeitszeit')
   await expect(page.getByRole('complementary', { name: 'Arbeitszeit im Überblick' })).toContainText('15 min erfasst')
   await page.goto('/')
