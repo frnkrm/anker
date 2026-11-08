@@ -3,22 +3,7 @@ import { createCountdown, focusTargetKey, pauseCountdown, remainingMs, resumeCou
 import { stuckLadder, type NextAction } from '../../core/support'
 import { today, useApp } from '../../state/store'
 import { useFocusClock } from '../../state/useFocusClock'
-import { Button, Sheet } from './ui'
-
-/** Sichtbarer Zeitverlauf, ruhig und ohne Rot. */
-function Ring({ left, total }: { left: number; total: number }) {
-  const r = 54
-  const c = 2 * Math.PI * r
-  return (
-    <div className="relative mx-auto my-4 h-40 w-40" role="timer" aria-label={`${left} Sekunden übrig`}>
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="8" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="var(--accent)" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - left / Math.max(1, total))} />
-      </svg>
-      <span className="absolute inset-0 grid place-items-center text-4xl font-light tabular-nums">{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</span>
-    </div>
-  )
-}
+import { Button, RingTimer, Sheet } from './ui'
 
 function contextKey(action: NextAction, date: string, focus?: FocusTarget): string {
   // Alte Elternmerker bleiben lesbar; nur ein konkreter Teil bekommt einen eigenen Schlüssel.
@@ -81,7 +66,7 @@ export function StuckSheet({ open, onClose, action }: { open: boolean; onClose: 
     <Sheet open={open} onClose={onClose} title="Ganz klein anfangen">
       <p className="text-muted">Wenn es dir hilft: einmal ausatmen oder beide Füße auf den Boden stellen.</p>
       <p className="mt-3 text-3xl font-semibold leading-snug">{step.text}</p>
-      <Ring left={left} total={step.seconds} />
+      <RingTimer remainingSec={left} totalSec={step.seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der kleinen Hilfe" />
       {error && <p role="alert" className="my-2 text-sm text-warm">{error}</p>}
       {over ? (
         <div className="space-y-2">

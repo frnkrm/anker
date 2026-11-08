@@ -5,7 +5,7 @@ import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, weekday, zonedToUtc } 
 import type { Commitment, DayLog, DayPlan, PlannedWorkKind } from '../../core/types'
 import { currentWorkActual, dayActual, dayBalance, latestInfo, nextObligation, overLatest, startRisk, SUNDAY_HINT, withUsualBreak, workHints } from '../../core/worktime'
 import { planFor, useApp } from '../../state/store'
-import { Button, Segmented, Stepper, TextInput, TimeField } from './ui'
+import { Button, Choice, DateField, Segmented, Sheet, Stepper, TextInput, TimeField } from './ui'
 import { useTaskAction } from './TaskDetails'
 import { TravelFields, travelDraftOf, travelFields } from './CommitmentForm'
 
@@ -36,6 +36,25 @@ export function WorkHints({ date, now }: { date: string; now: number }) {
       ))}
     </div>
   )
+}
+
+/** Ein Einstieg statt einer zweiten Aktionskarte auf Jetzt; Ist-Zeiten bleiben unverändert. */
+export function WorkChip({ date, plan, log, m, now }: { date: string; plan: DayPlan; log: DayLog; m: number; now: number }) {
+  const st = useApp()
+  const [open, setOpen] = useState(false)
+  const actual = currentWorkActual(st.local.workSessions, date, now)
+  const working = plan.blocks.some((block) => block.kind === 'work' && m >= block.start && m < block.end)
+  if (!st.settings.flex.tracking || !working) return null
+  return <>
+    <button type="button" className="min-h-11 rounded-xl bg-surface px-3 py-2 text-left text-sm text-muted" onClick={() => setOpen(true)} data-testid="work-time-chip">
+      {actual.open ? `Arbeit läuft seit ${fmtTime(minutesOnPlanDay(actual.open.date, actual.open.startAt))}` : actual.sessions.length ? 'Arbeitszeit ansehen' : 'Arbeit nicht gestartet · Starten'}
+    </button>
+    <Sheet open={open} onClose={() => setOpen(false)} title="Arbeitszeit">
+      <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
+      <Link to="/arbeitszeit" className="flex min-h-12 items-center text-accent">Schon angefangen? Zeit nachtragen ›</Link>
+      <Link to="/arbeitszeit" className="flex min-h-12 items-center text-muted">Alle Arbeitszeiten ansehen ›</Link>
+    </Sheet>
+  </>
 }
 
 /**
@@ -85,7 +104,7 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
               Pause {fmtDuration(wi.plannedBreakMin)} nachtragen
             </Button>
           )}
-          <Link to="/arbeitszeit" className="min-h-10 px-1 py-2 text-sm text-muted underline">
+          <Link to="/arbeitszeit" className="min-h-11 px-1 py-2 text-sm text-muted underline">
             Korrigieren
           </Link>
         </div>
@@ -119,7 +138,7 @@ export function WorkBar({ date, plan, log, m, now }: { date: string; plan: DayPl
           <Button className="flex-1" onClick={() => st.workStart()}>
             Arbeit starten
           </Button>
-          <Link to="/arbeitszeit" className="min-h-10 py-2 text-sm text-muted underline">
+          <Link to="/arbeitszeit" className="min-h-11 py-2 text-sm text-muted underline">
             Schon angefangen?
           </Link>
         </div>
@@ -263,7 +282,7 @@ export function WorkDayForm({ date, m, isTomorrow, onDone }: { date: string; m: 
       <details className="space-y-3">
         <summary className="min-h-11 py-2 text-muted">Weitere Arbeitszeiten nur für diesen Tag</summary>
         <div className="flex flex-wrap items-center justify-between gap-2"><span>Feierabendwunsch</span><TimeField label="Feierabendwunsch heute" value={endWish} onChange={setEndWish} /><Button size="sm" onClick={async () => { await adjust(`Feierabendwunsch ${fmtTime(endWish)}`, { workEnd: endWish }); onDone('Dein Tageswunsch ist gespeichert. Er bucht keine Arbeitszeit.') }}>Endwunsch übernehmen</Button></div>
-        <label className="block space-y-1"><span>Spätester Beginn heute</span><select aria-label="Startgrenze heute" value={st.days[date]?.override.latestStart === undefined ? 'inherit' : st.days[date]?.override.latestStart === null ? 'off' : 'custom'} onChange={(event) => adjust('Startgrenze für diesen Tag', { latestStart: event.target.value === 'inherit' ? undefined : event.target.value === 'off' ? null : latest?.latestStart ?? 9 * 60 })} className="min-h-12 w-full rounded-xl bg-surface-2 px-3"><option value="inherit">Wochenprofil verwenden</option><option value="off">Heute keine Grenze</option><option value="custom">Heute eigene Grenze</option></select></label>
+        <Choice label="Startgrenze heute" value={st.days[date]?.override.latestStart === undefined ? 'inherit' : st.days[date]?.override.latestStart === null ? 'off' : 'custom'} onChange={(value) => void adjust('Startgrenze für diesen Tag', { latestStart: value === 'inherit' ? undefined : value === 'off' ? null : latest?.latestStart ?? 9 * 60 })} options={[{ value: 'inherit', label: 'Wochenprofil verwenden' }, { value: 'off', label: 'Heute keine Grenze' }, { value: 'custom', label: 'Heute eigene Grenze' }]} />
         {typeof st.days[date]?.override.latestStart === 'number' && <TimeField label="Eigene Startgrenze heute" value={st.days[date]!.override.latestStart!} onChange={(value) => adjust('Startgrenze für diesen Tag', { latestStart: value })} />}
       </details>
 
@@ -319,10 +338,10 @@ export function PlanWorkForm({ today, onDone }: { today: string; onDone: (t: str
   return (
     <fieldset disabled={busy} className="min-w-0 space-y-3">
       <Segmented<PlannedWorkKind> label="Art des Einsatzes" value={kind} options={PLAN_KINDS.map((x) => ({ value: x.value, label: x.label }))} onChange={setKind} />
-      <TextInput aria-label="Worum geht es?" placeholder={`${k.title} (Titel freiwillig)`} value={title} onChange={(e) => setTitle(e.target.value)} />
+      <TextInput aria-label="Worum geht es?" placeholder={`${k.title} (Titel optional)`} value={title} onChange={(e) => setTitle(e.target.value)} />
       <label className="flex items-center justify-between gap-2">
         <span>Tag</span>
-        <input type="date" aria-label="Tag des Einsatzes" className="min-h-12 rounded-xl bg-surface-2 px-3" value={date} min={today} onChange={(e) => e.target.value && setDate(e.target.value)} />
+        <DateField label="Tag des Einsatzes" value={date} min={today} onChange={(value) => { if (value) setDate(value) }} />
       </label>
       <div className="flex items-center justify-between gap-2">
         <span>Beginn</span>

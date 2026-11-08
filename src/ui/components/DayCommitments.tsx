@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import type { Commitment, DayPlan } from '../../core/types'
 import { fmtTime } from '../../core/time'
+import { planConflicts } from '../../core/planConflicts'
 import { locationKind } from '../../core/travel'
 import { useApp } from '../../state/store'
 import { openRoute } from './TodayDifferent'
@@ -9,7 +10,7 @@ import { CommitmentForm } from './CommitmentForm'
 import { PackingList } from './Packing'
 import { RouteEstimateCard } from './RouteEstimateCard'
 import { GeofenceVisit } from './GeofenceVisit'
-import { Button, Card, Section, Sheet } from './ui'
+import { Button, Card, MoreInfo, Section, Sheet } from './ui'
 
 /** Termine des Tages: Weg, Quelle der Fahrzeit und schnelle Änderung. Bleibt auf dem Gerät. */
 export function DayCommitments({ plan }: { plan: DayPlan }) {
@@ -45,12 +46,10 @@ export function DayCommitments({ plan }: { plan: DayPlan }) {
               </p>
             )}
             {kind === 'remote' && <p className="text-sm text-muted">Remote, keine Fahrt. Vorbereitung bleibt getrennt planbar.</p>}
-            {l.locationOpen && <p className="text-sm text-warm">Ort noch offen. Es wurde keine Fahrt oder sichere spätere Weckzeit angenommen.</p>}
-            {l.originOpen && <p className="text-sm text-warm">Startort noch offen. Du kannst ihn unter „Termin bearbeiten“ wählen.</p>}
+            {l.locationOpen && <p className="text-sm text-muted">Ort noch offen. Es wurde keine Fahrt oder sichere spätere Weckzeit angenommen.</p>}
+            {l.originOpen && <p className="text-sm text-muted">Startort noch offen. Du kannst ihn unter „Termin bearbeiten“ wählen.</p>}
             {l.returnOpen && <p className="text-sm text-muted">Rückfahrt noch offen. Eine Rückkehr wird nicht erfunden.</p>}
-            <PackingList commitment={c} items={l.items} />
-            <details className="space-y-3 rounded-xl border border-line p-3"><summary className="min-h-11 cursor-pointer content-center">Wegdetails</summary><RouteEstimateCard commitmentId={c.id} /></details>
-            <GeofenceVisit commitmentId={c.id} />
+            <MoreInfo summary="Weg & Vorbereitung"><PackingList commitment={c} items={l.items} /><RouteEstimateCard commitmentId={c.id} /><GeofenceVisit commitmentId={c.id} /></MoreInfo>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => setEditing(c)}>Termin bearbeiten</Button>
               {address && kind !== 'remote' && (
@@ -70,11 +69,10 @@ export function DayCommitments({ plan }: { plan: DayPlan }) {
         {editing && <CommitmentForm key={editing.id} date={editing.date} commitment={editing} onDone={(message) => { setEditing(undefined); st.showToast(message) }} />}
       </Sheet>
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
-      {plan.conflicts?.map((x) => (
-        <p key={x} className="px-1 text-warm">
-          {x} Ändern kannst nur du: Einen Termin hier absagen oder mit der anderen Seite verschieben.
-        </p>
-      ))}
+      {planConflicts(plan).map((conflict) => {
+        const affected = legs.find((leg) => conflict.blockIds.some((id) => id === `prep:${leg.commitment.id}` || id === `travel:${leg.commitment.id}` || id === `commitment:${leg.commitment.id}`))?.commitment
+        return <div key={conflict.id} className="min-w-0 text-sm text-muted"><span>{conflict.summary} </span>{affected ? <Button size="sm" variant="ghost" onClick={() => setEditing(affected)}>Angaben prüfen</Button> : <Link to="/einstellungen/arbeit" className="inline-flex min-h-11 items-center underline">Arbeitszeit prüfen</Link>}</div>
+      })}
     </Section>
   )
 }

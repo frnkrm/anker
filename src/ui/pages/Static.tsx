@@ -2,6 +2,7 @@ import { Browser } from '@capacitor/browser'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { routineCoverage } from '../../core/flexible'
+import { plural } from '../../core/uiText'
 import { COMPLETE_BACKUP, makeBackup, parseBackup, previewImport, type BackupSelection, type ImportPreview } from '../../core/export/backup'
 import type { Rec } from '../../data/types'
 import { printSheets, preparePrintSheets, PRINT_CHOICES, type PaperSize, type PrintChoice } from '../../core/print'
@@ -11,7 +12,7 @@ import { requestNotificationPermission } from '../../platform/notifications'
 import { waitForPrintReady } from '../../platform/print'
 import { planFor, repository, today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
-import { Button, Card, Page, Row, Section, Segmented } from '../components/ui'
+import { BackButton, Button, Card, Checkbox, DateField, MoreInfo, Page, Row, Section, Segmented } from '../components/ui'
 
 function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -138,17 +139,17 @@ export function Backup() {
   ]
   return (
     <Page className="settings-page" title="Sicherung" back="/mehr">
-      <p className="px-1 text-muted">Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
-      <p className="px-1 text-sm text-muted">Sicherungen sind nicht verschlüsselt. Eine vollständige Sicherung enthält auch Arbeitsaufgaben und private Protokolle. Du kannst unten bewusst Bereiche weglassen.</p>
+      <p className="px-1 text-muted">Bewahre deine Daten als persönliche Sicherungsdatei auf.</p>
+      <MoreInfo summary="Welche Daten enthält die Datei?">
+        <p>Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
+        <p>Sicherungen sind nicht verschlüsselt. Eine vollständige Sicherung enthält auch Arbeitsaufgaben und private Protokolle. Du kannst unten bewusst Bereiche weglassen.</p>
+      </MoreInfo>
       <details className="rounded-2xl border border-line bg-surface p-4">
         <summary className="min-h-11 py-2">Was soll die Sicherung enthalten?</summary>
         <fieldset disabled={busy} className="space-y-2">
           <legend className="sr-only">Sensible Bereiche auswählen</legend>
           <p className="text-sm text-muted">Standardmäßig alles. Du kannst diese Bereiche bewusst weglassen. Freitexte können weiterhin persönliche Angaben enthalten.</p>
-          {groups.map((group) => <label key={group.key} className="flex min-h-11 items-center gap-3">
-            <input type="checkbox" checked={selection[group.key]} onChange={(event) => setSelection((before) => ({ ...before, [group.key]: event.target.checked }))} />
-            <span>{group.label}</span>
-          </label>)}
+          {groups.map((group) => <Checkbox key={group.key} label={group.label} checked={selection[group.key]} onChange={(checked) => setSelection((before) => ({ ...before, [group.key]: checked }))} />)}
         </fieldset>
       </details>
       <Button
@@ -165,11 +166,9 @@ export function Backup() {
         Sicherung exportieren
       </Button>
       <Card className="space-y-3">
-        <label className="flex min-h-11 items-start gap-3">
-          <input type="checkbox" checked={restore} disabled={busy} className="mt-1 h-5 w-5 shrink-0" onChange={(event) => {
+        <Checkbox label="Werte aus dieser Sicherung wiederherstellen" checked={restore} disabled={busy} onChange={(next) => {
             if (pending.current) return
             const previous = restore
-            const next = event.target.checked
             setRestore(next)
             void run(async () => {
               try {
@@ -181,8 +180,6 @@ export function Backup() {
               }
             })
           }} />
-          <span className="min-w-0 break-words">Werte aus dieser Sicherung wiederherstellen</span>
-        </label>
         <p className="text-sm text-muted">{restore ? 'Die gewählten Werte werden auch aus einer älteren Sicherung übernommen. Andere Datensätze und ausgelassene Bereiche bleiben erhalten. Testberichte ergänzen frühere Belege; aktuelle Rückmeldungen bleiben bestehen.' : 'Normaler Import: Neuere Daten auf diesem Gerät bleiben erhalten. Für einen Umzug oder eine bewusste Wiederherstellung kannst du den Schalter wählen.'}</p>
       </Card>
       <Button
@@ -201,7 +198,7 @@ export function Backup() {
       </Button>
       {candidate && <Card className="space-y-3">
         <h2 className="font-semibold">Vor dem Import prüfen</h2>
-        <p>{candidate.preview.incoming} Einträge gelesen · {candidate.preview.changed} {restore ? 'zur Wiederherstellung' : 'neuere Änderungen'} · {candidate.preview.skipped} {restore ? 'nicht zusätzlich übernommen' : 'ältere oder gleiche Versionen bleiben unangetastet'}.</p>
+        <p>{plural(candidate.preview.incoming, 'Eintrag', 'Einträge')} gelesen · {candidate.preview.changed} {restore ? 'zur Wiederherstellung' : 'neuere Änderungen'} · {candidate.preview.skipped} {restore ? 'nicht zusätzlich übernommen' : 'ältere oder gleiche Versionen bleiben unangetastet'}.</p>
         {candidate.preview.deletions > 0 && <p className="text-sm text-muted">Enthält {candidate.preview.deletions} ausdrücklich gelöschte Datensätze.</p>}
         {candidate.preview.sensitive.length > 0 && <p className="text-sm text-muted">Private Bereiche in der Datei: {candidate.preview.sensitive.join(', ')}.</p>}
         <p className="text-sm text-muted">Ausgelassene Bereiche einer Teilsicherung bleiben auf diesem Gerät erhalten. {restore ? 'Die Sicherungswerte ersetzen bewusst die entsprechenden Werte auf diesem Gerät; Originalzeiten in Aufgaben und Berichten bleiben erhalten.' : 'Beim Import werden neuere Änderungen nochmals geprüft.'}</p>
@@ -209,7 +206,7 @@ export function Backup() {
           const n = await st.importRecords(candidate.records, restore ? 'restore' : 'merge')
           setCandidate(undefined)
           if (n && restore) setRestored(true)
-          setMsg(n ? restore ? `${n} Einträge aus der Sicherung wiederhergestellt. Andere Daten bleiben erhalten.` : `${n} Einträge übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
+          setMsg(n ? restore ? `${plural(n, 'Eintrag', 'Einträge')} aus der Sicherung wiederhergestellt. Andere Daten bleiben erhalten.` : `${plural(n, 'Eintrag', 'Einträge')} übernommen. Neuere Daten auf dem Gerät bleiben erhalten.` : 'Nichts Neues in der Sicherung.')
         })}>{restore ? 'Sicherung jetzt wiederherstellen' : 'Jetzt importieren'}</Button>
         <Button variant="ghost" disabled={busy} onClick={() => setCandidate(undefined)}>Abbrechen</Button>
       </Card>}
@@ -286,13 +283,13 @@ export function Print() {
       <fieldset disabled={busy} className="no-print mb-4 min-w-0 space-y-3 border-0 p-0">
         {activeTest !== undefined && <Link to={`/geraetetest?fall=${activeTest}`} className="flex min-h-11 items-center rounded-xl bg-surface-2 px-3 text-accent">Zurück zu Test {activeTest}</Link>}
         <div className="flex items-center gap-2">
-          <Button onClick={() => history.back()}>‹ Zurück</Button>
+          <BackButton onClick={() => history.back()} />
           <h1 className="min-w-0 break-words text-xl font-semibold">Druckansicht</h1>
         </div>
         <Segmented<PrintChoice> label="Was drucken?" value={choice} options={PRINT_CHOICES} onChange={setChoice} />
         {(choice === 'morning' || choice === 'evening' || choice === 'both') && <>
           <Segmented<'template' | 'day'> label="Vorlage oder Tagesplan" value={scope} options={[{ value: 'template', label: 'Standardvorlage' }, { value: 'day', label: 'Für einen Tag' }]} onChange={setScope} />
-          {scope === 'day' && <label className="block space-y-1"><span className="text-sm text-muted">Tag für die Routine</span><input type="date" aria-label="Tag für die Routine" className="min-h-12 w-full rounded-xl bg-surface-2 px-3" value={date} onChange={(event) => { const value = event.target.value; if (value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value))) setDate(value) }} /></label>}
+          {scope === 'day' && <div><DateField label="Tag für die Routine" value={date} onChange={(value) => { if (value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value))) setDate(value) }} /></div>}
         </>}
         <Segmented<PaperSize>
           label="Papier"

@@ -3,16 +3,17 @@ import { useLocation } from 'react-router'
 import { extraSettings, type ExtraSettings } from '../../core/extras'
 import { AnkerNative, isNative, safe, type VoiceCapabilities } from '../../platform/native'
 import { useApp } from '../../state/store'
-import { Button, Card, Section, Sheet, Toggle } from './ui'
+import { Button, Card, MoreInfo, Section, Sheet, Toggle } from './ui'
 
 function VoiceConsent({ feature, onClose, onAccept }: { feature?: keyof ExtraSettings; onClose: () => void; onAccept: () => Promise<void> }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   return <Sheet open={feature !== undefined} onClose={onClose} title={feature === 'dictation' ? 'Lokales Diktieren' : 'Kurze Zeitinfos vorlesen'}>
-    <p className="mb-3 text-muted">{feature === 'dictation'
+    <p className="mb-3 text-muted">{feature === 'dictation' ? 'Nur nach deinem Start hört die lokale Spracheingabe zu. Du kannst den Text vor dem Speichern bearbeiten.' : 'Die lokale Stimme liest kurze Zeitinfos im geöffneten Fokus vor.'}</p>
+    <MoreInfo>    <p className="mb-3 text-muted">{feature === 'dictation'
       ? 'Nur nach deinem Start hört die lokale Android-Spracherkennung zu. Anker speichert keine Audiodatei und verwendet keinen Cloud-Fallback. Der erkannte Text wird zunächst ein bearbeitbarer Gedankenentwurf. Ohne verfügbare lokale Spracheingabe kannst du weiter tippen.'
-      : 'Die lokale Android-Stimme darf kurze Zeitinfos im geöffneten Fokus laut vorlesen. Aufgabeninhalte werden dabei nicht vorgelesen. Keine Cloud-Stimme und keine Audioablage; Wecker, Pause und Verlassen des Fokus stoppen weitere Aufträge. Hörbarkeit und Lautstärke prüfst du selbst.'}</p>
-    <Button disabled={busy} variant="primary" className="w-full" onClick={async () => { setBusy(true); try { await onAccept(); onClose() } catch { setError('Die Auswahl konnte nicht gespeichert werden. Bitte versuche es erneut.') } finally { setBusy(false) } }}>Freiwillig aktivieren</Button>
+      : 'Die lokale Android-Stimme darf kurze Zeitinfos im geöffneten Fokus laut vorlesen. Aufgabeninhalte werden dabei nicht vorgelesen. Keine Cloud-Stimme und keine Audioablage; Wecker, Pause und Verlassen des Fokus stoppen weitere Aufträge. Hörbarkeit und Lautstärke prüfst du selbst.'}</p></MoreInfo>
+    <Button disabled={busy} variant="primary" className="w-full" onClick={async () => { setBusy(true); try { await onAccept(); onClose() } catch { setError('Die Auswahl konnte nicht gespeichert werden. Bitte versuche es erneut.') } finally { setBusy(false) } }}>Einschalten</Button>
     {error && <p role="alert" className="mt-2 text-sm text-warm">{error}</p>}
     <Button disabled={busy} variant="ghost" className="mt-2 w-full" onClick={onClose}>Später</Button>
   </Sheet>
@@ -31,7 +32,7 @@ export function ExtraControls() {
     else await safe(() => AnkerNative.stopSpeaking(), undefined)
   }
   return <>
-    <Section title="Lokale Sprache (freiwillig)" hint="Standard aus. Text funktioniert immer; lokale Android-Modelle und Stimmen sind geräteabhängig.">
+    <Section title="Lokale Sprache" hint="Standard aus. Text funktioniert immer; lokale Android-Modelle und Stimmen sind geräteabhängig.">
       <Card className="space-y-3">
         {!isNative() && <p className="text-sm text-muted">Die lokale Anker-Spracheingabe ist in der Android-App verfügbar. Im Browser kannst du tippen oder die Spracheingabe deiner Tastatur selbst wählen.</p>}
         <div className="flex items-center justify-between gap-3"><span>Gedanken bewusst diktieren</span><Toggle label="Lokales Diktieren" checked={config.dictation} onChange={(value) => change('dictation', value)} /></div>
@@ -92,7 +93,7 @@ export function CaptureDictation({ open, disabled, onText }: { open: boolean; di
     else setMessage(result.status === 'cancelled' ? 'Aufnahme gestoppt. Du kannst weiter tippen.' : result.status === 'permission-denied' ? 'Ohne Mikrofonfreigabe wird nichts aufgenommen. Du kannst weiter tippen.' : 'Die lokale Spracheingabe ist gerade nicht verfügbar. Dein bisheriger Text bleibt erhalten.')
   }
   return <div className="space-y-2">
-    <Button type="button" size="sm" disabled={disabled} onClick={() => void start()}>{listening ? 'Aufnahme abbrechen' : 'Diktieren (freiwillig)'}</Button>
+    <Button type="button" size="sm" disabled={disabled} onClick={() => void start()}>{listening ? 'Aufnahme abbrechen' : 'Diktieren'}</Button>
     {listening && <p role="status" className="text-sm text-muted">Anfrage zur lokalen Spracheingabe läuft. Speichern erfolgt erst mit „Merken“.</p>}
     {message && <p role="status" className="text-sm text-muted">{message}</p>}
     <VoiceConsent feature={consent ? 'dictation' : undefined} onClose={() => setConsent(false)} onAccept={() => st.saveSettings((settings) => ({ ...settings, extras: { ...extraSettings(settings.extras), dictation: true } }))} />

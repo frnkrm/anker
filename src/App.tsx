@@ -18,17 +18,16 @@ const TaskFocus = lazy(() => import('./ui/pages/TaskFocus'))
 const QuickRecovery = lazy(() => import('./ui/pages/QuickEntries').then((module) => ({ default: module.QuickRecovery })))
 const QuickFocus = lazy(() => import('./ui/pages/QuickEntries').then((module) => ({ default: module.QuickFocus })))
 const Day = lazy(() => import('./ui/pages/Day'))
-const Game = lazy(() => import('./ui/pages/Game'))
-const Shop = lazy(() => import('./ui/pages/Shop'))
+const WorkHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.WorkHub })))
+const EveningHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.EveningHub })))
+const GameHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.GameHub })))
+const ReviewHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.ReviewHub })))
+const AlarmHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.AlarmHub })))
 const Inbox = lazy(() => import('./ui/pages/Inbox'))
 const More = lazy(() => import('./ui/pages/More'))
-const Evening = lazy(() => import('./ui/pages/Evening'))
-const SleepDiary = lazy(() => import('./ui/pages/SleepDiary'))
 const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
 const AssistanceSettings = lazy(() => import('./ui/pages/AssistanceSettings'))
-const Work = lazy(() => import('./ui/pages/Work'))
-const WorkTime = lazy(() => import('./ui/pages/WorkTime'))
 const Places = lazy(() => import('./ui/pages/Places'))
 const Check = lazy(() => import('./ui/pages/Check'))
 const TimeOverview = lazy(() => import('./ui/pages/TimeOverview'))
@@ -38,8 +37,6 @@ const Connections = lazy(() => import('./ui/pages/Connections'))
 const Food = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Food })))
 const Tidy = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Tidy })))
 const Prep = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Prep })))
-const Review = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Review })))
-const AlarmSetup = lazy(() => import('./ui/pages/Alarm').then((m) => ({ default: m.AlarmSetup })))
 const AlarmRinging = lazy(() => import('./ui/pages/Alarm').then((m) => ({ default: m.AlarmRinging })))
 const Help = lazy(() => import('./ui/pages/Static').then((m) => ({ default: m.Help })))
 const Backup = lazy(() => import('./ui/pages/Static').then((m) => ({ default: m.Backup })))
@@ -194,18 +191,18 @@ export default function App() {
             <Route path="/fokus/:routine" element={<Focus />} />
             <Route path="/aufgabe/:kind/:id" element={<TaskFocus />} />
             <Route path="/tag" element={<Day />} />
-            <Route path="/arbeit" element={<Work />} />
-            <Route path="/arbeitszeit" element={<WorkTime />} />
+            <Route path="/arbeit" element={<WorkHub />} />
+            <Route path="/arbeitszeit" element={<WorkHub />} />
             <Route path="/orte" element={<Places />} />
-            <Route path="/spiel" element={<Game />} />
-            <Route path="/spiel/shop" element={<Shop />} />
+            <Route path="/spiel" element={<GameHub />} />
+            <Route path="/spiel/shop" element={<GameHub />} />
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/gedanke" element={<QuickThought />} />
             <Route path="/wiedereinstieg" element={<QuickRecovery />} />
             <Route path="/fokus-start" element={<QuickFocus />} />
             <Route path="/mehr" element={<More />} />
-            <Route path="/abend" element={<Evening />} />
-            <Route path="/schlaf" element={<SleepDiary />} />
+            <Route path="/abend" element={<EveningHub />} />
+            <Route path="/schlaf" element={<AlarmHub />} />
             <Route path="/einstellungen/abenduebergang" element={<WindDown />} />
             <Route path="/einstellungen/assistenz" element={<AssistanceSettings />} />
             <Route path="/einstellungen" element={<Settings />} />
@@ -213,11 +210,11 @@ export default function App() {
             <Route path="/essen" element={<Food />} />
             <Route path="/aufraeumen" element={<Tidy />} />
             <Route path="/vorbereitung" element={<Prep />} />
-            <Route path="/rueckblick" element={<Review />} />
+            <Route path="/rueckblick" element={<ReviewHub />} />
             <Route path="/check" element={<Check />} />
             <Route path="/zeiten" element={<TimeOverview />} />
             <Route path="/geraetetest" element={<DeviceTests />} />
-            <Route path="/wecker" element={<AlarmSetup />} />
+            <Route path="/wecker" element={<AlarmHub />} />
             <Route path="/wecker/klingelt" element={<AlarmRinging />} />
             <Route path="/pc-stopp" element={<PcStop />} />
             <Route path="/verbindungen" element={<Connections />} />

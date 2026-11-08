@@ -3,7 +3,7 @@ import { randomId } from '../../core/defaults'
 import { validPlace } from '../../core/travel'
 import type { Place, PlaceKind } from '../../core/types'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Section, TextInput } from '../components/ui'
+import { Button, Card, Checkbox, Choice, MoreInfo, Page, Section, TextInput } from '../components/ui'
 
 const FIELD = 'min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3'
 const KIND: Record<PlaceKind, string> = { home: 'Zuhause', office: 'Büro', customer: 'Kunde', private: 'Privater Ort', other: 'Anderer Ort' }
@@ -80,19 +80,19 @@ function PlaceForm({ place, onDone }: { place?: Place; onDone: () => void }) {
   return <Card><form className="min-w-0 space-y-3" onSubmit={(event) => { event.preventDefault(); void save() }}>
     <fieldset disabled={busy} className="min-w-0 space-y-3">
       <label className="block space-y-1"><span>Name</span><TextInput autoFocus aria-label="Name des Orts" value={label} onChange={(event) => setLabel(event.target.value)} /></label>
-      <label className="block space-y-1"><span>Art</span><select aria-label="Art des Orts" className={FIELD} value={kind} onChange={(event) => setKind(event.target.value as PlaceKind)}>{Object.entries(KIND).map(([key, title]) => <option key={key} value={key}>{title}</option>)}</select></label>
-      <details className="space-y-3"><summary className="min-h-11 py-2 text-muted">Adresse, Wege & freiwillige Angaben</summary>
-        <label className="block space-y-1"><span>Adresse (freiwillig)</span><TextInput aria-label="Adresse des Orts" value={address} onChange={(event) => setAddress(event.target.value)} /></label>
-        <label className="block space-y-1"><span>Weg von Zuhause (Minuten)</span><TextInput type="number" inputMode="decimal" min="0" max="1440" aria-label="Weg von Zuhause" placeholder="Noch offen" value={fromHome} onChange={(event) => setFromHome(event.target.value)} /></label>
-        {origins.map((origin) => <label key={origin.id} className="block space-y-1"><span>Weg von {origin.label} (Minuten)</span><TextInput type="number" inputMode="decimal" min="0" max="1440" aria-label={`Weg von ${origin.label}`} placeholder="Noch offen" value={travelFrom[origin.id] ?? ''} onChange={(event) => setTravelFrom({ ...travelFrom, [origin.id]: event.target.value })} /></label>)}
+      <label className="block space-y-1"><span>Weg von Zuhause (Minuten)</span><TextInput type="number" inputMode="decimal" min="0" max="1440" aria-label="Weg von Zuhause" placeholder="Noch offen" value={fromHome} onChange={(event) => setFromHome(event.target.value)} /></label>
+      <MoreInfo summary="Adresse und weitere Angaben">
+        <Choice label="Art des Orts" value={kind} onChange={(value) => setKind(value as PlaceKind)} options={Object.entries(KIND).map(([value, label]) => ({ value, label }))} />
+        <label className="block space-y-1"><span>Adresse</span><TextInput aria-label="Adresse des Orts" value={address} onChange={(event) => setAddress(event.target.value)} /></label>
+        <MoreInfo summary="Weitere Wege">{origins.map((origin) => <label key={origin.id} className="block space-y-1"><span>Weg von {origin.label} (Minuten)</span><TextInput type="number" inputMode="decimal" min="0" max="1440" aria-label={`Weg von ${origin.label}`} placeholder="Noch offen" value={travelFrom[origin.id] ?? ''} onChange={(event) => setTravelFrom({ ...travelFrom, [origin.id]: event.target.value })} /></label>)}</MoreInfo>
         <label className="block space-y-1"><span>Mitnehmen (eine Sache je Zeile)</span><textarea aria-label="Dinge am Ort" className={FIELD + ' py-3'} rows={3} value={items} onChange={(event) => setItems(event.target.value)} /></label>
         <p className="text-sm text-muted">Koordinaten sind freiwillig. Eine Adresse wird nicht automatisch gesucht oder an einen Dienst geschickt.</p>
         <label className="block space-y-1"><span>Breitengrad</span><TextInput type="number" step="any" aria-label="Breitengrad" value={latitude} onChange={(event) => setLatitude(event.target.value)} /></label>
         <label className="block space-y-1"><span>Längengrad</span><TextInput type="number" step="any" aria-label="Längengrad" value={longitude} onChange={(event) => setLongitude(event.target.value)} /></label>
-        <label className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={weather} onChange={(event) => setWeather(event.target.checked)} />Diesen Ort nach zusätzlicher Dienste-Aktivierung für Wetter verwenden dürfen</label>
-        <label className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={routes} onChange={(event) => setRoutes(event.target.checked)} />Diesen Ort nach zusätzlicher Dienste-Aktivierung für Routenschätzungen verwenden dürfen</label>
+        <Checkbox checked={weather} onChange={setWeather}>Diesen Ort nach zusätzlicher Dienste-Aktivierung für Wetter verwenden dürfen</Checkbox>
+        <Checkbox checked={routes} onChange={setRoutes}>Diesen Ort nach zusätzlicher Dienste-Aktivierung für Routenschätzungen verwenden dürfen</Checkbox>
         <p className="text-sm text-muted">Beides ist freiwillig und standardmäßig aus. Speichern allein startet keinen Dienst. Die eigentliche Aktivierung erklärt Empfänger und übertragene Angaben nochmals.</p>
-      </details>
+      </MoreInfo>
       <div className="flex flex-wrap gap-2"><Button type="submit" variant="primary">Ort speichern</Button><Button variant="ghost" onClick={onDone}>Abbrechen</Button></div>
     </fieldset>
     {error && <p role="alert" className="text-warm">{error}</p>}

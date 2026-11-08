@@ -1,0 +1,20 @@
+.now-page{display:flex;flex-direction:column;gap:.5rem;min-height:100dvh;max-width:36rem;margin-inline:auto;padding: max(env(safe-area-inset-top),.75rem) 1rem calc(5rem + max(env(safe-area-inset-bottom),.5rem));}
+.now-header{display:flex;align-items:center;justify-content:space-between;gap:.65rem;min-width:0;}
+.now-anchor{min-width:0;font-size:.8rem;line-height:1.4;overflow-wrap:anywhere;color:var(--muted);}
+.now-day-chip{min-height:44px;max-width:58%;padding:.45rem .7rem;border:1px solid var(--line);border-radius:999px;font-size:.75rem;line-height:1.3;text-align:center;overflow-wrap:anywhere;flex-shrink:0;}
+.now-action{display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center;padding:1rem 0;gap:.65rem;}
+.now-title{font-size:2.2rem;font-weight:650;line-height:1.15;overflow-wrap:anywhere;}
+.now-context,.now-reason{color:var(--muted);font-size:.9rem;line-height:1.4;overflow-wrap:anywhere;}
+.now-buttons{margin-top:.65rem;display:flex;flex-direction:column;gap:.65rem;}
+.now-buttons>button,.now-buttons>a{min-width:0;overflow-wrap:anywhere;}
+.now-buttons>div{min-width:0;}
+.now-buttons>div>button{min-width:0;white-space:normal;overflow-wrap:anywhere;font-size:.95rem;padding-inline:.65rem;}
+.now-after{font-size:.8rem;line-height:1.4;color:var(--muted);overflow-wrap:anywhere;}
+.now-adjust{display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;border:1px solid var(--line);border-radius:1rem;color:var(--muted);}
+.now-conflict{border-left:3px solid var(--warm);padding:.6rem .75rem;font-size:.85rem;line-height:1.4;}
+.now-conflict-actions{display:flex;gap:.75rem;align-items:center;}
+.now-conflict-actions>*{display:flex;min-height:44px;align-items:center;}
+.now-options-menu{display:grid;gap:.5rem;}
+.now-options-menu>a{display:flex;align-items:center;min-height:44px;border-radius:.75rem;padding:.5rem .75rem;border:1px solid var(--line);}
+@media(max-width:350px){.now-title{font-size:1.9rem;}.now-page{padding-inline:.75rem;}.now-day-chip{font-size:.7rem;max-width:55%;}}
+@media(prefers-reduced-motion:reduce){.now-page *{scroll-behavior:auto;}}

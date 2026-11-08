@@ -10,7 +10,7 @@ import { scanQr } from '../../platform/qr'
 import { today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
 import { SmartWake } from '../components/SmartWake'
-import { Ampel, Button, Card, Page, Row, Section, SettingRow, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
+import { Ampel, Button, Card, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
 
 export function fmtDateTime(ms: number): string {
   const z = utcToZoned(ms)
@@ -145,7 +145,7 @@ export function AlarmDiagnosis() {
       <DiagRow state={d.batteryIgnored ? 'ok' : 'warn'} label={d.powerSave ? 'Akku: Energiesparen ist gerade an' : 'Akku-Optimierung'} hint={d.batteryIgnored ? 'Für Anker ausgenommen.' : 'Samsung beendet Apps gern im Hintergrund. Nimm Anker aus.'} action={d.batteryIgnored ? undefined : 'Öffnen'} run={() => void AnkerNative.openBatteryOptimizationSettings()} />
       {d.lastStopAt > 0 && <p className="px-1 text-sm text-muted">Zuletzt beendet: {fmtDateTime(d.lastStopAt)} ({STOP_METHOD_LABEL[d.lastStopMethod] ?? 'App'}).</p>}
       <details className="px-1 text-sm text-muted">
-        <summary className="min-h-10 py-2">Technische Angaben</summary>
+        <summary className="min-h-11 py-2">Technische Angaben</summary>
         <p>
           {d.device}, Android-API {d.sdk}. Letzter Abgleich: {d.lastReconcileAt ? fmtDateTime(d.lastReconcileAt) : 'nie'} ({d.lastReconcileReason || 'unbekannt'}). Vom System gemeldeter nächster Wecker: {d.systemNextAt ? fmtDateTime(d.systemNextAt) : 'keiner'}. Fehler: {d.error || 'keiner'}. Erinnerungen: {d.reminderQueue} geplant bis {d.reminderHorizon ? fmtDateTime(d.reminderHorizon) : 'nie'}, {d.remindersVisible < 0 ? 'aktuelle Android-Karten nicht abfragbar' : `${d.remindersVisible} aktuell bei Android eingetragen`}.
         </p>
@@ -158,16 +158,16 @@ export function AlarmDiagnosis() {
 }
 
 /** Einrichtung: Wecker an/aus, Vorwecker, Wachheits-Check, QR-Code, Test und Diagnose. */
-export function AlarmSetup() {
+export function AlarmSetup({ embedded = false }: { embedded?: boolean } = {}) {
   const st = useApp()
   const s = st.settings
   const a = s.alarm
-  const set = (patch: Partial<AlarmPreferences>) => void st.saveSettings((x) => ({ ...x, alarm: { ...x.alarm, ...patch } }))
+  const set = (patch: Partial<AlarmPreferences>) => void st.saveSettings((x) => ({ ...x, alarm: { ...x.alarm, ...patch } })).then(notifySaved).catch(() => st.showToast('Die Weckereinstellung konnte noch nicht gespeichert werden. Bitte versuche es erneut.'))
   const [testing, setTesting] = useState(false)
 
-  return (
-    <Page className="settings-page" title="Wecker" back="/mehr">
-      <Row label="Wecker gemeinsam testen" sub="Geführte Schritte, direkter Teststart und deine Beobachtung" to="/geraetetest" />
+  const content = (
+    <>
+      {s.appearance.developerTools && <Row label="Wecker gemeinsam testen" sub="Geführte Schritte und deine Beobachtung" to="/geraetetest" />}
       <Card>
         <SettingRow label={<div>
           <p className="text-lg font-medium">Aufstehen um {fmtTime(s.anchor.wake)}</p>
@@ -280,8 +280,9 @@ export function AlarmSetup() {
         />
       )}
       <AlarmDiagnosis />
-    </Page>
+    </>
   )
+  return embedded ? <div className="space-y-4">{content}</div> : <Page className="settings-page" title="Wecker" back="/mehr">{content}</Page>
 }
 
 const RING_TEXT: Record<AlarmKindWire, string> = {

@@ -6,9 +6,9 @@ import { parseRoutePoint, routePointText, routeRequestNeedsOneShot } from '../..
 import { acceptRouteProposal, cancelAutomaticRouteRequests, cancelRouteRequest, clearRouteProposal, currentTrafficContext, proposalCurrent, requestRouteEstimate, routeIssue, routeProposal, subscribeRouteProposals } from '../../platform/traffic'
 import { useNow } from '../../state/hooks'
 import { useApp } from '../../state/store'
-import { Button, Sheet, Stepper, TextInput, Toggle } from './ui'
+import { minuteText } from '../../core/uiText'
+import { Button, Checkbox, Choice, DateField, Sheet, Stepper, TextInput, Toggle } from './ui'
 
-const FIELD = 'min-h-12 w-full rounded-xl bg-surface-2 px-3'
 const MODES: { value: AssistantTravelMode; label: string }[] = [
   { value: 'driving', label: 'Auto' }, { value: 'transit', label: 'ÖPNV' }, { value: 'cycling', label: 'Rad' }, { value: 'walking', label: 'Zu Fuß' },
 ]
@@ -59,7 +59,7 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
     if (pending.current) return
     const timestamp = fromBerlinDateTimeInput(at)
     if (!originPoint || !destinationPoint) { setError('Gib einen bekannten Start und ein Ziel als Adresse oder vollständige Koordinaten ein. Ein Ortsname allein wird nicht ergänzt.'); return }
-    if (!Number.isFinite(timestamp) || timestamp <= Date.now()) { setError('Wähle eine gültige zukünftige Reisezeit in Berliner Zeit.'); return }
+    if (!Number.isFinite(timestamp) || timestamp <= Date.now()) { setError('Wähle eine gültige zukünftige Reisezeit.'); return }
     if (formStale) { setError('Dein Plan hat sich geändert. Lade zuerst die aktuellen Angaben.'); return }
     if (needsConsent && !oneShot) { setError('Diese Ortsangaben sind noch nicht für diese Anfrage freigegeben.'); return }
     pending.current = true; setBusy(true); setError(''); setMessage('')
@@ -72,15 +72,15 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
     } finally { pending.current = false; setBusy(false) }
   }
   return <div className="space-y-3 border-t border-line pt-3">
-    <p className="font-medium">Fahrtschätzung (freiwillig)</p>
-    <p className="text-sm text-muted">{context.plannedMin === undefined ? 'Deine manuelle Fahrzeit ist noch offen.' : `Bisher etwa ${context.plannedMin} Minuten aus deiner Planung.`}</p>
+    <p className="font-medium">Fahrtschätzung</p>
+    <p className="text-sm text-muted">{context.plannedMin === undefined ? 'Deine manuelle Fahrzeit ist noch offen.' : `Bisher etwa ${minuteText(context.plannedMin)} aus deiner Planung.`}</p>
     {!allowed ? <Link className="flex min-h-11 items-center text-accent" to="/einstellungen/assistenz">Optionalen Verkehrsdienst einrichten</Link> : <>
       {validProposal && <div className="space-y-2 rounded-xl bg-surface-2 p-3" role="status">
-        <p className="text-lg">Vorschlag: etwa {proposal.estimate.durationMin} Minuten</p>
+        <p className="text-lg">Vorschlag: etwa {minuteText(proposal.estimate.durationMin)}</p>
         <p className="text-sm text-muted">{proposal.estimate.source} · abgerufen {moment(proposal.estimate.fetchedAt)} · {proposal.request.timing === 'arrival' ? 'Ankunftsziel' : 'Abfahrtszeit'} {moment(Date.parse(proposal.estimate.travelAt))} · {MODES.find((item) => item.value === proposal.estimate.mode)?.label}</p>
         <p className="text-sm text-muted">{proposal.estimate.trafficAware ? 'Zeitabhängige Schätzung für die Autofahrt.' : 'Diese Schätzung verspricht keine aktuellen Stau- oder Störungsdaten.'}</p>
         {proposal.estimate.uncertain && <p className="text-sm text-warm">Die zeitabhängige Schätzung schwankt noch. Prüfe deinen Weg manuell, bevor du dich danach richtest.</p>}
-        {significant && <p className="text-sm text-warm">{delta > 0 ? `Etwa ${Math.ceil(delta)} Minuten länger als bisher geplant. Für deine Ankunft wäre früheres Losgehen sinnvoll.` : `Etwa ${Math.ceil(-delta)} Minuten kürzer als bisher geplant.`} Termine und Wecker bleiben unverändert.</p>}
+        {significant && <p className="text-sm text-warm">{delta > 0 ? `Etwa ${minuteText(Math.ceil(delta))} länger als bisher geplant. Für deine Ankunft wäre früheres Losgehen sinnvoll.` : `Etwa ${minuteText(Math.ceil(-delta))} kürzer als bisher geplant.`} Termine und Wecker bleiben unverändert.</p>}
         <Button disabled={busy} size="sm" onClick={async () => {
           if (pending.current) return
           pending.current = true; setBusy(true); setError('')
@@ -102,13 +102,13 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
         <p className="text-sm text-muted">Google Routes erhält die unten gezeigten Ortsangaben, Reisezeit und Verkehrsmittel über deinen angemeldeten Server. Dabei können Kosten entstehen. Es wird keine Ortung gestartet.</p>
         <label className="block space-y-1"><span>Start ({context.originLabel})</span><TextInput aria-label="Start für die Fahrtschätzung" value={origin} onChange={(event) => { setOrigin(event.target.value); setOneShot(false) }} placeholder="Adresse oder Breite, Länge" /></label>
         <label className="block space-y-1"><span>Ziel ({context.destinationLabel})</span><TextInput aria-label="Ziel für die Fahrtschätzung" value={destination} onChange={(event) => { setDestination(event.target.value); setOneShot(false) }} placeholder="Adresse oder Breite, Länge" /></label>
-        <label className="block space-y-1"><span>Verkehrsmittel</span><select aria-label="Verkehrsmittel für die Schätzung" className={FIELD} value={mode} onChange={(event) => setMode(event.target.value as AssistantTravelMode)}>{MODES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        <label className="block space-y-1"><span>Zeitbezug</span><select aria-label="Zeitbezug der Fahrtschätzung" className={FIELD} value={timing} onChange={(event) => setTiming(event.target.value as 'arrival' | 'departure')}><option value="arrival">Bis dahin ankommen</option><option value="departure">Dann losfahren</option></select></label>
-        <label className="block space-y-1"><span>Reisezeit (Berliner Zeit)</span><input type="datetime-local" aria-label="Zeit für die Fahrtschätzung" className={FIELD} value={at} onChange={(event) => setAt(event.target.value)} /></label>
-        {needsConsent ? <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={oneShot} onChange={(event) => setOneShot(event.target.checked)} /><span>Diese eingegebenen Orte für diese Anfrage freigeben</span></label> : <p className="text-sm text-muted">Für diese beiden gespeicherten Orte liegt deine Routenfreigabe vor.</p>}
+        <Choice label="Verkehrsmittel für die Schätzung" value={mode} onChange={setMode} options={MODES} />
+        <Choice label="Zeitbezug der Fahrtschätzung" value={timing} onChange={setTiming} options={[{ value: 'arrival', label: 'Bis dahin ankommen' }, { value: 'departure', label: 'Dann losfahren' }]} />
+        <DateField label="Zeit für die Fahrtschätzung" type="datetime-local" value={at} onChange={setAt} />
+        {needsConsent ? <Checkbox checked={oneShot} onChange={setOneShot}>Diese eingegebenen Orte für diese Anfrage freigeben</Checkbox> : <p className="text-sm text-muted">Für diese beiden gespeicherten Orte liegt deine Routenfreigabe vor.</p>}
         {formStale && <div className="space-y-2"><p className="text-warm">Dein Plan hat sich geändert.</p><Button onClick={initialize}>Aktuelle Angaben laden</Button></div>}
         {error && <p role="alert" className="text-warm">{error}</p>}
-        <Button variant="primary" className="w-full" disabled={busy || formStale || (needsConsent && !oneShot)} onClick={() => void fetchEstimate()}>{busy ? 'Schätzung wird angefragt …' : 'Diese Daten senden und Schätzung anfragen'}</Button>
+        <Button variant="primary" className="w-full" disabled={busy} onClick={() => void fetchEstimate()}>{busy ? 'Schätzung wird angefragt …' : 'Diese Daten senden und Schätzung anfragen'}</Button>
         {busy && <Button className="w-full" onClick={() => { cancelRouteRequest(commitmentId); controller.current?.abort() }}>Anfrage abbrechen</Button>}
         <p className="text-sm text-muted">Erst dein anschließendes Übernehmen ändert die persönliche Fahrzeit. Harte Termine und Wecker werden dabei nicht verschoben.</p>
       </div>

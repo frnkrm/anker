@@ -1,16 +1,14 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
-import { countdownText, elapsedMs, remainingMs, sameFocusTarget } from '../../core/focus'
+import { elapsedMs, remainingMs, sameFocusTarget } from '../../core/focus'
 import { resolveTask, taskIsActionable, taskIsOpen, taskNextStep, taskStateLabel, taskTitle } from '../../core/tasks'
-import type { InboxItem, ResumePoint, TaskRef, WorkTask } from '../../core/types'
+import type { FocusPulseMode, InboxItem, ResumePoint, TaskRef, WorkTask } from '../../core/types'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
-import { InboxButton } from '../components/Shell'
+import { FocusFrame } from '../components/FocusFrame'
 import { TaskPurpose } from '../components/TaskPurpose'
-import { Button, Card, Progress, Section, Segmented, TextInput } from '../components/ui'
+import { Button, Checkbox, Choice, DurationPicker, RingTimer, Section, Sheet, TextInput } from '../components/ui'
 
-const WINDOWS = [15, 25, 40, 50] as const
-type FocusMinutes = typeof WINDOWS[number]
 const clockTime = (at: number) => new Date(at).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })
 
 /** Die Route verweist auf vorhandene Aufgaben. Ihr Öffnen startet keine Zeit und bestätigt nichts. */
@@ -52,13 +50,11 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const savedResume = st.local.resume
   const resumeNote = task.resumeNote ?? (savedResume?.kind === reference.kind && savedResume.refId === reference.id ? savedResume.note : undefined)
   const context = useMemo<ResumePoint>(() => ({ kind: reference.kind, title, nextStep, refId: reference.id, ...(partId ? { partId } : {}), route, at: Date.now(), ...(resumeNote ? { note: resumeNote } : {}) }), [reference.kind, reference.id, partId, title, nextStep, route, resumeNote])
-  const [minutes, setMinutes] = useState<FocusMinutes>(() => {
-    const saved = focus ? focus.timer.durationMs / 60_000 : 25
-    return WINDOWS.find((value) => value === saved) ?? 25
-  })
-  const [partMinutes, setPartMinutes] = useState(() => new Map<string, string>())
-  const duration = partId ? partMinutes.get(partId) ?? String(part?.timerMin ?? part?.estimateMin ?? 25) : String(minutes)
+  const [minutes, setMinutes] = useState(() => focus ? focus.timer.durationMs / 60_000 : 25)
+  const [partMinutes, setPartMinutes] = useState(() => new Map<string, number>())
+  const duration = partId ? partMinutes.get(partId) ?? part?.timerMin ?? part?.estimateMin ?? 5 : minutes
   const [interrupting, setInterrupting] = useState(false)
+  const [stopOpen, setStopOpen] = useState(false)
   const [resumeStep, setResumeStep] = useState(nextStep)
   const [note, setNote] = useState('')
   const [confirmDuration, setConfirmDuration] = useState(false)
@@ -112,108 +108,65 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
     setInterrupting(!interrupting)
   }
 
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 px-5 pb-8 safe-top">
-      <header className="flex min-h-12 items-center justify-between gap-2">
-        <Link to={back} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl text-muted" aria-label="Aufgabenfokus verlassen">‹</Link>
-        <p className="min-w-0 flex-1 break-words text-center text-sm text-muted">{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</p>
-        {open && !unavailablePart && <div className="flex w-12 shrink-0"><InboxButton context={context} /></div>}
-      </header>
-
+  const choices = [{ value: '', label: 'Gesamte Aufgabe' }, ...(unavailablePart ? [{ value: partId!, label: 'Teilschritt nicht verfügbar' }] : []), ...(task.subtasks?.filter(item => item.doneAt === undefined).map(item => ({ value: item.id, label: item.title })) ?? [])]
+  const targetChoice = <Choice label="Fokus für" disabled={busy} value={partId ?? ''} options={choices} onChange={value => { setSearch({ teil: value }); setInterrupting(false); setStopOpen(false) }} />
+  const finish = () => partId ? completePart() : complete()
+  return <>
+    <FocusFrame back={back} context={<>{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</>} capture={open && !unavailablePart ? context : undefined}
+      footer={open && !unavailablePart ? <>
+        {(!timer || expired) ? <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void start()}>{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'} · {String(duration).replace('.', ',')} min</Button>
+          : <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void (paused ? continueFocus() : run(() => st.pauseTaskFocus(reference, undefined, undefined, partId)))}>{paused ? 'Weiter' : 'Pause'}</Button>}
+        <div className={`grid min-w-0 gap-2 ${timer ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <Button disabled={busy} size="lg" className="min-w-0" onClick={() => void finish()}>{partId ? 'Teilschritt erledigt' : 'Erledigt'}</Button>
+          {timer && <Button disabled={busy} variant="ghost" size="lg" onClick={() => { setInterrupting(false); setStopOpen(true) }}>Stopp</Button>}
+        </div>
+      </> : undefined}
+      details={open && !unavailablePart ? <details className="min-w-0 space-y-3"><summary className="min-h-11 py-2 text-muted">Details & Abschluss</summary>
+        <TaskPurpose taskRef={reference} task={task} />
+        <Choice<FocusPulseMode> label="Fokus-Puls" value={st.settings.focus.pulse} options={[{ value: 'off', label: 'Aus' }, { value: 'gentle', label: 'Sanft' }, { value: 'strong', label: 'Deutlich' }]} onChange={pulse => void run(() => st.saveSettings(settings => ({ ...settings, focus: { ...settings.focus, pulse } })))} />
+        {task.description && <p className="whitespace-pre-wrap break-words text-muted">{task.description}</p>}
+        {!!task.subtasks?.length && <Section title="Kleine Schritte">{task.subtasks.map(part => <Checkbox key={part.id} disabled={busy} checked={part.doneAt !== undefined} aria-label={`Schritt erledigt: ${part.title}`} onChange={done => void run(() => st.setTaskPartDone(reference, part.id, done))}>{part.title}</Checkbox>)}</Section>}
+        {st.local.taskLearning?.enabled && <div className="space-y-3 rounded-2xl border border-line p-3"><Checkbox checked={confirmDuration} onChange={setConfirmDuration}>Meine tatsächliche Dauer für Schätzvorschläge bestätigen</Checkbox>
+          {confirmDuration && <label className="block space-y-1"><span>Tatsächliche Dauer in Minuten</span><TextInput aria-label="Bestätigte tatsächliche Dauer" type="number" min="1" max="480" step="1" inputMode="decimal" value={confirmedMinutes} onChange={event => setConfirmedMinutes(event.target.value)} placeholder="Zum Beispiel 18" /></label>}
+          <p className="text-sm text-muted">Nur deine bestätigte Dauer fließt in lokale Vorschläge ein.</p>
+        </div>}
+        <Button disabled={busy} variant="ghost" className="w-full" onClick={() => void complete(true)}>{partId ? 'Gesamte Aufgabe klein erledigt' : 'Kleine Version erledigt'}</Button>
+        {partId && <Button disabled={busy} className="w-full" onClick={() => void complete()}>Gesamte Aufgabe erledigt</Button>}
+        <p className="text-sm text-muted">Fokuszeit ist keine Arbeitszeitbuchung. Ein abgelaufenes Zeitfenster bestätigt keine Erledigung.</p>
+      </details> : undefined}>
       {error && <p role="alert" className="rounded-2xl border border-warm p-3 text-warm">{error}</p>}
-
-      <section className="flex min-w-0 flex-1 flex-col justify-center py-4">
-        {open && (!!task.subtasks?.length || partId) && <label className="mb-5 block min-w-0 space-y-1"><span className="text-sm text-muted">Fokus für</span><select aria-label="Fokus für" disabled={busy} className="min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3" value={partId ?? ''} onChange={(event) => { setSearch({ teil: event.target.value }); setInterrupting(false) }}><option value="">Gesamte Aufgabe</option>{unavailablePart && <option value={partId}>Teilschritt nicht verfügbar</option>}{task.subtasks?.filter((item) => item.doneAt === undefined).map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-        {nextStep !== title && <p className="mb-2 break-words text-muted">{title}</p>}
-        {part && !unavailablePart && <p className="mb-2 text-sm text-accent">Teilschritt</p>}
-        <h1 className="break-words text-3xl font-semibold leading-tight">{unavailablePart && open ? 'Teilschritt nicht verfügbar' : open ? nextStep : title}</h1>
-        {open && resumeNote && <p className="mt-3 whitespace-pre-wrap break-words text-muted">Für den Wiedereinstieg: {resumeNote}</p>}
-        {!open ? (
-          <div className="mt-6 space-y-3">
-            <p className="text-xl text-accent">{taskStateLabel(task)}</p>
-            <Button disabled={busy} variant="ghost" onClick={() => void run(() => task.done ? st.completeTask(reference, false) : st.setTaskState(reference, 'pending'))}>
-              {task.done ? 'Erledigung zurücknehmen' : 'Aufgabe wieder öffnen'}
-            </Button>
-            <Link to={back} className="flex min-h-12 items-center text-accent">Zur Aufgabenliste</Link>
-          </div>
-        ) : unavailablePart ? <div className="mt-6 space-y-3"><p className="text-muted">{part?.doneAt !== undefined ? 'Dieser Teilschritt ist bereits erledigt.' : 'Dieser Teilschritt ist nicht mehr in der Aufgabe.'} Wähle oben einen offenen Schritt oder die gesamte Aufgabe.</p><p className="text-sm text-muted">Hier startet kein Timer von selbst.</p></div> : (
-          <>
-            {timer && (
-              <div className="mt-7 space-y-3 text-center">
-                <div role="timer" aria-live="off" aria-label={`Restzeit ${countdownText(timer, now)}`} className={`${countdownText(timer, now).length > 5 ? 'text-3xl sm:text-5xl' : 'text-5xl sm:text-6xl'} font-light tabular-nums`}>{countdownText(timer, now)}</div>
-                <Progress label="Abgelaufene Fokuszeit" value={timer.durationMs ? Math.min(1, elapsedMs(timer, now) / timer.durationMs) : 0} />
-                <p className="text-sm text-muted">{paused ? 'Pausiert' : `Zeitfenster bis ${clockTime(timer.deadlineAt)}`} · verstrichen: {Math.floor(elapsedMs(timer, now) / 60_000)} min</p>
-                {expired && <p className="text-muted">Zeitfenster zu Ende. Du entscheidest, ob du weiterarbeitest, abschließt oder pausierst.</p>}
-              </div>
-            )}
-            {(!timer || expired) && (
-              <div className="mt-6 space-y-3">
-                {!taskIsActionable(task, now) && <p className="text-sm text-muted">Für später vorgesehen. Du entscheidest, ob du jetzt damit anfangen möchtest.</p>}
-                {partId ? <label className="block space-y-1"><span>Dauer in Minuten</span><TextInput aria-label="Teilschritt-Timer Minuten" type="number" min="0.01" max="1440" step="any" inputMode="decimal" value={duration} onChange={(event) => setPartMinutes((current) => new Map(current).set(partId, event.target.value))} /></label> : <Segmented<FocusMinutes> label="Fokuszeit" value={minutes} onChange={setMinutes} options={WINDOWS.map((value) => ({ value, label: `${value} min` }))} />}
-                {st.local.focus && !activeFocus && st.local.focus.timer.status === 'running' && <p className="text-sm text-muted">Der andere Timer läuft weiter, bis du diesen Fokus startest.</p>}
-                <Button disabled={busy} variant="primary" size="xl" className="min-w-0 w-full" onClick={() => void start()}><span className="min-w-0 [overflow-wrap:anywhere]">{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'}</span></Button>
-              </div>
-            )}
-            {timer && !expired && (
-              <div className="mt-6 grid min-w-0 grid-cols-1 gap-3">
-                <Button disabled={busy} variant="primary" size="xl" className="min-w-0 w-full" onClick={() => void (paused ? continueFocus() : partId ? completePart() : complete())}><span className="min-w-0 [overflow-wrap:anywhere]">{paused ? 'Weiter' : partId ? 'Teilschritt erledigt' : 'Erledigt'}</span></Button>
-                {!paused && <Button disabled={busy} size="lg" className="w-full" onClick={() => void run(() => st.pauseTaskFocus(reference, undefined, undefined, partId))}>Pause</Button>}
-              </div>
-            )}
-            {(!timer || paused || expired) && <Button disabled={busy} size="lg" className="mt-3 min-w-0 w-full" onClick={() => void (partId ? completePart() : complete())}><span className="min-w-0 [overflow-wrap:anywhere]">{partId ? 'Teilschritt erledigt' : 'Erledigt'}</span></Button>}
-            {timer && <Button disabled={busy} variant="ghost" size="lg" className="mt-3 w-full" onClick={() => void run(() => st.clearFocus(focus!.id))}>Timer beenden</Button>}
-            {(!partId || activeFocus) && <Button disabled={busy} variant="ghost" size="lg" className="mt-3 w-full" aria-expanded={interrupting} onClick={beginInterruption}>Ich wurde unterbrochen</Button>}
-          </>
-        )}
-      </section>
-
-      {open && !unavailablePart && interrupting && (
-        <Card>
-          <form className="space-y-3" onSubmit={(event) => {
-            event.preventDefault()
-            void run(async () => {
-              await st.pauseTaskFocus(reference, partId ? undefined : resumeStep.trim() || undefined, note.trim(), partId)
-              setInterrupting(false)
-              st.showToast('Gesichert. Dein nächster Schritt bleibt erhalten.')
-            })
-          }}>
-            {!partId && <label className="block space-y-1"><span>Nächster kleiner Schritt</span><TextInput aria-label="Nächster kleiner Schritt" value={resumeStep} onChange={(event) => setResumeStep(event.target.value)} /></label>}
-            <label className="block space-y-1"><span>Wenn ich zurückkomme … (freiwillig)</span><textarea aria-label="Wenn ich zurückkomme" value={note} onChange={(event) => setNote(event.target.value)} rows={2} className="w-full rounded-xl bg-surface-2 p-3" /></label>
-            <Button disabled={busy} type="submit" variant="primary" className="w-full">Pause und Wiedereinstieg merken</Button>
-          </form>
-        </Card>
-      )}
-
-      {open && !unavailablePart && (
-        <details className="space-y-3">
-          <summary className="min-h-11 py-2 text-muted">Details & Abschluss</summary>
-          <TaskPurpose taskRef={reference} task={task} />
-          {task.description && <p className="whitespace-pre-wrap break-words text-muted">{task.description}</p>}
-          {!!task.subtasks?.length && (
-            <Section title="Kleine Schritte">
-              {task.subtasks.map((part) => (
-                <label key={part.id} className="flex min-h-12 items-center gap-3 rounded-xl bg-surface px-3 py-2">
-                  <input type="checkbox" disabled={busy} checked={part.doneAt !== undefined} aria-label={`Schritt erledigt: ${part.title}`} className="h-5 w-5 shrink-0 accent-[var(--accent)]" onChange={(event) => {
-                    const done = event.target.checked
-                    void run(() => st.setTaskPartDone(reference, part.id, done))
-                  }} />
-                  <span className="min-w-0 break-words">{part.title}</span>
-                </label>
-              ))}
-            </Section>
-          )}
-          {st.local.taskLearning?.enabled && (
-            <div className="space-y-3 rounded-2xl border border-line p-3">
-              <label className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={confirmDuration} onChange={(event) => setConfirmDuration(event.target.checked)} className="h-5 w-5 shrink-0 accent-[var(--accent)]" /><span>Meine tatsächliche Dauer für Schätzvorschläge bestätigen</span></label>
-              {confirmDuration && <label className="block space-y-1"><span>Tatsächliche Dauer in Minuten</span><TextInput aria-label="Bestätigte tatsächliche Dauer" type="number" min="1" max="480" step="1" inputMode="decimal" value={confirmedMinutes} onChange={(event) => setConfirmedMinutes(event.target.value)} placeholder="Zum Beispiel 18" /></label>}
-              <p className="text-sm text-muted">Freiwillig. Nur deine bestätigte Dauer fließt in lokale Vorschläge ein.</p>
-            </div>
-          )}
-          <Button disabled={busy} variant="ghost" className="w-full" onClick={() => void complete(true)}>{partId ? 'Gesamte Aufgabe klein erledigt' : 'Kleine Version erledigt'}</Button>
-          {partId && <Button disabled={busy} className="w-full" onClick={() => void complete()}>Gesamte Aufgabe erledigt</Button>}
-          <p className="text-sm text-muted">Fokuszeit ist keine Arbeitszeitbuchung. Ein abgelaufenes Zeitfenster bestätigt keine Erledigung.</p>
-        </details>
-      )}
-    </div>
-  )
+      {open && !unavailablePart && !timer && (!!task.subtasks?.length || partId) && targetChoice}
+      {nextStep !== title && <p className="break-words text-muted">{title}</p>}
+      {part && !unavailablePart && <p className="text-sm text-muted">Teilschritt</p>}
+      <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{unavailablePart && open ? 'Teilschritt nicht verfügbar' : open ? nextStep : title}</h1>
+      {open && resumeNote && <p className="whitespace-pre-wrap break-words text-sm text-muted">Für den Wiedereinstieg: {resumeNote}</p>}
+      {!open ? <div className="space-y-3"><p className="text-xl text-accent">{taskStateLabel(task)}</p>
+        <Button disabled={busy} variant="primary" onClick={() => void run(() => task.done ? st.completeTask(reference, false) : st.setTaskState(reference, 'pending'))}>{task.done ? 'Erledigung zurücknehmen' : 'Aufgabe wieder öffnen'}</Button>
+        <Link to={back} className="flex min-h-12 items-center justify-center text-accent">Zur Aufgabenliste</Link>
+      </div> : unavailablePart ? <div className="space-y-3"><p className="text-muted">{part?.doneAt !== undefined ? 'Dieser Teilschritt ist bereits erledigt.' : 'Dieser Teilschritt ist nicht mehr in der Aufgabe.'} Wähle einen offenen Schritt oder die gesamte Aufgabe.</p>{targetChoice}<p className="text-sm text-muted">Hier startet kein Timer von selbst.</p></div> : <>
+        {timer && <>
+          <RingTimer remainingSec={Math.ceil((left ?? 0) / 1000)} totalSec={timer.durationMs / 1000} paused={paused} pulse={st.settings.focus.pulse} label="Restzeit im Fokus" />
+          <p className="text-sm text-muted">{paused ? 'Pausiert' : `Bis ${clockTime(timer.deadlineAt)}`} · {Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen</p>
+          {expired && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wie du weitermachst.</p>}
+        </>}
+        {(!timer || expired) && <div className="min-w-0 space-y-3">
+          {!taskIsActionable(task, now) && <p className="text-sm text-muted">Für später vorgesehen. Du entscheidest, ob du jetzt anfangen möchtest.</p>}
+          <DurationPicker label={partId ? 'Teilschritt-Timer Minuten' : 'Fokuszeit'} value={duration} options={partId ? [2, 5, 10, 15] : [15, 25, 40, 50]} onChange={value => partId ? setPartMinutes(current => new Map(current).set(partId, value)) : setMinutes(value)} />
+          {st.local.focus && !activeFocus && st.local.focus.timer.status === 'running' && <p className="text-sm text-muted">Der andere Timer läuft weiter, bis du diesen Fokus startest.</p>}
+        </div>}
+      </>}
+    </FocusFrame>
+    <Sheet open={stopOpen} onClose={() => { setStopOpen(false); setInterrupting(false) }} title={interrupting ? 'Wiedereinstieg merken' : 'Fokus stoppen'}>
+      {interrupting ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void run(async () => { await st.pauseTaskFocus(reference, partId ? undefined : resumeStep.trim() || undefined, note.trim(), partId); setInterrupting(false); setStopOpen(false); st.showToast('Dein nächster Schritt bleibt erhalten.') }) }}>
+        {!partId && <label className="block space-y-1"><span>Nächster kleiner Schritt</span><TextInput aria-label="Nächster kleiner Schritt" value={resumeStep} onChange={event => setResumeStep(event.target.value)} /></label>}
+        <label className="block space-y-1"><span>Wenn ich zurückkomme …</span><textarea aria-label="Wenn ich zurückkomme" value={note} onChange={event => setNote(event.target.value)} rows={2} className="w-full rounded-xl bg-surface-2 p-3" /></label>
+        <Button disabled={busy} type="submit" variant="primary" className="w-full">Pause und Wiedereinstieg merken</Button>
+      </form> : <div className="space-y-3">
+        {activeFocus && <Button variant="primary" className="w-full" onClick={beginInterruption}>Unterbrochen – Wiedereinstieg merken</Button>}
+        {focus && <Button className="w-full" onClick={() => void run(async () => { await st.clearFocus(focus.id); setStopOpen(false) })}>Einfach beenden</Button>}
+        {!!task.subtasks?.length && <details className="space-y-3"><summary className="min-h-11 py-2 text-muted">Anderen Schritt wählen</summary>{targetChoice}<p className="text-sm text-muted">Der bisherige Timer bleibt erhalten, bis du einen anderen startest.</p></details>}
+        <p className="text-sm text-muted">Beenden erledigt keine Aufgabe.</p>
+      </div>}
+    </Sheet>
+  </>
 }

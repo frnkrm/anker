@@ -2,10 +2,11 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { geofencePlace, removeGeofenceChoice, selectGeofenceVisit, type GeofenceSuggestion } from '../../core/geofences'
 import { answerGeofenceSuggestion, refreshGeofences, requestGeofencePermission } from '../../platform/geofences'
+import { plural } from '../../core/uiText'
 import { isNative } from '../../platform/native'
 import { useGeofenceState } from '../../state/useGeofences'
 import { useApp } from '../../state/store'
-import { Button, Stepper } from './ui'
+import { Button, Checkbox, Stepper } from './ui'
 
 const issues: Record<string, string> = {
   'foreground-permission-required': 'Für den Standorthinweis fehlt noch der genaue Standort.',
@@ -111,11 +112,11 @@ export function GeofenceVisit({ commitmentId }: { commitmentId: string }) {
       {place && eligible && <>
         <div className="flex flex-wrap items-center justify-between gap-2"><span>Umkreis</span><Stepper label={`Umkreis ${commitment.label}`} value={radius} onChange={setRadius} min={100} max={1000} step={50} unit="m" /></div>
         <div className="flex flex-wrap items-center justify-between gap-2"><span>Mindestaufenthalt</span><Stepper label={`Mindestaufenthalt ${commitment.label}`} value={minutes} onChange={setMinutes} min={1} max={15} step={1} /></div>
-        <label className="flex min-h-11 items-start gap-3 py-2"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 h-5 w-5 shrink-0" /><span className="text-sm">Ich möchte für diesen Besuch bei „{place.label}“ den Standorthinweis mit Android und Google Play Diensten verwenden.</span></label>
+        <Checkbox checked={consent} onChange={setConsent}>Ich möchte für diesen Besuch bei „{place.label}“ den Standorthinweis mit Android und Google Play Diensten verwenden.</Checkbox>
         <Button size="sm" disabled={!consent || busy} onClick={() => void run(select)}>{selected ? 'Auswahl erneut bestätigen' : 'Für diesen Besuch auswählen'}</Button>
       </>}
       {selected && <>
-        <p className="text-sm text-muted">{state.updating ? 'Android gleicht die Auswahl gerade ab.' : state.registered > 0 ? `Android bestätigt insgesamt ${state.registered} aktive Standorthinweise.` : 'Auswahl gespeichert. Ein aktiver Standorthinweis ist derzeit noch nicht bestätigt.'}</p>
+        <p className="text-sm text-muted">{state.updating ? 'Android gleicht die Auswahl gerade ab.' : state.registered > 0 ? `Android bestätigt insgesamt ${plural(state.registered, 'aktiven Standorthinweis', 'aktive Standorthinweise')}.` : 'Auswahl gespeichert. Ein aktiver Standorthinweis ist derzeit noch nicht bestätigt.'}</p>
         {bound && !state.fineGranted && <Button size="sm" disabled={busy} onClick={() => void run(() => requestGeofencePermission('foreground'))}>Genauen Standort freigeben</Button>}
         {bound && state.fineGranted && !state.backgroundGranted && <>
           <p className="text-sm text-muted">Für eine Erkennung bei geschlossener App kannst du anschließend separat „Immer zulassen“ in Android wählen. Das ist freiwillig.</p>

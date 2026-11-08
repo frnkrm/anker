@@ -1,70 +1,60 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router'
 import { inQuietHours } from '../../core/support'
 import { fmtTime } from '../../core/time'
 import { isNative } from '../../platform/native'
 import { notificationPermission, requestNotificationPermission } from '../../platform/notifications'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Row, SettingRow, TextInput, TimeField, Toggle } from '../components/ui'
+import { Button, Card, MoreInfo, notifySaved, Row, SettingRow, TextInput, TimeField, Toggle } from '../components/ui'
 
+/** Existing notification deep links retain the same configuration under the shared evening page. */
 export default function WindDown() {
+  return <Navigate to="/einstellungen/abend#uebergang" replace />
+}
+
+export function WindDownFields() {
   const st = useApp()
-  const [draft, setDraft] = useState(st.settings.support.windDown)
-  const [message, setMessage] = useState('')
+  const config = st.settings.support.windDown
+  const [activity, setActivity] = useState(config.activity)
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
-  const savingRef = useRef(false)
   const [permission, setPermission] = useState('prompt')
   useEffect(() => { void notificationPermission().then(setPermission) }, [])
-  const quiet = inQuietHours(draft.at, st.settings)
-
-  return (
-    <Page className="settings-page" title="Sanfter Abendübergang" back="/einstellungen">
-      <p className="text-muted">Wähle eine ruhige Tätigkeit, zu der du am Abend wechseln möchtest. Ein Hinweis zur gewählten Zeit reicht.</p>
-      <form className="space-y-4" onSubmit={async (event) => {
-        event.preventDefault()
-        if (savingRef.current) return
-        if (!draft.activity.trim()) { setError('Trage eine ruhige Tätigkeit ein, die zu dir passt.'); return }
-        savingRef.current = true
-        setSaving(true)
-        setError('')
-        setMessage('')
-        try {
-          await st.saveSettings((settings) => ({ ...settings, support: { ...settings.support, windDown: { ...draft, activity: draft.activity.trim() } } }))
-          setMessage('Einstellung gespeichert.')
-        } catch { setError('Die Einstellung konnte nicht sicher gespeichert werden. Bitte versuche es erneut.') }
-        finally { savingRef.current = false; setSaving(false) }
-      }}>
-        <Card className="space-y-4">
-          <SettingRow label={<span>Sanften Hinweis anbieten</span>}>
-            <Toggle label="Sanften Abendübergang einschalten" checked={draft.enabled} onChange={(enabled) => setDraft({ ...draft, enabled })} />
-          </SettingRow>
-          <label className="block space-y-1">
-            <span className="block">Meine ruhige Tätigkeit</span>
-            <TextInput aria-label="Meine ruhige Tätigkeit" maxLength={160} required value={draft.activity} onChange={(event) => setDraft({ ...draft, activity: event.target.value })} placeholder="Zum Beispiel: ruhige Musik hören" />
-          </label>
-          <SettingRow label={<span>Einmaliger Hinweis um</span>}>
-            <TimeField label="Abendübergang um" value={draft.at} onChange={(at) => setDraft({ ...draft, at })} />
-          </SettingRow>
-          <p className="text-sm text-muted">Eingeschaltet ersetzt dies die PC-Stopp- und Bett-Erinnerungen durch einen sanften Hinweis pro Abend. Der Morgenwecker und deine geplanten Zeiten bleiben bestehen.</p>
-          <p className="text-sm text-muted">Deine Tätigkeit siehst du in der App. Der Sperrbildschirm zeigt einen allgemeinen Hinweis.</p>
-          {quiet && <p role="status" className="text-sm text-warm">{fmtTime(draft.at)} liegt in deinen Ruhezeiten. Dort bleibt auch dieser Hinweis still. Du kannst die Tätigkeit jederzeit unter Abend & morgen öffnen.</p>}
-          {draft.at < 240 && <p className="text-sm text-muted">Diese Uhrzeit gehört zum Abend vor Mitternacht, bis zum Tageswechsel um 04:00.</p>}
-        </Card>
-        {error && <p role="alert" className="text-warm">{error}</p>}
-        {message && <p role="status" className="text-accent">{message}</p>}
-        <Button type="submit" variant="primary" className="w-full" disabled={saving}>{saving ? 'Wird gespeichert …' : 'Übergang speichern'}</Button>
-      </form>
-      <Card className="space-y-3">
+  useEffect(() => setActivity(config.activity), [config.activity])
+  const save = async (patch: Partial<typeof config>) => {
+    setError('')
+    try {
+      await st.saveSettings((settings) => ({ ...settings, support: { ...settings.support, windDown: { ...settings.support.windDown, ...patch } } }))
+      notifySaved()
+    } catch { setError('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.') }
+  }
+  const quiet = inQuietHours(config.at, st.settings)
+  return <div className="space-y-3">
+    <p className="text-sm text-muted">Ein ruhiger Wechsel am Abend – mit deiner eigenen Tätigkeit.</p>
+    <Card className="space-y-3">
+      <SettingRow label="Sanften Hinweis anbieten"><Toggle label="Sanften Abendübergang einschalten" checked={config.enabled} onChange={(enabled) => void save({ enabled })} /></SettingRow>
+      {config.enabled && <>
+        <label className="block space-y-1"><span>Meine ruhige Tätigkeit</span><TextInput aria-label="Meine ruhige Tätigkeit" maxLength={160} value={activity} onChange={(event) => setActivity(event.target.value)} onBlur={() => {
+          if (!activity.trim()) { setError('Welche ruhige Tätigkeit passt zu dir? Deine bisherige Auswahl bleibt erhalten.'); return }
+          if (activity.trim() !== config.activity) void save({ activity: activity.trim() })
+        }} placeholder="Zum Beispiel: ruhige Musik hören" /></label>
+        <SettingRow label="Hinweis um"><TimeField label="Abendübergang um" value={config.at} onChange={(at) => void save({ at })} /></SettingRow>
+      </>}
+      <MoreInfo>
+        <p className="text-sm text-muted">Eingeschaltet ersetzt dies die PC-Stopp- und Bett-Erinnerungen durch einen sanften Hinweis pro Abend. Morgenwecker und geplante Zeiten bleiben bestehen.</p>
+        <p className="text-sm text-muted">Deine Tätigkeit siehst du in der App. Der Sperrbildschirm zeigt einen allgemeinen Hinweis.</p>
+        {config.at < 240 && <p className="text-sm text-muted">Bis 04:00 gehört die gewählte Uhrzeit noch zum vorherigen Abend.</p>}
         {isNative() ? <>
-          <p className="text-sm text-muted">{permission === 'granted' ? 'Benachrichtigungen sind erlaubt. Der Hinweis wird sanft zugestellt und kann sich durch Energiesparen verzögern.' : 'Für einen Hinweis bei geschlossener App braucht Anker die Benachrichtigungsfreigabe.'}</p>
+          <p className="text-sm text-muted">{permission === 'granted' ? 'Benachrichtigungen sind erlaubt. Energiesparen kann die Zustellung verzögern.' : 'Für einen Hinweis bei geschlossener App braucht Anker die Benachrichtigungsfreigabe.'}</p>
           {permission !== 'granted' && <Button onClick={async () => {
             try { await requestNotificationPermission(); setPermission(await notificationPermission()) }
-            catch { setError('Die Freigabe konnte nicht geöffnet werden. Prüfe die Benachrichtigungen unter Einrichtungs-Check.') }
+            catch { setError('Die Freigabe konnte nicht geöffnet werden. Prüfe den Einrichtungs-Check.') }
           }}>Benachrichtigungen erlauben</Button>}
-        </> : <p className="text-sm text-muted">Hinweise bei geschlossener App sind in der Android-App verfügbar. In der Web-Version findest du deine gewählte Tätigkeit unter Abend & morgen.</p>}
-      </Card>
-      <Row label="Abend & morgen öffnen" to="/abend" />
-      <Row label="Ruhezeiten und Erinnerungen" to="/einstellungen/erinnerungen" />
-    </Page>
-  )
+        </> : <p className="text-sm text-muted">Hinweise bei geschlossener App gibt es in der Android-App. Im Browser findest du deine Tätigkeit unter Abend & morgen.</p>}
+        <Row label="Abend & morgen öffnen" to="/abend" />
+        <Row label="Ruhezeiten einstellen" to="/einstellungen/erinnerungen" />
+      </MoreInfo>
+      {config.enabled && quiet && <p role="status" className="text-sm text-muted">{fmtTime(config.at)} liegt in deinen Ruhezeiten. Der Hinweis bleibt dort still; deine Tätigkeit bleibt in der App sichtbar.</p>}
+    </Card>
+    {error && <p role="alert" className="text-sm text-warm">{error}</p>}
+  </div>
 }

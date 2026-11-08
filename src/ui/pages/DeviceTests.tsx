@@ -12,10 +12,9 @@ import type { DeviceTestReport, DeviceTestResult } from '../../core/types'
 import { pickTextFile, saveFile } from '../../platform/files'
 import { AnkerNative, isNative } from '../../platform/native'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Row, Section, TextInput } from '../components/ui'
+import { Button, Card, Checkbox, Choice, Page, Row, Section, TextInput } from '../components/ui'
 import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
-const SELECT_CLASS = 'min-h-12 w-full rounded-xl bg-surface-2 px-3 text-base'
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
 const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85, 86, 88, 90, 94, 95])
 
@@ -189,14 +188,9 @@ export default function DeviceTests() {
         <Button onClick={() => { setGroup('Android-Systemleisten'); setOnlyOpen(false); select(75, 'Android-Systemleisten') }}>Systemleisten prüfen</Button>
       </div>
       </details>
-      <label className="block space-y-1"><span>Bereich</span><select aria-label="Testbereich" className={SELECT_CLASS} value={group} onChange={(e) => { setGroup(e.target.value); setParams({}) }}>
-        {[DEVICE_TEST_SHORT_GROUP, 'Alle', ...new Set(catalog.map((test) => test.group))].map((name) => <option key={name}>{name}</option>)}
-      </select></label>
-      <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />Für diesen Stand noch offen (frühere Belege bleiben sichtbar)</label>
-      <label className="block space-y-1"><span>Test auswählen</span><select aria-label="Test auswählen" className={SELECT_CLASS} value={selected?.id ?? ''} onChange={(e) => select(Number(e.target.value))}>
-        <option value="" disabled>{visible.length ? 'Test auswählen' : 'Hier ist gerade nichts offen'}</option>
-        {visible.map((test) => <option key={test.id} value={test.id}>{currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed' ? '✓ ' : deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous.length ? 'Früher geprüft · ' : !saved.reports[test.id] ? 'Noch nie geprüft · ' : ''}{test.id}: {test.action}</option>)}
-      </select></label>
+      <Choice label="Testbereich" value={group} onChange={(value) => { setGroup(value); setParams({}) }} options={[DEVICE_TEST_SHORT_GROUP, 'Alle', ...new Set(catalog.map((test) => test.group))].map((name) => ({ value: name, label: name }))} />
+      <Checkbox label="Für diesen Stand noch offen (frühere Belege bleiben sichtbar)" checked={onlyOpen} onChange={setOnlyOpen} />
+      <Choice label="Test auswählen" value={selected?.id ?? ''} onChange={(value) => select(Number(value))} placeholder={visible.length ? 'Test auswählen' : 'Hier ist gerade nichts offen'} options={visible.map((test) => ({ value: test.id, label: `${currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed' ? '✓ ' : deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous.length ? 'Früher geprüft · ' : !saved.reports[test.id] ? 'Noch nie geprüft · ' : ''}${test.id}: ${test.action}` }))} />
     </Section>
     {selected ? <>
       <TestView key={selected.id} test={selected} transferBusy={reportBusy} onBusy={setReportBusy} />

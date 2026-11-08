@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { countdownText, elapsedMs, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
+import { elapsedMs, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
 import { nextHardTime } from '../../core/planner'
 import { openSteps } from '../../core/now'
 import { MODE_LABEL } from '../../core/support'
@@ -9,12 +9,11 @@ import type { FocusPulseMode, ResumePoint, RoutineId } from '../../core/types'
 import { useToday } from '../../state/hooks'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
-import { InboxButton } from '../components/Shell'
+import { FocusFrame } from '../components/FocusFrame'
 import { TodayDifferent } from '../components/TodayDifferent'
-import { Button, Progress } from '../components/ui'
+import { Button, Choice, RingTimer, Sheet, TextInput } from '../components/ui'
 
-const NEXT_PULSE: Record<FocusPulseMode, FocusPulseMode> = { off: 'gentle', gentle: 'strong', strong: 'off' }
-const PULSE_LABEL: Record<FocusPulseMode, string> = { off: 'Puls aus', gentle: 'Puls sanft', strong: 'Puls deutlich' }
+const PULSE_LABEL: Record<FocusPulseMode, string> = { off: 'Aus', gentle: 'Sanft', strong: 'Deutlich' }
 
 function legacyStart(key: string): number | undefined {
   try {
@@ -48,6 +47,9 @@ export default function Focus() {
   const m = minutesOnPlanDay(date, now)
   const [error, setError] = useState('')
   const [different, setDifferent] = useState(false)
+  const [stopOpen, setStopOpen] = useState(false)
+  const [interrupting, setInterrupting] = useState(false)
+  const [resumeNote, setResumeNote] = useState('')
   const [retry, setRetry] = useState(0)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -108,39 +110,41 @@ export default function Focus() {
   })
   const captureContext: ResumePoint = { kind: 'step', title, refId: `${date}:${r}:${step.id}`, at: now, route: `/fokus/${r}` }
 
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pb-6 safe-top">
-      <header className="flex items-center justify-between gap-2 py-2">
-        <Link to="/" className="grid h-12 w-12 place-items-center rounded-2xl text-2xl text-muted active:bg-surface-2" aria-label="Fokus-Modus verlassen">✕</Link>
-        <span className="text-center text-muted">Schritt {index + 1} von {steps.length}{mode && mode !== 'normal' && <span className="block text-sm">{MODE_LABEL[mode]}</span>}</span>
-        <div className="flex w-24 justify-end">
-          <Link to={`/druck?typ=${r}`} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-xl text-muted" aria-label={r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}>🖨️</Link>
-          <InboxButton context={captureContext} />
+  const pauseOrContinue = () => session && run(() => st.updateFocus(session.id, (current) => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })))
+  return <>
+    <FocusFrame back="/" context={<>Schritt {index + 1} von {steps.length}{mode && mode !== 'normal' && <span className="block">{MODE_LABEL[mode]}</span>}</>} capture={captureContext} progress={index / steps.length}
+      footer={<>
+        <Button variant="primary" size="xl" className="w-full" disabled={busy} onClick={() => { if (session) void done(minimalMode ? 'minimal' : 'done'); else setError('Die Fokuszeit wird noch vorbereitet. Versuche es gleich noch einmal.') }}>Erledigt</Button>
+        <div className="grid grid-cols-2 gap-2">
+          {timer && session && left > 0 ? <Button size="lg" disabled={busy} onClick={() => void pauseOrContinue()}>{timer.status === 'running' ? 'Pause' : 'Weiter'}</Button> : <Button variant="ghost" size="lg" onClick={() => setDifferent(true)}>Heute anpassen</Button>}
+          <Button variant="ghost" size="lg" disabled={busy} onClick={() => setStopOpen(true)}>Stopp</Button>
         </div>
-      </header>
-      <Progress label="Fortschritt der Routine" value={index / steps.length} />
-      {toHard <= 15 && hard && <p className="mt-4 rounded-2xl bg-warm-soft px-4 py-3 text-center text-lg text-warm" role="status">Noch {Math.max(0, toHard)} Minuten bis {hard.label}</p>}
-      {error && <div role="alert" className="mt-3 text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry((value) => value + 1)}>Erneut versuchen</Button></div>}
-
-      <section className="flex flex-1 flex-col items-center justify-center py-6 text-center">
-        <h1 className="break-words text-5xl leading-tight font-semibold">{title}</h1>
-        <div className="mt-8 text-7xl font-light tabular-nums" role="timer" aria-label={`${Math.ceil(left / 60)} Minuten übrig`}>{timer ? countdownText(timer, now) : '…'}</div>
-        {timer && <p className="mt-2 text-sm text-muted">{Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen{timer.status === 'running' && ` · Zeitfenster bis ${new Date(timer.deadlineAt).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })}`}</p>}
-        {timer?.status === 'paused' && <p className="mt-2 text-muted">Pausiert. Die Restzeit bleibt erhalten.</p>}
-        {timer && left === 0 && <p className="mt-2 text-muted">Zeitfenster zu Ende. Du kannst in Ruhe weitermachen oder selbst abschließen.</p>}
-        {timer && session && left > 0 && <Button size="sm" className="mt-3" disabled={busy} onClick={() => void run(() => st.updateFocus(session.id, (current) => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })))}>{timer.status === 'running' ? 'Pause' : 'Weiter'}</Button>}
-        <button type="button" disabled={busy} className="mt-4 min-h-11 rounded-xl px-3 text-sm text-muted" aria-label={`Fokus-Puls umschalten, aktuell ${PULSE_LABEL[st.settings.focus.pulse]}`} onClick={() => void run(() => st.saveSettings((settings) => ({ ...settings, focus: { ...settings.focus, pulse: NEXT_PULSE[settings.focus.pulse] } })))}>{PULSE_LABEL[st.settings.focus.pulse]}</button>
-      </section>
-      <Button variant="ghost" size="sm" disabled={busy} onClick={() => setDifferent(true)}>Heute anders</Button>
-      <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />
-
-      <div className="space-y-3">
-        <Button variant="primary" size="xl" className="w-full" disabled={busy || !session} onClick={() => void done(minimalMode ? 'minimal' : 'done')}>Erledigt</Button>
-        <div className="flex gap-2">
-          {step.minimal && !minimalMode && <Button size="lg" className="flex-1" disabled={busy} onClick={() => void run(() => st.ensureFocus({ kind: 'routine', date, routine: r, stepId: step.id, minimal: true }, step.minimal!.minutes * 60))}>Kleinere Version</Button>}
-          <Button variant="ghost" size="lg" className="flex-1" disabled={busy} onClick={() => void done('skipped')}>Überspringen</Button>
-        </div>
-      </div>
-    </div>
-  )
+      </>}
+      details={<details className="min-w-0 space-y-3"><summary className="min-h-11 py-2 text-muted">Weitere Möglichkeiten</summary>
+        <Choice<FocusPulseMode> label="Fokus-Puls" value={st.settings.focus.pulse} options={(['off', 'gentle', 'strong'] as const).map(value => ({ value, label: PULSE_LABEL[value] }))} onChange={pulse => void run(() => st.saveSettings(settings => ({ ...settings, focus: { ...settings.focus, pulse } })))} />
+        {step.minimal && !minimalMode && <Button size="lg" className="w-full" disabled={busy} onClick={() => void run(() => st.ensureFocus({ kind: 'routine', date, routine: r, stepId: step.id, minimal: true }, step.minimal!.minutes * 60))}>Kleinere Version</Button>}
+        <Button variant="ghost" size="lg" className="w-full" disabled={busy} onClick={() => void done('skipped')}>Überspringen</Button>
+        <Button variant="ghost" size="lg" className="w-full" onClick={() => setDifferent(true)}>Heute anpassen</Button>
+        <Link to={`/druck?typ=${r}`} className="flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>
+      </details>}>
+      {toHard <= 15 && hard && <p className="rounded-2xl bg-warm-soft px-3 py-2 text-warm" role="status">Noch {Math.max(0, toHard)} min bis {hard.label}</p>}
+      {error && <div role="alert" className="text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</Button></div>}
+      <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{title}</h1>
+      <RingTimer remainingSec={left} totalSec={seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der Routine" />
+      {timer && <p className="text-sm text-muted">{Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen{timer.status === 'running' && ` · bis ${new Date(timer.deadlineAt).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })}`}</p>}
+      {timer && left === 0 && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wann du abschließt.</p>}
+    </FocusFrame>
+    <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />
+    <Sheet open={stopOpen} onClose={() => { setStopOpen(false); setInterrupting(false) }} title="Fokus stoppen">
+      {interrupting ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void run(async () => { if (!session) return; await st.saveLocal(local => local.focus?.id === session.id ? { ...local, focus: { ...local.focus, timer: pauseCountdown(local.focus.timer, Date.now()) }, resume: { ...captureContext, note: resumeNote.trim() || undefined } } : local); setStopOpen(false); nav('/') }) }}>
+        <p className="text-muted">Dein nächster Schritt bleibt: {title}</p>
+        <TextInput aria-label="Wenn ich zurückkomme" placeholder="Eine Notiz für deinen Wiedereinstieg" value={resumeNote} onChange={event => setResumeNote(event.target.value)} />
+        <Button type="submit" variant="primary" className="w-full" disabled={busy}>Pause und Wiedereinstieg merken</Button>
+      </form> : <div className="space-y-3">
+        {session && <Button className="w-full" onClick={() => setInterrupting(true)}>Unterbrochen – Wiedereinstieg merken</Button>}
+        <Button className="w-full" onClick={() => void run(async () => { if (session) await st.clearFocus(session.id); setStopOpen(false); nav('/') })}>Einfach beenden</Button>
+        <p className="text-sm text-muted">Beenden erledigt keinen Schritt.</p>
+      </div>}
+    </Sheet>
+  </>
 }

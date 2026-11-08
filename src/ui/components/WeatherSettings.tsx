@@ -4,7 +4,7 @@ import { currentWeatherProfile } from '../../core/weatherProfile'
 import type { Settings, WeatherProfile } from '../../core/types'
 import { findCity } from '../../platform/weather'
 import { useApp } from '../../state/store'
-import { Button, Card, SettingRow, Stepper, TextInput, Toggle } from './ui'
+import { Button, Card, MoreInfo, SettingRow, Stepper, TextInput, Toggle } from './ui'
 
 const token = (profile: WeatherProfile | undefined) => JSON.stringify(profile && [profile.enabled, profile.city, profile.lat, profile.lng, profile.revision])
 
@@ -30,7 +30,7 @@ export function WeatherSettings({ s, save }: { s: Settings; save: (fn: (settings
 
   const chooseCity = async () => {
     const query = city.trim()
-    if (!query) return
+    if (!query) { setMessage('Welche Stadt möchtest du verwenden?'); return }
     const version = ++generation.current
     const before = token(currentWeatherProfile(useApp.getState().settings, useApp.getState().local))
     setBusy(true); setMessage('')
@@ -53,12 +53,12 @@ export function WeatherSettings({ s, save }: { s: Settings; save: (fn: (settings
     <SettingRow label={<span>Wetterhinweise</span>}>
       <Toggle label="Wetterhinweise" checked={!!profile?.enabled} onChange={(value) => void changeEnabled(value)} />
     </SettingRow>
-    <p className="text-sm text-muted">Freiwillig. Bei der Stadtsuche erhält Open-Meteo den eingegebenen Namen, für die Vorhersage die gewählten Koordinaten und deine IP-Adresse. Keine Termintitel und keine GPS-Abfrage.</p>
+    <MoreInfo summary="Welche Daten werden übertragen?"><p className="text-sm text-muted">Bei der Stadtsuche erhält Open-Meteo den eingegebenen Namen, für die Vorhersage die gewählten Koordinaten und deine IP-Adresse. Keine Termintitel und keine GPS-Abfrage.</p></MoreInfo>
     <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); void chooseCity() }}>
       <TextInput aria-label="Ort für das Wetter" placeholder="Deine Stadt" value={city} maxLength={200} onChange={(event) => {
         generation.current++; setBusy(false); setCity(event.target.value)
       }} />
-      <Button type="submit" disabled={busy || !city.trim()}>{busy ? 'Ort wird gesucht …' : 'Stadt suchen & Wetter einschalten'}</Button>
+      <Button type="submit" disabled={busy}>{busy ? 'Ort wird gesucht …' : 'Stadt suchen & Wetter einschalten'}</Button>
     </form>
     {profile?.enabled && <p className="break-words text-sm text-muted">Gewählter Wetterort: {profile.city || 'Bei freigegebenen gespeicherten Orten'}. Nur Orte mit deiner eigenen Wetterfreigabe werden für einen Termin verwendet.</p>}
     {message && <p role="status" className="break-words text-sm text-muted">{message}</p>}

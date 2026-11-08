@@ -4,7 +4,7 @@ import { fromBerlinDateTimeInput, toBerlinDateTimeInput } from '../../core/eveni
 import { TZ } from '../../core/time'
 import type { InboxItem } from '../../core/types'
 import { useApp } from '../../state/store'
-import { Button, Card, TextInput } from './ui'
+import { Button, Card, Checkbox, DateField } from './ui'
 
 const timeFormatter = new Intl.DateTimeFormat('de-DE', {
   timeZone: TZ,
@@ -24,8 +24,7 @@ export function ScheduledAtInput({ label, value, onChange }: { label: string; va
   return (
     <label className="block space-y-1">
       <span className="block text-sm text-muted">{label}</span>
-      <TextInput type="datetime-local" aria-label={label} required value={value} onChange={(e) => onChange(e.target.value)} />
-      <span className="block text-xs text-muted">Uhrzeit in Berlin</span>
+      <DateField type="datetime-local" label={label} required value={value} onChange={onChange} />
     </label>
   )
 }
@@ -51,10 +50,7 @@ function RescheduleThought({ item, pending, onSave }: { item: InboxItem; pending
       }}
     >
       <ScheduledAtInput label="Neuer Zeitpunkt" value={at} onChange={setAt} />
-      <label className="flex min-h-11 items-center gap-3">
-        <input type="checkbox" className="h-5 w-5 accent-[var(--accent)]" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-        <span>Einmal erinnern</span>
-      </label>
+      <Checkbox checked={notify} onChange={setNotify} label="Einmal erinnern" />
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
       <Button type="submit" disabled={pending}>Zeit speichern</Button>
     </form>

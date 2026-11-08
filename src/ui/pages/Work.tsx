@@ -8,7 +8,7 @@ import { RestingTasks, TaskCard, TaskLearning, useTaskAction } from '../componen
 import { Button, Card, Page, Section, TextInput } from '../components/ui'
 
 /** Die vorhandenen lokalen Arbeitsaufgaben bekommen Start, Rücknahme und kleine Schritte. */
-export default function Work() {
+export default function Work({ embedded = false }: { embedded?: boolean }) {
   const st = useApp()
   const { date, m, plan, now } = useToday()
   const work = st.local.work
@@ -22,7 +22,7 @@ export default function Work() {
   const handover = st.local.handover[date] ?? { open: '', next: '' }
   const afterWork = plan.workEnd !== undefined && m >= plan.workEnd - 30
   const visible = showAll ? open : open.slice(0, MAX_WORK_VISIBLE)
-  return <Page title="Arbeit" back="/mehr">
+  const body = <>
     {yesterday?.next && <Card><p className="text-sm text-muted">Gestern notiert</p><p className="break-words text-lg">{yesterday.next}</p></Card>}
     <Section title="Heute am wichtigsten">
       {visible.map((task, index) => <TaskCard key={task.id} taskRef={{ kind: 'work', id: task.id }} task={task} first={index === 0} moveToTop={index > 0 ? () => st.moveWorkTaskToTop(task.id) : undefined} />)}
@@ -30,10 +30,10 @@ export default function Work() {
       {open.length > MAX_WORK_VISIBLE && <button type="button" className="min-h-11 px-1 text-sm text-muted underline" onClick={() => setShowAll(!showAll)}>{showAll ? 'Weniger zeigen' : `${open.length - MAX_WORK_VISIBLE} weitere`}</button>}
       <form className="flex flex-wrap gap-2" onSubmit={(event) => {
         event.preventDefault()
-        if (title.trim()) void run(async () => { await st.addWorkTask(title); setTitle('') })
-      }}><TextInput aria-label="Neue Aufgabe" placeholder="Neue Aufgabe" value={title} onChange={(event) => setTitle(event.target.value)} /><Button type="submit" disabled={busy || !title.trim()}>Hinzufügen</Button></form>
+        void run(async () => { if (!title.trim()) throw new Error('Trage einen Titel für deine Aufgabe ein.'); await st.addWorkTask(title); setTitle('') })
+      }}><TextInput aria-label="Neue Aufgabe" placeholder="Neue Aufgabe" value={title} onChange={(event) => setTitle(event.target.value)} /><Button type="submit" disabled={busy}>Hinzufügen</Button></form>
     </Section>
-    {later.length > 0 && <details className="px-1"><summary className="min-h-11 py-2 text-muted">Für später vorgemerkt ({later.length})</summary><div className="space-y-2">{later.map((task) => <TaskCard key={task.id} taskRef={{ kind: 'work', id: task.id }} task={task} />)}</div></details>}
+    {later.length > 0 && <details className="px-1"><summary className="min-h-11 py-2 text-muted">Für später ({later.length})</summary><div className="space-y-2">{later.map((task) => <TaskCard key={task.id} taskRef={{ kind: 'work', id: task.id }} task={task} />)}</div></details>}
     {completed.length > 0 && <details className="px-1"><summary className="min-h-11 py-2 text-muted">Erledigt ({completed.length})</summary><div className="space-y-2">{completed.map((task) => <Card key={task.id} className="space-y-2"><p className="break-words text-muted">{task.title}{task.doneMode === 'minimal' ? ' · kleine Version' : ''}</p><Button size="sm" disabled={busy} aria-label={`${task.title} zurücknehmen`} onClick={() => run(() => st.completeTask({ kind: 'work', id: task.id }, false))}>Erledigung zurücknehmen</Button></Card>)}</div></details>}
     <RestingTasks tasks={work} kind="work" />
     {(afterWork || handover.open || handover.next) && <Section title="Feierabend-Übergabe" hint="Eine Minute, nur für dich. Wird nicht an jemanden gesendet."><Card className="space-y-3">
@@ -42,10 +42,11 @@ export default function Work() {
     </Card></Section>}
     <TaskLearning />
     <details className="px-1"><summary className="min-h-11 py-2 text-muted">Vorlagen zum Kopieren</summary><div className="space-y-2 pt-2">{TEMPLATES.map((template) => <Card key={template.title} className="space-y-2"><p className="font-medium">{template.title}</p><p className="whitespace-pre-wrap text-muted">{template.text}</p><Button size="sm" disabled={busy} onClick={() => run(async () => { await navigator.clipboard.writeText(template.text); st.showToast('Kopiert. Senden entscheidest du.') })}>Kopieren</Button></Card>)}</div></details>
-    <p className="px-1 text-sm text-muted">Arbeitsaufgaben bleiben auf diesem Gerät und werden nicht synchronisiert. In Erinnerungen erscheinen ihre Inhalte nicht.</p>
+    <p className="px-1 text-sm text-muted">Arbeitsaufgaben bleiben auf diesem Gerät. Erinnerungen zeigen keine Inhalte.</p>
     {error && <p role="alert" className="text-sm text-warm">{error}</p>}
     {message && <p role="status" className="text-sm text-muted">{message}</p>}
-  </Page>
+  </>
+  return embedded ? <div className="min-w-0 space-y-4">{body}</div> : <Page title="Arbeit" back="/mehr">{body}</Page>
 }
 
 const TEMPLATES = [

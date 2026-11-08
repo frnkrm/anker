@@ -6,7 +6,9 @@ import { BedtimeNative } from '../../platform/bedtimePrompt'
 import { AnkerNative, isNative } from '../../platform/native'
 import { useNow } from '../../state/hooks'
 import { today, useApp } from '../../state/store'
-import { Button, Card, Page, Section, Segmented } from '../components/ui'
+import { germanDate } from '../../core/uiText'
+import { Button, Card, Choice, Section, Segmented } from '../components/ui'
+import { HubContent } from '../components/HubContent'
 
 const dateLabel = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', weekday: 'long', day: 'numeric', month: 'long' })
 const timeLabel = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })
@@ -27,7 +29,7 @@ function Entry({ entry }: { entry: TimeCatalogEntry }) {
         <dl className="space-y-1 text-muted">
           <div><dt className="inline font-medium">Quelle: </dt><dd className="inline">{sources[entry.source.kind]}</dd></div>
           <div><dt className="inline font-medium">Wirkung: </dt><dd className="inline">{TIME_EFFECT_LABELS[entry.effect]}</dd></div>
-          {entry.source.date && <div><dt className="inline font-medium">Plantag: </dt><dd className="inline">{entry.source.date}</dd></div>}
+          {entry.source.date && <div><dt className="inline font-medium">Plantag: </dt><dd className="inline">{germanDate(entry.source.date)}</dd></div>}
           {entry.observedAt !== undefined && <div><dt className="inline font-medium">Nativer Stand gelesen: </dt><dd className="inline">{dateLabel.format(entry.observedAt)}, {timeLabel.format(entry.observedAt)}</dd></div>}
         </dl>
         {entry.reason && <p className="break-words text-muted">{entry.reason}</p>}
@@ -38,7 +40,7 @@ function Entry({ entry }: { entry: TimeCatalogEntry }) {
 }
 
 /** Eine lokale, abgeleitete Übersicht. Lesen startet keine Hilfe und verändert keine Quelle. */
-export default function TimeOverview() {
+export default function TimeOverview({ embedded = false }: { embedded?: boolean } = {}) {
   const st = useApp()
   useNow(30_000) // Anzeige anstoßen; die Cacheprüfung braucht den aktuellen Zeitpunkt dieses Renders.
   const now = Date.now()
@@ -93,7 +95,7 @@ export default function TimeOverview() {
   const suggestions = snapshot?.suggestions.filter((suggestion) => suggestion.entryIds.some((id) => selectedIds.has(id)) || (!suggestion.entryIds.length && category === 'all' && status === 'all')) ?? []
   const resetLimits = () => { setLimit(PAGE_SIZE); setRuleLimit(PAGE_SIZE); setSuggestionLimit(5) }
 
-  return <Page title="Zeitübersicht" back="/mehr">
+  return <HubContent embedded={embedded} title="Zeitübersicht" back="/mehr">
     <p className="text-muted">Welche Zeiten zusammenwirken – aus deinen vorhandenen Einstellungen, Plänen und gestarteten Timern.</p>
     <details className="min-w-0 space-y-2">
       <summary className="min-h-11 cursor-pointer py-2 text-muted">Was die Übersicht zeigt</summary>
@@ -110,8 +112,8 @@ export default function TimeOverview() {
 
     <Segmented<'today' | 'next'> label="Zeitraum" value={range} options={[{ value: 'today', label: 'Heute' }, { value: 'next', label: 'Demnächst' }]} onChange={(value) => { setRange(value); resetLimits() }} />
     <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      <label className="min-w-0 space-y-1"><span className="text-sm text-muted">Kategorie</span><select aria-label="Kategorie" value={category} onChange={(event) => { setCategory(event.target.value as TimeCategory | 'all'); resetLimits() }} className="min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3"><option value="all">Alle Kategorien</option>{Object.entries(TIME_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label className="min-w-0 space-y-1"><span className="text-sm text-muted">Status</span><select aria-label="Status" value={status} onChange={(event) => { setStatus(event.target.value as TimeCatalogEntry['status'] | 'all'); resetLimits() }} className="min-h-12 w-full min-w-0 rounded-xl bg-surface-2 px-3"><option value="all">Alle Zustände</option>{Object.entries(TIME_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <Choice label="Kategorie" value={category} options={[{ value: 'all', label: 'Alle Kategorien' }, ...Object.entries(TIME_CATEGORIES).map(([value, label]) => ({ value, label }))]} onChange={(value) => { setCategory(value as TimeCategory | 'all'); resetLimits() }} />
+      <Choice label="Status" value={status} options={[{ value: 'all', label: 'Alle Zustände' }, ...Object.entries(TIME_STATUS_LABELS).map(([value, label]) => ({ value, label }))]} onChange={(value) => { setStatus(value as TimeCatalogEntry['status'] | 'all'); resetLimits() }} />
     </div>
 
     {!!suggestions.length && <Section title="Zusammenhänge prüfen">
@@ -127,5 +129,5 @@ export default function TimeOverview() {
     </div>
 
     {!!rules.length && <details open={rulesOpen} onToggle={(event) => setRulesOpen(event.currentTarget.open)} className="min-w-0 space-y-3"><summary className="min-h-12 cursor-pointer py-3 font-medium">Ohne feste Uhrzeit & abgestimmte Hilfen ({rules.length})</summary><p className="text-sm text-muted">Diese Quellen sind bedingt, pausiert oder nicht aktiv. Ihre Bedeutung steht bei der jeweiligen Quelle.</p><ul className="min-w-0 rounded-2xl border border-line bg-surface px-3">{rules.slice(0, ruleLimit).map((entry) => <Entry key={entry.id} entry={entry} />)}</ul>{rules.length > ruleLimit && <Button onClick={() => setRuleLimit((current) => current + PAGE_SIZE)}>Weitere Quellen anzeigen ({rules.length - ruleLimit})</Button>}</details>}
-  </Page>
+  </HubContent>
 }

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { dayGoals } from '../../core/game'
-import { addDays, fmtTime, weekday, WEEKDAYS_LONG } from '../../core/time'
+import { addDays, fmtTime, weekday, WEEKDAYS, WEEKDAYS_LONG } from '../../core/time'
 import { usePlan, useToday } from '../../state/hooks'
+import { planNoteForDate } from '../../core/uiText'
 import { useApp } from '../../state/store'
 import { SportToggle } from '../components/SportToggle'
 import { Timeline } from '../components/Timeline'
 import { DayCommitments } from '../components/DayCommitments'
-import { DayTasks, TrialCard } from '../components/DayTasks'
+import { DayTasks } from '../components/DayTasks'
 import { TodayDifferent, WakeSuggestion } from '../components/TodayDifferent'
 import { WeatherCard } from '../components/WeatherCard'
 import { Card, Page, Segmented } from '../components/ui'
@@ -29,20 +30,20 @@ export default function Day() {
         value={offset}
         options={[
           { value: 0, label: 'Heute' },
-          { value: 1, label: 'Morgen' },
-          { value: 2, label: WEEKDAYS_LONG[weekday(addDays(todayDate, 2))]! },
+          { value: 1, label: WEEKDAYS[weekday(addDays(todayDate, 1))]! },
+          { value: 2, label: WEEKDAYS[weekday(addDays(todayDate, 2))]! },
         ]}
         onChange={setOffset}
       />
       {plan.notes.length > 0 && (
-        <div className="space-y-1 rounded-2xl bg-warm-soft px-4 py-3 text-warm">
+        <div className="space-y-1 rounded-2xl bg-surface px-4 py-3 text-muted">
           {plan.notes.map((n) => (
-            <p key={n}>{n}</p>
+            <p key={n}>{planNoteForDate(n, date, todayDate)}</p>
           ))}
         </div>
       )}
       <Card>
-        <Timeline plan={plan} log={log} m={offset === 0 ? m : -1} />
+        <Timeline plan={plan} log={log} m={offset === 0 ? m : -1} collapseCompleted />
       </Card>
       <button type="button" className="min-h-11 w-full rounded-2xl border border-line" onClick={() => setDifferent(true)}>
         {offset === 0 ? 'Heute anders' : offset === 1 ? 'Morgen anders' : 'Diesen Tag anders'}
@@ -69,7 +70,6 @@ export default function Day() {
           </ul>
         </Card>
       )}
-      {offset === 0 && <TrialCard date={date} />}
       <p className="px-1 text-sm text-muted">
         Feste Zeiten: Aufstehen {fmtTime(plan.wake)}
         {plan.leave !== undefined && ` · Los ${fmtTime(plan.leave)}`} · PC-Stopp {fmtTime(plan.pcStop)} · Bett {fmtTime(plan.bed)}

@@ -9,8 +9,7 @@ import { CaptureDictation } from './ExtraControls'
 
 const TABS = [
   { to: '/', label: 'Jetzt', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2' },
-  { to: '/tag', label: 'Tag', icon: 'M4 6h16M4 12h10M4 18h7' },
-  { to: '/spiel', label: 'Spiel', icon: 'M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9L12 3Z' },
+  { to: '/tag', label: 'Heute', icon: 'M4 6h16M4 12h10M4 18h7' },
   { to: '/mehr', label: 'Mehr', icon: 'M5 12h.01M12 12h.01M19 12h.01' },
 ]
 
@@ -29,9 +28,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const full = FULLSCREEN.some((p) => loc.pathname.startsWith(p))
   const activeTest = useApp((s) => s.local.deviceTests?.activeId)
   const quietPage = activeTest !== undefined || ['/abend', '/schlaf', '/einstellungen/abenduebergang', '/geraetetest'].includes(loc.pathname)
-  // Spiel ausblenden, wenn abgeschaltet oder überlastet. Es läuft im Hintergrund unverändert weiter.
-  const gameVisible = useApp((s) => s.settings.support.gameVisible && s.days[today()]?.override.mode !== 'ueberlastet')
-  const right = TABS.slice(2).filter((t) => gameVisible || t.to !== '/spiel')
   return (
     <>
       {activeTest !== undefined && !['/geraetetest', '/wecker/klingelt', '/druck', '/start'].includes(loc.pathname) && (
@@ -44,13 +40,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {!full && (
         <nav aria-label="Hauptnavigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 backdrop-blur safe-bottom no-print">
           <div className="mx-auto flex max-w-xl items-center">
-            {TABS.slice(0, 2).map((t) => (
-              <Tab key={t.to} {...t} />
-            ))}
-            <InboxButton />
-            {right.map((t) => (
-              <Tab key={t.to} {...t} />
-            ))}
+            {TABS.map((t) => <Tab key={t.to} {...t} />)}
           </div>
         </nav>
       )}
@@ -104,7 +94,8 @@ export function InboxSheet({ open, onClose, context }: { open: boolean; onClose:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
   const submit = async () => {
-    if (!text.trim() || submitting.current) return
+    if (submitting.current) return
+    if (!text.trim()) { setError('Schreibe einen Gedanken, den du festhalten möchtest.'); return }
     submitting.current = true; setPending(true); setError('')
     try {
       const current = was.current
@@ -169,11 +160,11 @@ export function InboxSheet({ open, onClose, context }: { open: boolean; onClose:
           setText(value)
           void saveDraft(value, was.current).catch(() => setError('Der Entwurf konnte nicht gespeichert werden. Bitte behalte deinen Text bis zum Speichern hier.'))
         }} />
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending || !text.trim()}>
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending}>
           {pending ? 'Wird gespeichert …' : 'Merken'}
         </Button>
         {error && <p role="alert" className="text-warm">{error}</p>}
-        <p className="text-center text-sm text-muted">Bleibt erst mal geparkt. Abends schaust du kurz drüber.</p>
+        <p className="text-center text-sm text-muted">Bleibt als Gedanke gespeichert. Du entscheidest später, was daraus wird.</p>
       </form>
     </Sheet>
   )
@@ -202,11 +193,13 @@ function XpChip({ text, onDone, duration }: { text: string; onDone: () => void; 
 }
 
 function Toast() {
-  const t = useApp((s) => s.toast)
-  if (!t) return null
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex justify-center px-4" aria-live="polite">
-      <span className="rounded-2xl bg-text px-4 py-3 text-bg shadow-lg">{t}</span>
+  const text = useApp((state) => state.toast)
+  const action = useApp((state) => state.toastAction)
+  if (!text) return null
+  return <div className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4" aria-live="polite">
+    <div className="pointer-events-auto flex max-w-xl flex-wrap items-center gap-2 rounded-2xl bg-text px-4 py-2 text-bg shadow-lg">
+      <span role="status" className="min-w-0 flex-1 break-words">{text}</span>
+      {action && <button type="button" className="min-h-11 rounded-xl px-3 font-semibold underline" onClick={() => void useApp.getState().runToastAction()}>{action.label}</button>}
     </div>
-  )
+  </div>
 }

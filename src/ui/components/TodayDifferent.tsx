@@ -3,6 +3,7 @@ import { routineCoverage } from '../../core/flexible'
 import { mapsUrl } from '../../core/planner'
 import { sleepOutlook, wakeProposal } from '../../core/sleep'
 import type { NextAction } from '../../core/support'
+import { germanDayDate } from '../../core/uiText'
 import { addDays, fmtTime } from '../../core/time'
 import type { Commitment, DayLog, RoutineId } from '../../core/types'
 import { Browser } from '@capacitor/browser'
@@ -10,7 +11,7 @@ import { isNative, safe } from '../../platform/native'
 import { pushPcStop } from '../../platform/supabase'
 import { applyWakeChange } from '../../platform/wakeChange'
 import { planFor, useApp } from '../../state/store'
-import { Button, Card, Sheet, TimeField } from './ui'
+import { BackButton, Button, Card, Checkbox, Sheet, TimeField } from './ui'
 import { WorkDayForm } from './WorkControls'
 import { CommitmentForm } from './CommitmentForm'
 
@@ -31,10 +32,10 @@ function ReasonChips({ value, onChange }: { value?: string; onChange: (v: string
   if (!ask) return null
   return (
     <div className="space-y-1">
-      <p className="text-sm text-muted">Was ist stattdessen los? (freiwillig)</p>
+      <p className="text-sm text-muted">Was ist stattdessen los?</p>
       <div className="flex flex-wrap gap-2">
         {REASONS.map((r) => (
-          <button key={r} type="button" aria-pressed={value === r} onClick={() => onChange(value === r ? undefined : r)} className={`min-h-10 rounded-xl px-3 text-sm ${value === r ? 'bg-accent font-semibold text-accent-ink' : 'bg-surface-2'}`}>
+          <button key={r} type="button" aria-pressed={value === r} onClick={() => onChange(value === r ? undefined : r)} className={`min-h-11 rounded-xl px-3 text-sm ${value === r ? 'bg-accent font-semibold text-accent-ink' : 'bg-surface-2'}`}>
             {r}
           </button>
         ))}
@@ -61,9 +62,9 @@ function usePlanAction() {
   return { busy, error, run }
 }
 
-export function TodayDifferent({ open, onClose, onApplied, date, m, action, isTomorrow = false }: { open: boolean; onClose: () => void; onApplied?: () => void; date: string; m: number; action?: NextAction; isTomorrow?: boolean }) {
+export function TodayDifferent({ open, onClose, onApplied, date, m, action, isTomorrow = false, initialView = 'menu' }: { open: boolean; onClose: () => void; onApplied?: () => void; date: string; m: number; action?: NextAction; isTomorrow?: boolean; initialView?: View }) {
   const st = useApp()
-  const [view, setView] = useState<View>('menu')
+  const [view, setView] = useState<View>(initialView)
   const [reason, setReason] = useState<string>()
   const { busy, error, run } = usePlanAction()
   const log: DayLog | undefined = st.days[date]
@@ -86,7 +87,7 @@ export function TodayDifferent({ open, onClose, onApplied, date, m, action, isTo
   return <Sheet open={open} onClose={close} title={view === 'menu' ? (isTomorrow ? 'Morgen anders' : 'Heute anders') : undefined}>
     <fieldset disabled={busy} className="min-w-0 space-y-3">
       {error && <p role="alert" className="text-warm">{error}</p>}
-      {view !== 'menu' && <button type="button" className="min-h-10 text-muted" onClick={() => setView('menu')}>‹ Zurück</button>}
+      {view !== 'menu' && <BackButton onClick={() => setView('menu')} />}
       {view === 'menu' && <div className="space-y-2">
         <Button size="lg" className="w-full !justify-start" onClick={() => setView('event')}>{isTomorrow ? 'Ich habe morgen einen Termin' : 'Ich habe heute etwas anderes vor'}</Button>
         <Button size="lg" className="w-full !justify-start" onClick={() => setView('work')}>{isTomorrow ? 'Arbeit an diesem Tag anders' : 'Arbeit heute anders'}</Button>
@@ -204,10 +205,7 @@ export function LateForm({ date, m, onDone }: { date: string; m: number; onDone:
       {!st.settings.alarm.enabled && <p className="text-sm text-muted">Der Hauptwecker ist ausgeschaltet.</p>}
       {outlook?.short && <p className="text-sm text-muted">Nur zur Info. Du entscheidest. Morgen reicht auch die kleine Version der Routine.</p>}
       {proposal?.later && (
-        <label className="flex min-h-11 items-center gap-3">
-          <input type="checkbox" className="h-6 w-6 accent-[var(--accent)]" checked={useProposal} onChange={(e) => setUseProposal(e.target.checked)} />
-          <span>{proposal.text} Nur morgen so wecken.</span>
-        </label>
+        <Checkbox checked={useProposal} onChange={setUseProposal} label={<span>{proposal.text} Nur morgen so wecken.</span>} />
       )}
     </fieldset>
       {wakeMessage && <p role="status" className="text-sm text-muted">{wakeMessage}</p>}
@@ -226,20 +224,20 @@ function CoveredForm({ date, onDone }: { date: string; onDone: (t: string) => vo
       {error && <p role="alert" className="text-warm">{error}</p>}
       <p className="text-muted">Versorgte Schritte entfallen an diesem Morgen. Sie gelten dort nicht als erledigt. Dein Standard bleibt.</p>
       <p className="text-sm text-muted">Vorbereitung ist keine Einnahme; das private Einnahmeprotokoll bleibt unverändert.</p>
-      {rows.map((row) => <label key={row.key} className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface-2 px-3 py-2">
-        <input type="checkbox" aria-label={`${row.step.title} morgens versorgt`} className="h-6 w-6 shrink-0 accent-[var(--accent)]" checked={row.covered} onChange={() => void run(() => st.adjustDay(date, row.covered ? `${row.step.title} morgens wieder nötig` : `${row.step.title} morgens versorgt`, (log) => ({
+      {rows.map((row) => <div key={row.key} className="rounded-2xl bg-surface-2 px-3 py-2">
+        <Checkbox aria-label={`${row.step.title} morgens versorgt`} checked={row.covered} onChange={() => void run(() => st.adjustDay(date, row.covered ? `${row.step.title} morgens wieder nötig` : `${row.step.title} morgens versorgt`, (log) => ({
           ...log,
           override: {
             ...log.override,
             coveredSteps: row.covered ? (log.override.coveredSteps ?? []).filter((key) => key !== row.key) : [...new Set([...(log.override.coveredSteps ?? []), row.key])],
             uncoveredSteps: row.covered ? [...new Set([...(log.override.uncoveredSteps ?? []), row.key])] : (log.override.uncoveredSteps ?? []).filter((key) => key !== row.key),
           },
-        })))} />
+        })))}>
         <span className="min-w-0"><span className="block">{row.step.title}</span>
-          {row.source?.kind === 'previous-evening' && <span className="block text-sm text-muted">{row.source.date}: {row.source.title}{row.source.result === 'minimal' ? ' (kleine Version)' : ''}. {row.overridden ? 'An diesem Morgen trotzdem nötig.' : 'Durch deine Regel versorgt.'}</span>}
+          {row.source?.kind === 'previous-evening' && <span className="block text-sm text-muted">{germanDayDate(row.source.date)}: {row.source.title}{row.source.result === 'minimal' ? ' (kleine Version)' : ''}. {row.overridden ? 'An diesem Morgen trotzdem nötig.' : 'Durch deine Regel versorgt.'}</span>}
           {row.source?.kind === 'day-choice' && <span className="block text-sm text-muted">Nur für diesen Morgen ausgewählt.</span>}
-        </span>
-      </label>)}
+        </span></Checkbox>
+      </div>)}
       <Button variant="primary" className="mt-2 w-full" onClick={() => onDone('Okay, ist notiert.')}>
         Fertig
       </Button>

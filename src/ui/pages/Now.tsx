@@ -8,29 +8,29 @@ import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
 import { addDays, fmtDuration, fmtTime, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
+import { plural } from '../../core/uiText'
+import { nowConflictNotice } from '../../core/planConflicts'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
 import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferent'
-import { Timeline } from '../components/Timeline'
-import { Button, Card, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
-import { WorkBar } from '../components/WorkControls'
+import { Button, Card, Choice, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
+import { WorkChip } from '../components/WorkControls'
 import { GeofenceSuggestions } from '../components/GeofenceVisit'
 import { HomeOfficeContact } from '../components/HomeOfficeContact'
 import { InboxSheet } from '../components/Shell'
 import { BedtimePrompt } from '../components/BedtimePrompt'
+import './now.css'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
 
-/**
- * Die Startseite beantwortet nur eine Frage: Was mache ich jetzt?
- * Eine Hauptaktion und höchstens zwei weitere; nahe Arbeitszeiten stehen als ruhiger Zusatz darunter.
- */
+/** Eine Handlung im Vordergrund. Die vorhandenen Planaktionen bleiben im gemeinsamen Sheet. */
 export default function Now() {
   const { date, plan, log, m, now } = useToday()
   const st = useApp()
+  const [adjust, setAdjust] = useState(false)
   const [stuck, setStuck] = useState(false)
   const [dayOpen, setDayOpen] = useState(false)
   const [longer, setLonger] = useState(false)
@@ -38,7 +38,7 @@ export default function Now() {
   const [interrupted, setInterrupted] = useState(false)
   const [rescue, setRescue] = useState(false)
   const [different, setDifferent] = useState(false)
-  const [more, setMore] = useState(false)
+  const [differentView, setDifferentView] = useState<'menu' | 'event' | 'work' | 'later' | 'not-needed' | 'late' | 'covered' | 'covered-today'>('menu')
   const [drifted, setDrifted] = useState(false)
   const [capture, setCapture] = useState(false)
   const [captureContext, setCaptureContext] = useState<ResumePoint>()
@@ -50,169 +50,102 @@ export default function Now() {
   const behind = isBehind(plan, log, m)
   const upcoming = workTasksQuiet(input) ? [] : upcomingWorkTasks(st.local.work, now)
   const readyToReview = st.inbox.filter((item) => reviewDue(item, now)).length + pendingTomorrowSteps(st.local.tomorrowSteps, now).length
+  const bedtime = !plan.openEnd && m >= plan.bed && ['bed', 'night', 'sleep'].includes(a.type)
+  const near = !!v.hard && v.hard.at - m >= 0 && v.hard.at - m < 120
+  const conflict = nowConflictNotice(plan, m, st.local.acknowledgedPlanConflicts?.[date] ?? [])
+  const next = upcoming.find((entry) => !((a.type === 'worktask') && entry.task.id === a.task.id))
+  const after = next ? `${next.kind === 'start' ? 'Ab' : 'Frist'} ${utcToZoned(next.at).date !== utcToZoned(now).date ? 'morgen ' : ''}${fmtTime(utcToZoned(next.at).minutes)} · ${taskTitle(next.task)}`
+    : plan.blocks.find((block) => block.start > m && block.title !== a.title)?.title
+  const task = a.type === 'worktask' || a.type === 'task' ? a.task : undefined
+  const deadline = task?.deadline !== undefined ? utcToZoned(task.deadline) : undefined
+  const reason = deadline ? `${task!.deadline! <= now ? 'Frist war' : 'Frist'} ${deadline.date !== utcToZoned(now).date ? new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'Europe/Berlin' }).format(task!.deadline!) + ' ' : ''}${fmtTime(deadline.minutes)}${task!.deadline! <= now ? ' · ein kleiner Anfang reicht' : ''}`
+    : a.type === 'step' && a.step.useMinimal ? 'Die kleine Version zählt auch.'
+      : a.type === 'arrival' && a.meal && a.index === 1 ? `Idee: ${a.meal}` : undefined
+  const openPanel = (show: () => void) => { setAdjust(false); show() }
+  const openDifferent = (view: typeof differentView = 'menu') => { setDifferentView(view); setDifferent(true); setAdjust(false) }
+  const primaryLabelMinutes = v.estimatedMin
 
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-32 safe-top">
-      <header className="flex items-center justify-between gap-2 py-2">
-        <div className="min-w-0 text-sm text-muted">{v.hard ? `${v.hard.label} ${fmtTime(v.hard.at)} · noch ${fmtDuration(v.hard.at - m)}` : fmtTime(m)}</div>
-        <button type="button" onClick={() => setDayOpen(true)} className="min-h-10 shrink-0 rounded-full border border-line px-3 text-sm">
-          {mode !== 'normal' ? MODE_LABEL[mode] : plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} ▾
-        </button>
+  return <div className="now-page" data-testid="now-page">
+    {!bedtime && <>
+      <header className="now-header">
+        <div className="now-anchor">{v.hard ? <>{v.hard.key === 'commitment' ? v.hard.label.startsWith('Los') ? 'Los' : 'Termin' : v.hard.label} {fmtTime(v.hard.at)}{near && <span className="block">noch {fmtDuration(v.hard.at - m)}</span>}</> : fmtTime(m)}</div>
+        <button type="button" onClick={() => setAdjust(true)} className="now-day-chip" aria-label="Heute anpassen: Tagesart und Modus">{plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} · {MODE_LABEL[mode]} ▾</button>
       </header>
-      {v.hard && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
+      {near && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
+      <WorkChip date={date} plan={plan} log={log} m={m} now={now} />
+    </>}
+    {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
 
-      {st.alarmStatus && !st.alarmStatus.ok && (
-        <Link to="/wecker" className="mt-3 block rounded-2xl border border-warm px-4 py-3 text-warm">
-          Wecker prüfen: {st.alarmStatus.message}
-        </Link>
-      )}
-
-      <section aria-live="polite" className="flex flex-1 flex-col justify-center py-6">
-        {a.sub && <p className="mb-2 text-muted">{a.sub}</p>}
-        <h1 className="text-4xl leading-tight font-semibold sm:text-5xl">{a.title}</h1>
-        {a.type === 'step' && a.step.useMinimal && <p className="mt-3 text-muted">Kleine Version. Zählt genauso.</p>}
-        {a.type === 'arrival' && a.meal && a.index === 1 && <p className="mt-3 text-muted">Idee aus deinen Gerichten: {a.meal}</p>}
-        {v.reason && <p className="mt-3 text-muted">{v.reason}</p>}
-        {v.estimatedMin && <p className="mt-2 text-sm text-muted">{v.alternative ? 'Kleiner Einstieg' : 'Fokusstart'}: etwa {v.estimatedMin} Minuten. Danach entscheidest du weiter.</p>}
-        <div className="mt-8 space-y-3">
-          <ActionButtons action={a} date={date} m={m} mode={mode} onLate={() => setLate(true)} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />
-        </div>
-        {suggestion && (
-          <button type="button" className="mt-4 min-h-11 rounded-xl border border-line px-3 text-sm text-muted" onClick={() => st.setOverride(date, { mode: suggestion })}>
-            {MODE_LABEL[suggestion]} für heute Abend einschalten
-          </button>
-        )}
-      </section>
-
-      <BedtimePrompt available={['bed', 'night', 'sleep'].includes(a.type)} delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} />
-      {upcoming.length > 0 && <aside aria-label="Demnächst bei der Arbeit" className="mb-3 space-y-2 rounded-2xl border border-line p-3">
-        <h2 className="text-sm font-medium text-muted">Demnächst bei der Arbeit</h2>
-        {upcoming.map((entry) => {
-          const at = utcToZoned(entry.at)
-          return <Link key={entry.task.id} to={`/aufgabe/work/${encodeURIComponent(entry.task.id)}`} className="flex min-h-11 min-w-0 flex-col justify-center rounded-xl px-2 py-2 hover:bg-surface-2">
-            <span className="text-sm text-muted">{entry.kind === 'start' ? 'Ab' : 'Frist'} {at.date !== utcToZoned(now).date ? 'morgen ' : ''}{fmtTime(at.minutes)}</span>
-            <span className="break-words [overflow-wrap:anywhere]">{taskTitle(entry.task)}</span>
-          </Link>
-        })}
-      </aside>}
-      {!dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
-      <WorkBar date={date} plan={plan} log={log} m={m} now={now} />
-      <GeofenceSuggestions />
-      {readyToReview > 0 && !['sleep', 'night', 'bed', 'wake'].includes(a.type) && (
-        <Link to="/abend" className="mb-3 block rounded-2xl border border-line px-4 py-3 text-muted">
-          Für später gemerkt · {readyToReview} zum Ansehen
-        </Link>
-      )}
-      {plan.conflicts?.map((x) => (
-        <Link key={x} to="/tag" className="mb-2 block rounded-2xl border border-warm px-4 py-3 text-warm">
-          {x} Ansehen
-        </Link>
-      ))}
-      <button type="button" className="min-h-11 self-start px-1 text-sm text-muted underline" onClick={() => setDrifted(true)}>Ich bin abgedriftet</button>
-      <div className="flex gap-2">
-        <button type="button" className="min-h-11 flex-1 rounded-2xl border border-line" onClick={() => setDifferent(true)}>
-          Heute anders
-        </button>
-        <button type="button" className="min-h-11 flex-1 text-muted" aria-expanded={more} onClick={() => setMore(!more)}>
-          Plan & Optionen {more ? '▴' : '▾'}
-        </button>
+    <section aria-live="polite" className="now-action">
+      {!bedtime && a.sub && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{a.sub} ›</Link> : <p className="now-context">{a.sub}</p>)}
+      <h1 className="now-title">{bedtime ? 'Ab ins Bett' : a.title}</h1>
+      {!bedtime && reason && <p className="now-reason">{reason}</p>}
+      <div className="now-buttons">
+        {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
+          : bedtime ? null : <ActionButtons action={a} date={date} m={m} mode={mode} estimatedMin={primaryLabelMinutes} onLate={() => setLate(true)} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />}
       </div>
+      {!bedtime && after && <p className="now-after" aria-label="Danach">Danach: {after}</p>}
+    </section>
 
-      {more && (
-        <div className="mt-2 space-y-3">
-          <Segmented label="Mein Aufgabenkontext (freiwillig)" value={st.local.taskContext ?? 'any'} onChange={(context) => st.saveLocal((local) => ({ ...local, taskContext: context }))} options={[
-            { value: 'any' as const, label: 'Offen' }, { value: 'home' as const, label: 'Zuhause' }, { value: 'work' as const, label: 'Arbeit' }, { value: 'errand' as const, label: 'Unterwegs' },
-          ]} />
-          {a.type === 'task' && <Button className="w-full" onClick={() => st.updateTask({ kind: 'task', id: a.task.id }, { taskDate: addDays(date, 1), state: 'deferred' })}>Aufgabe auf morgen verschieben</Button>}
-          <Link to="/abend" className="flex min-h-12 items-center justify-center rounded-2xl border border-line">
-            Abend & morgen
-          </Link>
-          {plan.notes.length > 0 && (
-            <div className="space-y-1 px-1 text-sm text-muted">
-              {plan.notes.map((n) => (
-                <p key={n}>{n}</p>
-              ))}
-            </div>
-          )}
-          {a.type === 'step' && (
-            <div className="flex gap-2">
-              <Link to={`/fokus/${a.routine}`} className="flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-line">
-                Fokus-Modus
-              </Link>
-              <Button variant="ghost" className="flex-1" onClick={() => st.setStep(date, a.routine, a.step.id, 'skipped')}>
-                Überspringen
-              </Button>
-            </div>
-          )}
-          {a.type === 'step' && stepLink(a.step) && (
-            <Link to={stepLink(a.step)!.to} className="flex min-h-12 items-center justify-center rounded-2xl border border-line">
-              {stepLink(a.step)!.label}
-            </Link>
-          )}
-          {(a.type === 'work' || a.type === 'worktask') && (
-            <div className="flex gap-2">
-              <Link to="/arbeit" className="flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-line">
-                Arbeit öffnen
-              </Link>
-              <Button variant="ghost" className="flex-1" onClick={() => setLonger(true)}>
-                Heute länger
-              </Button>
-            </div>
-          )}
-          {behind && (
-            <Button className="w-full" onClick={() => setRescue(true)}>
-              Tag neu sortieren
-            </Button>
-          )}
-          <Card>
-            <Timeline plan={plan} log={log} m={m} compact />
-          </Card>
-          {!sportInRoutine(st.settings) && !sportDone(plan, log, st.settings) && <SportToggle plan={plan} />}
-          <Extras date={date} />
+    {!bedtime && readyToReview > 0 && m >= 14 * 60 && <Link to="/abend" className="flex min-h-11 items-center text-sm text-muted">Geparkt · {readyToReview} zum Ansehen ›</Link>}
+    {!bedtime && conflict.active.slice(0, 1).map((item) => <aside key={item.id} className="now-conflict" aria-label="Überschneidung prüfen"><p>{item.summary}</p><div className="now-conflict-actions"><Link to="/tag" className="underline">Ansehen</Link><button type="button" onClick={() => void st.acknowledgePlanConflict(date, item.id).catch(() => st.showToast('Der Hinweis konnte noch nicht bestätigt werden. Versuche es erneut.'))}>Passt so</button></div></aside>)}
+    {!bedtime && !conflict.active.length && conflict.upcomingCount > 0 && <Link to="/tag" className="flex min-h-11 items-center text-sm text-muted">{plural(conflict.upcomingCount, 'Hinweis', 'Hinweise')} für heute ›</Link>}
+    {!adjust && !dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
+    <button type="button" className="now-adjust" onClick={() => setAdjust(true)}>Heute anpassen</button>
+
+    <Sheet open={adjust} onClose={() => setAdjust(false)} title="Heute anpassen">
+      <div className="space-y-3">
+        <Choice label="Unterstützung" value={mode} options={MODES.map((value) => ({ value, label: MODE_LABEL[value] }))} onChange={(value) => void st.setOverride(date, { mode: value })} />
+        <Choice<DayType> label="Tagesart" value={plan.dayType} options={[{ value: 'work', label: 'Arbeit' }, { value: 'weekend', label: 'Frei' }, { value: 'vacation', label: 'Urlaub' }, { value: 'sick', label: 'Krank' }]} onChange={(value) => void st.setOverride(date, { dayType: value })} />
+        <div className="now-options-menu">
+          <Button className="w-full !justify-start" onClick={() => openPanel(() => setCapture(true))}>Gedanke festhalten</Button>
+          <Button className="w-full !justify-start" onClick={() => openPanel(() => setDrifted(true))}>Ich bin abgedriftet</Button>
+          <Link to="/tag">Ganzen Tag ansehen ›</Link>
         </div>
-      )}
-
-      <StuckSheet open={stuck} onClose={() => setStuck(false)} action={a} />
-      <RecoverySheet open={drifted} onClose={() => setDrifted(false)} onSmall={() => { setDrifted(false); setStuck(true) }} onCapture={(context) => { setCaptureContext(context); setDrifted(false); setCapture(true) }} onDifferent={() => { setDrifted(false); setDifferent(true) }} />
-      <InboxSheet open={capture} onClose={() => setCapture(false)} context={captureContext} />
-      <TodayDifferent open={different} onClose={() => setDifferent(false)} date={date} m={m} action={a} />
-      <Sheet open={late} onClose={() => setLate(false)} title="Dein Abend"><LateForm date={date} m={m} onDone={(text) => { setLate(false); st.showToast(text) }} /></Sheet>
-      <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} date={date} />
-      <InterruptSheet open={interrupted} onClose={() => setInterrupted(false)} action={a} />
-      <Sheet open={rescue} onClose={() => setRescue(false)} title="Ab jetzt zählt nur das">
-        <ol className="mb-5 space-y-3">
-          {rescueItems(input).map((x) => (
-            <li key={x.title} className="flex items-baseline justify-between gap-3 text-xl">
-              <span>{x.title}</span>
-              {x.when && <span className="text-base text-muted tabular-nums">{x.when}</span>}
-            </li>
-          ))}
-        </ol>
-        <p className="mb-4 text-muted">Der Rest des Tages läuft in kleinen Versionen. Nichts davon musst du nachholen.</p>
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full"
-          onClick={async () => {
-            await st.setOverride(date, { light: true })
-            setRescue(false)
-          }}
-        >
-          So machen wir es
-        </Button>
-      </Sheet>
-      <LongerSheet
-        open={longer}
-        onClose={() => setLonger(false)}
-        current={plan.workEnd ?? 17 * 60}
-        onSave={async (end) => {
-          await st.setOverride(date, { workEnd: end })
-          setLonger(false)
-          st.showToast(`Feierabend ${fmtTime(end)}. Der Abend ist neu geplant.`)
-        }}
-      />
-    </div>
-  )
+        <details className="rounded-xl border border-line px-3">
+          <summary className="min-h-12 content-center text-muted">Weitere Möglichkeiten</summary>
+          <div className="now-options-menu pb-3">
+            <Button onClick={() => openDifferent('event')}>Termin planen</Button>
+            <Button onClick={() => openDifferent()}>Heute anders</Button>
+            <Button onClick={() => openDifferent('work')}>Arbeit heute anders</Button>
+            <Button onClick={() => openDifferent('later')}>Diese Routine später</Button>
+            <Button onClick={() => openDifferent('not-needed')}>Heute nicht nötig</Button>
+            <Button onClick={() => openDifferent('late')}>Länger wach bleiben</Button>
+            <Button onClick={() => openDifferent('covered')}>Für morgen schon versorgt</Button>
+            <Button onClick={() => openDifferent('covered-today')}>Morgenroutine heute prüfen</Button>
+            {a.type === 'step' && <><Link to={`/fokus/${a.routine}`}>Fokus öffnen</Link><Button onClick={() => void st.setStep(date, a.routine, a.step.id, 'skipped')}>Diesen Schritt überspringen</Button>{stepLink(a.step) && <Link to={stepLink(a.step)!.to}>{stepLink(a.step)!.label}</Link>}</>}
+            {a.type === 'task' && <Button onClick={() => void st.updateTask({ kind: 'task', id: a.task.id }, { taskDate: addDays(date, 1), state: 'deferred' })}>Aufgabe auf morgen verschieben</Button>}
+            <Button onClick={() => openPanel(() => setDayOpen(true))}>Homeoffice und Abendplan</Button>
+            <Link to="/arbeit">Arbeit öffnen</Link><Link to="/abend">Abend & morgen</Link>
+            <Button onClick={() => openPanel(() => setLonger(true))}>Heute länger arbeiten</Button>
+            <Button onClick={() => openPanel(() => setLate(true))}>Abendzeit ändern</Button>
+            {suggestion && <Button onClick={() => void st.setOverride(date, { mode: suggestion })}>{MODE_LABEL[suggestion]} für heute Abend einschalten</Button>}
+            <Segmented label="Mein Aufgabenkontext" value={st.local.taskContext ?? 'any'} onChange={(context) => void st.saveLocal((local) => ({ ...local, taskContext: context }))} options={[{ value: 'any' as const, label: 'Offen' }, { value: 'home' as const, label: 'Zuhause' }, { value: 'work' as const, label: 'Arbeit' }, { value: 'errand' as const, label: 'Unterwegs' }]} />
+            {behind && <Button onClick={() => openPanel(() => setRescue(true))}>Tag neu sortieren</Button>}
+            {!sportInRoutine(st.settings) && !sportDone(plan, log, st.settings) && <SportToggle plan={plan} />}
+            <GeofenceSuggestions />
+            {adjust && <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} enabled={st.settings.sleep.bedtimePromptEnabled ?? false} settingsOnly />}
+            {v.reason && <p className="text-sm text-muted">{v.reason}</p>}
+            {plan.notes.map((note) => <p key={note} className="text-sm text-muted">{note}</p>)}
+            <Extras date={date} />
+          </div>
+        </details>
+      </div>
+    </Sheet>
+    <StuckSheet open={stuck} onClose={() => setStuck(false)} action={a} />
+    <RecoverySheet open={drifted} onClose={() => setDrifted(false)} onSmall={() => { setDrifted(false); setStuck(true) }} onCapture={(context) => { setCaptureContext(context); setDrifted(false); setCapture(true) }} onDifferent={() => { setDrifted(false); openDifferent() }} />
+    <InboxSheet open={capture} onClose={() => setCapture(false)} context={captureContext} />
+    <TodayDifferent key={differentView} initialView={differentView} open={different} onClose={() => setDifferent(false)} date={date} m={m} action={a} />
+    <Sheet open={late} onClose={() => setLate(false)} title="Dein Abend"><LateForm date={date} m={m} onDone={(text) => { setLate(false); st.showToast(text) }} /></Sheet>
+    <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} date={date} />
+    <InterruptSheet open={interrupted} onClose={() => setInterrupted(false)} action={a} />
+    <Sheet open={rescue} onClose={() => setRescue(false)} title="Ab jetzt zählt nur das">
+      <ol className="mb-4 space-y-3">{rescueItems(input).map((item) => <li key={item.title} className="flex items-baseline justify-between gap-3"><span>{item.title}</span>{item.when && <span className="text-sm text-muted">{item.when}</span>}</li>)}</ol>
+      <p className="mb-4 text-muted">Der Rest läuft in kleinen Versionen. Nichts davon musst du nachholen.</p>
+      <Button variant="primary" size="lg" className="w-full" onClick={async () => { await st.setOverride(date, { light: true }); setRescue(false) }}>So machen wir es</Button>
+    </Sheet>
+    <LongerSheet open={longer} onClose={() => setLonger(false)} current={plan.workEnd ?? 17 * 60} onSave={async (end) => { await st.setOverride(date, { workEnd: end }); setLonger(false); st.showToast(`Feierabend ${fmtTime(end)}. Der Abend ist neu geplant.`) }} />
+  </div>
 }
 
 function stepLink(step: PlannedStep): { to: string; label: string } | undefined {
@@ -262,7 +195,7 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
   </Sheet>
 }
 
-function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
+function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; estimatedMin?: number; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
   const st = useApp()
   const nav = useNavigate()
   const partFor = (kind: 'task' | 'work', id: string) => {
@@ -323,7 +256,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
       return (
         <>
           <Button variant="primary" size="xl" className="w-full" onClick={async () => { const partId = partFor('work', a.task.id); await st.startTaskFocus({ kind: 'work', id: a.task.id }, partId ? undefined : a.focusMinutes ?? 25, partId); nav(`/aufgabe/work/${encodeURIComponent(a.task.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`) }}>
-            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
+            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'} · {estimatedMin ?? a.focusMinutes ?? 25} min
           </Button>
           <div className="flex gap-2">
             <Button size="lg" className="flex-1" onClick={() => st.completeTask({ kind: 'work', id: a.task.id }, true)}>
@@ -337,7 +270,7 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
       return (
         <>
           <Button variant="primary" size="xl" className="w-full" onClick={async () => { const partId = partFor('task', a.task.id); await st.startTaskFocus({ kind: 'task', id: a.task.id }, partId ? undefined : a.focusMinutes ?? 25, partId); nav(`/aufgabe/task/${encodeURIComponent(a.task.id)}${partId ? `?teil=${encodeURIComponent(partId)}` : ''}`) }}>
-            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'}
+            {a.task.state === 'active' ? 'Weitermachen' : 'Starten'} · {estimatedMin ?? a.focusMinutes ?? 25} min
           </Button>
           <div className="flex gap-2">
             <Button size="lg" className="flex-1" onClick={() => st.setInboxDone(a.task.id, true)}>
@@ -492,6 +425,10 @@ function ActionButtons({ action: a, date, m, mode, onLate, onLonger, onStuck, on
         </>
       )
     case 'work':
+      if (st.local.workSessions.some((session) => session.kind === 'regular' && session.endAt === undefined)) return <>
+        <Button variant="primary" size="xl" className="w-full" onClick={() => st.workStop()}>Feierabend</Button>
+        <div className="flex gap-2"><Button size="lg" className="flex-1" onClick={() => st.workBreakStart()}>Pause starten</Button>{StuckButton}</div>
+      </>
       return (
         <>
           <Link to="/arbeit" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-6 text-center text-2xl font-semibold text-accent-ink">
@@ -555,7 +492,7 @@ function InterruptSheet({ open, onClose, action: a }: { open: boolean; onClose: 
           st.showToast('Gemerkt. Du findest gleich hierher zurück.')
         }}
       >
-        <TextInput autoFocus aria-label="Nächster Schritt" placeholder={task?.nextStep ?? 'Nächster Schritt (freiwillig)'} value={next} onChange={(e) => setNext(e.target.value)} />
+        <TextInput autoFocus aria-label="Nächster Schritt" placeholder={task?.nextStep ?? 'Nächster Schritt'} value={next} onChange={(e) => setNext(e.target.value)} />
         <Button type="submit" variant="primary" size="lg" className="w-full">
           Merken
         </Button>

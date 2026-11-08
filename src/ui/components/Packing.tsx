@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
+import { plural } from '../../core/uiText'
 import { randomId } from '../../core/defaults'
 import { changePrepared, packItems, packingTemplates, preparedItems } from '../../core/packing'
 import type { Commitment, PackTemplate } from '../../core/types'
 import { usePlan } from '../../state/hooks'
 import { useApp } from '../../state/store'
-import { Button, Card, Section, TextInput } from './ui'
+import { Button, Card, Checkbox, Choice, Section, TextInput } from './ui'
 
 const FIELD = 'min-h-12 w-full rounded-xl bg-surface-2 p-3'
 const CONTEXTS = { customer: 'Kundenbesuch', sport: 'Sport', 'going-out': 'Ausgehen' } as const
@@ -40,14 +41,10 @@ export function PackingList({ commitment, items: supplied }: { commitment: Commi
   return <div className="min-w-0 space-y-2 border-t border-line pt-3">
     {items.length > 0 && <>
       <p className="text-sm font-medium">Packliste · {checked.size} von {items.length} vorbereitet</p>
-      {(expanded ? items : items.slice(0, 3)).map((item) => <label key={item} className="flex min-h-11 items-center gap-3 break-words">
-        <input type="checkbox" className="h-5 w-5 shrink-0 accent-[var(--accent)]" disabled={busy} checked={checked.has(item)} aria-label={`${item} für ${commitment.label} vorbereitet`} onChange={(event) => {
-          const done = event.target.checked
-          void run(() => edit((current) => changePrepared(current, item, done)), done ? 'Als vorbereitet gemerkt.' : 'Vorbereitung zurückgenommen.')
-        }} />
-        <span className="min-w-0">{item}</span>
-      </label>)}
-      {items.length > 3 && <Button size="sm" variant="ghost" onClick={() => setExpanded(!expanded)}>{expanded ? 'Weniger Dinge zeigen' : `${items.length - 3} weitere Dinge`}</Button>}
+      {(expanded ? items : items.slice(0, 3)).map((item) => <Checkbox key={item} disabled={busy} checked={checked.has(item)} aria-label={`${item} für ${commitment.label} vorbereitet`} onChange={(done) => {
+        void run(() => edit((current) => changePrepared(current, item, done)), done ? 'Als vorbereitet gemerkt.' : 'Vorbereitung zurückgenommen.')
+      }}>{item}</Checkbox>)}
+      {items.length > 3 && <Button size="sm" variant="ghost" onClick={() => setExpanded(!expanded)}>{expanded ? 'Weniger Dinge zeigen' : plural(items.length - 3, 'weiteres Ding', 'weitere Dinge')}</Button>}
     </>}
     <Button size="sm" variant="ghost" disabled={busy} aria-expanded={editing} onClick={beginEditing}>{editing ? 'Bearbeitung schließen' : items.length ? 'Packliste bearbeiten' : 'Packliste vorbereiten'}</Button>
     {editing && <div className="space-y-3 rounded-2xl bg-surface-2 p-3">
@@ -65,9 +62,7 @@ export function PackingList({ commitment, items: supplied }: { commitment: Commi
         <Button type="submit" size="sm" disabled={busy}>Packliste speichern</Button>
       </form>
       {templates.length > 0 && <div className="space-y-2">
-        <label className="block space-y-1"><span>Vorlage ergänzen</span><select aria-label={`Packvorlage ${commitment.label}`} className={FIELD} value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
-          {templates.map((template) => <option key={template.id} value={template.id}>{template.label}</option>)}
-        </select></label>
+        <Choice label={`Packvorlage ${commitment.label}`} value={templateId} onChange={setTemplateId} options={templates.map((template) => ({ value: template.id, label: template.label }))} />
         <p className="break-words text-sm text-muted">{templates.find((template) => template.id === templateId)?.items.join(', ')}</p>
         <Button size="sm" disabled={busy} onClick={() => void run(async () => {
           const template = packingTemplates(useApp.getState().local).find((item) => item.id === templateId)
@@ -127,10 +122,8 @@ export function PackingTemplates() {
       }, 'Neue Vorlage angelegt. Du kannst jetzt Gegenstände eintragen.')
     }}>
       <TextInput aria-label="Neue Packvorlage" value={name} onChange={(event) => setName(event.target.value)} placeholder="Name deiner Vorlage" />
-      <select aria-label="Art der Packvorlage" className={FIELD} value={context} onChange={(event) => setContext(event.target.value as PackTemplate['context'])}>
-        {Object.entries(CONTEXTS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-      </select>
-      <Button size="sm" type="submit" disabled={busy || !name.trim()}>Packvorlage anlegen</Button>
+      <Choice label="Art der Packvorlage" value={context} onChange={(value) => setContext(value as PackTemplate['context'])} options={Object.entries(CONTEXTS).map(([value, label]) => ({ value, label }))} />
+      <Button size="sm" type="submit" disabled={busy}>Packvorlage anlegen</Button>
     </form>
     {message && <p role="status" className="text-sm text-muted">{message}</p>}
   </details>

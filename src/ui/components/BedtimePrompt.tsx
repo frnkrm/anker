@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { App } from '@capacitor/app'
+import { Link } from 'react-router'
 import { BEDTIME_PROMPT_TEXT, BedtimeNative, bedtimePromptSupported, type BedtimePromptState } from '../../platform/bedtimePrompt'
 import { Button, Card } from './ui'
 
@@ -19,7 +20,7 @@ const reasons: Record<string, string> = {
 }
 
 /** Ein bewusster Start für diese Nacht; Android besitzt den flüchtigen Sitzungszustand. */
-export function BedtimePrompt({ available, delayMinutes, nowMs }: { available: boolean; delayMinutes: number; nowMs: number }) {
+export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, integrated = false, settingsOnly = false, onBed }: { available: boolean; delayMinutes: number; nowMs: number; enabled?: boolean; integrated?: boolean; settingsOnly?: boolean; onBed?: () => Promise<void> }) {
   const supported = bedtimePromptSupported()
   const [state, setState] = useState<BedtimePromptState>()
   const [busy, setBusy] = useState(false)
@@ -88,11 +89,34 @@ export function BedtimePrompt({ available, delayMinutes, nowMs }: { available: b
     if (!state?.sessionId || !foreground.current || document.visibilityState !== 'visible') return
     void run(() => BedtimeNative.ackBedtimePrompt({ sessionId: state.sessionId! }))
   }
+  const markBed = async () => {
+    if (pending.current) return
+    pending.current = true; ++epoch.current; setBusy(true); setError('')
+    try {
+      await onBed?.()
+      // Die eigene Aktivierung und die Android-Freigabe sind zwei getrennte Entscheidungen.
+      // Einen laufenden Hinweis niemals durch einen zweiten Bett-Tipp neu starten.
+      if (enabled && supported && !waiting && !shown) {
+        if (!state?.overlayPermission) setError('Für den Schlafhinweis fehlt noch die Freigabe. Du findest sie unter „Heute anpassen“.')
+        else if (!validDelay) setError('Prüfe die Einschlafzeit unter Schlaf & Anker.')
+        else { await BedtimeNative.startBedtimePrompt({ delayMinutes }); await refresh.current?.(true) }
+      }
+    } catch { setError('Die Auswahl konnte nicht sicher übernommen werden. Bitte versuche es erneut.') }
+    finally { pending.current = false; setBusy(false); flush.current?.() }
+  }
   if (!available && !waiting && !shown && !finished) return null
+
+  if (integrated) return <>
+    <Button variant="primary" size="xl" className="w-full" disabled={busy} onClick={() => void markBed()}>Ich liege im Bett</Button>
+    {enabled && !supported && <p className="text-sm text-muted">Im Browser wird kein Schlafhinweis gestartet.</p>}
+    {enabled && waiting && <p role="status" className="text-sm text-muted">Stummer Schlafhinweis vorgemerkt{state?.dueAt ? ` · ${time(state.dueAt)}` : ''}.</p>}
+    {shown && <p role="status" className="text-sm text-muted">{BEDTIME_PROMPT_TEXT}</p>}
+    {error && <p role="alert" className="text-sm text-muted">{error}</p>}
+  </>
 
   return <Card className="min-w-0 space-y-3">
     <h2 className="break-words font-semibold">Stummer Schlafhinweis</h2>
-    {!supported ? <p className="text-sm text-muted">Der Hinweis über anderen Apps ist nur in der Android-App verfügbar. Im Browser wird kein Schlafhinweis gestartet.</p> : <>
+    {!enabled && !waiting && !shown && !finished ? <p className="text-sm text-muted">Der Schlafhinweis ist aus. Du kannst ihn unter <Link className="underline" to="/einstellungen/schlaf">Schlaf & Anker</Link> einschalten.</p> : !supported ? <p className="text-sm text-muted">Der Hinweis über anderen Apps ist nur in der Android-App verfügbar. Im Browser wird kein Schlafhinweis gestartet.</p> : <>
       {shown ? <div role="status" className="space-y-3">
         <p className="break-words">{BEDTIME_PROMPT_TEXT}</p>
         <Button disabled={busy || !state.sessionId} className="w-full" onClick={acknowledge}>Hinweis beenden</Button>
@@ -107,7 +131,7 @@ export function BedtimePrompt({ available, delayMinutes, nowMs }: { available: b
       </> : <>
         <p className="text-sm text-muted">{delayMinutes === 0 ? 'Deine Einschlafzeit ist auf 0 Minuten eingestellt. Der Hinweis kann direkt erscheinen.' : `Nach deiner eingestellten Einschlafzeit (${delayMinutes} min) ist ein stummer Hinweis vorgesehen.`} Er erscheint nur bei eingeschaltetem, entsperrtem Bildschirm. Android kann die Anzeige begrenzen.</p>
         {!validDelay && <p role="alert" className="text-sm text-warm">Prüfe deine Einschlafzeit unter Einstellungen → Schlaf. Möglich sind 0 bis 60 Minuten.</p>}
-        {state ? state.overlayPermission ? <Button disabled={busy || !validDelay} className="w-full" onClick={() => void run(() => BedtimeNative.startBedtimePrompt({ delayMinutes }))}>Ich gehe ins Bett – stummen Hinweis starten</Button>
+        {state ? state.overlayPermission ? settingsOnly ? <p className="text-sm text-muted">Bereit. „Ich liege im Bett“ startet den Hinweis nach deiner Einschlafzeit.</p> : <Button disabled={busy || !validDelay} className="w-full" onClick={() => void run(() => BedtimeNative.startBedtimePrompt({ delayMinutes }))}>Stummen Schlafhinweis starten</Button>
           : <>
             <p className="text-sm text-muted">Dafür braucht Anker die Android-Freigabe „Über anderen Apps einblenden“. Die Freigabe allein startet keinen Hinweis.</p>
             <Button disabled={busy} className="w-full" onClick={() => void run(async () => { await BedtimeNative.openOverlayPermissionSettings(); setSettingsOpened(true) })}>Android-Freigabe einrichten</Button>

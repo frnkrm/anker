@@ -7,15 +7,11 @@ import { useNow } from '../../state/hooks'
 import { isNative } from '../../platform/native'
 import { useApp } from '../../state/store'
 import { eveningTimeLabel, ParkedThoughts, ScheduledAtInput } from '../components/EveningTools'
-import { Button, Card, Page, Row, Section, TextInput } from '../components/ui'
+import { Button, Card, Checkbox, MoreInfo, Row, Section, TextInput } from '../components/ui'
+import { HubContent } from '../components/HubContent'
 
 function ReminderChoice({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
-  return (
-    <label className="flex min-h-11 items-center gap-3">
-      <input type="checkbox" className="h-5 w-5 accent-[var(--accent)]" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span>Einmal erinnern</span>
-    </label>
-  )
+  return <Checkbox checked={checked} onChange={onChange}>Einmal erinnern</Checkbox>
 }
 
 function ReminderHint() {
@@ -66,9 +62,9 @@ function ParkThoughtForm({ onSaved }: { onSaved: () => void }) {
       </label>
       <ScheduledAtInput label="Wieder ansehen am" value={at} onChange={setAt} />
       <ReminderChoice checked={notify} onChange={setNotify} />
-      <ReminderHint />
+      <MoreInfo><ReminderHint /></MoreInfo>
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
-      <Button type="submit" variant="primary" className="w-full" disabled={pending || !text.trim()}>{pending ? 'Wird gespeichert …' : 'Gedanken parken'}</Button>
+      <Button type="submit" className="w-full" disabled={pending}>{pending ? 'Wird gespeichert …' : 'Gedanken parken'}</Button>
     </form>
   )
 }
@@ -120,9 +116,9 @@ function TomorrowStepForm({ onSaved }: { onSaved: () => void }) {
       </label>
       <ScheduledAtInput label="Weiter am" value={at} onChange={setAt} />
       <ReminderChoice checked={remind} onChange={setRemind} />
-      <ReminderHint />
+      <MoreInfo><ReminderHint /></MoreInfo>
       {error && <p role="alert" className="text-sm text-warm">{error}</p>}
-      <Button type="submit" variant="primary" className="w-full" disabled={pending || !title.trim() || !nextStep.trim()}>{pending ? 'Wird gespeichert …' : 'Nächsten Schritt speichern'}</Button>
+      <Button type="submit" className="w-full" disabled={pending}>{pending ? 'Wird gespeichert …' : 'Nächsten Schritt speichern'}</Button>
     </form>
   )
 }
@@ -149,7 +145,7 @@ function TomorrowSteps({ items, now }: { items: TomorrowStep[]; now: number }) {
   const unfinished = items.filter((item) => item.doneAt === undefined).sort((a, b) => a.resumeAt - b.resumeAt)
   const groups = [
     { title: 'Bereit zum Weitermachen', entries: unfinished.filter((item) => item.resumeAt <= now) },
-    { title: 'Für später gespeichert', entries: unfinished.filter((item) => item.resumeAt > now) },
+    { title: 'Geparkt', entries: unfinished.filter((item) => item.resumeAt > now) },
   ]
   return (
     <div className="space-y-4">
@@ -175,7 +171,7 @@ function TomorrowSteps({ items, now }: { items: TomorrowStep[]; now: number }) {
 }
 
 /** Freiwillige Hilfen zum Ablegen und späteren Wiederaufnehmen, ohne neue Hauptaktion. */
-export default function Evening() {
+export default function Evening({ embedded = false }: { embedded?: boolean } = {}) {
   const st = useApp()
   const now = useNow()
   const [parking, setParking] = useState(false)
@@ -185,7 +181,7 @@ export default function Evening() {
   const windDown = st.settings.support.windDown
 
   return (
-    <Page title="Abend & morgen" back="/mehr">
+    <HubContent title="Gedanken für später" back="/mehr" embedded={embedded}>
       <p className="px-1 text-muted">Festhalten, was dir im Kopf bleibt. Du entscheidest, wann du wieder hinschaust.</p>
 
       {windDown.enabled && (
@@ -193,7 +189,7 @@ export default function Evening() {
           <h2 className="text-lg font-semibold">Dein sanfter Abendübergang</h2>
           <p className="text-sm text-muted">Gewählt ab {fmtTime(windDown.at)}</p>
           <p className="whitespace-pre-wrap break-words text-lg">{windDown.activity}</p>
-          <p className="text-sm text-muted">Wenn es gerade passt, kannst du damit ruhiger weitermachen.</p>
+
         </Card>
       )}
 
@@ -215,16 +211,9 @@ export default function Evening() {
 
       <TomorrowSteps items={st.local.tomorrowSteps} now={now} />
 
-      {parked.length > 0 && (
-        <Section title="Geparkte Ideen" hint="Du kannst sie jederzeit früher ansehen oder den Zeitpunkt ändern.">
-          <ParkedThoughts items={parked} now={now} openInInbox />
-        </Section>
-      )}
+      {parked.length > 0 && <details className="space-y-2 rounded-2xl border border-line p-3"><summary className="min-h-11 py-2 font-medium">Geparkte Gedanken ({parked.length})</summary><ParkedThoughts items={parked} now={now} openInInbox /></details>}
 
-      <Section title="Abend & Schlaf">
-        <Row label="Sanfter Abendübergang" sub="Eine ruhige Aktivität wählen · freiwillig" to="/einstellungen/abenduebergang" />
-        <Row label="Schlafüberblick" sub="Eigene Angaben ansehen" to="/schlaf" />
-      </Section>
-    </Page>
+      <MoreInfo summary="Abend & Schlaf"><Row label="Abend anpassen" to="/einstellungen/abend" /><Row label="Schlafüberblick" to="/schlaf" /></MoreInfo>
+    </HubContent>
   )
 }

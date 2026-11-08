@@ -70,8 +70,8 @@ export default function Check() {
       )
     }
     list.push(
-      { key: 'google', label: 'Google Kalender', hint: googleConfigured ? 'Termine fließen in den Tagesplan.' : 'Nicht konfiguriert (siehe README).', state: st.settings.integrations.googleCalendar && googleConnected() ? 'ok' : 'off' },
-      { key: 'sync', label: 'Sync', hint: supabaseConfigured ? 'Daten zwischen Handy und PC abgleichen.' : 'Nicht konfiguriert (siehe README).', state: user ? 'ok' : 'off' },
+      { key: 'google', label: 'Google Kalender', hint: googleConfigured ? 'Termine fließen in den Tagesplan.' : 'Hier noch nicht eingerichtet. Du kannst Anker ohne diese Verbindung nutzen.', state: st.settings.integrations.googleCalendar && googleConnected() ? 'ok' : 'off' },
+      { key: 'sync', label: 'Sync', hint: supabaseConfigured ? 'Daten zwischen Handy und PC abgleichen.' : 'Hier noch nicht eingerichtet. Du kannst Anker ohne diese Verbindung nutzen.', state: user ? 'ok' : 'off' },
     )
     setItems(list)
   }, [st])
@@ -103,7 +103,7 @@ export default function Check() {
         </Button>
       )}
       {(i.key === 'google' || i.key === 'sync') && i.state !== 'ok' && (
-        <Link to="/verbindungen" className="min-h-10 rounded-xl bg-surface-2 px-3 py-2 text-sm">
+        <Link to="/verbindungen" className="min-h-11 rounded-xl bg-surface-2 px-3 py-2 text-sm">
           Öffnen
         </Link>
       )}

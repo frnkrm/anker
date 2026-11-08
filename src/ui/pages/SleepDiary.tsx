@@ -5,19 +5,21 @@ import { addDays, fmtDuration, todayBerlin, TZ } from '../../core/time'
 import type { SleepDiaryEntry } from '../../core/types'
 import { useNow } from '../../state/hooks'
 import { useApp } from '../../state/store'
-import { Button, Card, Page, Section, TextInput } from '../components/ui'
+import { Button, Card, DateField, MoreInfo, Section } from '../components/ui'
+import { HubContent } from '../components/HubContent'
 
 const LABEL: Record<SleepEvent, string> = { sleepyAt: 'Müde geworden', bedAt: 'Ins Bett gegangen', wakeAt: 'Aufgestanden' }
 const NOW_LABEL: Record<SleepEvent, string> = { sleepyAt: 'Jetzt müde', bedAt: 'Jetzt ins Bett', wakeAt: 'Jetzt aufgestanden' }
 const format = new Intl.DateTimeFormat('de-DE', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const nightLabel = (date: string) => `${date} auf ${addDays(date, 1)}`
+const nightDate = new Intl.DateTimeFormat('de-DE', { timeZone: TZ, weekday: 'short', day: '2-digit', month: '2-digit' })
+const nightLabel = (date: string) => `auf ${nightDate.format(new Date(`${addDays(date, 1)}T12:00:00Z`))}`
 const draftFor = (entry: SleepDiaryEntry): Record<SleepEvent, string> => ({
   sleepyAt: entry.sleepyAt === undefined ? '' : toBerlinDateTimeInput(entry.sleepyAt),
   bedAt: entry.bedAt === undefined ? '' : toBerlinDateTimeInput(entry.bedAt),
   wakeAt: entry.wakeAt === undefined ? '' : toBerlinDateTimeInput(entry.wakeAt),
 })
 
-export default function SleepDiary() {
+export default function SleepDiary({ embedded = false }: { embedded?: boolean } = {}) {
   const st = useApp()
   const now = useNow()
   const [date, setDate] = useState(() => sleepNightFor('bedAt', Date.now()))
@@ -39,10 +41,9 @@ export default function SleepDiary() {
     finally { pendingRef.current = false; setPending(false) }
   }
   const rows = sleepOverview(st.local.sleepDiary, sleepNightFor('bedAt', now))
-  const hasData = rows.some((row) => SLEEP_EVENTS.some((key) => row.entry[key] !== undefined))
 
   return (
-    <Page className="settings-page" title="Schlafüberblick" back="/abend">
+    <HubContent className="settings-page" title="Schlafüberblick" back="/abend" embedded={embedded}>
       <p className="text-muted">Deine eigenen Angaben zu Müdigkeit, Bett und Aufstehen. Du trägst nur ein, was du festhalten möchtest.</p>
       <Card className="space-y-3">
         <h2 className="text-lg font-semibold">Einen Zeitpunkt festhalten</h2>
@@ -58,7 +59,7 @@ export default function SleepDiary() {
             }, `${LABEL[event]} gespeichert · Nacht ${nightLabel(night)}.`)
           }}>{NOW_LABEL[event]}</Button>)}
         </div>
-        <p className="text-sm text-muted">Müdigkeit und Bett vor 04:00 gehören zum Vorabend. „Jetzt aufgestanden“ gehört zur vorigen Kalendernacht. Du kannst alle Angaben unten korrigieren.</p>
+        <MoreInfo><p>Müdigkeit und Bett vor 04:00 gehören zum Vorabend. „Jetzt aufgestanden“ gehört zur vorigen Kalendernacht. Du kannst alle Angaben unten korrigieren.</p></MoreInfo>
       </Card>
       {error && <p role="alert" className="text-warm">{error}</p>}
       {message && <p role="status" className="text-accent">{message}</p>}
@@ -70,40 +71,32 @@ export default function SleepDiary() {
           for (const key of SLEEP_EVENTS) {
             if (!draft[key]) continue
             const at = fromBerlinDateTimeInput(draft[key])
-            if (!Number.isFinite(at)) { setError('Prüfe die Datums- und Zeitangaben. Diese Uhrzeiten gelten in Berlin.'); return }
+            if (!Number.isFinite(at)) { setError('Prüfe die Datums- und Zeitangaben.'); return }
             entry[key] = at
           }
           void run(() => st.saveSleepEntry(date, entry), 'Deine Angaben wurden gespeichert.')
         }}>
-          <label className="block space-y-1">
-            <span className="block">Nacht vom</span>
-            <TextInput type="date" aria-label="Nacht vom" disabled={pending} required value={date} max={todayBerlin(now)} onChange={(event) => pick(event.target.value)} />
-          </label>
-          {date && <p className="text-sm text-muted">Nacht {nightLabel(date)} · alle Uhrzeiten in Berlin</p>}
-          {SLEEP_EVENTS.map((key) => <label key={key} className="block space-y-1">
-            <span className="block">{LABEL[key]} (freiwillig)</span>
-            <TextInput type="datetime-local" aria-label={LABEL[key]} disabled={pending} value={draft[key]} onChange={(event) => setDraft({ ...draft, [key]: event.target.value })} />
-          </label>)}
+          <DateField label="Nacht vom" disabled={pending} required value={date} max={todayBerlin(now)} onChange={pick} />
+          {date && <p className="text-sm text-muted">Nacht {nightLabel(date)}</p>}
+          {SLEEP_EVENTS.map((key) => <DateField key={key} type="datetime-local" label={LABEL[key]} disabled={pending} value={draft[key]} onChange={(value) => setDraft({ ...draft, [key]: value })} />)}
           <p className="text-sm text-muted">Noch nicht bekannte Zeitpunkte bleiben leer. Müdigkeit kann vor oder nach dem Zubettgehen auftreten.</p>
           <Button type="submit" variant="primary" className="w-full" disabled={pending}>Angaben speichern</Button>
           {st.local.sleepDiary[date] && <Button variant="ghost" disabled={pending} className="w-full" onClick={() => void run(async () => { await st.removeSleepEntry(date); setDraft(draftFor({})) }, 'Die Angaben dieser Nacht wurden gelöscht.')}>Angaben dieser Nacht löschen</Button>}
         </form>}
       </Card>
       <Section title="Sieben Nächte" hint="Der Abstand zwischen Bett und Aufstehen ist keine gemessene Schlafdauer.">
-        {!hasData && <Card>Noch keine Angaben in diesen sieben Nächten. Du entscheidest, ob und wann du etwas festhältst.</Card>}
-        {hasData && rows.map((row) => <Card key={row.date}>
-          <h3 className="font-semibold">Nacht {nightLabel(row.date)}</h3>
-          <dl className="mt-2 space-y-1 text-sm">
-            {SLEEP_EVENTS.map((key) => <div key={key} className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-muted">{LABEL[key]}</dt>
-              <dd>{row.entry[key] === undefined ? 'nicht eingetragen' : format.format(row.entry[key])}</dd>
-            </div>)}
-          </dl>
-          {row.bedToWakeMin !== undefined && <p className="mt-3 text-sm">Zeit zwischen Bett und Aufstehen: {fmtDuration(row.bedToWakeMin)}</p>}
-          <Button size="sm" variant="ghost" className="mt-2" disabled={pending} aria-label={`Nacht ${row.date} bearbeiten`} onClick={() => { pick(row.date); setEditing(true); window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>Bearbeiten</Button>
-        </Card>)}
+        {rows.map((row) => {
+          const filled = SLEEP_EVENTS.some((key) => row.entry[key] !== undefined)
+          const edit = () => { pick(row.date); setEditing(true); window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }
+          if (!filled) return <button type="button" key={row.date} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-line px-3 py-2 text-left text-sm text-muted" aria-label={`Nacht ${row.date} bearbeiten`} onClick={edit}><span>Nacht {nightLabel(row.date)}</span><span>Keine Angaben</span></button>
+          return <details key={row.date} className="rounded-2xl border border-line bg-surface p-3">
+            <summary className="min-h-11 py-2 font-medium">Nacht {nightLabel(row.date)}{row.bedToWakeMin !== undefined && <span className="block text-sm font-normal text-muted">Bett bis Aufstehen: {fmtDuration(row.bedToWakeMin)}</span>}</summary>
+            <dl className="mt-2 space-y-1 text-sm">{SLEEP_EVENTS.map((key) => <div key={key} className="flex flex-wrap justify-between gap-x-4"><dt className="text-muted">{LABEL[key]}</dt><dd>{row.entry[key] === undefined ? 'nicht eingetragen' : format.format(row.entry[key])}</dd></div>)}</dl>
+            <Button size="sm" variant="ghost" className="mt-2" disabled={pending} aria-label={`Nacht ${row.date} bearbeiten`} onClick={edit}>Bearbeiten</Button>
+          </details>
+        })}
       </Section>
-      <p className="text-sm text-muted">Diese Angaben bleiben auf diesem Gerät und werden nicht synchronisiert. Deine Datensicherung enthält sie. Es entstehen keine Punkte oder Serien.</p>
-    </Page>
+      <MoreInfo><p>Diese Angaben bleiben auf diesem Gerät und werden nicht synchronisiert. Deine Datensicherung enthält sie. Es entstehen keine Punkte oder Serien.</p></MoreInfo>
+    </HubContent>
   )
 }

@@ -4,7 +4,7 @@ import { saveFile } from '../../platform/files'
 import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
 import { automaticSyncEnableConfirmation, cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
-import { Button, Card, Page, Section, SettingRow, TextInput, Toggle } from '../components/ui'
+import { Button, Card, MoreInfo, notifySaved, Page, Section, SettingRow, TextInput, Toggle } from '../components/ui'
 
 export default function Connections() {
   const st = useApp()
@@ -41,7 +41,7 @@ export default function Connections() {
     }
   }, [])
 
-  const setInteg = (patch: Partial<typeof integ>, accept = () => true) => st.saveSettings((s) => accept() ? ({ ...s, integrations: { ...s.integrations, ...patch } }) : s)
+  const setInteg = (patch: Partial<typeof integ>, accept = () => true) => st.saveSettings((s) => accept() ? ({ ...s, integrations: { ...s.integrations, ...patch } }) : s).then(notifySaved)
   const beginGoogleIntent = () => {
     const version = ++googleIntent.current
     return () => mounted.current && googleIntent.current === version
@@ -60,8 +60,12 @@ export default function Connections() {
 
       <Section title="Sync zwischen Handy und PC">
         <Card className="space-y-3">
-          <p className="text-sm text-muted">Nur nach deiner Wahl: Einstellungen, persönliche Tagesdaten, Gedanken und Spielstand gehen an deinen Supabase-Server. Arbeitsaufgaben, Arbeitszeiten, Einnahme- und Schlafprotokoll, Orte, Kalendercache, QR-Geheimnis und Gerätefreigaben bleiben lokal. Als Arbeit erfasste oder mit Arbeit verknüpfte Gedanken bleiben ebenfalls lokal; freie Texte werden nicht automatisch nach Inhalten sortiert.</p>
-          {!supabaseConfigured && <p className="text-muted">Nicht konfiguriert. Anleitung im README (Supabase).</p>}
+          <p className="text-sm text-muted">Gleiche deine persönlichen Daten nur nach deiner Wahl ab.</p>
+          <MoreInfo summary="Welche Daten werden übertragen?">
+            <p>Nur nach deiner Wahl: Einstellungen, persönliche Tagesdaten, Gedanken und Spielstand gehen an deinen Supabase-Server. Arbeitsaufgaben, Arbeitszeiten, Einnahme- und Schlafprotokoll, Orte, Kalendercache, QR-Geheimnis und Gerätefreigaben bleiben lokal. Als Arbeit erfasste oder mit Arbeit verknüpfte Gedanken bleiben ebenfalls lokal; freie Texte werden nicht automatisch nach Inhalten sortiert.</p>
+          </MoreInfo>
+          {!supabaseConfigured && <p className="text-muted">Die Verbindung ist hier noch nicht eingerichtet. Anker funktioniert auch ohne Anmeldung.</p>}
+          {!supabaseConfigured && st.settings.appearance.developerTools && <MoreInfo summary="Technische Einrichtung"><p>Für diese Installation ist kein Supabase-Server konfiguriert. Die Einrichtung steht im Projekt-README; Zugangsdaten gehören nicht in einen Gedanken oder einen Testbericht.</p></MoreInfo>}
           {supabaseConfigured && user && (
             <>
               <p>Angemeldet als {user.email}</p>
@@ -134,11 +138,12 @@ export default function Connections() {
 
       <Section title="Google Kalender">
         <Card className="space-y-3">
-          <p className="text-sm text-muted">Freiwillig: Google erhält deine Anmeldung und den Kalenderzugriff. Gelesene Termine werden lokal für deinen Tagesplan gespeichert. Du kannst den Zugriff hier trennen; ohne Verbindung bleibt Anker nutzbar.</p>
+          <p className="text-sm text-muted">Übernimm auf Wunsch Termine in deinen Tagesplan.</p>
+          <MoreInfo summary="Kalenderzugriff und Datenschutz"><p>Freiwillig: Google erhält deine Anmeldung und den Kalenderzugriff. Gelesene Termine werden lokal für deinen Tagesplan gespeichert. Du kannst den Zugriff hier trennen; ohne Verbindung bleibt Anker nutzbar.</p></MoreInfo>
           {calendar && <p role="status" className="text-sm text-muted">{calendar.state === 'ready' ? 'Termine aktuell eingelesen.' : calendar.state === 'stale' ? 'Letzter Kalenderstand: gerade nicht aktualisierbar. Die gespeicherten Termine bleiben sichtbar.' : calendar.issue === 'auth' ? 'Google-Anmeldung fehlt oder ist abgelaufen. Bitte bewusst neu verbinden.' : calendar.state === 'error' ? 'Kalender gerade nicht erreichbar. Lokale Planung bleibt nutzbar.' : 'Google-Kalender derzeit getrennt.'}{calendar.fetchedAt ? ` Letzter erfolgreicher Abruf: ${new Date(calendar.fetchedAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}.` : ''}</p>}
 
           {!googleConfigured ? (
-            <p className="text-muted">Nicht konfiguriert. Anleitung im README (Google Cloud).</p>
+            <p className="text-muted">Die Kalenderverbindung ist hier noch nicht eingerichtet. Du kannst weiterhin selbst Termine eintragen.</p>
           ) : gConnected ? (
             <>
               <SettingRow label={<span>Termine im Tagesplan</span>}>
@@ -191,7 +196,7 @@ export default function Connections() {
             </>
           ) : (
             <Button
-              variant="primary"
+              variant={supabaseConfigured ? 'secondary' : 'primary'}
               className="w-full"
               onClick={async () => {
                 const accept = beginGoogleIntent()
@@ -210,7 +215,7 @@ export default function Connections() {
         </Card>
       </Section>
 
-      <Section title="Ohne Google: Kalender-Datei" hint="Wiederkehrende Termine mit Erinnerungen, Zeitzone Europe/Berlin. In jeden Kalender importierbar.">
+      <Section title="Ohne Verbindung: Kalender-Datei" hint="Deine wiederkehrenden Termine als Datei für einen Kalender deiner Wahl.">
         <Button className="w-full" size="lg" onClick={() => saveFile('anker.ics', buildIcs(st.settings, today(), new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '')), 'text/calendar')}>
           .ics-Datei exportieren
         </Button>

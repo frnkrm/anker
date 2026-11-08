@@ -6,7 +6,7 @@ import { resolveTask, taskIsOpen, taskTitle, type TaskDetailDepth } from '../../
 import type { InboxItem, TaskPart, TaskRef, WorkTask } from '../../core/types'
 import { AssistanceError, requestAssistance } from '../../platform/assistance'
 import { useApp } from '../../state/store'
-import { Button, Segmented, TextInput } from './ui'
+import { Button, Checkbox, Segmented, TextInput } from './ui'
 
 interface Preview { parts: TaskPart[]; snapshot: string }
 
@@ -67,7 +67,9 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
     setMessage('Anfrage beendet. Deine Aufgabe bleibt unverändert.')
   }
   const submit = async () => {
-    if (!consent || requestingNow.current || savingNow.current) return
+    if (requestingNow.current || savingNow.current) return
+    if (!consent) { setError('Gib den angezeigten Inhalt für diese einzelne Anfrage frei, wenn du ihn senden möchtest.'); return }
+    if (!title.trim()) { setError('Ergänze zuerst einen Text für den Vorschlag.'); return }
     const taskNow = current()
     if (!taskNow || !taskIsOpen(taskNow) || taskAssistanceRevision(taskRef, taskNow) !== snapshot) {
       setError('Die Aufgabe hat sich geändert. Prüfe den Inhalt erneut.'); setConsent(false); return
@@ -118,7 +120,7 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
   const completed = task.subtasks?.filter((part) => part.doneAt !== undefined) ?? []
 
   return <details className="min-w-0 rounded-xl border border-line p-3">
-    <summary className="min-h-11 py-2 text-muted">KI-Vorschlag (freiwillig)</summary>
+    <summary className="min-h-11 py-2 text-muted">KI-Vorschlag</summary>
     <div className="min-w-0 space-y-3 pt-2">
       {!enabled ? <>
         <p className="text-sm text-muted">KI-Vorschläge sind ausgeschaltet. Lokale Vorlagen stehen oben zur Verfügung.</p>
@@ -128,14 +130,14 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
         <form className="min-w-0 space-y-3" onSubmit={(event) => { event.preventDefault(); void submit() }}>
           <fieldset className="min-w-0 space-y-3" disabled={busy || saving}>
             <label className="block space-y-1"><span>Text für den KI-Vorschlag</span><TextInput aria-label="Text für den KI-Vorschlag" maxLength={300} required value={title} onChange={(event) => edit(() => setTitle(event.target.value))} /></label>
-            <label className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={sendDescription} onChange={(event) => edit(() => setSendDescription(event.target.checked))} /><span>Beschreibung mitsenden</span></label>
+            <Checkbox label="Beschreibung mitsenden" checked={sendDescription} onChange={(checked) => edit(() => setSendDescription(checked))} />
             {sendDescription && <label className="block space-y-1"><span>Beschreibung für diese Anfrage</span><textarea aria-label="Beschreibung für die KI-Anfrage" maxLength={2000} rows={3} value={description} onChange={(event) => edit(() => setDescription(event.target.value))} className="w-full min-w-0 rounded-xl bg-surface-2 p-3" /></label>}
-            <label className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={sendNextStep} onChange={(event) => edit(() => setSendNextStep(event.target.checked))} /><span>Nächsten Schritt mitsenden</span></label>
+            <Checkbox label="Nächsten Schritt mitsenden" checked={sendNextStep} onChange={(checked) => edit(() => setSendNextStep(checked))} />
             {sendNextStep && <label className="block space-y-1"><span>Nächster Schritt für diese Anfrage</span><TextInput aria-label="Nächster Schritt für die KI-Anfrage" maxLength={300} value={nextStep} onChange={(event) => edit(() => setNextStep(event.target.value))} /></label>}
             <Segmented<TaskDetailDepth> label="KI-Detailtiefe" value={detailDepth} options={[{ value: 'three', label: '3 Schritte' }, { value: 'normal', label: 'Normal' }, { value: 'tiny', label: 'Sehr klein' }]} onChange={(value) => edit(() => setDetailDepth(value))} />
             <p className="text-xs text-muted">Übertragen werden der sichtbare Text, die gewählte Detailtiefe und nur die zusätzlich angehakten Felder. Zielgrund, Arbeitszeit, Einnahmen, Adressen und übrige Aufgaben werden nicht automatisch angehängt.</p>
-            <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>Diesen Inhalt für diese Anfrage an OpenAI freigeben</span></label>
-            <Button type="submit" size="sm" disabled={!consent || !title.trim()}>{busy ? 'Vorschlag wird angefragt …' : 'KI-Vorschlag anfordern'}</Button>
+            <Checkbox label="Diesen Inhalt für diese Anfrage an OpenAI freigeben" checked={consent} onChange={setConsent} />
+            <Button type="submit" size="sm">{busy ? 'Vorschlag wird angefragt …' : 'KI-Vorschlag anfordern'}</Button>
           </fieldset>
         </form>
         {busy && <Button size="sm" variant="ghost" onClick={cancel}>KI-Anfrage abbrechen</Button>}
@@ -155,7 +157,7 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
             </div>)}
             {preview.parts.length < 12 && <Button size="sm" onClick={() => { setPreview((value) => value && ({ ...value, parts: [...value.parts, { id: `ai:manual:${randomId()}`, title: '' }] })); setReviewed(false) }}>Vorschlagsschritt ergänzen</Button>}
             {stale && <p role="status" className="text-sm text-warm">Die Aufgabe hat sich seit dieser Anfrage geändert. Frage mit dem aktuellen Stand neu an oder übernimm einzelne Texte manuell.</p>}
-            <label className="flex min-h-11 items-start gap-3"><input type="checkbox" className="mt-1" disabled={stale} checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} /><span>Geprüfte offene Schritte durch diesen Vorschlag ersetzen</span></label>
+            <Checkbox label="Geprüfte offene Schritte durch diesen Vorschlag ersetzen" disabled={stale} checked={reviewed} onChange={setReviewed} />
             <div className="flex flex-wrap gap-2"><Button size="sm" variant="primary" disabled={!reviewed || stale || !preview.parts.length} onClick={() => void apply()}>Geprüfte KI-Schritte übernehmen</Button><Button size="sm" variant="ghost" onClick={() => { setPreview(undefined); setReviewed(false); setError(''); setMessage('Vorschlag verworfen. Deine Aufgabe bleibt unverändert.') }}>KI-Vorschlag verwerfen</Button></div>
           </fieldset>
         </section>}
