@@ -216,6 +216,9 @@ const sheetLayers: SheetLayer[] = []
 let sheetHistoryMarker = ''
 let removeNativeBack: (() => void) | undefined
 let removeHistoryBack: (() => void) | undefined
+let sheetCleanupTimer: number | undefined
+let sheetBackPending = false
+let sheetBackFocus: HTMLElement | undefined
 
 function updateSheetLayers() {
   for (const [index, layer] of sheetLayers.entries()) {
@@ -225,11 +228,14 @@ function updateSheetLayers() {
     else layer.node.removeAttribute('aria-hidden')
   }
   const root = document.getElementById('root')
-  if (root) root.inert = sheetLayers.length > 0
+  if (root) root.inert = sheetLayers.length > 0 || sheetBackPending
 }
 
 /** One temporary history entry represents the whole modal stack, including nested choices. */
 function registerSheet(layer: SheetLayer): () => void {
+  // Switching or reopening a sheet cancels its predecessor's deferred release.
+  window.clearTimeout(sheetCleanupTimer)
+  sheetCleanupTimer = undefined
   sheetLayers.push(layer)
   updateSheetLayers()
   if (!removeHistoryBack) {
@@ -249,6 +255,18 @@ function registerSheet(layer: SheetLayer): () => void {
     pushMarker()
     history.pushState = managedPush
     const pop = () => {
+      if (sheetBackPending) {
+        // This pop belongs to a dismissed sheet, never to a newly opened one.
+        // Keep the manager alive until the one requested traversal has drained.
+        sheetBackPending = false
+        if (sheetLayers.length) pushMarker()
+        else { removeHistoryBack?.(); removeNativeBack?.() }
+        updateSheetLayers()
+        const previous = sheetBackFocus
+        sheetBackFocus = undefined
+        if (!sheetLayers.length && previous?.isConnected && !previous.closest('[inert]')) previous.focus()
+        return
+      }
       if (!sheetLayers.length || history.state?.ankerSheet === marker) return
       const latest = sheetLayers.at(-1)!
       if (sheetLayers.length > 1) pushMarker()
@@ -263,23 +281,38 @@ function registerSheet(layer: SheetLayer): () => void {
     if (isNative()) {
       let active = true
       const listener = CapApp.addListener('backButton', () => {
-        if (!active || !sheetLayers.length) return
-        if (history.state?.ankerSheet === marker) history.back()
-        else sheetLayers.at(-1)?.close()
+        if (!active || sheetBackPending || !sheetLayers.length) return
+        // Closing the last layer uses the same single-flight release as Escape.
+        sheetLayers.at(-1)?.close()
       }).catch(() => undefined)
       removeNativeBack = () => { active = false; void listener.then((handle) => handle?.remove()).catch(() => undefined); removeNativeBack = undefined }
     }
   }
   return () => {
     const index = sheetLayers.findIndex((item) => item.token === layer.token)
-    if (index >= 0) sheetLayers.splice(index, 1)
+    if (index < 0) return
+    sheetLayers.splice(index, 1)
     layer.node.inert = false; layer.node.removeAttribute('aria-hidden')
     updateSheetLayers()
-    // A switch from one sheet to another must retain its back entry.
-    window.setTimeout(() => {
-      if (sheetLayers.length) return
-      removeHistoryBack?.(); removeNativeBack?.()
-      if (history.state?.ankerSheet === sheetHistoryMarker) history.back()
+    if (sheetLayers.length || sheetBackPending) return
+    // Several unmounts can happen in one React commit. Only one session-bound
+    // cleanup may request Back, and no second request is allowed before popstate.
+    window.clearTimeout(sheetCleanupTimer)
+    const closingManager = removeHistoryBack
+    const closingMarker = sheetHistoryMarker
+    sheetCleanupTimer = window.setTimeout(() => {
+      sheetCleanupTimer = undefined
+      if (sheetLayers.length || sheetBackPending || removeHistoryBack !== closingManager || sheetHistoryMarker !== closingMarker) return
+      if (history.state?.ankerSheet === closingMarker) {
+        sheetBackFocus = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
+        sheetBackPending = true
+        updateSheetLayers()
+        history.back()
+      } else {
+        // Navigation or the browser Back button has already consumed the entry.
+        removeHistoryBack?.(); removeNativeBack?.()
+        updateSheetLayers()
+      }
     }, 0)
   }
 }

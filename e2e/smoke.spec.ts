@@ -39,6 +39,8 @@ test('Onboarding und Hauptwege funktionieren', async ({ page }) => {
   await page.getByRole('button', { name: 'Merken' }).click()
   await expect(page.getByText('Du warst bei:')).toBeVisible()
   await page.getByRole('button', { name: 'Weiter' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
   await page.goto('/inbox')
   await expect(page.getByText('Zahnarzt anrufen')).toBeVisible()
 
