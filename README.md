@@ -1,6 +1,6 @@
 # ⚓ Anker
 
-**Anker Neu 1.3.0-rc.6 / Code 13:** [Handy-Download als ZIP, ca. 22 MB](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc6-20261107) – kein PC nötig. Ein vorhandenes Anker Neu mit der enthaltenen APK aktualisieren. Für den ersten Umzug aus der bisherigen Anker-App die Datenübernahme in der Anleitung verwenden. [Installation, Datenübernahme und geprüfte Grenzen](docs/INSTALLATION_ANKER_NEU.md).
+**Anker 1.4.0-rc.1 / Code 14:** Die vereinfachte Oberfläche bündelt Alltag, Fokus und Einstellungen. [Signierte APK als ZIP](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108) · [Installation](docs/INSTALLATION_ANKER_CODE14.md) · [Umsetzung und Prüfstand](docs/UI_UEBERARBEITUNG_CODE14.md). Die App heißt wieder Anker; Paketkennung und bestehende Release-Signatur bleiben erhalten.
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
@@ -11,7 +11,7 @@ Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**,
 - **Optionale Extras:** Sync, Kalender, Health Connect, Wetter, PC-Stopp, lokale Sprache, besuchsbezogene Standorthinweise sowie KI- und Verkehrsvorschläge. Sensible neue Extras beginnen ausgeschaltet. Ein Ausfall ändert keinen erledigten Schritt und lässt manuelle Wege verfügbar; Freigaben werden nicht still erteilt.
 - Keine Werbung, kein Tracking, keine Analytics
 
-> Anker ersetzt keine ärztliche Beratung. Anlaufstellen findest du in der App unter **Mehr → Hilfe**.
+> Anker ersetzt keine ärztliche Beratung. Anlaufstellen findest du in der App unter **Mehr → Einstellungen → Hilfe**.
 
 ---
 

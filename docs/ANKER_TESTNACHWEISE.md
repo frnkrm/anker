@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## UI-Code 14 – gemeinsamer Umbau am 08.11.2026
+
+**Implementiert:** beide UI-Aufträge, Version 1.4.0-rc.1/Code 14, sichtbarer Name Anker. Neue Funktionen verwenden bestehende Daten und Aktionen; keine neue native Weckerlogik. **Automatisch:** 912 Vitest-Fälle in der vollständigen lokalen Prüfung grün, TypeScript/Produktionsbuild und Lint (eine bekannte Cleanup-Warnung) erfolgreich, 36 Update-Mockfälle, 19 PowerShell-Fälle und vier Parser grün. Gesamte Browser-Suite: 246 Fälle. Der erste vollständige Produktionslauf hatte 218 Erfolge/28 Befunde; nach Anpassung überholter Testwege und dem echten Doppelabstandsfix wurden alle betroffenen Abläufe gezielt nachgeprüft (27er-, 24er- und abschließender 4er-Lauf mit getrennten Berichten). Ein einzelner vollständig grüner lokaler 246er-Lauf wird daraus nicht behauptet. Der abschließende Remote-Gesamtlauf und die frische Android-Prüfung werden am freigegebenen Quellstand ergänzt. **Echter Android-Test dieses Builds:** offen. [Anforderungen und Abweichungen](UI_UEBERARBEITUNG_CODE14.md).
+
 Ein Fortschrittsplan: [ANKER_IMPLEMENTIERUNGSPLAN.md](ANKER_IMPLEMENTIERUNGSPLAN.md). Diese Datei protokolliert Ausführungen und ihre Grenzen, keine zweite Planung.
 
 ## RC6 – kompakte Routinekarten, 7. November 2026
