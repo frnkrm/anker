@@ -66,8 +66,73 @@ Aktivierungen. Sichtbarer Appname wieder **Anker**. Bestehende Paketkennung
 
 ## Prüfung und Auslieferung
 
-Die gemeinsame Abschlussprüfung, APK-Prüfsummen, Vorher/Nachher-Bilder und
-Downloadnachweise werden nach dem eingefrorenen Quellstand ergänzt.
-Implementiert, automatisch geprüft und tatsächlich am Android-Gerät geprüft
-werden getrennt ausgewiesen. Geräteprüfungen dieses Builds sind bis zu einer
-wirklichen Beobachtung offen. Frühere Geräteberichte behalten ihren Buildbezug.
+**Implementiert und automatisch geprüft:** Quelle `1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a`, Version
+**1.4.0-rc.1 / Code 14**, Laufzeitkennung `46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87`.
+[GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42451162451) vollständig grün: **248/248 Browserfälle**, keine
+Fehler, Flakies, Skips oder Retries. Zusätzlich **912/912 Vitest-Fälle**, TypeScript,
+Produktionsbuild, Lint ohne Fehler (eine bestehende Cleanup-Warnung),
+**36 Update-Mockfälle**, **19 PowerShell-Fälle und vier Parser** erfolgreich.
+Die vollständige CI bezieht sich auf genau diesen Quellcommit; aus den lokalen
+gezielten Nachprüfungen wird kein einzelner grüner lokaler Gesamtbrowserlauf abgeleitet.
+
+Zusätzlich wurden zwei echte Dialogfehler mit verzögerten Browseraktionen am
+alten Build rot reproduziert: doppelte Zurück-Anforderungen und das Schließen
+eines bereits neu geöffneten Sheets. Beide Regressionen und alle 42 betroffenen
+Browserfälle sind mit dem abgesicherten Manager grün.
+
+Android wurde aus einer isolierten Kopie dieses Commits gebaut. **122 JUnit-Fälle
+in elf Klassen frisch ausgeführt**, keine Fehler oder Skips; Debug-/Release-AAR-
+Metadaten, Kotlin-Kompilierungen und zusammengeführte Manifeste erfolgreich.
+Capacitor erzeugt zusätzlich seine bekannte `config.xml`: Das ändert die
+native Eingabekennung auf `80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85`. Diese einzige
+abgeleitete Datei und alle übrigen unveränderten Eingabebytes sind separat
+gebunden. Die getestete Webkennung wird dadurch nicht umgeschrieben.
+
+APK mit bestehendem B4-Release-Zertifikat signiert, v2/v3 und 16-KB-Ausrichtung
+geprüft. Anzeigename **Anker**, Paket `de.frnkrm.anker.mobile`, Code 14.
+Alle 60 Webdateien entsprechen dem getesteten Produktionsstand. Alle bisherigen
+Einträge im APK-Archiv bleiben beim Signieren bytegleich; hinzu kommen nur
+Signaturdateien.
+APK: **38042626 Bytes**, SHA-256
+`e4685b32f9796c462f7d8f683088312e13fe2c324d702e002f6a3f5bb56bd834`.
+
+[Fertiges APK-Paket herunterladen](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108).
+Der vollständige Chromium-Klickdownload wurde mit aktiver TLS-Prüfung gespeichert:
+**21841197 Bytes**, SHA-256 `3b0584636576ab2d55d30db9f5d4bfa6b60e70734f894dd40ccc3b09e79a7779`.
+ZIP-CRC, vollständige Dateiliste und alle enthaltenen Bytes wurden gegen die
+veröffentlichten Dateien geprüft. Schlüssel oder Passwörter sind nicht enthalten.
+[Maschinenlesbarer Nachweis](ANKER_CODE14_NACHWEIS.json).
+
+### Bilder und Prüfwege
+
+[Bilderpaket separat herunterladen](https://codeload.github.com/frnkrm/anker/zip/refs/heads/screenshots-anker-code14-20261108).
+Im entpackten Bilderpaket: **`screenshots/index.html`**. Acht gleiche Jetzt-Zustände
+vorher/nachher, **54 Nachher-Ansichten mit 73 PNGs**, zusätzlich **89
+frühere Seitenaufnahmen** für die übrigen betroffenen Bereiche. Frühere Aufnahmen
+mit anderen Beispieldaten sind ausdrücklich gekennzeichnet. Nur Browserbilder,
+keine behaupteten neuen Android-Gerätenachweise. Lokale Originalpfade:
+`/workspace/artifacts/anker-code14/screenshots/{before,before-legacy,after}`.
+Grundaufnahmen (44 Ansichten): `CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node
+scripts/ui-screenshots.mjs http://127.0.0.1:4173 <Ausgabeordner>`. Die zehn
+ergänzten Aufnahmen zeigen weitere Einstiegsseiten und einen laufenden
+Aufräumtimer; Aufrufpfade und Zustände stehen in der Bildliste.
+
+Die sechs kurzen Geräte-Teststationen bleiben erhalten; G95 führt zu den
+kompakten Routinen, G96 berücksichtigt die getrennte freiwillige Aktivierung
+des stummen Hinweises. Einstieg: **Mehr → Einstellungen → Test- und
+Entwicklerwerkzeuge anzeigen → Gemeinsam testen**. Frühere Berichte behalten
+ihren jeweiligen Buildbezug.
+
+### Annahmen und verbleibende Grenzen
+
+- Die zwei Vorlagen teilen sich vorhandene Zustände, Aktionen und Routen.
+  Es gibt keine parallele Planung und keine neue Netzwerkabhängigkeit.
+- Einzelne technische Statusbegriffe in der optionalen Anbieterdiagnose und
+  der Zeitzonenhinweis im Wetter sind noch sichtbar; diese sprachliche
+  Restpolitur wurde zugunsten unveränderter Freigabe- und Fehlerinformationen
+  zurückgestellt. Datenschutz-Empfänger bleiben vollständig benannt.
+- Reale Installation, Systemleisten, Samsung-Touch, Alarm-/Hinweiszustellung,
+  Mikrofon-/Bewegungsmessung und Windows-PC-Schaltung dieses Builds bleiben
+  **offen**, bis sie tatsächlich auf den Geräten beobachtet wurden.
+- Der nächste sinnvolle Durchlauf ist der gemeinsame kurze Gerätecheck mit
+  diesem Gesamtstand. Daraus folgen konkrete Korrekturen statt weiterer Pflichtfälle.

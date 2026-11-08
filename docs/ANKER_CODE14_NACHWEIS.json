@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "applicationId": "de.frnkrm.anker.mobile",
+  "appName": "Anker",
+  "versionName": "1.4.0-rc.1",
+  "versionCode": 14,
+  "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+  "sourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+  "nativeInputFingerprint": "80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85",
+  "nativeGenerationBinding": {
+    "testedCommittedSourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+    "postSyncNativeInputFingerprint": "80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85",
+    "sourceFingerprintsDiffer": true,
+    "reason": "Capacitor sync generates one previously absent Cordova XML resource included by the existing fingerprint walk.",
+    "added": [
+      {
+        "path": "android/app/src/main/res/xml/config.xml",
+        "sha256": "e9dcda493e663c5c4db9e3cb3bd968477a6e90aa8840bcbba40d72ed54b767ce",
+        "verifiedCanonicalCapacitorTemplate": true
+      }
+    ],
+    "removed": [],
+    "changedExistingRuntimeInputs": [],
+    "existingRuntimeInputsByteEqual": 203,
+    "packagedWebFingerprintUnchanged": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+    "noResourceRemovedToForceEquality": true
+  },
+  "implementation": {
+    "claudeUiPhases": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "geminiViewConsolidation": true,
+    "nativeAlarmLogicChanged": false,
+    "destructiveDataMigration": false,
+    "newDependencies": false,
+    "report": "UI_UEBERARBEITUNG_CODE14.md"
+  },
+  "automatedTests": {
+    "unit": {
+      "passed": 912,
+      "failed": 0,
+      "pending": 0,
+      "command": "npm test -- --reporter=json --outputFile=<isolated cache>/unit-results-final.json",
+      "jsonSha256": "1380ec63f4b780a93d574bdf4a32a6299bffcea9379beed9dcd6390e88ae0096"
+    },
+    "browser": {
+      "passed": 248,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "interrupted": 0,
+      "configuredRetries": 0,
+      "command": "npx playwright test",
+      "ciRunUrl": "https://github.com/frnkrm/anker/actions/runs/42451162451",
+      "ciJobUrl": "https://github.com/frnkrm/anker/actions/runs/42451162451/job/128640484921",
+      "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+      "publicHtmlEvidenceSha256": "c444e4dda1fd0ed1988b47e0cd152a72213d3f178f3d127c491a144cbd472ecc",
+      "evidenceLimit": "Public GitHub step results and exact passed-count annotation; authenticated raw logs were not accessed. No single clean local full-suite run is claimed."
+    },
+    "native": {
+      "freshRerun": true,
+      "nativeTestsReused": false,
+      "nativeTestsExecutedNow": true,
+      "tests": 122,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 11,
+      "startedAt": 1794115969.1029701,
+      "finishedAt": "2026-11-08T05:34:05.709686+00:00",
+      "bothAarChecks": true,
+      "bothKotlinCompiles": true,
+      "bothMergedManifests": true,
+      "reportSha256": "2be78ee75ef26cfa11a4721b55dbe7963d99d1e998d8e39c844faa23a7efb537"
+    },
+    "updateMocks": {
+      "passed": 36,
+      "privateKeysUsed": false
+    },
+    "pc": {
+      "passed": 19,
+      "parsedPowerShellScripts": 4,
+      "actualWindowsExecution": false
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "lint": {
+      "errors": 0,
+      "knownExistingWarnings": 1
+    },
+    "ciFirstAttempt": {
+      "sourceCommit": "f3fad0df93d2b6becda40df5f12207c5e84b8393",
+      "runUrl": "https://github.com/frnkrm/anker/actions/runs/42447830603",
+      "passed": 241,
+      "failed": 5,
+      "originalEvidenceRetained": true,
+      "targetedCorrectionTestsPassed": 5
+    },
+    "ciSecondAttempt": {
+      "sourceCommit": "04fe00caf301401e77da3e1a661198349a7a8fbd",
+      "runUrl": "https://github.com/frnkrm/anker/actions/runs/42448698547",
+      "passed": 245,
+      "failed": 1,
+      "originalEvidenceRetained": true,
+      "targetedCorrectionTestsPassed": 4
+    },
+    "ciThirdAttempt": {
+      "sourceCommit": "311d935e2dafff64deae14904f36754ab7bcd9e6",
+      "runUrl": "https://github.com/frnkrm/anker/actions/runs/42449532594",
+      "passed": 244,
+      "failed": 2,
+      "originalEvidenceRetained": true,
+      "sharedDialogHistoryRaceCorrected": true
+    }
+  },
+  "apk": {
+    "applicationId": "de.frnkrm.anker.mobile",
+    "appName": "Anker",
+    "versionName": "1.4.0-rc.1",
+    "versionCode": 14,
+    "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+    "sourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+    "nativeInputFingerprint": "80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85",
+    "nativeGenerationBindingSha256": "1161bca6641d3afebe7a10d26592a74a4d633b75b75846add40edbf94061800e",
+    "signedApkSha256": "e4685b32f9796c462f7d8f683088312e13fe2c324d702e002f6a3f5bb56bd834",
+    "signedApkBytes": 38042626,
+    "unsignedApkSha256": "cb702656dccd8300958da1f463674b92a8623447b383119a060ede7cb4f1cca3",
+    "certificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+    "signatureVerified": true,
+    "v2": true,
+    "v3": true,
+    "zipalign16kb": true,
+    "unsignedEntriesByteEqual": true,
+    "addedSignatureEntries": [
+      "META-INF/ANKER-MO.RSA",
+      "META-INF/ANKER-MO.SF",
+      "META-INF/MANIFEST.MF"
+    ],
+    "nativeTestsExecutedNow": true,
+    "nativeTests": {
+      "tests": 122,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 11
+    },
+    "browserTests": 248,
+    "unitTests": 912,
+    "realAndroidInstallation": "not run",
+    "privateKeyInDownload": false,
+    "ci": "https://github.com/frnkrm/anker/actions/runs/42451162451",
+    "signedAt": "2026-11-08T05:41:09.774537+00:00"
+  },
+  "download": {
+    "schemaVersion": 1,
+    "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+    "sourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+    "branch": "download-anker-code14-20261108",
+    "downloadCommit": "0c8c080ee9c690a5a6ee12279702da93a162bb48",
+    "url": "https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108",
+    "browserDownloadCompleted": true,
+    "tlsValidationEnabled": true,
+    "zipCrcValid": true,
+    "allPublicFileBytesEqual": true,
+    "fileCount": 3,
+    "zipBytes": 21841197,
+    "zipSha256": "3b0584636576ab2d55d30db9f5d4bfa6b60e70734f894dd40ccc3b09e79a7779",
+    "containedSignedApkSha256": "e4685b32f9796c462f7d8f683088312e13fe2c324d702e002f6a3f5bb56bd834",
+    "privateKeysIncluded": false,
+    "realSamsungDownload": "not run",
+    "checkedAt": "2026-11-08T05:42:42.559443+00:00"
+  },
+  "screenshotsDownload": {
+    "schemaVersion": 1,
+    "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+    "sourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+    "branch": "screenshots-anker-code14-20261108",
+    "downloadCommit": "aded4ea6ec1a6352915537b66eff2698b6ea7b2d",
+    "url": "https://codeload.github.com/frnkrm/anker/zip/refs/heads/screenshots-anker-code14-20261108",
+    "browserDownloadCompleted": true,
+    "tlsValidationEnabled": true,
+    "zipCrcValid": true,
+    "allPublicFileBytesEqual": true,
+    "fileCount": 181,
+    "zipBytes": 29699105,
+    "zipSha256": "751b11f74250c7242c4912dd76861dde5e08f598ff9c182e043f587a887f2496",
+    "privateKeysIncluded": false,
+    "realSamsungDownload": "not run",
+    "checkedAt": "2026-11-08T05:42:42.199314+00:00",
+    "apkIncluded": false
+  },
+  "screenshots": {
+    "offlineGallery": "screenshots/index.html",
+    "syntheticDataOnly": true,
+    "androidDeviceProof": false,
+    "nowBeforeAfterPairs": 8,
+    "beforeSourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+    "captureSourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+    "releaseSourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+    "appRuntimeSourceByteEqual": true,
+    "afterViews": 54,
+    "afterPngs": 73,
+    "legacyBeforePngs": 89,
+    "legacyDataMayDiffer": true,
+    "allPublishedFilesBoundByDownloadManifest": true
+  },
+  "realDeviceTests": {
+    "androidInstallation": "open",
+    "samsungTouchAndSystemInsets": "open",
+    "notificationAndAlarmDelivery": "open",
+    "sensorMeasurements": "open"
+  },
+  "privateKeysInRepositoryOrDownload": false
+}
