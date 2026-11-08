@@ -77,12 +77,40 @@ textarea {
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 }
-input[type='time']::-webkit-calendar-picker-indicator {
-  filter: var(--picker-filter, none);
-}
-.dark input[type='time']::-webkit-calendar-picker-indicator {
-  --picker-filter: invert(1);
-}
+/* Text-based clock fields always show 24-hour time, including English devices. */
+.time-field { text-align: center; letter-spacing: 0.02em; }
+.time-field[aria-invalid='true'] { outline: 2px solid var(--warm); outline-offset: 2px; }
+.ui-date-picker { position: absolute; inset-inline-start: 0; bottom: 0; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
+.ui-date-field > button, .ui-choice { overflow-wrap: anywhere; }
+.ui-checkbox { cursor: pointer; }
+.ui-checkbox-input { appearance: none; display: inline-grid; place-items: center; border: 2px solid var(--muted); border-radius: 7px; background: var(--surface-2); color: var(--accent-ink); }
+.ui-checkbox-input:checked { border-color: var(--accent); background: var(--accent); }
+.ui-checkbox-input:checked::after { content: '✓'; font-size: 18px; font-weight: 700; line-height: 1; }
+.ui-checkbox-input:disabled { cursor: default; }
+.anker-sheet { overflow-wrap: anywhere; }
+.save-feedback { bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+.ring-timer { position: relative; width: min(17rem, 74vw); max-width: 100%; margin-inline: auto; aspect-ratio: 1; }
+.ring-timer-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ring-timer-art circle { fill: none; stroke-width: 7; }
+.ring-track { stroke: var(--surface-2); }
+.ring-value { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
+.ring-timer-content { position: absolute; inset: 12%; display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.ring-timer-number { max-width: 100%; font-size: clamp(1.5rem, 9vw, 3.25rem); font-weight: 300; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ring-timer.is-paused .ring-timer-art { opacity: .45; }
+.ring-timer-pause { color: var(--muted); font-size: .875rem; }
+@keyframes ring-breathe { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+.ring-pulse-gentle .ring-value { animation: ring-breathe 4s ease-in-out infinite; }
+.ring-pulse-strong .ring-value { animation: ring-breathe 2s ease-in-out infinite; }
+
+/* A collapsed routine is a short editable row with its drag handle at the left. */
+.settings-routine-compact ol > li { align-items: start; }
+.settings-routine-compact .routine-detail { min-width: 0; width: 100%; }
+.settings-routine-compact .routine-summary { display: flex; min-height: 44px; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; overflow-wrap: anywhere; }
+.settings-routine-compact .routine-detail .setting-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.settings-routine-compact .routine-detail .setting-label { white-space: normal; }
+.settings-routine-compact .routine-detail .setting-row-control { max-width: 100%; }
+.settings-routine-compact li:not(:has(details[open])) .sortable-move-buttons,
+.settings-routine-compact li:not(:has(details[open])) .sortable-actions { display: none; }
 
 /* Gemeinsame Zeit-/Dauerfelder: Einheiten verschieben weder Wert noch Plus. */
 .setting-control {
@@ -115,6 +143,8 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .setting-row:has(> .setting-row-control > [role='switch']) { grid-template-columns: minmax(0, 1fr) auto; }
 .setting-row-control:has(> [role='switch']) { width: auto; }
 .settings-page { container: settings / inline-size; overflow-wrap: anywhere; padding-inline: 12px; }
+/* Embedded settings reuse their hub's gutters instead of narrowing each control twice. */
+.settings-page .settings-page { padding-inline: 0; }
 .settings-page .ui-card { padding: 14px; }
 .settings-page :where(input, select, textarea, button, fieldset) { min-width: 0; max-width: 100%; }
 .settings-page button { overflow-wrap: anywhere; }
@@ -152,7 +182,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .animate-pop { animation: pop 0.5s ease-out both; }
 .animate-rise { animation: rise 1.6s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop, .animate-rise { animation: none; }
+  .animate-pop, .animate-rise, .ring-timer .ring-value { animation: none; }
   *, *::before, *::after {
     transition-duration: 0s !important;
     scroll-behavior: auto !important;
