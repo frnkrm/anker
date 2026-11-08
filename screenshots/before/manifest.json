@@ -1,0 +1,118 @@
+{
+  "syntheticDataOnly": true,
+  "androidDeviceProof": false,
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "dpr": 2
+  },
+  "date": "2026-11-09",
+  "fullPageNavigation": "Gesamtansichten ordnen die feste Navigation ausschließlich für die Aufnahme unter dem Inhalt an.",
+  "captures": [
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-0705",
+      "files": [
+        "01-jetzt-0705.png",
+        "01-jetzt-0705-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T06:05:00.000Z",
+      "titles": [
+        "Ein Schluck Wasser"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1000",
+      "files": [
+        "02-jetzt-1000.png",
+        "02-jetzt-1000-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1630",
+      "files": [
+        "03-jetzt-1630.png",
+        "03-jetzt-1630-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T15:30:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1900",
+      "files": [
+        "04-jetzt-1900.png",
+        "04-jetzt-1900-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T18:00:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2145",
+      "files": [
+        "05-jetzt-2145.png",
+        "05-jetzt-2145-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T20:45:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2205",
+      "files": [
+        "06-jetzt-2205.png",
+        "06-jetzt-2205-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T21:05:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2245",
+      "files": [
+        "07-jetzt-2245.png"
+      ],
+      "sampleTime": "2026-11-09T21:45:00.000Z",
+      "titles": [
+        "Ab ins Bett"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-freier-tag-2330",
+      "files": [
+        "08-jetzt-freier-tag-2330.png"
+      ],
+      "sampleTime": "2026-11-09T22:30:00.000Z",
+      "titles": [
+        "Ab ins Bett"
+      ]
+    }
+  ],
+  "appVersion": "1.3.0-rc.6",
+  "sourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+  "runtimeFingerprint": "4f90a1d9e60e53d1860cdbffdad95ee3b121ad5242ed629f32fbc7164c17399b"
+}

@@ -1,0 +1,2811 @@
+{
+  "schemaVersion": 1,
+  "versionCode": 13,
+  "versionName": "1.3.0-rc.6",
+  "sourceCommit": "855b0bef8c276f358ce4f7db5fa3ac1299ead2ae",
+  "sourceArtifact": "Anker Screenshotpaket Code 13",
+  "sourceManifestSha256": "392522efd8292f51e05e16414a6e5f3cffb2aed0fd539026f2b70767a9f37b81",
+  "sourceInventorySha256": "ac913ff2876344ccde064f0e82de8ed3a2c593e106e381b0dba401bc0279ea04",
+  "syntheticDataOnly": true,
+  "androidDeviceProof": false,
+  "nativeSimulationsIncluded": false,
+  "fixtureEquivalentToCurrentCapture": false,
+  "label": "Frühere Ansicht – andere Beispieldaten",
+  "note": "Diese früheren tatsächlichen Browseraufnahmen zeigen denselben oder einen ausdrücklich zugeordneten analogen Einstieg. Aufgaben, Werte und UI-Zustände können abweichen. Sie sind keine identische Testsituation und kein Android-Gerätebeleg.",
+  "fullPageNavigation": "Nur für Gesamtansichten wird die sonst feststehende Anker-Navigation durch eine Aufnahmeoption einmal unter dem vollständigen Inhalt angeordnet. So verdeckt sie keine Stelle in einem langen Bild. Die Handyansichten zeigen die normale feste Navigation; der Appcode bleibt unverändert.",
+  "sourceSampleDay": "2026-11-09",
+  "sourceTimeZone": "Europe/Berlin",
+  "mappedAfterViews": 46,
+  "captureCount": 56,
+  "pngCount": 89,
+  "allCopiedFilesByteIdenticalToSource": true,
+  "matches": [
+    {
+      "afterCapture": "tag",
+      "afterRoute": "/tag",
+      "legacyCapture": 4,
+      "legacyRoute": "/tag",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "mehr",
+      "afterRoute": "/mehr",
+      "legacyCapture": 5,
+      "legacyRoute": "/mehr",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "arbeit",
+      "afterRoute": "/arbeit",
+      "legacyCapture": 6,
+      "legacyRoute": "/arbeit",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "arbeitszeit",
+      "afterRoute": "/arbeitszeit",
+      "legacyCapture": 7,
+      "legacyRoute": "/arbeitszeit",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "abend",
+      "afterRoute": "/abend",
+      "legacyCapture": 12,
+      "legacyRoute": "/abend",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "vorbereitung",
+      "afterRoute": "/vorbereitung",
+      "legacyCapture": 16,
+      "legacyRoute": "/vorbereitung",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "inbox",
+      "afterRoute": "/inbox",
+      "legacyCapture": 11,
+      "legacyRoute": "/inbox",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "spiel",
+      "afterRoute": "/spiel",
+      "legacyCapture": 9,
+      "legacyRoute": "/spiel",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "spiel-shop",
+      "afterRoute": "/spiel/shop",
+      "legacyCapture": 10,
+      "legacyRoute": "/spiel/shop",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "rueckblick",
+      "afterRoute": "/rueckblick",
+      "legacyCapture": 17,
+      "legacyRoute": "/rueckblick",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "schlaf",
+      "afterRoute": "/schlaf",
+      "legacyCapture": 13,
+      "legacyRoute": "/schlaf",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "zeiten",
+      "afterRoute": "/zeiten",
+      "legacyCapture": 19,
+      "legacyRoute": "/zeiten",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "wecker",
+      "afterRoute": "/wecker",
+      "legacyCapture": 21,
+      "legacyRoute": "/wecker",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "pc-stopp",
+      "afterRoute": "/pc-stopp",
+      "legacyCapture": 22,
+      "legacyRoute": "/pc-stopp",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "verbindungen",
+      "afterRoute": "/verbindungen",
+      "legacyCapture": 23,
+      "legacyRoute": "/verbindungen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "backup",
+      "afterRoute": "/backup",
+      "legacyCapture": 26,
+      "legacyRoute": "/backup",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "druck",
+      "afterRoute": "/druck",
+      "legacyCapture": 24,
+      "legacyRoute": "/druck",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "orte",
+      "afterRoute": "/orte",
+      "legacyCapture": 8,
+      "legacyRoute": "/orte",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen",
+      "afterRoute": "/einstellungen",
+      "legacyCapture": 34,
+      "legacyRoute": "/einstellungen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-arbeit",
+      "afterRoute": "/einstellungen/arbeit",
+      "legacyCapture": 35,
+      "legacyRoute": "/einstellungen/arbeit",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-weg",
+      "afterRoute": "/einstellungen/weg",
+      "legacyCapture": 36,
+      "legacyRoute": "/einstellungen/weg",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-schlaf",
+      "afterRoute": "/einstellungen/schlaf",
+      "legacyCapture": 37,
+      "legacyRoute": "/einstellungen/schlaf",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-sport",
+      "afterRoute": "/einstellungen/sport",
+      "legacyCapture": 38,
+      "legacyRoute": "/einstellungen/sport",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-abende",
+      "afterRoute": "/einstellungen/abende",
+      "legacyCapture": 39,
+      "legacyRoute": "/einstellungen/abende",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-abendmodus",
+      "afterRoute": "/einstellungen/abendmodus",
+      "legacyCapture": 40,
+      "legacyRoute": "/einstellungen/abendmodus",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-morgenroutine",
+      "afterRoute": "/einstellungen/morgenroutine",
+      "legacyCapture": 41,
+      "legacyRoute": "/einstellungen/morgenroutine",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-abendroutine",
+      "afterRoute": "/einstellungen/abendroutine",
+      "legacyCapture": 42,
+      "legacyRoute": "/einstellungen/abendroutine",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-erinnerungen",
+      "afterRoute": "/einstellungen/erinnerungen",
+      "legacyCapture": 43,
+      "legacyRoute": "/einstellungen/erinnerungen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-darstellung",
+      "afterRoute": "/einstellungen/darstellung",
+      "legacyCapture": 44,
+      "legacyRoute": "/einstellungen/darstellung",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-hilfen",
+      "afterRoute": "/einstellungen/hilfen",
+      "legacyCapture": 45,
+      "legacyRoute": "/einstellungen/hilfen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-abenduebergang",
+      "afterRoute": "/einstellungen/abenduebergang",
+      "legacyCapture": 46,
+      "legacyRoute": "/einstellungen/abenduebergang",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "einstellungen-assistenz",
+      "afterRoute": "/einstellungen/assistenz",
+      "legacyCapture": 47,
+      "legacyRoute": "/einstellungen/assistenz",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "fokus-morning",
+      "afterRoute": "/fokus/morning",
+      "legacyCapture": 27,
+      "legacyRoute": "/fokus/morning",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "fokus-evening",
+      "afterRoute": "/fokus/evening",
+      "legacyCapture": 28,
+      "legacyRoute": "/fokus/evening",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "aufgabe-work-report",
+      "afterRoute": "/aufgabe/work/report",
+      "legacyCapture": 29,
+      "legacyRoute": "/aufgabe/work/demo-bericht",
+      "matched": true,
+      "sameRoute": false,
+      "fixtureEquivalent": false,
+      "relationship": "Analoger Aufgabenfokus mit anderer Aufgaben-ID und anderen Beispieldaten"
+    },
+    {
+      "afterCapture": "aufgabe-task-task",
+      "afterRoute": "/aufgabe/task/task",
+      "legacyCapture": 30,
+      "legacyRoute": "/aufgabe/task/demo-privat",
+      "matched": true,
+      "sameRoute": false,
+      "fixtureEquivalent": false,
+      "relationship": "Analoger Aufgabenfokus mit anderer Aufgaben-ID und anderen Beispieldaten"
+    },
+    {
+      "afterCapture": "aufraeumen",
+      "afterRoute": "/aufraeumen",
+      "legacyCapture": 15,
+      "legacyRoute": "/aufraeumen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "essen",
+      "afterRoute": "/essen",
+      "legacyCapture": 14,
+      "legacyRoute": "/essen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "fokus-start",
+      "afterRoute": "/fokus-start",
+      "legacyCapture": 100,
+      "legacyRoute": "/fokus-start",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "wiedereinstieg",
+      "afterRoute": "/wiedereinstieg",
+      "legacyCapture": 33,
+      "legacyRoute": "/wiedereinstieg",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "check",
+      "afterRoute": "/check",
+      "legacyCapture": 18,
+      "legacyRoute": "/check",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "geraetetest",
+      "afterRoute": "/geraetetest",
+      "legacyCapture": 20,
+      "legacyRoute": "/geraetetest",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "hilfe",
+      "afterRoute": "/hilfe",
+      "legacyCapture": 25,
+      "legacyRoute": "/hilfe",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "start",
+      "afterRoute": "/start",
+      "legacyCapture": 1,
+      "legacyRoute": "/start",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "gedanke",
+      "afterRoute": "/gedanke",
+      "legacyCapture": 32,
+      "legacyRoute": "/gedanke",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    },
+    {
+      "afterCapture": "aufraeumen-timer-laeuft",
+      "afterRoute": "/aufraeumen",
+      "legacyCapture": 15,
+      "legacyRoute": "/aufraeumen",
+      "matched": true,
+      "sameRoute": true,
+      "fixtureEquivalent": false,
+      "relationship": "Gleicher Einstieg, andere Beispieldaten"
+    }
+  ],
+  "captures": [
+    {
+      "name": "legacy-001",
+      "sourceCaptureNumber": 1,
+      "title": "Ersteinrichtung – Angaben",
+      "requestedRoute": "/start",
+      "actualRoute": "/start",
+      "files": [
+        "001-ersteinrichtung-angaben.png",
+        "001-ersteinrichtung-angaben-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "start"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "001-ersteinrichtung-angaben.png",
+          "sourceRelativeFile": "01-seiten/001-ersteinrichtung-angaben.png",
+          "bytes": 91486,
+          "sha256": "0103c165a1a1c04a843249af98f98aa27c65f49901e1cb67f814d0af7e83d6f3",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "001-ersteinrichtung-angaben-gesamt.png",
+          "sourceRelativeFile": "01-seiten/001-ersteinrichtung-angaben-gesamt.png",
+          "bytes": 106442,
+          "sha256": "7e5507ccc6876285be65a22091ab8d7fe6925458496c5c207f89d272557ec9cb",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2104
+        }
+      ]
+    },
+    {
+      "name": "legacy-004",
+      "sourceCaptureNumber": 4,
+      "title": "Tag – Heute",
+      "requestedRoute": "/tag",
+      "actualRoute": "/tag",
+      "files": [
+        "004-tag-heute.png",
+        "004-tag-heute-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "tag"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "004-tag-heute.png",
+          "sourceRelativeFile": "01-seiten/004-tag-heute.png",
+          "bytes": 134885,
+          "sha256": "cdfe4bd50663f384ff6567d14291ea347d034800145103e998048921468ef25b",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "004-tag-heute-gesamt.png",
+          "sourceRelativeFile": "01-seiten/004-tag-heute-gesamt.png",
+          "bytes": 444867,
+          "sha256": "41054e99be870b3256a5d18b552223bb42501629d69cef1837e49550fd6e7af7",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 5656
+        }
+      ]
+    },
+    {
+      "name": "legacy-005",
+      "sourceCaptureNumber": 5,
+      "title": "Mehr",
+      "requestedRoute": "/mehr",
+      "actualRoute": "/mehr",
+      "files": [
+        "005-mehr.png",
+        "005-mehr-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "mehr"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "005-mehr.png",
+          "sourceRelativeFile": "01-seiten/005-mehr.png",
+          "bytes": 128020,
+          "sha256": "9838921f0e5e09c6dfed9017766e937f549af9681952b402f5f18a10f5e56ba8",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "005-mehr-gesamt.png",
+          "sourceRelativeFile": "01-seiten/005-mehr-gesamt.png",
+          "bytes": 235149,
+          "sha256": "8ad629334070613f0802195783f991bcf877505cfb1d49d7a67086c1ceda9670",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3418
+        }
+      ]
+    },
+    {
+      "name": "legacy-006",
+      "sourceCaptureNumber": 6,
+      "title": "Arbeit",
+      "requestedRoute": "/arbeit",
+      "actualRoute": "/arbeit",
+      "files": [
+        "006-arbeit.png",
+        "006-arbeit-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "arbeit"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "006-arbeit.png",
+          "sourceRelativeFile": "01-seiten/006-arbeit.png",
+          "bytes": 123334,
+          "sha256": "5e90483b0d8c98f2f0dd5e9f475b287560fdeae2dcf6fb2fb1a8d1273ae929b9",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "006-arbeit-gesamt.png",
+          "sourceRelativeFile": "01-seiten/006-arbeit-gesamt.png",
+          "bytes": 175548,
+          "sha256": "4be8ec7950255bc47c903dc23bce49a6fb471f8f9c8bca3d97ede741120888e6",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2582
+        }
+      ]
+    },
+    {
+      "name": "legacy-007",
+      "sourceCaptureNumber": 7,
+      "title": "Arbeitszeit",
+      "requestedRoute": "/arbeitszeit",
+      "actualRoute": "/arbeitszeit",
+      "files": [
+        "007-arbeitszeit.png",
+        "007-arbeitszeit-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "arbeitszeit"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "007-arbeitszeit.png",
+          "sourceRelativeFile": "01-seiten/007-arbeitszeit.png",
+          "bytes": 129501,
+          "sha256": "736c6c3e3f8840a3ccf8bcca21e5dabc0bddf5f7e07f29b7cbb6b451ccc4fa13",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "007-arbeitszeit-gesamt.png",
+          "sourceRelativeFile": "01-seiten/007-arbeitszeit-gesamt.png",
+          "bytes": 276487,
+          "sha256": "228f0b10cd717e8344c2a5dc5e073e8f2310bd546774e0f40f33b03fc9a58606",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3878
+        }
+      ]
+    },
+    {
+      "name": "legacy-008",
+      "sourceCaptureNumber": 8,
+      "title": "Orte und manuelle Wege",
+      "requestedRoute": "/orte",
+      "actualRoute": "/orte",
+      "files": [
+        "008-orte-und-manuelle-wege.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "orte"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "008-orte-und-manuelle-wege.png",
+          "sourceRelativeFile": "01-seiten/008-orte-und-manuelle-wege.png",
+          "bytes": 117177,
+          "sha256": "e056ecfde5559f71e708d81057bb465d90a75865e3f6a212f4ad4e2e8a7e8af2",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-009",
+      "sourceCaptureNumber": 9,
+      "title": "Spiel",
+      "requestedRoute": "/spiel",
+      "actualRoute": "/spiel",
+      "files": [
+        "009-spiel.png",
+        "009-spiel-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "spiel"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "009-spiel.png",
+          "sourceRelativeFile": "01-seiten/009-spiel.png",
+          "bytes": 124282,
+          "sha256": "42d72a14080a7e2991401070bbc5daa7625d842bf4e4d893209eec55bfb03936",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "009-spiel-gesamt.png",
+          "sourceRelativeFile": "01-seiten/009-spiel-gesamt.png",
+          "bytes": 312136,
+          "sha256": "e03f054e4167dc211b3b7b2a32c49155dfe6ae97b3ce606fa86e9b65cc3afbf3",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4320
+        }
+      ]
+    },
+    {
+      "name": "legacy-010",
+      "sourceCaptureNumber": 10,
+      "title": "Belohnungen",
+      "requestedRoute": "/spiel/shop",
+      "actualRoute": "/spiel/shop",
+      "files": [
+        "010-belohnungen.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "spiel-shop"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "010-belohnungen.png",
+          "sourceRelativeFile": "01-seiten/010-belohnungen.png",
+          "bytes": 114228,
+          "sha256": "30b04e4d083cfcdfa7334a8a207252e2c2868f76c1816f5ac145bdf7251f21d7",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-011",
+      "sourceCaptureNumber": 11,
+      "title": "Gedanken und private Aufgaben",
+      "requestedRoute": "/inbox",
+      "actualRoute": "/inbox",
+      "files": [
+        "011-gedanken-und-private-aufgaben.png",
+        "011-gedanken-und-private-aufgaben-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "inbox"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "011-gedanken-und-private-aufgaben.png",
+          "sourceRelativeFile": "01-seiten/011-gedanken-und-private-aufgaben.png",
+          "bytes": 130115,
+          "sha256": "e0e7338898508438b0ea9ced8dad6c467aea1c0411a8155ea91e092e624b7aca",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "011-gedanken-und-private-aufgaben-gesamt.png",
+          "sourceRelativeFile": "01-seiten/011-gedanken-und-private-aufgaben-gesamt.png",
+          "bytes": 196350,
+          "sha256": "8e08709ea45555f9a53730ca08fb56186d1bde046fb33aa3b68b6d4157485577",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2774
+        }
+      ]
+    },
+    {
+      "name": "legacy-012",
+      "sourceCaptureNumber": 12,
+      "title": "Abend und morgen",
+      "requestedRoute": "/abend",
+      "actualRoute": "/abend",
+      "files": [
+        "012-abend-und-morgen.png",
+        "012-abend-und-morgen-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "abend"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "012-abend-und-morgen.png",
+          "sourceRelativeFile": "01-seiten/012-abend-und-morgen.png",
+          "bytes": 168459,
+          "sha256": "2f49d5461566d2bc7ab9fac8d0dfc75e25150fec563c4f77b456908ade64fb57",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "012-abend-und-morgen-gesamt.png",
+          "sourceRelativeFile": "01-seiten/012-abend-und-morgen-gesamt.png",
+          "bytes": 286334,
+          "sha256": "be6b7666469a03e9b898083c367880462109165ec34a86d22a07a4e5fa65e134",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3302
+        }
+      ]
+    },
+    {
+      "name": "legacy-013",
+      "sourceCaptureNumber": 13,
+      "title": "Schlafüberblick",
+      "requestedRoute": "/schlaf",
+      "actualRoute": "/schlaf",
+      "files": [
+        "013-schlafuberblick.png",
+        "013-schlafuberblick-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "schlaf"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "013-schlafuberblick.png",
+          "sourceRelativeFile": "01-seiten/013-schlafuberblick.png",
+          "bytes": 164224,
+          "sha256": "3c9266b76d4ef8d3f0dfb755f2406a484f160c2aef0278d21265a2d4c90b50cd",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "013-schlafuberblick-gesamt.png",
+          "sourceRelativeFile": "01-seiten/013-schlafuberblick-gesamt.png",
+          "bytes": 442568,
+          "sha256": "40e41a6332211245f337136b27b1f016eeaef73e9ecaf6c9dd345f80aa3c173c",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4406
+        }
+      ]
+    },
+    {
+      "name": "legacy-014",
+      "sourceCaptureNumber": 14,
+      "title": "Essen und Vorkochen",
+      "requestedRoute": "/essen",
+      "actualRoute": "/essen",
+      "files": [
+        "014-essen-und-vorkochen.png",
+        "014-essen-und-vorkochen-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "essen"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "014-essen-und-vorkochen.png",
+          "sourceRelativeFile": "01-seiten/014-essen-und-vorkochen.png",
+          "bytes": 119050,
+          "sha256": "b497be3fa584ff6dcdd0cb0898024bd239fc883895f119deea1b730e6d622b06",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "014-essen-und-vorkochen-gesamt.png",
+          "sourceRelativeFile": "01-seiten/014-essen-und-vorkochen-gesamt.png",
+          "bytes": 127283,
+          "sha256": "aeeb0cfcf465af020da0c94e19664b7cfcdda3d417c918708b555bd158d810a8",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2214
+        }
+      ]
+    },
+    {
+      "name": "legacy-015",
+      "sourceCaptureNumber": 15,
+      "title": "Aufräumen",
+      "requestedRoute": "/aufraeumen",
+      "actualRoute": "/aufraeumen",
+      "files": [
+        "015-aufraumen.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "aufraeumen",
+        "aufraeumen-timer-laeuft"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "015-aufraumen.png",
+          "sourceRelativeFile": "01-seiten/015-aufraumen.png",
+          "bytes": 84510,
+          "sha256": "7677fe9751c3884b8491a47fb542b364694277d58d84f330190b2843ff4b5f95",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-016",
+      "sourceCaptureNumber": 16,
+      "title": "Vorbereitung für morgen",
+      "requestedRoute": "/vorbereitung",
+      "actualRoute": "/vorbereitung",
+      "files": [
+        "016-vorbereitung-fur-morgen.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "vorbereitung"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "016-vorbereitung-fur-morgen.png",
+          "sourceRelativeFile": "01-seiten/016-vorbereitung-fur-morgen.png",
+          "bytes": 103000,
+          "sha256": "07b9eb82a1de2dd845cdc0594f99a2ea4f49a0d1f29e8e92166f6e5e5b45dc30",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-017",
+      "sourceCaptureNumber": 17,
+      "title": "Wochenrückblick",
+      "requestedRoute": "/rueckblick",
+      "actualRoute": "/rueckblick",
+      "files": [
+        "017-wochenruckblick.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "rueckblick"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "017-wochenruckblick.png",
+          "sourceRelativeFile": "01-seiten/017-wochenruckblick.png",
+          "bytes": 88591,
+          "sha256": "e7e4dab9cccd023d143f9e9f9d21542dad9e4b7b2d449de2212318e7221e7b24",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-018",
+      "sourceCaptureNumber": 18,
+      "title": "Einrichtungs-Check",
+      "requestedRoute": "/check",
+      "actualRoute": "/check",
+      "files": [
+        "018-einrichtungs-check.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "check"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "018-einrichtungs-check.png",
+          "sourceRelativeFile": "01-seiten/018-einrichtungs-check.png",
+          "bytes": 128957,
+          "sha256": "d46ce73531158ae24d9912f8a06356cbdb1965c40c99ca1243f88d75b99d8c53",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-019",
+      "sourceCaptureNumber": 19,
+      "title": "Zeitübersicht",
+      "requestedRoute": "/zeiten",
+      "actualRoute": "/zeiten",
+      "files": [
+        "019-zeitubersicht.png",
+        "019-zeitubersicht-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "zeiten"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "019-zeitubersicht.png",
+          "sourceRelativeFile": "01-seiten/019-zeitubersicht.png",
+          "bytes": 150555,
+          "sha256": "064d74f13ff69492f958e31d88fb0fa2ded421889604b83f37f3461e168b4331",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "019-zeitubersicht-gesamt.png",
+          "sourceRelativeFile": "01-seiten/019-zeitubersicht-gesamt.png",
+          "bytes": 752585,
+          "sha256": "4544a6c8a8fb2f3b722e87b526c01f3525c5e1a3c0983be17af4a95e0b3c31d9",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 10638
+        }
+      ]
+    },
+    {
+      "name": "legacy-020",
+      "sourceCaptureNumber": 20,
+      "title": "Gemeinsam testen",
+      "requestedRoute": "/geraetetest",
+      "actualRoute": "/geraetetest",
+      "files": [
+        "020-gemeinsam-testen.png",
+        "020-gemeinsam-testen-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "geraetetest"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "020-gemeinsam-testen.png",
+          "sourceRelativeFile": "01-seiten/020-gemeinsam-testen.png",
+          "bytes": 232141,
+          "sha256": "00d4dfad39b58fd1524bb30edb5d8c8cefe9664721d44be2c679c39498470bf8",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "020-gemeinsam-testen-gesamt.png",
+          "sourceRelativeFile": "01-seiten/020-gemeinsam-testen-gesamt.png",
+          "bytes": 771988,
+          "sha256": "7012e6b672d358a25154bf561d58042e6e34ee4386e51bb716b3416d1143aa49",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 6778
+        }
+      ]
+    },
+    {
+      "name": "legacy-021",
+      "sourceCaptureNumber": 21,
+      "title": "Wecker",
+      "requestedRoute": "/wecker",
+      "actualRoute": "/wecker",
+      "files": [
+        "021-wecker.png",
+        "021-wecker-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "wecker"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "021-wecker.png",
+          "sourceRelativeFile": "01-seiten/021-wecker.png",
+          "bytes": 184499,
+          "sha256": "592469e59b84ead4cafb1472bf635f472365191328d4c9a66b10312911ff9942",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "021-wecker-gesamt.png",
+          "sourceRelativeFile": "01-seiten/021-wecker-gesamt.png",
+          "bytes": 320370,
+          "sha256": "1f1b66be0ee997dbbedeec9c6f6bf4b9e0b5117240d54dd1272c906db239fe75",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3558
+        }
+      ]
+    },
+    {
+      "name": "legacy-022",
+      "sourceCaptureNumber": 22,
+      "title": "PC-Stopp",
+      "requestedRoute": "/pc-stopp",
+      "actualRoute": "/pc-stopp",
+      "files": [
+        "022-pc-stopp.png",
+        "022-pc-stopp-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "pc-stopp"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "022-pc-stopp.png",
+          "sourceRelativeFile": "01-seiten/022-pc-stopp.png",
+          "bytes": 183471,
+          "sha256": "0872141635882806be840e1384965cb34a75365b756e4ab050502365b24688e3",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "022-pc-stopp-gesamt.png",
+          "sourceRelativeFile": "01-seiten/022-pc-stopp-gesamt.png",
+          "bytes": 273868,
+          "sha256": "f31f2d56dd8ffdea7a05c5255bfc7b30ca1ae77ed646a5f950771ec4334116a5",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2562
+        }
+      ]
+    },
+    {
+      "name": "legacy-023",
+      "sourceCaptureNumber": 23,
+      "title": "Kalender und Sync",
+      "requestedRoute": "/verbindungen",
+      "actualRoute": "/verbindungen",
+      "files": [
+        "023-kalender-und-sync.png",
+        "023-kalender-und-sync-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "verbindungen"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "023-kalender-und-sync.png",
+          "sourceRelativeFile": "01-seiten/023-kalender-und-sync.png",
+          "bytes": 209147,
+          "sha256": "55940cbc28f9609b02314da945fb4b0694aedac751a2e36759ea71166761b7ab",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "023-kalender-und-sync-gesamt.png",
+          "sourceRelativeFile": "01-seiten/023-kalender-und-sync-gesamt.png",
+          "bytes": 224583,
+          "sha256": "fe73ec0fb835bf88786387e34cfe39f6f8b769e27598d0f8fb0d4af11025698d",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2010
+        }
+      ]
+    },
+    {
+      "name": "legacy-024",
+      "sourceCaptureNumber": 24,
+      "title": "Drucken",
+      "requestedRoute": "/druck",
+      "actualRoute": "/druck",
+      "files": [
+        "024-drucken.png",
+        "024-drucken-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "druck"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "024-drucken.png",
+          "sourceRelativeFile": "01-seiten/024-drucken.png",
+          "bytes": 116111,
+          "sha256": "cf1824d5a49f3d17894d604a269bdbe961bca77a2b292b10508b2fcb55a04aea",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "024-drucken-gesamt.png",
+          "sourceRelativeFile": "01-seiten/024-drucken-gesamt.png",
+          "bytes": 166942,
+          "sha256": "14708e0e243be5244a0218063b4e2d271a3f950bee1c67a3ae6e3a33cae7c66f",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2680
+        }
+      ]
+    },
+    {
+      "name": "legacy-025",
+      "sourceCaptureNumber": 25,
+      "title": "Hilfe und Anlaufstellen",
+      "requestedRoute": "/hilfe",
+      "actualRoute": "/hilfe",
+      "files": [
+        "025-hilfe-und-anlaufstellen.png",
+        "025-hilfe-und-anlaufstellen-gesamt.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "hilfe"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "025-hilfe-und-anlaufstellen.png",
+          "sourceRelativeFile": "01-seiten/025-hilfe-und-anlaufstellen.png",
+          "bytes": 200446,
+          "sha256": "6ffbb08a0061bbf0b8ba368223745660b313df42427d657b7cedde543e5d52b5",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "025-hilfe-und-anlaufstellen-gesamt.png",
+          "sourceRelativeFile": "01-seiten/025-hilfe-und-anlaufstellen-gesamt.png",
+          "bytes": 468530,
+          "sha256": "91fdbd05b42a0353d9333bcc573afaf46a06833548bb1f8b1ebb27bad348e9c7",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3798
+        }
+      ]
+    },
+    {
+      "name": "legacy-026",
+      "sourceCaptureNumber": 26,
+      "title": "Sicherung",
+      "requestedRoute": "/backup",
+      "actualRoute": "/backup",
+      "files": [
+        "026-sicherung.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "backup"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "026-sicherung.png",
+          "sourceRelativeFile": "01-seiten/026-sicherung.png",
+          "bytes": 146775,
+          "sha256": "27d88001106f5e47c93409ae0d37b7a54adc79042c6e93e44477b18075f763ef",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-027",
+      "sourceCaptureNumber": 27,
+      "title": "Morgenroutine – Fokus",
+      "requestedRoute": "/fokus/morning",
+      "actualRoute": "/fokus/morning",
+      "files": [
+        "027-morgenroutine-fokus.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "fokus-morning"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "027-morgenroutine-fokus.png",
+          "sourceRelativeFile": "01-seiten/027-morgenroutine-fokus.png",
+          "bytes": 70723,
+          "sha256": "5ce786bb281ff64a88f352b1445a4d29a2d21341aa45f4810e64febb209854b7",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-028",
+      "sourceCaptureNumber": 28,
+      "title": "Abendroutine – Fokus",
+      "requestedRoute": "/fokus/evening",
+      "actualRoute": "/fokus/evening",
+      "files": [
+        "028-abendroutine-fokus.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "fokus-evening"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "028-abendroutine-fokus.png",
+          "sourceRelativeFile": "01-seiten/028-abendroutine-fokus.png",
+          "bytes": 77981,
+          "sha256": "a16189c7e19de557a37cbb214e6eb6dbb027144dd4139df932f2670ba96d24f6",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-029",
+      "sourceCaptureNumber": 29,
+      "title": "Arbeitsaufgabe – Fokusauswahl",
+      "requestedRoute": "/aufgabe/work/demo-bericht",
+      "actualRoute": "/aufgabe/work/demo-bericht",
+      "files": [
+        "029-arbeitsaufgabe-fokusauswahl.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "aufgabe-work-report"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "029-arbeitsaufgabe-fokusauswahl.png",
+          "sourceRelativeFile": "01-seiten/029-arbeitsaufgabe-fokusauswahl.png",
+          "bytes": 75018,
+          "sha256": "9f6baa12d0281a97b570a82d2c011432aa1d821a5284f62f2a34057b0641da06",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-030",
+      "sourceCaptureNumber": 30,
+      "title": "Private Aufgabe – Fokusauswahl",
+      "requestedRoute": "/aufgabe/task/demo-privat",
+      "actualRoute": "/aufgabe/task/demo-privat",
+      "files": [
+        "030-private-aufgabe-fokusauswahl.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "aufgabe-task-task"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "030-private-aufgabe-fokusauswahl.png",
+          "sourceRelativeFile": "01-seiten/030-private-aufgabe-fokusauswahl.png",
+          "bytes": 80597,
+          "sha256": "bb980bca63467be4ad8fca5eb631709c2b3a0c61774166d120caadb6e3504391",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-032",
+      "sourceCaptureNumber": 32,
+      "title": "Gedanke festhalten",
+      "requestedRoute": "/gedanke",
+      "actualRoute": "/gedanke",
+      "files": [
+        "032-gedanke-festhalten.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "gedanke"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "032-gedanke-festhalten.png",
+          "sourceRelativeFile": "01-seiten/032-gedanke-festhalten.png",
+          "bytes": 42270,
+          "sha256": "d61d0c6aef3dff54f2605023772a25725f0c43a2b5cd2eb4d375c4aa00808d19",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-033",
+      "sourceCaptureNumber": 33,
+      "title": "Wiedereinstieg",
+      "requestedRoute": "/wiedereinstieg",
+      "actualRoute": "/wiedereinstieg",
+      "files": [
+        "033-wiedereinstieg.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "wiedereinstieg"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "033-wiedereinstieg.png",
+          "sourceRelativeFile": "01-seiten/033-wiedereinstieg.png",
+          "bytes": 42020,
+          "sha256": "524c7071451d21570da47a4da610e0b6ebf386d4f13ea14e8048841d28109010",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-034",
+      "sourceCaptureNumber": 34,
+      "title": "Einstellungen – Übersicht",
+      "requestedRoute": "/einstellungen",
+      "actualRoute": "/einstellungen",
+      "files": [
+        "034-einstellungen-ubersicht.png",
+        "034-einstellungen-ubersicht-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "034-einstellungen-ubersicht.png",
+          "sourceRelativeFile": "02-einstellungen/034-einstellungen-ubersicht.png",
+          "bytes": 142771,
+          "sha256": "445f2eddefc852e6ebff00ba4c62b92ea5acbb321f6d5157ab50b256f9e80739",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "034-einstellungen-ubersicht-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/034-einstellungen-ubersicht-gesamt.png",
+          "bytes": 244469,
+          "sha256": "b4c7e15b1baf4e59638f6ffc388313569e1b1061232f96b45f2e231e9ddcdc02",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3338
+        }
+      ]
+    },
+    {
+      "name": "legacy-035",
+      "sourceCaptureNumber": 35,
+      "title": "Arbeit und Gleitzeit",
+      "requestedRoute": "/einstellungen/arbeit",
+      "actualRoute": "/einstellungen/arbeit",
+      "files": [
+        "035-arbeit-und-gleitzeit.png",
+        "035-arbeit-und-gleitzeit-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-arbeit"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "035-arbeit-und-gleitzeit.png",
+          "sourceRelativeFile": "02-einstellungen/035-arbeit-und-gleitzeit.png",
+          "bytes": 184339,
+          "sha256": "68eb135a507fe958459e0734df14d0c5197cb6c9ae5ba2efd2c856227510215e",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "035-arbeit-und-gleitzeit-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/035-arbeit-und-gleitzeit-gesamt.png",
+          "bytes": 592436,
+          "sha256": "e44110281285578c6c1d525f1e01b165f004ac80717b157541d3791ea371fb73",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 8478
+        }
+      ]
+    },
+    {
+      "name": "legacy-036",
+      "sourceCaptureNumber": 36,
+      "title": "Arbeitsweg",
+      "requestedRoute": "/einstellungen/weg",
+      "actualRoute": "/einstellungen/weg",
+      "files": [
+        "036-arbeitsweg.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-weg"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "036-arbeitsweg.png",
+          "sourceRelativeFile": "02-einstellungen/036-arbeitsweg.png",
+          "bytes": 68334,
+          "sha256": "2a6fb151a8da9e7fa5dc1bffc0c5be9edba524ca4e61baf23b6d41d2cdfbe723",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-037",
+      "sourceCaptureNumber": 37,
+      "title": "Schlaf und Anker",
+      "requestedRoute": "/einstellungen/schlaf",
+      "actualRoute": "/einstellungen/schlaf",
+      "files": [
+        "037-schlaf-und-anker.png",
+        "037-schlaf-und-anker-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-schlaf"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "037-schlaf-und-anker.png",
+          "sourceRelativeFile": "02-einstellungen/037-schlaf-und-anker.png",
+          "bytes": 175809,
+          "sha256": "554632d5d0f6e5c4151279eeea70a8b047e3f2bfdcc1279610253248e18fb148",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "037-schlaf-und-anker-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/037-schlaf-und-anker-gesamt.png",
+          "bytes": 335951,
+          "sha256": "18cb285cdf9685a6909bd638f62014585c17f5d80714a4dedebd6c4f6904d1e6",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3958
+        }
+      ]
+    },
+    {
+      "name": "legacy-038",
+      "sourceCaptureNumber": 38,
+      "title": "Sport",
+      "requestedRoute": "/einstellungen/sport",
+      "actualRoute": "/einstellungen/sport",
+      "files": [
+        "038-sport.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-sport"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "038-sport.png",
+          "sourceRelativeFile": "02-einstellungen/038-sport.png",
+          "bytes": 90206,
+          "sha256": "cbe2253afd0e1bed508e74dda55b5506f4615a7d2ba8b89aea4f81277f21a479",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-039",
+      "sourceCaptureNumber": 39,
+      "title": "Abendpläne",
+      "requestedRoute": "/einstellungen/abende",
+      "actualRoute": "/einstellungen/abende",
+      "files": [
+        "039-abendplane.png",
+        "039-abendplane-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-abende"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "039-abendplane.png",
+          "sourceRelativeFile": "02-einstellungen/039-abendplane.png",
+          "bytes": 109245,
+          "sha256": "cde4f510a8a0b3a088ada2e2bf5f2123c11e3190a92a0d3269c4ecb4fac39ff3",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "039-abendplane-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/039-abendplane-gesamt.png",
+          "bytes": 214193,
+          "sha256": "b59764b2cf67fc6cdae816c67630dd3725f07be3dff4e309d85fe9aac337d09c",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4362
+        }
+      ]
+    },
+    {
+      "name": "legacy-040",
+      "sourceCaptureNumber": 40,
+      "title": "Abendmodus",
+      "requestedRoute": "/einstellungen/abendmodus",
+      "actualRoute": "/einstellungen/abendmodus",
+      "files": [
+        "040-abendmodus.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-abendmodus"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "040-abendmodus.png",
+          "sourceRelativeFile": "02-einstellungen/040-abendmodus.png",
+          "bytes": 54181,
+          "sha256": "38030b89eac98af05a1d25f62a95ace5bee3827e2794015de9394726340383ba",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-041",
+      "sourceCaptureNumber": 41,
+      "title": "Morgenroutine – Editor",
+      "requestedRoute": "/einstellungen/morgenroutine",
+      "actualRoute": "/einstellungen/morgenroutine",
+      "files": [
+        "041-morgenroutine-editor.png",
+        "041-morgenroutine-editor-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-morgenroutine"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "041-morgenroutine-editor.png",
+          "sourceRelativeFile": "02-einstellungen/041-morgenroutine-editor.png",
+          "bytes": 109598,
+          "sha256": "77f754b5396755301a58ce8041d5c4c1e148f5e3e281725087f002db0fe9def3",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "041-morgenroutine-editor-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/041-morgenroutine-editor-gesamt.png",
+          "bytes": 230765,
+          "sha256": "37f39bb1d9dd275e9ec8b62dc96afb59c7de6e9d4e7764acfddbd4168f2410ab",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4458
+        }
+      ]
+    },
+    {
+      "name": "legacy-042",
+      "sourceCaptureNumber": 42,
+      "title": "Abendroutine – Editor",
+      "requestedRoute": "/einstellungen/abendroutine",
+      "actualRoute": "/einstellungen/abendroutine",
+      "files": [
+        "042-abendroutine-editor.png",
+        "042-abendroutine-editor-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-abendroutine"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "042-abendroutine-editor.png",
+          "sourceRelativeFile": "02-einstellungen/042-abendroutine-editor.png",
+          "bytes": 116546,
+          "sha256": "46bb4a437105ace157fbbdb8200b541876bfb0586a1d05cc4b894b1de14f5d80",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "042-abendroutine-editor-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/042-abendroutine-editor-gesamt.png",
+          "bytes": 170144,
+          "sha256": "0222f8b07d429d96ebebb096527a938ab0d08f426f6fc96ca62d38d35d2944c0",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3090
+        }
+      ]
+    },
+    {
+      "name": "legacy-043",
+      "sourceCaptureNumber": 43,
+      "title": "Erinnerungen",
+      "requestedRoute": "/einstellungen/erinnerungen",
+      "actualRoute": "/einstellungen/erinnerungen",
+      "files": [
+        "043-erinnerungen.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-erinnerungen"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "043-erinnerungen.png",
+          "sourceRelativeFile": "02-einstellungen/043-erinnerungen.png",
+          "bytes": 83131,
+          "sha256": "bea9d28c98d078adbd4ddfbf3e7ff117b258ba49e2be694c786926f8abb0e255",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-044",
+      "sourceCaptureNumber": 44,
+      "title": "Darstellung",
+      "requestedRoute": "/einstellungen/darstellung",
+      "actualRoute": "/einstellungen/darstellung",
+      "files": [
+        "044-darstellung.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-darstellung"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "044-darstellung.png",
+          "sourceRelativeFile": "02-einstellungen/044-darstellung.png",
+          "bytes": 84099,
+          "sha256": "a8d1d32b07a7aaee83d625086a8cb179b5da97c7ce907c06b13dc9328d8d544b",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-045",
+      "sourceCaptureNumber": 45,
+      "title": "Alltagshilfen",
+      "requestedRoute": "/einstellungen/hilfen",
+      "actualRoute": "/einstellungen/hilfen",
+      "files": [
+        "045-alltagshilfen.png",
+        "045-alltagshilfen-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-hilfen"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "045-alltagshilfen.png",
+          "sourceRelativeFile": "02-einstellungen/045-alltagshilfen.png",
+          "bytes": 198888,
+          "sha256": "bcc161725b72520a5579a42c64b326a9d142419819fd8894b26392df0031cb35",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "045-alltagshilfen-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/045-alltagshilfen-gesamt.png",
+          "bytes": 507810,
+          "sha256": "4de2ab31f9282057996f370a6e6675265f91d6ae1f858b399cba09d96b679bec",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 6046
+        }
+      ]
+    },
+    {
+      "name": "legacy-046",
+      "sourceCaptureNumber": 46,
+      "title": "Sanfter Abendübergang",
+      "requestedRoute": "/einstellungen/abenduebergang",
+      "actualRoute": "/einstellungen/abenduebergang",
+      "files": [
+        "046-sanfter-abendubergang.png",
+        "046-sanfter-abendubergang-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-abenduebergang"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "046-sanfter-abendubergang.png",
+          "sourceRelativeFile": "02-einstellungen/046-sanfter-abendubergang.png",
+          "bytes": 179672,
+          "sha256": "509920fa0d635e832e03de09d5f99713adb4b68f0ba398df105efc1c44641871",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "046-sanfter-abendubergang-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/046-sanfter-abendubergang-gesamt.png",
+          "bytes": 196222,
+          "sha256": "430b95bb54ca3de1ced3104a2e9025348a5a87c851093abb537b90d6eb9db004",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2186
+        }
+      ]
+    },
+    {
+      "name": "legacy-047",
+      "sourceCaptureNumber": 47,
+      "title": "Optionale Vorschläge",
+      "requestedRoute": "/einstellungen/assistenz",
+      "actualRoute": "/einstellungen/assistenz",
+      "files": [
+        "047-optionale-vorschlage.png",
+        "047-optionale-vorschlage-gesamt.png"
+      ],
+      "sourceGroup": "02-einstellungen",
+      "matchedAfterCaptures": [
+        "einstellungen-assistenz"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "047-optionale-vorschlage.png",
+          "sourceRelativeFile": "02-einstellungen/047-optionale-vorschlage.png",
+          "bytes": 235590,
+          "sha256": "4d0ec5d42a9d96503efd0f9188f04c2cc4f56a8e89f40c6ab20fe57d4c0c7be5",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "047-optionale-vorschlage-gesamt.png",
+          "sourceRelativeFile": "02-einstellungen/047-optionale-vorschlage-gesamt.png",
+          "bytes": 631742,
+          "sha256": "e121bbd161800d1d56d09e772d2e1fcf39d49c2f8f2b8add1933b6d35b9c4147",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4554
+        }
+      ]
+    },
+    {
+      "name": "legacy-058",
+      "sourceCaptureNumber": 58,
+      "title": "Ort hinzufügen – alle Felder",
+      "requestedRoute": "/orte",
+      "actualRoute": "/orte",
+      "files": [
+        "058-ort-hinzufugen-alle-felder.png",
+        "058-ort-hinzufugen-alle-felder-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "058-ort-hinzufugen-alle-felder.png",
+          "sourceRelativeFile": "03-dialoge/058-ort-hinzufugen-alle-felder.png",
+          "bytes": 122902,
+          "sha256": "e130e14265dc18b08dfb715a40c233e65495f73b58c21b1175c4d68fc54fd41e",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "058-ort-hinzufugen-alle-felder-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/058-ort-hinzufugen-alle-felder-gesamt.png",
+          "bytes": 308798,
+          "sha256": "e0eaa916bc50e48ffc419b51dbf1e4fba989138366da391239f762f36c5301e4",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 3870
+        }
+      ]
+    },
+    {
+      "name": "legacy-059",
+      "sourceCaptureNumber": 59,
+      "title": "Arbeitsaufgabe – Details und Teilschritte",
+      "requestedRoute": "/arbeit",
+      "actualRoute": "/arbeit",
+      "files": [
+        "059-arbeitsaufgabe-details-und-teilschritte.png",
+        "059-arbeitsaufgabe-details-und-teilschritte-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "059-arbeitsaufgabe-details-und-teilschritte.png",
+          "sourceRelativeFile": "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte.png",
+          "bytes": 135327,
+          "sha256": "cced89f7e967f66ccec44fb15d5c11aa751452af7ca468dee12ea1a8bfcb680c",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "059-arbeitsaufgabe-details-und-teilschritte-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/059-arbeitsaufgabe-details-und-teilschritte-gesamt.png",
+          "bytes": 457103,
+          "sha256": "ccea4d70e6fddf47cbbbce0b571b65e44eadbbc9db1c60aab6fd1c34733fe048",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 7208
+        }
+      ]
+    },
+    {
+      "name": "legacy-060",
+      "sourceCaptureNumber": 60,
+      "title": "Private Aufgabe – Details und Teilschritte",
+      "requestedRoute": "/inbox",
+      "actualRoute": "/inbox",
+      "files": [
+        "060-private-aufgabe-details-und-teilschritte.png",
+        "060-private-aufgabe-details-und-teilschritte-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "060-private-aufgabe-details-und-teilschritte.png",
+          "sourceRelativeFile": "03-dialoge/060-private-aufgabe-details-und-teilschritte.png",
+          "bytes": 130115,
+          "sha256": "e0e7338898508438b0ea9ced8dad6c467aea1c0411a8155ea91e092e624b7aca",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "060-private-aufgabe-details-und-teilschritte-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/060-private-aufgabe-details-und-teilschritte-gesamt.png",
+          "bytes": 439757,
+          "sha256": "7c830b62861422b087fe1b622a3de8c5a325db6d92739a028399f276a5e32342",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 6768
+        }
+      ]
+    },
+    {
+      "name": "legacy-062",
+      "sourceCaptureNumber": 62,
+      "title": "Sicherung – Exportauswahl",
+      "requestedRoute": "/backup",
+      "actualRoute": "/backup",
+      "files": [
+        "062-sicherung-exportauswahl.png",
+        "062-sicherung-exportauswahl-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "062-sicherung-exportauswahl.png",
+          "sourceRelativeFile": "03-dialoge/062-sicherung-exportauswahl.png",
+          "bytes": 192449,
+          "sha256": "338feee4d371da8d3c1630e850d68b5bd1e51ebc823bc08bba2c952f1b1014a0",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "062-sicherung-exportauswahl-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/062-sicherung-exportauswahl-gesamt.png",
+          "bytes": 220550,
+          "sha256": "2a9b5919b3a9a1166d3791d6aee053734465df98a7e7d8c48ef58888dd9e148c",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2210
+        }
+      ]
+    },
+    {
+      "name": "legacy-063",
+      "sourceCaptureNumber": 63,
+      "title": "Abend – Idee parken und nächsten Schritt merken",
+      "requestedRoute": "/abend",
+      "actualRoute": "/abend",
+      "files": [
+        "063-abend-idee-parken-und-nachsten-schritt-merken.png",
+        "063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "063-abend-idee-parken-und-nachsten-schritt-merken.png",
+          "sourceRelativeFile": "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken.png",
+          "bytes": 156817,
+          "sha256": "c42818bc94485d0e5b50f142fe6af28f7e4f114cd5856b6ec06dc05c16f8299e",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/063-abend-idee-parken-und-nachsten-schritt-merken-gesamt.png",
+          "bytes": 414368,
+          "sha256": "059ef1a7c82a1305f5c56bb215ee600349b80f26b95113469778b542b1aec5bf",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 4986
+        }
+      ]
+    },
+    {
+      "name": "legacy-064",
+      "sourceCaptureNumber": 64,
+      "title": "Schlafüberblick – Angaben korrigieren",
+      "requestedRoute": "/schlaf",
+      "actualRoute": "/schlaf",
+      "files": [
+        "064-schlafuberblick-angaben-korrigieren.png",
+        "064-schlafuberblick-angaben-korrigieren-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "064-schlafuberblick-angaben-korrigieren.png",
+          "sourceRelativeFile": "03-dialoge/064-schlafuberblick-angaben-korrigieren.png",
+          "bytes": 149623,
+          "sha256": "48e953a202e03638df048994fbf1f74df61d0c8d929d4bb08208df3ea280c5c8",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "064-schlafuberblick-angaben-korrigieren-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/064-schlafuberblick-angaben-korrigieren-gesamt.png",
+          "bytes": 533694,
+          "sha256": "98c0009177a08ef2d34a2ae1f5d0bde0c3a2e15f686d75b3acae963ead9fde3a",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 5534
+        }
+      ]
+    },
+    {
+      "name": "legacy-076",
+      "sourceCaptureNumber": 76,
+      "title": "Dein Abend – PC-Stopp anpassen",
+      "requestedRoute": "/pc-stopp",
+      "actualRoute": "/pc-stopp",
+      "files": [
+        "076-dein-abend-pc-stopp-anpassen.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "076-dein-abend-pc-stopp-anpassen.png",
+          "sourceRelativeFile": "03-dialoge/076-dein-abend-pc-stopp-anpassen.png",
+          "bytes": 131127,
+          "sha256": "fd4487aae522403540798bb2e45cf73934f156226fed98b59433a5468e85fecb",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-079",
+      "sourceCaptureNumber": 79,
+      "title": "Arbeitsfokus – Wiedereinstieg festhalten",
+      "requestedRoute": "/aufgabe/work/demo-bericht",
+      "actualRoute": "/aufgabe/work/demo-bericht",
+      "files": [
+        "079-arbeitsfokus-wiedereinstieg-festhalten.png",
+        "079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "079-arbeitsfokus-wiedereinstieg-festhalten.png",
+          "sourceRelativeFile": "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten.png",
+          "bytes": 94219,
+          "sha256": "ee3c690fef87fda1bebfda9dfbb179bbfaa5ede6404399e0384ec6f5ee23d236",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        },
+        {
+          "file": "079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png",
+          "sourceRelativeFile": "03-dialoge/079-arbeitsfokus-wiedereinstieg-festhalten-gesamt.png",
+          "bytes": 116011,
+          "sha256": "c0b7000ce48729bf7674e54459755e2fe84f51e7f02e8b840274f26af3bba6a7",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 2220
+        }
+      ]
+    },
+    {
+      "name": "legacy-094",
+      "sourceCaptureNumber": 94,
+      "title": "Aufgabe – eigener Grund",
+      "requestedRoute": "/aufgabe/work/demo-bericht",
+      "actualRoute": "/aufgabe/work/demo-bericht",
+      "files": [
+        "094-aufgabe-eigener-grund.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "094-aufgabe-eigener-grund.png",
+          "sourceRelativeFile": "03-dialoge/094-aufgabe-eigener-grund.png",
+          "bytes": 105655,
+          "sha256": "31a07c6e01b53115daa716538eb67c34101acd6761893a9152d329fb460f2a1b",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-098",
+      "sourceCaptureNumber": 98,
+      "title": "Freigabe – lokales Diktieren",
+      "requestedRoute": "/einstellungen/hilfen",
+      "actualRoute": "/einstellungen/hilfen",
+      "files": [
+        "098-freigabe-lokales-diktieren.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "098-freigabe-lokales-diktieren.png",
+          "sourceRelativeFile": "03-dialoge/098-freigabe-lokales-diktieren.png",
+          "bytes": 192421,
+          "sha256": "d4af03d75b33de466c1a4dac1eb49d33c3f0436d008df8317d21bd97d9604b5a",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-099",
+      "sourceCaptureNumber": 99,
+      "title": "Freigabe – Zeitinfos vorlesen",
+      "requestedRoute": "/einstellungen/hilfen",
+      "actualRoute": "/einstellungen/hilfen",
+      "files": [
+        "099-freigabe-zeitinfos-vorlesen.png"
+      ],
+      "sourceGroup": "03-dialoge",
+      "matchedAfterCaptures": [],
+      "standaloneEarlierForm": true,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "099-freigabe-zeitinfos-vorlesen.png",
+          "sourceRelativeFile": "03-dialoge/099-freigabe-zeitinfos-vorlesen.png",
+          "bytes": 199622,
+          "sha256": "cdb61d6df9c75b2504328a4eabb49f0bdf121f5a7e33a670d64c3f26b1619d54",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    },
+    {
+      "name": "legacy-100",
+      "sourceCaptureNumber": 100,
+      "title": "Fokus starten – Auswahl",
+      "requestedRoute": "/fokus-start",
+      "actualRoute": "/fokus-start",
+      "files": [
+        "100-fokus-starten-auswahl.png"
+      ],
+      "sourceGroup": "01-seiten",
+      "matchedAfterCaptures": [
+        "fokus-start"
+      ],
+      "standaloneEarlierForm": false,
+      "label": "Frühere Ansicht – andere Beispieldaten",
+      "fixtureEquivalent": false,
+      "syntheticDataOnly": true,
+      "androidDeviceProof": false,
+      "nativeSimulation": false,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "provenance": [
+        {
+          "file": "100-fokus-starten-auswahl.png",
+          "sourceRelativeFile": "01-seiten/100-fokus-starten-auswahl.png",
+          "bytes": 57617,
+          "sha256": "60b1da70f00dae0e0b7066df3cd2908a1ab95158e1795a36a8ef8aff920883b6",
+          "sourceInventorySha256Matches": true,
+          "width": 780,
+          "height": 1688
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,706 @@
+{
+  "syntheticDataOnly": true,
+  "androidDeviceProof": false,
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "dpr": 2
+  },
+  "date": "2026-11-09",
+  "fullPageNavigation": "Gesamtansichten ordnen die feste Navigation ausschließlich für die Aufnahme unter dem Inhalt an.",
+  "captures": [
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-0705",
+      "files": [
+        "01-jetzt-0705.png"
+      ],
+      "sampleTime": "2026-11-09T06:05:00.000Z",
+      "titles": [
+        "Ein Schluck Wasser"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1000",
+      "files": [
+        "02-jetzt-1000.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1630",
+      "files": [
+        "03-jetzt-1630.png"
+      ],
+      "sampleTime": "2026-11-09T15:30:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-1900",
+      "files": [
+        "04-jetzt-1900.png"
+      ],
+      "sampleTime": "2026-11-09T18:00:00.000Z",
+      "titles": [
+        "10 Minuten aufräumen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2145",
+      "files": [
+        "05-jetzt-2145.png"
+      ],
+      "sampleTime": "2026-11-09T20:45:00.000Z",
+      "titles": [
+        "Wäschekorb bereitstellen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2205",
+      "files": [
+        "06-jetzt-2205.png"
+      ],
+      "sampleTime": "2026-11-09T21:05:00.000Z",
+      "titles": [
+        "10 Minuten aufräumen"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-2245",
+      "files": [
+        "07-jetzt-2245.png"
+      ],
+      "sampleTime": "2026-11-09T21:45:00.000Z",
+      "titles": [
+        "Ab ins Bett"
+      ]
+    },
+    {
+      "requestedRoute": "/",
+      "actualRoute": "/",
+      "name": "jetzt-freier-tag-2330",
+      "files": [
+        "08-jetzt-freier-tag-2330.png"
+      ],
+      "sampleTime": "2026-11-09T22:30:00.000Z",
+      "titles": [
+        "Ab ins Bett"
+      ]
+    },
+    {
+      "requestedRoute": "/tag",
+      "actualRoute": "/tag",
+      "name": "tag",
+      "files": [
+        "09-tag.png",
+        "09-tag-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Heute"
+      ]
+    },
+    {
+      "requestedRoute": "/mehr",
+      "actualRoute": "/mehr",
+      "name": "mehr",
+      "files": [
+        "10-mehr.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Mehr"
+      ]
+    },
+    {
+      "requestedRoute": "/arbeit",
+      "actualRoute": "/arbeit",
+      "name": "arbeit",
+      "files": [
+        "11-arbeit.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Arbeit"
+      ]
+    },
+    {
+      "requestedRoute": "/arbeitszeit",
+      "actualRoute": "/arbeitszeit",
+      "name": "arbeitszeit",
+      "files": [
+        "12-arbeitszeit.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Arbeit"
+      ]
+    },
+    {
+      "requestedRoute": "/abend",
+      "actualRoute": "/abend",
+      "name": "abend",
+      "files": [
+        "13-abend.png",
+        "13-abend-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Abend & Alltag"
+      ]
+    },
+    {
+      "requestedRoute": "/vorbereitung",
+      "actualRoute": "/vorbereitung",
+      "name": "vorbereitung",
+      "files": [
+        "14-vorbereitung.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Für morgen vorbereiten"
+      ]
+    },
+    {
+      "requestedRoute": "/inbox",
+      "actualRoute": "/inbox",
+      "name": "inbox",
+      "files": [
+        "15-inbox.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Gedanken"
+      ]
+    },
+    {
+      "requestedRoute": "/spiel",
+      "actualRoute": "/spiel",
+      "name": "spiel",
+      "files": [
+        "16-spiel.png",
+        "16-spiel-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "⚓ Spiel & Belohnungen"
+      ]
+    },
+    {
+      "requestedRoute": "/spiel/shop",
+      "actualRoute": "/spiel/shop",
+      "name": "spiel-shop",
+      "files": [
+        "17-spiel-shop.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "⚓ Spiel & Belohnungen"
+      ]
+    },
+    {
+      "requestedRoute": "/rueckblick",
+      "actualRoute": "/rueckblick",
+      "name": "rueckblick",
+      "files": [
+        "18-rueckblick.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Rückblick"
+      ]
+    },
+    {
+      "requestedRoute": "/schlaf",
+      "actualRoute": "/schlaf",
+      "name": "schlaf",
+      "files": [
+        "19-schlaf.png",
+        "19-schlaf-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Schlaf & Wecker"
+      ]
+    },
+    {
+      "requestedRoute": "/zeiten",
+      "actualRoute": "/zeiten",
+      "name": "zeiten",
+      "files": [
+        "20-zeiten.png",
+        "20-zeiten-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Zeitübersicht"
+      ]
+    },
+    {
+      "requestedRoute": "/wecker",
+      "actualRoute": "/wecker",
+      "name": "wecker",
+      "files": [
+        "21-wecker.png",
+        "21-wecker-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Schlaf & Wecker"
+      ]
+    },
+    {
+      "requestedRoute": "/pc-stopp",
+      "actualRoute": "/pc-stopp",
+      "name": "pc-stopp",
+      "files": [
+        "22-pc-stopp.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "PC-Stopp"
+      ]
+    },
+    {
+      "requestedRoute": "/verbindungen",
+      "actualRoute": "/verbindungen",
+      "name": "verbindungen",
+      "files": [
+        "23-verbindungen.png",
+        "23-verbindungen-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Kalender & Sync"
+      ]
+    },
+    {
+      "requestedRoute": "/backup",
+      "actualRoute": "/backup",
+      "name": "backup",
+      "files": [
+        "24-backup.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Sicherung"
+      ]
+    },
+    {
+      "requestedRoute": "/druck",
+      "actualRoute": "/druck",
+      "name": "druck",
+      "files": [
+        "25-druck.png",
+        "25-druck-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Druckansicht"
+      ]
+    },
+    {
+      "requestedRoute": "/orte",
+      "actualRoute": "/orte",
+      "name": "orte",
+      "files": [
+        "26-orte.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Orte & manuelle Wege"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen",
+      "actualRoute": "/einstellungen",
+      "name": "einstellungen",
+      "files": [
+        "27-einstellungen.png",
+        "27-einstellungen-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Einstellungen"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/arbeit",
+      "actualRoute": "/einstellungen/arbeit",
+      "name": "einstellungen-arbeit",
+      "files": [
+        "28-einstellungen-arbeit.png",
+        "28-einstellungen-arbeit-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Arbeit & Gleitzeit"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/weg",
+      "actualRoute": "/einstellungen/weg",
+      "name": "einstellungen-weg",
+      "files": [
+        "29-einstellungen-weg.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Arbeitsweg"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/schlaf",
+      "actualRoute": "/einstellungen/schlaf",
+      "name": "einstellungen-schlaf",
+      "files": [
+        "30-einstellungen-schlaf.png",
+        "30-einstellungen-schlaf-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Schlaf & Anker"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/sport",
+      "actualRoute": "/einstellungen/sport",
+      "name": "einstellungen-sport",
+      "files": [
+        "31-einstellungen-sport.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Sport"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/abende",
+      "actualRoute": "/einstellungen/abend#plaene",
+      "name": "einstellungen-abende",
+      "files": [
+        "32-einstellungen-abende.png",
+        "32-einstellungen-abende-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Abend"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/abendmodus",
+      "actualRoute": "/einstellungen/abend#modus",
+      "name": "einstellungen-abendmodus",
+      "files": [
+        "33-einstellungen-abendmodus.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Abend"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/morgenroutine",
+      "actualRoute": "/einstellungen/routinen#morning",
+      "name": "einstellungen-morgenroutine",
+      "files": [
+        "34-einstellungen-morgenroutine.png",
+        "34-einstellungen-morgenroutine-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Routinen"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/abendroutine",
+      "actualRoute": "/einstellungen/routinen#evening",
+      "name": "einstellungen-abendroutine",
+      "files": [
+        "35-einstellungen-abendroutine.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Routinen"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/erinnerungen",
+      "actualRoute": "/einstellungen/erinnerungen",
+      "name": "einstellungen-erinnerungen",
+      "files": [
+        "36-einstellungen-erinnerungen.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Erinnerungen"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/darstellung",
+      "actualRoute": "/einstellungen/darstellung",
+      "name": "einstellungen-darstellung",
+      "files": [
+        "37-einstellungen-darstellung.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Darstellung"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/hilfen",
+      "actualRoute": "/einstellungen/hilfen",
+      "name": "einstellungen-hilfen",
+      "files": [
+        "38-einstellungen-hilfen.png",
+        "38-einstellungen-hilfen-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Alltagshilfen"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/abenduebergang",
+      "actualRoute": "/einstellungen/abend#uebergang",
+      "name": "einstellungen-abenduebergang",
+      "files": [
+        "39-einstellungen-abenduebergang.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Abend"
+      ]
+    },
+    {
+      "requestedRoute": "/einstellungen/assistenz",
+      "actualRoute": "/einstellungen/assistenz",
+      "name": "einstellungen-assistenz",
+      "files": [
+        "40-einstellungen-assistenz.png",
+        "40-einstellungen-assistenz-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Optionale Vorschläge"
+      ]
+    },
+    {
+      "requestedRoute": "/fokus/morning",
+      "actualRoute": "/fokus/morning",
+      "name": "fokus-morning",
+      "files": [
+        "41-fokus-morning.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Ein Schluck Wasser"
+      ]
+    },
+    {
+      "requestedRoute": "/fokus/evening",
+      "actualRoute": "/fokus/evening",
+      "name": "fokus-evening",
+      "files": [
+        "42-fokus-evening.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "10 Minuten aufräumen"
+      ]
+    },
+    {
+      "requestedRoute": "/aufgabe/work/report",
+      "actualRoute": "/aufgabe/work/report",
+      "name": "aufgabe-work-report",
+      "files": [
+        "43-aufgabe-work-report.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ]
+    },
+    {
+      "requestedRoute": "/aufgabe/task/task",
+      "actualRoute": "/aufgabe/task/task",
+      "name": "aufgabe-task-task",
+      "files": [
+        "44-aufgabe-task-task.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Wäschekorb bereitstellen"
+      ]
+    },
+    {
+      "requestedRoute": "/aufraeumen",
+      "actualRoute": "/aufraeumen",
+      "name": "aufraeumen",
+      "files": [
+        "45-aufraeumen.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Aufräumen"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/essen",
+      "actualRoute": "/essen",
+      "name": "essen",
+      "files": [
+        "46-essen.png",
+        "46-essen-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Essen"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/fokus-start",
+      "actualRoute": "/aufgabe/work/report",
+      "name": "fokus-start",
+      "files": [
+        "47-fokus-start.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Dokument öffnen"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/wiedereinstieg",
+      "actualRoute": "/wiedereinstieg",
+      "name": "wiedereinstieg",
+      "files": [
+        "48-wiedereinstieg.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [],
+      "dialogTitles": [
+        "Ab hier geht es weiter"
+      ]
+    },
+    {
+      "requestedRoute": "/check",
+      "actualRoute": "/check",
+      "name": "check",
+      "files": [
+        "49-check.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Einrichtungs-Check"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/geraetetest",
+      "actualRoute": "/geraetetest",
+      "name": "geraetetest",
+      "files": [
+        "50-geraetetest.png",
+        "50-geraetetest-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Gemeinsam testen"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/hilfe",
+      "actualRoute": "/hilfe",
+      "name": "hilfe",
+      "files": [
+        "51-hilfe.png",
+        "51-hilfe-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Hilfe & Anlaufstellen"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/start",
+      "actualRoute": "/start",
+      "name": "start",
+      "files": [
+        "52-start.png",
+        "52-start-gesamt.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [
+        "Hallo! ⚓"
+      ],
+      "dialogTitles": []
+    },
+    {
+      "requestedRoute": "/gedanke",
+      "actualRoute": "/gedanke",
+      "name": "gedanke",
+      "files": [
+        "53-gedanke.png"
+      ],
+      "sampleTime": "2026-11-09T09:00:00.000Z",
+      "titles": [],
+      "dialogTitles": [
+        "Gedanke festhalten"
+      ]
+    },
+    {
+      "requestedRoute": "/aufraeumen",
+      "actualRoute": "/aufraeumen",
+      "name": "aufraeumen-timer-laeuft",
+      "files": [
+        "54-aufraeumen-timer-laeuft.png"
+      ],
+      "sampleTime": "2026-11-09T09:03:00.000Z",
+      "titles": [
+        "Aufräumen"
+      ],
+      "dialogTitles": [],
+      "note": "Aufräumtimer bewusst per Schaltfläche in isolierten Beispieldaten gestartet; keine Erledigung."
+    }
+  ],
+  "appVersion": "1.4.0-rc.1",
+  "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+  "runtimeFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+  "releaseSourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
+  "sameRuntimeAsRelease": true,
+  "sourceDeltaToRelease": [],
+  "additionalViews": {
+    "count": 10,
+    "derivedFrom": "scripts/ui-screenshots.mjs",
+    "committedScriptSha256": "85c318aea3502dd26b22c3c3748200f48d8664b238319dce2c8226647fddda2a",
+    "sameSyntheticFixture": true,
+    "allCapturesSucceeded": true,
+    "includesRealUiCleaningTimerStart": true,
+    "androidDeviceProof": false
+  }
+}
