@@ -1,5 +1,6 @@
 import { fmtTime, minutesOnPlanDay, utcToZoned, weekday, zonedToUtc } from '../time'
 import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowStep } from '../types'
+import { minuteText } from '../uiText'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
 
@@ -173,7 +174,7 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       at: evening.start,
       channel: 'uebergang',
       title: sick ? `${t(evening.start)} – Zähne und Gesicht` : `${t(evening.start)} – ${what}`,
-      body: sick ? 'Nur das Nötigste, dann ausruhen.' : `Dauert etwa ${evening.end - evening.start} Minuten.`,
+      body: sick ? 'Nur das Nötigste, dann ausruhen.' : `Dauert etwa ${minuteText(evening.end - evening.start)}.`,
       escalate: true,
     })
   }

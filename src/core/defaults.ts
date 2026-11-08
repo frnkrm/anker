@@ -113,10 +113,10 @@ export function defaultSettings(today: string): Settings {
     onboarded: false,
     goal: 'on-time-rested',
     themeId: 'seefahrt',
-    appearance: { dark: true, fontScale: 1 },
+    appearance: { dark: true, fontScale: 1, developerTools: false },
     work,
     commute: { minutes: 35, mode: 'auto', bufferMin: 10 },
-    sleep: { needMin: 480, fallAsleepMin: 15, screenOffMin: 30 },
+    sleep: { needMin: 480, fallAsleepMin: 15, screenOffMin: 30, bedtimePromptEnabled: false },
     anchor: { wake: 6 * 60 + 15, wakeToleranceMin: 15, weekendToleranceMin: 60 },
     pcStop: 21 * 60 + 30,
     bed: 22 * 60,
@@ -166,7 +166,7 @@ export function defaultSettings(today: string): Settings {
     focus: { pulse: 'off', everyMin: 5, halfway: false, lastMinute: false },
     support: {
       gameVisible: true,
-      workAfterHoursQuiet: false,
+      workAfterHoursQuiet: true,
       eveningPreset: { enabled: false, from: 18 * 60, mode: 'wenig-energie' },
       arrival: { enabled: false, steps: ['Tasche ablegen', 'Wasser trinken, Essen prüfen', 'Eine kleine Sache erledigen'] },
       windDown: { enabled: false, at: 21 * 60, activity: 'Lesen oder ruhige Musik' },
@@ -212,7 +212,7 @@ export function migrateSettings(s: Settings, today: string): Settings {
     ...s,
     version: d.version,
     commute: { ...d.commute, ...s.commute },
-    sleep: { ...d.sleep, ...s.sleep },
+    sleep: { ...d.sleep, ...s.sleep, bedtimePromptEnabled: s.sleep?.bedtimePromptEnabled === true },
     anchor: { ...d.anchor, ...s.anchor },
     routines: { ...d.routines, ...s.routines },
     eveningDurations: { ...d.eveningDurations, ...s.eveningDurations },
@@ -221,7 +221,7 @@ export function migrateSettings(s: Settings, today: string): Settings {
     integrations: { ...d.integrations, ...s.integrations },
     game: { ...d.game, ...s.game },
     alarm: { ...d.alarm, ...s.alarm, smartWake: { ...d.alarm.smartWake, ...s.alarm?.smartWake } },
-    appearance: { ...d.appearance, ...s.appearance },
+    appearance: { ...d.appearance, ...s.appearance, developerTools: s.appearance?.developerTools === true },
     focus: { ...d.focus, ...s.focus },
     travel: { ...d.travel, ...s.travel },
     flex: { ...d.flex, ...s.flex },
@@ -229,6 +229,10 @@ export function migrateSettings(s: Settings, today: string): Settings {
     support: {
       ...d.support,
       ...s.support,
+      // Ein älterer gespeicherter Aus-Wert bleibt erhalten; nur fehlende Werte
+      // bekommen den neuen Standard. „Früherer Standard“ und „bewusst Aus“
+      // lassen sich ohne Änderungsverlauf nicht zuverlässig unterscheiden.
+      workAfterHoursQuiet: typeof s.support?.workAfterHoursQuiet === 'boolean' ? s.support.workAfterHoursQuiet : d.support.workAfterHoursQuiet,
       eveningPreset: { ...d.support.eveningPreset, ...s.support?.eveningPreset },
       arrival: { ...d.support.arrival, ...s.support?.arrival },
       windDown: { ...d.support.windDown, ...s.support?.windDown },

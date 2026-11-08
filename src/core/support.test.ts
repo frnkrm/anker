@@ -34,7 +34,7 @@ describe('nextAction', () => {
 
   it('gefährdete Deadline vor Wiedereinstieg und Routine', () => {
     const m = plan.pcStop - 60
-    const v = nextAction(input({ m, work: [work({ deadline: zonedToUtc(MON, m + 30), estimateMin: 20 })], resume: { kind: 'task', title: 'y', at: zonedToUtc(MON, m - 5) } }))
+    const v = nextAction(input({ settings: { ...s, support: { ...s.support, workAfterHoursQuiet: false } }, m, work: [work({ deadline: zonedToUtc(MON, m + 30), estimateMin: 20 })], resume: { kind: 'task', title: 'y', at: zonedToUtc(MON, m - 5) } }))
     expect(v.action.type).toBe('worktask')
     expect(v.reason).toMatch(/Frist/)
     expect(v.reason).not.toMatch(/zu spät|versäumt|verpasst/i)
@@ -110,9 +110,9 @@ describe('Freiwilliger Feierabend-Schutz', () => {
   const eveningMinute = plan.blocks.find((b) => b.routine === 'evening')!.start + 1
   const urgent = (m: number) => work({ deadline: zonedToUtc(MON, m - 5) })
 
-  it('ist standardmäßig aus und lässt die bisherige Deadline-Priorität bestehen', () => {
-    expect(s.support.workAfterHoursQuiet).toBe(false)
-    expect(nextAction(input({ m: eveningMinute, work: [urgent(eveningMinute)] })).action.type).toBe('worktask')
+  it('ist bei Neuanlage an und lässt nach ausdrücklich gewähltem Aus die Deadline-Priorität bestehen', () => {
+    expect(s.support.workAfterHoursQuiet).toBe(true)
+    expect(nextAction(input({ settings: { ...s, support: { ...s.support, workAfterHoursQuiet: false } }, m: eveningMinute, work: [urgent(eveningMinute)] })).action.type).toBe('worktask')
   })
 
   it('lässt eine berufliche Deadline nach Feierabend die Abendroutine nicht verdrängen', () => {
@@ -123,7 +123,7 @@ describe('Freiwilliger Feierabend-Schutz', () => {
   it('stellt nur berufliche Wiedereinstiege ruhig, private bleiben möglich', () => {
     const at = zonedToUtc(MON, eveningMinute - 5)
     const resume = { kind: 'work' as const, title: 'Bericht', at }
-    expect(nextAction(input({ m: eveningMinute, resume })).action.type).toBe('resume')
+    expect(nextAction(input({ settings: { ...s, support: { ...s.support, workAfterHoursQuiet: false } }, m: eveningMinute, resume })).action.type).toBe('resume')
     expect(nextAction(input({ settings: quiet(), m: eveningMinute, resume })).action.type).toBe('step')
     expect(nextAction(input({ settings: quiet(), m: eveningMinute, resume: { ...resume, kind: 'task' } })).action.type).toBe('resume')
   })

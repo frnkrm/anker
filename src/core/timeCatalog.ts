@@ -7,6 +7,7 @@ import { buildReminders, reminderRevision } from './reminders/build'
 import { taskIsOpen, taskTitle } from './tasks'
 import { addDays, utcToZoned, zonedToUtc } from './time'
 import type { CalendarEvent, DayLog, DayPlan, InboxItem, LocalData, Settings } from './types'
+import { minuteText } from './uiText'
 
 export const TIME_CATEGORIES = {
   sleep: 'Abend & Schlaf', work: 'Arbeit', routines: 'Routinen', travel: 'Termine & Wege',
@@ -271,7 +272,7 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
   for (const thought of input.inbox) if (thought.status === 'open' && !thought.done && timestamp(thought.reviewAt) && thought.reviewAt >= rangeStart) add('thought.review', 'reflection', 'Geparkter Gedanke wieder sichtbar', { kind: 'task', refId: thought.id, date: utcToZoned(thought.reviewAt).date, route: '/abend' }, { at: thought.reviewAt, reason: thought.reviewNotify ? 'Wiedersichtbarkeit; ein möglicher Hinweis wird separat geführt.' : 'Nur Anzeige; die Erinnerung ist nicht gewählt.' })
   for (const step of local.tomorrowSteps) if (step.doneAt === undefined && timestamp(step.resumeAt) && step.resumeAt >= rangeStart) add('tomorrow.resume', 'reflection', 'Nächster Schritt wieder sichtbar', { kind: 'task', refId: step.id, date: utcToZoned(step.resumeAt).date, route: '/abend' }, { at: step.resumeAt, reason: step.remind ? 'Anzeige; eine mögliche Erinnerung wird separat geführt.' : 'Nur Anzeige; die Erinnerung ist nicht gewählt.' })
 
-  const timerEntries = (id: string, timer: NonNullable<LocalData['focus']>['timer'], label: string, route: string, category: TimeCategory = 'focus') => add(id, category, label, { kind: 'timer', refId: id === 'focus.end' ? local.focus?.id : local.stuck?.contextKey, route }, { ...(timer.status === 'running' ? { at: timer.deadlineAt } : {}), status: timer.status === 'paused' ? 'paused' : 'planned', reason: timer.status === 'paused' ? `${Math.ceil(remainingMs(timer, now) / MINUTE)} Minuten Restzeit. Kein aktiver Endtermin.` : 'Nur Timeranzeige. Ablauf erledigt nichts, vergibt keine XP und bucht keine Arbeitszeit.' })
+  const timerEntries = (id: string, timer: NonNullable<LocalData['focus']>['timer'], label: string, route: string, category: TimeCategory = 'focus') => add(id, category, label, { kind: 'timer', refId: id === 'focus.end' ? local.focus?.id : local.stuck?.contextKey, route }, { ...(timer.status === 'running' ? { at: timer.deadlineAt } : {}), status: timer.status === 'paused' ? 'paused' : 'planned', reason: timer.status === 'paused' ? `${minuteText(Math.ceil(remainingMs(timer, now) / MINUTE))} Restzeit. Kein aktiver Endtermin.` : 'Nur Timeranzeige. Ablauf erledigt nichts, vergibt keine XP und bucht keine Arbeitszeit.' })
   if (local.focus) {
     const focus = local.focus
     const target = focus.target

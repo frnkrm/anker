@@ -55,12 +55,12 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
       if (!selection.health) data = without(data, ['meds', 'sleepDiary'])
       if (!selection.deviceTests) data = without(data, ['deviceTests'])
       if (!selection.places) {
-        data = without(data, ['places', 'commitments', 'planUndo', 'weather', 'weatherProfile', 'packTemplates', 'routeProfile', 'routeEstimates'])
+        data = without(data, ['places', 'commitments', 'planUndo', 'weather', 'weatherProfile', 'packTemplates', 'routeProfile', 'routeEstimates', 'acknowledgedPlanConflicts'])
         if (object(data.extras)) data = { ...data, extras: without(data.extras, ['geofences', 'ownCalendar']) }
         if (object(data.assistance)) data = { ...data, assistance: without(data.assistance, ['routeChecks']) }
       }
       if (!selection.work) {
-        data = without(data, ['work', 'workSessions', 'handover', 'homeOfficeContact'])
+        data = without(data, ['work', 'workSessions', 'handover', 'homeOfficeContact', 'acknowledgedPlanConflicts'])
         if (workReference(data.resume)) data = without(data, ['resume'])
         if (object(data.captureDraft) && workReference(data.captureDraft.context)) data = without(data, ['captureDraft'])
         if (object(data.focus) && workReference(data.focus.target)) data = without(data, ['focus'])

@@ -23,6 +23,8 @@ export interface GeofenceChoice {
 }
 
 export interface ExtraLocal {
+  /** Bewusst bestätigter Abschluss des PC-Assistenten, kein Download-/Verbindungsnachweis. */
+  pcStopSetupDone?: boolean
   calendar?: CalendarStatus
   ownCalendar?: { id: string; accountId: string }
   geofences?: { enabled: boolean; visits: Record<string, GeofenceChoice> }
@@ -45,7 +47,8 @@ export function validCalendarStatus(value: unknown): value is CalendarStatus {
 }
 export function validExtrasLocal(value: unknown): value is ExtraLocal | undefined {
   if (value === undefined) return true
-  if (!object(value) || (value.calendar !== undefined && !validCalendarStatus(value.calendar))) return false
+  if (!object(value) || (value.calendar !== undefined && !validCalendarStatus(value.calendar))
+    || value.pcStopSetupDone !== undefined && typeof value.pcStopSetupDone !== 'boolean') return false
   if (value.ownCalendar !== undefined && (!object(value.ownCalendar) || typeof value.ownCalendar.id !== 'string' || !value.ownCalendar.id || typeof value.ownCalendar.accountId !== 'string' || !value.ownCalendar.accountId)) return false
   if (value.geofences === undefined) return true
   const geo = value.geofences

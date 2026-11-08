@@ -7,6 +7,7 @@ import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, Supp
 import { currentWorkActual, staleSession } from './worktime'
 import { usableResume } from './recovery'
 import { taskIsActionable, taskIsOpen, taskNextStep, taskPriority } from './tasks'
+import { minuteText } from './uiText'
 
 export const MODE_LABEL: Record<SupportMode, string> = {
   normal: 'Normal',
@@ -298,10 +299,10 @@ function taskView(i: NextInput, base: NowView, task: InboxItem | WorkTask, work:
   const minutes = Math.max(1, Math.min(small ? 2 : estimate, Number.isFinite(available) ? available : estimate))
   const step = taskNextStep(task, title)
   const action: NextAction = work
-    ? { type: 'worktask', title: step, sub: title !== step ? title : `Grob geschätzt ${estimate} Minuten`, task: task as WorkTask, focusMinutes: Math.min(25, minutes) }
-    : { type: 'task', title: step, sub: title !== step ? title : `Grob geschätzt ${estimate} Minuten`, task: task as InboxItem, focusMinutes: Math.min(25, minutes) }
+    ? { type: 'worktask', title: step, sub: title !== step ? title : `Grob geschätzt ${minuteText(estimate)}`, task: task as WorkTask, focusMinutes: Math.min(25, minutes) }
+    : { type: 'task', title: step, sub: title !== step ? title : `Grob geschätzt ${minuteText(estimate)}`, task: task as InboxItem, focusMinutes: Math.min(25, minutes) }
   return { ...base, action, estimatedMin: minutes, estimatedEndAt: i.nowMs + minutes * 60_000,
-    reason: !context ? `${reason ? reason + ' ' : ''}Der Aufgabenkontext ist noch nicht bestätigt. Du kannst ihn unter Plan & Optionen wählen oder später anfangen.`
+    reason: !context ? `${reason ? reason + ' ' : ''}Der Aufgabenkontext ist noch nicht bestätigt. Du kannst ihn unter Heute anpassen wählen oder später anfangen.`
       : available < estimate ? `${reason ? reason + ' ' : ''}Für die ganze Aufgabe wird es bis zum nächsten festen Punkt eng. Ein kleiner Anfang ist möglich.` : reason,
     ...(small ? { alternative: { title: 'Später oder kleiner anfangen', reason: 'Die Aufgabe bleibt offen; du entscheidest.' } } : {}),
   }

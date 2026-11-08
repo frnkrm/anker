@@ -14,6 +14,7 @@ import { validWeatherLocal } from '../weatherProfile'
 import { validWorkSession } from '../worktime'
 import { validHomeOfficeContacts } from '../homeOfficeContact'
 import { TIME_CATALOG_RECORD_ID } from '../timeCatalog'
+import { validConflictAcknowledgements } from '../planConflicts'
 
 export const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const text = (value: unknown): value is string => typeof value === 'string'
@@ -121,7 +122,8 @@ function validInbox(value: unknown, id: string): boolean {
 
 function validLocal(value: unknown): boolean {
   if (!object(value) || !validHomeOfficeContacts(value.homeOfficeContact) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
-    || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)) return false
+    || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)
+    || !validConflictAcknowledgements(value.acknowledgedPlanConflicts)) return false
   if (object(value.planUndo) && !Object.values(value.planUndo).every((entry) => object(entry) && validPlanningLocal({ commitments: entry.commitments }))) return false
   if (!optional(value, 'workSessions', (v) => Array.isArray(v) && v.every(validWorkSession))) return false
   if (!optional(value, 'handover', (v) => object(v) && Object.entries(v).every(([day, entry]) => date(day) && object(entry) && text(entry.open) && text(entry.next)))) return false

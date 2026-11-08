@@ -77,11 +77,11 @@ export interface Settings {
   onboarded: boolean
   goal: MainGoal
   themeId: ThemeId
-  appearance: { dark: boolean; fontScale: number }
+  appearance: { dark: boolean; fontScale: number; developerTools?: boolean }
   /** Index 0 = Montag */
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
-  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number }
+  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number; bedtimePromptEnabled?: boolean }
   anchor: {
     wake: number
     wakeToleranceMin: number
@@ -318,7 +318,7 @@ export interface DayPlan {
   quiet?: [number, number][]
   /** Länger wach ohne festes Ende: keine erfundene Bettzeit */
   openEnd?: boolean
-  /** Echte Konflikte, immer sichtbar */
+  /** Vollständige Konflikttexte für Export und bestehende Aufrufer; UI-Hinweise sind zeitlich begrenzt. */
   conflicts?: string[]
   /** Nur an Arbeitstagen */
   workInfo?: WorkInfo
@@ -605,6 +605,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Bewusst bestätigte Überschneidungen je Plantag. Wie Termine ausschließlich lokal. */
+  acknowledgedPlanConflicts?: Record<DateStr, string[]>
   /** Abgeleitete lokale Leseübersicht. Niemals Planquelle, Sync- oder Backupinhalt. */
   timeCatalog?: TimeCatalogSnapshot
   /** Bewusste Kontaktwahl je Homeoffice-Tag, kein Versand- oder Arbeitserfassungsnachweis. */

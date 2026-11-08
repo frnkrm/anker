@@ -4,6 +4,7 @@
 
 import { fmtDuration, fmtTime, minutesOnPlanDay, utcToZoned, weekday, zonedToUtc, type DateStr } from './time'
 import type { DayOverride, DayPlan, Settings, WorkBreak, WorkSession, WorkSessionKind } from './types'
+import { minuteText } from './uiText'
 
 const MIN = 60_000
 
@@ -444,7 +445,7 @@ export function startRisk(i: StartRiskInput): StartRisk | undefined {
     return undefined
   }
   if (i.m >= l.latestStart) return undefined
-  if (i.m >= l.latestStart - 15) return { level: 'tight', text: `Bis ${t} sind noch ${l.latestStart - i.m} Minuten.` }
+  if (i.m >= l.latestStart - 15) return { level: 'tight', text: `Bis ${t} ${l.latestStart - i.m === 1 ? 'ist' : 'sind'} noch ${minuteText(l.latestStart - i.m)}.` }
   return undefined
 }
 

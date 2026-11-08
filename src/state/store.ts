@@ -14,6 +14,7 @@ import { nextTaskOccurrence, resolveTask, taskIsOpen, taskLearningKey, taskNextS
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
 import { activePlanDate, openSteps, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
+import { planConflicts, validConflictAcknowledgements } from '../core/planConflicts'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
 import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc, type DateStr } from '../core/time'
@@ -60,6 +61,12 @@ export interface Celebration {
   text?: string
 }
 
+/** Flüchtige UI-Aktion. Weder Funktion noch Rücknahmeinhalt werden synchronisiert. */
+export interface ToastAction {
+  label: string
+  run: () => void | Promise<void>
+}
+
 interface AppState {
   ready: boolean
   settings: Settings
@@ -72,6 +79,7 @@ interface AppState {
   local: LocalData
   celebrations: Celebration[]
   toast?: string
+  toastAction?: ToastAction
   /** Was Android zuletzt zur Weckerplanung gemeldet hat. Nicht gespeichert. */
   alarmStatus?: AlarmStatus
   /** Stand vor der letzten Korrektur an Arbeitszeiten, für „Rückgängig“. Nicht gespeichert. */
@@ -80,6 +88,7 @@ interface AppState {
   load(): Promise<void>
   saveSettings(fn: (s: Settings) => Settings): Promise<void>
   updateDay(date: DateStr, fn: (log: DayLog) => DayLog): Promise<void>
+  acknowledgePlanConflict(date: DateStr, conflictId: string): Promise<void>
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   applyReminderAction(action: ReminderAction): Promise<ReminderApplyResult>
@@ -153,7 +162,8 @@ interface AppState {
   mergeRecords(recs: Rec[], dirty?: boolean, accepted?: () => boolean, mode?: BackupImportMode): Promise<number>
   celebrate(c: Celebration): void
   popCelebration(): void
-  showToast(t: string): void
+  showToast(t: string, action?: ToastAction): void
+  runToastAction(): Promise<void>
 }
 
 let repo: Repository
@@ -180,6 +190,7 @@ const listeners = new Set<() => void>()
 let changeTimer: ReturnType<typeof setTimeout> | undefined
 let timeCatalogUsed = false
 let timeCatalogRuntime: TimeCatalogRuntime | undefined
+let toastVersion = 0
 
 /** LocalData enthält im UI den angefügten Cache; die echte private Quellgruppe bleibt cachefrei. */
 function sourceLocal(local: LocalData): LocalData {
@@ -449,6 +460,7 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const savedCatalog = await source.get<TimeCatalogSnapshot>('meta', TIME_CATALOG_RECORD_ID)
   local.timeCatalog = validTimeCatalog(savedCatalog) ? savedCatalog : undefined
   if (!validPlanUndo(local.planUndo)) local.planUndo = undefined
+  if (!validConflictAcknowledgements(local.acknowledgedPlanConflicts)) local.acknowledgedPlanConflicts = undefined
   local.work = local.work.map(normaliseTask)
   local.resume = usableResume(local.resume, inbox, local.work)
   const relevant = (focus: FocusSession): boolean => focus.target.kind === 'routine'
@@ -542,6 +554,22 @@ export const useApp = create<AppState>()((set, get) => ({
       set({ settings })
     })
     changed()
+  },
+
+  acknowledgePlanConflict(date, conflictId) {
+    return atomic(async () => {
+      const st = get()
+      // Eine veraltete Hinweis-Karte bestätigt keine geänderte Überschneidung.
+      if (!planConflicts(planFor(date, st)).some((conflict) => conflict.id === conflictId)) return
+      const previous = st.local.acknowledgedPlanConflicts?.[date] ?? []
+      if (previous.includes(conflictId)) return
+      const local = { ...st.local, acknowledgedPlanConflicts: {
+        ...st.local.acknowledgedPlanConflicts, [date]: [...previous, conflictId],
+      } }
+      await repo.put('meta', 'local', sourceLocal(local))
+      set({ local })
+      // Keine neue Planung, keine Erledigung und keine Punkte aus einer Quittierung.
+    })
   },
 
   async updateDay(date, fn) {
@@ -1263,11 +1291,25 @@ export const useApp = create<AppState>()((set, get) => ({
   popCelebration() {
     set({ celebrations: get().celebrations.slice(1) })
   },
-  showToast(t) {
-    set({ toast: t })
+  showToast(t, action) {
+    const version = ++toastVersion
+    set({ toast: t, toastAction: action })
     setTimeout(() => {
-      if (get().toast === t) set({ toast: undefined })
-    }, 2500)
+      if (toastVersion === version) set({ toast: undefined, toastAction: undefined })
+    }, action ? 8000 : 2500)
+  },
+  async runToastAction() {
+    const action = get().toastAction
+    if (!action) return
+    const version = toastVersion
+    // Auch schnelles Doppeltippen führt dieselbe Rücknahme nur einmal aus.
+    set({ toastAction: undefined })
+    try {
+      await action.run()
+      if (version === toastVersion) get().showToast('Rückgängig gemacht.')
+    } catch {
+      if (version === toastVersion) get().showToast('Die Änderung konnte noch nicht zurückgenommen werden.', action)
+    }
   },
 }))
 

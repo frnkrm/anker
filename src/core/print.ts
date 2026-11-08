@@ -1,4 +1,5 @@
 import { fmtTime } from './time'
+import { germanDate } from './uiText'
 import type { DayLog, DayPlan, RoutineId, Settings } from './types'
 import type { RoutineCoverage } from './flexible'
 import QRCode from 'qrcode'
@@ -51,11 +52,11 @@ function routineSheet(routine: RoutineId, settings: Settings, context?: DayPrint
     if (result === 'minimal') return [`Kleine Version erledigt: ${step.minimal?.title ?? step.title}`]
     if (result === 'not-needed') return [`Heute nicht nötig: ${step.title}`]
     if (result === 'skipped') return [`Übersprungen: ${step.title}`]
-    if (coverage?.covered) return [`Schon versorgt: ${step.title}${coverage.source?.kind === 'previous-evening' ? ` (Vorabend ${coverage.source.date}: ${coverage.source.title})` : ' (deine Tagesauswahl)'}`]
+    if (coverage?.covered) return [`Schon versorgt: ${step.title}${coverage.source?.kind === 'previous-evening' ? ` (Vorabend ${germanDate(coverage.source.date)}: ${coverage.source.title})` : ' (deine Tagesauswahl)'}`]
     const selected = planned.get(step.id)
     return selected ? [selected.useMinimal && selected.minimal ? selected.minimal.title : selected.title] : []
   })
-  return { kind: 'list', id: routine, title, subtitle: `Für ${context.plan.date}${context.plan.pendingEvening && routine === 'evening' ? ' · wartet auf deine Rückkehr' : ''}`, items: items.length ? items : [routine === 'evening' && context.plan.pendingEvening ? 'Die Routine bleibt offen und wartet auf deine Rückkehr.' : 'Für diesen Tag ist hier nichts eingeplant.'], footer: 'Nur wirklich Gemachtes zählt als erledigt. Deine Standardroutine bleibt erhalten.' }
+  return { kind: 'list', id: routine, title, subtitle: `Für ${germanDate(context.plan.date)}${context.plan.pendingEvening && routine === 'evening' ? ' · wartet auf deine Rückkehr' : ''}`, items: items.length ? items : [routine === 'evening' && context.plan.pendingEvening ? 'Die Routine bleibt offen und wartet auf deine Rückkehr.' : 'Für diesen Tag ist hier nichts eingeplant.'], footer: 'Nur wirklich Gemachtes zählt als erledigt. Deine Standardroutine bleibt erhalten.' }
 }
 
 /** Vorlage oder ausdrücklich gewählte Tagesinstanz; beide nativen Renderer erhalten dieselbe Projektion. */
