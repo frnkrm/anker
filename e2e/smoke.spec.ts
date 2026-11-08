@@ -332,6 +332,8 @@ test('Heute anders: später anfangen, Freitag einstellen, Standard bleibt', asyn
   await expect(page.getByText(/nach deiner Grenze 09:00/)).toHaveCount(0)
   await page.getByRole('button', { name: 'Übernehmen' }).click()
   await expect(page.getByText(/Arbeitsbeginn 08:45/)).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
   await page.goto('/einstellungen/arbeit')
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.work[4]?.start).toBe(8 * 60)
 })

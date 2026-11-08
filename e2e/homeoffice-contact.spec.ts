@@ -21,7 +21,12 @@ async function openHomeoffice(page: Page) {
   await page.getByRole('radiogroup', { name: 'Homeoffice', exact: true }).getByRole('radio', { name: 'Ja', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Homeoffice-Kontakt', exact: true })).toBeVisible()
 }
-async function closeDay(page: Page) { await page.getByRole('dialog').getByRole('button', { name: 'Fertig', exact: true }).click() }
+async function closeDay(page: Page) {
+  await page.getByRole('dialog').getByRole('button', { name: 'Fertig', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  // Erst danach darf ein harter Dokumentwechsel den aufgeräumten Modal-Verlauf verlassen.
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
+}
 async function expectHomeofficeReady(page: Page) {
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('button', { name: 'Heute anpassen: Tagesart und Modus', exact: true })).toBeVisible()
@@ -88,7 +93,12 @@ test('Eine vorgemerkte Homeoffice-Rückfrage bleibt während Ruhezeit aus und wi
   await page.getByRole('textbox', { name: 'Ruhezeit von', exact: true }).fill('08:00')
   await page.getByRole('textbox', { name: 'Ruhezeit bis', exact: true }).fill('12:00')
   await page.getByRole('textbox', { name: 'Ruhezeit bis', exact: true }).blur()
+  await expect.poll(async () => {
+    const settings = await storedRecord<Settings>(page, 'settings', 'main')
+    return { from: settings?.reminders.quietStart, to: settings?.reminders.quietEnd }
+  }).toEqual({ from: 8 * 60, to: 12 * 60 })
   await page.clock.setFixedTime(new Date(start + 31 * 60_000)); await page.goto('/')
+  await expectHomeofficeReady(page)
   await expect(page.getByRole('region', { name: 'Einmalige Homeoffice-Rückfrage', exact: true })).toHaveCount(0)
   expect((await local(page))?.homeOfficeContact?.[date]?.remindAt).toBe(start + 30 * 60_000)
   await page.clock.setFixedTime(new Date(`${date}T20:45:00+01:00`)); await page.reload()
@@ -100,7 +110,12 @@ test('Eine vorgemerkte Homeoffice-Rückfrage bleibt während Ruhezeit aus und wi
   await page.getByRole('textbox', { name: 'Ruhezeit von', exact: true }).fill('23:30')
   await page.getByRole('textbox', { name: 'Ruhezeit bis', exact: true }).fill('05:00')
   await page.getByRole('textbox', { name: 'Ruhezeit bis', exact: true }).blur()
+  await expect.poll(async () => {
+    const settings = await storedRecord<Settings>(page, 'settings', 'main')
+    return { from: settings?.reminders.quietStart, to: settings?.reminders.quietEnd }
+  }).toEqual({ from: 23 * 60 + 30, to: 5 * 60 })
   await page.goto('/')
+  await expectHomeofficeReady(page)
   await expect(page.getByRole('region', { name: 'Einmalige Homeoffice-Rückfrage', exact: true })).toBeVisible()
   await page.getByRole('region', { name: 'Einmalige Homeoffice-Rückfrage', exact: true }).getByRole('button', { name: 'Nein, nicht nötig', exact: true }).click()
   await expect.poll(async () => (await local(page))?.homeOfficeContact?.[date]?.status).toBe('not-needed')
