@@ -320,7 +320,7 @@ Das experimentelle **Aktivitäts-Weckfenster** findest du unter **Wecker & QR-Co
 
 ## Weckerverlauf & Diagnose (Code16)
 
-Öffne **Wecker & QR-Code → Weckerverlauf & Diagnose** oder **Mehr → Einstellungen → Weckerverlauf & Diagnose**. Auf dieser Seite (`/diagnose`) kannst du technische Ereignisse ansehen und eine auswählbare JSON-Datei für die Fehlersuche erstellen. Die Funktion wird mit **1.5.0-rc.2 / Code16** vorbereitet; die alten Code15-Downloads enthalten sie noch nicht.
+Öffne **Wecker & QR-Code → Weckerverlauf & Diagnose** oder **Mehr → Einstellungen → Weckerverlauf & Diagnose**. Auf dieser Seite (`/diagnose`) kannst du technische Ereignisse ansehen und eine auswählbare JSON-Datei für die Fehlersuche erstellen. Die Funktion ist im [Update 1.5.0-rc.2 / Code16](UPDATE_CODE16.md) enthalten; ältere Code15-Downloads enthalten sie noch nicht.
 
 1. Wähle **Letzte 24 Stunden**, **Letzte 7 Tage** oder **Zeitraum wählen** mit Von/Bis. Nach einem auffälligen Morgen möglichst zeitnah exportieren: Das lokale Journal enthält höchstens sieben Tage und 800 Ereignisse.
 2. Unter **Log- und Einstellungsbereiche auswählen** sind anfangs Wecker, stummer Schlafhinweis und Systemereignisse gewählt. Alltags-Erinnerungen und PC-Verbindung kannst du ergänzen. **Aktueller technischer Status: Planungszeiten, Lautstärke und Rechte** lässt sich getrennt abwählen; ein abgewählter Log-/Statusbereich exportiert auch keinen zugehörigen aktuellen Status.

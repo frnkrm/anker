@@ -1,8 +1,8 @@
 # Patch Notes
 
-## 1.5.0-rc.2 / Code16 – Weckerverlauf & Diagnose (in Vorbereitung, 2026-11-09)
+## 1.5.0-rc.2 / Code16 – Weckerverlauf & Diagnose (2026-11-09)
 
-Ausgang ist der veröffentlichte Code15-Stand `53aca22`. Implementierung und gezielte Prüfungen sind von der noch ausstehenden gemeinsamen Abschlussprüfung, signierten Bereitstellung und echten Galaxy-Beobachtung zu unterscheiden. Die Code15-Nachweise darunter bleiben ihrem damaligen Stand zugeordnet.
+Ausgang ist der veröffentlichte Code15-Stand `53aca22`. [Signiertes Handyupdate](docs/UPDATE_CODE16.md) mit gleichem Appnamen, Paket und B4-Schlüssel bereitgestellt; vollständiger Browserdownload und Dateivergleich bestätigt. **1.095 Logik-/271 Browser-/197 frische Android-JUnit-/89 PC-Pythonfälle**, 5 Paket-/Installer-, 19 klassische PC-/36 Updatefälle grün; TypeScript und Build erfolgreich, Lint 0 Fehler/1 bestehende Warnung. [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42619085381) bestätigt den exakten main/push-Stand mit allen drei Jobs. [Quell-/Artefaktnachweis](docs/ANKER_CODE16_NACHWEIS.json). Echte Galaxy-Hörbarkeit und Spiel-/Standbywirkung bleiben offen; die Code15-Nachweise darunter behalten ihren Stand.
 
 - Neues lokales Android-Journal: höchstens sieben Tage und 800 technische Ereignisse zu Planung, angenommenen/verworfenem Wecksignal, Dienst, Audiofokus, Player/Ersatzton, Beenden und Schlafhinweis. Eigene gerätegeschützte Preferences und begrenzte Schreibqueue halten den Journalzugriff vom kritischen Weckerspeicher getrennt. Keine rückwirkenden Einträge für Nächte vor dem Update.
 - **Weckerverlauf & Diagnose** unter Wecker oder Einstellungen, Route `/diagnose`: letzte 24 Stunden, sieben Tage oder eigener Zeitraum; auswählbare Log-/Statusbereiche und getrennte Einstellungsgruppen. Alle Einstellungsgruppen beginnen abgewählt. JSON-Vorschau und Dateiexport mit Auswahlmanifest; kein automatischer Versand, keine vollständige Datensicherung.

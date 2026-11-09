@@ -1,0 +1,537 @@
+{
+  "expectedCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+  "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+  "expectedBranch": "main",
+  "expectedEvent": "push",
+  "commitLinks": [
+    "4d8eaa1cd1dc463e3ce9032779d857a215d020fc"
+  ],
+  "expectedCommitPresent": true,
+  "runIdConfirmed": true,
+  "expectedBranchConfirmed": true,
+  "expectedEventConfirmed": true,
+  "workflowConfirmed": true,
+  "runStatus": "Success",
+  "runUrl": "https://github.com/frnkrm/anker/actions/runs/42619085381",
+  "observedJobs": [
+    {
+      "name": "check",
+      "jobId": "129166271635",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166271635"
+    },
+    {
+      "name": "PC-Begleiter / ubuntu-latest / Python 3.12",
+      "jobId": "129166272253",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166272253"
+    },
+    {
+      "name": "PC-Begleiter / windows-latest / Python 3.12",
+      "jobId": "129166271964",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166271964"
+    }
+  ],
+  "identityConfirmed": true,
+  "observedAt": "2026-11-09T12:51:11.666339+00:00",
+  "requiredJobs": [
+    {
+      "name": "check",
+      "jobId": "129166271635",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166271635",
+      "jobPageRunIdConfirmed": true,
+      "jobPageJobIdConfirmed": true,
+      "stepLogsMatchCommitAndJob": true,
+      "requiredSteps": {
+        "Set up job": "success",
+        "Run actions/checkout@v4": "success",
+        "Run actions/setup-node@v4": "success",
+        "Run npm ci": "success",
+        "Run npm run lint": "success",
+        "Run npm run typecheck": "success",
+        "Logiktests mit überprüfbarer Zusammenfassung": "success",
+        "PC-Stopp mit PowerShell prüfen": "success",
+        "Android-Updateprüfung ohne echte Schlüssel testen": "success",
+        "Run npm run build": "success",
+        "Playwright-Browser installieren": "success",
+        "Playwright-Browsertests": "success",
+        "Complete job": "success"
+      },
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:18Z",
+          "completed-at": "2026-11-09T12:41:18Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/1"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:18Z",
+          "completed-at": "2026-11-09T12:41:20Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/2"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "3",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:20Z",
+          "completed-at": "2026-11-09T12:41:21Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/3"
+        },
+        {
+          "name": "Run npm ci",
+          "number": "4",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:21Z",
+          "completed-at": "2026-11-09T12:42:08Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/4"
+        },
+        {
+          "name": "Run npm run lint",
+          "number": "5",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:08Z",
+          "completed-at": "2026-11-09T12:42:16Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/5"
+        },
+        {
+          "name": "Run npm run typecheck",
+          "number": "6",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:16Z",
+          "completed-at": "2026-11-09T12:42:29Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/6"
+        },
+        {
+          "name": "Logiktests mit überprüfbarer Zusammenfassung",
+          "number": "7",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:29Z",
+          "completed-at": "2026-11-09T12:42:42Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/7"
+        },
+        {
+          "name": "PC-Stopp mit PowerShell prüfen",
+          "number": "8",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:42Z",
+          "completed-at": "2026-11-09T12:42:48Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/8"
+        },
+        {
+          "name": "Android-Updateprüfung ohne echte Schlüssel testen",
+          "number": "9",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:48Z",
+          "completed-at": "2026-11-09T12:42:51Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/9"
+        },
+        {
+          "name": "Run npm run build",
+          "number": "10",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:51Z",
+          "completed-at": "2026-11-09T12:43:06Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/10"
+        },
+        {
+          "name": "Playwright-Browser installieren",
+          "number": "11",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:43:06Z",
+          "completed-at": "2026-11-09T12:43:25Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/11"
+        },
+        {
+          "name": "Playwright-Browsertests",
+          "number": "12",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:43:25Z",
+          "completed-at": "2026-11-09T12:51:03Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/12"
+        },
+        {
+          "name": "Playwright-Fehlerberichte speichern",
+          "number": "13",
+          "conclusion": "skipped",
+          "started-at": "2026-11-09T12:51:03Z",
+          "completed-at": "2026-11-09T12:51:03Z",
+          "log-url": ""
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "25",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:51:03Z",
+          "completed-at": "2026-11-09T12:51:06Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/25"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "26",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:51:06Z",
+          "completed-at": "2026-11-09T12:51:06Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/26"
+        },
+        {
+          "name": "Complete job",
+          "number": "27",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:51:06Z",
+          "completed-at": "2026-11-09T12:51:06Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271635/logs/27"
+        }
+      ],
+      "failedSteps": [],
+      "annotationErrorCount": 0,
+      "completed": true,
+      "allStepsSuccessfulOrExpectedSkipped": true,
+      "requiredStepsSucceeded": true,
+      "jobSucceeded": true,
+      "jobFailed": false,
+      "conclusion": "success",
+      "identityConfirmed": true,
+      "browserSummaryText": "Playwright-Browsertests 271 passed (7.6m) ",
+      "browserTestsPassed": 271,
+      "expectedBrowserTestsConfirmed": true,
+      "vitestSummaryText": "Logiktests mit überprüfbarer Zusammenfassung 1095 passed; 0 failed; 0 skipped ",
+      "vitestTestsPassed": 1095,
+      "vitestTestsFailed": 0,
+      "vitestTestsSkipped": 0,
+      "expectedVitestTestsConfirmed": true,
+      "browserTestsFailed": 0,
+      "browserTestsFlaky": 0,
+      "browserTestsSkipped": 0,
+      "browserTestsInterrupted": 0,
+      "zeroBrowserFailuresVerified": true
+    },
+    {
+      "name": "PC-Begleiter / ubuntu-latest / Python 3.12",
+      "jobId": "129166272253",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166272253",
+      "jobPageRunIdConfirmed": true,
+      "jobPageJobIdConfirmed": true,
+      "stepLogsMatchCommitAndJob": true,
+      "requiredSteps": {
+        "Set up job": "success",
+        "Isolierte PC-Abhängigkeiten installieren": "success",
+        "PC-Protokoll und Windows-Grenzen mit Fake-Effekten prüfen": "success",
+        "CLI-Hilfe ohne Start des Begleiters prüfen": "success",
+        "Node-Telefon gegen echten lokalen TLS-Server prüfen": "success",
+        "Windows-Quellpaket bauen und prüfen": "success",
+        "Complete job": "success"
+      },
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:18Z",
+          "completed-at": "2026-11-09T12:41:19Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/1"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:19Z",
+          "completed-at": "2026-11-09T12:41:20Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/2"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "number": "3",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:20Z",
+          "completed-at": "2026-11-09T12:41:22Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/3"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "4",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:22Z",
+          "completed-at": "2026-11-09T12:41:23Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/4"
+        },
+        {
+          "name": "Isolierte PC-Abhängigkeiten installieren",
+          "number": "5",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:23Z",
+          "completed-at": "2026-11-09T12:41:27Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/5"
+        },
+        {
+          "name": "Windows-Bibliotheken ohne Systemaktionen importieren",
+          "number": "6",
+          "conclusion": "skipped",
+          "started-at": "2026-11-09T12:41:27Z",
+          "completed-at": "2026-11-09T12:41:27Z",
+          "log-url": ""
+        },
+        {
+          "name": "PC-Protokoll und Windows-Grenzen mit Fake-Effekten prüfen",
+          "number": "7",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:27Z",
+          "completed-at": "2026-11-09T12:41:28Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/7"
+        },
+        {
+          "name": "CLI-Hilfe ohne Start des Begleiters prüfen",
+          "number": "8",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:28Z",
+          "completed-at": "2026-11-09T12:41:29Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/8"
+        },
+        {
+          "name": "Node-Telefon gegen echten lokalen TLS-Server prüfen",
+          "number": "9",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:29Z",
+          "completed-at": "2026-11-09T12:41:29Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/9"
+        },
+        {
+          "name": "Windows-Quellpaket bauen und prüfen",
+          "number": "10",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:29Z",
+          "completed-at": "2026-11-09T12:41:31Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/10"
+        },
+        {
+          "name": "Windows-Quellpaket speichern",
+          "number": "11",
+          "conclusion": "skipped",
+          "started-at": "2026-11-09T12:41:31Z",
+          "completed-at": "2026-11-09T12:41:31Z",
+          "log-url": ""
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "20",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:31Z",
+          "completed-at": "2026-11-09T12:41:31Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/20"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "number": "21",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:31Z",
+          "completed-at": "2026-11-09T12:41:32Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/21"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "22",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:32Z",
+          "completed-at": "2026-11-09T12:41:32Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/22"
+        },
+        {
+          "name": "Complete job",
+          "number": "23",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:32Z",
+          "completed-at": "2026-11-09T12:41:32Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166272253/logs/23"
+        }
+      ],
+      "failedSteps": [],
+      "annotationErrorCount": 0,
+      "completed": true,
+      "allStepsSuccessfulOrExpectedSkipped": true,
+      "requiredStepsSucceeded": true,
+      "jobSucceeded": true,
+      "jobFailed": false,
+      "conclusion": "success",
+      "identityConfirmed": true
+    },
+    {
+      "name": "PC-Begleiter / windows-latest / Python 3.12",
+      "jobId": "129166271964",
+      "url": "https://github.com/frnkrm/anker/actions/runs/42619085381/job/129166271964",
+      "jobPageRunIdConfirmed": true,
+      "jobPageJobIdConfirmed": true,
+      "stepLogsMatchCommitAndJob": true,
+      "requiredSteps": {
+        "Set up job": "success",
+        "Isolierte PC-Abhängigkeiten installieren": "success",
+        "PC-Protokoll und Windows-Grenzen mit Fake-Effekten prüfen": "success",
+        "CLI-Hilfe ohne Start des Begleiters prüfen": "success",
+        "Node-Telefon gegen echten lokalen TLS-Server prüfen": "success",
+        "Windows-Quellpaket bauen und prüfen": "success",
+        "Complete job": "success",
+        "Windows-Bibliotheken ohne Systemaktionen importieren": "success",
+        "Windows-Quellpaket speichern": "success"
+      },
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": "1",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:18Z",
+          "completed-at": "2026-11-09T12:41:19Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/1"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "number": "2",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:19Z",
+          "completed-at": "2026-11-09T12:41:25Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/2"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "number": "3",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:25Z",
+          "completed-at": "2026-11-09T12:41:34Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/3"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "number": "4",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:34Z",
+          "completed-at": "2026-11-09T12:41:42Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/4"
+        },
+        {
+          "name": "Isolierte PC-Abhängigkeiten installieren",
+          "number": "5",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:42Z",
+          "completed-at": "2026-11-09T12:41:53Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/5"
+        },
+        {
+          "name": "Windows-Bibliotheken ohne Systemaktionen importieren",
+          "number": "6",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:53Z",
+          "completed-at": "2026-11-09T12:41:54Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/6"
+        },
+        {
+          "name": "PC-Protokoll und Windows-Grenzen mit Fake-Effekten prüfen",
+          "number": "7",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:41:54Z",
+          "completed-at": "2026-11-09T12:42:02Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/7"
+        },
+        {
+          "name": "CLI-Hilfe ohne Start des Begleiters prüfen",
+          "number": "8",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:02Z",
+          "completed-at": "2026-11-09T12:42:02Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/8"
+        },
+        {
+          "name": "Node-Telefon gegen echten lokalen TLS-Server prüfen",
+          "number": "9",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:02Z",
+          "completed-at": "2026-11-09T12:42:04Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/9"
+        },
+        {
+          "name": "Windows-Quellpaket bauen und prüfen",
+          "number": "10",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:04Z",
+          "completed-at": "2026-11-09T12:42:10Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/10"
+        },
+        {
+          "name": "Windows-Quellpaket speichern",
+          "number": "11",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:10Z",
+          "completed-at": "2026-11-09T12:42:11Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/11"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "number": "20",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:11Z",
+          "completed-at": "2026-11-09T12:42:11Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/20"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "number": "21",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:11Z",
+          "completed-at": "2026-11-09T12:42:12Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/21"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "number": "22",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:12Z",
+          "completed-at": "2026-11-09T12:42:13Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/22"
+        },
+        {
+          "name": "Complete job",
+          "number": "23",
+          "conclusion": "success",
+          "started-at": "2026-11-09T12:42:13Z",
+          "completed-at": "2026-11-09T12:42:13Z",
+          "log-url": "/frnkrm/anker/commit/4d8eaa1cd1dc463e3ce9032779d857a215d020fc/checks/129166271964/logs/23"
+        }
+      ],
+      "failedSteps": [],
+      "annotationErrorCount": 0,
+      "completed": true,
+      "allStepsSuccessfulOrExpectedSkipped": true,
+      "requiredStepsSucceeded": true,
+      "jobSucceeded": true,
+      "jobFailed": false,
+      "conclusion": "success",
+      "identityConfirmed": true
+    }
+  ],
+  "expectedBrowserTests": 271,
+  "expectedVitestTests": 1095,
+  "source": "Anonymous public GitHub HTML only; no API or authenticated raw logs",
+  "requiredJobIdsDistinct": true,
+  "allRequiredJobsSucceeded": true,
+  "browserTestsPassed": 271,
+  "browserTestsFailed": 0,
+  "browserTestsFlaky": 0,
+  "browserTestsSkipped": 0,
+  "browserTestsInterrupted": 0,
+  "vitestTestsPassed": 1095,
+  "vitestTestsFailed": 0,
+  "vitestTestsSkipped": 0,
+  "expectedBrowserTestsConfirmed": true,
+  "expectedVitestTestsConfirmed": true,
+  "zeroBrowserFailuresVerified": true,
+  "verifiedSuccess": true,
+  "publicConfigNoRetriesConfirmed": true,
+  "globalConfiguredBrowserRetries": 0,
+  "reviewedSourceNormalizedSha256": {
+    "playwright-config": "8d855b6e6a6e8d176132a1257de65b3552d6eb7cdb2472e656d2f326fc3e3f4d",
+    "ci-workflow": "1e870777148da2bebab49b5290b8d80ca763b800a8cbb5e70f3efef4b758534e",
+    "package": "ea223fc1cdce482071bdae65d12fa8e75a0ac82614bb3b378d39654af3360c72"
+  },
+  "scope": "Exact committed public Playwright config and package command, known reviewed zero-default-retry config; exact workflow bytes and reviewed Playwright invocation.",
+  "completedAt": "2026-11-09T12:51:11.667801+00:00",
+  "collectorExitCode": 0
+}
