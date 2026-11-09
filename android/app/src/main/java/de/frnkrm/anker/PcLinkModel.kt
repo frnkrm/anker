@@ -21,6 +21,12 @@ object PcLinkModel {
     }
 
     fun validIdentifier(value: String): Boolean = identifier.matches(value)
+    /** JSONObject.getLong coerces floats/strings: authenticated wire counters must not. */
+    fun wireInteger(value: Any?): Long? = when (value) {
+        is Int -> value.toLong()
+        is Long -> value
+        else -> null
+    }
     fun validSequence(value: Long): Boolean = value in 1..MAX_SAFE_SEQUENCE
     fun acceptSequence(previous: Long, incoming: Long): Boolean = validSequence(incoming) && incoming > previous
     fun retryDelayMs(attempt: Int): Long = (1_000L shl attempt.coerceIn(0, 6)).coerceAtMost(60_000L)

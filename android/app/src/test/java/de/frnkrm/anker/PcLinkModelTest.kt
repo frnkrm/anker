@@ -41,6 +41,12 @@ class PcLinkModelTest {
         assertFalse(PcLinkModel.acceptSequence(0, PcLinkModel.MAX_SAFE_SEQUENCE + 1))
     }
 
+    @Test fun wireCountersNeverTruncateFractionsOrCoerceStringsAndBooleans() {
+        assertEquals(1L, PcLinkModel.wireInteger(1))
+        assertEquals(PcLinkModel.MAX_SAFE_SEQUENCE, PcLinkModel.wireInteger(PcLinkModel.MAX_SAFE_SEQUENCE))
+        for (invalid in listOf(1.0, 1.5, Double.NaN, "1", true, null)) assertNull(PcLinkModel.wireInteger(invalid))
+    }
+
     @Test fun reconnectBackoffIsFiniteAndNeverImmediate() {
         assertEquals(1_000, PcLinkModel.retryDelayMs(-1))
         assertEquals(2_000, PcLinkModel.retryDelayMs(1))

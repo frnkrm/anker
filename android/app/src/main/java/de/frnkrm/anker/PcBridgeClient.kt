@@ -63,7 +63,7 @@ object PcBridgeClient {
         val encoded = qr.removePrefix("anker-pc-pair:v3:")
         val payload = try { JSONObject(String(PcLinkModel.decoded(encoded), Charsets.UTF_8)) } catch (_: Exception) { throw IllegalArgumentException("PC_QR_INVALID") }
         exact(payload, setOf("t", "v", "id", "n", "k", "c", "s", "a", "e"))
-        require(payload.getString("t") == "anker-pc-pair" && payload.getInt("v") == 3) { "PC_PROTOCOL_UNSUPPORTED" }
+        require(payload.getString("t") == "anker-pc-pair" && whole(payload, "v") == 3L) { "PC_PROTOCOL_UNSUPPORTED" }
         val id = payload.getString("id"); require(PcLinkModel.validIdentifier(id)) { "PC_QR_INVALID" }
         val name = boundedText(payload.getString("n"), 100)
         val expires = PcLinkModel.timestamp(payload.getString("e"))
@@ -348,8 +348,8 @@ object PcBridgeClient {
         val envelope = JSONObject(raw)
         exact(envelope, setOf("v", "kind", "pair", "from", "seq", "sentAt", "nonce", "ct"))
         val vault = PcBridgeVault(ctx); val data = vault.read()
-        require(envelope.getInt("v") == 3 && envelope.getString("kind") == "anker-link" && envelope.getString("from") == "pc" && envelope.getString("pair") == data.getString("pairId")) { "PC_ENVELOPE_INVALID" }
-        val seq = envelope.getLong("seq")
+        require(whole(envelope, "v") == 3L && envelope.getString("kind") == "anker-link" && envelope.getString("from") == "pc" && envelope.getString("pair") == data.getString("pairId")) { "PC_ENVELOPE_INVALID" }
+        val seq = whole(envelope, "seq")
         require(PcLinkModel.acceptSequence(data.optLong("seqIn"), seq)) { "PC_REPLAY_REJECTED" }
         val sentAt = envelope.getString("sentAt"); PcLinkModel.timestamp(sentAt)
         val header = PcBridgeCrypto.Header(data.getString("pairId"), "pc", seq, sentAt)
@@ -363,7 +363,7 @@ object PcBridgeClient {
                 LocalDate.parse(effective.getString("date")); require(effective.getString("mode") in modes) { "PC_PAYLOAD_INVALID" }
                 optionalTimestamp(effective, "stopAt")
                 val companion = payload.getJSONObject("companion"); exact(companion, setOf("version", "protocol"))
-                if (companion.getInt("protocol") != 3) { lastError = "PC_PROTOCOL_UNSUPPORTED"; throw IllegalArgumentException("PC_PROTOCOL_UNSUPPORTED") }
+                if (whole(companion, "protocol") != 3L) { lastError = "PC_PROTOCOL_UNSUPPORTED"; throw IllegalArgumentException("PC_PROTOCOL_UNSUPPORTED") }
                 val warnings = payload.getJSONArray("warnings"); require(warnings.length() <= 20) { "PC_PAYLOAD_INVALID" }
                 for (i in 0 until warnings.length()) require(warnings.getString(i).matches(Regex("[a-z0-9-]{1,80}"))) { "PC_PAYLOAD_INVALID" }
                 data.put("ack", copy(payload)).put("lastReceivedAt", System.currentTimeMillis())
@@ -384,7 +384,7 @@ object PcBridgeClient {
             }
             "events" -> {
                 exact(payload, setOf("type", "items", "lastSeq"))
-                val items = payload.getJSONArray("items"); require(items.length() <= 500 && payload.getLong("lastSeq") >= 0) { "PC_PAYLOAD_INVALID" }
+                val items = payload.getJSONArray("items"); require(items.length() <= 500 && whole(payload, "lastSeq") in 0..PcLinkModel.MAX_SAFE_SEQUENCE) { "PC_PAYLOAD_INVALID" }
                 val pending = data.optJSONArray("events") ?: JSONArray()
                 val ids = (0 until pending.length()).map { pending.getJSONObject(it).getString("id") }.toMutableSet()
                 var previous = data.optLong("lastEventSeq")
@@ -426,11 +426,11 @@ object PcBridgeClient {
                 exact(payload, setOf("type", "state", "sessionId", "revision", "date", "generatedAt", "validUntil", "remainingSeconds", "routineStep", "lockEnforced", "schedule", "prefs"), setOf("brainDump"))
                 require(payload.getString("state") in phaseNames && PcLinkModel.validIdentifier(payload.getString("sessionId"))) { "PC_PAYLOAD_INVALID" }
                 LocalDate.parse(payload.getString("date")); boundedText(payload.getString("revision"), 128)
-                require(payload.get("lockEnforced") is Boolean && payload.getLong("remainingSeconds") in 0..64_800) { "PC_PAYLOAD_INVALID" }
+                require(payload.get("lockEnforced") is Boolean && whole(payload, "remainingSeconds") in 0..64_800) { "PC_PAYLOAD_INVALID" }
                 require(PcLinkModel.validLease(PcLinkModel.timestamp(payload.getString("generatedAt")), PcLinkModel.timestamp(payload.getString("validUntil")))) { "PC_LEASE_INVALID" }
                 if (!payload.isNull("routineStep")) {
                     val step = payload.getJSONObject("routineStep"); exact(step, setOf("index", "total"))
-                    require(step.getInt("total") in 1..200 && step.getInt("index") in 0..step.getInt("total")) { "PC_PAYLOAD_INVALID" }
+                    require(whole(step, "total") in 1..200 && whole(step, "index") in 0..whole(step, "total")) { "PC_PAYLOAD_INVALID" }
                 }
                 val schedule = payload.getJSONObject("schedule")
                 exact(schedule, setOf("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt"), setOf("pcStopAt", "leaveAt", "workStartAt", "homeOffice"))
@@ -466,11 +466,11 @@ object PcBridgeClient {
                     }
                 }
             }
-            "pull" -> { exact(payload, setOf("type", "after")); require(payload.getLong("after") >= 0) { "PC_PAYLOAD_INVALID" } }
+            "pull" -> { exact(payload, setOf("type", "after")); require(whole(payload, "after") in 0..PcLinkModel.MAX_SAFE_SEQUENCE) { "PC_PAYLOAD_INVALID" } }
             "command" -> {
                 exact(payload, setOf("type", "id", "action"), setOf("minutes", "token"))
                 require(PcLinkModel.validIdentifier(payload.getString("id")) && payload.getString("action") in setOf("ping", "unpair", "test-evening", "resume-today", "suspend-today", "extend", "EMERGENCY_EXTENSION")) { "PC_PAYLOAD_INVALID" }
-                if (payload.has("minutes")) require(payload.getInt("minutes") in 1..1_440) { "PC_PAYLOAD_INVALID" }
+                if (payload.has("minutes")) require(whole(payload, "minutes") in 1..1_440) { "PC_PAYLOAD_INVALID" }
             }
             else -> throw IllegalArgumentException("PC_PAYLOAD_INVALID")
         }
@@ -479,14 +479,14 @@ object PcBridgeClient {
     private fun validatePreferences(value: JSONObject) {
         exact(value, setOf("enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"), setOf("ifThen"))
         for (key in setOf("enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "shareBrainDump", "morningCountdown")) require(value.get(key) is Boolean) { "PC_PAYLOAD_INVALID" }
-        require(value.getDouble("dimMax") in 0.0..0.4 && value.getLong("graceSeconds") in 60..600
+        require(value.get("dimMax") is Number && value.getDouble("dimMax") in 0.0..0.4 && whole(value, "graceSeconds") in 60..600
             && value.getString("offlinePolicy") in setOf("pause", "fixed-time") && value.getString("stopAction") in setOf("lock", "hibernate", "shutdown")) { "PC_PAYLOAD_INVALID" }
         if (value.has("ifThen")) boundedText(value.getString("ifThen"), 500)
     }
 
     private fun validateEvent(value: JSONObject) {
         exact(value, setOf("id", "seq", "at", "date", "kind"), setOf("basis", "newStopAt", "text", "nextStep"))
-        require(PcLinkModel.validIdentifier(value.getString("id")) && PcLinkModel.validSequence(value.getLong("seq")) && value.getString("kind") in eventKinds) { "PC_EVENT_INVALID" }
+        require(PcLinkModel.validIdentifier(value.getString("id")) && PcLinkModel.validSequence(whole(value, "seq")) && value.getString("kind") in eventKinds) { "PC_EVENT_INVALID" }
         LocalDate.parse(value.getString("date")); PcLinkModel.timestamp(value.getString("at")); optionalTimestamp(value, "newStopAt")
         for (key in setOf("text", "nextStep")) if (value.has(key)) boundedText(value.getString(key), 500)
         if (value.has("basis")) require(value.getString("basis") in setOf("anker-shutdown", "user-shutdown", "sleep", "lock", "logoff", "idle")) { "PC_EVENT_INVALID" }
@@ -583,6 +583,7 @@ object PcBridgeClient {
         return "PC_UNREACHABLE"
     }
     private fun optionalTimestamp(value: JSONObject, key: String) { if (value.has(key) && !value.isNull(key)) PcLinkModel.timestamp(value.getString(key)) }
+    private fun whole(value: JSONObject, key: String): Long = PcLinkModel.wireInteger(value.get(key)) ?: throw IllegalArgumentException("PC_INTEGER_INVALID")
     private fun boundedText(value: String, maximum: Int): String = value.also {
         require(it.length <= maximum && !it.contains('\u0000')) { "PC_TEXT_INVALID" }
         var index = 0

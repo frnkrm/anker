@@ -44,7 +44,7 @@ Status: `state` = unpaired/pairing/paired-never-reached/connected/unreachable/re
 
 Verbindungsaufbau ausschließlich zu privaten LAN-/Loopback-Adressen, private-only DNS und SHA-256-Pin des exakten QR-Zertifikats; keine System-Trust-Ausweichroute. Ein DHCP-Wechsel kann neue private NSD-Kandidaten liefern, ändert aber nie den Pin. Protokoll v3 nutzt P-256-ECDH, HKDF-SHA256, getrennte AES-256-GCM-Richtungs-Schlüssel, zufällige 96-Bit-Nonces und persistent vor Versand reservierte Sequenzen. Replays, fremde Pair-IDs, unbekannte Felder, überlange Texte und Frames werden verworfen. Diagnosen sind feste Fehlercodes ohne Adressen, Inhalte oder Schlüssel.
 
-Automatisch geprüft: 14 reine JVM-Tests für private Adressen, URL-Injection, exakten Zertifikat-Pin, Replay-/Sequenzgrenzen, begrenztes Backoff, kanonisches Base64, Ablaufgrenzen, explizite Zeitzonen, P-256/HKDF und AES-GCM gegen dieselben öffentlichen Vektoren wie `src/core/pcLink/fixtures/v3-crypto.json`, manipulierte AAD/Chiffrate und ungültige Kurvenpunkte.
+Automatisch geprüft: 15 reine JVM-Tests für private Adressen, URL-Injection, exakten Zertifikat-Pin, Replay-/Sequenzgrenzen und strikt ganzzahlige Wire-Zähler, begrenztes Backoff, kanonisches Base64, Ablaufgrenzen, explizite Zeitzonen, P-256/HKDF und AES-GCM gegen dieselben öffentlichen Vektoren wie `src/core/pcLink/fixtures/v3-crypto.json`, manipulierte AAD/Chiffrate und ungültige Kurvenpunkte.
 
 Alle sechs neuen nativen Klassen wurden außerdem isoliert gegen Android-36-SDK, OkHttp 4.12.0 und Okio 3.6.0 kompiliert. Die Vollintegration einschließlich Capacitor, Servicebudget und Manifest wird anschließend im gemeinsamen Android-Build geprüft.
 
