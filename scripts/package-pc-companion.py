@@ -15,16 +15,21 @@ FILES = tuple(sorted(("Einrichten.cmd", "Start.cmd", "install.ps1", "uninstall.p
                       *(f"anker_companion/{name}.py" for name in MODULES))))
 
 
-def package(source: Path, output: Path, commit: str) -> dict:
+def package(source: Path, output: Path, commit: str, *, committed: bool = False) -> dict:
     if not re.fullmatch(r"[a-f0-9]{40}", commit):
         raise ValueError("A complete source commit is required.")
     source = source.resolve()
+    if committed and source != (ROOT / 'pc-companion').resolve():
+        raise ValueError("Committed packages must use the repository companion directory.")
     members = {}
     for name in FILES:
         path = source / name
         if not path.is_file() or path.is_symlink() or any(parent.is_symlink() for parent in path.parents if parent != source and source in parent.parents):
             raise ValueError("Missing or linked package source: " + name)
-        members[name] = path.read_bytes()
+        # Git normalizes .cmd blobs to LF but checks them out as CRLF. Reading
+        # the committed blobs gives identical ZIPs on both CI operating systems
+        # and proves each public byte against sourceCommit, regardless of EOL.
+        members[name] = subprocess.check_output(['git', 'show', f'{commit}:pc-companion/{name}'], cwd=ROOT) if committed else path.read_bytes()
     version = re.search(rb'__version__\s*=\s*["\'](\d+\.\d+\.\d+)["\']', members['anker_companion/__init__.py'])
     if not version:
         raise ValueError("Companion version is missing.")
@@ -47,12 +52,12 @@ def package(source: Path, output: Path, commit: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-dir', type=Path, default=ROOT / 'pc-companion')
+    parser.add_argument('--source-dir', type=Path, help='Controlled fixture source; normal packages read committed repository blobs.')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--source-commit')
     args = parser.parse_args()
     commit = args.source_commit or subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-    print(json.dumps(package(args.source_dir, args.output, commit)))
+    print(json.dumps(package(args.source_dir or ROOT / 'pc-companion', args.output, commit, committed=args.source_dir is None)))
 
 
 if __name__ == '__main__':

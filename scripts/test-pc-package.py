@@ -60,6 +60,16 @@ class PackageTests(unittest.TestCase):
             self.build()
         self.assertFalse((self.root / 'package.zip').exists())
 
+    def test_release_members_equal_git_blobs_including_normalized_cmd_endings(self):
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+        output = self.root / 'committed.zip'
+        builder.package(ROOT / 'pc-companion', output, commit, committed=True)
+        with zipfile.ZipFile(output) as archive:
+            for name in builder.FILES:
+                blob = subprocess.check_output(['git', 'show', f'{commit}:pc-companion/{name}'], cwd=ROOT)
+                self.assertEqual(archive.read(name), blob)
+            self.assertNotIn(b'\r\n', archive.read('Start.cmd'))
+
     def test_linked_module_is_rejected(self):
         if os.name == 'nt':
             # Windows symlinks require privileges/developer mode, which this
