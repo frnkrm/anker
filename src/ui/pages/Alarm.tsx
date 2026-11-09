@@ -341,16 +341,21 @@ export function AlarmRinging() {
   }
 
   const finishOther = async (method: string, to = '/') => {
-    if (method === 'check' && guidancePreferences(st.settings.guidance).antiRelapse) await confirmMorningActivity()
-    const after = await AnkerNative.stopAlarm({ method })
-    // Inzwischen klingelt der Hauptwecker: nicht weggehen, sondern seine Seite zeigen
-    if (after.ringing && after.kind) {
-      setKind(after.kind)
-      setMode('main')
-      return
+    try {
+      const guidance = guidancePreferences(useApp.getState().settings.guidance)
+      if (method === 'check' && guidance.enabled && guidance.antiRelapse) await confirmMorningActivity()
+      const after = await AnkerNative.stopAlarm({ method })
+      // Inzwischen klingelt der Hauptwecker: nicht weggehen, sondern seine Seite zeigen
+      if (after.ringing && after.kind) {
+        setKind(after.kind)
+        setMode('main')
+        return
+      }
+      await syncAlarm()
+      nav(to, { replace: true })
+    } catch {
+      setMsg('Die Bestätigung konnte noch nicht übernommen werden. Bitte versuche es erneut; der Notfall-Stopp bleibt erreichbar.')
     }
-    await syncAlarm()
-    nav(to, { replace: true })
   }
 
   const scan = async () => {
