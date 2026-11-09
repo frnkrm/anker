@@ -1,0 +1,432 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T15:52:28.438898+00:00",
+  "status": "bundle-prepared-upload-blocked",
+  "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+  "sourceFingerprint": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+  "appName": "Anker",
+  "applicationId": "de.frnkrm.anker.mobile",
+  "versionName": "1.5.0-rc.2",
+  "versionCode": 16,
+  "artifact": {
+    "browser": "Automated Chromium at390px; no physical Android/Windows test",
+    "url": "https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-play-code16-20261109",
+    "branch": "download-anker-play-code16-20261109",
+    "downloadCommit": "b2a062709f061f6b1b4470a3826dd0b48b3c0b29",
+    "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+    "sourceFingerprint": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+    "suggestedFilename": "anker-download-anker-play-code16-20261109.zip",
+    "downloadCompleted": true,
+    "tlsValidationEnabled": true,
+    "file": "/workspace/.cache/anker/play-code16/aab-browser-download.zip",
+    "bytes": 22413675,
+    "sha256": "83dd8f20bfd688e2faedd2aefd7a5f309869a9293a7fc4e56adfa33145913f2a",
+    "uploadedToPlay": false,
+    "playApprovalClaimed": false,
+    "privateKeysIncluded": false,
+    "schemaVersion": 1,
+    "zipCrcValid": true,
+    "allPublicFileBytesEqual": true,
+    "fileCount": 3,
+    "localArtifact": "/workspace/artifacts/Anker-Play-Code16.zip",
+    "containedSignedAabSha256": "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e",
+    "googlePlayAccountModified": false,
+    "realPlayInstallationTested": false,
+    "nativeTestsExecutedNow": false,
+    "nativeTestsReused": true,
+    "checkedAt": "2026-11-09T15:50:53.097542+00:00"
+  },
+  "signature": {
+    "schemaVersion": 1,
+    "appName": "Anker",
+    "applicationId": "de.frnkrm.anker.mobile",
+    "versionName": "1.5.0-rc.2",
+    "versionCode": 16,
+    "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+    "sourceFingerprint": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+    "signedAab": "/workspace/artifacts/anker-play-code16/Anker.aab",
+    "signedAabSha256": "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e",
+    "signedAabBytes": 22655691,
+    "unsignedAabSha256": "63c480e71bced795b77774511c57edab6805c6a078f29d9c02ead0e2c419aee8",
+    "signatureVerified": true,
+    "signatureAlgorithm": "SHA256withRSA",
+    "digestAlgorithm": "SHA-256",
+    "certificateSha256": "b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a",
+    "localCertificatePinned": true,
+    "publicCaTrustEstablished": false,
+    "selfSignedCertificateWarningObserved": true,
+    "independentJarFileVerification": {
+      "verified": true,
+      "payloadEntries": 669,
+      "allOriginalEntriesByteEqual": true,
+      "allOriginalPayloadsSigned": true,
+      "singleSignerCertificateSha256": "b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a",
+      "addedSignatureEntries": 3,
+      "verification": "Java JarFile verifying stream and CodeSigner per payload"
+    },
+    "originalPayloadEntries": 669,
+    "allOriginalPayloadsSigned": true,
+    "allOriginalEntriesByteEqual": true,
+    "addedSignatureEntries": 3,
+    "bundletoolValidationPassed": true,
+    "manifest": {
+      "package": "de.frnkrm.anker.mobile",
+      "versionCode": 16,
+      "versionName": "1.5.0-rc.2",
+      "minSdk": 26,
+      "targetSdk": 36,
+      "debuggable": false,
+      "testOnly": false,
+      "allowBackup": false
+    },
+    "elf16kb": true,
+    "elf64Libraries": 8,
+    "nativeTestsExecutedNow": false,
+    "nativeTestsReused": true,
+    "originalNativeTestTotals": {
+      "suites": 22,
+      "tests": 197,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "freshAfterStartedAt": true
+    },
+    "ci": "https://github.com/frnkrm/anker/actions/runs/42619085381",
+    "ciProofSha256": "01413007f9f81210c738318d2977554ecc96d80fa673fdf2788af6c55061a620",
+    "evidenceFiles": {
+      "/workspace/.cache/anker/play-code16/unsigned-aab-proof.json": "388fe44af7c3b45f892907d3e17f8581422c7b0fcfc981e371e2bf481c5400b9",
+      "/workspace/.cache/anker/code16/native/native-verification.json": "7c6eea31039ceff6be4f0dea59a41d4ba63e128aa9fb22157c69eec481641d95",
+      "/workspace/.cache/anker/code16/remote-ci-4d8eaa1/final-verified.json": "01413007f9f81210c738318d2977554ecc96d80fa673fdf2788af6c55061a620",
+      "/workspace/.cache/anker/code16/SIGNED-RESULT.json": "9b542d596abce8eea9a74bf42aad727d1ca0ac59524bea0deb356f15a0670cea"
+    },
+    "publicCertificateFile": "Anker-Upload-Zertifikat.pem",
+    "signingKeyTransferred": false,
+    "privateKeyInPackage": false,
+    "uploadedToPlay": false,
+    "googlePlayAccountModified": false,
+    "googlePlayAppCreated": false,
+    "googleAppSigningEnrollmentPerformed": false,
+    "signedAt": "2026-11-09T15:46:28.300720+00:00",
+    "limitations": [
+      "Local AAB readiness only; no Play Console upload, review or distribution performed.",
+      "B4 is verified by its known fingerprint; the self-signed certificate is not claimed to have public CA trust."
+    ]
+  },
+  "preflight": {
+    "unsignedAabSha256": "63c480e71bced795b77774511c57edab6805c6a078f29d9c02ead0e2c419aee8",
+    "unsignedProofSha256": "388fe44af7c3b45f892907d3e17f8581422c7b0fcfc981e371e2bf481c5400b9",
+    "bundletool": {
+      "version": "1.18.1",
+      "validatePassed": true,
+      "manifestDecodedByActualBundletool": true,
+      "configDump": "/workspace/.cache/anker/play-code16/bundletool-config.log"
+    },
+    "bundleNativeLibraryAlignment": "PAGE_ALIGNMENT_16K",
+    "nativePayload": {
+      "jniFiles": [
+        "base/lib/arm64-v8a/libbarhopper_v3.so",
+        "base/lib/arm64-v8a/libimage_processing_util_jni.so",
+        "base/lib/arm64-v8a/libsqlcipher.so",
+        "base/lib/arm64-v8a/libsurface_util_jni.so",
+        "base/lib/armeabi-v7a/libbarhopper_v3.so",
+        "base/lib/armeabi-v7a/libimage_processing_util_jni.so",
+        "base/lib/armeabi-v7a/libsqlcipher.so",
+        "base/lib/armeabi-v7a/libsurface_util_jni.so",
+        "base/lib/x86/libbarhopper_v3.so",
+        "base/lib/x86/libimage_processing_util_jni.so",
+        "base/lib/x86/libsqlcipher.so",
+        "base/lib/x86/libsurface_util_jni.so",
+        "base/lib/x86_64/libbarhopper_v3.so",
+        "base/lib/x86_64/libimage_processing_util_jni.so",
+        "base/lib/x86_64/libsqlcipher.so",
+        "base/lib/x86_64/libsurface_util_jni.so"
+      ],
+      "dexFiles": [
+        "base/dex/classes.dex",
+        "base/dex/classes2.dex",
+        "base/dex/classes3.dex"
+      ],
+      "elf64With16kbLoadSegments": [
+        {
+          "path": "base/lib/arm64-v8a/libbarhopper_v3.so",
+          "sha256": "ec09597e9eb3aee0eb55ae3366da0d4ba416f5aa35a1af0b3811f50ff46743a1",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 4866048,
+              "virtualAddress": 4866048,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 4911488,
+              "virtualAddress": 4927872,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/arm64-v8a/libimage_processing_util_jni.so",
+          "sha256": "f0e4611db0d6b68942d8ba6977519f3dd1cdbffa87b7fc16d8006696ba954af4",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 29488,
+              "virtualAddress": 45872,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 30480,
+              "virtualAddress": 63248,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/arm64-v8a/libsqlcipher.so",
+          "sha256": "bc018e5d323751c91aec7fca6189d9760060ac0b3f1044dca4c3cf4894310ed0",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2058304,
+              "virtualAddress": 2074688,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2083680,
+              "virtualAddress": 2116448,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/arm64-v8a/libsurface_util_jni.so",
+          "sha256": "6cb2eac3c68e6a82ce2a5ea5aba86749eb8c609914392e125f6cdfbc208992f8",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2480,
+              "virtualAddress": 18864,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/x86_64/libbarhopper_v3.so",
+          "sha256": "6c5deea87d962af008fd48c3229db13ab68eef2e9feeccb2df5b33a920c0579a",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 5832704,
+              "virtualAddress": 5832704,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 5873856,
+              "virtualAddress": 5890240,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/x86_64/libimage_processing_util_jni.so",
+          "sha256": "f5d02c9c50c33a45c2125f63f4d6c954aec0e9b1a6ade25074f146ed92264efe",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 46752,
+              "virtualAddress": 63136,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 47432,
+              "virtualAddress": 80200,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/x86_64/libsqlcipher.so",
+          "sha256": "337ab86baae3d7b37d6f784773dc6cf036a6406f2b191a35c25b4493feddc9e2",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2189696,
+              "virtualAddress": 2206080,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2215088,
+              "virtualAddress": 2247856,
+              "alignment": 16384
+            }
+          ]
+        },
+        {
+          "path": "base/lib/x86_64/libsurface_util_jni.so",
+          "sha256": "84d8ca201f2160b2ca3a5bd2886994f7287ee7cd09fe73b081f5b236dda8496d",
+          "loadSegments": [
+            {
+              "fileOffset": 0,
+              "virtualAddress": 0,
+              "alignment": 16384
+            },
+            {
+              "fileOffset": 2496,
+              "virtualAddress": 18880,
+              "alignment": 16384
+            }
+          ]
+        }
+      ],
+      "elf16kb": true,
+      "byteEqualToVerifiedUnsignedApk": true
+    },
+    "webAssetsByteEqual": {
+      "fileCount": 68,
+      "allMatched": true,
+      "sha256ByPath": {
+        "assets/Alarm-BDvH6-pH.js": "a9453949a40eb4bb7300ea951a2e6472a7d57f343c3fdeffe33470df1e93d159",
+        "assets/AssistanceSettings-zHA2kueQ.js": "00f3545a8f7192610b9815d3d59553e4b2b6f32e286a49a3f4f8404fef315b2b",
+        "assets/Check-BJwMcGO6.js": "51c0e98c031f3a53145068c2e3e8d1b8c0bb429eab42ae39fc6e17ff718a029e",
+        "assets/Connections-Czgu40VS.js": "a209ed126da45f3bc1d72f2dbd12f558008eda9eb46c4eb40fbb62ec4c1a8626",
+        "assets/Daily-DgshbVGE.js": "025636757c5fb639ed1fc5b4bd417380d463e8ac7089037811ca08b0625009b2",
+        "assets/Day-stWyAPZC.js": "ed32915d54882c6e1be4420945f8d5497d92712d3d2931d3022140d7b66bde18",
+        "assets/DayTasks-BAnPLxqx.js": "32b1d7a681f7a6dcaa8e77ff35894cb71b7f820629bd6e7073cc3c4b5a25147c",
+        "assets/DeviceTests-BLrJKt4A.js": "650aa3a10968f342736115a6e185193e2bc8c5549841db176bb9d77b2a05f15f",
+        "assets/Diagnostics-mJ-Xb9ip.js": "b5d80a71e371607d8b9927a276c17a4f434e792d2b4f8c1947096b99761b2abc",
+        "assets/EveningTools-9_ugqcg7.js": "f94f567b1a37a7dcb163d126fab826ae58f81b32fbfb107b3b1d5557d48769a7",
+        "assets/ExtraControls-COsG59HD.js": "5e8ee5c54524978e5a84fe7d1c53fd338e6aa5828f9fb8d793b802f3a1c23949",
+        "assets/Focus-DEKoKWWV.js": "3c5f778a007b7751582d040150d19b88b72a961a91109dfaf60144e89fa4bb95",
+        "assets/FocusFrame-DERz1e1i.js": "880b866f790876eb8245a2eba90ae0c012dfcceacbcf2b40f974ee6c85778665",
+        "assets/HubContent-fiJBtbOQ.js": "7082d963aff5b67a56408ea415564e4270e3294746e54fdcc7d8ded5dc15e3b8",
+        "assets/Hubs-T6GTboaC.js": "39a67fd65cac4699f389ed242dd038229f493790b24230a90db06e1e964a3ab9",
+        "assets/Inbox-DHsodWeR.js": "5d6d8475acfcb5aeaa5378216d0b96d1fd787f1e528a0d189d91ff8c28f4597d",
+        "assets/More-B8M_BfIt.js": "36b269d74baa22d4b35ebbe22d09e09d952d166954dd1b183234bef93bc408dd",
+        "assets/Onboarding-yjHa9AJq.js": "3a92d5173320ba6187d2fc01f96a0d8cb83332950041581bc5f7c4774e319794",
+        "assets/PcStop-B-8HjmAE.js": "786cac90e45abc1c82a57a6dad24a7454c4e3c674791ebb52b340184c9390bf8",
+        "assets/Places-CUWfRvM5.js": "5caed7cc95cea38f8e6424d5bdfac6b1651e3ba8372f5437b9c92dae76ded8e2",
+        "assets/QrCode-DHqvDZ_F.js": "fa668336031dd03f81cf461de43a513119739fedc5e4695c3d9351427acaa4ec",
+        "assets/QuickEntries-B-LA0GWu.js": "a93d3ef8125ab40b4dcbbcb7c4c38f4f130b528f3138cd4595c98396470f0a9d",
+        "assets/RhythmWeek-D_Q5Lx-h.js": "8205f91d28e994df681b8c4d2704f38bf686fbcd0b75791749e24010116f644a",
+        "assets/RouteEstimateCard-DH0iu3L2.js": "b7dd1f278c105037fc355c6bb70588f56aedb6ab091c6209dff9adcd1e8f898e",
+        "assets/Settings-2e9PJKvW.js": "d24254499a5f12dd396db1d0463d6af72aac945a59ea741ab5630b36bec872c1",
+        "assets/Sortable-BrpBvJJQ.js": "c595fc2dbba9981d379b4b681e521f181ef255bce5820e8b814e32e1f81774b2",
+        "assets/Static-DjksSX_6.js": "708a845a8f0c84be4ee399d1062888f9bf195b1d9e14156de02f2bc6918fb299",
+        "assets/TaskFocus-LXhwbTrV.js": "432a524624bbc7c4a49873dce8868df4501ea5c519b29152744eb12d976eb997",
+        "assets/TimeOverview-DHwvQlUW.js": "9ebaa40b01dfe2ffe3184746239ca126d9704908cbbe085424e7df96d5d69885",
+        "assets/WindDown-WQAtBQ2V.js": "7bc62f175c2115ea23fec17b95514b2d4cf12ab866e66565bf81b247f8b9413f",
+        "assets/assistance-DDRbSgeo.js": "9dfdb5a5ba9a6958080e31858ae5769bd24041ae00abe0055505173f19a42951",
+        "assets/definitions-CABDGlQN.js": "c5c107cf9a26ca865c4a2659b478ee5c1197bf9994ea6e866f7672a99443081e",
+        "assets/dexie-BCkLnYMt.js": "a8721da99f95d2e33bc9a6fd8e1d28484ccae60707ca1541ee37b9c803e4af53",
+        "assets/dist-DcsUVknb.js": "c8dfe2b99e56c96eaade8d41ef974e96b38c6be2f9df4cfd0e9531d9770fbea7",
+        "assets/files-Dz3oJCmx.js": "f30b6f6007cc61ab18d0940d759de96728100daa4a6e90010ed06235f1b2c509",
+        "assets/guidance-B-OMO13s.js": "bb847436d16d26d25b06c366f266ee78b5be0fe8a562ef9a6e82f9d1105ed9dd",
+        "assets/healthSleep-Cg_tZyPq.js": "09af1f73670d5c70819d695256011d98f80a543b3cf515195b392c03d258b5a1",
+        "assets/hooks-DCdxQL4j.js": "b884b18f6c1788da0b9bee56445104f3f8f2d41229113e41959459dfe7ddd6df",
+        "assets/index-C6gipEyy.js": "19be666781f2794c3cdc9c4aa933c0d340ca621b6ac5dac04d11921f6894e378",
+        "assets/index-CRemy7bO.css": "61861fd74de669f1e375f5a7cc380ec6c00cbb0cddb1ff303aa6ff8ff46e16fc",
+        "assets/merge-DpDRz7CM.js": "775da85c5fc2824cbf658d19cedf151d1ce8a3531aa88951bcee3033218f59eb",
+        "assets/package-CxC8A2H-.js": "8e08895c0a486fdb6979aa76d18f2703f137e20d2852009a7640efaecc3c29e4",
+        "assets/pcLink-jMqdvnyN.js": "030cf6a425ff55d9358bb7fc416784ea96d29314621b5551e4ddf21fcbb45e98",
+        "assets/preload-helper-BLdHbfdN.js": "8aec9ff75ffa86a03d51268b63126abadb3754aa5a6b6c5bb16e4e2446a63dee",
+        "assets/rolldown-runtime-WkwZ5CU-.js": "2629f2ad3cb75a57d98de697127f5af7d777ef572bbcdfa6e3ce8f438cd4527e",
+        "assets/sqlite-CNjjOAzF.js": "717de9ce1c2b8c42264e8b0e86c7d2048d5f3e2f09eff76ef19b9056309c0f51",
+        "assets/supabase-C2qTS9Hb.js": "079e1adbfc55907f4be966a9c7bb93d7b6dc9411adc65d46d4d46100bfb84c74",
+        "assets/support-DuXScZVZ.js": "0c1871385398bea34db262779ce6d1ab0a5d4b271d368a62e33b3b55ece10217",
+        "assets/ui-DW2l_NrK.js": "341eedd9030f9156c6405ee32455d43797c9029f7729a85f813cef706b550b12",
+        "assets/weather-BEii1XIZ.js": "0e2c9162b98dbae2ac5e7d2979016993b942bb111e00ea8f01fa82feb7e3f1ee",
+        "assets/web-BJzidajJ.js": "130b583dbd7d1aa7f015308157216865f13c34840268637fa383f978711407a6",
+        "assets/web-C8kWUwB5.js": "583e7b19e8fc39e9f53905e4dc7442021fba4cf8ff2b91264f87963f85205a88",
+        "assets/web-CLm6Ds7Z.js": "498ec5c77158a11c27109bf43c7d6a922a945a8bf66376c5d05f669a617a3663",
+        "assets/web-D2F9IFQz.js": "9743e827c780a117059210b706e62f87fd75c26bf00c436a8c9c1a88cb7fac74",
+        "assets/web-DMqCp6Op.js": "52132b573020e5bed4e30370c134532e9a921abe903f0aecca13242b9334ff09",
+        "assets/web-DOHLYb0X.js": "364798a1d8b18c558ae36a23959c182ad47cf7970c0cb3ccacb0809d148e604c",
+        "assets/web-DygZmq-4.js": "a534cf422f72576e7bb552d14ef40486b64d09f37e22d41063d7ed654b0e9616",
+        "assets/web-Kh2XW3f4.js": "1adcbb04103a207b3da540c1c37cf5dd8e9f1772eddf829c9552959db37dd171",
+        "assets/web-Zm42oYYI.js": "d9992ee92e80891231dba6bfe1010e687b96643e094c8ffeb9ee7e863a951e79",
+        "icon-192.png": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a",
+        "icon-512.png": "ab138838cd6470c7a9e04555a1c99873b7257efe49c624589c86e019c7f424bc",
+        "icon.svg": "6bdc58f0762ec315be71e86554650b56aaa0377cca0ea793bf688b1f4035e5ce",
+        "index.html": "fb5ede4d95e78539f26233fc74a9c517336007719c11139c98e01de078a86c53",
+        "manifest.webmanifest": "8c5d40c53c8806ce801e4454c892e8dbf62ebe3c34a7fe7dac786703e2126b12",
+        "privacypolicy.html": "63d4ea5f30e458de1ed078965fa0f90c7d524e89dbc592fb3a708cab48811d18",
+        "registerSW.js": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b",
+        "sw.js": "e622584d84d7b17fd77120fe41deb08c63b0660055bf54a1277c478e3dc9d8df",
+        "workbox-9c191d2f.js": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37"
+      },
+      "rootDistributionFingerprintSha256": "bdc85b1227f72862dcd370086f5ef17b844f8ad89aefd057a506607dd2c2df5b"
+    },
+    "nativeTestsExecutedNow": false,
+    "nativeTestsReused": true,
+    "nativeTests": {
+      "proof": "/workspace/.cache/anker/code16/native/native-verification.json",
+      "proofSha256": "7c6eea31039ceff6be4f0dea59a41d4ba63e128aa9fb22157c69eec481641d95",
+      "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+      "junit": {
+        "suites": 22,
+        "tests": 197,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "freshAfterStartedAt": true
+      },
+      "reuseBasis": "Full source, effective native inputs, all native test sources and exact Web assets verified identical before/after bundleRelease."
+    }
+  },
+  "googlePlay": {
+    "uploadAttempted": false,
+    "uploaded": false,
+    "consoleAppCreatedByAgent": false,
+    "reviewSubmitted": false,
+    "releasePublished": false,
+    "privateSigningKeyTransferred": false,
+    "appSigningEnrollmentPerformed": false,
+    "proposedTrack": "internal draft",
+    "selectedConsoleTrack": null
+  },
+  "access": {
+    "accountExistsUserConfirmed": true,
+    "appNotCreatedUserConfirmed": true,
+    "configuredGoogleIdentities": 0,
+    "googleCredentialValuesPresent": false,
+    "consoleAndPublisherProbes": "CONNECT proxy 403",
+    "sharedBrowserControlToolAvailable": false,
+    "networkDraftSaved": true,
+    "networkDraftApplied": false,
+    "networkDraftRequiresPublish": true
+  },
+  "openChecks": [
+    "Play account access and Console app creation",
+    "Existing B4 app signing key enrollment decision in actual Console",
+    "Play acceptance, actual generated split APKs and installation",
+    "Account-specific store, privacy, Health/foreground/background declarations before distribution"
+  ]
+}

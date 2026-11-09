@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## Google Play – Erstupload vorbereiten (09.11.2026)
+
+**Neuer ausdrücklicher Auftrag:** Anker in das vorhandene Google-Play-Console-Konto hochladen. Nutzer bestätigt: Entwicklerkonto vorhanden, Anker noch nicht angelegt. Für diesen Auftrag ist ein unveröffentlichter interner Testentwurf vorgesehen; daraus wird keine öffentliche Storefreigabe, Zahlung oder private Schlüsselübertragung abgeleitet.
+
+**Erledigt:** Aus dem unveränderten geprüften Code16-Stand ein Android App Bundle gebaut, mit vorhandenem B4 signiert und mit echtem Bundletool, unabhängigem JarFile-Verifier, Web-/DEX-/JNI-/16KB-Abgleich sowie tatsächlichem öffentlichen ZIP-Download geprüft. Die 197 frischen Code16-JUnit werden anhand identischer Inputs ausdrücklich wiederverwendet; kein neuer Testlauf behauptet. APK/Version/Signatur und Nutzerdaten unverändert. [Uploadpaket, Nachweise und genaue Grenzen](GOOGLE_PLAY_CODE16.md).
+
+**Noch offen / tatsächlich blockiert:** Kein Google-Login oder Play-API-Kontozugriff eingerichtet, Google-Ziele vom aktiven Netzwerkproxy mit CONNECT 403 abgewiesen, kein Desktop-Bedienwerkzeug verfügbar. Google-Domain-Erweiterung nur als Entwurf gespeichert, nicht angewendet. Keine Console-App erstellt, kein authentifizierter Upload versucht, kein Release angelegt oder eingereicht. Die App-Signierung muss in der echten Console für den bestehenden B4-Schlüssel passend eingerichtet werden; ein JAR-signiertes Uploadbundle allein erledigt keine Play-App-Signing-Aufnahme. Kontoinhaberaktion/Zugang sind für die Fortsetzung notwendig.
+
+
 ## Code16 – Weckerverlauf, selektiver Debugexport und Schlafhinweis (09.11.2026)
 
 **Auftrag und Baseline:** Der Nutzer hat einen nicht wahrgenommenen Morgenwecker sowie einen ausgebliebenen Rückweg aus einem Samsung-Spiel mit gedimmtem Touchschutz gemeldet. Er möchte ein lokales Log und einen Export mit selbst gewählten Log- und Einstellungsbereichen. Ausgang ist der abgeschlossene Code15-Stand `53aca2207479505a4cd4054aaa96f54ac15c9759`; Ziel **1.5.0-rc.2 / Code16**, weiterhin Anker und dieselbe App-Kennung. Der frühere Morgen lässt sich ohne damaliges Journal nicht nachträglich rekonstruieren. Samsung-Touchschutz ist ein plausibler Einfluss auf Display-/Vordergrundverhalten, keine bewiesene Ursache für einen ausgebliebenen Weckerton.
