@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
+import { guidancePreferences } from '../../core/guidance'
 import { elapsedMs, remainingMs, sameFocusTarget } from '../../core/focus'
 import { resolveTask, taskIsActionable, taskIsOpen, taskNextStep, taskStateLabel, taskTitle } from '../../core/tasks'
 import type { FocusPulseMode, InboxItem, ResumePoint, TaskRef, WorkTask } from '../../core/types'
@@ -145,7 +146,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
         <Link to={back} className="flex min-h-12 items-center justify-center text-accent">Zur Aufgabenliste</Link>
       </div> : unavailablePart ? <div className="space-y-3"><p className="text-muted">{part?.doneAt !== undefined ? 'Dieser Teilschritt ist bereits erledigt.' : 'Dieser Teilschritt ist nicht mehr in der Aufgabe.'} Wähle einen offenen Schritt oder die gesamte Aufgabe.</p>{targetChoice}<p className="text-sm text-muted">Hier startet kein Timer von selbst.</p></div> : <>
         {timer && <>
-          <RingTimer remainingSec={Math.ceil((left ?? 0) / 1000)} totalSec={timer.durationMs / 1000} paused={paused} pulse={st.settings.focus.pulse} label="Restzeit im Fokus" />
+          <RingTimer remainingSec={Math.ceil((left ?? 0) / 1000)} totalSec={timer.durationMs / 1000} paused={paused} pulse={st.settings.focus.pulse} label="Restzeit im Fokus" depletionColors={guidancePreferences(st.settings.guidance).enabled && guidancePreferences(st.settings.guidance).depletionColors} />
           <p className="text-sm text-muted">{paused ? 'Pausiert' : `Bis ${clockTime(timer.deadlineAt)}`} · {Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen</p>
           {expired && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wie du weitermachst.</p>}
         </>}

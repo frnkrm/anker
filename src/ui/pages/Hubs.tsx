@@ -71,6 +71,7 @@ export function EveningHub() {
       <Card className="space-y-3"><h2 className="text-xl font-semibold">Dein Abend</h2><Link to="/fokus/evening" className="flex min-h-16 items-center justify-center rounded-2xl bg-accent px-4 text-lg font-semibold text-accent-ink">Abendroutine öffnen</Link><Link to="/einstellungen/abend" className="flex min-h-11 items-center text-muted underline">Abend anpassen</Link></Card>
       <details open={prepOpen} onToggle={(event) => setPrepOpen(event.currentTarget.open)} className="rounded-2xl border border-line p-3"><summary className="min-h-11 py-2 font-medium">Für morgen vorbereiten</summary>{prepOpen && <div className="pt-3"><Prep embedded /></div>}</details>
     </>}
+    <Link to="/rhythmus" className="flex min-h-12 items-center justify-between rounded-xl border border-line px-3 text-accent">Deine Rhythmus-Woche <span aria-hidden="true">›</span></Link>
     <Evening embedded />
   </Page>
 }

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
-import { addDays } from '../../core/time'
+import { addDays, minutesOnPlanDay } from '../../core/time'
 import type { ResumePoint } from '../../core/types'
 import { nextNow } from '../../state/hooks'
-import { today, useApp } from '../../state/store'
+import { planFor, today, useApp } from '../../state/store'
 import { Button, Sheet } from './ui'
 import { CaptureDictation } from './ExtraControls'
+import { nowActionTitle } from './nowTitle'
 
 const TABS = [
   { to: '/', label: 'Jetzt', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2' },
@@ -87,7 +88,8 @@ export function InboxSheet({ open, onClose, context }: { open: boolean; onClose:
     const draft = useApp.getState().local.captureDraft
     const action = nextNow().action
     const work = action.type === 'worktask' || (action.type === 'resume' && action.resume.kind === 'work') || ['work', 'einsatz-start', 'einsatz-running', 'prep', 'go', 'underway', 'away'].includes(action.type)
-    was.current = draft?.context ?? context ?? { kind: work ? 'work' : 'free', title: action.title, at: Date.now() }
+    const date = today()
+    was.current = draft?.context ?? context ?? { kind: work ? 'work' : 'free', title: nowActionTitle(action, planFor(date), minutesOnPlanDay(date, Date.now())), at: Date.now() }
     setText(draft?.text ?? '')
     setSaved(undefined); setError('')
     // Der tatsächliche Fokuskontext bleibt während dieser Erfassung stabil.

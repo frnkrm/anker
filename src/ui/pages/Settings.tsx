@@ -10,8 +10,10 @@ import { WeatherSettings } from '../components/WeatherSettings'
 import { useApp } from '../../state/store'
 import { SortableList, type MoveResult } from '../components/Sortable'
 import { WindDownFields } from './WindDown'
+import GuidanceSettings, { MorningLightSuggestion } from './GuidanceSettings'
+import { guidancePreferences } from '../../core/guidance'
 import { ExtraControls } from '../components/ExtraControls'
-import { Button, Card, Choice, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
+import { Button, Card, Checkbox, Choice, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
 
@@ -22,6 +24,7 @@ export default function Settings() {
   const save: Save = (fn) => { void st.saveSettings(fn).then(notifySaved).catch(() => st.showToast('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.')) }
 
   switch (section) {
+    case 'begleitung': return <GuidanceSettings />
     case 'arbeit':
       return <Work s={s} save={save} />
     case 'weg':
@@ -63,6 +66,7 @@ export default function Settings() {
       <Section title="Planung">
         <Row label="Arbeit & Gleitzeit" sub={`${plural(s.work.filter((w) => w.isWorkDay).length, 'Tag', 'Tage')} · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
+        <Row label="Abend & Morgen begleiten" sub="Zeitfarben, kleine Morgenroutine und bewusster Abendabschluss" to="/einstellungen/begleitung" />
         <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Abend" sub="Abendpläne, ruhiger Übergang und Abendmodus" to="/einstellungen/abend" />
         <Row label="Routinen" sub="Morgen- und Abendroutine bearbeiten" to="/einstellungen/routinen" />
@@ -359,6 +363,7 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
   const budget = end === undefined ? undefined : Math.max(0, end - start)
   const minutes = sumMinutes(steps)
   return <div className="space-y-3">
+    {r === 'morning' && guidancePreferences(s.guidance).enabled && <MorningLightSuggestion />}
     <h2 className="text-xl font-semibold">{r === 'morning' ? 'Morgenroutine' : 'Abendroutine'}</h2>
     <p className="text-sm text-muted">{minutes} min Routine{budget !== undefined && end !== undefined ? ` · ${budget} min Zeit (${fmtTime(start)}–${fmtTime(end)})` : ' · kein fester Endpunkt'}</p>
     {budget !== undefined && minutes > budget && <MoreInfo summary="Wenn die Zeit knapp ist"><p className="text-sm text-muted">Die Routine ist länger als dieses Zeitfenster. Du kannst einzelne Dauern anpassen oder die kleinen Versionen nutzen. Anker ändert nichts von selbst.</p></MoreInfo>}
@@ -372,6 +377,7 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
           <SettingRow label="Dauer"><Stepper label="Dauer" value={step.minutes} step={1} min={1} max={120} onChange={(value) => upd(step.id, { minutes: value })} /></SettingRow>
           <TextInput aria-label="Minimal-Version" placeholder="Eine kleine Version" value={step.minimal?.title ?? ''} onChange={(event) => { const title = event.target.value; edit((current) => current.map((item) => item.id === step.id ? { ...item, minimal: title ? { title, minutes: item.minimal?.minutes ?? 1 } : undefined } : item)) }} />
           {step.minimal && <SettingRow label="Kleine Version"><Stepper label="Dauer kleine Version" value={step.minimal.minutes} min={1} max={120} onChange={(value) => upd(step.id, { minimal: { ...step.minimal!, minutes: value } })} /></SettingRow>}
+          <Checkbox checked={step.isEssentialForZombieMode ?? false} onChange={isEssentialForZombieMode => upd(step.id, { isEssentialForZombieMode })}>Kernschritt im Zombie-Modus</Checkbox>
           <Button size="sm" variant="ghost" className="justify-self-end" onClick={() => void remove(step)}>Entfernen</Button>
         </div>
       </details>}
@@ -576,6 +582,10 @@ function Look({ s, save }: { s: S; save: Save }) {
         <SettingRow label={<span>Schriftgröße</span>}>
           <Stepper label="Schriftgröße" value={Math.round(s.appearance.fontScale * 100)} step={10} min={80} max={160} unit="%" onChange={(v) => save((x) => ({ ...x, appearance: { ...x.appearance, fontScale: v / 100 } }))} />
         </SettingRow>
+      </Card>
+      <Card className="space-y-4">
+        <SettingRow label="Zeitbogen auf Jetzt"><Toggle label="Zeitbogen auf Jetzt" checked={guidancePreferences(s.guidance).timeArc} onChange={timeArc => save(current => ({ ...current, guidance: { ...guidancePreferences(current.guidance), timeArc } }))} /></SettingRow>
+        <Row label="Abend- und Morgenfarben einstellen" to="/einstellungen/begleitung" />
       </Card>
       <Section title="Thema">
         <div className="grid grid-cols-2 gap-2">

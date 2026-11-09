@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { guidancePreferences } from '../../core/guidance'
+import { completeMorningAlarmHandoff, confirmMorningActivity } from '../../platform/guidance'
 import { alarmPlanningStatus, STOP_METHOD_LABEL } from '../../core/alarm'
 import { randomId } from '../../core/defaults'
 import { fmtTime, todayBerlin, utcToZoned } from '../../core/time'
@@ -321,14 +323,25 @@ export function AlarmRinging() {
 
   /** „Ich bin wach“ wird nur beim echten Wecken vermerkt, nicht bei Test oder Vorwecker. */
   const finishMain = async (method: string) => {
-    await AnkerNative.stopAlarm({ method })
-    const d = today()
-    if (!useApp.getState().days[d]?.wakeAt) await st.mark(d, 'wakeAt')
-    await syncAlarm()
-    nav('/fokus/morning', { replace: true })
+    try {
+      await AnkerNative.stopAlarm({ method })
+      const guidance = guidancePreferences(useApp.getState().settings.guidance)
+      if (guidance.enabled && guidance.zeroGapMorning && await completeMorningAlarmHandoff()) {
+        await syncAlarm()
+        nav('/fokus/morning', { replace: true })
+        return
+      }
+      const d = today()
+      if (!useApp.getState().days[d]?.wakeAt) await st.mark(d, 'wakeAt')
+      await syncAlarm()
+      nav('/fokus/morning', { replace: true })
+    } catch {
+      setMsg('Der Morgenstart konnte noch nicht sicher gespeichert werden. Der bestätigte Übergang bleibt zur Wiederaufnahme erhalten. Bitte versuche es erneut.')
+    }
   }
 
   const finishOther = async (method: string, to = '/') => {
+    if (method === 'check' && guidancePreferences(st.settings.guidance).antiRelapse) await confirmMorningActivity()
     const after = await AnkerNative.stopAlarm({ method })
     // Inzwischen klingelt der Hauptwecker: nicht weggehen, sondern seine Seite zeigen
     if (after.ringing && after.kind) {
@@ -368,7 +381,7 @@ export function AlarmRinging() {
     </div>
   )
   const frame = (body: React.ReactNode) => (
-    <div className="flex min-h-dvh flex-col items-center justify-between bg-bg px-6 py-10 text-center safe-top">
+    <div className={`flex min-h-dvh flex-col items-center justify-between bg-bg px-6 py-10 text-center safe-top ${guidancePreferences(st.settings.guidance).enabled && guidancePreferences(st.settings.guidance).circadianUi ? 'guidance-alarm-active' : ''}`}>
       {header}
       <div className="w-full max-w-sm space-y-3">
         {body}

@@ -1,3 +1,4 @@
+import { guidancePreferences } from '../../core/guidance'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { randomId } from '../../core/defaults'
@@ -103,7 +104,7 @@ export function Tidy() {
   }
   return <Page title="Aufräumen" back="/abend">
     <Card className="space-y-4 text-center"><p className="text-muted">Heute dran</p><h2 className="text-3xl font-semibold">{zone}</h2>
-      <RingTimer remainingSec={left ?? total} totalSec={total} pulse={st.settings.focus.pulse} label="Aufräumzeit" />
+      <RingTimer remainingSec={left ?? total} totalSec={total} pulse={st.settings.focus.pulse} label="Aufräumzeit" depletionColors={guidancePreferences(st.settings.guidance).enabled && guidancePreferences(st.settings.guidance).depletionColors} />
       <Button variant="primary" size="xl" className="w-full" onClick={left === null ? start : () => void finish()}>{left === null ? '10 Minuten starten' : left > 0 ? 'Fertig' : 'Geschafft!'}</Button>
     </Card>
     {error && <p role="alert" className="text-sm text-warm">{error}</p>}

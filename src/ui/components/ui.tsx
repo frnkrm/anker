@@ -461,14 +461,16 @@ export function DurationPicker({ value, onChange, options = [15, 25, 40, 50], la
   </fieldset>
 }
 
-export function RingTimer({ remainingSec, totalSec, paused = false, pulse = 'off', label, className = '', children }: {
-  remainingSec: number; totalSec: number; paused?: boolean; pulse?: 'off' | 'gentle' | 'strong'; label?: string; className?: string; children?: ReactNode
+export function RingTimer({ remainingSec, totalSec, paused = false, pulse = 'off', label, className = '', depletionColors = false, children }: {
+  remainingSec: number; totalSec: number; paused?: boolean; pulse?: 'off' | 'gentle' | 'strong'; label?: string; className?: string; depletionColors?: boolean; children?: ReactNode
 }) {
   const text = countdownLabel(remainingSec)
   const fraction = remainingFraction(remainingSec, totalSec)
   const circumference = 2 * Math.PI * 58
-  return <div className={`ring-timer ${paused ? 'is-paused' : ''} ${!paused && pulse !== 'off' ? `ring-pulse-${pulse}` : ''} ${className}`}>
-    <svg viewBox="0 0 136 136" aria-hidden="true" className="ring-timer-art"><circle cx="68" cy="68" r="58" className="ring-track" /><circle cx="68" cy="68" r="58" className="ring-value" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - fraction)} transform="rotate(-90 68 68)" /></svg>
+  const hue = fraction > 0.5 ? 36 + (fraction - 0.5) * 188 : fraction * 72
+  const color = `hsl(${Math.round(hue)} 65% var(--depletion-lightness, 60%))`
+  return <div data-depletion={depletionColors || undefined} className={`ring-timer ${paused ? 'is-paused' : ''} ${!paused && pulse !== 'off' ? `ring-pulse-${pulse}` : ''} ${className}`}>
+    <svg viewBox="0 0 136 136" aria-hidden="true" className="ring-timer-art"><circle cx="68" cy="68" r="58" className="ring-track" /><circle cx="68" cy="68" r="58" className="ring-value" style={depletionColors ? { stroke: color } : undefined} strokeDasharray={circumference} strokeDashoffset={circumference * (1 - fraction)} transform="rotate(-90 68 68)" /></svg>
     <div className="ring-timer-content"><span role="timer" aria-live="off" aria-label={label ?? `Restzeit ${text}`} className="ring-timer-number">{text}</span>{paused && <span className="ring-timer-pause"><span aria-hidden="true">Ⅱ </span><span>Pausiert</span></span>}{children}</div>
   </div>
 }

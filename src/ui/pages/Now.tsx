@@ -10,6 +10,11 @@ import { addDays, fmtDuration, fmtTime, utcToZoned, weekday } from '../../core/t
 import { upcomingWorkTasks } from '../../core/upcomingWork'
 import { plural } from '../../core/uiText'
 import { nowConflictNotice } from '../../core/planConflicts'
+import { guidancePreferences } from '../../core/guidance'
+import { useGuidanceView } from '../../state/useGuidanceView'
+import { GuidanceHomeExtras, GuidanceNightPage } from '../components/GuidanceControls'
+import { GuidanceTimeArc } from '../components/GuidanceTimeArc'
+import { nowActionTitle } from '../components/nowTitle'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
 import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
@@ -30,6 +35,8 @@ const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei'
 export default function Now() {
   const { date, plan, log, m, now } = useToday()
   const st = useApp()
+  const guidance = useGuidanceView()
+  const guidanceOptions = guidancePreferences(st.settings.guidance)
   const [adjust, setAdjust] = useState(false)
   const [stuck, setStuck] = useState(false)
   const [dayOpen, setDayOpen] = useState(false)
@@ -64,21 +71,24 @@ export default function Now() {
   const openPanel = (show: () => void) => { setAdjust(false); show() }
   const openDifferent = (view: typeof differentView = 'menu') => { setDifferentView(view); setDifferent(true); setAdjust(false) }
   const primaryLabelMinutes = v.estimatedMin
+  const timeArc = guidanceOptions.enabled && guidanceOptions.timeArc && !!v.hard && ['pc-stop', 'bed', 'leave'].includes(v.hard.key) && v.hard.at - m > 0 && v.hard.at - m <= 60
+  if (guidanceOptions.enabled && ['NIGHT_LOCK', 'BEDTIME_HARD_CUT'].includes(guidance.phase) && (guidanceOptions.bedtimeQr || guidanceOptions.pcLock)) return <GuidanceNightPage view={guidance} />
 
   return <div className="now-page" data-testid="now-page">
     {!bedtime && <>
-      <header className="now-header">
+      <header className={`now-header${timeArc ? ' now-header-with-arc' : ''}`}>
+        {timeArc && v.hard && <GuidanceTimeArc date={date} hard={v.hard} now={now} />}
         <div className="now-anchor">{v.hard ? <>{v.hard.key === 'commitment' ? v.hard.label.startsWith('Los') ? 'Los' : 'Termin' : v.hard.label} {fmtTime(v.hard.at)}{near && <span className="block">noch {fmtDuration(v.hard.at - m)}</span>}</> : fmtTime(m)}</div>
         <button type="button" onClick={() => setAdjust(true)} className="now-day-chip" aria-label="Heute anpassen: Tagesart und Modus">{plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} · {MODE_LABEL[mode]} ▾</button>
       </header>
-      {near && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
+      {near && !timeArc && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
       <WorkChip date={date} plan={plan} log={log} m={m} now={now} />
     </>}
     {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
 
     <section aria-live="polite" className="now-action">
       {!bedtime && a.sub && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{a.sub} ›</Link> : <p className="now-context">{a.sub}</p>)}
-      <h1 className="now-title">{bedtime ? 'Ab ins Bett' : a.title}</h1>
+      <h1 className="now-title">{nowActionTitle(a, plan, m)}</h1>
       {!bedtime && reason && <p className="now-reason">{reason}</p>}
       <div className="now-buttons">
         {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
@@ -91,6 +101,7 @@ export default function Now() {
     {!bedtime && conflict.active.slice(0, 1).map((item) => <aside key={item.id} className="now-conflict" aria-label="Überschneidung prüfen"><p>{item.summary}</p><div className="now-conflict-actions"><Link to="/tag" className="underline">Ansehen</Link><button type="button" onClick={() => void st.acknowledgePlanConflict(date, item.id).catch(() => st.showToast('Der Hinweis konnte noch nicht bestätigt werden. Versuche es erneut.'))}>Passt so</button></div></aside>)}
     {!bedtime && !conflict.active.length && conflict.upcomingCount > 0 && <Link to="/tag" className="flex min-h-11 items-center text-sm text-muted">{plural(conflict.upcomingCount, 'Hinweis', 'Hinweise')} für heute ›</Link>}
     {!adjust && !dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
+    <GuidanceHomeExtras />
     <button type="button" className="now-adjust" onClick={() => setAdjust(true)}>Heute anpassen</button>
 
     <Sheet open={adjust} onClose={() => setAdjust(false)} title="Heute anpassen">

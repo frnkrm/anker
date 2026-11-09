@@ -97,6 +97,36 @@ textarea {
 .ring-timer-content { position: absolute; inset: 12%; display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
 .ring-timer-number { max-width: 100%; font-size: clamp(1.5rem, 9vw, 3.25rem); font-weight: 300; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .ring-timer.is-paused .ring-timer-art { opacity: .45; }
+.ring-timer[data-depletion] .ring-value { transition: stroke-dashoffset .25s linear, stroke .5s linear; }
+.guidance-time-arc { width: 4.5rem; min-width: 4.5rem; margin: 0; }
+.guidance-time-arc .ring-timer-number { font-size: .9rem; font-weight: 600; }
+.guidance-time-arc .ring-timer-art circle { stroke-width: 9; }
+:root { --rhythm-wake: #286e95; --depletion-lightness: 34%; }
+.dark { --rhythm-wake: #8bcde7; --depletion-lightness: 60%; }
+/* These palettes are an explicit guidance option, never a score for missed actions. */
+:root[data-guidance-theme='morning'], .guidance-alarm-active {
+  --bg: #071c23; --surface: #102d37; --surface-2: #193d48; --line: #376575;
+  --text: #f4fcff; --muted: #bfdde8; --accent: #7be4ff; --accent-ink: #03202a;
+  --depletion-lightness: 60%;
+  --accent-soft: #173b47; --warm: #f3d49f; --warm-soft: #3a3021; --rhythm-wake: #b8eaff;
+}
+:root[data-guidance-theme='evening'] {
+  --bg: #1b1510; --surface: #282018; --surface-2: #352a20; --line: #54432f;
+  --text: #eee4d7; --muted: #c3b398; --accent: #e1b276; --accent-ink: #23170b;
+  --depletion-lightness: 60%;
+  --accent-soft: #3b2c1c; --warm: #e7c497; --warm-soft: #49331e; --rhythm-wake: #a8cbd6;
+}
+:root[data-guidance-theme='night'] {
+  --bg: #000000; --surface: #0d0808; --surface-2: #1d1012; --line: #4e2c31;
+  --text: #e4c8cd; --muted: #be969e; --accent: #df8a99; --accent-ink: #1f060d;
+  --depletion-lightness: 60%;
+  --accent-soft: #260e15; --warm: #d9a9a0; --warm-soft: #28120e; --rhythm-wake: #bdc8de;
+}
+:root[data-guidance-theme='morning'] .focus-page h1 { font-size: clamp(2rem, 6vw, 3rem); }
+.guidance-if-then { overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) {
+  .ring-timer[data-depletion] .ring-value, .guidance-time-arc .ring-value { transition: none; }
+}
 .ring-timer-pause { color: var(--muted); font-size: .875rem; }
 @keyframes ring-breathe { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
 .ring-pulse-gentle .ring-value { animation: ring-breathe 4s ease-in-out infinite; }

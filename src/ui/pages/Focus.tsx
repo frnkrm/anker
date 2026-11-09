@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { elapsedMs, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
+import { guidancePlanDate, guidancePreferences } from '../../core/guidance'
+import { MorningBrainDump } from '../components/GuidanceControls'
 import { nextHardTime } from '../../core/planner'
 import { openSteps } from '../../core/now'
 import { MODE_LABEL } from '../../core/support'
 import { fmtTime, minutesOnPlanDay } from '../../core/time'
 import type { FocusPulseMode, ResumePoint, RoutineId } from '../../core/types'
-import { useToday } from '../../state/hooks'
+import { usePlan, useToday } from '../../state/hooks'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
-import { useApp } from '../../state/store'
+import { emptyLog, useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
 import { TodayDifferent } from '../components/TodayDifferent'
 import { Button, Choice, RingTimer, Sheet, TextInput } from '../components/ui'
@@ -27,8 +29,12 @@ function legacyStart(key: string): number | undefined {
 export default function Focus() {
   const { routine = 'morning' } = useParams<{ routine: RoutineId }>()
   const r: RoutineId = routine === 'evening' ? 'evening' : 'morning'
-  const { date, plan, log } = useToday()
+  const base = useToday()
   const st = useApp()
+  const date = guidancePlanDate(st.local, base.date, base.now)
+  const plan = usePlan(date)
+  const log = st.days[date] ?? emptyLog(date)
+  const guidance = guidancePreferences(st.settings.guidance)
   const nav = useNavigate()
   const block = plan.blocks.find((candidate) => candidate.routine === r)
   const steps = block?.steps ?? []
@@ -43,7 +49,7 @@ export default function Focus() {
   const cur = minimalMode && step?.minimal ? step.minimal : step
   const seconds = (cur?.minutes ?? 0) * 60
   const now = useFocusClock(session?.timer)
-  useFocusPulse(session, now)
+  useFocusPulse(guidance.enabled && (guidance.paceKeeper || guidance.speakSteps) ? undefined : session, now)
   const m = minutesOnPlanDay(date, now)
   const [error, setError] = useState('')
   const [different, setDifferent] = useState(false)
@@ -95,6 +101,7 @@ export default function Focus() {
               : m >= plan.bed ? 'Jetzt ist Zeit fürs Bett.'
                 : m >= plan.pcStop ? `Zeit zum Runterkommen. Bett um ${fmtTime(plan.bed)}.` : `Jetzt Freizeit bis ${fmtTime(plan.pcStop)}.`}
         </p>
+        {r === 'morning' && guidance.enabled && <div className="mt-5 w-full"><MorningBrainDump /></div>}
         <Button variant="primary" size="xl" className="mt-10 w-full" onClick={() => nav('/')}>Weiter</Button>
         <Link to={`/druck?typ=${r}`} className="mt-3 flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>
       </div>
@@ -105,14 +112,15 @@ export default function Focus() {
   const timer = session?.timer
   const left = timer ? Math.ceil(remainingMs(timer, now) / 1000) : Math.round(seconds)
   const done = (result: 'done' | 'minimal' | 'skipped') => run(async () => {
+    if (guidance.enabled) await st.recordGuidanceInteraction(date)
     await st.setStep(date, r, step.id, result)
     if (session) await st.clearFocus(session.id)
   })
   const captureContext: ResumePoint = { kind: 'step', title, refId: `${date}:${r}:${step.id}`, at: now, route: `/fokus/${r}` }
 
-  const pauseOrContinue = () => session && run(() => st.updateFocus(session.id, (current) => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })))
+  const pauseOrContinue = () => session && run(async () => { if (guidance.enabled) await st.recordGuidanceInteraction(date); await st.updateFocus(session.id, current => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })) })
   return <>
-    <FocusFrame back="/" context={<>Schritt {index + 1} von {steps.length}{mode && mode !== 'normal' && <span className="block">{MODE_LABEL[mode]}</span>}</>} capture={captureContext} progress={index / steps.length}
+    <FocusFrame back="/" context={<>Schritt {index + 1} von {steps.length}{log.override.zombie && <span className="block">Zombie-Modus · deine Kernschritte</span>}{mode && mode !== 'normal' && <span className="block">{MODE_LABEL[mode]}</span>}</>} capture={captureContext} progress={index / steps.length}
       footer={<>
         <Button variant="primary" size="xl" className="w-full" disabled={busy} onClick={() => { if (session) void done(minimalMode ? 'minimal' : 'done'); else setError('Die Fokuszeit wird noch vorbereitet. Versuche es gleich noch einmal.') }}>Erledigt</Button>
         <div className="grid grid-cols-2 gap-2">
@@ -125,24 +133,25 @@ export default function Focus() {
         {step.minimal && !minimalMode && <Button size="lg" className="w-full" disabled={busy} onClick={() => void run(() => st.ensureFocus({ kind: 'routine', date, routine: r, stepId: step.id, minimal: true }, step.minimal!.minutes * 60))}>Kleinere Version</Button>}
         <Button variant="ghost" size="lg" className="w-full" disabled={busy} onClick={() => void done('skipped')}>Überspringen</Button>
         <Button variant="ghost" size="lg" className="w-full" onClick={() => setDifferent(true)}>Heute anpassen</Button>
+        {guidance.enabled && r === 'morning' && <Button variant="ghost" className="w-full" disabled={busy} onClick={() => void run(() => st.setZombie(date, !log.override.zombie))}>{log.override.zombie ? 'Zur vollständigen Morgenroutine wechseln' : 'Zombie-Modus – nur meine Kernschritte'}</Button>}
         <Link to={`/druck?typ=${r}`} className="flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>
       </details>}>
       {toHard <= 15 && hard && <p className="rounded-2xl bg-warm-soft px-3 py-2 text-warm" role="status">Noch {Math.max(0, toHard)} min bis {hard.label}</p>}
       {error && <div role="alert" className="text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</Button></div>}
       <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{title}</h1>
-      <RingTimer remainingSec={left} totalSec={seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der Routine" />
+      <RingTimer remainingSec={left} totalSec={seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der Routine" depletionColors={guidance.enabled && guidance.depletionColors} />
       {timer && <p className="text-sm text-muted">{Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen{timer.status === 'running' && ` · bis ${new Date(timer.deadlineAt).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })}`}</p>}
       {timer && left === 0 && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wann du abschließt.</p>}
     </FocusFrame>
     <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />
     <Sheet open={stopOpen} onClose={() => { setStopOpen(false); setInterrupting(false) }} title="Fokus stoppen">
-      {interrupting ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void run(async () => { if (!session) return; await st.saveLocal(local => local.focus?.id === session.id ? { ...local, focus: { ...local.focus, timer: pauseCountdown(local.focus.timer, Date.now()) }, resume: { ...captureContext, note: resumeNote.trim() || undefined } } : local); setStopOpen(false); nav('/') }) }}>
+      {interrupting ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void run(async () => { if (!session) return; if (guidance.enabled) await st.recordGuidanceInteraction(date); await st.saveLocal(local => local.focus?.id === session.id ? { ...local, focus: { ...local.focus, timer: pauseCountdown(local.focus.timer, Date.now()) }, resume: { ...captureContext, note: resumeNote.trim() || undefined } } : local); setStopOpen(false); nav('/') }) }}>
         <p className="text-muted">Dein nächster Schritt bleibt: {title}</p>
         <TextInput aria-label="Wenn ich zurückkomme" placeholder="Eine Notiz für deinen Wiedereinstieg" value={resumeNote} onChange={event => setResumeNote(event.target.value)} />
         <Button type="submit" variant="primary" className="w-full" disabled={busy}>Pause und Wiedereinstieg merken</Button>
       </form> : <div className="space-y-3">
         {session && <Button className="w-full" onClick={() => setInterrupting(true)}>Unterbrochen – Wiedereinstieg merken</Button>}
-        <Button className="w-full" onClick={() => void run(async () => { if (session) await st.clearFocus(session.id); setStopOpen(false); nav('/') })}>Einfach beenden</Button>
+        <Button className="w-full" onClick={() => void run(async () => { if (guidance.enabled) await st.recordGuidanceInteraction(date); if (session) await st.clearFocus(session.id); setStopOpen(false); nav('/') })}>Einfach beenden</Button>
         <p className="text-sm text-muted">Beenden erledigt keinen Schritt.</p>
       </div>}
     </Sheet>

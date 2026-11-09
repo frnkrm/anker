@@ -10,6 +10,7 @@ import { useApp } from './state/store'
 import { useGeofenceLifecycle } from './state/useGeofences'
 import { InboxSheet, Shell } from './ui/components/Shell'
 import { Button } from './ui/components/ui'
+import { GuidanceRuntime } from './ui/components/GuidanceRuntime'
 import Now from './ui/pages/Now'
 
 const Onboarding = lazy(() => import('./ui/pages/Onboarding'))
@@ -25,6 +26,7 @@ const ReviewHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ defau
 const AlarmHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.AlarmHub })))
 const Inbox = lazy(() => import('./ui/pages/Inbox'))
 const More = lazy(() => import('./ui/pages/More'))
+const RhythmWeek = lazy(() => import('./ui/pages/RhythmWeek'))
 const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
 const AssistanceSettings = lazy(() => import('./ui/pages/AssistanceSettings'))
@@ -51,7 +53,7 @@ function useAppearance() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
     document.documentElement.style.setProperty('--font-scale', String(fontScale))
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f1115' : '#f6f5f1')
+    if (!document.documentElement.dataset.guidanceTheme) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f1115' : '#f6f5f1')
   }, [dark, fontScale])
 }
 
@@ -183,6 +185,7 @@ export default function App() {
     <BrowserRouter>
       <NativeBridge />
       <GeofenceLifecycle />
+      <GuidanceRuntime />
       <Shell>
         <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>
           <Routes>
@@ -202,6 +205,7 @@ export default function App() {
             <Route path="/fokus-start" element={<QuickFocus />} />
             <Route path="/mehr" element={<More />} />
             <Route path="/abend" element={<EveningHub />} />
+            <Route path="/rhythmus" element={<RhythmWeek />} />
             <Route path="/schlaf" element={<AlarmHub />} />
             <Route path="/einstellungen/abenduebergang" element={<WindDown />} />
             <Route path="/einstellungen/assistenz" element={<AssistanceSettings />} />
