@@ -211,13 +211,61 @@ class TestUpload(unittest.TestCase):
         self.assertFalse(any(c[0]=="PUT" or c[3] for c in api.calls))
 
     def test_conflict_report_contains_only_structural_status_and_numeric_versions(self):
-        api=FakeApi(bundles=[MATCHING],releases=[{"name":PRIVATE_ERROR,"releaseNotes":[{"text":PRIVATE_ERROR}],"status":"completed","versionCodes":["16"]}])
+        api=FakeApi(releases=[{"name":PRIVATE_ERROR,"releaseNotes":[{"text":PRIVATE_ERROR}],"status":"completed","versionCodes":["16"]}])
         report=uploader.new_report()
         self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
         self.assertEqual(report["trackObservation"],{"trackMatches":True,"releasesShape":"list","releases":[{"status":"completed","versionCodes":[16]}],"truncated":False})
         self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
         self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
         self.assertFalse(report["draftVerified"] or report["commitAttempted"])
+
+    def test_exact_completed_release_and_matching_bundle_are_observed_readonly(self):
+        release={"status":"completed","versionCodes":["16"],"name":PRIVATE_ERROR,"releaseNotes":[{"text":PRIVATE_ERROR}]}
+        api=FakeApi(bundles=[MATCHING],releases=[release]);report=self.upload(api)
+        self.assertEqual(report["status"],"already-active")
+        self.assertTrue(report["activeReleaseVerified"] and report["bundleReused"])
+        self.assertEqual(report["existingReleaseStatus"],"completed")
+        self.assertFalse(report["draftVerified"] or report["bundleUploadConfirmed"] or report["commitAttempted"] or report["publishedByThisRun"])
+        self.assertEqual(report["steps"],["edit-created","existing-exact-active-release-read"])
+        self.assertEqual([(m,p) for m,p,_,_ in api.calls],[("POST",BASE),("GET",OWN+"/bundles"),("GET",OWN+"/tracks/internal"),("DELETE",OWN)])
+        self.assertEqual(api.track["releases"],[release])
+        self.assertEqual(report["editCleanup"],"deleted")
+        self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
+
+    def test_completed_release_with_wrong_bundle_hash_still_stops(self):
+        api=FakeApi(bundles=[{"versionCode":16,"sha256":"0"*64}],releases=[{"status":"completed","versionCodes":["16"]}])
+        report=uploader.new_report()
+        self.assert_reason("ARTIFACT_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
+        self.assertFalse(report["activeReleaseVerified"] or report["commitAttempted"])
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
+
+    def test_every_other_active_track_shape_remains_a_conflict_even_with_matching_bundle(self):
+        cases=[[{"status":"completed","versionCodes":["17"]}], [{"status":"completed","versionCodes":["16","15"]}],
+               [{"status":"completed","versionCodes":["16"]},{"status":"completed","versionCodes":["16"]}],
+               [{"status":"completed","versionCodes":["16"]},{"status":"draft","versionCodes":["15"]}],
+               [{"status":"halted","versionCodes":["16"]}], [{"status":"inProgress","versionCodes":["16"]}],
+               [{"status":"unknown","versionCodes":["16"]}], [{"status":"completed","versionCodes":[16]}]]
+        for releases in cases:
+            with self.subTest(releases=releases):
+                api=FakeApi(bundles=[MATCHING],releases=releases);report=uploader.new_report()
+                self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
+                self.assertTrue(report["bundleReused"])
+                self.assertFalse(report["activeReleaseVerified"] or report["draftVerified"] or report["commitAttempted"])
+                self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+        api=FakeApi(bundles=[MATCHING],releases=[{"status":"completed","versionCodes":["16"]}]);api.track["track"]="production"
+        self.assert_reason("EXISTING_RELEASE_CONFLICT",self.upload,api)
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+
+    def test_cli_already_active_is_observation_success_without_new_publication(self):
+        api=FakeApi(bundles=[MATCHING],releases=[{"status":"completed","versionCodes":["16"]}]);out=io.StringIO();report_path=self.root/'active.json'
+        with patch.object(uploader,"read_bundle",return_value=b"offline-approved-bundle"),patch.object(uploader,"token_from_env",return_value=FAKE_TOKEN),patch.object(uploader,"Transport",return_value=api),contextlib.redirect_stdout(out):
+            result=uploader.main(["upload","--manifest",str(self.manifest),"--bundle",str(self.root/'Anker.aab'),"--report",str(report_path)])
+        self.assertEqual(result,0)
+        report=json.loads(report_path.read_text())
+        self.assertEqual(report["status"],"already-active")
+        self.assertTrue(report["activeReleaseVerified"])
+        self.assertFalse(report["draftVerified"] or report["commitAttempted"] or report["commitAcknowledged"] or report["publishedByThisRun"])
+        self.assertNotIn(FAKE_TOKEN,out.getvalue()+report_path.read_text())
 
     def test_track_observation_redacts_hostile_track_status_versions_and_freetext(self):
         raw={"track":PRIVATE_ERROR,"name":PRIVATE_ERROR,"releases":[{"status":PRIVATE_ERROR,"versionCodes":["16",PRIVATE_ERROR,True,16,"2100000001","00016"],"releaseNotes":[PRIVATE_ERROR]}, {"status":{"private":PRIVATE_ERROR},"versionCodes":None}]}

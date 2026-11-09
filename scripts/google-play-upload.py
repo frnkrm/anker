@@ -223,7 +223,7 @@ def new_report() -> dict:
             "track": "internal", "requestedReleaseStatus": "draft", "changesNotSentForReview": True,
             "changesInReviewBehavior": "ERROR_IF_IN_REVIEW",
             "status": "failed", "bundleUploadConfirmed": False, "bundleUploadState": "not-attempted", "versionReservationUnknown": False,
-            "bundleReused": False, "draftVerified": False,
+            "bundleReused": False, "draftVerified": False, "activeReleaseVerified": False,
             "commitAttempted": False, "commitAcknowledged": False, "publishedByThisRun": False,
             "editCleanup": "not-needed", "steps": []}
 
@@ -329,11 +329,19 @@ def perform_upload(api: Transport, data: bytes, report: dict) -> None:
         report["steps"].append("edit-created")
         base = API_PATH + "/" + own_edit
         reused = known_bundle(api.request("GET", base + "/bundles"))
+        report["bundleReused"] = reused
         # Inspect before uploading: unexpected live/foreign releases cause no bundle mutation.
         track = api.request("GET", base + "/tracks/internal")
         report["trackObservation"] = track_observation(track)
+        active_releases = track.get("releases")
+        if (reused is True and track.get("track") == "internal" and isinstance(active_releases, list) and len(active_releases) == 1
+                and isinstance(active_releases[0], dict) and active_releases[0].get("status") == "completed"
+                and active_releases[0].get("versionCodes") == [str(VERSION)]):
+            # Observe the exact already-distributed bundle; never downgrade it to a draft.
+            report.update(status="already-active", activeReleaseVerified=True, existingReleaseStatus="completed")
+            report["steps"].append("existing-exact-active-release-read")
+            return
         releases, existing_draft = inspect_track(track)
-        report["bundleReused"] = reused
         if existing_draft:
             if not reused:
                 raise UploadError("DRAFT_RESPONSE_MISMATCH")
