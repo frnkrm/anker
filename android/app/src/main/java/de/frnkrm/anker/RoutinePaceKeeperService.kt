@@ -46,8 +46,13 @@ class RoutinePaceKeeperService : Service() {
             require(raw is Number && raw.toDouble().isFinite() && raw.toDouble() == raw.toLong().toDouble()) { "Ungültige Zeitangabe." }
             return raw.toLong()
         }
-        private fun spec(o: JSONObject) = RoutinePaceSpec(o.getString("sessionId"), o.getString("stepId"), o.optString("title", ""),
-            number(o, "durationMs"), number(o, "deadlineAt", 0), number(o, "intervalSeconds", 60).toInt(),
+        private fun interval(o: JSONObject): Int {
+            val value = number(o, "intervalSeconds", 60)
+            require(value in 15L..300L) { "Ungültiger Begleitungsabstand." }
+            return value.toInt()
+        }
+        private fun spec(o: JSONObject) = RoutinePaceSpec(o.getString("sessionId"), o.getString("stepId"), VoiceModel.transcript(listOf(o.optString("title", "")))?.take(240) ?: "",
+            number(o, "durationMs"), number(o, "deadlineAt", 0), interval(o),
             o.optBoolean("hapticsEnabled", false), o.optBoolean("thresholds", true), o.optBoolean("speakStep", false), o.optString("strength", "gentle"))
         private fun decode(o: JSONObject): RoutinePaceState {
             val passed = o.optJSONArray("passedThresholds") ?: JSONArray()
@@ -59,13 +64,16 @@ class RoutinePaceKeeperService : Service() {
             put("durationMs", s.spec.durationMs); put("deadlineAt", s.spec.deadlineAt); put("intervalSeconds", s.spec.intervalSeconds)
             put("hapticsEnabled", s.spec.hapticsEnabled); put("thresholds", s.spec.thresholds); put("speakStep", s.spec.speakStep); put("strength", s.spec.strength)
             put("phase", s.phase); put("lastBucket", s.lastBucket); put("announced", s.announced); put("passedThresholds", JSONArray(s.passedThresholds.sorted()))
+            put("updatedAt", System.currentTimeMillis())
         }
 
         /** Call on the Activity/main thread. Returning a start request never claims an audible cue. */
         fun sync(ctx: Context, options: JSONObject): JSObject {
             if (!options.optBoolean("enabled", false) || options.optString("status", "running") == "stopped") return stop(ctx, options.optString("sessionId").ifBlank { null })
             val requested = spec(options); RoutinePaceKeeperModel.validate(requested)
-            val old = read(ctx)?.let { try { decode(it) } catch (_: Exception) { null } }
+            val stored = read(ctx)
+            if (stored?.optBoolean("userStopped", false) == true && stored.optString("sessionId") == requested.sessionId && stored.optString("stepId") == requested.stepId) return state(ctx)
+            val old = stored?.let { try { decode(it) } catch (_: Exception) { null } }
             val next = RoutinePaceKeeperModel.sync(old, requested, options.optString("status", "running"), System.currentTimeMillis())
             val requestId = UUID.randomUUID().toString()
             save(ctx, encode(next, requestId).put("speechStatus", "idle"))
@@ -80,7 +88,7 @@ class RoutinePaceKeeperService : Service() {
         fun stop(ctx: Context, sessionId: String? = null): JSObject {
             val current = read(ctx)
             if (current != null && (sessionId == null || current.optString("sessionId") == sessionId)) {
-                save(ctx, current.put("phase", "stopped"))
+                save(ctx, current.put("phase", "stopped").put("userStopped", false).put("title", ""))
                 instance?.finish("stopped")
             }
             return state(ctx)
@@ -89,8 +97,13 @@ class RoutinePaceKeeperService : Service() {
         fun state(ctx: Context): JSObject {
             val s = read(ctx)
             val active = instance?.foregroundShown == true && s?.optString("phase") == "running"
+            val phase = s?.optString("phase") ?: "idle"
+            val visiblePhase = if (phase == "running" && !hasForeground()) {
+                val age = System.currentTimeMillis() - (s?.optLong("updatedAt") ?: 0)
+                if (age in 0..10_000) "prepared" else "interrupted"
+            } else phase
             return JSObject().apply {
-                put("active", active); put("phase", if (s?.optString("phase") == "running" && instance == null) "prepared" else s?.optString("phase") ?: "idle")
+                put("active", active); put("phase", visiblePhase)
                 put("speechStatus", s?.optString("speechStatus", "idle") ?: "idle")
                 if (s != null) { put("sessionId", s.optString("sessionId")); put("stepId", s.optString("stepId")); put("deadlineAt", s.optLong("deadlineAt")); put("error", s.optString("error", "")) }
             }
@@ -121,7 +134,7 @@ class RoutinePaceKeeperService : Service() {
     private var speechFocus: AudioFocusRequest? = null
     private val speechLease = AudioPlaybackLease()
     private var utteranceId: String? = null
-    private val tick = object : Runnable { override fun run() {
+    private val tick: Runnable = object : Runnable { override fun run() {
         val before = current ?: return
         if (ending) return
         if (SystemClock.elapsedRealtime() >= expiresElapsed) { finish("expired", "timer-limit"); return }
@@ -142,12 +155,19 @@ class RoutinePaceKeeperService : Service() {
     override fun onCreate() { super.onCreate(); instance = this }
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == STOP) { stop(this, intent.getStringExtra("sessionId")); return START_NOT_STICKY }
+        if (intent?.action == STOP) {
+            val stored = read(this)
+            if (stored != null && stored.optString("sessionId") == intent.getStringExtra("sessionId")) {
+                save(this, stored.put("userStopped", true)); finish("stopped")
+            }
+            return START_NOT_STICKY
+        }
         val saved = read(this)
         if (saved == null || intent?.getStringExtra("requestId") != saved.optString("requestId")) { if (!foregroundShown) stopSelf(startId); return START_NOT_STICKY }
         val previous = current
         current = try { decode(saved) } catch (_: Exception) { finish("error", "invalid-request"); return START_NOT_STICKY }
-        if (current?.phase != "running" || current!!.spec.deadlineAt <= System.currentTimeMillis() || priorityAudio(this)) { finish("interrupted", "not-running"); return START_NOT_STICKY }
+        if (current?.phase != "running") { finish(current?.phase ?: "stopped"); return START_NOT_STICKY }
+        if (current!!.spec.deadlineAt <= System.currentTimeMillis() || priorityAudio(this)) { finish("interrupted", "not-running"); return START_NOT_STICKY }
         if (ending || previous == null || previous.spec.sessionId != current!!.spec.sessionId || previous.spec.stepId != current!!.spec.stepId || previous.spec.deadlineAt != current!!.spec.deadlineAt || expiresElapsed == 0L)
             expiresElapsed = SystemClock.elapsedRealtime() + (current!!.spec.deadlineAt - System.currentTimeMillis()).coerceIn(1_000, current!!.spec.durationMs)
         requestId = saved.optString("requestId"); ending = false
@@ -223,7 +243,7 @@ class RoutinePaceKeeperService : Service() {
     private fun finish(phase: String, error: String = "") {
         if (ending) return
         ending = true; handler.removeCallbacksAndMessages(null); stopSpeech()
-        try { read(this)?.let { save(this, it.put("phase", phase).put("error", error)) } } catch (_: Exception) { }
+        try { read(this)?.let { save(this, it.put("phase", phase).put("error", error).put("title", "")) } } catch (_: Exception) { }
         if (AlarmController.state(this).ringing == null) try { vibrator?.cancel() } catch (_: Exception) { }
         wakeLock?.let { if (it.isHeld) it.release() }; wakeLock = null
         foregroundShown = false
