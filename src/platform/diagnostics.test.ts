@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings } from '../core/defaults'
 import type { Settings } from '../core/types'
 import { readDiagnostics } from './diagnostics'
+import { defaultDiagnosticSelection, makeDiagnosticExport } from '../core/diagnostics'
 
 const mocks = vi.hoisted(() => ({
   native: true, state: { settings: undefined as unknown as Settings },
@@ -55,5 +56,7 @@ describe('Lokale Diagnose lesen', () => {
     expect(result.input.bedtimeStatus).toEqual({ phase: 'idle' })
     expect(result.input.journal).toMatchObject({ available: false, events: [] })
     expect(JSON.stringify(result)).not.toContain('PRIVATE_FILENAME')
+    expect(makeDiagnosticExport(result.input, defaultDiagnosticSelection(), result.capturedAt).manifest.unavailableSources).toEqual(['alarm', 'journal'])
+    expect(makeDiagnosticExport(result.input, { ...defaultDiagnosticSelection(), categories: [], includeCurrentStatus: false }, result.capturedAt).manifest.unavailableSources).toBeUndefined()
   })
 })

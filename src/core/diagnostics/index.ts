@@ -228,6 +228,10 @@ export function makeDiagnosticExport(input: DiagnosticExportInput, choice: Diagn
     manifest: { selection, omitted: { categories: DIAGNOSTIC_CATEGORIES.filter(category => !selection.categories.includes(category)),
       settingsGroups: DIAGNOSTIC_SETTINGS_GROUPS.filter(group => !selection.settingsGroups.includes(group)) }, journal, warnings: WARNINGS },
     logs: logs.slice(-MAX_ENTRIES) }
+  const unavailableSources = (['alarm', 'bedtime', 'journal', 'pc'] as const).filter(source => input.unavailable?.includes(source)
+    && (source === 'journal' ? selection.categories.length > 0 : selection.includeCurrentStatus
+      && (selection.categories.includes(source) || source === 'alarm' && selection.categories.some(category => category === 'system' || category === 'reminder'))))
+  if (unavailableSources.length) result.manifest.unavailableSources = unavailableSources
   if (selection.settingsGroups.length && input.settings) result.settings = selectSettings(input.settings, selection.settingsGroups)
   if (selection.includeCurrentStatus) result.runtime = currentRuntime(input, selection.categories)
   return result

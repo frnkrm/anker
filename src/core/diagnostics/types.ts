@@ -7,6 +7,7 @@ export const DIAGNOSTIC_CATEGORY_LABELS: Readonly<Record<DiagnosticCategory, str
 }
 export const DIAGNOSTIC_SETTINGS_GROUPS = ['alarm', 'sleep', 'routines', 'reminders', 'appearance', 'workTimes'] as const
 export type DiagnosticSettingsGroup = typeof DIAGNOSTIC_SETTINGS_GROUPS[number]
+export type DiagnosticSource = 'alarm' | 'bedtime' | 'journal' | 'pc'
 export const DIAGNOSTIC_SETTINGS_LABELS: Readonly<Record<DiagnosticSettingsGroup, string>> = {
   alarm: 'Wecker und Aufstehzeiten', sleep: 'Schlaf- und Abendoptionen', routines: 'Routinen: nur Dauern und Kernschritte',
   reminders: 'Erinnerungen und Ruhezeiten', appearance: 'Darstellung', workTimes: 'Arbeitszeiten: nur Wochenstruktur',
@@ -40,6 +41,7 @@ export interface DiagnosticExportInput {
   alarmDiagnostics?: unknown
   bedtimeStatus?: unknown
   pcStatus?: unknown
+  unavailable?: readonly DiagnosticSource[]
 }
 
 export interface DiagnosticExport {
@@ -64,6 +66,7 @@ export interface DiagnosticExport {
       unrecognizedCodes: number
     }
     warnings: readonly string[]
+    unavailableSources?: DiagnosticSource[]
   }
   logs: DiagnosticEvent[]
   settings?: Partial<Record<DiagnosticSettingsGroup, DiagnosticRecord>>

@@ -40,7 +40,7 @@ export async function readDiagnostics(sourceFingerprint: string, includePc = fal
   // Die Statusleser können selbst einen Zustandswechsel protokollieren. Das Journal zuletzt flushen.
   const journal = await optional('journal', () => AnkerNative.getDiagnosticJournal())
   return {
-    input: { app, settings: useApp.getState().settings, journal: journal ?? journalUnavailable, alarmDiagnostics, bedtimeStatus, ...(includePc ? { pcStatus } : {}) },
+    input: { app, settings: useApp.getState().settings, journal: journal ?? journalUnavailable, alarmDiagnostics, bedtimeStatus, unavailable, ...(includePc ? { pcStatus } : {}) },
     capturedAt: Date.now(), unavailable,
   }
 }
