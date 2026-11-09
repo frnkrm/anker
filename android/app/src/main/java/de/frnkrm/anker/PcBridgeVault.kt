@@ -16,7 +16,9 @@ import javax.crypto.spec.GCMParameterSpec
 
 /** A separate credential-protected store, encrypted with a non-exportable Android key. */
 internal class PcBridgeVault(context: Context) {
-    private val ctx = if (context.isDeviceProtectedStorage) context.createCredentialProtectedStorageContext() else context.applicationContext
+    private val ctx = context.applicationContext.also {
+        check(!it.isDeviceProtectedStorage) { "PC_CREDENTIAL_STORAGE_REQUIRED" }
+    }
     private val prefs get() = ctx.getSharedPreferences("anker_pc_bridge_secure_v3", Context.MODE_PRIVATE)
     private val store get() = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
 

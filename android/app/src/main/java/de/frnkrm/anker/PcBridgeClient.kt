@@ -527,9 +527,11 @@ object PcBridgeClient {
         val ssl = SSLContext.getInstance("TLS").apply { init(null, arrayOf(manager), null) }
         return OkHttpClient.Builder().sslSocketFactory(ssl.socketFactory, manager)
             .hostnameVerifier { _, session -> try { PcLinkModel.matchesPin(trustedPin, session.peerCertificates[0].encoded) } catch (_: Exception) { false } }
-            .dns(Dns { name -> InetAddress.getAllByName(name).toList().also { addresses ->
-                require(addresses.isNotEmpty() && addresses.all(PcLinkModel::privateAddress)) { "PC_ADDRESS_NOT_LOCAL" }
-            } })
+            .dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> = InetAddress.getAllByName(hostname).toList().also { addresses ->
+                    require(addresses.isNotEmpty() && addresses.all(PcLinkModel::privateAddress)) { "PC_ADDRESS_NOT_LOCAL" }
+                }
+            })
             .connectTimeout(3, TimeUnit.SECONDS).readTimeout(3, TimeUnit.SECONDS).callTimeout(5, TimeUnit.SECONDS)
             .followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
     }
