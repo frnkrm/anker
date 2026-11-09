@@ -4,6 +4,8 @@ import { buildReminders, reminderPolicy, reminderRevisions, reopenHint } from '.
 import { validReminderAction } from '../core/reminders/actions'
 import { knownReminderDates } from '../core/reminders/dates'
 import { buildReminderRuleSnapshot } from '../core/reminders/rules'
+import { guidancePreferences } from '../core/guidance'
+import { pcBridgeSnapshot } from './pcLink'
 import { DAY_ROLLOVER_MIN } from '../core/now'
 import { addDays, zonedToUtc } from '../core/time'
 import { taskIsOpen } from '../core/tasks'
@@ -112,7 +114,13 @@ async function scheduleSnapshot() {
     const reminders = [...specs, reopenHint(hintAt, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical }))
     const revisions = reminderRevisions(plans, logs, st.settings, extras)
     for (const r of reminders.filter((r) => r.key === 'open-app')) revisions[`${r.date}|${r.key}`] = r.revision
-    await AnkerNative.syncReminders({ reminders, relevant: Object.keys(revisions), revisions, policy: reminderPolicy(plans, st.settings), ruleSnapshot: buildReminderRuleSnapshot(st.settings, knownDates, horizonEnd) })
+    const policy = reminderPolicy(plans, st.settings)
+    const preferences = guidancePreferences(st.settings.guidance)
+    if (preferences.enabled && preferences.suppressPhonePcWhenConfirmed && st.local.pcBridge?.enabled) {
+      const wanted = pcBridgeSnapshot(now, await AnkerNative.getAlarmState())
+      policy.pcConfirmation = { revision: wanted.revision, date: wanted.date, validUntil: Date.parse(wanted.validUntil) }
+    }
+    await AnkerNative.syncReminders({ reminders, relevant: Object.keys(revisions), revisions, policy, ruleSnapshot: buildReminderRuleSnapshot(st.settings, knownDates, horizonEnd) })
   }, undefined)
 }
 

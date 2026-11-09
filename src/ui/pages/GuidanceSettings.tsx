@@ -59,6 +59,9 @@ export default function GuidanceSettings() {
     <Section title="Abend und Bett">
       <Card className="space-y-4">
         {flag('eveningEscalation', 'Abend in drei Phasen begleiten', '30 Minuten vorher ankommen, 10 Minuten vorher Gedanken parken, zur Bettzeit den nächsten Schritt zeigen. Ein offenes Ende pausiert die zeitgesteuerten Phasen.')}
+        {flag('eveningLight', 'An warmes Abendlicht erinnern', 'Ein leiser Hinweis vor deiner geplanten Bettzeit, ohne automatische Lichtsteuerung. Ein gewählter Abendübergang oder die Drei-Phasen-Begleitung ersetzt ihn.') }
+        {preferences.eveningLight && <SettingRow label="Vor der Bettzeit"><Stepper label="Abendlicht vorher" value={preferences.eveningLightLeadMinutes} min={15} max={240} step={15} unit="min" onChange={eveningLightLeadMinutes => void save({ eveningLightLeadMinutes })} /></SettingRow>}
+        {flag('suppressPhonePcWhenConfirmed', 'Bestätigten PC-Stopp am Handy leiser halten', 'Nur die PC-Stopp-Hinweise entfallen, solange der PC den heutigen aktuellen Plan frisch bestätigt und verbunden bleibt. Ohne passenden Beleg erscheinen sie wieder; Bettzeit und Wecker bleiben erhalten.') }
         {flag('bedtimeQr', 'Abend mit meinem Anker-QR bestätigen', 'Der Scan bestätigt deinen Übergang. Er behauptet nicht, dass du schon schläfst oder im Bett liegst.')}
         {flag('sleepNoise', 'Nach der Abendbestätigung Brown Noise abspielen', 'Lokal erzeugtes leises Rauschen, das bis zum Ende linear ausblendet. Jederzeit stoppbar.')}
         {preferences.sleepNoise && <SettingRow label="Rauschen ausblenden über"><Stepper label="Schlafrauschen Dauer" value={preferences.sleepNoiseMinutes} min={1} max={60} step={5} unit="min" onChange={sleepNoiseMinutes => void save({ sleepNoiseMinutes })} /></SettingRow>}

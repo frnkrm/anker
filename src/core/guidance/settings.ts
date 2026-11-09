@@ -6,11 +6,11 @@ export const DEFAULT_GUIDANCE: Readonly<GuidancePreferences> = {
   zeroGapMorning: false, preWakeFadeIn: false, antiRelapse: false, antiRelapseMinutes: 5,
   autoZombie: false, autoZombieAfterSeconds: 60,
   eveningEscalation: false, bedtimeQr: false, sleepNoise: false, sleepNoiseMinutes: 20,
-  pcLock: false,
+  pcLock: false, eveningLight: false, eveningLightLeadMinutes: 120, suppressPhonePcWhenConfirmed: false,
 }
 
-const booleanKeys = ['enabled', 'circadianUi', 'timeArc', 'depletionColors', 'paceKeeper', 'paceThresholds', 'speakSteps', 'zeroGapMorning', 'preWakeFadeIn', 'antiRelapse', 'autoZombie', 'eveningEscalation', 'bedtimeQr', 'sleepNoise', 'pcLock'] as const
-const ranges = { paceIntervalMin: [1, 10], antiRelapseMinutes: [1, 30], autoZombieAfterSeconds: [10, 600], sleepNoiseMinutes: [1, 60] } as const
+const booleanKeys = ['enabled', 'circadianUi', 'timeArc', 'depletionColors', 'paceKeeper', 'paceThresholds', 'speakSteps', 'zeroGapMorning', 'preWakeFadeIn', 'antiRelapse', 'autoZombie', 'eveningEscalation', 'bedtimeQr', 'sleepNoise', 'pcLock', 'eveningLight', 'suppressPhonePcWhenConfirmed'] as const
+const ranges = { eveningLightLeadMinutes: [15, 240], paceIntervalMin: [1, 10], antiRelapseMinutes: [1, 30], autoZombieAfterSeconds: [10, 600], sleepNoiseMinutes: [1, 60] } as const
 
 export function guidancePreferences(value?: Partial<GuidancePreferences>): GuidancePreferences {
   const result = { ...DEFAULT_GUIDANCE }

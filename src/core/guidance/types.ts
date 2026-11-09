@@ -25,6 +25,9 @@ export interface GuidancePreferences {
   bedtimeQr: boolean
   sleepNoise: boolean
   sleepNoiseMinutes: number
+  eveningLight: boolean
+  eveningLightLeadMinutes: number
+  suppressPhonePcWhenConfirmed: boolean
   pcLock: boolean
 }
 

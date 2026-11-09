@@ -49,13 +49,14 @@ object ReminderScheduler {
         token = o.optString("token"),
         critical = o.optBoolean("critical", false),
         ruleId = o.optString("ruleId"),
+        deferredFrom = o.optLong("deferredFrom"),
     )
 
     private fun entryToJson(e: ReminderEntry) = JSONObject()
         .put("key", e.key).put("date", e.date).put("at", e.at).put("channel", e.channel)
         .put("title", e.title).put("body", e.body).put("actions", e.actions)
         .put("slot", e.slot).put("rank", e.rank).put("exact", e.exact).put("snoozes", e.snoozes)
-        .put("revision", e.revision).put("token", e.token).put("critical", e.critical).put("ruleId", e.ruleId)
+        .put("revision", e.revision).put("token", e.token).put("critical", e.critical).put("ruleId", e.ruleId).put("deferredFrom", e.deferredFrom)
 
     private fun loadQueue(ctx: Context): List<ReminderEntry> = try {
         val a = JSONArray(AnkerPrefs.reminderQueue(ctx))
@@ -104,8 +105,9 @@ object ReminderScheduler {
         gone.forEach { nm.cancel(ReminderLogic.notificationId(it.slot)) }
         saveSlots(ctx, slots - gone.toSet())
         onProtectedDisplaysChanged(ctx)
-        armNext(ctx, q)
+        armNext(ctx, loadQueue(ctx))
         AnkerPrefs.setReminderLastSyncAt(ctx, now)
+        if (loadQueue(ctx).any { it.deferredFrom > 0 && !suppressPc(ctx, it, now) }) tick(ctx)
     }
 
     @Synchronized
@@ -132,6 +134,14 @@ object ReminderScheduler {
         val ranges = o.optJSONArray("ranges") ?: JSONArray()
         ReminderPolicy(o.optInt("quietStart"), o.optInt("quietEnd"), (0 until ranges.length()).map { val r = ranges.getJSONObject(it); ReminderQuietRange(r.getLong("from"), r.getLong("to")) })
     } catch (_: Exception) { ReminderPolicy() }
+
+    private fun pcExpectation(ctx: Context): PcReminderExpectation? = try {
+        val value = JSONObject(AnkerPrefs.reminderPolicy(ctx)).getJSONObject("pcConfirmation")
+        PcReminderExpectation(value.getString("revision"), value.getString("date"), value.getLong("validUntil"))
+    } catch (_: Exception) { null }
+
+    private fun suppressPc(ctx: Context, entry: ReminderEntry, now: Long) =
+        PcReminderGate.suppress(entry, pcExpectation(ctx), PcBridgeClient.currentReminderProof(), now)
 
     @Synchronized
     fun setFocus(ctx: Context, until: Long) {
@@ -234,16 +244,20 @@ object ReminderScheduler {
     fun tick(ctx: Context) {
         val now = System.currentTimeMillis()
         onProtectedDisplaysChanged(ctx)
-        val queue = loadQueue(ctx)
+        // Restore held deliveries immediately after a disconnect/revision change. They retain the
+        // original stale boundary, token, snooze count and rule, never a new completion action.
+        val queue = loadQueue(ctx).map { if (it.deferredFrom > 0 && !suppressPc(ctx, it, now)) it.copy(at = minOf(it.at, now)) else it }
         consumeRules(ctx, queue, now)
         val r = ReminderLogic.takeDue(queue, now)
-        val next = continueRules(ctx, r.remaining, now)
+        val held = r.due.filter { suppressPc(ctx, it, now) }.map { PcReminderGate.defer(it, now) }
+        val next = continueRules(ctx, (r.remaining + held).sortedBy { it.at }, now)
         saveQueue(ctx, next)
         val reserved = protectedDisplays(ctx)
         val policy = policy(ctx)
         var slots = loadSlots(ctx)
         val consumed = consumedTokens(ctx)
         for (e in r.due) {
+            if (suppressPc(ctx, e, now)) continue
             if (e.token in consumed) continue
             if (!ReminderLogic.allowed(e, now, policy, AnkerPrefs.reminderFocusUntil(ctx))) continue
             val p = ReminderLogic.place(slots, e, now, reserved)
@@ -257,7 +271,7 @@ object ReminderScheduler {
             slots = ReminderLogic.afterPostRequest(beforePost, p, accepted)
             if (accepted) AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString(), slots, now)
         }
-        consumeTokens(ctx, queue.filter { it.at <= now })
+        consumeTokens(ctx, queue.filter { it.at <= now && !suppressPc(ctx, it, now) })
         saveSlots(ctx, slots)
         armNext(ctx, next)
     }
@@ -273,9 +287,19 @@ object ReminderScheduler {
         val nm = ctx.getSystemService(NotificationManager::class.java)
         val now = System.currentTimeMillis()
         val old = loadSlots(ctx)
+        val hidden = old.mapNotNull { slot ->
+            val source = AnkerPrefs.reminderLastShown(ctx, slot.date, slot.key)?.let { try { entryFromJson(JSONObject(it)) } catch (_: Exception) { null } }
+            source?.takeIf { suppressPc(ctx, it, now) && now - PcReminderGate.originalAt(it) <= ReminderLogic.STALE_MS }
+        }
+        if (hidden.isNotEmpty()) {
+            val queue = loadQueue(ctx)
+            val held = hidden.filter { source -> queue.none { it.date == source.date && it.key == source.key && it.deferredFrom > 0 } }
+                .map { PcReminderGate.defer(it.copy(token = java.util.UUID.randomUUID().toString()), now) }
+            saveQueue(ctx, (queue + held).sortedBy { it.at })
+        }
         val allowed = old.filter { slot ->
             AnkerPrefs.reminderLastShown(ctx, slot.date, slot.key)?.let { json ->
-                try { ReminderLogic.allowed(entryFromJson(JSONObject(json)), now, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx)) } catch (_: Exception) { false }
+                try { val entry = entryFromJson(JSONObject(json)); !suppressPc(ctx, entry, now) && ReminderLogic.allowed(entry, now, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx)) } catch (_: Exception) { false }
             } ?: false
         }
         val retained = ReminderLogic.trimToBudget(allowed, now, protectedDisplays(ctx))

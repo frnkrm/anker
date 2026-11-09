@@ -29,7 +29,7 @@ data class ReminderRuleOccurrence(val ruleId: String, val date: String, val at: 
 
 object ReminderRules {
     private val CRITICAL_BASE_KEYS = setOf("leave", "latest-leave", "latest-start", "pcstop", "bed", "meds")
-    private val SOFT_GUIDANCE_KEYS = setOf("guidance-wind-down", "guidance-brain-dump")
+    private val SOFT_GUIDANCE_KEYS = setOf("guidance-wind-down", "guidance-brain-dump", "guidance-evening-light")
     private const val SEARCH_DAYS = 400L
 
     /** Invalid/corrupted or unsupported rules are ignored rather than turned into arbitrary alarms. */

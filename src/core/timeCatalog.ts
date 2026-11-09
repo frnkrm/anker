@@ -1,4 +1,5 @@
 import { buildAlarmConfig, nextAlarmTimes } from './alarm'
+import { eveningLightMinute, guidancePreferences } from './guidance'
 import { extraSettings } from './extras'
 import { remainingMs } from './focus'
 import { activePlanDate } from './now'
@@ -135,7 +136,7 @@ const reminderCategory = (key: string): TimeCategory => {
   if (key === 'prepcook') return 'household'
   if (key === 'review' || key.startsWith('thought-review:') || key.startsWith('tomorrow-step:')) return 'reflection'
   if (key === 'morning' || key === 'evening') return 'routines'
-  if (['pcstop-15', 'pcstop', 'bed', 'wind-down', 'guidance-wind-down', 'guidance-brain-dump'].includes(key)) return 'sleep'
+  if (['pcstop-15', 'pcstop', 'bed', 'wind-down', 'guidance-wind-down', 'guidance-brain-dump', 'guidance-evening-light'].includes(key)) return 'sleep'
   return 'technology'
 }
 const reminderRoute = (key: string) => key.startsWith('guidance-') ? '/einstellungen/begleitung'
@@ -177,7 +178,7 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
     if (/^(deadline-|thought-review:|tomorrow-step:|prep:|go:)/.test(key)) return true
     const o = input.days[date]?.override
     if (!o) return false
-    if (['pcstop-15', 'pcstop', 'bed', 'guidance-wind-down', 'guidance-brain-dump'].includes(key)) return o.lateUntil !== undefined || !!o.pcStopExtendMin
+    if (['pcstop-15', 'pcstop', 'bed', 'guidance-wind-down', 'guidance-brain-dump', 'guidance-evening-light'].includes(key)) return o.lateUntil !== undefined || !!o.pcStopExtendMin
     if (key === 'morning' || key === 'evening') return typeof o.routineAt?.[key] === 'number'
     return ['leave', 'leave-10', 'latest-start', 'latest-leave'].includes(key)
       && [o.workStart, o.workEnd, o.latestStart, o.homeOffice, o.targetNetMin, o.pauseMin, o.dayType].some((v) => v !== undefined)
@@ -189,6 +190,10 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
     { at: reminder.at, effect: 'notification', reason: reminder.escalation ? `Berechnete Wiederholung ${reminder.escalation}. Keine Zustellbestätigung.` : 'Aus den geltenden Erinnerungsregeln berechnet. Keine Zustellbestätigung.' }, reminder.escalation)
 
   const inactiveEvening = (plan: DayPlan) => {
+    const prefs = guidancePreferences(s.guidance)
+    if (!reminders.some(r => r.date === plan.date && r.key === 'guidance-evening-light')) add('reminder.guidance-evening-light', 'sleep', 'Warmes Abendlicht', { kind: 'optional', refId: 'guidance-evening-light', date: plan.date, route: '/einstellungen/begleitung' },
+      { at: zonedToUtc(plan.date, Math.max(240, plan.bed - prefs.eveningLightLeadMinutes)), status: 'inactive', effect: 'notification', reason: !prefs.enabled || !prefs.eveningLight ? 'Ausgeschaltet.' : s.support.windDown.enabled || prefs.eveningEscalation ? 'Bereits abgestimmt: Dein gewählter Abendübergang übernimmt den Abendhinweis.' : eveningLightMinute(plan, s, input.days[plan.date]) === undefined ? 'Für den heutigen offenen oder abgeschlossenen Abend nicht vorgesehen.' : 'Ruhezeiten und andere Erinnerungsgrenzen bleiben wirksam.' })
+
     for (const [key, at, label] of [['pcstop-15', plan.pcStop - 15, 'PC-Stopp vorab'], ['pcstop', plan.pcStop, 'PC-Stopp-Erinnerung'], ['bed', plan.bed, 'Bettzeit-Erinnerung']] as const) {
       if (reminders.some((r) => r.date === plan.date && r.key === key)) continue
       add(`reminder.${key}`, 'sleep', label, { kind: 'reminder', refId: key, date: plan.date, route: guidanceEvening ? '/einstellungen/begleitung' : s.support.windDown.enabled ? '/einstellungen/abenduebergang' : '/einstellungen/schlaf' },

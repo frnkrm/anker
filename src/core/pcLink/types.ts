@@ -20,6 +20,7 @@ export interface PcLinkPreferences {
   bedtimeSequence?: boolean
 }
 export interface PcSchedule {
+  lightHintAt?: string
   windDownAt: string | null
   brainDumpAt: string | null
   bedAt: string | null
@@ -46,6 +47,7 @@ export interface PcStatePayload {
   brainDump?: { text: string; nextStep?: string }
 }
 export interface PcBriefingDay {
+  lightHintAt?: string
   date: DateStr
   validUntil: string
   pc: { mode: 'scheduled' | 'paused'; stopAt?: string; localTime?: string }

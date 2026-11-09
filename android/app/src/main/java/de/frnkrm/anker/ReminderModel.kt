@@ -23,6 +23,7 @@ data class ReminderEntry(
     val token: String = "",
     val critical: Boolean = false,
     val ruleId: String = "",
+    val deferredFrom: Long = 0,
 )
 
 data class SlotEntry(val slot: Int, val key: String, val date: String, val rank: Int, val expiresAt: Long, val revision: String = "", val token: String = "")
@@ -51,7 +52,7 @@ object ReminderLogic {
 
     /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
     fun tapDestination(key: String): String? = when {
-        key == "guidance-wind-down" || key == "guidance-brain-dump" -> "now"
+        key == "guidance-wind-down" || key == "guidance-brain-dump" || key == "guidance-evening-light" -> "now"
         key == "wind-down" -> "evening"
         key.startsWith("thought-review:") && key.length > "thought-review:".length -> "thoughts"
         key.startsWith("tomorrow-step:") && key.length > "tomorrow-step:".length -> "evening"
@@ -62,8 +63,8 @@ object ReminderLogic {
     fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null, consumed: Set<String> = emptySet()): List<ReminderEntry> {
         val current = old.filter { "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
         // Ein noch unterwegs befindlicher Receiver darf seinen frischen Termin nicht durch Appöffnung verlieren.
-        val due = current.filter { it.at <= now && now - it.at <= STALE_MS }
-        val snoozed = current.filter { it.snoozes > 0 && it.at > now }
+        val due = current.filter { it.at <= now && now - PcReminderGate.originalAt(it) <= STALE_MS }
+        val snoozed = current.filter { (it.snoozes > 0 || it.deferredFrom > 0) && it.at > now && now - PcReminderGate.originalAt(it) <= STALE_MS }
         // Auch ein frisch fälliger Snooze ersetzt die alten Stufen, bis sein Receiver ihn verarbeitet.
         val snoozedKeys = (snoozed + due.filter { it.snoozes > 0 }).map { it.date to it.key }.toSet()
         return (due + snoozed + incoming.filter { it.token !in consumed && it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
@@ -72,7 +73,7 @@ object ReminderLogic {
     /** Teilt in Fälliges und Restliches. Veraltetes fällt weg, je Schlüssel kommt nur die neueste Stufe. */
     fun takeDue(queue: List<ReminderEntry>, now: Long): DueResult {
         val (reached, remaining) = queue.partition { it.at <= now }
-        val fresh = reached.filter { now - it.at <= STALE_MS }
+        val fresh = reached.filter { now - PcReminderGate.originalAt(it) <= STALE_MS }
         val latest = fresh.groupBy { it.date to it.key }.map { (_, v) -> v.maxBy { it.at } }.sortedBy { it.at }
         return DueResult(latest, remaining)
     }
@@ -110,7 +111,7 @@ object ReminderLogic {
         val n = source.snoozes + 1
         if (n > MAX_SNOOZE) return null
         // Der Scheduler blendet nur „5 Min später“ am Limit aus; Erledigt/Heute nicht bleiben erhalten.
-        val next = source.copy(at = now + SNOOZE_MS, snoozes = n, token = java.util.UUID.randomUUID().toString())
+        val next = source.copy(at = now + SNOOZE_MS, snoozes = n, token = java.util.UUID.randomUUID().toString(), deferredFrom = 0)
         return (withoutKey(queue, source.date, source.key) + next).sortedBy { it.at }
     }
 

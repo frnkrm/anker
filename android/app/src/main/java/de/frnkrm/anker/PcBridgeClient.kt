@@ -34,6 +34,27 @@ object PcBridgeClient {
     private val monitor = Any()
     private var socket: WebSocket? = null
     private var connected = false
+    @Volatile private var reminderProof: PcReminderProof? = null
+    @Volatile private var reminderContext: Context? = null
+    internal fun currentReminderProof(): PcReminderProof? = reminderProof
+
+    /** Publish only public authenticated receipt metadata. Scheduler never takes the network monitor. */
+    private fun refreshReminderProof(ctx: Context, data: JSONObject?) {
+        reminderContext = ctx.applicationContext
+        val next = try {
+            val state = data?.getJSONObject("latestState") ?: throw IllegalStateException()
+            val ack = data.getJSONObject("ack")
+            val effective = ack.getJSONObject("effective")
+            PcReminderProof(connected, state.getString("revision"), state.getString("date"), PcLinkModel.timestamp(state.getString("validUntil")),
+                ack.getString("revision"), effective.getString("date"), effective.getString("mode"), PcLinkModel.timestamp(ack.getString("receivedAt")),
+                ack.getJSONArray("warnings").length() == 0, state.getJSONObject("prefs").optBoolean("enforceEnabled"))
+        } catch (_: Exception) { null }
+        if (reminderProof != next) {
+            reminderProof = next
+            android.os.Handler(android.os.Looper.getMainLooper()).post { ReminderScheduler.reconcile(ctx.applicationContext) }
+        }
+    }
+
     private var connecting = false
     private var generation = 0L
     private var attempts = 0
@@ -147,6 +168,7 @@ object PcBridgeClient {
             data.put(if (type == "state") "latestState" else "latestBriefing", copy(payload))
             vault.write(data)
         }
+        refreshReminderProof(ctx, data)
         val pending = data.optJSONArray("events") ?: JSONArray()
         val blocked = pending.length() > 0 || awaitingEvents
         val sent = connected && !blocked && transmit(ctx, data, payload)
@@ -346,6 +368,7 @@ object PcBridgeClient {
     private fun disconnected(selectedGeneration: Long, error: Throwable?) = synchronized(monitor) {
         if (selectedGeneration != generation) return@synchronized
         connected = false; connecting = false; socket = null; awaitingEvents = false
+        reminderContext?.let { refreshReminderProof(it, null) }
         if (error != null) lastError = errorCode(error)
         reconnectAt = System.currentTimeMillis() + PcLinkModel.retryDelayMs(attempts++)
     }
@@ -424,6 +447,7 @@ object PcBridgeClient {
         }
         data.put("seqIn", seq)
         vault.write(data) // Receipt and native outbox are one encrypted durable commit.
+        refreshReminderProof(ctx, data)
         if ((data.optJSONArray("events") ?: JSONArray()).let { events -> (0 until events.length()).any { events.getJSONObject(it).optString("kind") == "unpaired" } }) {
             // Keep the durable receipt available to JS, but revoke native capabilities now.
             vault.deleteEmergencyKey(data.getString("pairId"))
@@ -455,8 +479,8 @@ object PcBridgeClient {
                     require(whole(step, "total") in 1..200 && whole(step, "index") in 0..whole(step, "total")) { "PC_PAYLOAD_INVALID" }
                 }
                 val schedule = payload.getJSONObject("schedule")
-                exact(schedule, setOf("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt"), setOf("pcStopAt", "leaveAt", "workStartAt", "homeOffice"))
-                for (key in setOf("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt", "pcStopAt", "leaveAt", "workStartAt")) optionalTimestamp(schedule, key)
+                exact(schedule, setOf("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt"), setOf("pcStopAt", "leaveAt", "workStartAt", "homeOffice", "lightHintAt"))
+                for (key in setOf("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt", "pcStopAt", "leaveAt", "workStartAt", "lightHintAt")) optionalTimestamp(schedule, key)
                 if (schedule.has("homeOffice")) require(schedule.get("homeOffice") is Boolean) { "PC_PAYLOAD_INVALID" }
                 validatePreferences(payload.getJSONObject("prefs"))
                 if (payload.has("brainDump")) {
@@ -473,7 +497,7 @@ object PcBridgeClient {
                 validatePreferences(payload.getJSONObject("prefs"))
                 for (i in 0 until days.length()) {
                     val day = days.getJSONObject(i)
-                    exact(day, setOf("date", "validUntil", "pc"), setOf("bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt", "morning"))
+                    exact(day, setOf("date", "validUntil", "pc"), setOf("bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt", "morning", "lightHintAt"))
                     LocalDate.parse(day.getString("date")); PcLinkModel.timestamp(day.getString("validUntil"))
                     val pc = day.getJSONObject("pc"); exact(pc, setOf("mode"), setOf("stopAt", "localTime"))
                     require(pc.getString("mode") in setOf("scheduled", "paused")) { "PC_PAYLOAD_INVALID" }
@@ -481,7 +505,7 @@ object PcBridgeClient {
                         PcLinkModel.timestamp(pc.getString("stopAt"))
                         require(pc.getString("localTime").matches(Regex("(?:[01][0-9]|2[0-3]):[0-5][0-9]"))) { "PC_PAYLOAD_INVALID" }
                     } else require(pc.length() == 1) { "PC_PAYLOAD_INVALID" }
-                    for (key in setOf("bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt")) optionalTimestamp(day, key)
+                    for (key in setOf("bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt", "lightHintAt")) optionalTimestamp(day, key)
                     if (day.has("morning")) {
                         val morning = day.getJSONObject("morning"); exact(morning, setOf("homeOffice"), setOf("leaveAt", "workStartAt"))
                         require(morning.get("homeOffice") is Boolean) { "PC_PAYLOAD_INVALID" }; optionalTimestamp(morning, "leaveAt"); optionalTimestamp(morning, "workStartAt")
@@ -571,6 +595,7 @@ object PcBridgeClient {
 
     private fun closeSocket() {
         generation++; socket?.close(1000, "stopped"); socket = null; connected = false; connecting = false; awaitingEvents = false
+        reminderContext?.let { refreshReminderProof(it, null) }
     }
 
     private fun stateLocked(data: JSONObject): JSONObject {

@@ -1,5 +1,5 @@
 import { buildPcStopCommands } from '../pcStop'
-import { deriveGuidance } from '../guidance'
+import { deriveGuidance, eveningLightMinute } from '../guidance'
 import { addDays, zonedToUtc } from '../time'
 import type { DayLog, DayPlan, LocalData, Settings } from '../types'
 import type { PcBriefingPayload, PcLinkPreferences, PcStatePayload } from './types'
@@ -25,6 +25,7 @@ export function buildPcBriefing(plans: readonly DayPlan[], settings: Settings, p
     const wakeAt = zonedToUtc(addDays(plan.date, 1), morningPlan?.wake ?? settings.anchor.wake)
     const day: PcBriefingPayload['days'][number] = {
       date: plan.date, validUntil: pc.validUntil,
+      ...(eveningLightMinute(plan, settings) === undefined ? {} : { lightHintAt: iso(zonedToUtc(plan.date, eveningLightMinute(plan, settings)!)) }),
       pc: pc.mode === 'paused' ? { mode: 'paused' } : { mode: 'scheduled', stopAt: pc.stopAt, localTime: pc.localTime },
       ...(!plan.openEnd ? { bedAt: iso(bedAt), wakeAt: iso(wakeAt), windDownAt: iso(bedAt - 30 * 60000), brainDumpAt: iso(bedAt - 10 * 60000), morningDeadlineAt: iso(wakeAt + 3 * 3600000) } : {}),
     }
@@ -59,6 +60,7 @@ export function buildPcState(input: { plan: DayPlan; log?: DayLog; local: LocalD
   // A reconnect must never move the original night lease into another evening.
   const validUntil = night ? night[1].nightLockedAt! + 18 * 3600000 : Math.min(nowMs + 18 * 3600000, Math.max(nowMs + 60000, deadline))
   const schedule: PcStatePayload['schedule'] = {
+    ...(eveningLightMinute(plan, settings, input.log) === undefined ? {} : { lightHintAt: iso(zonedToUtc(plan.date, eveningLightMinute(plan, settings, input.log)!)) }),
     windDownAt: bedAt === null ? null : iso(bedAt - 30 * 60000), brainDumpAt: bedAt === null ? null : iso(bedAt - 10 * 60000), bedAt: bedAt === null ? null : iso(bedAt), wakeAt: iso(wakeAt), morningDeadlineAt: iso(deadline),
     pcStopAt: evening ? iso(zonedToUtc(plan.date, plan.pcStop)) : null,
     ...(prefs.morningCountdown && morningPlan ? { homeOffice: morningPlan.homeOffice, ...(morningPlan.workInfo ? { workStartAt: iso(zonedToUtc(morningPlan.date, morningPlan.workInfo.plannedStart)) } : {}), ...(morningPlan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(morningPlan.date, morningPlan.leave)) }) } : {}),

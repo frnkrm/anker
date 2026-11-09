@@ -1,5 +1,6 @@
 import { fmtTime, minutesOnPlanDay, utcToZoned, weekday, zonedToUtc } from '../time'
 import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowStep } from '../types'
+import { eveningLightMinute } from '../guidance/eveningLight'
 import { minuteText } from '../uiText'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
@@ -8,6 +9,7 @@ export interface ReminderPolicy {
   quietStart: number
   quietEnd: number
   ranges: { from: number; to: number }[]
+  pcConfirmation?: { revision: string; date: string; validUntil: number }
 }
 
 export function reminderPolicy(plans: DayPlan[], s: Settings): ReminderPolicy {
@@ -183,6 +185,8 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       escalate: true,
     })
   }
+  const lightMinute = eveningLightMinute(plan, s, log)
+  if (lightMinute !== undefined) out.push({ key: 'guidance-evening-light', at: lightMinute, channel: 'sanft', title: 'Warmes Licht für deinen Abend', body: 'Deckenlicht aus, warmes Licht an. Wenn es für dich passt.', escalate: false })
   if (s.support.windDown.enabled && !guidanceEveningEnabled && !log?.bedAt) {
     // Eine Uhrzeit nach Mitternacht gehört noch zum Abend dieses Plantags.
     const at = s.support.windDown.at < 4 * 60 ? s.support.windDown.at + 1440 : s.support.windDown.at

@@ -32,7 +32,7 @@ function preferences(local = localBridge()): PcLinkPreferences {
   return result
 }
 
-function snapshot(now = Date.now(), alarm?: { ringing: boolean; kind?: string | null }): PcStatePayload {
+export function pcBridgeSnapshot(now = Date.now(), alarm?: { ringing: boolean; kind?: string | null }): PcStatePayload {
   const state = useApp.getState()
   const date = guidancePlanDate(state.local, today(), now)
   return buildPcState({ plan: planFor(date, state), nextPlan: planFor(addDays(date, 1), state), log: state.days[date], settings: state.settings, local: state.local, prefs: preferences(), nowMs: now, alarm })
@@ -45,7 +45,7 @@ function briefingFor(wanted: PcStatePayload) {
 
 /** The preview uses the same builders and choices as actual delivery; it proves no receipt. */
 export async function getPcBridgePreview() {
-  const state = snapshot(Date.now(), isNative() ? await AnkerNative.getAlarmState() : undefined)
+  const state = pcBridgeSnapshot(Date.now(), isNative() ? await AnkerNative.getAlarmState() : undefined)
   return { state, briefing: briefingFor(state) }
 }
 
@@ -55,7 +55,7 @@ export async function getPcBridgeView(): Promise<PcBridgeView> {
   const ack = isPcAck(native.ack) ? native.ack : undefined
   const state = useApp.getState()
   if (!state.ready) return { ...native, ack, currentConfirmation: false, confirmationText: 'Die App lädt deinen aktuellen Plan.' }
-  const wanted = snapshot(Date.now(), await AnkerNative.getAlarmState())
+  const wanted = pcBridgeSnapshot(Date.now(), await AnkerNative.getAlarmState())
   const status = pcConnectionStatus({ nativeState: native.state, connected: native.connected, ack: native.ack, wanted, nowMs: Date.now() })
   return { ...native, ack, currentConfirmation: localBridge().enabled && status === 'confirmed', confirmationText: pcConnectionText({ ...localBridge(), status, ack }) }
 }
@@ -130,7 +130,7 @@ export async function updatePcBridgePreferences(patch: Partial<PcLinkPreferences
     const bridge = local.pcBridge ?? defaultPcBridgeLocal()
     const candidate = { ...bridge, preferences: { ...bridge.preferences, ...localPatch } }
     // Validate and merge inside the Store queue so simultaneous independent choices survive.
-    parsePcPayload({ ...snapshot(), prefs: { ...preferences(candidate), enforceEnabled: candidate.preferences.enforceEnabled } })
+    parsePcPayload({ ...pcBridgeSnapshot(), prefs: { ...preferences(candidate), enforceEnabled: candidate.preferences.enforceEnabled } })
     return { ...local, pcBridge: candidate }
   })
   await syncPcBridge()
@@ -192,7 +192,7 @@ const reconcilePcBridge = coalesceAsync(async () => {
   const now = Date.now()
   const alarm = await AnkerNative.getAlarmState()
   if (!samePair(generation)) return
-  const wanted = snapshot(now, alarm)
+  const wanted = pcBridgeSnapshot(now, alarm)
   const briefing = briefingFor(wanted)
   if (briefing.revision !== lastBriefingRevision) {
     const result = await AnkerNative.pcBridgeSend({ payload: briefing })
@@ -253,7 +253,7 @@ export async function requestPcEmergencyExtension(qr: string, minutes: number): 
   const generation = pairingGeneration
   await syncPcBridge()
   if (!samePair(generation)) return false
-  const expected = snapshot(Date.now(), await AnkerNative.getAlarmState())
+  const expected = pcBridgeSnapshot(Date.now(), await AnkerNative.getAlarmState())
   if (!samePair(generation) || !expected.prefs.strictLock || !expected.prefs.enforceEnabled) return false
   if (!expected.lockEnforced) {
     // An automatic PC night has no local bed-QR fact yet. Let the authenticated

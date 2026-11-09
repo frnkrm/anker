@@ -95,16 +95,16 @@ export function validatePcPayload(v: unknown): v is PcLinkPayload {
   }
   if (v.type === 'briefing') {
     if (!keys(v, ['type', 'revision', 'generatedAt', 'validUntil', 'days', 'prefs']) || !id(v.revision) || !pcInstant(v.generatedAt) || !pcInstant(v.validUntil) || !preferences(v.prefs) || !Array.isArray(v.days) || v.days.length < 1 || v.days.length > 14) return false
-    return v.days.every((d) => record(d) && keys(d, ['date', 'validUntil', 'pc'], ['bedAt', 'wakeAt', 'windDownAt', 'brainDumpAt', 'morningDeadlineAt', 'morning']) && pcDate(d.date) && pcInstant(d.validUntil)
+    return v.days.every((d) => record(d) && keys(d, ['date', 'validUntil', 'pc'], ['bedAt', 'wakeAt', 'windDownAt', 'brainDumpAt', 'morningDeadlineAt', 'lightHintAt', 'morning']) && pcDate(d.date) && pcInstant(d.validUntil)
       && record(d.pc) && keys(d.pc, ['mode'], ['stopAt', 'localTime']) && one(d.pc.mode, ['scheduled', 'paused']) && (d.pc.mode === 'paused' ? d.pc.stopAt === undefined && d.pc.localTime === undefined : pcInstant(d.pc.stopAt) && typeof d.pc.localTime === 'string' && /^\d{2}:\d{2}$/.test(d.pc.localTime))
-      && ['bedAt', 'wakeAt', 'windDownAt', 'brainDumpAt', 'morningDeadlineAt'].every((k) => optional(d, k, pcInstant))
+      && ['bedAt', 'wakeAt', 'windDownAt', 'brainDumpAt', 'morningDeadlineAt', 'lightHintAt'].every((k) => optional(d, k, pcInstant))
       && optional(d, 'morning', (m) => record(m) && keys(m, ['homeOffice'], ['leaveAt', 'workStartAt']) && bool(m.homeOffice) && optional(m, 'leaveAt', pcInstant) && optional(m, 'workStartAt', pcInstant)))
   }
   if (v.type !== 'state' || !keys(v, ['type', 'state', 'sessionId', 'revision', 'date', 'generatedAt', 'validUntil', 'remainingSeconds', 'routineStep', 'lockEnforced', 'schedule', 'prefs'], ['brainDump'])) return false
   if (!one(v.state, ['DAY_ACTIVE', 'IDLE', 'MORNING_PENDING', 'MORNING_ACTIVE', 'MORNING_COMPLETED', 'ALARM_RINGING', 'EVENING_WIND_DOWN', 'WIND_DOWN_T30', 'BRAIN_DUMP_T10', 'BEDTIME_HARD_CUT', 'NIGHT_LOCK', 'ZOMBIE_MODE']) || !id(v.sessionId) || !id(v.revision) || !pcDate(v.date) || !pcInstant(v.generatedAt) || !pcInstant(v.validUntil) || !integer(v.remainingSeconds, 0, 64800) || !bool(v.lockEnforced) || !preferences(v.prefs)) return false
   if (v.routineStep !== null && !(record(v.routineStep) && keys(v.routineStep, ['index', 'total']) && integer(v.routineStep.total, 1, 200) && integer(v.routineStep.index, 0, Number(v.routineStep.total) - 1))) return false
   const s = v.schedule
-  if (!record(s) || !keys(s, ['windDownAt', 'brainDumpAt', 'bedAt', 'wakeAt', 'morningDeadlineAt'], ['pcStopAt', 'leaveAt', 'workStartAt', 'homeOffice']) || !['windDownAt', 'brainDumpAt', 'bedAt', 'wakeAt', 'morningDeadlineAt'].every((k) => nullableInstant(s[k])) || !['pcStopAt', 'leaveAt', 'workStartAt'].every((k) => optional(s, k, nullableInstant)) || !optional(s, 'homeOffice', bool)) return false
+  if (!record(s) || !keys(s, ['windDownAt', 'brainDumpAt', 'bedAt', 'wakeAt', 'morningDeadlineAt'], ['pcStopAt', 'leaveAt', 'workStartAt', 'homeOffice', 'lightHintAt']) || !['windDownAt', 'brainDumpAt', 'bedAt', 'wakeAt', 'morningDeadlineAt'].every((k) => nullableInstant(s[k])) || !['pcStopAt', 'leaveAt', 'workStartAt'].every((k) => optional(s, k, nullableInstant)) || !optional(s, 'homeOffice', bool) || !optional(s, 'lightHintAt', pcInstant)) return false
   if (Date.parse(v.validUntil) <= Date.parse(v.generatedAt) || Date.parse(v.validUntil) - Date.parse(v.generatedAt) > 18 * 3600000) return false
   if (typeof s.wakeAt === 'string' && typeof s.morningDeadlineAt === 'string' && (Date.parse(s.morningDeadlineAt) < Date.parse(s.wakeAt) || Date.parse(s.morningDeadlineAt) - Date.parse(s.wakeAt) > 3 * 3600000)) return false
   if (v.brainDump !== undefined && !(record(v.prefs) && v.prefs.shareBrainDump === true && record(v.brainDump) && keys(v.brainDump, ['text'], ['nextStep']) && text(v.brainDump.text) && optional(v.brainDump, 'nextStep', text))) return false

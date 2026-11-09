@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
+import { guidancePreferences } from '../core/guidance'
+import { defaultPcBridgeLocal } from '../core/pcLink'
+import { pcBridgeSnapshot } from './pcLink'
 import { buildReminders } from '../core/reminders/build'
 import { addDays, zonedToUtc } from '../core/time'
 import { MemoryRepository } from '../data/memory'
@@ -13,11 +16,12 @@ const mocks = vi.hoisted(() => ({
   read: vi.fn<AnkerNativePlugin['drainReminderActions']>(),
   ack: vi.fn<AnkerNativePlugin['ackReminderActions']>(),
   sync: vi.fn<AnkerNativePlugin['syncReminders']>(),
+  alarm: vi.fn(async () => ({ ringing: false })),
   listener: vi.fn<AnkerNativePlugin['addListener']>(),
 }))
 vi.mock('../data', () => ({ getRepository: async () => mocks.repo! }))
 vi.mock('./native', () => ({
-  AnkerNative: { drainReminderActions: mocks.read, ackReminderActions: mocks.ack, syncReminders: mocks.sync, addListener: mocks.listener },
+  AnkerNative: { getAlarmState: mocks.alarm, drainReminderActions: mocks.read, ackReminderActions: mocks.ack, syncReminders: mocks.sync, addListener: mocks.listener },
   isNative: () => true,
   safe: async <T>(fn: () => Promise<T>, fallback: T) => { try { return await fn() } catch { return fallback } },
 }))
@@ -50,6 +54,25 @@ function bedAction(): ReminderActionInfo {
 }
 
 describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen', () => {
+  it('hält alle PC-/Bettregeln und liefert nur nach eigener Wahl die exakte aktuelle PC-Revision als Bedingung', async () => {
+    await useApp.getState().saveSettings(s => ({ ...s, onboarded: true, guidance: { ...guidancePreferences(), enabled: true, suppressPhonePcWhenConfirmed: true } }))
+    await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...defaultPcBridgeLocal(), enabled: true } }))
+    await rescheduleAll()
+    const request = mocks.sync.mock.calls.at(-1)![0]
+    const expected = pcBridgeSnapshot(Date.now(), { ringing: false })
+    expect(request.policy?.pcConfirmation).toEqual({ revision: expected.revision, date: expected.date, validUntil: Date.parse(expected.validUntil) })
+    expect(request.reminders.some(r => r.key === 'pcstop' && r.date === date)).toBe(true)
+    expect(request.reminders.some(r => r.key === 'pcstop' && r.date === addDays(date, 1))).toBe(true)
+    expect(request.reminders.some(r => r.key === 'bed' && r.date === date)).toBe(true)
+    expect(request.ruleSnapshot?.rules.some(r => r.key === 'pcstop')).toBe(true)
+    await useApp.getState().saveSettings(s => ({ ...s, pcStop: s.pcStop + 15 }))
+    await rescheduleAll()
+    expect(mocks.sync.mock.calls.at(-1)![0].policy?.pcConfirmation?.revision).not.toBe(expected.revision)
+    await useApp.getState().saveSettings(s => ({ ...s, guidance: { ...guidancePreferences(s.guidance), suppressPhonePcWhenConfirmed: false } }))
+    await rescheduleAll()
+    expect(mocks.sync.mock.calls.at(-1)![0].policy?.pcConfirmation).toBeUndefined()
+  })
+
   it('verliert einen neuen Drain am Ende einer leeren Abfrage nicht', async () => {
     const first = drainActions()
     // Die leere Bridge-Antwort ist eingetroffen, ihr Abschluss läuft noch in Microtasks.

@@ -29,7 +29,7 @@ export interface NativeReminderRuleSnapshot {
 }
 
 const REFERENCE_MONDAY = '2026-01-05'
-const BASE_RULE_KEYS = new Set(['leave', 'latest-leave', 'latest-start', 'pcstop', 'bed', 'meds', 'guidance-wind-down', 'guidance-brain-dump'])
+const BASE_RULE_KEYS = new Set(['leave', 'latest-leave', 'latest-start', 'pcstop', 'bed', 'meds', 'guidance-wind-down', 'guidance-brain-dump', 'guidance-evening-light'])
 
 function validDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
