@@ -127,12 +127,14 @@ export function PcCompanionPanel() {
       {preview && <>
         <p className="text-sm text-muted">Vorbereitet am {time(preview.state.generatedAt)} · {PHASE_TEXT[preview.state.state]}{preview.state.routineStep ? ` · Schritt ${preview.state.routineStep.index + 1} von ${preview.state.routineStep.total}` : ''}.</p>
         <p className="text-sm text-muted">PC-Eingriffe {preview.state.prefs.enforceEnabled ? 'freigegeben' : 'aus'} · Abdunklung {preview.state.prefs.dimEnabled ? 'freigegeben' : 'aus'} · Audio {preview.state.prefs.audioDuck ? 'freigegeben' : 'aus'} · Abendnotiz {preview.state.prefs.shareBrainDump ? 'zur Übertragung freigegeben' : 'bleibt auf dem Handy'}.</p>
+        <p className="text-sm text-muted">{preview.state.prefs.bedtimeSequence ? 'Die Drei-Phasen-Begleitung folgt deiner Bettzeit: 30 und 10 Minuten vorher, danach deine Speicherfrist. Deine normale PC-Stoppzeit bleibt für den klassischen Weg erhalten.' : 'Der PC-Begleiter folgt deiner PC-Stoppzeit mit Vorhinweisen und anschließender Speicherfrist.'}</p>
         {preview.state.prefs.ifThen && <blockquote className="break-words border-l-2 border-line pl-3 text-sm">Dein freigegebener Wenn-dann-Satz: {preview.state.prefs.ifThen}</blockquote>}
         {preview.state.brainDump && <blockquote className="space-y-1 break-words border-l-2 border-line pl-3 text-sm"><p>Freigegebene Abendnotiz: {preview.state.brainDump.text}</p>{preview.state.brainDump.nextStep && <p>Nächster Schritt: {preview.state.brainDump.nextStep}</p>}</blockquote>}
         <ol className="space-y-3" aria-label="Vorbereitete PC-Tage">{preview.briefing.days.map(day => <li key={day.date} className="min-w-0 rounded-xl border border-line p-3">
           <h3 className="break-words font-medium">{new Date(`${day.date}T12:00:00Z`).toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit' })}</h3>
           <dl className="mt-2 space-y-2 text-sm">{[
             ['PC-Stopp', day.pc.mode === 'paused' ? 'ohne festen Stopp' : day.pc.stopAt ? time(day.pc.stopAt) : 'noch ohne Zeit'],
+            ['Speicherfrist am PC ab', day.pc.mode === 'paused' ? 'ohne festen Stopp' : preview.state.prefs.bedtimeSequence ? day.bedAt ? time(day.bedAt) : 'offen' : day.pc.stopAt ? time(day.pc.stopAt) : 'noch ohne Zeit'],
             ['Bett', day.bedAt ? time(day.bedAt) : 'offen'], ['Aufstehen', day.wakeAt ? time(day.wakeAt) : 'ohne festen Wert'],
             ['Plan gültig bis', time(day.validUntil)],
           ].map(([label, value]) => <div key={label} className="space-y-1"><dt className="font-medium">{label}</dt><dd className="break-words text-muted">{value}</dd></div>)}

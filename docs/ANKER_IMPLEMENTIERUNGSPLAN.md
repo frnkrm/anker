@@ -2,6 +2,21 @@
 
 ## Anker v7 – PC-Begleiter, Abend und Morgen (09.11.2026)
 
+### Erneuter Auftragsabgleich und gezielte Folgekorrekturen
+
+Der erneut angehängte Auftrag ist bytegleich (`3fbcae2adf023dcedb3e551070ac20522fc8f7e4d3167ee85f762868499f2554`). Ausgang dieses Folgeaudits ist `ad91ca2`; alle 368 Laufzeit-Eingaben und 63 Produktionsdateien stimmten vor Änderungen mit den bisherigen Nachweisen überein. Die bisherigen Abschlusszahlen darunter gelten weiterhin für ihren damaligen Stand, nicht als frische Prüfung der folgenden Korrekturen.
+
+| Konkretes Delta | Integration ohne neue Planungsdatenbank | Neuer Nachweis |
+|---|---|---|
+| PC-Fortschrittsleiste verschwindet bei leerer Speicherfrist; Overlay ohne Phasentitel/Sekunden | Anzeige verwendet verbleibende Abendzeit bis zum Übergang, danach die echte Speicherfrist; Titel und Sekunden werden aktualisiert | Engine-geformte UI-Grenztests, echter 60→59→0-Verlauf ohne Windows-Systemwirkung |
+| Verschiedene PC-/Bettzeiten überspringen T10 | Gewählte v7-Abendfolge über optionales `bedtimeSequence` an Bett binden; normaler PC-Stopp behält seine Zeit und vollständige Vorphasen | Beide Zeitmodi und Verlängerungen in denselben Python-/Wire-Prüfungen |
+| Automatische PC-Nacht ohne Handy-Bett-QR verhindert QR-Verlängerung | Frischer authentifizierter PC-ACK ergänzt den bereits vorhandenen Handy-Nachtbeleg; QR, Zustimmung, Sitzung und ursprüngliche Frist bleiben verpflichtend | Native Gate-Grenzfälle, verspäteter ACK und verschlüsselte Serverfälle nach 04 Uhr |
+| +15 Bettverlängerung erhält erneut Bildschirm-aus-Puffer | Explizites `extended.anchor=bed` auf vorhandenes `lateUntil` zurückführen; vorhandener Planner bleibt maßgeblich | Tatsächlicher Planner-Rundweg, Mitternacht, neue Handywahl und atomarer Retry/Replay |
+| Morgen-Zombie verkleinert auch den Abend | Morgenumfang im vorhandenen Override/Fokus begrenzen; Abend-Fokus/IDs/Haken/Spielstand und alte Unterstützung erhalten | Planner-/Store- und bestehende Routine-Layoutfälle |
+| Unerledigter Morgen verdrängt T30/T10/Hard-Cut | Bestehendes Morgenanzeigefenster beachten; offene Daten nicht erledigen oder löschen, echte Nachtbindung erhalten | Uhrverlauf bis zum Abend und persistierter offener Fokus |
+
+**Status der Folgekorrekturen:** implementiert, gemeinsame automatische Abschlussprüfung läuft. G100–G102 wurden innerhalb der vorhandenen sieben Prüfcluster aktualisiert; keine neuen Testpflichten oder automatischen Geräte-Häkchen. Keine neue APK, Veröffentlichung, Signatur oder Version abgeleitet.
+
 **Phase 1 abgeschlossen; Phase 2–4 implementiert und lokal gemeinsam automatisch geprüft.** Ausgang `main`/`0084063345791302bb414d930ee066d777dc57cf`, App 1.4.0-rc.1/Code14. Root-Arbeitsbaum war sauber. Keine geltende AGENTS-Datei vorgefunden; kurze Verweisdatei neu angelegt. README, CLAUDE, Struktur, Anleitung, Changelog, aktueller Plan und v7-Anhang geprüft; bestehender Daten-/Wecker-/Fokus-/PC-Pfad an konkretem Code auditiert. Der Anhang liegt bytegleich unter `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`. Sicherung des getrackten Ausgangscodes: `/workspace/.cache/anker/v7/baseline-main-0084063.tar.gz`, SHA256 `fe04d501f291e97e3397fa5ac4f53725c936f94cfda078f122fbeea2ddf87f79`. Kein Export vom Handy, keine Änderung seiner Daten. **Kein Versionswechsel, neuer APK-Build zur Verteilung, Signieren, Push oder Release aus diesem Auftrag abgeleitet.**
 
 **Arbeitsverzeichnis/Branch:** `/workspace/anker`, `entwicklung/anker-v7-pc`. Reine Baseline im detached Worktree `/workspace/anker-v7-baseline`. Kern, Android, PC-Begleiter, PC-Transport und UI schreiben ausschließlich in eigenen v7-Worktrees und werden nacheinander integriert. Keine parallelen schreibenden Agenten im selben Arbeitsbaum.

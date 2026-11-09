@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import type { LocalData, Settings } from '../src/core/types'
+import { guidancePreferences } from '../src/core/guidance'
 import { chooseValue, choiceValues } from './helpers/controls'
 import { seedRecords, storedRecord } from './helpers/storage'
 
@@ -59,6 +60,27 @@ test('PC-Einstellungen bleiben bei 320 Pixeln und 160 Prozent Schrift lesbar; un
   await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
   await expect(panel.getByRole('list', { name: 'Vorbereitete PC-Tage', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321)
+})
+
+test('Gewählte Abendbegleitung zeigt Bettzeit als PC-Grenze und erhält die separate Standard-PC-Zeit', async ({ page }) => {
+  await onboard(page)
+  const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  settings.bed = 23 * 60; settings.pcStop = 22 * 60 + 30
+  settings.anchor.manual = { ...settings.anchor.manual, bed: true, pcStop: true }
+  settings.guidance = { ...guidancePreferences(), enabled: true, eveningEscalation: true }
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
+  await page.goto('/pc-stopp')
+  const panel = page.getByRole('region', { name: 'Lokaler PC-Begleiter', exact: true })
+  await panel.getByText('Was weiß dein PC?', { exact: true }).click()
+  await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
+  await expect(panel).toContainText('folgt deiner Bettzeit')
+  const day = panel.getByRole('list', { name: 'Vorbereitete PC-Tage', exact: true }).getByRole('listitem').first()
+  await expect(day.getByText('PC-Stopp', { exact: true }).locator('..').locator('dd')).toContainText('22:30')
+  await expect(day.getByText('Speicherfrist am PC ab', { exact: true }).locator('..').locator('dd')).toContainText('23:00')
+  const saved = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  expect(saved.pcStop).toBe(22 * 60 + 30)
+  expect(saved.bed).toBe(23 * 60)
+  expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.pcBridge?.enabled ?? false).toBe(false)
 })
 
 test('Die v7-Kurzrunde nutzt sieben vorhandene Berichtplätze und bewahrt die Standard-Kurzrunde', async ({ page }) => {

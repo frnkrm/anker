@@ -21,6 +21,31 @@ async function closeSheets(page: Page) {
   await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
 }
 
+test('Ein offener Morgen bleibt gespeichert und lässt abends den Gedankenparkplatz zu', async ({ page }) => {
+  const settings = await onboard(page, '07:00')
+  settings.guidance = { ...guidancePreferences(), enabled: true, eveningEscalation: true, autoZombie: true }
+  settings.bed = 23 * 60; settings.pcStop = 22 * 60 + 30
+  settings.anchor.manual = { ...settings.anchor.manual, bed: true, pcStop: true }
+  settings.routines.morning = [{ id: 'unfinished', title: 'Ein Glas Wasser', minutes: 1 }]
+  settings.sport.days = []
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
+  await page.goto('/fokus/morning')
+  await expect(page.getByRole('heading', { name: 'Ein Glas Wasser', exact: true })).toBeVisible()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.focus?.timer.status).toBe('running')
+  const stored = (await storedRecord<LocalData>(page, 'meta', 'local')) ?? emptyLocal()
+  stored.guidance = { receipts: [], days: { [DATE]: { alarmOccurrenceId: 'morning', alarmAt: at(DATE, '07:00').getTime(), morningActivatedAt: at(DATE, '07:00').getTime() } } }
+  await seedRecords(page, [{ collection: 'meta', id: 'local', data: stored }])
+  await page.clock.setFixedTime(at(DATE, '22:50'))
+  await page.goto('/')
+  await expect(page.getByRole('dialog', { name: 'Für morgen parken', exact: true })).toBeVisible()
+  const after = (await storedRecord<LocalData>(page, 'meta', 'local'))!
+  expect(after.focus).toEqual(stored.focus)
+  const log = await storedRecord<DayLog>(page, 'days', DATE)
+  expect(after.guidance?.days[DATE]?.morningCompletedAt).toBeUndefined()
+  expect(log?.override.zombie).not.toBe(true)
+  expect(log?.steps['morning:unfinished']).toBeUndefined()
+})
+
 test('Begleitung ist ausgeschaltet und bewusste Auswahl sowie Kernschritte bleiben gespeichert', async ({ page }) => {
   const before = await onboard(page)
   await page.goto('/einstellungen/begleitung')

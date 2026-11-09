@@ -1,6 +1,6 @@
 import { coalesceAsync } from '../core/coalesced'
 import { guidancePlanDate, guidancePreferences } from '../core/guidance'
-import { buildPcBriefing, buildPcState, defaultPcBridgeLocal, isPcAck, isPcLinkEvent, parsePairingCode, parsePcPayload, pcConnectionStatus, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcEventsPayload, type PcLinkPreferences, type PcStatePayload } from '../core/pcLink'
+import { buildPcBriefing, buildPcState, defaultPcBridgeLocal, isPcAck, isPcLinkEvent, matchingPcAck, parsePairingCode, parsePcPayload, pcConnectionStatus, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcEventsPayload, type PcLinkPreferences, type PcStatePayload } from '../core/pcLink'
 import { addDays } from '../core/time'
 import { planFor, today, useApp } from '../state/store'
 import { AnkerNative, isNative } from './native'
@@ -26,7 +26,10 @@ function preferences(local = localBridge()): PcLinkPreferences {
   const state = useApp.getState()
   const guidance = guidancePreferences(state.settings.guidance)
   const ifThen = state.local.guidance?.ifThen
-  return { ...local.preferences, enforceEnabled: local.enabled && local.preferences.enforceEnabled, strictLock: guidance.enabled && guidance.pcLock, ...(ifThen?.showOnPc && ifThen.sentence.trim() ? { ifThen: ifThen.sentence } : {}) }
+  const result: PcLinkPreferences = { ...local.preferences, enforceEnabled: local.enabled && local.preferences.enforceEnabled, strictLock: guidance.enabled && guidance.pcLock, ...(ifThen?.showOnPc && ifThen.sentence.trim() ? { ifThen: ifThen.sentence } : {}) }
+  if (guidance.enabled && guidance.eveningEscalation) result.bedtimeSequence = true
+  else delete result.bedtimeSequence
+  return result
 }
 
 function snapshot(now = Date.now(), alarm?: { ringing: boolean; kind?: string | null }): PcStatePayload {
@@ -121,8 +124,8 @@ export async function unpairPcCompanion(): Promise<void> {
 }
 
 export async function updatePcBridgePreferences(patch: Partial<PcLinkPreferences>): Promise<void> {
-  const { strictLock, ifThen, ...localPatch } = patch
-  if (strictLock !== undefined || ifThen !== undefined) throw new Error('Die strenge Nachtbegleitung wird in Abend & Morgen gewählt.')
+  const { strictLock, ifThen, bedtimeSequence, ...localPatch } = patch
+  if (strictLock !== undefined || ifThen !== undefined || bedtimeSequence !== undefined) throw new Error('Abendfolge und Nachtschutz werden in Abend & Morgen gewählt.')
   await useApp.getState().saveLocal(local => {
     const bridge = local.pcBridge ?? defaultPcBridgeLocal()
     const candidate = { ...bridge, preferences: { ...bridge.preferences, ...localPatch } }
@@ -247,12 +250,33 @@ export async function sendPcBridgeCommand(action: PcCommandPayload['action'], mi
 
 export async function requestPcEmergencyExtension(qr: string, minutes: number): Promise<boolean> {
   if (!isNative() || !localBridge().enabled) return false
+  const generation = pairingGeneration
   await syncPcBridge()
+  if (!samePair(generation)) return false
+  const expected = snapshot(Date.now(), await AnkerNative.getAlarmState())
+  if (!samePair(generation) || !expected.prefs.strictLock || !expected.prefs.enforceEnabled) return false
+  if (!expected.lockEnforced) {
+    // An automatic PC night has no local bed-QR fact yet. Let the authenticated
+    // state ACK arrive before asking native code to verify and sign the fresh scan.
+    const ackDeadline = Date.now() + 2000
+    let confirmed = false
+    do {
+      const view: NativePcView = await AnkerNative.pcBridgeGetState()
+      if (!samePair(generation)) return false
+      if (view.connected && matchingPcAck(view.ack, expected, Date.now())
+        && ['locked', 'scheduled'].includes(view.ack.effective.mode) && !view.ack.warnings.length) { confirmed = true; break }
+      if (!view.connected) return false
+      await waitTick()
+    } while (Date.now() < ackDeadline)
+    if (!confirmed) return false
+  }
   const request = await AnkerNative.pcBridgeEmergency({ qr, minutes })
+  if (!samePair(generation)) return false
   if (!request.sent) return false
   const deadline = Date.now() + 5000
   do {
     const view: NativePcView = await AnkerNative.pcBridgeGetState()
+    if (!samePair(generation)) return false
     const ack = view.emergencyAck
     if (ack && ack.commandId === request.tokenId && ack.until === request.until && ack.until > Date.now()) {
       const state = useApp.getState()

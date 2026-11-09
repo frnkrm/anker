@@ -41,11 +41,11 @@ export function base64UrlBytes(value: string): Uint8Array {
 export function bytesBase64Url(value: Uint8Array): string { return btoa(Array.from(value, (v) => String.fromCharCode(v)).join('')).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '') }
 
 function preferences(v: unknown): boolean {
-  return record(v) && keys(v, ['enforceEnabled', 'strictLock', 'dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['ifThen'])
+  return record(v) && keys(v, ['enforceEnabled', 'strictLock', 'dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['ifThen', 'bedtimeSequence'])
     && ['enforceEnabled', 'strictLock', 'dimEnabled', 'audioDuck', 'shareBrainDump', 'morningCountdown'].every((k) => bool(v[k]))
     && typeof v.dimMax === 'number' && Number.isFinite(v.dimMax) && v.dimMax >= 0 && v.dimMax <= 0.4
     && one(v.offlinePolicy, ['pause', 'fixed-time']) && one(v.stopAction, ['lock', 'hibernate', 'shutdown']) && integer(v.graceSeconds, 60, 600)
-    && optional(v, 'ifThen', (s) => text(s))
+    && optional(v, 'ifThen', (s) => text(s)) && optional(v, 'bedtimeSequence', bool)
 }
 export function isPcAck(v: unknown): v is PcAck {
   return record(v) && keys(v, ['type', 'revision', 'receivedAt', 'effective', 'companion', 'warnings'], ['commandId', 'emergencyUntil']) && v.type === 'ack' && id(v.revision) && pcInstant(v.receivedAt)
@@ -55,9 +55,10 @@ export function isPcAck(v: unknown): v is PcAck {
     && Array.isArray(v.warnings) && v.warnings.length <= PC_ACK_WARNINGS.length && v.warnings.every((w) => one(w, PC_ACK_WARNINGS))
 }
 export function isPcLinkEvent(v: unknown): v is PcLinkEvent {
-  if (!record(v) || !keys(v, ['id', 'seq', 'at', 'date', 'kind'], ['basis', 'newStopAt', 'text', 'nextStep']) || !id(v.id) || !integer(v.seq, 1) || !pcInstant(v.at) || !pcDate(v.date) || !one(v.kind, PC_EVENT_KINDS)) return false
+  if (!record(v) || !keys(v, ['id', 'seq', 'at', 'date', 'kind'], ['basis', 'newStopAt', 'text', 'nextStep', 'anchor']) || !id(v.id) || !integer(v.seq, 1) || !pcInstant(v.at) || !pcDate(v.date) || !one(v.kind, PC_EVENT_KINDS)) return false
   if (!optional(v, 'basis', (s) => one(s, ['anker-shutdown', 'user-shutdown', 'sleep', 'lock', 'logoff', 'idle'])) || !optional(v, 'newStopAt', pcInstant) || !optional(v, 'text', text) || !optional(v, 'nextStep', text)) return false
-  return (v.kind !== 'extended' || pcInstant(v.newStopAt)) && (!one(v.kind, ['save-point', 'thought']) || typeof v.text === 'string' && !!v.text.trim())
+  return optional(v, 'anchor', value => v.kind === 'extended' && one(value, ['bed', 'pc-stop']))
+    && (v.kind !== 'extended' || pcInstant(v.newStopAt)) && (!one(v.kind, ['save-point', 'thought']) || typeof v.text === 'string' && !!v.text.trim())
 }
 /** This container is deliberately incapable of holding a native key, pin or pairing code. */
 export function validPcBridgeLocal(v: unknown): v is PcBridgeLocal {

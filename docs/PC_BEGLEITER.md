@@ -74,7 +74,7 @@ Die Handyoptionen liegen unter **Einstellungen → Abend & Morgen begleiten**. D
 | 30 Minuten vorher | Warmer Übergang, sichtbare verbleibende Zeit; optionaler PC-Schleier |
 | 10 Minuten vorher | Gedanken für morgen parken, Speicherpunkt setzen; auf Wunsch den PC-Ton langsam reduzieren |
 | Bettzeit | Nächsten kleinen Abend-Schritt zeigen; bei gewählter QR-Bestätigung deinen Anker-Code scannen |
-| Eigene PC-Stoppzeit | Bei freigegebenem PC-Eingriff zunächst mindestens **60 Sekunden zum Speichern**, danach die gewählte Aktion |
+| Gewählte PC-Grenze | Mit der Drei-Phasen-Begleitung ist dies die Bettzeit, sonst die eigene PC-Stoppzeit. Zunächst mindestens **60 Sekunden sichtbar zum Speichern**, danach die gewählte Aktion |
 | Nach der bewussten Abendbestätigung | Optional lokales Brown Noise mit Ausblendung; der Scan bestätigt den Übergang, keinen tatsächlichen Schlaf |
 
 Der Speicherpunkt ist eine Notiz, zum Beispiel „Dokument gespeichert; morgen bei Absatz 3 weiter“. Anker speichert keine anderen Programme für dich. Bei gewähltem Herunterfahren lautet der Windows-Aufruf nach dem eigenen Countdown `shutdown /s /t 0`, niemals mit `/f`. Ungespeicherte Programme können das verhindern; rechtzeitig selbst speichern bleibt nötig.
@@ -83,11 +83,13 @@ Im normalen Modus kannst du **+15 Minuten**, **+30 Minuten** oder **Heute ohne P
 
 Im gesondert gewählten strengen Modus wird eine Notverlängerung am Handy über deinen vorhandenen **Anker-QR** bestätigt. Der PC kann das dafür nötige signierte Token nicht selbst erzeugen. Erst die passende Empfangsbestätigung mit Zielzeit bestätigt die Verlängerung. NFC wird in diesem Arbeitsstand nicht als eigener neuer Einrichtungsweg angeboten.
 
-Die eigene PC-Stoppzeit bleibt von der Bettzeit getrennt. Vorbereitete Morgenzeiten gehören zum tatsächlichen nächsten Morgen, einschließlich seiner Arbeits- oder Homeoffice-Auswahl. Der PC erzeugt keine eigenen Ersatzzeiten.
+Die gespeicherte PC-Stoppzeit bleibt von der Bettzeit getrennt. Schaltest du die drei Abendphasen ein, folgt der lokale Begleiter der Bettzeit mit den vollständigen Vorwarnungen 30 und 10 Minuten davor. Ohne diese Wahl folgt er der normalen PC-Stoppzeit mit denselben Vorabständen. Die Vorschau **Was weiß dein PC?** zeigt beide Zeiten und den tatsächlichen Beginn der Speicherfrist. Eine Verlängerung verschiebt die ganze Folge; 15 Minuten zusätzliche Bettzeit erhalten nicht nochmals den Bildschirm-aus-Puffer. Vorbereitete Morgenzeiten gehören zum tatsächlichen nächsten Morgen, einschließlich seiner Arbeits- oder Homeoffice-Auswahl. Der PC erzeugt keine eigenen Ersatzzeiten.
 
 **Bei Verbindungsunterbrechung:** Nach 90 Sekunden ohne authentifizierten Kontakt greift die gewählte Offline-Regel. „Pause“ setzt neue Wirkungen aus; „Vorbereitete Zeiten“ verwendet nur den ausdrücklich gelieferten, noch gültigen Eintrag des passenden Berliner Plantags. Der Vorrat reicht bis zu 14 Tage. Ein fehlender, abgelaufener oder als offen markierter Tag wird nicht durch den Vortag ersetzt. Eine schon beiderseits freigegebene strenge Nacht bleibt innerhalb ihrer ursprünglichen Frist geschützt. Diese Frist endet spätestens drei Stunden nach der vorbereiteten Weckzeit und nie später als die ursprüngliche, höchstens 18 Stunden gültige Nachtfreigabe. Ein späterer Abgleich verlängert sie nicht still.
 
 Ein ausdrücklich gewählter strenger PC-Abend kann auch ohne vorherigen Handy-Bettscan an der gelieferten Grenze beginnen. Der echte Abschluss des zugehörigen Morgens gibt ihn dennoch frei; ein späterer Bett-QR oder Tageswechsel erzeugt keine unbegrenzte neue Sperre. Eine erledigte Abendroutine allein bestätigt weder Bettzeit noch Schlaf und unterdrückt deshalb die späteren T30-/T10-/Bett-Hinweise nicht.
+
+Eine QR-Notverlängerung braucht dafür keinen zusätzlichen vorbereitenden Bett-Scan: Bei einer automatisch begonnenen PC-Nacht prüft das Handy zuerst die frische, passende PC-Bestätigung. Erst der gescannte Anker-QR, die gewählten Freigaben und die noch gültige ursprüngliche Nachtfrist erlauben ein signiertes Token. Ohne Bestätigung wird keine erfolgreiche Verlängerung angezeigt.
 
 **Beenden bleibt möglich.** Das Hauptfenster und das Tray bieten einen sichtbaren Ausgang. Der Begleiter blockiert keine Systemtasten, erhebt sich nicht zum Administrator und entsperrt Windows niemals selbst. Der echte Abschluss der Morgenroutine beendet lediglich den Wieder-Sperrwächter; anmelden musst du dich weiterhin selbst. Optionales Wake-on-LAN kann einen entsprechend eingerichteten PC wecken, keine Windows-Anmeldung ersetzen.
 

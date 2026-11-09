@@ -39,6 +39,14 @@ describe('PC-Protokoll v3: deterministische sprachübergreifende Kryptofikstur',
 })
 
 describe('PC-Datengrenze', () => {
+  it('bewahrt alte Verlängerungen und bindet die neue Bettzeit nur an ausdrückliche Erweiterungsereignisse', () => {
+    const event = { id: 'extension', seq: 1, at: fixture.envelope.sentAt, date: '2026-11-12', kind: 'extended', newStopAt: '2026-11-12T23:15:00Z' }
+    const message = (value: unknown) => ({ type: 'events', lastSeq: 1, items: [value] })
+    expect(() => parsePcPayload(message(event))).not.toThrow()
+    for (const anchor of ['bed', 'pc-stop']) expect(() => parsePcPayload(message({ ...event, anchor }))).not.toThrow()
+    expect(() => parsePcPayload(message({ ...event, anchor: 'unknown' }))).toThrow('PC_LINK_INVALID')
+    expect(() => parsePcPayload(message({ ...event, kind: 'pc-rest', anchor: 'bed' }))).toThrow('PC_LINK_INVALID')
+  })
   it.each(['2026-02-30T12:00:00Z', '2026-11-12T24:00:00Z', '2026-11-12T23:60:00Z', '2026-11-12T23:59:60Z', '2026-11-12T23:59:00+24:00', '2026-11-12T23:59:00+01:60', '2026-11-12 12:00:00', '2026-11-12T12:00:00'])('weist ungültigen Zeitpunkt zurück: %s', value => expect(pcInstant(value)).toBe(false))
   it.each(['2026-11-12T23:59:59Z', '2026-11-12T23:59:59.123+01:00'])('akzeptiert eindeutigen ISO-Zeitpunkt %s', value => expect(pcInstant(value)).toBe(true))
   it('schneidet Emoji nie entzwei und übernimmt keine Steuerzeichen', () => {

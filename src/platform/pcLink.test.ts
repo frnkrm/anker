@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
 import { buildDayPlan } from '../core/planner'
+import { DEFAULT_GUIDANCE } from '../core/guidance'
 import { defaultPcBridgeLocal, type PcAck, type PcEventsPayload, type PcStatePayload } from '../core/pcLink'
 import type { DayLog, LocalData, Settings } from '../core/types'
 
@@ -15,6 +16,13 @@ vi.mock('../state/store', () => ({ useApp: { getState: () => mocks.state }, toda
 
 const at = Date.parse('2026-11-09T19:00:00Z')
 const local = () => mocks.state.local as LocalData
+function enableNightProtection(eveningEscalation = false) {
+  const settings = mocks.state.settings as Settings
+  settings.guidance = { ...DEFAULT_GUIDANCE, enabled: true, pcLock: true, eveningEscalation }
+  settings.pcStop = 19 * 60 + 30; settings.bed = 20 * 60
+  settings.anchor.manual = { ...settings.anchor.manual, pcStop: true, bed: true }
+  local().pcBridge!.preferences.enforceEnabled = true
+}
 function ack(state: PcStatePayload): PcAck { return { type: 'ack', revision: state.revision, receivedAt: new Date(at).toISOString(), effective: { date: state.date, mode: 'scheduled' }, companion: { version: '0.1.0', protocol: 3 }, warnings: [] } }
 
 beforeEach(() => {
@@ -97,11 +105,66 @@ describe('PC-Plattformgrenzen und wahrheitsgemäße Bestätigungen', () => {
   })
 
   it('übernimmt eine Notverlängerung nur nach passender nativer Befehlsbestätigung', async () => {
+    enableNightProtection()
     mocks.api.pcBridgeEmergency.mockResolvedValue({ sent: true, tokenId: 'command-one', until: at + 15 * 60000 })
     mocks.view.emergencyAck = { commandId: 'command-one', until: at + 15 * 60000, receivedAt: at }
-    const { requestPcEmergencyExtension } = await import('./pcLink')
+    const { requestPcEmergencyExtension, getPcBridgePreview } = await import('./pcLink')
+    mocks.view.ack = ack((await getPcBridgePreview()).state)
     expect(await requestPcEmergencyExtension('fresh-hardware-scan', 15)).toBe(true)
     expect(mocks.state.extendGuidanceEmergency).toHaveBeenCalledWith('2026-11-09', 'command-one', at + 15 * 60000)
+  })
+
+  it('bindet nur die gewählte Drei-Phasen-Begleitung an Bett, ohne die normale PC-Zeit zu ändern', async () => {
+    const { getPcBridgePreview } = await import('./pcLink')
+    expect((await getPcBridgePreview()).state.prefs.bedtimeSequence).toBeUndefined()
+    const settings = mocks.state.settings as Settings
+    settings.guidance = { ...DEFAULT_GUIDANCE, enabled: true, eveningEscalation: true }
+    const preview = await getPcBridgePreview()
+    expect(preview.state.prefs.bedtimeSequence).toBe(true)
+    expect(preview.briefing.prefs.bedtimeSequence).toBe(true)
+    expect(preview.state.schedule.pcStopAt).not.toBe(preview.state.schedule.bedAt)
+    expect(local().pcBridge!.preferences).not.toHaveProperty('bedtimeSequence')
+    settings.guidance.enabled = false
+    expect((await getPcBridgePreview()).state.prefs.bedtimeSequence).toBeUndefined()
+  })
+
+  it('wartet bei automatischer PC-Nacht auf die authentifizierte Planantwort vor dem Signieren', async () => {
+    const { requestPcEmergencyExtension, syncPcBridge } = await import('./pcLink')
+    await syncPcBridge()
+    enableNightProtection(true)
+    let pendingAck: PcAck | undefined
+    let deliverAck = false
+    let waitingForAck!: () => void
+    const waiting = new Promise<void>(resolve => { waitingForAck = resolve })
+    mocks.api.pcBridgeSend.mockImplementation(async ({ payload }: { payload: PcStatePayload }) => {
+      if (payload.type === 'state') pendingAck = ack(payload)
+      return { sent: true, queued: false }
+    })
+    mocks.api.pcBridgeGetState.mockImplementation(async () => {
+      if (pendingAck && local().pcBridge?.wantedRevision === pendingAck.revision) waitingForAck()
+      return { ...mocks.view, ack: deliverAck ? pendingAck : undefined }
+    })
+    mocks.api.pcBridgeEmergency.mockImplementation(async () => {
+      expect(deliverAck).toBe(true)
+      return { sent: true, tokenId: 'late-ack', until: at + 15 * 60000 }
+    })
+    mocks.view.emergencyAck = { commandId: 'late-ack', until: at + 15 * 60000, receivedAt: at }
+    const result = requestPcEmergencyExtension('fresh-hardware-scan', 15)
+    await waiting
+    expect(mocks.api.pcBridgeEmergency).not.toHaveBeenCalled()
+    deliverAck = true
+    await vi.advanceTimersByTimeAsync(150)
+    expect(await result).toBe(true)
+  })
+
+  it('fordert ohne gewählten Nachtschutz oder bei getrennter Verbindung keine Signatur an', async () => {
+    const { requestPcEmergencyExtension } = await import('./pcLink')
+    expect(await requestPcEmergencyExtension('fresh-scan', 15)).toBe(false)
+    expect(mocks.api.pcBridgeEmergency).not.toHaveBeenCalled()
+    enableNightProtection()
+    mocks.view.connected = false
+    expect(await requestPcEmergencyExtension('fresh-scan', 15)).toBe(false)
+    expect(mocks.api.pcBridgeEmergency).not.toHaveBeenCalled()
   })
 
   it('weist kaputte native Ereignisse vor jeder fachlichen Änderung zurück', async () => {

@@ -16,6 +16,8 @@ export interface PcLinkPreferences {
   stopAction: PcStopAction
   graceSeconds: number
   ifThen?: string
+  /** The explicitly chosen v7 evening sequence ends at bedtime; absent keeps the PC-stop flow. */
+  bedtimeSequence?: boolean
 }
 export interface PcSchedule {
   windDownAt: string | null
@@ -75,6 +77,8 @@ export interface PcLinkEvent {
   kind: (typeof PC_EVENT_KINDS)[number]
   basis?: 'anker-shutdown' | 'user-shutdown' | 'sleep' | 'lock' | 'logoff' | 'idle'
   newStopAt?: string
+  /** The extended instant is either the PC stop or the v7 bedtime, never an inferred completion. */
+  anchor?: 'bed' | 'pc-stop'
   text?: string
   nextStep?: string
 }
@@ -87,7 +91,7 @@ export interface PcPairingCode { t: 'anker-pc-pair'; v: 3; id: string; n: string
 /** Non-secret local control data. All actual pairing keys/pins stay in native CE Keystore storage. */
 export interface PcBridgeLocal {
   enabled: boolean
-  preferences: Omit<PcLinkPreferences, 'strictLock' | 'ifThen'>
+  preferences: Omit<PcLinkPreferences, 'strictLock' | 'ifThen' | 'bedtimeSequence'>
   automaticRestEvents: boolean
   status: PcLinkStatus
   pcName?: string
