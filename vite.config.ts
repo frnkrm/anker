@@ -16,10 +16,12 @@ function appSourceFingerprint(): string {
     for (const entry of readdirSync(root + path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
       const file = `${path}/${entry.name}`
       if (entry.isDirectory()) visit(file)
-      else if (/\.(ts|tsx|css|kt|xml)$/.test(file) && !/\.test\.|\.d\.ts$/.test(file)) hash.update(file).update('\0').update(readFileSync(root + file)).update('\0')
+      else if (path.startsWith('public') || (/\.(ts|tsx|css|kt|xml)$/.test(file) && !/\.test\.|\.d\.ts$/.test(file))) hash.update(file).update('\0').update(readFileSync(root + file)).update('\0')
     }
   }
   visit('src')
+  // Auch lokal ausgelieferte Datenschutz-/Berechtigungshinweise gehören zum Build.
+  visit('public')
   // Gemeinsam mit Deno genutzte Protokolle gehören ebenfalls zum tatsächlichen Appcode.
   visit('supabase/functions/_shared')
   visit('android/app/src/main/java/de/frnkrm/anker')
