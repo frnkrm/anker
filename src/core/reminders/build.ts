@@ -145,7 +145,7 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   const guidance = (s as Settings & { guidance?: { enabled?: boolean; eveningEscalation?: boolean } }).guidance
   const guidanceEveningEnabled = guidance?.enabled === true && guidance.eveningEscalation === true
   const guidanceEveningOpen = guidanceEveningEnabled && !sick && !plan.openEnd
-    && log?.bedAt === undefined && log?.eveningRoutineDoneAt === undefined && !log?.dismissed?.includes('evening')
+    && log?.bedAt === undefined && !log?.dismissed?.includes('evening')
 
   if (!sick && morning?.steps?.length && !Object.keys(log?.steps ?? {}).some((k) => k.startsWith('morning:'))) {
     out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: 'Dein nächster Schritt steht in Anker bereit.', escalate: false })

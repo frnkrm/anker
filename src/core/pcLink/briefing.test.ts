@@ -21,6 +21,37 @@ const settings = () => {
 const ack = (revision: string, receivedAt: string, effectiveDate = date): PcAck => ({ type: 'ack', revision, receivedAt, effective: { date: effectiveDate, mode: 'scheduled' }, companion: { version: '0.1.0', protocol: 3 }, warnings: [] })
 
 describe('PC-Ableitung aus dem vorhandenen Tagesplan', () => {
+  it('überträgt optionale Morgenzeiten abends vom Folgeplan und morgens vom tatsächlichen Wecktag', () => {
+    const s = settings(); const plan = buildDayPlan({ date, settings: s })
+    const morning = buildDayPlan({ date: next, settings: s, override: { workStart: 600, wakeOverride: 480, homeOffice: false } })
+    const options = { ...prefs(), morningCountdown: true }
+    const eveningInput = { plan, settings: s, local: emptyLocal(), prefs: options, nowMs: at(1320), nextPlan: morning }
+    const evening = buildPcState(eveningInput)
+    expect(evening.schedule).toMatchObject({ wakeAt: new Date(at(morning.wake, next)).toISOString(), homeOffice: morning.homeOffice,
+      leaveAt: new Date(at(morning.leave!, next)).toISOString(), workStartAt: new Date(at(morning.workInfo!.plannedStart, next)).toISOString() })
+    const morningState = buildPcState({ ...eveningInput, plan: morning, nowMs: at(morning.wake + 1, next), nextPlan: undefined })
+    expect(morningState.schedule.wakeAt).toBe(evening.schedule.wakeAt)
+    expect(morningState.schedule.leaveAt).toBe(evening.schedule.leaveAt)
+    expect(morningState.schedule.workStartAt).toBe(evening.schedule.workStartAt)
+    expect(morningState.schedule.homeOffice).toBe(evening.schedule.homeOffice)
+    for (const nextPlan of [undefined, buildDayPlan({ date: addDays(next, 1), settings: s })]) {
+      const unknown = buildPcState({ ...eveningInput, nextPlan })
+      expect(unknown.schedule.leaveAt).toBeUndefined()
+      expect(unknown.schedule.workStartAt).toBeUndefined()
+      expect(unknown.schedule.homeOffice).toBeUndefined()
+    }
+    const briefing = buildPcBriefing([plan, morning], s, options, at(1320))
+    expect(briefing.days[0]?.wakeAt).toBe(evening.schedule.wakeAt)
+    expect(briefing.days[0]?.morning).toEqual({ homeOffice: morning.homeOffice, leaveAt: evening.schedule.leaveAt, workStartAt: evening.schedule.workStartAt })
+    expect(briefing.days[1]?.morning).toBeUndefined()
+  })
+  it('erfindet für das freie Wochenende keine Arbeitszeit des vorherigen Freitags', () => {
+    const s = settings(); const friday = buildDayPlan({ date: next, settings: s })
+    const saturday = buildDayPlan({ date: addDays(next, 1), settings: s })
+    const result = buildPcBriefing([friday, saturday], s, { ...prefs(), morningCountdown: true }, at(1320, next))
+    expect(result.days[0]?.morning).toEqual({ homeOffice: saturday.homeOffice })
+    expect(result.days[0]?.wakeAt).toBe(new Date(at(saturday.wake, saturday.date)).toISOString())
+  })
   it('gibt exakt die datierten PC-Stopp-/Bettzeiten inklusive offenem Ende und Sommerzeit weiter', () => {
     const s = settings()
     const plans = [date, next].map((value, index) => buildDayPlan({ date: value, settings: s, override: index ? { lateUntil: 'open' } : undefined }))
@@ -69,8 +100,9 @@ describe('PC-Ableitung aus dem vorhandenen Tagesplan', () => {
     const input = { plan, local, log, settings: s, prefs: prefs(), nowMs: at(840, next) }
     expect(buildPcState(input).brainDump).toBeUndefined()
     const shared = buildPcState({ ...input, prefs: { ...prefs(), shareBrainDump: true } })
-    expect(shared.brainDump?.text).toBe('a'.repeat(499) + '🌅')
-    expect([...shared.brainDump!.nextStep!]).toHaveLength(500)
+    expect(shared.brainDump?.text).toBe('a'.repeat(499))
+    expect(shared.brainDump!.nextStep!).toHaveLength(500)
+    expect([...shared.brainDump!.nextStep!]).toHaveLength(250)
     expect(JSON.stringify(shared)).not.toContain(s.routines.morning[0]!.title)
   })
   it('hält Revisionen unabhängig von Abrufzeit und kanonischer Schlüsselfolge stabil', () => {

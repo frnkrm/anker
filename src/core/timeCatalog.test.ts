@@ -17,6 +17,30 @@ function build(st: TimeCatalogState, at = now, runtime?: TimeCatalogRuntime) {
 }
 
 describe('Abgeleitete Zeitübersicht', () => {
+  it('ordnet echte v7-Abendzeiten ein und erklärt ersetzte Alt-Hinweise ohne Doppelwarnung', () => {
+    const st = state()
+    st.settings.guidance = { enabled: true, eveningEscalation: true }
+    st.settings.anchor.manual = { ...st.settings.anchor.manual, bed: true, pcStop: true }
+    st.settings.bed = 23 * 60; st.settings.pcStop = 22 * 60
+    st.settings.support.windDown = { enabled: true, at: 21 * 60, activity: 'Lesen' }
+    st.days[date] = { date, override: {}, steps: {}, eveningRoutineDoneAt: now }
+    const result = build(st)
+    const roles = ['guidance-wind-down', 'guidance-brain-dump', 'bed']
+    const active = result.entries.filter(entry => entry.source.date === date && roles.includes(entry.source.refId ?? '') && entry.status === 'planned')
+    expect(active.map(entry => [entry.source.refId, entry.at])).toEqual(buildReminders([buildDayPlan({ date, settings: st.settings })], st.days, st.settings, result.rangeStart - 1).filter(entry => roles.includes(entry.key)).map(entry => [entry.key, entry.at]))
+    expect(active).toHaveLength(3)
+    expect(active.every(entry => entry.category === 'sleep' && entry.source.route === '/einstellungen/begleitung')).toBe(true)
+    const replaced = result.entries.filter(entry => entry.source.date === date && ['reminder.wind-down', 'reminder.pcstop', 'reminder.pcstop-15'].includes(entry.functionId))
+    expect(replaced).toHaveLength(3)
+    expect(replaced.every(entry => entry.status === 'inactive' && entry.reason?.includes('Abend & Morgen begleiten') && entry.source.route === '/einstellungen/begleitung')).toBe(true)
+    expect(result.suggestions.some(suggestion => suggestion.kind === 'overlap' && suggestion.entryIds.some(id => replaced.some(entry => entry.id === id)))).toBe(false)
+    st.days[date]!.bedAt = now
+    expect(build(st).entries.filter(entry => entry.source.date === date && roles.includes(entry.source.refId ?? '') && entry.status === 'planned')).toEqual([])
+    const far = addDays(date, 20)
+    st.settings.reminders.quietStart = 4 * 60; st.settings.reminders.quietEnd = 5 * 60
+    st.days[far] = { date: far, override: { lateUntil: 23 * 60 + 20 }, steps: {} }
+    expect(build(st).entries.filter(entry => entry.source.date === far && roles.includes(entry.source.refId ?? '') && entry.status === 'planned').map(entry => entry.source.refId)).toEqual(roles)
+  })
   it('übernimmt genau die aktiven Erinnerungsregeln und kennzeichnet die bereits abgestimmten Abendhinweise', () => {
     const st = state()
     st.settings.support.windDown = { enabled: true, at: st.settings.pcStop, activity: 'Lesen' }

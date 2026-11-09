@@ -50,10 +50,20 @@ describe('Native Hinweise für die freiwillige Abendbegleitung', () => {
     const base: DayLog = { date, override: {}, steps: {} }
     expect(eveningEntries(settings, undefined, undefined, true)).toEqual([])
     expect(eveningEntries(settings, undefined, undefined, false, true)).toEqual([])
-    for (const log of [{ ...base, bedAt: now }, { ...base, eveningRoutineDoneAt: now }, { ...base, dismissed: ['evening'] }]) {
+    for (const log of [{ ...base, bedAt: now }, { ...base, dismissed: ['evening'] }]) {
       expect(eveningEntries(settings, log)).toEqual([])
       expect(relevantReminderKeys([buildDayPlan({ date, settings })], { [date]: log }, settings).some(key => key.includes('guidance-'))).toBe(false)
     }
+  })
+
+  it('behält Bettanker und Vorhinweise nach einer früher erledigten Abendroutine bei', () => {
+    const settings = preferences(defaultSettings(date))
+    const log: DayLog = { date, override: {}, steps: {}, eveningRoutineDoneAt: now }
+    expect(eveningEntries(settings, log).map(entry => entry.key)).toEqual(keys)
+    const relevant = relevantReminderKeys([buildDayPlan({ date, settings })], { [date]: log }, settings)
+    expect(relevant).toEqual(expect.arrayContaining(keys.map(key => `${date}|${key}`)))
+    expect(eveningEntries(settings, { ...log, bedAt: now })).toEqual([])
+    expect(eveningEntries(settings, { ...log, dismissed: ['evening'] })).toEqual([])
   })
 
   it('respektiert für Vorhinweise Ruhezeiten und ordnet die Nacht dem richtigen Plantag zu', () => {

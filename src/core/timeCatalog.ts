@@ -135,10 +135,11 @@ const reminderCategory = (key: string): TimeCategory => {
   if (key === 'prepcook') return 'household'
   if (key === 'review' || key.startsWith('thought-review:') || key.startsWith('tomorrow-step:')) return 'reflection'
   if (key === 'morning' || key === 'evening') return 'routines'
-  if (['pcstop-15', 'pcstop', 'bed', 'wind-down'].includes(key)) return 'sleep'
+  if (['pcstop-15', 'pcstop', 'bed', 'wind-down', 'guidance-wind-down', 'guidance-brain-dump'].includes(key)) return 'sleep'
   return 'technology'
 }
-const reminderRoute = (key: string) => key === 'wind-down' ? '/einstellungen/abenduebergang'
+const reminderRoute = (key: string) => key.startsWith('guidance-') ? '/einstellungen/begleitung'
+  : key === 'wind-down' ? '/einstellungen/abenduebergang'
   : ['pcstop-15', 'pcstop', 'bed'].includes(key) ? '/einstellungen/schlaf'
     : key === 'morning' ? '/einstellungen/morgenroutine' : key === 'evening' ? '/einstellungen/abendroutine'
       : key.startsWith('deadline-') ? `/aufgabe/work/${encodeURIComponent(key.slice(key.indexOf(':') + 1))}`
@@ -150,6 +151,7 @@ const reminderRoute = (key: string) => key === 'wind-down' ? '/einstellungen/abe
 /** Ausschließlich Projektion des aktuellen Stores und bestehender Plan-/Reminderfunktionen. */
 export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
   const { settings: s, local, nowMs: now, runtime } = input
+  const guidanceEvening = s.guidance?.enabled === true && s.guidance.eveningEscalation === true
   if (!timestamp(now)) throw new Error('Der Zeitpunkt der Übersicht ist ungültig.')
   const first = planDate(now)
   const rangeStart = zonedToUtc(first, 4 * 60)
@@ -175,7 +177,7 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
     if (/^(deadline-|thought-review:|tomorrow-step:|prep:|go:)/.test(key)) return true
     const o = input.days[date]?.override
     if (!o) return false
-    if (['pcstop-15', 'pcstop', 'bed'].includes(key)) return o.lateUntil !== undefined || !!o.pcStopExtendMin
+    if (['pcstop-15', 'pcstop', 'bed', 'guidance-wind-down', 'guidance-brain-dump'].includes(key)) return o.lateUntil !== undefined || !!o.pcStopExtendMin
     if (key === 'morning' || key === 'evening') return typeof o.routineAt?.[key] === 'number'
     return ['leave', 'leave-10', 'latest-start', 'latest-leave'].includes(key)
       && [o.workStart, o.workEnd, o.latestStart, o.homeOffice, o.targetNetMin, o.pauseMin, o.dayType].some((v) => v !== undefined)
@@ -183,15 +185,17 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
   const reminders = buildReminders(input.plans, input.days, s, rangeStart - 1, lookahead, extras)
     .filter((entry) => entry.at < rangeEnd || oneOffReminder(entry.key, entry.date))
   for (const reminder of reminders) add(`reminder.${reminder.key.split(':')[0]}`, reminderCategory(reminder.key), reminder.title,
-    { kind: 'reminder', refId: reminder.key, date: reminder.date, route: reminderRoute(reminder.key) },
+    { kind: 'reminder', refId: reminder.key, date: reminder.date, route: guidanceEvening && reminder.key === 'bed' ? '/einstellungen/begleitung' : reminderRoute(reminder.key) },
     { at: reminder.at, effect: 'notification', reason: reminder.escalation ? `Berechnete Wiederholung ${reminder.escalation}. Keine Zustellbestätigung.` : 'Aus den geltenden Erinnerungsregeln berechnet. Keine Zustellbestätigung.' }, reminder.escalation)
 
   const inactiveEvening = (plan: DayPlan) => {
     for (const [key, at, label] of [['pcstop-15', plan.pcStop - 15, 'PC-Stopp vorab'], ['pcstop', plan.pcStop, 'PC-Stopp-Erinnerung'], ['bed', plan.bed, 'Bettzeit-Erinnerung']] as const) {
       if (reminders.some((r) => r.date === plan.date && r.key === key)) continue
-      add(`reminder.${key}`, 'sleep', label, { kind: 'reminder', refId: key, date: plan.date, route: s.support.windDown.enabled ? '/einstellungen/abenduebergang' : '/einstellungen/schlaf' },
-        { ...(plan.openEnd ? {} : { at: zonedToUtc(plan.date, at) }), status: 'inactive', effect: 'notification', reason: s.support.windDown.enabled ? 'Bereits abgestimmt: Der Abendübergang ersetzt diesen Hinweis.' : plan.openEnd ? 'Heute ist kein festes Abendende gewählt.' : 'Nach Tageszustand, Erledigung oder Ruhekontext nicht vorgesehen.' }, 0)
+      add(`reminder.${key}`, 'sleep', label, { kind: 'reminder', refId: key, date: plan.date, route: guidanceEvening ? '/einstellungen/begleitung' : s.support.windDown.enabled ? '/einstellungen/abenduebergang' : '/einstellungen/schlaf' },
+        { ...(plan.openEnd ? {} : { at: zonedToUtc(plan.date, at) }), status: 'inactive', effect: 'notification', reason: guidanceEvening && key !== 'bed' ? 'Bereits abgestimmt: Abend & Morgen begleiten ersetzt die bisherigen PC-Stopp-Hinweise.' : plan.openEnd ? 'Heute ist kein festes Abendende gewählt.' : guidanceEvening ? 'Der Abendanker ist nach Tageszustand, Bettbestätigung oder bewusster Abwahl nicht vorgesehen.' : s.support.windDown.enabled ? 'Bereits abgestimmt: Der Abendübergang ersetzt diesen Hinweis.' : 'Nach Tageszustand, Erledigung oder Ruhekontext nicht vorgesehen.' }, 0)
     }
+    if (guidanceEvening && s.support.windDown.enabled) add('reminder.wind-down', 'sleep', 'Abendübergang', { kind: 'reminder', refId: 'wind-down', date: plan.date, route: '/einstellungen/begleitung' },
+      { at: zonedToUtc(plan.date, s.support.windDown.at < 240 ? s.support.windDown.at + 1440 : s.support.windDown.at), status: 'inactive', effect: 'notification', reason: 'Bereits abgestimmt: Abend & Morgen begleiten ersetzt den bisherigen Abendübergang.' }, 0)
   }
 
   const config = buildAlarmConfig(s, input.days, first)
@@ -228,7 +232,7 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
   }
   if (!config.preWakeEnabled || config.preWakeLeadMinutes <= 0) add('alarm.prewake', 'health', 'Vorwecker', { kind: 'alarm', route: '/wecker' }, { status: 'inactive', effect: 'alarm', reason: 'Kein Vorwecker mit positivem Abstand gewählt.' })
   if (!config.smartWakeEnabled) add('alarm.smart-window', 'sleep', 'Aktivitäts-Weckfenster', { kind: 'alarm', route: '/wecker' }, { status: 'inactive', effect: 'check', reason: 'Das optionale Aktivitäts-Weckfenster ist ausgeschaltet.' })
-  if (!s.support.windDown.enabled) add('reminder.wind-down', 'sleep', 'Abendübergang', { kind: 'optional', route: '/einstellungen/abenduebergang' }, { status: 'inactive', effect: 'notification', reason: 'Ausgeschaltet. Bei Aktivierung ersetzt er bereits die PC-/Bett-Hinweise.' })
+  if (!s.support.windDown.enabled) add('reminder.wind-down', 'sleep', 'Abendübergang', { kind: 'optional', route: guidanceEvening ? '/einstellungen/begleitung' : '/einstellungen/abenduebergang' }, { status: 'inactive', effect: 'notification', reason: guidanceEvening ? 'Ausgeschaltet. Die gewählte Abendbegleitung übernimmt bereits die Abendhinweise.' : 'Ausgeschaltet. Bei Aktivierung ersetzt er bereits die PC-/Bett-Hinweise.' })
   add('alarm.wakecheck', 'sleep', 'Wachheits-Check', { kind: 'alarm', route: '/wecker' }, { status: config.wakeCheckEnabled ? 'conditional' : 'inactive', effect: 'alarm', reason: config.wakeCheckEnabled ? 'Erst nach einem passenden tatsächlichen Weckerende. Keine Uhrzeit aus der Einstellung allein ableitbar.' : 'Der Wachheits-Check ist ausgeschaltet.' })
   add('alarm.snooze', 'sleep', 'Schlummerwecker', { kind: 'alarm', route: '/wecker' }, { status: config.enabled ? 'conditional' : 'inactive', effect: 'alarm', reason: 'Entsteht erst nach bewusstem Schlummern; keine pauschal berechnete Uhrzeit.' })
   add('alarm.test', 'technology', 'Separater Testalarm', { kind: 'alarm', route: '/wecker' }, { status: 'conditional', effect: 'alarm', reason: 'Nur nach bewusstem Teststart.' })

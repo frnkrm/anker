@@ -21,13 +21,14 @@ export function buildPcBriefing(plans: readonly DayPlan[], settings: Settings, p
   const days = selected.map((plan, index) => {
     const pc = commands[index]!
     const bedAt = zonedToUtc(plan.date, plan.bed)
-    const wakeAt = zonedToUtc(addDays(plan.date, 1), plans.find((candidate) => candidate.date === addDays(plan.date, 1))?.wake ?? settings.anchor.wake)
+    const morningPlan = plans.find((candidate) => candidate.date === addDays(plan.date, 1))
+    const wakeAt = zonedToUtc(addDays(plan.date, 1), morningPlan?.wake ?? settings.anchor.wake)
     const day: PcBriefingPayload['days'][number] = {
       date: plan.date, validUntil: pc.validUntil,
       pc: pc.mode === 'paused' ? { mode: 'paused' } : { mode: 'scheduled', stopAt: pc.stopAt, localTime: pc.localTime },
       ...(!plan.openEnd ? { bedAt: iso(bedAt), wakeAt: iso(wakeAt), windDownAt: iso(bedAt - 30 * 60000), brainDumpAt: iso(bedAt - 10 * 60000), morningDeadlineAt: iso(wakeAt + 3 * 3600000) } : {}),
     }
-    if (prefs.morningCountdown) day.morning = { homeOffice: plan.homeOffice, ...(plan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(plan.date, plan.leave)) }), ...(plan.workInfo ? { workStartAt: iso(zonedToUtc(plan.date, plan.workInfo.plannedStart)) } : {}) }
+    if (prefs.morningCountdown && morningPlan) day.morning = { homeOffice: morningPlan.homeOffice, ...(morningPlan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(morningPlan.date, morningPlan.leave)) }), ...(morningPlan.workInfo ? { workStartAt: iso(zonedToUtc(morningPlan.date, morningPlan.workInfo.plannedStart)) } : {}) }
     return day
   })
   const result: PcBriefingPayload = { type: 'briefing', revision: pcRevision({ days, prefs }), generatedAt: iso(nowMs), validUntil: days.at(-1)?.validUntil ?? iso(nowMs + 60000), days, prefs }
@@ -52,14 +53,15 @@ export function buildPcState(input: { plan: DayPlan; log?: DayLog; local: LocalD
   // after it NIGHT_LOCK alone must not move wakeAt another day into the future.
   const isMorning = night ? plan.date > night[0]
     : ['MORNING_PENDING', 'MORNING_ACTIVE', 'MORNING_COMPLETED', 'ALARM_RINGING', 'ZOMBIE_MODE'].includes(state)
-  const wakeAt = zonedToUtc(isMorning ? plan.date : addDays(plan.date, 1), isMorning ? plan.wake : input.nextPlan?.wake ?? settings.anchor.wake)
+  const morningPlan = isMorning ? plan : input.nextPlan?.date === addDays(plan.date, 1) ? input.nextPlan : undefined
+  const wakeAt = zonedToUtc(isMorning ? plan.date : addDays(plan.date, 1), morningPlan?.wake ?? settings.anchor.wake)
   const deadline = wakeAt + 3 * 3600000
   // A reconnect must never move the original night lease into another evening.
   const validUntil = night ? night[1].nightLockedAt! + 18 * 3600000 : Math.min(nowMs + 18 * 3600000, Math.max(nowMs + 60000, deadline))
   const schedule: PcStatePayload['schedule'] = {
     windDownAt: bedAt === null ? null : iso(bedAt - 30 * 60000), brainDumpAt: bedAt === null ? null : iso(bedAt - 10 * 60000), bedAt: bedAt === null ? null : iso(bedAt), wakeAt: iso(wakeAt), morningDeadlineAt: iso(deadline),
     pcStopAt: evening ? iso(zonedToUtc(plan.date, plan.pcStop)) : null,
-    ...(prefs.morningCountdown ? { homeOffice: plan.homeOffice, ...(plan.workInfo ? { workStartAt: iso(zonedToUtc(plan.date, plan.workInfo.plannedStart)) } : {}), ...(plan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(plan.date, plan.leave)) }) } : {}),
+    ...(prefs.morningCountdown && morningPlan ? { homeOffice: morningPlan.homeOffice, ...(morningPlan.workInfo ? { workStartAt: iso(zonedToUtc(morningPlan.date, morningPlan.workInfo.plannedStart)) } : {}), ...(morningPlan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(morningPlan.date, morningPlan.leave)) }) } : {}),
   }
   const shareIds = view.brainDumpIds.length ? view.brainDumpIds : state === 'MORNING_COMPLETED' ? night?.[1].brainDumpIds ?? [] : []
   const share = prefs.shareBrainDump && shareIds.length ? local.tomorrowSteps.find((step) => step.id === shareIds[0]) : undefined
