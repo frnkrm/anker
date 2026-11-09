@@ -36,3 +36,46 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  pc-companion:
+    name: PC-Begleiter / ${{ matrix.os }} / Python 3.12
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pc-companion/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Isolierte PC-Abhängigkeiten installieren
+        run: python -m pip install --disable-pip-version-check -r pc-companion/requirements.txt
+      - name: Windows-Bibliotheken ohne Systemaktionen importieren
+        if: runner.os == 'Windows'
+        working-directory: pc-companion
+        run: >-
+          python -c "import tkinter; import pystray; import comtypes; import qrcode;
+          from pycaw.pycaw import AudioUtilities;
+          from anker_companion.windows import WindowsPlatform, MasterAudioDucker;
+          from anker_companion.vault import DpapiVault;
+          from anker_companion.ui import DesktopUI;
+          print('Windows-Import erfolgreich; keine Fenster oder Systemaktionen gestartet.')"
+      - name: PC-Protokoll und Windows-Grenzen mit Fake-Effekten prüfen
+        working-directory: pc-companion
+        # Tests inject clock, vault, Windows and audio boundaries. No real lock/shutdown.
+        run: python -m unittest discover -s tests -v
+      - name: CLI-Hilfe ohne Start des Begleiters prüfen
+        working-directory: pc-companion
+        run: python -m anker_companion --help
+      - name: Node-Telefon gegen echten lokalen TLS-Server prüfen
+        # Loopback-only server uses an injected test vault and fake Windows effects.
+        run: node pc-companion/tests/node_phone_simulator.mjs
