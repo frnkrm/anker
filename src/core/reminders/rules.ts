@@ -29,7 +29,7 @@ export interface NativeReminderRuleSnapshot {
 }
 
 const REFERENCE_MONDAY = '2026-01-05'
-const CRITICAL_BASE_KEYS = new Set(['leave', 'latest-leave', 'latest-start', 'pcstop', 'bed', 'meds'])
+const BASE_RULE_KEYS = new Set(['leave', 'latest-leave', 'latest-start', 'pcstop', 'bed', 'meds', 'guidance-wind-down', 'guidance-brain-dump'])
 
 function validDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -38,7 +38,7 @@ function validDate(value: string): boolean {
 }
 
 /**
- * After dated snapshots end, only explicitly configured critical baseline roles continue.
+ * After dated snapshots end, configured critical anchors and optional v7 evening hints continue.
  * No appointments, private task contents, escalation or assumed completion is projected.
  */
 export function buildReminderRuleSnapshot(settings: Settings, knownExcludedDates: readonly string[], validFrom: number): NativeReminderRuleSnapshot {
@@ -50,7 +50,7 @@ export function buildReminderRuleSnapshot(settings: Settings, knownExcludedDates
   for (let weekday = 0; weekday < plans.length; weekday++) {
     const date = plans[weekday]!.date
     for (const entry of entries) {
-      if (entry.date !== date || entry.escalation !== 0 || !CRITICAL_BASE_KEYS.has(entry.key)) continue
+      if (entry.date !== date || entry.escalation !== 0 || !BASE_RULE_KEYS.has(entry.key)) continue
       const rule = {
         ruleId: `basis:${weekday}:${entry.key}`,
         key: entry.key,

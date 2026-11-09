@@ -141,6 +141,11 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   const sick = plan.dayType === 'sick'
   const morning = plan.blocks.find((b) => b.routine === 'morning')
   const evening = plan.blocks.find((b) => b.routine === 'evening')
+  // Optional v7 preferences may be absent in an existing local settings record.
+  const guidance = (s as Settings & { guidance?: { enabled?: boolean; eveningEscalation?: boolean } }).guidance
+  const guidanceEveningEnabled = guidance?.enabled === true && guidance.eveningEscalation === true
+  const guidanceEveningOpen = guidanceEveningEnabled && !sick && !plan.openEnd
+    && log?.bedAt === undefined && log?.eveningRoutineDoneAt === undefined && !log?.dismissed?.includes('evening')
 
   if (!sick && morning?.steps?.length && !Object.keys(log?.steps ?? {}).some((k) => k.startsWith('morning:'))) {
     out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: 'Dein nächster Schritt steht in Anker bereit.', escalate: false })
@@ -178,16 +183,22 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
       escalate: true,
     })
   }
-  if (s.support.windDown.enabled && !log?.bedAt) {
+  if (s.support.windDown.enabled && !guidanceEveningEnabled && !log?.bedAt) {
     // Eine Uhrzeit nach Mitternacht gehört noch zum Abend dieses Plantags.
     const at = s.support.windDown.at < 4 * 60 ? s.support.windDown.at + 1440 : s.support.windDown.at
     out.push({ key: 'wind-down', at, channel: 'sanft', title: 'Zeit für deinen Abendübergang', body: 'Wenn es für dich passt, öffne Anker für deine gewählte ruhige Aktivität.', escalate: false })
   }
-  if (!s.support.windDown.enabled && !sick && !log?.pcOffAt && !plan.openEnd) {
+  if (!s.support.windDown.enabled && !guidanceEveningEnabled && !sick && !log?.pcOffAt && !plan.openEnd) {
     out.push({ key: 'pcstop-15', at: plan.pcStop - 15, channel: 'sanft', title: 'In 15 Minuten PC-Stopp', body: `Um ${t(plan.pcStop)} ist Schluss. Runde in Ruhe beenden.`, escalate: false })
     out.push({ key: 'pcstop', at: plan.pcStop, channel: 'uebergang', title: `${t(plan.pcStop)} – PC aus`, body: 'Eine Pause vom Scrollen schafft Zeit zum Runterkommen. Zum Beispiel kurz lesen oder ruhige Musik hören.', escalate: true, hard: true })
   }
-  if (!s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
+  if (guidanceEveningOpen) {
+    // The same canonical plan owns both the UI phases and closed-app delivery.
+    // These replace the old transition series; no second PC/bed schedule is created.
+    out.push({ key: 'guidance-wind-down', at: plan.bed - 30, channel: 'sanft', title: 'Noch 30 Minuten bis zu deinem Abendanker', body: 'Du kannst langsam aussteigen. Dein nächster Abendschritt steht in Anker bereit.', escalate: false })
+    out.push({ key: 'guidance-brain-dump', at: plan.bed - 10, channel: 'sanft', title: 'Noch 10 Minuten bis zu deinem Abendanker', body: 'Ein Gedanke ist noch offen? Du kannst ihn in Anker für morgen parken.', escalate: false })
+    out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: 'Dein Abendanker ist da', body: 'Öffne Anker für deinen nächsten Abendschritt. Dein Plan bleibt anpassbar.', escalate: false, hard: true })
+  } else if (!guidanceEveningEnabled && !s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })
   }
   if (weekday(plan.date) === 6 && !sick) {
