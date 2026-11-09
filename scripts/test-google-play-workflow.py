@@ -8,6 +8,7 @@ import json
 import os
 import re
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import urllib.error
@@ -46,6 +47,7 @@ CI = inline_python('Freigegebenen App-Stand und grüne CI prüfen')
 BIND = inline_python('Getestete Werkzeuge und Manifest binden')
 HANDOFF = inline_python('Werkzeugidentität und Bundledaten vor Authentifizierung prüfen')
 SECRET_PRESENT = inline_python('Verfügbarkeit des Google-Secrets prüfen')
+UPLOAD_RESULT = inline_python('Ausschließlich internen Entwurf speichern')
 
 
 @contextlib.contextmanager
@@ -412,6 +414,63 @@ class WorkflowShapeTests(unittest.TestCase):
                 exec(SECRET_PRESENT, {})
         with patch.dict(os.environ, {'ANKER_PLAY_SECRET_PRESENT': 'true'}, clear=True), contextlib.redirect_stdout(io.StringIO()):
             exec(SECRET_PRESENT, {})
+
+
+class UploadResultTests(unittest.TestCase):
+    def execute(self, result, returncode):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            captured = io.StringIO()
+
+            def invoke(arguments):
+                self.assertEqual(arguments[1:3], ['scripts/google-play-upload.py', 'upload'])
+                self.assertEqual(arguments[3:], ['--manifest', str(root / 'anker-play-input/PLAY_UPLOAD_APPROVAL.json'),
+                    '--bundle', str(root / 'anker-play-input/Anker.aab'), '--report', str(root / 'anker-play-result.json')])
+                if result is not None:
+                    (root / 'anker-play-result.json').write_text(json.dumps(result))
+                return SimpleNamespace(returncode=returncode)
+
+            with patch.dict(os.environ, {'RUNNER_TEMP': directory}, clear=True), \
+                 patch('subprocess.run', side_effect=invoke), contextlib.redirect_stdout(captured), \
+                 self.assertRaises(SystemExit) as outcome:
+                exec(UPLOAD_RESULT, {})
+            return outcome.exception.code, captured.getvalue()
+
+    def test_only_a_successful_process_and_verified_persisted_draft_emit_success(self):
+        for status in ['already-draft', 'draft-committed']:
+            with self.subTest(status=status):
+                code, output = self.execute({'status': status, 'draftVerified': True}, 0)
+                self.assertEqual(code, 0)
+                self.assertIn('::notice title=Anker Play Upload::Entwurf bestätigt', output)
+        for result in [{'status': 'prepared', 'draftVerified': True}, {'status': 'draft-committed', 'draftVerified': False}]:
+            code, output = self.execute(result, 0)
+            self.assertEqual(code, 2)
+            self.assertNotIn('::notice', output)
+
+    def test_error_annotation_contains_safe_codes_and_never_remote_text_or_token(self):
+        code, output = self.execute({'status': 'failed', 'reason': 'HTTP_FORBIDDEN', 'httpStatus': 403,
+                                    'instructions': PRIVATE_BODY, 'token': SYNTHETIC_TOKEN}, 2)
+        self.assertEqual(code, 2)
+        self.assertIn('Grund HTTP_FORBIDDEN; HTTP 403', output)
+        self.assertNotIn(PRIVATE_BODY, output)
+        self.assertNotIn(SYNTHETIC_TOKEN, output)
+        code, output = self.execute({'status': 'failed', 'reason': 'HTTP_ERROR\n' + SYNTHETIC_TOKEN,
+                                    'httpStatus': '403\n' + PRIVATE_BODY}, 2)
+        self.assertEqual(code, 2)
+        self.assertIn('Grund NO_CONFIRMED_RESULT; HTTP unknown', output)
+        self.assertNotIn(PRIVATE_BODY, output)
+        self.assertNotIn(SYNTHETIC_TOKEN, output)
+
+    def test_ambiguous_commit_is_reported_as_inconclusive_without_success_notice(self):
+        code, output = self.execute({'status': 'inconclusive', 'reason': 'COMMIT_RESULT_UNKNOWN'}, 3)
+        self.assertEqual(code, 3)
+        self.assertIn('Status inconclusive', output)
+        self.assertNotIn('::notice', output)
+
+    def test_absent_report_is_failure_even_when_the_process_exit_code_is_zero(self):
+        code, output = self.execute(None, 0)
+        self.assertEqual(code, 2)
+        self.assertIn('NO_CONFIRMED_RESULT', output)
 
 
 if __name__ == '__main__':

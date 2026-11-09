@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "packageName": "de.frnkrm.anker.mobile",
+  "versionCode": 16,
+  "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+  "sourceFingerprint": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+  "artifact": {
+    "repository": "frnkrm/anker",
+    "gitCommit": "b2a062709f061f6b1b4470a3826dd0b48b3c0b29",
+    "path": "Anker.aab",
+    "sha256": "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e",
+    "bytes": 22655691
+  },
+  "signingCertificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A",
+  "ci": {
+    "repository": "frnkrm/anker",
+    "runId": 42619085381,
+    "sourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc"
+  },
+  "track": "internal",
+  "releaseStatus": "draft",
+  "changesNotSentForReview": true,
+  "changesInReviewBehavior": "ERROR_IF_IN_REVIEW"
+}

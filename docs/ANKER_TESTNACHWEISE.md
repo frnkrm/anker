@@ -1,5 +1,20 @@
 # Anker: Testnachweise
 
+## Google-Play-Uploadworkflow – lokale Vorbereitung (10.11.2026)
+
+Neue Automation für den bereits geprüften Code16-AAB-Stand, kein App-/Paket-/Versionswechsel. **28 Upload-, 24 OAuth- und 26 Workflow-Testmethoden (78 insgesamt) grün**, einschließlich tatsächlicher Ausführung der eingebetteten CI-/Übergabe-/Ergebnisprüfungen mit synthetischen HTTP-Antworten. Keine echten Google-Zugangsdaten in diesen Prüfungen. Actionlint1.7.9 prüft beide geänderten Workflowdateien erfolgreich. Das tatsächlich heruntergeladene feste AAB und beide Skript-/Manifesthashes bestehen zusätzlich die reale lokale Übergabeprüfung vor Authentifizierung.
+
+| Grenze | Konkreter Nachweis |
+|---|---|
+| Manifest, Artefakt und Version unveränderlich | `scripts/test-google-play-upload.py`: manipulierte Freigabe, falsche Bundlebytes/SHA/Version, korrekte reine Vorbereitung |
+| Nur interne Entwürfe und Bestandserhalt | Derselbe Test: fremde/aktive Releases, Konflikte, Idempotenz, bestehende Drafts, `ERROR_IF_IN_REVIEW`, kein Commitfallback |
+| Keine falsche Erfolgsmeldung | Uploadtests: Timeout/5xx/unklarer Commit/Readback, kein Mutationsretry; Workflowtests: Notice nur aus bestätigtem Draft und erfolgreichem Prozess |
+| Servicekonto nur für Android Publisher | `scripts/test-google-play-auth.py`: feste Claims, kein `sub`, echte lokale RS256-Verifikation mit synthetischem RSA-Schlüssel, temporäre Rechte und Bereinigung, Redirect-/Fehler-/Outputredaktion |
+| Secret erst nach geprüfter Übergabe | `scripts/test-google-play-workflow.py`: fehlerhafte CI/Matrix/Quelle/Zertifikat, veränderte Skripte/Manifest/Bundle, zusätzliche Dateien/Symlinks, Secret-/Tokenreichweite und Runnergrenzen |
+
+[Workflow und Befugnisse](GOOGLE_PLAY_UPLOAD_WORKFLOW.md) · [feste Freigabe](PLAY_UPLOAD_APPROVAL.json). Nachweise im Cloudcache `/workspace/.cache/anker/play-upload-workflow/`. Code16-App-CI und 197 Android-JUnit sind weiterhin deren bestehende, unveränderte Nachweise; hier nicht neu ausgeführt. Der tatsächliche GitHub-/Google-Uploadnachweis folgt erst nach dem autorisierten Runnerlauf und ist von der lokalen Vorbereitung getrennt.
+
+
 ## Code16 – Weckerverlauf, selektiver Export und Schlafhinweis
 
 **09.11.2026, gemeinsam abgeschlossen:** Quelle `4d8eaa1cd1dc463e3ce9032779d857a215d020fc`, Laufzeitkennung `9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada`, **1.5.0-rc.2 / Code16**, Name Anker und Paket `de.frnkrm.anker.mobile`. **1.095 Logik-/271 Browser-/197 frische Android-JUnit-/89 PC-Pythonfälle**, 5 Paket-/Installer-, 19 klassische PC-/36 Updatefälle grün; TypeScript und Build erfolgreich, Lint 0 Fehler/1 bestehende Warnung. [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42619085381) bestätigt den exakten main/push-Stand mit allen drei Jobs. Keine Nutzerdaten oder historischen Geräteberichte zurückgesetzt. Die Dokumentation danach ändert keine Laufzeiteingabe.

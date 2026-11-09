@@ -1,0 +1,242 @@
+name: Google Play – internen Entwurf hochladen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/google-play-upload.yml']
+
+permissions: {}
+
+concurrency:
+  group: anker-google-play-internal-draft
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Bundle und Uploadwerkzeuge prüfen
+    if: >-
+      github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-draft]')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      artifact_id: ${{ steps.input.outputs.artifact-id }}
+      publisher_sha256: ${{ steps.bind.outputs.publisher_sha256 }}
+      auth_sha256: ${{ steps.bind.outputs.auth_sha256 }}
+      manifest_sha256: ${{ steps.bind.outputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Upload und OAuth mit künstlichen Antworten testen
+        run: |
+          python3 scripts/test-google-play-upload.py
+          python3 scripts/test-google-play-auth.py
+          python3 scripts/test-google-play-workflow.py
+      - name: Freigegebenen App-Stand und grüne CI prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          manifest = json.loads(pathlib.Path('docs/PLAY_UPLOAD_APPROVAL.json').read_text())
+          approved = json.loads(pathlib.Path('docs/AKTUELLER_UPDATESTAND.json').read_text())
+          checks = [('applicationId', 'packageName'), ('sourceCommit', 'sourceCommit'),
+                    ('sourceFingerprint', 'sourceFingerprint'), ('versionCode', 'versionCode')]
+          if any(approved.get(left) != manifest.get(right) for left, right in checks):
+              raise SystemExit('App-Bundle und letzter freigegebener Update-Stand unterscheiden sich.')
+          cert = lambda value: value.replace(':', '').lower() if isinstance(value, str) else ''
+          if cert(approved.get('publicCertificateSha256')) != cert(manifest.get('signingCertificateSha256')):
+              raise SystemExit('Das freigegebene App-Zertifikat stimmt nicht überein.')
+          repository = 'frnkrm/anker'
+          if os.environ.get('GITHUB_REPOSITORY') != repository:
+              raise SystemExit('Dieser Workflow ist nur für frnkrm/anker freigegeben.')
+          source = manifest['sourceCommit']
+          run_id = manifest['ci']['runId']
+          expected_url = f'https://github.com/{repository}/actions/runs/{run_id}'
+          if approved.get('ciRunURL') != expected_url:
+              raise SystemExit('Das freigegebene CI-Ergebnis gehört nicht zum Bundle.')
+          opener = urllib.request.build_opener(NoRedirect())
+          def get(path):
+              request = urllib.request.Request('https://api.github.com/repos/' + repository + path,
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                           'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
+              try:
+                  with opener.open(request, timeout=30) as response:
+                      data = response.read(3_000_001)
+                      if len(data) > 3_000_000:
+                          raise ValueError()
+                      return json.loads(data)
+              except Exception:
+                  raise SystemExit('Der unabhängige GitHub-CI-Nachweis konnte nicht gelesen werden.') from None
+          run = get(f'/actions/runs/{run_id}')
+          if (run.get('id') != run_id or run.get('head_sha') != source or run.get('head_branch') != 'main'
+              or run.get('event') != 'push' or run.get('status') != 'completed' or run.get('conclusion') != 'success'
+              or run.get('path') != '.github/workflows/ci.yml' or run.get('html_url') != expected_url
+              or run.get('repository', {}).get('full_name') != repository):
+              raise SystemExit('Die exakte main/push-CI des App-Bundles ist nicht erfolgreich nachgewiesen.')
+          jobs = get(f'/actions/runs/{run_id}/jobs?filter=latest&per_page=100')
+          required = {'check', 'PC-Begleiter / ubuntu-latest / Python 3.12', 'PC-Begleiter / windows-latest / Python 3.12'}
+          rows = jobs.get('jobs', [])
+          if (jobs.get('total_count') != 3 or len(rows) != 3 or {row.get('name') for row in rows} != required
+              or len({row.get('id') for row in rows}) != 3
+              or any(row.get('run_id') != run_id or row.get('status') != 'completed'
+                     or row.get('conclusion') != 'success' for row in rows)):
+              raise SystemExit('Nicht alle drei erforderlichen CI-Jobs sind erfolgreich nachgewiesen.')
+          comparison = get('/compare/' + source + '...' + os.environ['GITHUB_SHA'])
+          if comparison.get('status') not in ['ahead', 'identical']:
+              raise SystemExit('Der freigegebene App-Stand ist kein Vorfahr dieses Workflows.')
+          print('Unabhängig bestätigt: Code16-Appstand und alle drei grünen CI-Jobs.')
+          PY
+      - name: Festes signiertes Bundle herunterladen und prüfen
+        run: |
+          python3 scripts/google-play-upload.py prepare \
+            --manifest docs/PLAY_UPLOAD_APPROVAL.json \
+            --output-dir "$RUNNER_TEMP/anker-play-input" \
+            --report "$RUNNER_TEMP/anker-play-preflight.json"
+          cp docs/PLAY_UPLOAD_APPROVAL.json "$RUNNER_TEMP/anker-play-input/PLAY_UPLOAD_APPROVAL.json"
+      - name: Getestete Werkzeuge und Manifest binden
+        id: bind
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib
+          files = {'publisher_sha256': 'scripts/google-play-upload.py',
+                   'auth_sha256': 'scripts/google-play-auth.py',
+                   'manifest_sha256': 'docs/PLAY_UPLOAD_APPROVAL.json'}
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for name, path in files.items():
+                  output.write(name + '=' + hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest() + '\n')
+          PY
+      - name: Ausschließlich geprüfte öffentliche Bundledaten übergeben
+        id: input
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ANKER-PLAY-INPUT-${{ github.run_id }}
+          path: ${{ runner.temp }}/anker-play-input/
+          if-no-files-found: error
+          retention-days: 1
+
+  upload:
+    name: Play-Entwurf hochladen
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/google-play-upload.py
+            /scripts/google-play-auth.py
+      - name: Geprüfte Eingabedateien dieses Laufs übernehmen
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          artifact-ids: ${{ needs.preflight.outputs.artifact_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/anker-play-input/
+      - name: Werkzeugidentität und Bundledaten vor Authentifizierung prüfen
+        env:
+          EXPECTED_PUBLISHER_SHA256: ${{ needs.preflight.outputs.publisher_sha256 }}
+          EXPECTED_AUTH_SHA256: ${{ needs.preflight.outputs.auth_sha256 }}
+          EXPECTED_MANIFEST_SHA256: ${{ needs.preflight.outputs.manifest_sha256 }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'anker-play-input'
+          if {path.name for path in root.iterdir()} != {'Anker.aab', 'PLAY_UPLOAD_APPROVAL.json'}:
+              raise SystemExit('Die Übergabe darf nur Bundle und freigegebenes Manifest enthalten.')
+          if any(path.is_symlink() or not path.is_file() for path in root.iterdir()):
+              raise SystemExit('Die Übergabe enthält eine unerlaubte Datei.')
+          digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+          bindings = [(pathlib.Path('scripts/google-play-upload.py'), 'EXPECTED_PUBLISHER_SHA256'),
+                      (pathlib.Path('scripts/google-play-auth.py'), 'EXPECTED_AUTH_SHA256'),
+                      (root / 'PLAY_UPLOAD_APPROVAL.json', 'EXPECTED_MANIFEST_SHA256')]
+          if any(path.is_symlink() or not path.is_file() or digest(path) != os.environ.get(name)
+                 for path, name in bindings):
+              raise SystemExit('Die getesteten Werkzeuge oder das Manifest stimmen nicht überein.')
+          manifest = json.loads((root / 'PLAY_UPLOAD_APPROVAL.json').read_text())
+          expected = manifest['artifact']
+          bundle = root / 'Anker.aab'
+          if bundle.stat().st_size != expected['bytes'] or digest(bundle) != expected['sha256']:
+              raise SystemExit('Es ist nicht das geprüfte signierte Code16-Bundle.')
+          print('Werkzeuge und vollständiges Bundle sind vor der Authentifizierung geprüft.')
+          PY
+      - name: Verfügbarkeit des Google-Secrets prüfen
+        env:
+          ANKER_PLAY_SECRET_PRESENT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        run: |
+          python3 - <<'PY'
+          import os
+          if os.environ.get('ANKER_PLAY_SECRET_PRESENT') != 'true':
+              raise SystemExit('Das Repository-Secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON fehlt oder ist für diesen Lauf nicht verfügbar.')
+          print('Das Google-Secret ist für diesen Lauf verfügbar; sein Inhalt wird nicht ausgegeben.')
+          PY
+      - name: Nur für Google Play authentifizieren
+        id: auth
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: python3 scripts/google-play-auth.py --run
+      - name: Ausschließlich internen Entwurf speichern
+        env:
+          GOOGLE_PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, subprocess, sys
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          report = root / 'anker-play-result.json'
+          process = subprocess.run([sys.executable, 'scripts/google-play-upload.py', 'upload',
+              '--manifest', str(root / 'anker-play-input/PLAY_UPLOAD_APPROVAL.json'),
+              '--bundle', str(root / 'anker-play-input/Anker.aab'), '--report', str(report)])
+          try:
+              result = json.loads(report.read_text())
+          except Exception:
+              result = {}
+          status = result.get('status')
+          if process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
+              print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 16; Status ' + status)
+              sys.exit(0)
+          reason = result.get('reason', 'NO_CONFIRMED_RESULT')
+          if not isinstance(reason, str) or re.fullmatch('[A-Z_]{1,80}', reason) is None:
+              reason = 'NO_CONFIRMED_RESULT'
+          status = status if status in ['failed', 'inconclusive'] else 'unconfirmed'
+          code = result.get('httpStatus')
+          code = str(code) if type(code) is int and 100 <= code <= 599 else 'unknown'
+          print('::error title=Anker Play Upload::Status ' + status + '; Grund ' + reason + '; HTTP ' + code)
+          sys.exit(process.returncode if process.returncode in [2, 3] else 2)
+          PY
+      - name: Öffentlichen Uploadstatus zusammenfassen
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          report = pathlib.Path(os.environ['RUNNER_TEMP']) / 'anker-play-result.json'
+          if report.is_file():
+              result = json.loads(report.read_text())
+              text = json.dumps(result, ensure_ascii=False, indent=2)
+          else:
+              text = 'Kein bestätigter Google-Upload: Ein vorheriger Prüfschritt oder die Anmeldung wurde nicht abgeschlossen.'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write('### Google-Play-Entwurf\n\n```json\n' + text + '\n```\n')
+          PY
+      - name: Öffentlichen Ergebnisbericht aufbewahren
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: Anker-Play-Uploadstatus-${{ github.run_id }}
+          path: ${{ runner.temp }}/anker-play-result.json
+          if-no-files-found: ignore
+          retention-days: 14

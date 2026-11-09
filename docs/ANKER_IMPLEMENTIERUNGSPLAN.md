@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## Google Play – Uploadworkflow nach Secret-Einrichtung (10.11.2026)
+
+**Nutzerstand:** Die Play-Console-App wurde laut Nutzer angelegt; das angeleitete Repository-Secret `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` ist angelegt. Der ausdrückliche Uploadauftrag besteht weiter. Ein neuer GitHub-Workflow führt den bereits signierten Code16-Stand zunächst als internen Entwurf zu Google; keine öffentliche oder gestartete Testveröffentlichung daraus abgeleitet.
+
+**Implementiert und lokal geprüft:** Zweijob-Workflow mit fester App-/CI-/Artefaktfreigabe, 28 Upload-, 24 OAuth- und 26 Workflowtests (**78**), realer Actionlint-Prüfung und vollständiger echter AAB-Übergabeprüfung. Standard-Servicekonto-JWT-Bearer, feste Android-Publisher-Scope, keine Delegation oder zusätzliche IAM-Rollen; Secret/Token nur im jeweiligen Schritt. `internal`/`draft`, Idempotenz/Bestandserhalt, keine Mutationsretries, `ERROR_IF_IN_REVIEW` gegen Abbruch laufender Prüfungen, Readback statt Erfolg aus bloßem Commit. Appcode, Version, B4, Datenmodelle, 103 Geräteprüfungen und APK bleiben unverändert. [Ablauf, feste Grenzen und Prüfbezug](GOOGLE_PLAY_UPLOAD_WORKFLOW.md).
+
+**Tatsächlicher Runner-/Google-Nachweis:** Vor dem ersten Lauf noch offen. Das Vorhandensein eines Secrets ist vom Nutzer bestätigt, nicht durch Auslesen seines Inhalts. Nach dem autorisierten Workflowstart sind Authentifizierung, API-Zugriff und gespeicherter Draft getrennt anhand tatsächlicher Antworten auszuweisen; ein Fehler oder unklarer Commit wird nicht als Upload bestätigt.
+
+
 ## Google Play – Erstupload vorbereiten (09.11.2026)
 
 **Neuer ausdrücklicher Auftrag:** Anker in das vorhandene Google-Play-Console-Konto hochladen. Nutzer bestätigt: Entwicklerkonto vorhanden, Anker noch nicht angelegt. Für diesen Auftrag ist ein unveröffentlichter interner Testentwurf vorgesehen; daraus wird keine öffentliche Storefreigabe, Zahlung oder private Schlüsselübertragung abgeleitet.

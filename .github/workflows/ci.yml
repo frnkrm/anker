@@ -31,6 +31,11 @@ jobs:
         run: npm run test:pc
       - name: Android-Updateprüfung ohne echte Schlüssel testen
         run: python3 scripts/test-android-update.py
+      - name: Play-Uploadgrenzen ohne Zugangsdaten prüfen
+        run: |
+          python3 scripts/test-google-play-upload.py
+          python3 scripts/test-google-play-auth.py
+          python3 scripts/test-google-play-workflow.py
       - run: npm run build
       - name: Playwright-Browser installieren
         run: npx playwright install --with-deps chromium

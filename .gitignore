@@ -23,3 +23,6 @@ android/capacitor-cordova-android-plugins
 *.p12
 *.pfx
 signing-private.json
+
+# Generated Python bytecode from local automation checks.
+__pycache__/
