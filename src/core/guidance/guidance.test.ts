@@ -98,6 +98,16 @@ describe('Eine Zustandsprojektion, kein zweiter Plan', () => {
     local.guidance = { receipts: [], days: { [date]: { nightLockedAt: at(1380), bedVerifiedAt: at(1380) } } }
     expect(deriveGuidance({ plan, local, settings: s, nowMs: at(1400) })).toMatchObject({ phase: 'NIGHT_LOCK', lockEnforced: true })
   })
+  it('eskaliert nach Bettbestätigung oder Heute nicht nicht erneut, hält aber eine echte Nachtsperre', () => {
+    const s = settings(); const plan = buildDayPlan({ date, settings: s })
+    for (const patch of [{ bedAt: at(1375) }, { dismissed: ['evening'] }]) {
+      const log = { ...day(), ...patch }
+      expect(deriveGuidance({ plan, log, local: emptyLocal(), settings: s, nowMs: at(1380) }).phase).toBe('DAY_ACTIVE')
+      const local = { ...emptyLocal(), guidance: { receipts: [], days: { [date]: { nightLockedAt: at(1375) } } } }
+      expect(deriveGuidance({ plan, log, local, settings: s, nowMs: at(1380) }).phase).toBe('NIGHT_LOCK')
+    }
+    expect(deriveGuidance({ plan, log: { ...day(), eveningRoutineDoneAt: at(1375) }, local: emptyLocal(), settings: s, nowMs: at(1380) }).phase).toBe('BEDTIME_HARD_CUT')
+  })
   it('hält die Nacht über 03:59 und 04:00, beendet sie nur durch echte Morgenhandlung oder den begrenzten Schutzablauf', () => {
     const s = settings(); const tomorrow = addDays(date, 1)
     const local: LocalData = { ...emptyLocal(), guidance: { receipts: [], days: { [date]: { nightLockedAt: at(1380) } } } }

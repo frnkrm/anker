@@ -75,6 +75,9 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
     return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }
   }
   if (unreleased) return { ...view, phase: emergency ? 'DAY_ACTIVE' : 'NIGHT_LOCK' }
+  // Ein bewusst beendeter oder für heute abgewählter Abend löst keine neue
+  // Eskalation aus. Eine bereits bestätigte Nachtsperre bleibt davon unabhängig.
+  if (log?.bedAt !== undefined || log?.dismissed?.includes('evening')) return view
   if (!preferences.eveningEscalation || plan.openEnd || plan.dayType === 'sick') return view
   const bedAt = zonedToUtc(plan.date, plan.bed)
   const remainingSeconds = Math.max(0, Math.ceil((bedAt - nowMs) / 1000))
