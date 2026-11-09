@@ -1,0 +1,30 @@
+import { expect, test } from '@playwright/test'
+import { storedRecord } from './helpers/storage'
+import type { LocalData } from '../src/core/types'
+
+test('Schlafvorschläge brauchen eine eigene Android-Wahl und verändern im Web keine Schlafdaten', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-09T10:00:00+01:00'))
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await page.setViewportSize({ width: 320, height: 900 })
+  await page.goto('/einstellungen/schlaf')
+  await page.evaluate(() => { document.documentElement.style.fontSize = '160%' })
+  const enable = page.getByRole('switch', { name: 'Schlafvorschläge aus Health Connect', exact: true })
+  await expect(enable).toHaveAttribute('aria-checked', 'false')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await enable.click()
+  await expect(page.getByRole('status').filter({ hasText: 'Schlafvorschläge sind in der Android-App' })).toBeVisible()
+  await expect(enable).toHaveAttribute('aria-checked', 'false')
+  expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.healthSleepEnabled).not.toBe(true)
+  await page.getByRole('link', { name: /Schlafüberblick öffnen/ }).click()
+  await expect(page.getByRole('region', { name: 'Schlafüberblick', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Vorschläge aus Health Connect', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Keine Angaben', { exact: true })).toHaveCount(7)
+  await page.reload()
+  expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.sleepDiary ?? {}).toEqual({})
+  await page.goto('/privacypolicy.html')
+  await expect(page.getByRole('heading', { name: 'Deine Health-Connect-Freigaben' })).toBeVisible()
+  await expect(page.getByText(/keine Schlafphasen-Auswertung/)).toBeVisible()
+})

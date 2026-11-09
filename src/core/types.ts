@@ -436,11 +436,12 @@ export interface TomorrowStep {
   remind: boolean
 }
 
-/** Freiwillige Eingaben in UTC ms, keine automatisch erfassten Schlafdaten. */
+/** Freiwillige Eingaben in UTC ms; Health-Zeiten erst nach bewusster Übernahme. */
 export interface SleepDiaryEntry {
   sleepyAt?: number
   bedAt?: number
   wakeAt?: number
+  source?: 'health-connect'
 }
 
 export type WorkSessionKind = 'regular' | 'maintenance' | 'incident' | 'onsite' | 'other'
@@ -649,6 +650,8 @@ export interface LocalData {
   tomorrowSteps: TomorrowStep[]
   /** Nächte nach Datum; weder Wecker noch Tagespunkte tragen hier etwas ein. */
   sleepDiary: Record<DateStr, SleepDiaryEntry>
+  /** Geräteeigene Lesefreigabe, weder Sync noch JSON-Sicherung. */
+  healthSleepEnabled?: boolean
   handover: Record<DateStr, { open: string; next: string }>
   /** Nie aus einem Wecker-Ereignis abgeleitet, immer eine bewusste Eingabe */
   meds: Record<DateStr, { status: MedsStatus; at: number }>

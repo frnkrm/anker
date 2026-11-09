@@ -2,8 +2,8 @@ import { activePlanDate } from './now'
 import { addDays, todayBerlin, type DateStr } from './time'
 import type { SleepDiaryEntry } from './types'
 
-export type SleepEvent = keyof SleepDiaryEntry
 export const SLEEP_EVENTS = ['sleepyAt', 'bedAt', 'wakeAt'] as const
+export type SleepEvent = typeof SLEEP_EVENTS[number]
 
 function validDate(date: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false
@@ -14,6 +14,7 @@ function validDate(date: string): boolean {
 /** Nur bewusst gemeldete Zeitpunkte. Fehlende Angaben bleiben fehlend. */
 export function validateSleepEntry(date: DateStr, entry: SleepDiaryEntry, nowMs = Date.now()): SleepDiaryEntry {
   if (!validDate(date)) throw new Error('Bitte wähle ein gültiges Datum für die Nacht.')
+  if (entry.source !== undefined && entry.source !== 'health-connect') throw new Error('Die Herkunft der Schlafangaben ist ungültig.')
   const clean: SleepDiaryEntry = {}
   for (const event of SLEEP_EVENTS) {
     const value = entry[event]
@@ -31,6 +32,7 @@ export function validateSleepEntry(date: DateStr, entry: SleepDiaryEntry, nowMs 
     }
   }
   // Müdigkeit kann auch erst im Bett auftreten. Ihre Reihenfolge zur Bettzeit ist offen.
+  if (entry.source === 'health-connect' && (clean.bedAt === undefined || clean.wakeAt === undefined || clean.sleepyAt !== undefined)) throw new Error('Die übernommenen Schlafangaben sind unvollständig.')
   return clean
 }
 

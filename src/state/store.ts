@@ -17,6 +17,7 @@ import { buildDayPlan } from '../core/planner'
 import { planConflicts, validConflictAcknowledgements } from '../core/planConflicts'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
+import { acceptHealthSleepSuggestion } from '../core/healthSleep'
 import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc, type DateStr } from '../core/time'
 import { buildTimeCatalog, currentTimeCatalog, TIME_CATALOG_RECORD_ID, timeCatalogPlanDates, validTimeCatalog, type TimeCatalogRuntime, type TimeCatalogSnapshot } from '../core/timeCatalog'
 import type {
@@ -144,6 +145,7 @@ interface AppState {
   finishTomorrowStep(id: string): Promise<void>
   removeTomorrowStep(id: string): Promise<void>
   saveSleepEntry(date: DateStr, entry: SleepDiaryEntry): Promise<void>
+  acceptHealthSleep(date: DateStr, entry: SleepDiaryEntry, accept?: () => boolean): Promise<boolean>
   removeSleepEntry(date: DateStr): Promise<void>
   /** Nur nach einer bewussten Eingabe aufrufen, nie aus Wecker-Ereignissen. */
   setMeds(date: DateStr, status: MedsStatus | undefined): Promise<void>
@@ -1347,6 +1349,20 @@ export const useApp = create<AppState>()((set, get) => ({
       const sleepDiary = { ...local.sleepDiary }
       delete sleepDiary[date]
       return { ...local, sleepDiary }
+    })
+  },
+
+  acceptHealthSleep(date, entry, accept = () => true) {
+    return atomic(async () => {
+      const before = get().local
+      if (before.healthSleepEnabled !== true || !accept()) return false
+      const accepted = acceptHealthSleepSuggestion(date, entry, before.sleepDiary[date])
+      if (!accepted) return false
+      const local = { ...before, sleepDiary: { ...before.sleepDiary, [date]: accepted } }
+      await repo.put('meta', 'local', sourceLocal(local))
+      set({ local })
+      changed()
+      return true
     })
   },
 

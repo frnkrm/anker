@@ -7,6 +7,7 @@ import { useNow } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { Button, Card, DateField, MoreInfo, Section } from '../components/ui'
 import { HubContent } from '../components/HubContent'
+import { HealthSleepSuggestions } from '../components/HealthSleepSuggestions'
 
 const LABEL: Record<SleepEvent, string> = { sleepyAt: 'Müde geworden', bedAt: 'Ins Bett gegangen', wakeAt: 'Aufgestanden' }
 const NOW_LABEL: Record<SleepEvent, string> = { sleepyAt: 'Jetzt müde', bedAt: 'Jetzt ins Bett', wakeAt: 'Jetzt aufgestanden' }
@@ -45,6 +46,7 @@ export default function SleepDiary({ embedded = false }: { embedded?: boolean } 
   return (
     <HubContent className="settings-page" title="Schlafüberblick" back="/abend" embedded={embedded}>
       <p className="text-muted">Deine eigenen Angaben zu Müdigkeit, Bett und Aufstehen. Du trägst nur ein, was du festhalten möchtest.</p>
+      <HealthSleepSuggestions />
       <Card className="space-y-3">
         <h2 className="text-lg font-semibold">Einen Zeitpunkt festhalten</h2>
         <div className="flex flex-wrap gap-2">
@@ -91,6 +93,7 @@ export default function SleepDiary({ embedded = false }: { embedded?: boolean } 
           if (!filled) return <button type="button" key={row.date} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-line px-3 py-2 text-left text-sm text-muted" aria-label={`Nacht ${row.date} bearbeiten`} onClick={edit}><span>Nacht {nightLabel(row.date)}</span><span>Keine Angaben</span></button>
           return <details key={row.date} className="rounded-2xl border border-line bg-surface p-3">
             <summary className="min-h-11 py-2 font-medium">Nacht {nightLabel(row.date)}{row.bedToWakeMin !== undefined && <span className="block text-sm font-normal text-muted">Bett bis Aufstehen: {fmtDuration(row.bedToWakeMin)}</span>}</summary>
+            {row.entry.source === 'health-connect' && <p className="text-sm text-muted">Bewusst aus Health Connect übernommen. Eigene Korrekturen ersetzen diese Herkunftsangabe.</p>}
             <dl className="mt-2 space-y-1 text-sm">{SLEEP_EVENTS.map((key) => <div key={key} className="flex flex-wrap justify-between gap-x-4"><dt className="text-muted">{LABEL[key]}</dt><dd>{row.entry[key] === undefined ? 'nicht eingetragen' : format.format(row.entry[key])}</dd></div>)}</dl>
             <Button size="sm" variant="ghost" className="mt-2" disabled={pending} aria-label={`Nacht ${row.date} bearbeiten`} onClick={edit}>Bearbeiten</Button>
           </details>

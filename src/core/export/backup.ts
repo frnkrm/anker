@@ -41,7 +41,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
     && (selection.work || record.collection !== 'inbox' || !businessIds.has(record.id))).map((record) => {
     const copy = structuredClone(record)
     if (copy.deleted) return selection.work ? copy.collection === 'meta' && copy.id === 'local' && object(copy.data)
-      ? { ...copy, data: without(copy.data, ['timeCatalog', 'pcBridge']) } : copy : { ...copy, data: null }
+      ? { ...copy, data: without(copy.data, ['timeCatalog', 'pcBridge', 'healthSleepEnabled']) } : copy : { ...copy, data: null }
     if (!object(copy.data)) return copy
     let data = copy.data
     if (record.collection === 'settings') {
@@ -51,7 +51,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
     if (record.collection === 'meta' && record.id === 'local') {
       // Eine abgeleitete Übersicht kann Arbeits-/Orts-/Gesundheitsquellen zusammenführen.
       // Auch vollständige Backups enthalten deshalb ausschließlich die Originaldaten.
-      data = without(data, ['timeCatalog', 'pcBridge'])
+      data = without(data, ['timeCatalog', 'pcBridge', 'healthSleepEnabled'])
       if (!selection.health) data = without(data, ['meds', 'sleepDiary', 'guidance'])
       if (!selection.deviceTests) data = without(data, ['deviceTests'])
       if (!selection.places) {

@@ -13,6 +13,7 @@ import { WindDownFields } from './WindDown'
 import GuidanceSettings, { MorningLightSuggestion } from './GuidanceSettings'
 import { guidancePreferences } from '../../core/guidance'
 import { ExtraControls } from '../components/ExtraControls'
+import { HealthSleepSettings } from '../components/HealthSleepSettings'
 import { Button, Card, Checkbox, Choice, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
@@ -188,6 +189,7 @@ function Sleep({ s, save }: { s: S; save: Save }) {
 
       <SettingRow label="Stummen Einschlafhinweis beim Zubettgehen starten"><Toggle label="Stummen Einschlafhinweis beim Zubettgehen starten" checked={!!s.sleep.bedtimePromptEnabled} onChange={(value) => setSleep({ bedtimePromptEnabled: value })} /></SettingRow>
       <p className="text-sm text-muted">Nach „Ich liege im Bett“ erinnert dich Anker zur geschätzten Einschlafzeit, solange der Bildschirm an ist. Freigaben und Start bleiben deine Wahl.</p>
+      <HealthSleepSettings />
       <Card className="space-y-4">
         <SettingRow label={<span>Schlafbedarf</span>}>
           <Stepper label="Schlafbedarf" value={s.sleep.needMin / 60} step={0.5} min={5} max={10} unit="h" onChange={(v) => setSleep({ needMin: Math.round(v * 60) })} />
