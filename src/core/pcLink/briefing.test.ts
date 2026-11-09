@@ -43,6 +43,13 @@ describe('PC-Ableitung aus dem vorhandenen Tagesplan', () => {
     expect(before.validUntil).toBe(new Date(at(1380) + 18 * 3600_000).toISOString())
     expect(after.validUntil).toBe(before.validUntil)
     expect(after.lockEnforced).toBe(true)
+    const actualWakeAt = new Date(at(s.anchor.wake, next)).toISOString()
+    expect(before.schedule.wakeAt).toBe(actualWakeAt)
+    expect(after.schedule.wakeAt).toBe(actualWakeAt)
+    expect(after.schedule.morningDeadlineAt).toBe(before.schedule.morningDeadlineAt)
+    const earlyRing = buildPcState({ plan: buildDayPlan({ date, settings: s }), settings: s, local, prefs: prefs(), nowMs: at(1440 + 210), alarm: { ringing: true, kind: 'main' } })
+    expect(earlyRing.state).toBe('ALARM_RINGING')
+    expect(earlyRing.schedule.wakeAt).toBe(actualWakeAt)
   })
   it('meldet nach echter Morgenroutine auch mittags MORNING_COMPLETED, übersprungene Schritte lösen nicht', () => {
     const s = settings(); const plan = buildDayPlan({ date: next, settings: s }); const local = emptyLocal()

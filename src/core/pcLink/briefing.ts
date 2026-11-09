@@ -47,7 +47,11 @@ export function buildPcState(input: { plan: DayPlan; log?: DayLog; local: LocalD
   const state = night && plan.date > night[0] && view.morningCompleted ? 'MORNING_COMPLETED' : view.phase
   const evening = !plan.openEnd
   const bedAt = evening ? zonedToUtc(plan.date, plan.bed) : null
-  const isMorning = ['MORNING_PENDING', 'MORNING_ACTIVE', 'MORNING_COMPLETED', 'ALARM_RINGING', 'ZOMBIE_MODE'].includes(state)
+  // A latched night keeps its actual next morning across the 04:00 plan change.
+  // Before that change an early ringing alarm still belongs to the next plan;
+  // after it NIGHT_LOCK alone must not move wakeAt another day into the future.
+  const isMorning = night ? plan.date > night[0]
+    : ['MORNING_PENDING', 'MORNING_ACTIVE', 'MORNING_COMPLETED', 'ALARM_RINGING', 'ZOMBIE_MODE'].includes(state)
   const wakeAt = zonedToUtc(isMorning ? plan.date : addDays(plan.date, 1), isMorning ? plan.wake : input.nextPlan?.wake ?? settings.anchor.wake)
   const deadline = wakeAt + 3 * 3600000
   // A reconnect must never move the original night lease into another evening.
