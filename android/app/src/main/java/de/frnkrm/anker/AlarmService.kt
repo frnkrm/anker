@@ -11,6 +11,7 @@ import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.media.AudioRouting
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.media.ToneGenerator
@@ -44,8 +45,8 @@ class AlarmService : Service() {
         fun stop(ctx: Context) {
             try {
                 ctx.startService(Intent(ctx, AlarmService::class.java).setAction(ACTION_STOP))
-            } catch (_: IllegalStateException) {
-                // Dienst läuft nicht und die App ist im Hintergrund: dann klingelt ohnehin nichts
+            } catch (error: Exception) {
+                NativeDiagnosticJournal.record(ctx, "alarm", "stop_error", mapOf("errorClass" to error.javaClass.simpleName))
             }
         }
 
@@ -64,6 +65,7 @@ class AlarmService : Service() {
 
         /** Ersatz, falls der Klingel-Dienst nicht starten darf: Benachrichtigung mit Wecker-Ton. */
         fun postFallback(ctx: Context) {
+            try {
             val nm = ctx.getSystemService(NotificationManager::class.java)
             val attrs = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
             nm.createNotificationChannel(
@@ -86,6 +88,10 @@ class AlarmService : Service() {
                     .setAutoCancel(true)
                     .build(),
             )
+            NativeDiagnosticJournal.record(ctx, "alarm", "fallback_posted", mapOf("started" to true))
+            } catch (error: Exception) {
+                NativeDiagnosticJournal.record(ctx, "alarm", "fallback_error", mapOf("errorClass" to error.javaClass.simpleName))
+            }
         }
     }
 
@@ -99,12 +105,14 @@ class AlarmService : Service() {
     private var activeKind: AlarmKind? = null
     private var activeStartedAt = 0L
     private var fadeTick: Runnable? = null
+    private var toneTick: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val s = AlarmController.state(this)
+        NativeDiagnosticJournal.record(this, "alarm", "service_entered", mapOf("reasonCode" to if (intent?.action == ACTION_STOP) "stopped" else if (intent == null) "restart" else "normal", "started" to (s.ringing != null)))
         if (intent?.action == ACTION_STOP && AlarmMachine.shouldStopRingingService(s)) {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -147,16 +155,18 @@ class AlarmService : Service() {
     }
 
     private fun startInForeground(kind: AlarmKind): Boolean {
-        ensureChannel(this)
-        val b = alarmNotification(kind)
         return try {
+            ensureChannel(this)
+            val b = alarmNotification(kind)
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(NOTIFICATION_ID, b.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
             } else {
                 startForeground(NOTIFICATION_ID, b.build())
             }
+            NativeDiagnosticJournal.record(this, "alarm", "foreground_started", mapOf("kind" to kind.wire, "foreground" to true))
             true
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            NativeDiagnosticJournal.record(this, "alarm", "foreground_error", mapOf("kind" to kind.wire, "errorClass" to error.javaClass.simpleName))
             false
         }
     }
@@ -170,6 +180,7 @@ class AlarmService : Service() {
     private fun wakeScreen() {
         val pm = getSystemService(PowerManager::class.java) ?: return
         if (pm.isInteractive) return
+        NativeDiagnosticJournal.record(this, "alarm", "screen_wake_requested")
         try {
             screenLock?.let { if (it.isHeld) it.release() }
             @Suppress("DEPRECATION")
@@ -177,7 +188,8 @@ class AlarmService : Service() {
                 PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
                 "anker:screen",
             ).apply { acquire(15_000) }
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            NativeDiagnosticJournal.record(this, "alarm", "screen_wake_error", mapOf("errorClass" to error.javaClass.simpleName))
             return
         }
         val kind = activeKind ?: return
@@ -185,7 +197,8 @@ class AlarmService : Service() {
             if (activeKind == null) return@postDelayed
             try {
                 getSystemService(NotificationManager::class.java)?.notify(WAKE_ID, alarmNotification(kind).setOngoing(false).setTimeoutAfter(15_000).build())
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                NativeDiagnosticJournal.record(this, "alarm", "screen_wake_notify_error", mapOf("errorClass" to error.javaClass.simpleName))
             }
         }, 700)
     }
@@ -256,11 +269,12 @@ class AlarmService : Service() {
             .setAudioAttributes(alarmAttributes())
             .setWillPauseWhenDucked(true)
             .setOnAudioFocusChangeListener({ change ->
+                NativeDiagnosticJournal.record(this, "alarm", "audio_focus_change", mapOf("kind" to kind.wire, "focusChange" to change))
                 when (change) {
                     AudioManager.AUDIOFOCUS_GAIN -> if (audioLease.gain(id)) {
                         val state = AlarmController.state(this)
                         if (activeKind == kind && state.ringing == kind && state.ringStartedAt == startedAt && !AlarmMachine.ringExpired(state, System.currentTimeMillis())) {
-                            AnkerPrefs.setAudioOk(this, playFirstAvailable(playerVolume(kind, startedAt, volume), volume))
+                            AnkerPrefs.setAudioOk(this, playFirstAvailable(kind, startedAt, id, playerVolume(kind, startedAt, volume), volume))
                             schedulePreWakeFade(kind, startedAt, volume)
                         } else {
                             audioLease.cancel()
@@ -276,11 +290,16 @@ class AlarmService : Service() {
             }, handler)
             .build()
         focus = request
-        val granted = try {
-            getSystemService(AudioManager::class.java)?.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        } catch (_: Exception) { false }
+        val result = try {
+            getSystemService(AudioManager::class.java)?.requestAudioFocus(request) ?: AudioManager.AUDIOFOCUS_REQUEST_FAILED
+        } catch (error: Exception) {
+            NativeDiagnosticJournal.record(this, "alarm", "audio_focus_error", mapOf("kind" to kind.wire, "errorClass" to error.javaClass.simpleName))
+            AudioManager.AUDIOFOCUS_REQUEST_FAILED
+        }
+        val granted = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        NativeDiagnosticJournal.record(this, "alarm", "audio_focus_result", mapOf("kind" to kind.wire, "focusResult" to result, "accepted" to granted))
         // Weder abgelehnter noch verzögerter Fokus bestätigt eine laufende Tonausgabe.
-        AnkerPrefs.setAudioOk(this, audioLease.requested(id, granted) && playFirstAvailable(playerVolume(kind, startedAt, volume), volume))
+        AnkerPrefs.setAudioOk(this, audioLease.requested(id, granted) && playFirstAvailable(kind, startedAt, id, playerVolume(kind, startedAt, volume), volume))
         if (granted) schedulePreWakeFade(kind, startedAt, volume)
         if (!granted) {
             try { getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(request) } catch (_: Exception) { }
@@ -305,15 +324,48 @@ class AlarmService : Service() {
         fadeTick = tick; handler.post(tick)
     }
 
-    private fun playFirstAvailable(volume: Float, fallbackVolume: Float = volume): Boolean {
+    private fun audioSource(index: Int): String = when (index) {
+        0 -> "alarm-default"
+        1 -> "notification-default"
+        2 -> "ringtone-default"
+        else -> "generated"
+    }
+
+    private fun mayPlay(kind: AlarmKind, startedAt: Long, leaseId: Int): Boolean =
+        AlarmPlaybackModel.mayPlay(AlarmController.state(this), kind, startedAt, System.currentTimeMillis(), audioLease.permits(leaseId))
+
+    private fun playFirstAvailable(kind: AlarmKind, startedAt: Long, leaseId: Int, volume: Float, fallbackVolume: Float = volume, firstSource: Int = 0): Boolean {
+        if (!mayPlay(kind, startedAt, leaseId)) return false
         val types = intArrayOf(RingtoneManager.TYPE_ALARM, RingtoneManager.TYPE_NOTIFICATION, RingtoneManager.TYPE_RINGTONE)
-        for (t in types) {
-            val uri = RingtoneManager.getDefaultUri(t) ?: continue
+        for (index in firstSource until types.size) {
+            val uri = RingtoneManager.getDefaultUri(types[index]) ?: continue
             var candidate: MediaPlayer? = null
             try {
                 candidate = MediaPlayer()
                 candidate.apply {
                     setAudioAttributes(alarmAttributes())
+                    addOnRoutingChangedListener(AudioRouting.OnRoutingChangedListener { routing ->
+                        if (player === candidate) NativeDiagnosticJournal.record(this@AlarmService, "alarm", "player_route_changed",
+                            mapOf("kind" to kind.wire, "playerSource" to index, "audioSource" to audioSource(index), "routedDeviceType" to (routing.routedDevice?.type ?: 0)))
+                    }, handler)
+                    setOnErrorListener { failed, what, extra ->
+                        if (player === failed) {
+                            AnkerPrefs.setAudioOk(this@AlarmService, false)
+                            NativeDiagnosticJournal.record(this@AlarmService, "alarm", "player_error", mapOf("kind" to kind.wire, "playerSource" to index, "audioSource" to audioSource(index), "playerError" to what, "playerExtra" to extra))
+                            handler.post {
+                                // A late callback from a released prewake/player cannot revive a new alarm.
+                                if (player === failed) {
+                                    stopPlayback()
+                                    if (mayPlay(kind, startedAt, leaseId)) {
+                                        AnkerPrefs.setAudioOk(this@AlarmService, playFirstAvailable(kind, startedAt, leaseId,
+                                            playerVolume(kind, startedAt, fallbackVolume), fallbackVolume, AlarmPlaybackModel.nextSource(index)))
+                                        schedulePreWakeFade(kind, startedAt, fallbackVolume)
+                                    }
+                                }
+                            }
+                        }
+                        true
+                    }
                     setDataSource(this@AlarmService, uri)
                     isLooping = true
                     setVolume(volume, volume)
@@ -321,17 +373,39 @@ class AlarmService : Service() {
                     start()
                 }
                 player = candidate
+                val facts = mutableMapOf<String, Any>("kind" to kind.wire, "playerSource" to index, "audioSource" to audioSource(index), "started" to true)
+                if (Build.VERSION.SDK_INT >= 28) candidate.routedDevice?.let { facts["routedDeviceType"] = it.type }
+                NativeDiagnosticJournal.record(this, "alarm", "player_started", facts)
                 return true
-            } catch (_: Exception) {
-                candidate?.release()
+            } catch (error: Exception) {
+                try { candidate?.release() } catch (_: Exception) { }
+                NativeDiagnosticJournal.record(this, "alarm", "player_error", mapOf("kind" to kind.wire, "playerSource" to index, "audioSource" to audioSource(index), "errorClass" to error.javaClass.simpleName))
             }
         }
+        if (!mayPlay(kind, startedAt, leaseId)) return false
         return try {
-            // ToneGenerator has no gain ramp. A gentle audible fallback is safer than a silent failed fade.
+            // Generated fallback pulses repeat within the original timeout, never against lost audio focus.
             val fallback = ToneGenerator(AudioManager.STREAM_ALARM, (fallbackVolume * 100).toInt())
             tone = fallback
-            fallback.startTone(ToneGenerator.TONE_CDMA_HIGH_L)
-        } catch (_: Exception) {
+            val started = fallback.startTone(ToneGenerator.TONE_PROP_BEEP, AlarmPlaybackModel.FALLBACK_PULSE_MS)
+            NativeDiagnosticJournal.record(this, "alarm", if (started) "tone_started" else "tone_error", mapOf("kind" to kind.wire, "audioSource" to "generated", "started" to started))
+            if (!started) { fallback.release(); tone = null; return false }
+            val pulse = object : Runnable { override fun run() {
+                if (tone !== fallback) return
+                if (!mayPlay(kind, startedAt, leaseId)) { stopPlayback(); AnkerPrefs.setAudioOk(this@AlarmService, false); return }
+                try {
+                    if (fallback.startTone(ToneGenerator.TONE_PROP_BEEP, AlarmPlaybackModel.FALLBACK_PULSE_MS)) handler.postDelayed(this, AlarmPlaybackModel.FALLBACK_GAP_MS)
+                    else { NativeDiagnosticJournal.record(this@AlarmService, "alarm", "tone_error", mapOf("kind" to kind.wire)); stopPlayback(); AnkerPrefs.setAudioOk(this@AlarmService, false) }
+                } catch (error: Exception) {
+                    NativeDiagnosticJournal.record(this@AlarmService, "alarm", "tone_error", mapOf("kind" to kind.wire, "errorClass" to error.javaClass.simpleName))
+                    stopPlayback(); AnkerPrefs.setAudioOk(this@AlarmService, false)
+                }
+            } }
+            toneTick = pulse; handler.postDelayed(pulse, AlarmPlaybackModel.FALLBACK_GAP_MS)
+            true
+        } catch (error: Exception) {
+            try { tone?.release() } catch (_: Exception) { }; tone = null
+            NativeDiagnosticJournal.record(this, "alarm", "tone_error", mapOf("kind" to kind.wire, "errorClass" to error.javaClass.simpleName))
             false
         }
     }
@@ -339,8 +413,10 @@ class AlarmService : Service() {
     /** Fokusverlust stoppt nur den Ton; Alarmzustand, Vibration und Sicherheitslimit bleiben aktiv. */
     private fun stopPlayback() {
         fadeTick?.let { handler.removeCallbacks(it) }; fadeTick = null
+        toneTick?.let { handler.removeCallbacks(it) }; toneTick = null
         player?.run {
             try {
+                setOnErrorListener(null)
                 stop()
             } catch (_: Exception) {
             }
@@ -352,6 +428,7 @@ class AlarmService : Service() {
     }
 
     private fun stopSound() {
+        NativeDiagnosticJournal.record(this, "alarm", "audio_stopped", mapOf("started" to (player != null || tone != null)))
         audioLease.cancel()
         stopPlayback()
         vibrator?.cancel()
@@ -360,6 +437,7 @@ class AlarmService : Service() {
     }
 
     override fun onDestroy() {
+        NativeDiagnosticJournal.record(this, "alarm", "service_destroyed")
         handler.removeCallbacksAndMessages(null)
         stopSound()
         wakeLock?.let { if (it.isHeld) it.release() }

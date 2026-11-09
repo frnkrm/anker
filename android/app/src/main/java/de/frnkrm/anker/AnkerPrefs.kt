@@ -161,6 +161,10 @@ object AnkerPrefs {
 
     fun isRinging(ctx: Context): Boolean = loadState(ctx).ringing != null
 
+    // ---------- Begrenztes technisches Diagnosejournal, ohne Inhalte oder Zugangsdaten ----------
+    fun diagnosticJournal(ctx: Context): String = prefs(ctx).getString("diagnosticJournal", "{}") ?: "{}"
+    fun setDiagnosticJournal(ctx: Context, json: String): Boolean = prefs(ctx).edit().putString("diagnosticJournal", json).commit()
+
     // ---------- Erinnerungen ----------
     fun reminderQueue(ctx: Context): String = prefs(ctx).getString("reminderQueue", "[]") ?: "[]"
     fun setReminderQueue(ctx: Context, json: String) = prefs(ctx).edit().putString("reminderQueue", json).commit()

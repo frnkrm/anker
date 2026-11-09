@@ -37,6 +37,10 @@ class BootReceiver : BroadcastReceiver() {
         val reason = when (intent.action) {
             Intent.ACTION_LOCKED_BOOT_COMPLETED -> "locked-boot"
             Intent.ACTION_BOOT_COMPLETED -> "boot"
+            Intent.ACTION_MY_PACKAGE_REPLACED -> "package-replaced"
+            Intent.ACTION_TIME_CHANGED -> "time-changed"
+            Intent.ACTION_TIMEZONE_CHANGED -> "timezone-changed"
+            "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" -> "exact-permission-changed"
             else -> "system"
         }
         AlarmController.reconcile(ctx, reason)

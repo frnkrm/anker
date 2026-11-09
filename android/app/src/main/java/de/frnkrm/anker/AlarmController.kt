@@ -38,11 +38,15 @@ object AlarmController {
         Build.VERSION.SDK_INT < 31 || manager(ctx)?.canScheduleExactAlarms() == true
 
     private fun arm(ctx: Context, kind: AlarmKind, at: Long) {
-        val am = manager(ctx) ?: return
+        val am = manager(ctx) ?: run {
+            NativeDiagnosticJournal.record(ctx, "alarm", "schedule_error", mapOf("kind" to kind.wire, "targetAt" to at, "reasonCode" to "system"))
+            return
+        }
         if (at <= 0) {
             existing(ctx, kind)?.let {
                 am.cancel(it)
                 it.cancel()
+                NativeDiagnosticJournal.record(ctx, "alarm", "schedule_cancelled", mapOf("kind" to kind.wire))
             }
             return
         }
@@ -54,9 +58,20 @@ object AlarmController {
             } else {
                 am.setAlarmClock(AlarmManager.AlarmClockInfo(at, showIntent(ctx)), pi)
             }
+            NativeDiagnosticJournal.record(ctx, "alarm", "scheduled", mapOf("kind" to kind.wire, "targetAt" to at, "exactAllowed" to true, "accepted" to true))
         } catch (e: SecurityException) {
             AnkerPrefs.setAlarmError(ctx, "exact_denied")
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+            try {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+                NativeDiagnosticJournal.record(ctx, "alarm", "schedule_fallback", mapOf("kind" to kind.wire, "targetAt" to at, "errorClass" to e.javaClass.simpleName, "exactAllowed" to false, "accepted" to true))
+            }
+            catch (fallback: Exception) {
+                NativeDiagnosticJournal.record(ctx, "alarm", "schedule_error", mapOf("kind" to kind.wire, "targetAt" to at, "errorClass" to fallback.javaClass.simpleName))
+                throw fallback
+            }
+        } catch (failure: Exception) {
+            NativeDiagnosticJournal.record(ctx, "alarm", "schedule_error", mapOf("kind" to kind.wire, "targetAt" to at, "errorClass" to failure.javaClass.simpleName))
+            throw failure
         }
     }
 
@@ -96,12 +111,17 @@ object AlarmController {
             val bootCount = Settings.Global.getInt(ctx.contentResolver, Settings.Global.BOOT_COUNT, -1).takeIf { it >= 0 }
             s = AlarmMachine.booted(s, bootCount, reason == "locked-boot")
         }
-        if (AlarmMachine.ringExpired(s, now)) s = AlarmMachine.timedOut(s, now)
+        if (AlarmMachine.ringExpired(s, now)) {
+            NativeDiagnosticJournal.record(ctx, "alarm", "timeout", mapOf("kind" to s.ringing!!.wire, "accepted" to true, "reasonCode" to "expired"))
+            s = AlarmMachine.timedOut(s, now)
+        }
         val r = AlarmMachine.reconcile(s, AnkerPrefs.config(ctx), now)
         AnkerPrefs.saveState(ctx, r.state)
         if (before.ringing != null && AlarmMachine.shouldStopRingingService(r.state)) AlarmService.stop(ctx)
         if (AnkerPrefs.alarmError(ctx) == "exact_denied") AnkerPrefs.setAlarmError(ctx, "")
         AnkerPrefs.setLastReconcile(ctx, now, reason)
+        NativeDiagnosticJournal.record(ctx, if (reason in setOf("boot", "locked-boot", "package-replaced", "time-changed", "timezone-changed", "exact-permission-changed", "system")) "system" else "alarm",
+            "reconcile", mapOf("reasonCode" to reason, "targetAt" to r.state.mainAt, "alarmEnabled" to (AnkerPrefs.config(ctx)?.enabled == true)))
         arm(ctx, AlarmKind.MAIN, r.state.mainAt.takeIf { it > now } ?: 0)
         arm(ctx, AlarmKind.PRE_WAKE, r.state.preWakeAt)
         arm(ctx, AlarmKind.SNOOZE, r.state.snoozeAt.takeIf { it > now } ?: 0)
@@ -124,6 +144,9 @@ object AlarmController {
             AlarmMachine.relapseDue(before, AnkerPrefs.config(ctx), at, now)
             else AlarmMachine.firedScheduled(before, kind, at, now)
         AnkerPrefs.saveState(ctx, d.state)
+        NativeDiagnosticJournal.record(ctx, "alarm", if (d.ring) "fired_accepted" else "fired_rejected",
+            mapOf("kind" to kind.wire, "targetAt" to at, "driftMs" to (now - at), "accepted" to d.ring,
+                "reasonCode" to if (d.ring) "normal" else if (at <= 0) "invalid-target" else "ignored"))
         if (d.ring && d.state.ringing == AlarmKind.MAIN) SmartWakeService.stopIfRunning("Der Hauptwecker übernimmt.")
         if (d.ring) startRinging(ctx)
         reconcile(ctx, "fired")
@@ -137,8 +160,10 @@ object AlarmController {
         ReminderScheduler.onAlarmStarted(ctx)
         try {
             ContextCompat.startForegroundService(ctx, Intent(ctx, AlarmService::class.java))
+            NativeDiagnosticJournal.record(ctx, "alarm", "service_requested", AnkerPrefs.loadState(ctx).ringing?.let { mapOf("kind" to it.wire) } ?: emptyMap())
         } catch (e: Exception) {
             // Sollte mit exaktem Alarm erlaubt sein. Falls nicht: sichtbarer Ersatz statt Stille.
+            NativeDiagnosticJournal.record(ctx, "alarm", "service_start_error", mapOf("errorClass" to e.javaClass.simpleName))
             AnkerPrefs.setAlarmError(ctx, "ring_start_failed")
             AnkerPrefs.setAudioOk(ctx, false)
             AlarmService.postFallback(ctx)
@@ -157,6 +182,8 @@ object AlarmController {
     fun trySmartWake(ctx: Context, targetAt: Long): Boolean {
         val now = System.currentTimeMillis()
         val decision = AlarmMachine.smartFired(state(ctx), AnkerPrefs.config(ctx), targetAt, now)
+        NativeDiagnosticJournal.record(ctx, "alarm", if (decision.ring) "smart_fired_accepted" else "smart_fired_rejected",
+            mapOf("kind" to "main", "targetAt" to targetAt, "accepted" to decision.ring, "driftMs" to (now - targetAt)))
         if (!decision.ring) return false
         AnkerPrefs.saveState(ctx, decision.state)
         startRinging(ctx)
@@ -167,7 +194,9 @@ object AlarmController {
     @Synchronized
     fun stop(ctx: Context, method: String) {
         val now = System.currentTimeMillis()
-        val next = AlarmMachine.stopped(state(ctx), method, AnkerPrefs.config(ctx), now)
+        val before = state(ctx)
+        NativeDiagnosticJournal.record(ctx, "alarm", "stop_requested", mapOf("reasonCode" to method, "accepted" to (before.ringing != null)) + (before.ringing?.let { mapOf("kind" to it.wire) } ?: emptyMap()))
+        val next = AlarmMachine.stopped(before, method, AnkerPrefs.config(ctx), now)
         AnkerPrefs.saveState(ctx, next)
         if (AlarmMachine.shouldStopRingingService(next)) AlarmService.stop(ctx)
         reconcile(ctx, "stopped")
@@ -217,7 +246,11 @@ object AlarmController {
 
     @Synchronized
     fun snooze(ctx: Context, minutes: Int): Boolean {
-        val next = AlarmMachine.snoozed(state(ctx), minutes, System.currentTimeMillis()) ?: return false
+        val next = AlarmMachine.snoozed(state(ctx), minutes, System.currentTimeMillis()) ?: run {
+            NativeDiagnosticJournal.record(ctx, "alarm", "snooze_rejected")
+            return false
+        }
+        NativeDiagnosticJournal.record(ctx, "alarm", "snooze_accepted", mapOf("kind" to "main", "targetAt" to next.snoozeAt))
         AnkerPrefs.saveState(ctx, next)
         AlarmService.stop(ctx)
         reconcile(ctx, "snoozed")
@@ -226,7 +259,9 @@ object AlarmController {
 
     @Synchronized
     fun timeout(ctx: Context) {
-        val next = AlarmMachine.timedOut(state(ctx), System.currentTimeMillis())
+        val before = state(ctx)
+        NativeDiagnosticJournal.record(ctx, "alarm", "timeout", mapOf("accepted" to (before.ringing != null), "reasonCode" to if (before.ringing != null) "expired" else "no-active-alarm") + (before.ringing?.let { mapOf("kind" to it.wire) } ?: emptyMap()))
+        val next = AlarmMachine.timedOut(before, System.currentTimeMillis())
         AnkerPrefs.saveState(ctx, next)
         if (AlarmMachine.shouldStopRingingService(next)) AlarmService.stop(ctx)
         reconcile(ctx, "timeout")
@@ -243,6 +278,7 @@ object AlarmController {
 
     @Synchronized
     fun confirmTest(ctx: Context, heard: Boolean) {
+        NativeDiagnosticJournal.record(ctx, "alarm", "test_confirmed", mapOf("kind" to "test", "accepted" to heard))
         AnkerPrefs.saveState(ctx, state(ctx).copy(testResult = if (heard) "heard" else "not-heard", testResultAt = System.currentTimeMillis()))
     }
 
