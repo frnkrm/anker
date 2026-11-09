@@ -5,9 +5,33 @@ data class PcReminderProof(val connected: Boolean, val revision: String, val dat
     val ackRevision: String, val ackDate: String, val mode: String, val receivedAt: Long, val noWarnings: Boolean, val enforceEnabled: Boolean)
 data class PcReminderExpectation(val revision: String, val date: String, val validUntil: Long)
 
+/** One delivery round observes exactly one immutable authenticated fact, even while the network changes. */
+class PcReminderSnapshot internal constructor(
+    val now: Long, private val expected: PcReminderExpectation?, private val proof: PcReminderProof?,
+) {
+    fun suppress(entry: ReminderEntry): Boolean = PcReminderGate.suppress(entry, expected, proof, now)
+
+    fun prepare(queue: List<ReminderEntry>): PcReminderBatch {
+        val restored = queue.map { entry ->
+            if (entry.deferredFrom > 0 && !suppress(entry))
+                entry.copy(at = maxOf(PcReminderGate.originalAt(entry), minOf(entry.at, now)))
+            else entry
+        }
+        val due = ReminderLogic.takeDue(restored, now)
+        val (held, deliver) = due.due.partition(::suppress)
+        return PcReminderBatch(restored, (due.remaining + held.map { PcReminderGate.defer(it, now) }).sortedBy { it.at },
+            deliver, restored.filter { it.at <= now && !suppress(it) })
+    }
+}
+
+data class PcReminderBatch(val restoredQueue: List<ReminderEntry>, val remaining: List<ReminderEntry>,
+    val deliveries: List<ReminderEntry>, val consumed: List<ReminderEntry>)
+
 object PcReminderGate {
     const val FRESH_MS = 90_000L
     const val RETRY_MS = 30_000L
+    fun capture(expected: PcReminderExpectation?, proof: () -> PcReminderProof?, now: Long): PcReminderSnapshot =
+        PcReminderSnapshot(now, expected, proof())
     fun suppress(entry: ReminderEntry, expected: PcReminderExpectation?, proof: PcReminderProof?, now: Long): Boolean {
         if (entry.key !in setOf("pcstop", "pcstop-15") || expected == null || proof == null) return false
         val local = java.time.Instant.ofEpochMilli(now).atZone(AlarmPlanner.ZONE)

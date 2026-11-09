@@ -3,6 +3,7 @@ package de.frnkrm.anker
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
 
 class PcReminderGateTest {
     private val now = Instant.parse("2026-11-12T21:30:00Z").toEpochMilli()
@@ -43,4 +44,57 @@ class PcReminderGateTest {
         assertTrue(ReminderLogic.replace(queue, emptyList(), emptySet(), now + 1, emptyMap()).isEmpty())
         assertTrue(ReminderLogic.replace(queue, emptyList(), revisions.keys, now + 1, revisions.mapValues { "changed" }).isEmpty())
     }
+    @Test fun ackArrivingBetweenPartitionAndConsumptionCannotDropOrDoubleConsumeDelivery() {
+        val live = AtomicReference<PcReminderProof?>(null)
+        var reads = 0
+        val round = PcReminderGate.capture(expected, { reads++; live.get() }, now)
+        val batch = round.prepare(listOf(entry))
+        // The network receives an ACK after the queue split, before actual posting/consumption.
+        live.set(proof)
+        val posted = batch.deliveries.filterNot(round::suppress)
+        val ledger = ReminderLogic.consumeTokens(emptyMap(), batch.consumed)
+        assertEquals(1, reads)
+        assertEquals(listOf(entry), posted)
+        assertTrue(batch.remaining.isEmpty())
+        assertEquals(setOf(entry.token), ledger.keys)
+        // A subsequent round cannot redeliver a token already consumed by this one.
+        val nextQueue = ReminderLogic.replace(batch.remaining, listOf(entry), setOf("$date|pcstop"), now,
+            mapOf("$date|pcstop" to entry.revision), ledger.keys)
+        assertTrue(PcReminderGate.capture(expected, live::get, now).prepare(nextQueue).deliveries.isEmpty())
+    }
+
+    @Test fun disconnectBetweenHoldingAndConsumptionPreservesOnePendingTokenForNextRound() {
+        val live = AtomicReference<PcReminderProof?>(proof)
+        var reads = 0
+        val round = PcReminderGate.capture(expected, { reads++; live.get() }, now)
+        assertTrue(round.suppress(entry))
+        live.set(null) // Disconnect before holding/posting checks in this round.
+        val batch = round.prepare(listOf(entry))
+        assertTrue(batch.deliveries.isEmpty())
+        assertTrue(batch.consumed.isEmpty())
+        assertEquals(1, reads)
+        assertEquals(listOf(entry.token), batch.remaining.map { it.token })
+        assertTrue(round.suppress(batch.remaining.single()))
+        val next = PcReminderGate.capture(expected, live::get, now + 1).prepare(batch.remaining)
+        assertEquals(listOf(entry.token), next.deliveries.map { it.token })
+        assertEquals(listOf(entry.token), next.consumed.map { it.token })
+        assertTrue(next.remaining.isEmpty())
+        assertEquals(setOf(entry.token), ReminderLogic.consumeTokens(emptyMap(), next.consumed).keys)
+    }
+
+    @Test fun clockRollbackNeverReleasesHeldReminderBeforeItsOriginalTime() {
+        val held = PcReminderGate.defer(entry, now)
+        val earlier = now - 10 * 60_000
+        val batch = PcReminderGate.capture(expected, { proof }, earlier).prepare(listOf(held))
+        // The ACK is now in the future, so the gate opens; the original due time still applies.
+        assertTrue(batch.deliveries.isEmpty())
+        assertTrue(batch.consumed.isEmpty())
+        assertEquals(entry.at, batch.remaining.single().at)
+        assertEquals(entry.at, PcReminderGate.originalAt(batch.remaining.single()))
+        val reached = PcReminderGate.capture(expected, { null }, now).prepare(batch.remaining)
+        assertEquals(listOf(entry.token), reached.deliveries.map { it.token })
+        assertEquals(listOf(entry.token), reached.consumed.map { it.token })
+        assertTrue(reached.remaining.isEmpty())
+    }
+
 }
