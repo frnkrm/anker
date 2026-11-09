@@ -8,6 +8,7 @@ import math
 import os
 from queue import Empty, SimpleQueue
 from typing import Callable
+from uuid import uuid4
 
 from .windows import PlatformError, WindowsPlatform
 
@@ -36,6 +37,7 @@ class DesktopUI:
         self._offer_window = None
         self._qr = None
         self._qr_image = None
+        self._pending_actions: dict[str, tuple[str, Callable[[bool], None]]] = {}
         self.capture_exclusion_supported: bool | None = None
 
     def render(self, snapshot: dict) -> None:
@@ -50,12 +52,42 @@ class DesktopUI:
     def close(self) -> None:
         self.queue.put(("close", None))
 
-    def _emit(self, action: dict) -> None:
+    def _emit(self, action: dict) -> bool:
         try:
             self.on_action(action)
+            return True
         except Exception:
             if self.root is not None:
                 self.status.set("Die Aktion konnte noch nicht übernommen werden.")
+            return False
+
+    def _submit(self, action: dict, complete: Callable[[bool], None]) -> str:
+        request_id = uuid4().hex
+        self._pending_actions[request_id] = (action["action"], complete)
+        if not self._emit({**action, "requestId": request_id}):
+            self._pending_actions.pop(request_id, None)
+            complete(False)
+        return request_id
+
+    def _resolve_action_result(self, result: object) -> None:
+        if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
+            return
+        request_id = result.get("requestId")
+        if not isinstance(request_id, str):
+            return
+        pending = self._pending_actions.get(request_id)
+        if pending is None or pending[0] != result.get("action"):
+            return
+        self._pending_actions.pop(request_id, None)
+        pending[1](result["ok"])
+
+    @staticmethod
+    def _valid_note(value: str, *, empty: bool = False) -> bool:
+        try:
+            # Android/JavaScript maxLength counts UTF-16 units, including emoji pairs.
+            return (empty or bool(value.strip())) and len(value.encode("utf-16-le")) <= 1000
+        except UnicodeEncodeError:
+            return False
 
     def _strict(self) -> bool:
         return bool(self.snapshot.get("prefs", {}).get("strictLock", self.snapshot.get("strictLock", False)))
@@ -163,6 +195,7 @@ class DesktopUI:
             while True:
                 kind, value = self.queue.get_nowait()
                 if kind == "render":
+                    self._resolve_action_result(value.get("actionResult"))
                     self.snapshot = value
                     self._render()
                 elif kind == "pair":
@@ -366,18 +399,45 @@ class DesktopUI:
             self._label(dialog, "Nächster Schritt (optional)", muted=True).pack(fill="x", padx=16, pady=(12, 4))
             next_step = self.tk.Entry(dialog, font=("Segoe UI", 12)); next_step.pack(fill="x", padx=16, ipady=8)
         feedback = self._label(dialog, muted=True); feedback.pack(fill="x", padx=16, pady=6)
+        pending_id = None
+        waiting = False
+        def complete(ok: bool):
+            nonlocal waiting, pending_id
+            waiting = False; pending_id = None
+            if not window.winfo_exists():
+                return
+            if ok:
+                window.destroy()
+            else:
+                text.configure(state="normal")
+                if next_step is not None:
+                    next_step.configure(state="normal")
+                button.configure(state="normal")
+                feedback.configure(text="Noch nicht gespeichert. Dein Text bleibt erhalten; versuche es erneut.")
         def submit(_event=None):
+            nonlocal waiting, pending_id
+            if waiting:
+                return
             value, next_value = text.get().strip(), next_step.get().strip() if next_step is not None else ""
-            if not value or len(value) > 500 or len(next_value) > 500:
+            if not self._valid_note(value) or not self._valid_note(next_value, empty=True):
                 feedback.configure(text="Ein kurzer Text genügt; höchstens 500 Zeichen je Feld.")
                 return
             action = {"action": kind, "text": value}
             if kind == "savepoint": action["nextStep"] = next_value
-            self._emit(action)
-            feedback.configure(text="Zum Speichern übergeben. Die Bestätigung erscheint im PC-Status.")
+            waiting = True
+            text.configure(state="disabled")
+            if next_step is not None:
+                next_step.configure(state="disabled")
             button.configure(state="disabled")
+            feedback.configure(text="Zum Speichern übergeben. Die Bestätigung erscheint im PC-Status.")
+            pending_id = self._submit(action, complete)
+        def dismiss(_event=None):
+            if pending_id is not None:
+                self._pending_actions.pop(pending_id, None)
+            window.destroy()
         button = self._button(dialog, "Merken", submit, primary=True); button.pack(fill="x", padx=16, pady=6)
-        window.bind("<Return>", submit); window.bind("<Escape>", lambda _event: window.destroy())
+        window.protocol("WM_DELETE_WINDOW", dismiss)
+        window.bind("<Return>", submit); window.bind("<Escape>", dismiss)
         text.focus_set()
 
     def _pair(self, pairing: dict) -> None:
@@ -414,39 +474,72 @@ class DesktopUI:
     def _settings(self) -> None:
         window = self.tk.Toplevel(self.root); window.title("Einstellungen"); window.configure(bg=self.BG)
         window.geometry("500x650"); dialog = self._scroll_body(window)
-        prefs = self.snapshot.get("prefs", {})
+        # Effective preferences include the phone choice. Never turn that into local consent.
+        prefs = self.snapshot.get("localPrefs", {})
         values = {}
+        controls = []
         for name, title in [("enforceEnabled", "PC-Aktionen ausdrücklich erlauben"), ("strictLock", "Strenger Nachtmodus"),
-                            ("dimEnabled", "Bildschirmdämmerung – Signal zum Übergang"), ("audioDuck", "Ton im Übergang langsam reduzieren"),
-                            ("morningCountdown", "Morgendlichen Countdown anzeigen")]:
+                            ("dimEnabled", "Bildschirmdämmerung – Signal zum Übergang"), ("audioDuck", "Ton im Übergang langsam reduzieren")]:
             values[name] = self.tk.BooleanVar(value=bool(prefs.get(name, False)))
-            self.tk.Checkbutton(dialog, text=title, variable=values[name], bg=self.BG, fg=self.FG,
-                                selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG,
-                                font=("Segoe UI", 11), wraplength=380, anchor="w", justify="left").pack(fill="x", padx=16, pady=7)
+            control = self.tk.Checkbutton(dialog, text=title, variable=values[name], bg=self.BG, fg=self.FG,
+                                          selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG,
+                                          font=("Segoe UI", 11), wraplength=380, anchor="w", justify="left")
+            control.pack(fill="x", padx=16, pady=7); controls.append(control)
         self._label(dialog, "Eine Freigabe startet allein noch keine Sperre. Ein gültiger Auftrag vom gekoppelten Handy bleibt erforderlich.", muted=True).pack(fill="x", padx=16, pady=10)
         stop_action = self.tk.StringVar(value=str(prefs.get("stopAction", "lock")))
         action_row = self.tk.Frame(dialog, bg=self.BG); action_row.pack(fill="x", padx=16)
         for code, label in [("lock", "Sperren"), ("hibernate", "Ruhezustand"), ("shutdown", "Herunterfahren")]:
-            self.tk.Radiobutton(action_row, text=label, value=code, variable=stop_action, bg=self.BG, fg=self.FG,
-                                selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG).pack(side="left")
+            control = self.tk.Radiobutton(action_row, text=label, value=code, variable=stop_action, bg=self.BG, fg=self.FG,
+                                          selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG)
+            control.pack(side="left"); controls.append(control)
         self._label(dialog, "Speicher-Countdown (mindestens 60 Sekunden)", muted=True).pack(fill="x", padx=16, pady=(8, 0))
         grace = self.tk.StringVar(value=str(prefs.get("graceSeconds", 60)))
-        self.tk.Spinbox(dialog, from_=60, to=900, increment=30, textvariable=grace).pack(fill="x", padx=16, pady=6)
+        control = self.tk.Spinbox(dialog, from_=60, to=600, increment=30, textvariable=grace)
+        control.pack(fill="x", padx=16, pady=6); controls.append(control)
         self._label(dialog, "Dämmerung höchstens (0 bis 40 Prozent)", muted=True).pack(fill="x", padx=16)
         dim = self.tk.Scale(dialog, from_=0, to=40, orient="horizontal", bg=self.BG, fg=self.FG, troughcolor=self.SURFACE, highlightthickness=0)
-        dim.set(round(float(prefs.get("dimMax", 0.25))*100)); dim.pack(fill="x", padx=16)
+        dim.set(round(float(prefs.get("dimMax", 0.25))*100)); dim.pack(fill="x", padx=16); controls.append(dim)
+        feedback = self._label(dialog, muted=True); feedback.pack(fill="x", padx=16, pady=6)
+        pending_id = None
+        waiting = False
+        def complete(ok: bool):
+            nonlocal waiting, pending_id
+            waiting = False; pending_id = None
+            if not window.winfo_exists():
+                return
+            if ok:
+                window.destroy()
+            else:
+                for control in controls:
+                    control.configure(state="normal")
+                button.configure(state="normal")
+                feedback.configure(text="Noch nicht übernommen. Deine Auswahl bleibt erhalten; versuche es erneut.")
         def save():
+            nonlocal waiting, pending_id
+            if waiting:
+                return
             selected = {name: value.get() for name, value in values.items()}
             try:
                 seconds = int(grace.get())
-                if not 60 <= seconds <= 900: raise ValueError()
+                if not 60 <= seconds <= 600: raise ValueError()
             except ValueError:
-                self.messagebox.showinfo("Speicherzeit", "Wähle zwischen 60 und 900 Sekunden.", parent=window); return
+                self.messagebox.showinfo("Speicherzeit", "Wähle zwischen 60 und 600 Sekunden.", parent=window); return
             selected.update(stopAction=stop_action.get(), graceSeconds=seconds, dimMax=dim.get()/100)
             if selected["strictLock"] and not prefs.get("strictLock"):
                 if not self.messagebox.askokcancel("Strengen Modus aktivieren?", "Nach dem Speicher-Countdown wird der PC erneut gesperrt, bis die Morgenroutine bestätigt ist. Verlängern geht dann am Handy. Du kannst den Begleiter weiterhin beenden.", parent=window): return
-            self._emit({"action": "settings", "prefs": selected}); window.destroy()
-        self._button(dialog, "Übernehmen", save, primary=True).pack(fill="x", padx=16, pady=8)
+            waiting = True
+            for control in controls:
+                control.configure(state="disabled")
+            button.configure(state="disabled")
+            feedback.configure(text="Zum Übernehmen übergeben. Die Bestätigung erscheint im PC-Status.")
+            pending_id = self._submit({"action": "settings", "prefs": selected}, complete)
+        def dismiss(_event=None):
+            if pending_id is not None:
+                self._pending_actions.pop(pending_id, None)
+            window.destroy()
+        window.protocol("WM_DELETE_WINDOW", dismiss)
+        window.bind("<Escape>", dismiss)
+        button = self._button(dialog, "Übernehmen", save, primary=True); button.pack(fill="x", padx=16, pady=8)
         self._button(dialog, "Entkoppeln", lambda: self._emit({"action": "unpair"})).pack(fill="x", padx=16, pady=6)
         if self.snapshot.get("legacyConflict"):
             self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._emit({"action": "remove_legacy"})).pack(fill="x", padx=16, pady=6)

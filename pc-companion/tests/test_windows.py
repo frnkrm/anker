@@ -6,10 +6,141 @@ import sys
 from pathlib import Path
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from anker_companion.windows import MasterAudioDucker, PlatformError, WindowsPlatform
 from anker_companion.ui import DesktopUI
+
+
+class UiValue:
+    def __init__(self, value=None): self.value = value
+    def get(self): return self.value
+    def set(self, value): self.value = value
+
+
+class UiWidget(UiValue):
+    """A callback/field double, without importing or creating a Tk interpreter."""
+    def __init__(self, **options):
+        super().__init__(""); self.options = options; self.destroyed = False; self.events = {}
+    def pack(self, **_kwargs): return None
+    def configure(self, **options): self.options.update(options)
+    def title(self, _value): pass
+    def geometry(self, _value): pass
+    def bind(self, name, callback): self.events[name] = callback
+    def protocol(self, name, callback): self.events[name] = callback
+    def focus_set(self): pass
+    def destroy(self): self.destroyed = True
+    def winfo_exists(self): return not self.destroyed
+
+
+def ui_double(on_action):
+    ui = DesktopUI(on_action)
+    widgets = []; entries = []; windows = []; buttons = []; strings = []
+    def widget(_parent=None, **options):
+        result = UiWidget(**options); widgets.append(result); return result
+    def entry(parent=None, **options):
+        result = widget(parent, **options); entries.append(result); return result
+    def window(parent=None, **options):
+        result = widget(parent, **options); windows.append(result); return result
+    def string(value=None):
+        result = UiValue(value); strings.append(result); return result
+    def button(parent, text, command, **_kwargs):
+        result = widget(parent, text=text, command=command); buttons.append(result); return result
+    ui.root = UiWidget(); ui.status = UiValue("")
+    ui.tk = SimpleNamespace(Toplevel=window, Entry=entry, BooleanVar=UiValue, StringVar=string,
+                            Checkbutton=widget, Frame=widget, Radiobutton=widget, Spinbox=widget, Scale=widget)
+    ui.messagebox = SimpleNamespace(showinfo=lambda *_args, **_kwargs: None, askokcancel=lambda *_args, **_kwargs: True)
+    ui._scroll_body = lambda value: value
+    ui._label = lambda parent, text="", **_kwargs: widget(parent, text=text)
+    ui._button = button
+    return ui, SimpleNamespace(widgets=widgets, entries=entries, windows=windows, buttons=buttons, strings=strings)
+
+
+class DesktopActionBoundaryTests(unittest.TestCase):
+    def test_settings_preserve_local_choices_when_the_phone_is_off(self):
+        actions = []; ui, view = ui_double(actions.append)
+        ui.snapshot = {"localPrefs": {"enforceEnabled": True, "strictLock": True, "dimEnabled": True, "audioDuck": True,
+                                     "stopAction": "hibernate", "graceSeconds": 120, "dimMax": .3},
+                       "prefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False}}
+        ui._settings()
+        next(button for button in view.buttons if button.options["text"] == "Übernehmen").options["command"]()
+        self.assertEqual(actions[0]["prefs"], {"enforceEnabled": True, "strictLock": True, "dimEnabled": True,
+                                              "audioDuck": True, "stopAction": "hibernate", "graceSeconds": 120, "dimMax": .3})
+        self.assertNotIn("morningCountdown", actions[0]["prefs"])
+
+    def test_effective_phone_consent_never_becomes_new_local_consent(self):
+        actions = []; ui, view = ui_double(actions.append)
+        ui.snapshot = {"prefs": {"enforceEnabled": True, "strictLock": True}}
+        ui._settings()
+        next(button for button in view.buttons if button.options["text"] == "Übernehmen").options["command"]()
+        self.assertFalse(actions[0]["prefs"]["enforceEnabled"])
+        self.assertFalse(actions[0]["prefs"]["strictLock"])
+
+    def test_settings_reject_out_of_schema_grace_without_sending(self):
+        actions = []; ui, view = ui_double(actions.append); ui._settings()
+        view.strings[1].set("900")
+        next(button for button in view.buttons if button.options["text"] == "Übernehmen").options["command"]()
+        self.assertEqual(actions, [])
+        self.assertFalse(view.windows[0].destroyed)
+
+    def test_note_utf16_limit_matches_the_phone_and_rejects_invalid_unicode(self):
+        for value, accepted in [("a" * 500, True), ("a" * 501, False), ("😀" * 250, True), ("😀" * 251, False), ("\ud800", False)]:
+            with self.subTest(length=len(value)):
+                actions = []; ui, view = ui_double(actions.append); ui._form("thought")
+                view.entries[0].set(value); view.buttons[0].options["command"]()
+                self.assertEqual(bool(actions), accepted)
+                self.assertFalse(view.windows[0].destroyed)
+
+    def test_failed_storage_retains_draft_and_permits_retry_without_private_error(self):
+        actions = []; ui, view = ui_double(actions.append); ui._form("savepoint")
+        view.entries[0].set("Mein Dokument"); view.entries[1].set("Absatz 3")
+        submit = view.buttons[0].options["command"]; submit(); submit()
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(view.buttons[0].options["state"], "disabled")
+        ui._resolve_action_result({"action": "savepoint", "ok": False, "requestId": actions[0]["requestId"]})
+        self.assertEqual(view.entries[0].get(), "Mein Dokument")
+        self.assertEqual(view.entries[1].get(), "Absatz 3")
+        self.assertEqual(view.buttons[0].options["state"], "normal")
+        self.assertFalse(view.windows[0].destroyed)
+        submit(); self.assertEqual(len(actions), 2)
+        self.assertNotEqual(actions[0]["requestId"], actions[1]["requestId"])
+        ui._resolve_action_result({"action": "savepoint", "ok": True, "requestId": actions[1]["requestId"]})
+        self.assertTrue(view.windows[0].destroyed)
+
+    def test_unrelated_and_stale_results_never_complete_another_draft(self):
+        actions = []; ui, view = ui_double(actions.append); ui._form("thought")
+        view.entries[0].set("Nicht verlieren"); view.buttons[0].options["command"]()
+        for result in [{"action": "settings", "ok": True, "requestId": actions[0]["requestId"]},
+                       {"action": "thought", "ok": True, "requestId": "old-dialog"},
+                       {"action": "thought", "ok": "true", "requestId": actions[0]["requestId"]}]:
+            ui._resolve_action_result(result)
+        self.assertFalse(view.windows[0].destroyed)
+        self.assertEqual(view.entries[0].get(), "Nicht verlieren")
+        view.windows[0].events["WM_DELETE_WINDOW"]()
+        self.assertEqual(ui._pending_actions, {})
+
+    def test_immediate_delivery_failure_keeps_values_and_hides_exception_text(self):
+        def fail(_action): raise OSError("private-key-location-and-notiz")
+        ui, view = ui_double(fail); ui._form("thought"); view.entries[0].set("Mein Entwurf")
+        view.buttons[0].options["command"]()
+        self.assertEqual(view.entries[0].get(), "Mein Entwurf")
+        self.assertEqual(view.entries[0].options["state"], "normal")
+        self.assertEqual(view.buttons[0].options["state"], "normal")
+        self.assertEqual(ui._pending_actions, {})
+        self.assertNotIn("private-key-location", ui.status.get())
+        self.assertNotIn("private-key-location", str([widget.options for widget in view.widgets]))
+
+    def test_settings_only_close_after_matching_persisted_result(self):
+        actions = []; ui, view = ui_double(actions.append); ui._settings()
+        submit = next(button for button in view.buttons if button.options["text"] == "Übernehmen")
+        submit.options["command"]()
+        self.assertFalse(view.windows[0].destroyed)
+        ui._resolve_action_result({"action": "settings", "ok": False, "requestId": actions[0]["requestId"]})
+        self.assertEqual(submit.options["state"], "normal")
+        submit.options["command"]()
+        ui._resolve_action_result({"action": "settings", "ok": True, "requestId": actions[1]["requestId"]})
+        self.assertTrue(view.windows[0].destroyed)
 
 
 class FakeWindows:
