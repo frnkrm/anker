@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 import { guidancePreferences } from '../src/core/guidance'
+import { emptyLocal } from '../src/core/defaults'
 import type { DayLog, GameState, LocalData, Settings } from '../src/core/types'
 import { seedRecords, storedRecord } from './helpers/storage'
 
@@ -31,8 +32,10 @@ test('Begleitung ist ausgeschaltet und bewusste Auswahl sowie Kernschritte bleib
   await page.goto('/einstellungen/routinen#morning')
   await page.locator('.routine-detail > summary').first().click()
   const essential = page.getByRole('checkbox', { name: 'Kernschritt im Zombie-Modus', exact: true }).first()
-  await essential.check()
+  await expect(essential).not.toBeChecked()
+  await essential.click()
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines.morning[0]?.isEssentialForZombieMode).toBe(true)
+  await expect(essential).toBeChecked()
   const after = (await storedRecord<Settings>(page, 'settings', 'main'))!
   expect(after.routines.morning.map(step => step.id)).toEqual(before.routines.morning.map(step => step.id))
   await page.reload()
@@ -68,10 +71,11 @@ test('Abendgedanke bleibt lokal und erscheint erst nach einer echten Morgenrouti
   settings.routines.morning = [{ id: 'water', title: 'Ein Glas Wasser', minutes: 1, isEssentialForZombieMode: true }]
   settings.sport.days = []
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
-  const game = await storedRecord<GameState>(page, 'game', 'main')
   await page.goto('/')
   const sheet = page.getByRole('dialog', { name: 'Für morgen parken', exact: true })
   await expect(sheet).toBeVisible()
+  const game = await storedRecord<GameState>(page, 'game', 'main')
+  expect(game).toBeDefined()
   await sheet.getByRole('textbox', { name: 'Gedanken für morgen', exact: true }).fill('Meine Idee fürs Wochenende')
   await sheet.getByRole('textbox', { name: 'Nächster Schritt für morgen', exact: true }).fill('Eine kurze Notiz ergänzen')
   await sheet.getByRole('button', { name: 'Für morgen parken', exact: true }).click()
@@ -112,7 +116,7 @@ test('Ein Morgenübergang vor vier Uhr behält seinen tatsächlichen Routinentag
   settings.anchor = { ...settings.anchor, wake: 210, manual: { wake: true, bed: true, pcStop: true } }
   settings.routines.morning = [{ id: 'water', title: 'Ein Glas Wasser', minutes: 1 }]
   settings.sport.days = []
-  const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
+  const local = (await storedRecord<LocalData>(page, 'meta', 'local')) ?? emptyLocal()
   const date = '2026-11-10'
   const alarmAt = at(date, '03:30').getTime()
   local.guidance = { days: { [date]: { alarmOccurrenceId: 'native-morning-fixture', alarmAt, morningActivatedAt: alarmAt } }, receipts: ['native-morning-fixture'] }
@@ -132,7 +136,7 @@ test('Automatischer Zombie-Fallback erfindet keine erste Nutzerinteraktion', asy
     { id: 'stretch', title: 'Bewegen', minutes: 5, isEssentialForZombieMode: false },
   ]
   settings.sport.days = []
-  const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
+  const local = (await storedRecord<LocalData>(page, 'meta', 'local')) ?? emptyLocal()
   const alarmAt = at(DATE, '06:15').getTime()
   local.guidance = { days: { [DATE]: { alarmOccurrenceId: 'automatic-fixture', alarmAt, morningActivatedAt: alarmAt } }, receipts: ['automatic-fixture'] }
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }, { collection: 'meta', id: 'local', data: local }])
