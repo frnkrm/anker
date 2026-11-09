@@ -17,6 +17,9 @@ interface BedtimeProbe {
   holdNextRead: boolean
   pendingReads: number
   release: (() => void)[]
+  effectsCompleted: number
+  pendingStartup: boolean
+  releaseStartup?: () => void
   grant: (granted: boolean) => void
   phase: (phase: BedtimePromptState['phase'], reason?: string) => void
   appActive: (active: boolean) => void
@@ -47,7 +50,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
     const changed = () => { persistState(); for (const listener of listeners.values()) if (listener.event === 'bedtimePromptChanged') listener.callback({ ...probe.state }) }
     const probe: BedtimeProbe = {
       state: cachedState ? JSON.parse(cachedState) as BedtimePromptState : initial,
-      records, calls: [], holdNextRead: false, pendingReads: 0, release: [],
+      records, calls: [], holdNextRead: false, pendingReads: 0, release: [], effectsCompleted: 0, pendingStartup: false,
       grant(granted) { probe.state.overlayPermission = granted; changed() },
       phase(phase, reason) { probe.state = { ...probe.state, phase, reason }; changed() },
       appActive(isActive) { for (const listener of listeners.values()) if (listener.event === 'appStateChange') listener.callback({ isActive }) },
@@ -69,6 +72,14 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
         if (plugin === 'App') return method === 'getLaunchUrl' ? (options.diagnostics ? {} : { url: 'de.frnkrm.anker.mobile://now' }) : { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'Browserfixture', build: '0' }
         if (plugin === 'AnkerNative') {
           probe.calls.push({ method, options: { ...raw } })
+          if (method === 'updateWidget') {
+            if (options.diagnostics && probe.effectsCompleted === 1) {
+              probe.pendingStartup = true
+              await new Promise<void>(resolve => { probe.releaseStartup = () => { probe.pendingStartup = false; resolve() } })
+            }
+            probe.effectsCompleted++
+            return {}
+          }
           if (method === 'getDiagnosticJournal') return { version: 1, retentionDays: 7, maxEntries: 800, pendingEvents: 0, droppedEvents: 0, secret: 'PRIVATE_JOURNAL', events: [
             { seq: 1, at: now - 7_200_000, elapsedMs: 100, category: 'bedtime', code: 'scheduled', details: {} },
             { seq: 2, at: now - 1_800_000, elapsedMs: 200, category: 'alarm', code: 'player_started', details: { started: true } },
@@ -136,8 +147,13 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
 async function probe(page: Page) {
   return page.evaluate(() => {
     const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
-    return { state: value.state, calls: value.calls, records: value.records, pendingReads: value.pendingReads }
+    return { state: value.state, calls: value.calls, records: value.records, pendingReads: value.pendingReads, effectsCompleted: value.effectsCompleted, pendingStartup: value.pendingStartup }
   })
+}
+// startEffects läuft sofort; load.changed löst danach seinen echten, entprellten Abgleich aus.
+// updateWidget ist jeweils der letzte await in effects.ts. Auf abgeschlossene Antworten warten.
+async function startupEffectsReady(page: Page) {
+  await expect.poll(async () => (await probe(page)).effectsCompleted).toBe(2)
 }
 const starts = async (page: Page) => (await probe(page)).calls.filter((call) => call.method === 'startBedtimePrompt')
 const stored = async (page: Page) => (await probe(page)).records.map((row) => ({ collection: row.collection, id: row.id, data: row.data })).sort((a, b) => `${a.collection}:${a.id}`.localeCompare(`${b.collection}:${b.id}`))
@@ -326,8 +342,13 @@ test('Native Diagnose teilt nur gewählte Logzeiten und sichere Einstellungen oh
   const exportButton = page.getByRole('button', { name: 'Ausgewählte Diagnose exportieren', exact: true })
   await expect(exportButton).toBeEnabled()
   await expect(page.getByText('Im Browser gibt es kein Android-Weckerjournal.', { exact: false })).toHaveCount(0)
+  await expect.poll(async () => (await probe(page)).pendingStartup).toBe(true)
+  const heldStartup = await probe(page)
+  expect(heldStartup.effectsCompleted).toBe(1)
+  expect(heldStartup.calls.filter(call => call.method === 'updateWidget')).toHaveLength(2)
+  await page.evaluate(() => (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.releaseStartup?.())
+  await startupEffectsReady(page)
   const before = await stored(page)
-  const callsBefore = (await probe(page)).calls.length
   await page.getByRole('radio', { name: 'Zeitraum wählen', exact: true }).click()
   await page.getByLabel('Von auswählen', { exact: true }).fill('2026-11-06T09:00')
   await page.getByLabel('Bis auswählen', { exact: true }).fill('2026-11-06T09:50')
@@ -338,6 +359,7 @@ test('Native Diagnose teilt nur gewählte Logzeiten und sichere Einstellungen oh
   await expect(page.getByRole('checkbox', { name: 'Stummer Schlafhinweis', exact: true })).toBeChecked()
   await expect(page.getByRole('checkbox', { name: 'Wecker und Aufstehzeiten', exact: true })).not.toBeChecked()
   await expect(page.getByRole('status').filter({ hasText: 'Auswahl:' })).toHaveText('Auswahl: 1 Logeinträge · 1 Einstellungsbereiche.')
+  const callsBefore = (await probe(page)).calls.length
   await exportButton.click()
   await expect(page.getByText('Diagnosedatei erstellt. Im Teilen-Menü entscheidest du selbst, wohin sie geht.', { exact: true })).toBeVisible()
 
