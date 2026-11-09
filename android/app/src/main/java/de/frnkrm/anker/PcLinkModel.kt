@@ -85,5 +85,13 @@ object PcLinkModel {
 
     fun validPairExpiry(expiresAt: Long, now: Long): Boolean = expiresAt > now && expiresAt - now <= MAX_PAIR_AGE_MS
     fun validLease(generatedAt: Long, validUntil: Long): Boolean = validUntil > generatedAt && validUntil - generatedAt <= MAX_LEASE_MS
+
+    /** Hardware extensions end with this night's lease and its existing morning safety deadline. */
+    fun emergencyUntil(now: Long, minutes: Int, validUntil: Long, morningDeadlineAt: Long? = null): Long {
+        require(minutes in 1..120 && now in 0..Long.MAX_VALUE - 120 * 60_000L) { "PC_EMERGENCY_INVALID" }
+        val until = minOf(now + minutes * 60_000L, validUntil, morningDeadlineAt ?: Long.MAX_VALUE)
+        check(until > now) { "PC_NO_ACTIVE_NIGHT" }
+        return until
+    }
     fun hex(bytes: ByteArray): String = bytes.joinToString("") { "%02x".format(it.toInt() and 255) }
 }

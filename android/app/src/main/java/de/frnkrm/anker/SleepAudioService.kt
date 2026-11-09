@@ -106,7 +106,8 @@ class SleepAudioService : Service() {
         sessionId = stored.optString("sessionId"); ending = false
         val duration = stored.optLong("durationMs")
         val start = stored.optLong("startedElapsed")
-        if (duration !in 60_000..SleepAudioModel.MAX_MINUTES * 60_000L || SystemClock.elapsedRealtime() !in start until start + duration || priorityAudio(this)) {
+        if (stored.optString("phase") == "stopped") { finish("stopped"); return START_NOT_STICKY }
+        if (!SleepAudioModel.canPlay(stored.optString("phase"), start, duration, SystemClock.elapsedRealtime()) || priorityAudio(this)) {
             finish("interrupted", "expired-or-priority"); return START_NOT_STICKY
         }
         try {

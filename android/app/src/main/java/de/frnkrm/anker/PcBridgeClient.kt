@@ -203,7 +203,9 @@ object PcBridgeClient {
         val current = data.optJSONObject("latestState") ?: throw IllegalStateException("PC_NO_CURRENT_STATE")
         val now = System.currentTimeMillis()
         val validUntil = PcLinkModel.timestamp(current.getString("validUntil"))
-        val until = minOf(now + minutes * 60_000L, validUntil)
+        val schedule = current.getJSONObject("schedule")
+        val deadline = if (schedule.isNull("morningDeadlineAt")) null else PcLinkModel.timestamp(schedule.getString("morningDeadlineAt"))
+        val until = PcLinkModel.emergencyUntil(now, minutes, validUntil, deadline)
         check(until > now && current.optBoolean("lockEnforced")) { "PC_NO_ACTIVE_NIGHT" }
         val token = JSONObject().put("v", 3).put("pair", data.getString("pairId"))
             .put("sessionId", current.getString("sessionId")).put("date", current.getString("date"))
@@ -290,7 +292,7 @@ object PcBridgeClient {
                     try { receive(ctx, text) }
                     catch (error: Exception) { lastError = errorCode(error); webSocket.close(1008, "invalid-message") }
                 }
-                override fun onFailure(webSocket: WebSocket, failure: Throwable, response: Response?) = disconnected(selectedGeneration, failure)
+                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = disconnected(selectedGeneration, t)
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) = disconnected(selectedGeneration, null)
                 override fun onClosing(webSocket: WebSocket, code: Int, reason: String) { webSocket.close(code, null) }
             })

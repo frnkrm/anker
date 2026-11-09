@@ -5,6 +5,11 @@ object SleepAudioModel {
     const val DEFAULT_MINUTES = 20
     const val MAX_MINUTES = 60
 
+    /** A queued service start must not revive a session that the user already stopped. */
+    fun canPlay(phase: String, startElapsed: Long, durationMs: Long, nowElapsed: Long): Boolean =
+        phase == "prepared" && durationMs in 60_000..MAX_MINUTES * 60_000L &&
+            startElapsed >= 0 && nowElapsed >= startElapsed && nowElapsed - startElapsed < durationMs
+
     fun volume(initial: Double, elapsedMs: Long, durationMs: Long): Float {
         require(initial.isFinite() && initial in 0.0..0.6)
         require(durationMs in 60_000..MAX_MINUTES * 60_000L)

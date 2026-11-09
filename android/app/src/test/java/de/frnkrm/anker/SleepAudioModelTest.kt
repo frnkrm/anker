@@ -4,6 +4,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SleepAudioModelTest {
+    @Test fun stoppedOrExpiredQueuedStartsCannotBeginPlaying() {
+        assertTrue(SleepAudioModel.canPlay("prepared", 1_000, 60_000, 1_001))
+        for (phase in listOf("stopped", "finished", "interrupted", "playing", "error")) {
+            assertFalse(phase, SleepAudioModel.canPlay(phase, 1_000, 60_000, 1_001))
+        }
+        assertFalse(SleepAudioModel.canPlay("prepared", 1_000, 60_000, 61_000))
+        assertFalse(SleepAudioModel.canPlay("prepared", 1_000, 60_000, 999))
+        assertFalse(SleepAudioModel.canPlay("prepared", 1_000, 61 * 60_000, 1_001))
+    }
+
     @Test fun fadeIsLinearBoundedAndEndsAtTheDeadline() {
         val duration = 20 * 60_000L
         assertEquals(0.3f, SleepAudioModel.volume(0.3, 0, duration), 0.00001f)

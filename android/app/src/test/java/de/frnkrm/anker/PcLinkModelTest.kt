@@ -69,4 +69,15 @@ class PcLinkModelTest {
         assertThrows(IllegalArgumentException::class.java) { PcLinkModel.timestamp("2026-11-12T21:00:00") }
         assertThrows(IllegalArgumentException::class.java) { PcLinkModel.timestamp("not-a-time") }
     }
+
+    @Test fun hardwareExtensionCannotOutliveItsNightOrMorningSafetyDeadline() {
+        val now = 1_000_000L
+        assertEquals(now + 120 * 60_000, PcLinkModel.emergencyUntil(now, 120, now + PcLinkModel.MAX_LEASE_MS))
+        assertEquals(now + 30_000, PcLinkModel.emergencyUntil(now, 120, now + 30_000))
+        assertEquals(now + 20_000, PcLinkModel.emergencyUntil(now, 120, now + 30_000, now + 20_000))
+        assertThrows(IllegalStateException::class.java) { PcLinkModel.emergencyUntil(now, 5, now - 1) }
+        assertThrows(IllegalStateException::class.java) { PcLinkModel.emergencyUntil(now, 5, now + 60_000, now) }
+        assertThrows(IllegalArgumentException::class.java) { PcLinkModel.emergencyUntil(now, 121, now + PcLinkModel.MAX_LEASE_MS) }
+        assertThrows(IllegalArgumentException::class.java) { PcLinkModel.emergencyUntil(Long.MAX_VALUE, 120, Long.MAX_VALUE) }
+    }
 }
