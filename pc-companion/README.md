@@ -7,11 +7,17 @@ Der bisherige PowerShell-PC-Stopp bleibt eine getrennte Alternative.
 
 ## Einrichten
 
-1. Python 3.11 oder neuer installieren. Im entpackten Ordner `install.ps1` mit
-   PowerShell ausführen. Es installiert in den eigenen Benutzerordner und richtet
-   die Aufgabe **Anker PC-Begleiter** bei Anmeldung ein. `-NoAutostart` lässt den
-   Autostart aus. Es werden dabei keine Sperren oder Abschaltungen ausgeführt.
-2. Im angezeigten Installationsordner `Start.cmd` öffnen. Bei der Windows-Firewall
+1. Python **3.12 von python.org** mit Tkinter installieren (mindestens 3.11).
+   Das komplette Quellpaket-ZIP in einen neuen Ordner entpacken und dort
+   **Einrichten.cmd** doppelklicken. Die Einrichtung prüft Dateihashes, Python/Tk,
+   Protokoll und eine eventuell laufende Instanz vor dem Austausch. Sie installiert
+   in `%LOCALAPPDATA%\AnkerPcCompanion\app`, ohne Administratorrechte, und richtet
+   die Aufgabe **Anker PC-Begleiter** bei Anmeldung ein. Alternativ lässt
+   `Einrichten.cmd -NoAutostart` den Autostart aus. Die PowerShell-Ausführungsrichtlinie
+   gilt nur für diesen Prozess; keine Systemeinstellung wird geändert.
+2. **Start.cmd** im entpackten Downloadordner oder Installationsordner öffnen.
+   Das Startskript findet die installierte Laufzeit auch vom Downloadordner aus.
+   Bei der Windows-Firewall
    ausschließlich **private Netzwerke** zulassen. Port **47830/TCP** und lokales
    mDNS **5353/UDP** müssen im Heimnetz erreichbar sein; keine Routerfreigabe nötig.
 3. **Mit Handy koppeln** wählen, den QR-Code unter **Anker → PC → Mit PC koppeln**
@@ -25,6 +31,28 @@ Der bisherige PowerShell-PC-Stopp bleibt eine getrennte Alternative.
 Das Paket ist Quellcode mit Start-/Einrichtungsskripten, kein signierter
 Windows-Installer. SmartScreen oder Smart App Control können unbekannte Programme
 blockieren. Eine kostenpflichtige Signierung wurde nicht eingerichtet.
+Für die Installation der festgelegten Python-Abhängigkeiten wird einmal Internet
+benötigt. Die eigentliche Kopplung und Benutzung bleiben im eigenen Heimnetz.
+
+## Aktualisieren
+
+1. Im Fenster oder Tray des Begleiters **Beenden** wählen. Die Einrichtung beendet
+   keinen laufenden Prozess und verweigert den Austausch, solange er noch läuft.
+2. Das neue ZIP aus dem bereitgestellten Anker-Download in einen **neuen leeren
+   Ordner** entpacken. Falls die `.sha256`-Datei vorliegt, lässt sich der ZIP-Hash
+   mit `Get-FileHash .\Anker-PC-Begleiter-0.1.0.zip -Algorithm SHA256` vergleichen.
+   `package-manifest.json` enthält Quellcommit, Version, Protokoll/Datenformat und
+   die Hashes aller Programmdateien. Diese Integritätsprüfung ersetzt keine
+   Herausgebersignatur: nur ein Paket aus dem bekannten Anker-Download verwenden.
+3. **Einrichten.cmd** starten. Ein inkompatibles Protokoll/Datenformat oder eine
+   beschädigte Datei stoppt die Einrichtung. Bei einer Python-/Netzwerkfehlermeldung
+   Ursache beheben und erneut starten. Danach **Start.cmd** öffnen.
+
+Schlüssel, Kopplung, eigene Notizen und Einstellungen bleiben verschlüsselt im
+übergeordneten Datenordner erhalten. Unter demselben Windows-Benutzer aktualisieren;
+DPAPI-Schlüssel werden weder exportiert noch ersetzt. Das Update installiert keine
+zweite Planung, keinen automatischen Internet-Updater und keinen Windows-Dienst.
+Im installierten Ordner liegen auch Anleitung und `uninstall.ps1` für später.
 
 ## Im Alltag
 
@@ -52,6 +80,10 @@ blockieren. Eine kostenpflichtige Signierung wurde nicht eingerichtet.
 - Dämmerung ist ein optionales warmes, klickdurchlässiges Signal mit höchstens
   40 Prozent Deckkraft, kein Schlaf- oder Blaulicht-Heilversprechen. Audio wird
   optional jede Minute um neun Prozent abgesenkt und respektiert manuelle Änderungen.
+- Ist im Handy der eigenständige Abendlicht-Hinweis eingeschaltet, erscheint zur
+  gelieferten Uhrzeit einmal die Karte **Deckenlicht aus, warmes Licht an.**
+  Ohne Ton, Dämmerung oder PC-Aktion; nach fünf Minuten wird sie nicht nachgeholt.
+  Während eines laufenden Abendübergangs oder nachts erscheint keine zweite Karte.
 
 Bei WLAN-Ausfall pausiert die Standardwahl nach 90 Sekunden ohne authentifizierten
 Kontakt. Die eigene Wahl **Feste Zeit verwenden** führt nur die ausdrücklich
@@ -96,6 +128,14 @@ python -m anker_companion --port 47830 --name "Mein PC"
 python -m unittest discover -s tests -v
 node tests/node_phone_simulator.mjs
 ```
+
+Aus dem Repository-Hauptordner baut `python scripts/package-pc-companion.py
+--output dist-pc/Anker-PC-Begleiter-0.1.0.zip` ein reproduzierbares Quellpaket.
+`python scripts/test-pc-package.py` prüft Paket und Installer mit injizierten
+Prozess-/Python-/Autostart-Grenzen, unter Windows mit Windows PowerShell 5.1.
+Die CI stellt das geprüfte ZIP und seinen SHA-256-Wert als Artefakt
+**Anker-PC-Begleiter-Quellpaket** bereit. Es enthält keine virtuelle Umgebung,
+Schlüssel, Nutzerdaten, Testdaten oder Windows-EXE.
 
 Unter Linux laufen ausschließlich injizierte Plattform-/Vault-Mocks und lokale
 TLS-/WebSocket-Integrationstests. Der normale Programmeinstieg verweigert dort

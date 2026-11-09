@@ -94,6 +94,8 @@ class CompanionEngine:
         scheduled = entry["pc"]["mode"] == "scheduled"
         schedule = {key: entry.get(key) for key in ("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt")}
         schedule["pcStopAt"] = entry["pc"]["stopAt"] if scheduled else None
+        if "lightHintAt" in entry:
+            schedule["lightHintAt"] = entry["lightHintAt"]
         schedule.update(entry.get("morning", {}))
         prefs = deepcopy(briefing["prefs"])
         # A future daily entry has no hardware-authenticated night session. It can
@@ -282,6 +284,7 @@ class CompanionEngine:
             suspended = data["runtime"].get("suspendedDate") == plan_date(now)
             valid = not any(item in warnings for item in ("clock-skew", "source-expired", "legacy-conflict", "morning-deadline-reached", "link-stale")) and not suspended
             enabled = valid and pref["enforceEnabled"]
+            self._light_hint(data, state, now, phase, valid)
             # A live, explicitly enabled night schedule starts its finite watchdog
             # at bedtime even if the user has not yet scanned the phone's QR/NFC.
             if enabled and pref["strictLock"] and target is not None and now >= target and state["state"] != "MORNING_COMPLETED" and not state.get("_briefing") and not self.active_latch(data, now):
@@ -332,6 +335,20 @@ class CompanionEngine:
         if self.ui:
             self.ui.render(view)
         return view
+
+    def _light_hint(self, data: dict[str, Any], state: dict[str, Any], now: float, phase: str, valid: bool) -> None:
+        """Phone-owned, opt-in visual reminder only; no late catch-up or effects."""
+        at = state["schedule"].get("lightHintAt")
+        if not self.ui or not valid or at is None or state["lockEnforced"] or phase in NIGHT | {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "EVENING_WIND_DOWN", "MORNING_COMPLETED"}:
+            return
+        if not 0 <= now - stamp(at) <= 300:
+            return
+        receipt = state["date"]
+        if receipt in data["runtime"].get("shownLightHintDates", []):
+            return
+        # Persist before enqueueing so a restart cannot replay an already accepted hint.
+        self.store.update(lambda item: item["runtime"].update(shownLightHintDates=(item["runtime"].get("shownLightHintDates", []) + [receipt])[-14:]))
+        self.ui.show_note("Abendlicht", "Deckenlicht aus, warmes Licht an.")
 
     def _act(self, action: str, state: dict[str, Any], target: float, now: float) -> None:
         try:

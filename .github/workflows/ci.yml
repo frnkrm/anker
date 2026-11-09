@@ -89,3 +89,19 @@ jobs:
       - name: Node-Telefon gegen echten lokalen TLS-Server prüfen
         # Loopback-only server uses an injected test vault and fake Windows effects.
         run: node pc-companion/tests/node_phone_simulator.mjs
+      - name: Windows-Quellpaket bauen und prüfen
+        # Windows runs the installer mocks with Windows PowerShell 5.1; Ubuntu
+        # uses pwsh. Neither path installs/registers tasks or invokes OS effects.
+        run: |
+          python scripts/test-pc-package.py
+          python scripts/package-pc-companion.py --output dist-pc/Anker-PC-Begleiter-0.1.0.zip
+      - name: Windows-Quellpaket speichern
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Anker-PC-Begleiter-Quellpaket
+          path: |
+            dist-pc/Anker-PC-Begleiter-0.1.0.zip
+            dist-pc/Anker-PC-Begleiter-0.1.0.zip.sha256
+          if-no-files-found: error
+          retention-days: 14

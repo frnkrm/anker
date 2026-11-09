@@ -24,7 +24,7 @@ STATES = {"DAY_ACTIVE", "IDLE", "MORNING_PENDING", "MORNING_ACTIVE", "MORNING_CO
 PREF_KEYS = {"enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"}
 EVENT_KINDS = {"pc-rest", "pc-resumed", "extended", "suspended-today", "resumed-today", "shutdown-started", "shutdown-blocked", "save-point", "thought", "unpaired"}
 SCHEDULE_REQUIRED = {"windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt"}
-SCHEDULE_OPTIONAL = {"pcStopAt", "leaveAt", "workStartAt", "homeOffice"}
+SCHEDULE_OPTIONAL = {"pcStopAt", "leaveAt", "workStartAt", "homeOffice", "lightHintAt"}
 
 
 class ProtocolError(ValueError):
@@ -143,7 +143,7 @@ def validate_state(value: Any) -> dict[str, Any]:
         integer(step["total"], 1, 200); integer(step["index"], 0, step["total"])
     schedule = obj(result["schedule"], SCHEDULE_REQUIRED, SCHEDULE_OPTIONAL)
     for name, at in schedule.items():
-        boolean(at) if name == "homeOffice" else stamp(at, nullable=True)
+        boolean(at) if name == "homeOffice" else stamp(at, nullable=name != "lightHintAt")
     wake, deadline = stamp(schedule["wakeAt"], True), stamp(schedule["morningDeadlineAt"], True)
     if deadline is not None and (wake is None or not wake <= deadline <= wake + 3 * 3600):
         raise ProtocolError("morning-deadline")
@@ -167,7 +167,7 @@ def validate_briefing(value: Any) -> dict[str, Any]:
         raise ProtocolError("days")
     dates = set()
     for entry in result["days"]:
-        obj(entry, {"date", "validUntil", "pc"}, {"bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt", "morning"})
+        obj(entry, {"date", "validUntil", "pc"}, {"bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt", "morning", "lightHintAt"})
         date = day(entry["date"])
         if date in dates:
             raise ProtocolError("duplicate-day")
@@ -181,6 +181,8 @@ def validate_briefing(value: Any) -> dict[str, Any]:
             raise ProtocolError("mode")
         for name in {"bedAt", "wakeAt", "windDownAt", "brainDumpAt", "morningDeadlineAt"} & entry.keys():
             stamp(entry[name], True)
+        if "lightHintAt" in entry:
+            stamp(entry["lightHintAt"])
         if "morning" in entry:
             morning = obj(entry["morning"], {"homeOffice"}, {"leaveAt", "workStartAt"})
             boolean(morning["homeOffice"])

@@ -56,7 +56,7 @@ werden abgelehnt. Envelope maximal 64 KiB, Freitext maximal 500 Zeichen.
 ```text
 type="state", state, sessionId, revision, date, generatedAt, validUntil,
 remainingSeconds, routineStep=null|{index,total}, lockEnforced,
-schedule={windDownAt,brainDumpAt,bedAt,wakeAt,morningDeadlineAt,
+schedule={windDownAt,brainDumpAt,bedAt,wakeAt,morningDeadlineAt,lightHintAt?,
           pcStopAt?,leaveAt?,workStartAt?,homeOffice?},
 prefs={enforceEnabled,strictLock,dimEnabled,dimMax,audioDuck,shareBrainDump,
        morningCountdown,offlinePolicy,stopAction,graceSeconds,ifThen?,bedtimeSequence?}, brainDump?
@@ -92,7 +92,13 @@ bis ein neuer uhrzeitlich plausibler Auftrag bestätigt wurde.
 
 `briefing`: `{type:"briefing",revision,generatedAt,validUntil,days,prefs}`.
 `days` (1–14) enthält `{date,validUntil,pc:{mode:"scheduled"|"paused",stopAt?,localTime?},
-bedAt?,wakeAt?,windDownAt?,brainDumpAt?,morningDeadlineAt?,morning?:{leaveAt?,workStartAt?,homeOffice}}`.
+bedAt?,wakeAt?,windDownAt?,brainDumpAt?,morningDeadlineAt?,lightHintAt?,morning?:{leaveAt?,workStartAt?,homeOffice}}`.
+
+`lightHintAt` ist ein optionaler gültiger ISO-Zeitpunkt, niemals `null`. Fehlt er,
+bleibt das bisherige Verhalten erhalten. Er erlaubt nur eine lokale Abendlicht-Karte,
+einmal je Plantag und höchstens fünf Minuten nach Fälligkeit. Ein laufender
+Abendübergang, T30/T10, Nacht oder eine ungültige/pausierte Quelle unterdrücken sie.
+Keine Audioänderung, Dämmerung, Sperre oder Routine-Erledigung wird damit ausgelöst.
 Ein unveränderter PC-Eintrag überschreibt eine lokale Standardmodus-Verlängerung nicht.
 Der PC wählt ausschließlich den expliziten Eintrag zum aktuellen Berliner Plantag
 mit noch gültigem Tages- und Gesamtbriefing. Pausierte, fehlende oder abgelaufene

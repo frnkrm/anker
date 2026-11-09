@@ -29,6 +29,69 @@ class EngineTests(unittest.TestCase):
     def allow(self, strict=False):
         self.engine.local_settings({"enforceEnabled": True, "strictLock": strict})
 
+    def light_hint(self):
+        notes = []
+        self.engine.ui = SimpleNamespace(show_note=lambda *note: notes.append(note), render=lambda _view: None)
+        value = deepcopy(self.value)
+        value.update(state="DAY_ACTIVE")
+        value["schedule"].update(lightHintAt=utc(self.clock()), windDownAt=utc(self.clock() + 5400),
+                                 brainDumpAt=utc(self.clock() + 6600), bedAt=utc(self.clock() + 7200))
+        self.engine.accept_state(value, "pair", self.clock())
+        return notes, value
+
+    def test_light_hint_needs_no_system_permission_and_is_once_only_across_restart(self):
+        notes, _value = self.light_hint()
+        self.engine.tick(); self.engine.tick()
+        self.assertEqual(notes, [("Abendlicht", "Deckenlicht aus, warmes Licht an.")])
+        self.assertEqual(self.platform.effects, [])
+        self.assertEqual(self.store.read()["outbox"], [])
+        restarted = CompanionEngine(self.store, self.platform, self.clock, ui=self.engine.ui)
+        restarted.tick()
+        self.assertEqual(len(notes), 1)
+
+    def test_rescheduling_the_same_day_cannot_stack_a_second_light_hint(self):
+        notes, value = self.light_hint()
+        self.engine.tick()
+        self.clock.now += 120
+        value.update(generatedAt=utc(self.clock()), revision="light-rescheduled")
+        value["schedule"]["lightHintAt"] = utc(self.clock())
+        self.engine.accept_state(value, "pair", self.clock())
+        self.engine.tick()
+        self.assertEqual(len(notes), 1)
+
+    def test_light_hint_is_not_replayed_late_or_during_an_evening_phase(self):
+        for seconds, phase in [(301, "DAY_ACTIVE"), (-1, "DAY_ACTIVE"), (0, "WIND_DOWN_T30"), (0, "EVENING_WIND_DOWN"), (0, "NIGHT_LOCK")]:
+            with self.subTest(seconds=seconds, phase=phase):
+                notes, value = self.light_hint()
+                value["state"] = phase
+                if phase == "WIND_DOWN_T30":
+                    value["schedule"].update(windDownAt=utc(self.clock()), bedAt=utc(self.clock() + 1800))
+                if phase == "NIGHT_LOCK":
+                    value["lockEnforced"] = True
+                value["schedule"]["lightHintAt"] = utc(self.clock() - seconds)
+                self.engine.accept_state(value, "pair", self.clock())
+                self.engine.tick()
+                self.assertEqual(notes, [])
+                self.assertEqual(self.platform.effects, [])
+
+    def test_light_hint_respects_expired_and_paused_links(self):
+        notes, value = self.light_hint()
+        value["prefs"]["offlinePolicy"] = "pause"
+        self.engine.accept_state(value, "pair", self.clock())
+        self.clock.now += 91
+        self.engine.tick()
+        self.assertEqual(notes, [])
+
+    def test_light_hint_from_cached_exact_day_keeps_its_phone_timestamp(self):
+        notes, _value = self.light_hint()
+        briefing = self.briefing()
+        briefing["days"][1].update(lightHintAt="2026-11-13T20:00:00.000Z", windDownAt="2026-11-13T22:00:00.000Z")
+        self.engine.accept_briefing(briefing)
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-13T20:00:00+00:00").timestamp()
+        self.engine.tick(); self.engine.tick()
+        self.assertEqual(len(notes), 1)
+        self.assertEqual(self.platform.effects, [])
+
     def different_stop_timeline(self, bedtime_sequence):
         directory = tempfile.TemporaryDirectory(); self.addCleanup(directory.cleanup)
         clock = Clock("2026-11-12T20:00:00Z")

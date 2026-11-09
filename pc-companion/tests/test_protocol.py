@@ -7,7 +7,7 @@ import unittest
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
-from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, public_bytes, seal, stamp, text, unb64, validate_payload, validate_state, validate_event, verify_emergency, utc, plan_date
+from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, public_bytes, seal, stamp, text, unb64, validate_payload, validate_state, validate_briefing, validate_event, verify_emergency, utc, plan_date
 from tests.helpers import Clock, state
 
 
@@ -20,6 +20,23 @@ class ProtocolTests(unittest.TestCase):
         value = state(self.clock)
         value["schedule"] = {key: None for key in value["schedule"]}
         self.assertIs(validate_state(value), value)
+
+    def test_optional_light_hint_is_an_explicit_timestamp_in_both_payloads(self):
+        value = state(self.clock)
+        validate_state(value)
+        day = {"date": value["date"], "validUntil": value["validUntil"], "pc": {"mode": "paused"}}
+        briefing = {"type": "briefing", "revision": "light-v1", "generatedAt": value["generatedAt"],
+                    "validUntil": value["validUntil"], "prefs": value["prefs"], "days": [day]}
+        validate_briefing(briefing)
+        for at in [utc(self.clock()), None, 1, "invalid"]:
+            value["schedule"]["lightHintAt"] = at; day["lightHintAt"] = at
+            if isinstance(at, str) and at != "invalid":
+                validate_state(value); validate_briefing(briefing)
+            else:
+                with self.assertRaises(ProtocolError):
+                    validate_state(value)
+                with self.assertRaises(ProtocolError):
+                    validate_briefing(briefing)
 
     def test_bedtime_sequence_is_an_optional_explicit_boolean(self):
         original = state(self.clock)
