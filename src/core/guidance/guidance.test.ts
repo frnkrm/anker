@@ -136,6 +136,16 @@ describe('Eine Zustandsprojektion, kein zweiter Plan', () => {
     local.guidance.days[date]!.firstInteractionAt = at(420) + 1000
     expect(deriveGuidance({ plan, settings: s, local, nowMs: at(421) }).autoZombieDue).toBe(false)
   })
+  it('lässt zukünftige importierte Fakten weder die aktuelle Nacht lösen noch echte Interaktion vortäuschen', () => {
+    const s = settings(); s.guidance = { ...s.guidance, autoZombie: true }
+    const next = addDays(date, 1); const local = emptyLocal()
+    local.guidance = { receipts: [], days: {
+      [date]: { nightLockedAt: at(1380) },
+      [next]: { morningActivatedAt: at(420, next), morningCompletedAt: at(800, next), firstInteractionAt: at(800, next) },
+    } }
+    const value = deriveGuidance({ plan: buildDayPlan({ date: next, settings: s }), local, settings: s, nowMs: at(421, next) })
+    expect(value).toMatchObject({ lockEnforced: true, autoZombieDue: true, morningCompleted: false })
+  })
   it('gibt einem tatsächlich klingelnden Wecker Vorrang und nie einer Uhrzeit einen Klingelstatus', () => {
     const s = settings(); const plan = buildDayPlan({ date, settings: s })
     expect(deriveGuidance({ plan, settings: s, local: emptyLocal(), nowMs: at(420), alarm: { ringing: true, kind: 'main' } }).phase).toBe('ALARM_RINGING')

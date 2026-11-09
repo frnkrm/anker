@@ -43,7 +43,8 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
     && value.nightLockedAt <= nowMs && nowMs - value.nightLockedAt < 18 * 3600_000)
     .sort((a, b) => b[1].nightLockedAt! - a[1].nightLockedAt!)[0]
   const night = nightEntry?.[1]
-  const completedAt = Math.max(0, ...Object.entries(facts).filter(([date]) => !nightEntry || date > nightEntry[0]).map(([, value]) => value.morningCompletedAt ?? 0))
+  const completedAt = Math.max(0, ...Object.entries(facts).filter(([date]) => !nightEntry || date > nightEntry[0])
+    .map(([, value]) => value.morningCompletedAt !== undefined && value.morningCompletedAt <= nowMs ? value.morningCompletedAt : 0))
   const completeAfterNight = complete && !!nightEntry && plan.date > nightEntry[0]
   const unreleased = !!night?.nightLockedAt && night.nightLockedAt > completedAt && !completeAfterNight
   const emergency = (night?.emergencyUntil ?? 0) > nowMs
@@ -58,7 +59,8 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   const currentMorning = (activated || active) && (!nightEntry || plan.date > nightEntry[0])
   const recentlyCompleted = day?.morningCompletedAt !== undefined && day.morningCompletedAt <= nowMs && nowMs - day.morningCompletedAt < 2 * 3600_000
   const morningVisible = nowMs < morningVisibleUntil || recentlyCompleted
-  const interactedSinceActivation = day?.firstInteractionAt !== undefined && day.morningActivatedAt !== undefined && day.firstInteractionAt >= day.morningActivatedAt
+  const interactedSinceActivation = day?.firstInteractionAt !== undefined && day.morningActivatedAt !== undefined
+    && day.firstInteractionAt >= day.morningActivatedAt && day.firstInteractionAt <= nowMs
   const autoZombieDue = preferences.enabled && preferences.autoZombie && activated && !complete && !interactedSinceActivation
     && !log?.override.zombie && nowMs - day.morningActivatedAt! >= preferences.autoZombieAfterSeconds * 1000
   const brainDumpIds = complete && currentMorning && morningVisible ? [...new Set([
