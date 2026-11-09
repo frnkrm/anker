@@ -29,6 +29,24 @@ describe('Ehrliche Weckerplanung (AL-07 / Q09)', () => {
 })
 
 describe('native Wecker-Konfiguration', () => {
+  it('aktiviert v7 nur nach eigener Wahl und bewahrt vorhandene Weckzeiten', () => {
+    const base = s()
+    base.alarm.preWakeEnabled = true
+    base.alarm.preWakeLeadMinutes = 45
+    base.guidance = { enabled: false, preWakeFadeIn: true, antiRelapse: true, antiRelapseMinutes: 7, zeroGapMorning: true }
+    expect(buildAlarmConfig(base, {}, '2026-11-04')).toMatchObject({
+      preWakeLeadMinutes: 45, preWakeFadeIn: false, antiRelapseEnabled: false, zeroGapEnabled: false,
+    })
+    base.guidance.enabled = true
+    expect(buildAlarmConfig(base, {}, '2026-11-04')).toMatchObject({
+      preWakeLeadMinutes: 45, preWakeFadeIn: true, antiRelapseEnabled: true, antiRelapseDelayMinutes: 7,
+      zeroGapEnabled: true, wakeCheckEnabled: true,
+    })
+    base.guidance.enabled = false
+    base.alarm.wakeCheckEnabled = true
+    expect(buildAlarmConfig(base, {}, '2026-11-04').wakeCheckEnabled).toBe(true)
+  })
+
   it('überspringt kranke Tage, nur ab heute und nur diese', () => {
     const c = buildAlarmConfig(
       s(),
