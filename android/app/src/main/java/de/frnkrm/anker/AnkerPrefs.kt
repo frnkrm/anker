@@ -11,10 +11,14 @@ import org.json.JSONObject
  * Deshalb stehen hier nur Uhrzeiten und allgemeine Erinnerungstexte, keine Gesundheits- oder Arbeitsinhalte.
  */
 object AnkerPrefs {
-    private const val NAME = "anker_native"
+    private fun prefs(ctx: Context): SharedPreferences = NativePreferenceFiles.alarm { name ->
+        ctx.createDeviceProtectedStorageContext().getSharedPreferences(name, Context.MODE_PRIVATE)
+    }
 
-    private fun prefs(ctx: Context): SharedPreferences =
-        ctx.createDeviceProtectedStorageContext().getSharedPreferences(NAME, Context.MODE_PRIVATE)
+    /** Separate disk lock and XML file; the alarm state commit never includes journal rows. */
+    private fun diagnosticPrefs(ctx: Context): SharedPreferences = NativePreferenceFiles.journal { name ->
+        ctx.createDeviceProtectedStorageContext().getSharedPreferences(name, Context.MODE_PRIVATE)
+    }
 
     // ---------- Alte Felder (1.0.x), nur noch für die Übernahme gelesen ----------
     fun alarmAt(ctx: Context): Long = prefs(ctx).getLong("alarmAt", 0L)
@@ -162,8 +166,8 @@ object AnkerPrefs {
     fun isRinging(ctx: Context): Boolean = loadState(ctx).ringing != null
 
     // ---------- Begrenztes technisches Diagnosejournal, ohne Inhalte oder Zugangsdaten ----------
-    fun diagnosticJournal(ctx: Context): String = prefs(ctx).getString("diagnosticJournal", "{}") ?: "{}"
-    fun setDiagnosticJournal(ctx: Context, json: String): Boolean = prefs(ctx).edit().putString("diagnosticJournal", json).commit()
+    fun diagnosticJournal(ctx: Context): String = diagnosticPrefs(ctx).getString("diagnosticJournal", "{}") ?: "{}"
+    fun setDiagnosticJournal(ctx: Context, json: String): Boolean = diagnosticPrefs(ctx).edit().putString("diagnosticJournal", json).commit()
 
     // ---------- Erinnerungen ----------
     fun reminderQueue(ctx: Context): String = prefs(ctx).getString("reminderQueue", "[]") ?: "[]"
