@@ -70,6 +70,7 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `travel.ts` | Gemeinsame Datengrenzen für Orte und Termine, offene/Remote-Orte, manueller Wegbedarf |
 | `assistance.ts` | Optionale Zweckfreigaben, Protokolltypen, Request-/Taskrevisionen; kein Provider-Schlüssel |
 | `alarm.ts` | Konfiguration für den nativen Wecker |
+| `diagnostics/` | Reine Diagnoseprojektion mit festen Freigaben: Zeitraum, Log-/Statusbereiche, getrennte Einstellungsgruppen und JSON-Auswahlmanifest; kein Backup oder zweiter persistierter Zustand |
 | `deviceTests.ts` | Liest Prüfschritte aus der Geräte-Dokumentation, validiert manuelle Berichte und trennt Plattform/Codestand |
 | `planner/adaptive.ts` | Wege und Termine, Konflikte, Maps-Link |
 | `sleep.ts` | Späteste Weckzeit, Schlafhinweis, Weckvorschlag |
@@ -122,6 +123,7 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `notifications.ts` | Übergibt Erinnerungen an den nativen Teil, trägt Knopf-Aktionen im Store nach |
 | `alarm.ts` | Wecker-Konfiguration an Kotlin, Fehler landen sichtbar im Store (nicht über `safe()`) |
 | `native.ts` | Brücke zum Kotlin-Plugin |
+| `diagnostics.ts` | Liest verfügbare native Journal-/Statusangaben für die Diagnose; Fehler und Web-Grenzen bleiben sichtbar, keine Planung oder Store-Schreibwirkung |
 | `guidance.ts` | Begrenzte lokale Routinebegleitung, Abendbestätigung, Brown-Noise-Steuerung und Hardware-Notverlängerung über die vorhandene Native-Brücke |
 | `weather.ts` | Open-Meteo, nur wenn eingeschaltet |
 | `assistance.ts` | Bewusster Fähigkeitencheck und authentifizierte Vorschlagsaufrufe über den eigenen Server, Validierung/Abbruch; keine Provider-Schlüssel im Client |
@@ -153,6 +155,7 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `TaskFocus.tsx` | `/aufgabe/:kind/:id` | Derselbe persistierte private/berufliche Aufgabenfokus |
 | `QuickEntries.tsx` | `/fokus-start`, `/wiedereinstieg` | Launcher-/Widgeteinstiege in den aktuellen gemeinsamen Fokus oder Wiedereinstieg |
 | `Alarm.tsx` | `/wecker`, `/wecker/klingelt` | Wecker einrichten, Klingel-Bildschirm |
+| `Diagnostics.tsx` | `/diagnose` | Weckerverlauf, Zeitraum-/Bereichsauswahl, JSON-Vorschau und selbst ausgelöster Dateiexport; erreichbar aus Wecker und Einstellungen |
 | `Check.tsx` | `/check` | Einrichtungs-Check |
 | `DeviceTests.tsx` | `/geraetetest` | Ein Versuch nach dem anderen, Einstellungswege, lokaler Nutzerbericht/Entwurf, Testexport |
 | `PcStop.tsx` | `/pc-stopp` | PC-Stopp und Windows-Paket |
@@ -171,11 +174,13 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 | `AnkerNativePlugin.kt` | Brücke zur Web-App, Gegenstück zu `src/platform/native.ts` |
 | `AlarmModel.kt` | Reine Wecker-Logik: Alarmarten, Planung, Zustandsübergänge (JUnit) |
 | `AlarmController.kt` | Einziger Besitzer des Weckerzustands, plant bei Android ein |
+| `NativeDiagnosticModel.kt`, `NativeDiagnosticJournal.kt`, `NativePreferenceFiles.kt` | Freigegebene technische Ereignisse, sieben Tage/800 Einträge, begrenzte asynchrone Schreibqueue; eigenes gerätegeschütztes Preferences-File statt Mitschreiben im kritischen Alarmspeicher |
 | `RoutinePaceKeeperModel.kt`, `RoutinePaceKeeperService.kt` | Befristete laufende Routine, lokale TTS-/Vibrationshinweise, Pause/Deduplizierung/Weckervorrang |
 | `SleepAudioModel.kt`, `SleepAudioService.kt` | Lokal erzeugtes, zeitlich begrenztes Brown Noise mit Ausblendung und sichtbarem Stopp |
 | `PcLinkModel.kt`, `PcBridgeCrypto.kt`, `PcBridgeVault.kt` | Native v3-Prüfungen, AES-GCM/ECDH, Keystore-geschützte Schlüssel und langlebige Sequenzen |
 | `PcBridgeDiscovery.kt`, `PcBridgeClient.kt`, `PcBridgeService.kt` | Kurze lokale NSD-Suche, gepinntes WSS, begrenztes Wiederverbinden und Native-Status |
 | `AlarmService.kt` | Klingeln im Vordergrund, Zeitlimit, Ton-Rückfallkette |
+| `BedtimePromptModel.kt`, `BedtimePromptController.kt`, `BedtimePromptDelivery.kt`, `BedtimePromptReceiver.kt` | Freiwilliger stummer Einmalhinweis, CPU-Wecktermin, reale Displayprüfung, Zeichnungs-/Vordergrundbelege und höchstens zwei automatische Öffnungsversuche |
 | `ReminderModel.kt` | Reine Slot- und Warteschlangenlogik (JUnit) |
 | `ReminderScheduler.kt` | Stellt Erinnerungen ohne JavaScript zu, Knöpfe in Meldungen |
 | `Receivers.kt` | Weckzeit erreicht; Abgleich nach Neustart, Update, Zeit- und Rechteänderung |
@@ -186,6 +191,16 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 | `AnkerPrefs.kt` | Kleiner Speicher für den nativen Teil |
 
 Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/build.gradle` (Signierung, Versionen). Das Web-Bundle unter `app/src/main/assets/public/` wird von `cap sync` erzeugt, also nicht von Hand ändern.
+
+### Diagnosegrenzen ab Code16
+
+`NativeDiagnosticJournal` erfasst technische Codes und freigegebene primitive Zustände in eigenen Device-Protected-Preferences (`anker_diagnostic_journal`), ohne Aufgaben, Freitext, QR, Geheimnisse oder Health-Daten. Das File wird weder mit den Alarmzuständen gemeinsam geschrieben noch in das Repository-/Sync-/Backupmodell aufgenommen. Die begrenzte Schreibqueue vermeidet Journal-Diskzugriffe im Alarm-/Audiothread; wartende und verworfene Aufträge werden im Snapshot kenntlich gemacht. Nach Neustart können diese prozesslokalen Lückenzähler keine früheren Verluste rekonstruieren. Die Aufzeichnung beginnt erst nach Installation der neuen Version.
+
+Ereignisse tragen `seq`, Gerätezeit `at` und monotone Laufzeit `elapsedMs`; Systemzustände können verzögert bei `observedAt` erfasst werden. Der reine Exportkern in `core/diagnostics/` prüft das Version-1-Schema erneut und projiziert ausschließlich bekannte Felder. Die gewählte Kategorie begrenzt auch ihren aktuellen Status; `includeCurrentStatus=false` lässt alle aktuellen Laufzeitsnapshots weg. Einstellungsgruppen sind standardmäßig leer und werden nie durch eine vollständige Settings-/LocalData-Sicherung ersetzt. Das Manifest enthält Auswahl, ausgelassene Gruppen, Journalverfügbarkeit und bekannte Lücken. App-/Build-/Quellkennung bleiben enthalten. Der Export wird nur lokal vorbereitet und über den vorhandenen Dateiweg angeboten.
+
+Ein Audiofehler darf die Rückfallkette nur fortsetzen, wenn Playeridentität, Alarmart/-Start, Audiofreigabe und ursprüngliches Zeitlimit noch passen. Alte Callbacks dürfen keinen gestoppten oder ersetzten Alarm wiederbeleben. `player_started`/`tone_started` sind technische Ereignisse, kein Hörbarkeits- oder Wachnachweis. Verfügbare `outputTypes` und tatsächlich beobachteter `routedDeviceType` sind getrennte Angaben.
+
+Beim Schlafhinweis bedeutet `RTC_WAKEUP` nur eine CPU-Zustellung, keine Displayentsperrung. `Display.STATE_ON` wird getrennt von `isInteractive` bewertet; bei unbekanntem/nicht abfragbarem Displayzustand bleibt `isInteractive` der Fallback. AOD, ausgeschaltete oder gesperrte Anzeigen werden nicht als nutzbare Spielfläche behauptet. Die Einblendung wartet auf `onDraw`, Vordergrundanforderung und bestätigtes App-Resume haben eigene Zustände. Maximal zwei automatische Versuche verhindern eine Endlosschleife. Samsungs Spiel-Touchschutz wird weder umgangen noch als erwiesene Weckerursache behandelt; tatsächliche Sichtbarkeit und Hörbarkeit bleiben Gerätebeobachtungen.
 
 ## `pc-companion/` – lokaler Windows-Begleiter
 
