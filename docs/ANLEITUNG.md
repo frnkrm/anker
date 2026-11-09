@@ -192,9 +192,17 @@ Unter **Abend & Alltag → Rhythmus-Woche** vergleichst du sieben oder vierzehn 
 
 Diese Optionen brauchen echte gemeinsame Versuche, insbesondere Hintergrundimpulse, lokale Stimme, Schlafrauschen, erneutes Klingeln und App-Wiederöffnung. Ihre Implementierung ist kein Hörbarkeits- oder Schlafnachweis. Die bestehenden alternativen Weckerwege und der Notfall-Stopp bleiben erhalten.
 
+### Freiwillige Schlafvorschläge
+
+Unter **Mehr → Einstellungen → Schlaf & Anker → Schlafvorschläge aus Health Connect** erlaubst du bei Bedarf ausschließlich das Lesen von Schlafsitzungen. Die Trainingsverbindung bleibt eine eigene Auswahl. Ohne deine Wahl wird kein neues Schlafrecht angefragt.
+
+Im **Schlafüberblick** werden Sitzungsbeginn und -ende der letzten 14 Nächte vorgeschlagen. Sie sind keine gemessene Bettzeit und keine Schlafphasenanalyse. **Zeiten übernehmen** trägt nur eine noch vollständig leere Nacht ein; eigene Angaben bleiben geschützt. Übernommene Zeiten sind als **aus Health Connect** gekennzeichnet, lokal gespeichert und wie deine bisherigen Schlafangaben bearbeitbar/löschbar. Eine manuelle Korrektur entfernt diese Herkunftskennzeichnung.
+
+Ausschalten stoppt weitere Abrufe und verwirft laufende Antworten. Bereits übernommene Nächte bleiben erhalten. Der Leseschalter wird nicht exportiert oder synchronisiert; eine Wiederherstellung erteilt keine neue Freigabe. Schlafvorschläge verändern keine Weckzeit, Morgenroutine oder Punkte. Android benötigt ein eingerichtetes Health Connect mit gespeicherten Schlafsitzungen; der Browser kann diesen Abruf nicht prüfen.
+
 ## Lokaler PC-Begleiter (v7)
 
-**Mehr → PC-Stopp → Lokaler PC-Begleiter** verbindet Anker im gemeinsamen Heimnetz mit dem neuen Windows-Begleiter. Kein Konto nötig. Am PC Kopplung öffnen, am Handy scannen und den vierstelligen Code vergleichen; erst nach ausdrücklicher PC-Bestätigung wird gekoppelt. Live-Verbindung und aktueller Planempfang werden getrennt angezeigt. Ein gesendeter Befehl ist noch keine bestätigte Wirkung.
+**Mehr → Abend & Alltag → PC-Stopp → Lokaler PC-Begleiter** verbindet Anker im gemeinsamen Heimnetz mit dem neuen Windows-Begleiter. Kein Konto nötig. Am PC Kopplung öffnen, am Handy scannen und den vierstelligen Code vergleichen; erst nach ausdrücklicher PC-Bestätigung wird gekoppelt. Live-Verbindung und aktueller Planempfang werden getrennt angezeigt. Ein gesendeter Befehl ist noch keine bestätigte Wirkung.
 
 PC-Hilfen und Eingriffe haben eigene Freigaben auf beiden Seiten. Vor einer gewählten Sperre, einem Ruhezustand oder Herunterfahren gibt es mindestens 60 Sekunden zum Speichern. Im normalen Modus kannst du frei verlängern oder den Abend aussetzen. Der zusätzliche strenge Modus verlangt für eine Notverlängerung deinen Anker-QR am Handy. **Beenden bleibt am PC möglich.** Ein echter Morgenabschluss beendet nur den Wieder-Sperrwächter; Windows meldet dich nicht selbst an. Wake-on-LAN braucht eine eigene Wahl und passende PC-Hardware.
 
@@ -202,7 +210,7 @@ Die vollständigen [Windows-Befehle, Netzwerkhinweise und sieben gemeinsamen Pr�
 
 ## Klassischer PC-Stopp
 
-Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtsklick auf `install.ps1` → **„Mit PowerShell ausführen“**.
+Unter *Mehr → Abend & Alltag → PC-Stopp* lädst du das klassische Windows-Paket. Entpacken, dann Rechtsklick auf `install.ps1` → **„Mit PowerShell ausführen“**.
 
 - Warnung etwa 15 und 5 Minuten vorher. Zur Stopp-Zeit kommt eine weitere Meldung, etwa 5 Minuten später fährt der PC ohne Zwang herunter. Programme mit ungespeicherter Arbeit können das aufhalten. **Speichere trotzdem rechtzeitig**, nicht jedes Programm fragt nach.
 - Bis 6 Stunden nach der Stopp-Zeit versucht er es auch nach einem Neustart wieder.

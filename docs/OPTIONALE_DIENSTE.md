@@ -1,5 +1,13 @@
 # Optionale KI- und Verkehrsvorschläge
 
+## v7: lokale Schlafvorschläge aus Health Connect
+
+Diese separate Option benötigt keinen Server, Anbieter-Key oder kostenpflichtigen Dienst. **Einstellungen → Schlaf & Anker → Schlafvorschläge aus Health Connect** fragt erst nach eigener Auswahl das Android-Leserecht `READ_SLEEP` an. Trainingsrechte und Schlafrechte bleiben getrennt; `WRITE_SLEEP` bleibt entfernt. Die lokale Berechtigungsbegründung wird mit der App ausgeliefert.
+
+Nur Sitzungsgrenzen der letzten 14 Nächte werden im Schlafüberblick vorgeschlagen. Es gibt keine Schlafphasenbewertung, Diagnose oder automatische Routine-/Weckeränderung. Eigene Nächte bleiben geschützt; jede Übernahme ist bewusst. Ausschalten stoppt Abrufe und verwirft ausstehende Antworten. Übernommene Angaben bleiben im vorhandenen lokalen Schlafüberblick mit Herkunft gekennzeichnet und sind bearbeitbar/löschbar. Nur übernommene Nächte folgen dessen vorhandener abwählbarer Sicherungsgruppe; Rohvorschläge werden nicht gespeichert. Der Leseschalter selbst wird nie gesichert oder synchronisiert und bleibt nach Restore aus. Die tatsächliche Verfügbarkeit/Freigabe und ein echter Abruf am Galaxy sind gesondert zu prüfen.
+
+Ein Relay außerhalb des Heimnetzes setzt nach dem Auftrag ein tatsächlich eingerichtetes Supabase-Projekt voraus. Dieses Update richtet keine Instanz und keinen automatischen Windows-Updatekanal ein. Der vorhandene manuelle Begleiter-Updateweg erhält die benutzergebundenen lokalen Daten.
+
 **E04–E09: Software implementiert, echte Dienste nicht aktiviert.** Client, geschützter Supabase-Adapter und echte OpenAI-/Google-Routes-Anfragen sind im Quellcode implementiert. Diese Datei ist ein prüfbarer Einrichtungsvertrag; sie bestätigt keine Bereitstellung, keinen verbundenen Anbieter und keine Freigabe von Kosten. Es wurde dadurch nichts installiert oder aktiviert.
 
 Lokale Teilschritt-Vorlagen, eigene Fahrzeiten und der restliche Offline-Kern benötigen diese Dienste nicht. Automatische Tests mit kontrollierten HTTP-Antworten prüfen Verhalten und Datenwege. **Ein Testbackend ist kein Nachweis eines echten Anbieterbetriebs.** Auch eine grüne CI ersetzt keinen Test mit der bewusst eingerichteten Verbindung.

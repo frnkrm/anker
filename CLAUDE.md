@@ -95,7 +95,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Privater Brain-Dump nutzt `tomorrowSteps`, nicht eine zweite Inbox. PC erhält standardmäßig nur Zustände/Zeiten/Schrittnummern. Freitextfreigaben sind eigene Entscheidungen.
 - Mindestens 60 Sekunden eigene PC-Speicherfrist, danach nur gewählter Effekt; Shutdown `/s /t 0`, nie `/f` oder ein positiver `/t`-Wert. Klassische Aufgabe `Anker PC-Stopp` verhindert Doppelwirkung.
 - Der optionale Nachtwächter ist an bestätigte Session/Gültigkeit gebunden. Strenge Notverlängerung nur per signiertem Handy-Hardwarebeleg; PC kann keine Tokens ausstellen. Begleiter bleibt beendbar, Windows wird nie fernentsperrt.
-- Python-Tests: aus `pc-companion` mit `python -m unittest discover -s tests -v`. Linux-Mocks und TLS-Schleifen sind keine echte Windows-/Android-UI-Prüfung. Kein neuer Relay-, Health-Schlafimport-, APK-/Versions- oder Veröffentlichungsauftrag aus v7 ableiten.
+- Python-Tests: aus `pc-companion` mit `python -m unittest discover -s tests -v`. Linux-Mocks und TLS-Schleifen sind keine echte Windows-/Android-UI-Prüfung. Der anschließende ausdrückliche v7-Updateauftrag umfasst Code15, bestehende Signatur und optionale lokale Schlafvorschläge. Neue Dienste/Kosten/Hardware werden daraus nicht abgeleitet; siehe aktueller Implementierungsplan.
 
 ## Flexible Planung (Regeln, Details in docs/FLEXIBLE_PLANUNG.md)
 
@@ -116,7 +116,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 
 - Neue Release-Signatur B4:7F:…:B1:3A erhalten. Keinen neuen Schlüssel ohne ausdrücklichen Auftrag erzeugen; private Signierdateien gehören weder ins Repository noch in öffentliche Downloads. Die dauerhafte externe Schlüsselsicherung ist noch offen, siehe `docs/INSTALLATION_ANKER_NEU.md`.
 - Die neue App-ID `de.frnkrm.anker.mobile` steht in `app.config.ts`, `android/app/build.gradle`, Ressourcen und Supabase-Redirect. Das Kotlin-Namespace und die Komponentenklassen bleiben `de.frnkrm.anker`; beim Anpassen nicht global ersetzen. Die bisherige App bleibt mit ihrer alten Kennung separat installiert.
-- Health-Connect-Plugin deklariert viele Rechte; das App-Manifest entfernt alle außer READ_EXERCISE/READ_STEPS.
+- Health-Connect-Plugin deklariert viele Rechte; das App-Manifest erlaubt nur READ_EXERCISE/READ_STEPS sowie gesondert READ_SLEEP. Schlaf-Leserecht erst nach eigener lokaler Wahl, maximal 14 Nächte als Vorschläge, keine eigenen Einträge überschreiben und keine DayLog-/Weckerwirkung. WRITE_SLEEP bleibt entfernt. `public/privacypolicy.html` ist die lokale Begründung für die Health-RationaleActivity.
 - Werbe-IDs (AD_ID, AdServices) werden im Manifest per `tools:node="remove"` entfernt; SocialLogin ohne Facebook (capacitor.config.ts).
 - Plan-Tag wechselt erst um 04:00 (`activePlanDate`), damit Bettzeiten nach Mitternacht zum Vortag gehören.
 - Edge Function `pc-stop` mit `--no-verify-jwt` deployen (Auth über `x-anker-token`).

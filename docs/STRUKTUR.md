@@ -110,6 +110,8 @@ Aufgabenänderungen und echte Teilabschlüsse werden über die bestehende Schrei
 
 v7 hält Abend-/Morgenfakten in `LocalData.guidance` und verwendet für den Gedankenparkplatz weiterhin `tomorrowSteps`. Die Morgenübergabe, der bestehende Fokus und ein Ereignis-Receipt werden dauerhaft zusammen gespeichert, bevor ein nativer Einmalbeleg quittiert wird. Ein Timerstart zählt nicht als echte Schrittbestätigung. PC-Ereignisse übernehmen Wirkung und Receipt ebenfalls gemeinsam, erst danach wird die native Queue bestätigt. Private Kopplungsschlüssel liegen außerhalb des generischen Repositorys und werden nicht mit JSON-Sicherung oder Sync übertragen.
 
+MO-03 verwendet `core/healthSleep.ts` für reine Vorschläge aus Sitzungsgrenzen und `platform/healthSleep.ts` für getrennte native Schlafleserechte. Die lokale Wahl `LocalData.healthSleepEnabled` wird weder synchronisiert noch exportiert; ein Restore aktiviert sie nicht. Erst die bewusste Store-Aktion übernimmt in eine weiterhin leere `sleepDiary`-Nacht mit optionaler Herkunft `health-connect`. Manuelles Bearbeiten entfernt die Herkunft. Es gibt keinen zweiten Schlafspeicher und keine Änderung an `DayLog.wakeAt`, Morgenabschluss oder Wecker. Die lokale Berechtigungsbegründung liegt in `public/privacypolicy.html`; öffentliche Dateien gehören zur Buildkennung.
+
 ## `src/platform/` – Handy und Internet
 
 Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weiter.
