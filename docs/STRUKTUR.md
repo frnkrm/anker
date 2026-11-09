@@ -199,8 +199,10 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 | `windows.py` | Sitzungs-/Energie-/Leerlaufgrenzen, optionales Ducking und explizite Windows-Aufrufe; in Tests injizierbar |
 | `ui.py` | Tk-Hauptfenster, Kopplung, Tray und klickdurchlässige Mehrmonitor-Anzeigen; sichtbares Beenden |
 | `__main__.py` | Windows-Einstieg, Einzelinstanz, Thread-/Service-Lebensdauer, technische Logs |
-| `install.ps1`, `Start.cmd`, `uninstall.ps1` | Python-Umgebung und Benutzer-Autostart; keine automatische Firewalländerung |
+| `Einrichten.cmd`, `install.ps1`, `Start.cmd`, `uninstall.ps1` | Geprüfte Quellinstallation, Python/Tk und Benutzer-Autostart; Erhalt der Daten außerhalb `app`, keine automatische Firewalländerung |
 | `tests/` | Python-Vertrags-, Speicher-, Zeit-, TLS/WSS- und simulierte Plattformtests |
+
+`scripts/package-pc-companion.py` baut aus den ausdrücklich erlaubten Git-Blobs ein reproduzierbares Quell-ZIP mit `package-manifest.json` und SHA-Datei. `scripts/test-pc-package.py`/`test-pc-install.ps1` prüfen Inhalt und echte Installerfunktionen mit injizierten OS-Grenzen; die Windows-CI ergänzt den PowerShell-5.1-Pfad. Das Manifest bindet den Quellcommit, alle 16 Programm-/Einrichtungsdateien, Protokoll3 und Datenformat1. Private Schlüssel, Nutzerdaten und virtuelle Umgebungen sind kein Paketinhalt.
 
 Das Handy liefert den Plan. Der Begleiter besitzt nur einen begrenzten Ausführungszustand und entscheidet nicht selbst über Routinen, Arbeitszeit oder Punkte. Die alte Aufgabe **Anker PC-Stopp** blockiert neue Systemwirkungen bis zur ausdrücklichen Bereinigung. Windows wird niemals automatisch entsperrt. [Setup und Grenzen](PC_BEGLEITER.md) · [Datenvertrag und Architektur](PC_LINK_PROTOKOLL.md).
 

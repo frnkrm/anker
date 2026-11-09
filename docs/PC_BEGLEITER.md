@@ -2,7 +2,7 @@
 
 Der Windows-Begleiter verbindet sich direkt im Heimnetz mit Anker auf Android. Das Handy behält den Tagesplan; der PC zeigt den bestätigten Stand und kann nach deiner Wahl beim Aufhören helfen. Ein Konto oder Cloudserver ist dafür nicht erforderlich.
 
-**Entwicklungsstand v7, 09.11.2026:** Die neue Verbindung und Begleitung sind im Repository implementiert und lokal automatisch geprüft. Diese Anleitung beschreibt den neuen Codepfad, keine bereits veröffentlichte Windows-Installation oder neue APK. Version und Signatur der Android-App sind unverändert. Automatische Ergebnisse stehen in [Testnachweise](ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression). Echte LAN-, Windows- und Galaxy-S26-Ultra-Prüfungen sind noch offen.
+**v7-Updatekandidat, 09.11.2026:** Verbindung, Begleitung und Windows-Quellpaket sind im Repository implementiert. Android wird auf ausdrücklichen Auftrag **1.5.0-rc.1 / Code15** mit gleicher App-Kennung und Signatur; die abschließende Gesamt-/Paketprüfung läuft. [Updateweg](UPDATE_V7_CODE15.md), automatische Ergebnisse in [Testnachweise](ANKER_TESTNACHWEISE.md). Echte LAN-, Windows- und Galaxy-S26-Ultra-Prüfungen sind noch offen.
 
 ## Zuerst ausprobieren, danach Wirkungen wählen
 
@@ -21,12 +21,11 @@ Die Begleitung am Handy, der PC-Eingriff und der strenge Modus beginnen ausgesch
 
 Voraussetzungen: Windows, Python **3.11 oder neuer** einschließlich Python-Launcher `py`, ein beschreibbares Benutzerprofil und dasselbe private Netzwerk wie das Handy. Das Paket enthält Python-Quellen; ein signierter EXE-Installer oder automatischer Downloadkanal ist nicht Bestandteil dieses Arbeitsstands. SmartScreen oder Smart App Control können unbekannte Software zurückhalten. Sicherheitsfunktionen nicht pauschal ausschalten; einen blockierten Start als offenen Installationsbefund behandeln.
 
-Im heruntergeladenen bzw. ausgecheckten Repository `pc-companion` öffnen. Die folgenden Befehle in einer normalen PowerShell aus diesem Ordner ausführen:
+Das vollständige Windows-Quellpaket in einen neuen Ordner entpacken. **Einrichten.cmd** doppelklicken oder die folgenden Befehle in einer normalen PowerShell aus diesem Ordner ausführen:
 
 ```powershell
-py -3 --version
-.\install.ps1 -NoAutostart
-& "$env:LOCALAPPDATA\AnkerPcCompanion\app\Start.cmd"
+.\Einrichten.cmd -NoAutostart
+.\Start.cmd
 ```
 
 Der Installer legt eine virtuelle Python-Umgebung an und installiert die festgehaltenen Abhängigkeiten. Programmdateien liegen unter `%LOCALAPPDATA%\AnkerPcCompanion\app`, Zustand und technische Logs eine Ebene darüber. Die Installation braucht keine Administratorrechte und ändert keine Firewallregel.
@@ -34,10 +33,12 @@ Der Installer legt eine virtuelle Python-Umgebung an und installiert die festgeh
 Erst nach dem ersten erfolgreichen Versuch kannst du den Benutzer-Autostart einrichten:
 
 ```powershell
-.\install.ps1
+.\Einrichten.cmd
 ```
 
 Das erstellt die Aufgabe **Anker PC-Begleiter**, beim Anmelden dieses Benutzers und ohne erhöhte Rechte. `Start.cmd` startet dieselbe Installation; ein zweiter Prozess wird verhindert.
+
+**Bestehenden Begleiter aktualisieren:** Zuerst über Fenster oder Tray **Beenden**, das neue vertrauenswürdige Paket vollständig in einen neuen Ordner entpacken und **Einrichten.cmd** erneut starten. Paketmanifest und Dateihashes, Python/Tk, laufende Instanz sowie Protokoll/Datenformat werden vor dem Austausch geprüft. Die vorhandenen DPAPI-Daten liegen außerhalb von `app` und bleiben unter demselben Windows-Benutzer erhalten. Ein fehlgeschlagener Paket-/Pythoncheck wird als Fehler gemeldet; er ist keine erfolgreiche Installation. Die Einrichtung erlaubt PowerShell-Skripte nur für ihren eigenen Prozess, ohne globale Richtlinienänderung. Das Paket ist Quellcode, keine signierte EXE.
 
 Für die Entwicklung funktioniert auch der direkte Start aus `pc-companion`:
 
