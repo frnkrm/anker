@@ -43,9 +43,12 @@ describe('PC-Datengrenze', () => {
   it.each(['2026-11-12T23:59:59Z', '2026-11-12T23:59:59.123+01:00'])('akzeptiert eindeutigen ISO-Zeitpunkt %s', value => expect(pcInstant(value)).toBe(true))
   it('schneidet Emoji nie entzwei und übernimmt keine Steuerzeichen', () => {
     const text = `${'a'.repeat(499)}🌅x`
-    expect(pcTextPreview(text)).toBe(`${'a'.repeat(499)}🌅`)
+    expect(pcTextPreview(text)).toBe('a'.repeat(499))
+    expect(pcTextPreview(`${'a'.repeat(498)}🌅x`)).toBe(`${'a'.repeat(498)}🌅`)
     expect(pcTextPreview('A\u0000\ud800B')).toBe('AB')
-    expect(() => parsePcPayload({ type: 'events', lastSeq: 1, items: [{ id: 'a', seq: 1, at: fixture.envelope.sentAt, date: '2026-11-12', kind: 'thought', text: '🌅'.repeat(500) }] })).not.toThrow()
+    const message = (count: number) => ({ type: 'events', lastSeq: 1, items: [{ id: 'a', seq: 1, at: fixture.envelope.sentAt, date: '2026-11-12', kind: 'thought', text: '🌅'.repeat(count) }] })
+    expect(() => parsePcPayload(message(250))).not.toThrow()
+    expect(() => parsePcPayload(message(251))).toThrow('PC_LINK_INVALID')
   })
   it('vertraut nur ablaufendem QR-Pin und privaten gültigen LAN-Adressen', () => {
     for (const value of ['192.168.1.2:8765', '10.0.0.1:443', '[fd00::1]:8765', '[fe80::123]:8765', '[::1]:8765']) expect(privatePcAddress(value), value).toBe(true)

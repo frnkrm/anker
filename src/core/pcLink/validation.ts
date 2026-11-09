@@ -2,12 +2,20 @@ import { PC_ACK_WARNINGS, PC_EVENT_KINDS, type PcAck, type PcBridgeLocal, type P
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v)
 const keys = (v: Record<string, unknown>, required: readonly string[], optional: readonly string[] = []): boolean => required.every((k) => Object.hasOwn(v, k)) && Object.keys(v).every((k) => required.includes(k) || optional.includes(k))
-const text = (v: unknown, max = 500): v is string => typeof v === 'string' && [...v].length <= max && [...v].every(c => {
+const text = (v: unknown, max = 500): v is string => typeof v === 'string' && v.length <= max && [...v].every(c => {
   const code = c.codePointAt(0)!
   return (code > 31 || code === 9 || code === 10 || code === 13) && (code < 0xd800 || code > 0xdfff)
 })
-/** Truncate scalar values, never half of an emoji/surrogate pair. */
-export const pcTextPreview = (value: string, max = 500): string => [...value].filter(c => text(c, 1)).slice(0, max).join('')
+/** The shared limit counts UTF-16 units, while truncation keeps each scalar whole. */
+export function pcTextPreview(value: string, max = 500): string {
+  let result = ''
+  for (const character of value) {
+    if (!text(character, 2)) continue
+    if (result.length + character.length > max) break
+    result += character
+  }
+  return result
+}
 const id = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9:_-]{1,128}$/.test(v)
 const bool = (v: unknown): v is boolean => typeof v === 'boolean'
 const integer = (v: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): v is number => Number.isSafeInteger(v) && Number(v) >= min && Number(v) <= max

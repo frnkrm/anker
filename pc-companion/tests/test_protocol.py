@@ -38,6 +38,10 @@ class ProtocolTests(unittest.TestCase):
 
     def test_unicode_and_501_units_limits_match_javascript(self):
         self.assertEqual(text("ä" * 500), "ä" * 500)
+        self.assertEqual(text("🌅" * 250), "🌅" * 250)
+        for invalid in ("🌅" * 251, "A\x00B", "A\x01B"):
+            with self.assertRaises(ProtocolError):
+                text(invalid)
         for value in ["a" * 501, "🧠" * 251, "\ud800"]:
             with self.subTest(length=len(value)), self.assertRaises(ProtocolError):
                 text(value)

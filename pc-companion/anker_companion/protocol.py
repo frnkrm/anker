@@ -95,7 +95,7 @@ def text(value: Any, limit: int = 500, empty: bool = False) -> str:
         units = len(value.encode("utf-16-le")) // 2
     except UnicodeError as error:
         raise ProtocolError("text") from error
-    if units > limit or (not empty and not value.strip()):
+    if units > limit or (not empty and not value.strip()) or any(ord(char) < 32 and char not in "\t\n\r" for char in value):
         raise ProtocolError("text")
     return value
 
