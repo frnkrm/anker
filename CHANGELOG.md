@@ -1,8 +1,8 @@
 # Patch Notes
 
-## 1.5.0-rc.1 – v7: Abend, Morgen und lokaler PC-Begleiter (Updatekandidat, 2026-11-09)
+## 1.5.0-rc.1 – v7: Abend, Morgen und lokaler PC-Begleiter (2026-11-09)
 
-Auf ausdrücklichen Updateauftrag nun **1.5.0-rc.1 / Code15**, weiterhin **Anker**, gleiche App-Kennung und vorhandener Release-Schlüssel. APK und Windows-Quellpaket werden nach gemeinsamer Gesamt-/Signatur-/Downloadprüfung bereitgestellt. [Updateweg](docs/UPDATE_V7_CODE15.md). Die Zahlen des früheren Folgeaudits darunter gehören dessen damaligem Quellstand; neue gemeinsame Ergebnisse folgen im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md). Echte Samsung-/Windows-Versuche bleiben offen.
+Auf ausdrücklichen Updateauftrag **1.5.0-rc.1 / Code15**, weiterhin **Anker**, gleiche App-Kennung und geprüfte bestehende B4-Signatur. [Signiertes Handyupdate und Windows-Quellpaket](docs/UPDATE_V7_CODE15.md) sind veröffentlicht und vollständig im Browser nachgelesen. **1.077 Logik-/267 Browser-/174 frische JUnit-/89 Pythonfälle**, fünf Paket- und bestehende PC-/Updateprüfungen grün; [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42607136664) einschließlich Windows erfolgreich. [Gemeinsamer Beleg](docs/ANKER_V7_UPDATE_NACHWEIS.json). Echte Samsung-/Windows-Versuche bleiben offen; ältere Audit-Zahlen darunter behalten ihren damaligen Quellbezug.
 
 - Freiwillige Abend-/Morgenführung aus demselben Tagesplan: Cyan/Amber/OLED-Darstellung, Zeitbogen und bestehender Fokus-Timer mit Restzeitfarben. Keine automatische Erledigung aus Zeitablauf.
 - Optionale lokale Schrittstimme und Vibrationsimpulse, begrenztes ausblendendes Brown Noise, direkter Morgenfokus nach bestätigtem Wecker, Ein-Tipp-Wachrückfrage und selbst gewählte Zombie-Kernschritte. Weckerbesitz, alternative Beenden-Wege und Notfall-Stopp bleiben erhalten.

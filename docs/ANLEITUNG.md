@@ -2,7 +2,7 @@
 
 Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, und kannst Pläne ändern oder Freizeit wählen.
 
-**Entwicklung v7: Abend, Morgen und lokaler PC-Begleiter.** Die neuen Hilfen sind freiwillig und beginnen ausgeschaltet. Die bisher veröffentlichte Code14-APK enthält sie noch nicht; für diesen Arbeitsstand ist keine neue APK veröffentlicht. Frühere Galaxy-Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten und bestätigen neue Funktionen nicht automatisch. Unter **Gemeinsam testen** gibt es zusätzlich sieben gemeinsame v7-Stationen, damit Handy und PC zusammen geprüft werden. Für Weckertests einen unabhängigen Wecker verwenden. Tatsächliche automatische Ergebnisse stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md).
+**Anker v7 ist als 1.5.0-rc.1 / Code15 verfügbar:** [Handyupdate und Windows-Begleiter herunterladen](UPDATE_V7_CODE15.md). Die neuen Hilfen sind freiwillig und beginnen ausgeschaltet. Frühere Galaxy-Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten und bestätigen neue Funktionen nicht automatisch. Unter **Mehr → Einstellungen → Zusätzliche Werkzeuge** die **Test- und Entwicklerwerkzeuge** einschalten, dann **Gemeinsam testen → v7 gemeinsam ausprobieren · 7 Stationen** wählen. Die Stationen verbinden Handy und PC. Für Weckertests einen unabhängigen Wecker verwenden. Tatsächliche automatische Ergebnisse stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md).
 
 ## Dein Tag mit Anker
 

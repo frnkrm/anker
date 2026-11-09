@@ -1,5 +1,39 @@
 # Anker: Testnachweise
 
+## Code15 – vollständiges v7-Update
+
+**09.11.2026, lokal abgeschlossen:** Softwarequelle **`0c3ac21a537fa95e686de53ab95ca4476af9d39c`**, Laufzeitkennung **`0d550798869cb1d8c6c83a84a401b5bed422a60f3602f59a07d1775c865913ea`**, App **1.5.0-rc.1 / Code15**, Name **Anker**, Paket `de.frnkrm.anker.mobile`. Alle Implementierungen sind nacheinander integriert; keine fremden Änderungen oder Nutzerdaten zurückgesetzt. Die Zahlen der früheren Abschnitte bleiben historische Nachweise ihrer jeweiligen Quellen.
+
+| Vollständige frische Prüfung | Ergebnis | Praktische Grenze |
+|---|---|---|
+| Vitest, zwei Worker, echter JSON-Bericht | **1.077/1.077**, 107 Dateien, 0 Fehler/Skips | Gemeinsame Logik-/Store-/Plattformregression |
+| Produktions-Playwright, System-Chromium, zwei Worker | **267/267**, 10,0 min, **0 Retries/Fehler/Flakies/Skips** | Browser, keine physische Android-Ausführung |
+| Neun isolierte Native-Ziele mit `--offline --rerun-tasks --no-build-cache --max-workers=2` | **174/174 JUnit**, 18 Suiten, 0 Fehler/Skips; **680/680 Gradle-Aufgaben ausgeführt** | Beide AAR-/Kotlin-/Manifestvarianten, Release-Lint und unsigned Release-APK; keine wiederverwendeten Tests |
+| Python-Companion-Gesamtsuite | **89/89**, 0 Fehler/Skips | Lokal Linux mit injizierten Windows-/Tk-/DPAPI-/Audio-Grenzen |
+| Paket-/Installerprüfungen | **5/5** | Reproduzierbarkeit, Git-Blob-/Hashbindung, erlaubte Dateien, echte Installerfunktionen mit kontrollierten OS-/Python-/Task-Grenzen; lokal PowerShell7.5.4 |
+| Klassischer PowerShell-PC-Stopp / Android-Update-Mocks | **19/19 + 4 Parser**, **36/36** | Keine echte Abschaltung, Installation oder privaten Schlüssel im Test |
+| Echte lokale Node↔Python-TLS-Schleife | Kopplung/ACK/Outbox, Replay-/Manipulations-/Pin-Abwehr grün; **0 Systemwirkungen** | Kein Android↔Windows-LAN-Nachweis |
+| TypeScript, Produktionsbuild/PWA, Lint | Erfolgreich; **0 Lintfehler, 1 bestehende Warnung** (`TaskAssistance.tsx:41`) | 66 Produktionsdateien, 67 PWA-Precache-Einträge |
+
+**Artefaktbindung:** 383 Laufzeit-Eingaben, 18 native Testquellen und zehn zusätzliche Produktionseingaben wurden bytegleich gegen Root geprüft. Alle **66 im Browser geprüften Produktionsdateien** sind exakt im nativen APK enthalten; nur die regulären Cordova-Shims kommen hinzu. Eingaben und Root-Bundle blieben während des gesamten Native-Laufs unverändert. ZIP-16KB-Ausrichtung, alle acht ELF64-Ladeausrichtungen, drei DEX-Dateien und 16 JNI-Bibliotheken geprüft. Paket/Name/Code15, SDK26–36, nicht debuggable/testOnly, Dienste und Rechte geprüft; Health-Rechte bleiben auf `READ_EXERCISE`, `READ_STEPS` und das gesondert gewählte `READ_SLEEP` begrenzt; `WRITE_SLEEP` bleibt entfernt. Keine Signierung durch den isolierten Builder.
+
+| Ergänzung / konkreter Fehlerfall | Testpfad innerhalb der Gesamtläufe |
+|---|---|
+| AB-05: Abendlicht ohne Doppelhinweise | `eveningLight.test.ts`, Reminder-/Wochenregeln, Zeitkatalog, Python `test_engine`/`test_protocol`: gültiger Tag, kein Nachholen/Stapel, sanfter Übergang oder T30/T10 ersetzt den Hinweis |
+| AB-06: passende aktuelle PC-Bestätigung statt bloßer Verbindung | `notifications.test.ts`, `PcReminderGateTest.kt`: Revision/Tag/Frist/Verbindung/Freigaben, veralteter oder fremder Beleg, Wiederaufnahme ohne falsche Erledigung |
+| ACK-Wechsel während Zustellrunde / zurückgestellte Uhr | Drei neue Gate-Regressionen: gemeinsamer unveränderlicher Snapshot für Halten/Versand/Tokenverbrauch, kein verlorener Eintrag, frühestens der ursprüngliche Termin |
+| MO-03: eigene Nächte und Privatsphäre schützen | `healthSleep.test.ts` in Core/Plattform/Store, Backupfälle und `v7-health-sleep.spec.ts`: eigene Wahl, Abbruch bei Aus-und-Ein, verspätete Antworten, echte Storequeue-Races, Herkunft und manuelle Korrektur, keine DayLog-/Weckerwirkung |
+| P08: benutzbares Windows-Paket | `test-pc-package.py`/`test-pc-install.ps1`: Manifest, Bytes gleich Git-Blobs unabhängig von Checkout-Zeilenenden, Start-/Installationspfad, laufende Instanz, Python-/pip-Fehler, Protokollkonflikt, Reparatur und Datenerhalt |
+| Neue Felder und Testseite | Bestehende Layoutfälle bei 320/390 px und 100/160 Prozent Schrift um Begleitung erweitert; direkte Vorlauf-Eingabe samt Reload geprüft. G97–G103 präzisiert, 103 IDs und sieben Cluster erhalten, keine automatischen Geräte-Häkchen |
+
+**GitHub-CI und Bereitstellung abgeschlossen:** Der eingefrorene Stand ist per normalem Fast-forward auf `main` übertragen. [CI42607136664](https://github.com/frnkrm/anker/actions/runs/42607136664) ist auf exakt dieser main/push-SHA vollständig grün: 1.077 Logik-/267 Browserfälle, keine Fehler/Flakies/Skips/Unterbrechungen, beide PC-Matrixjobs mit eigenständiger Job-/Commit-/OS-Bindung erfolgreich. Das Windows-Quellpaket wurde zusätzlich im Windows-Job gebaut und gespeichert. Öffentliche HTML-Belege und Quellkonfiguration wurden bytegleich verifiziert; kein API- oder authentifizierter Rohlogzugriff vorausgesetzt.
+
+**Signierung und Download:** APK tatsächlich mit dem bestehenden B4-Schlüssel signiert; Name Anker, Paket und Code15 bestätigt. v2/v3 im normalen Android-Verifikationsbereich, v1/JAR zusätzlich mit Verifikations-Override API23 und gleichem B4-Zertifikat geprüft; die tatsächliche Mindestversion bleibt API26. Der erste Signierprüfer hatte das normale Überspringen von v1 zugunsten v2/v3 fälschlich als fehlende Signatur bewertet. Dieser Prüfskriptfehler ist korrigiert, erster Fehlerbeleg erhalten; Appcode und unsigned Payload blieben unverändert. Alle ursprünglichen ZIP-Einträge nach Signierung bytegleich, nur drei reguläre Signaturdateien hinzugefügt. ZIP-/ELF-16KB nochmals geprüft. APK **38.571.704 Bytes**, SHA256 `03f79fa2cfd7758c14cedf9f33bf4a65c8f55cbde2faf9c06654e1c580d59496`. Beide [öffentlichen Pakete](UPDATE_V7_CODE15.md) vollständig in Chromium mit TLS-Prüfung gespeichert, CRC und sämtliche Dateien gegen die freigegebenen Branches verglichen. Handy-ZIP **22.357.013 Bytes**, SHA256 `015626940e6997f898b280532a6823f194caa5bd712c1f8205da2c6273b2c626`; PC-ZIP **55.795 Bytes**, SHA256 `af42238112aa8377eafa4792bd9adfee08cf2ed3613bd0d00a7fea5d3dea2b16`. Keine privaten Schlüssel oder Nutzerdaten veröffentlicht, kein Tag/Store-Release.
+
+**Belege:** [Gesamtabschluss](ANKER_V7_UPDATE_NACHWEIS.json), [vollständige frische Native-Prüfung](ANKER_V7_UPDATE_NATIVE_NACHWEIS.json), [unsigned APK und Bindung](ANKER_V7_UPDATE_UNSIGNED_NACHWEIS.json), [exakte GitHub-CI](ANKER_V7_UPDATE_CI_NACHWEIS.json), [veröffentlichte Signaturdaten](ANKER_V7_UPDATE_SIGNATUR.json). Native-Proof-SHA256 `73a0bd60b67921dc073333c176c20aae6d2e8258e141cb89cf3f6e82f11c0812`; Unsigned-Proof-SHA256 `47cfc1bcf289af98a5691856f1b1022f1bcd685c934ac65b912c29a16045b87b`. Vollständige lokale Rohberichte liegen unter `/workspace/.cache/anker/v7-update/`; das ist die Cloud-Arbeitsumgebung. Frühe Testdaten-/PATH-, Beobachter-Parser- und Signierprüferfehler bleiben erhalten, keine Tests gelockert oder wiederholt zum Grünmachen.
+
+**Geräteprüfung bleibt offen:** Galaxy S26 Ultra, tatsächliche Windows-Installation/Tk-Sichtbarkeit/DPAPI, mDNS/LAN, Stimme/Vibration, Weckerton, Audio/Standby, Sperre und WoL sind erst nach beobachtetem Versuch bestätigt. Windows-CI mit injizierten Effekten ist keine physische Installation. Keine Licht-Hardware, Supabase-Instanz, Kostenaktivierung oder automatischer Internet-Updater eingerichtet. Die alten Baseline-, v7- und Geräteberichte bleiben unverändert.
+
 ## v7 – Folgeaudit und korrigierter gemeinsamer Stand
 
 **09.11.2026:** Erneuter v7-Anhang bytegleich; sauberer Audit-Ausgang `ad91ca2`. Vor Änderungen stimmten die 368 damaligen Laufzeit-Eingaben und 63 Produktionsdateien mit dem bisherigen Nachweis überein. Der Audit fand dennoch echte Übergangsfehler; die folgenden Korrekturen sind implementiert und frisch gemeinsam geprüft. Frühere Baseline-/v7-Berichte bleiben unverändert erhalten.

@@ -1,0 +1,38 @@
+{
+  "schema": "anker-local-unsigned-verification-v1",
+  "passed": true,
+  "sourceCommit": "0c3ac21a537fa95e686de53ab95ca4476af9d39c",
+  "sourceFingerprint": "0d550798869cb1d8c6c83a84a401b5bed422a60f3602f59a07d1775c865913ea",
+  "appName": "Anker",
+  "applicationId": "de.frnkrm.anker.mobile",
+  "versionName": "1.5.0-rc.1",
+  "versionCode": 15,
+  "unsignedApk": "/workspace/anker-v7-update-native-final/android/app/build/outputs/apk/release/app-release-unsigned.apk",
+  "unsignedApkSha256": "bacd4427823a2228eb4f7f43d78b8e9f8e3906d95f04520a18e1614b970e127f",
+  "nativeProof": "/workspace/.cache/anker/v7-update/native/native-verification.json",
+  "nativeProofSha256": "73a0bd60b67921dc073333c176c20aae6d2e8258e141cb89cf3f6e82f11c0812",
+  "nativeInputFingerprintSha256": "ccf8d8a62d37108d4872491b6536ccd47fbbbb93ea996220fc5d2a3562caa8c2",
+  "webAssetsByteEqual": {
+    "fileCount": 66,
+    "allMatched": true,
+    "rootDistributionFingerprintSha256": "97c48fedbcee52d794ebae9428dfc8d86a74c54432aff0890a9f96d70164d39a"
+  },
+  "zipalign16kb": true,
+  "elf16kb": true,
+  "releaseLintExecuted": true,
+  "releaseLintTask": ":app:lintVitalRelease",
+  "nativeTestsExecutedNow": true,
+  "nativeTestsReused": false,
+  "nativeTestTotals": {
+    "suites": 18,
+    "tests": 174,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "freshAfterStartedAt": true
+  },
+  "realAndroidDeviceTested": false,
+  "remoteCiClaimed": false,
+  "signedApkBuilt": false,
+  "scope": "local verification of unsigned APK; remote CI and signing are separate"
+}

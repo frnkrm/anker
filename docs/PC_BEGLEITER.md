@@ -2,7 +2,7 @@
 
 Der Windows-Begleiter verbindet sich direkt im Heimnetz mit Anker auf Android. Das Handy behält den Tagesplan; der PC zeigt den bestätigten Stand und kann nach deiner Wahl beim Aufhören helfen. Ein Konto oder Cloudserver ist dafür nicht erforderlich.
 
-**v7-Updatekandidat, 09.11.2026:** Verbindung, Begleitung und Windows-Quellpaket sind im Repository implementiert. Android wird auf ausdrücklichen Auftrag **1.5.0-rc.1 / Code15** mit gleicher App-Kennung und Signatur; die abschließende Gesamt-/Paketprüfung läuft. [Updateweg](UPDATE_V7_CODE15.md), automatische Ergebnisse in [Testnachweise](ANKER_TESTNACHWEISE.md). Echte LAN-, Windows- und Galaxy-S26-Ultra-Prüfungen sind noch offen.
+**v7 verfügbar, 09.11.2026:** [Windows-Quellpaket herunterladen](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-pc-v7-20261109) und [Anker 1.5.0-rc.1 / Code15](UPDATE_V7_CODE15.md) mit gleicher App-Kennung/B4-Signatur. Gemeinsame lokale Prüfungen, beide GitHub-PC-Jobs und vollständiger Paketdownload sind grün. [Testnachweise](ANKER_TESTNACHWEISE.md), [maschinenlesbarer Abschluss](ANKER_V7_UPDATE_NACHWEIS.json). Echte LAN-, Windows-Installation und Galaxy-S26-Ultra-Prüfungen bleiben offen.
 
 ## Zuerst ausprobieren, danach Wirkungen wählen
 

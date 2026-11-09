@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "applicationId": "de.frnkrm.anker.mobile",
-  "sourceCommit": "1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a",
-  "sourceFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
-  "versionName": "1.4.0-rc.1",
-  "versionCode": 14,
-  "ciRunURL": "https://github.com/frnkrm/anker/actions/runs/42451162451",
+  "sourceCommit": "0c3ac21a537fa95e686de53ab95ca4476af9d39c",
+  "sourceFingerprint": "0d550798869cb1d8c6c83a84a401b5bed422a60f3602f59a07d1775c865913ea",
+  "versionName": "1.5.0-rc.1",
+  "versionCode": 15,
+  "ciRunURL": "https://github.com/frnkrm/anker/actions/runs/42607136664",
   "publicCertificateSha256": "B4:7F:FF:FE:BE:13:7C:F1:51:29:96:1D:E4:3A:27:E3:EC:81:1A:CF:FE:45:42:B6:32:4E:11:76:89:95:B1:3A"
 }
