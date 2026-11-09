@@ -101,6 +101,18 @@ let disabledAudio = false
 let sleepDisabled = false
 let activityToken = ''
 
+/** Native speech is a bounded mirror; the editable original remains untouched. */
+function speechTitle(value: string): string {
+  let result = ''
+  for (const character of value) {
+    const code = character.charCodeAt(0)
+    if (code < 32 && code !== 10 || character.length === 1 && code >= 0xd800 && code <= 0xdfff) continue
+    if (result.length + character.length > 240) break
+    result += character
+  }
+  return result.trim() || 'Dein Routineschritt'
+}
+
 const syncNativeGuidance = coalesceAsync(async () => {
   const st = useApp.getState()
   if (!isNative() || !st.ready || !st.settings.onboarded) return
@@ -126,7 +138,7 @@ const syncNativeGuidance = coalesceAsync(async () => {
   const enabled = !!focus && !!step && (preferences.paceKeeper || preferences.speakSteps)
   const payload = enabled && focus && target?.kind === 'routine' && step ? {
     enabled: true, sessionId: `routine:${date}:${target.routine}:${st.local.guidance?.days[date]?.alarmOccurrenceId ?? 'manual'}`,
-    stepId: step.id, title: target.minimal && step.minimal ? step.minimal.title : step.title,
+    stepId: step.id, title: speechTitle(target.minimal && step.minimal ? step.minimal.title : step.title),
     durationMs: focus.timer.durationMs, deadlineAt: focus.timer.status === 'running' ? focus.timer.deadlineAt : 0,
     status: focus.timer.status, intervalSeconds: preferences.paceIntervalMin * 60,
     hapticsEnabled: preferences.paceKeeper, thresholds: preferences.paceThresholds,

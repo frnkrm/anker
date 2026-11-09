@@ -132,4 +132,20 @@ describe('Dauerhafte Übergabe und freiwillige native Begleitung', () => {
     await expect(started).resolves.toBeUndefined()
     expect(mocks.api.getSleepAudioState).toHaveBeenCalledTimes(1)
   })
+
+  it('begrenzt nur den vorgelesenen Spiegel eines langen Schritts ohne kaputte Unicode-Paare', async () => {
+    settings().guidance!.speakSteps = true
+    const original = `Wasser\t${'😀'.repeat(150)} trinken`
+    settings().routines.morning = [{ id: 'long-speech', title: original, minutes: 2 }]
+    const plan = buildDayPlan({ date: '2026-11-08', settings: settings() })
+    const step = plan.blocks.find(block => block.routine === 'morning')!.steps![0]!
+    local().focus = { id: 'focus-long', target: { kind: 'routine', date: plan.date, routine: 'morning', stepId: step.id, minimal: false }, timer: createCountdown(120, at) }
+    const { syncGuidanceRuntime } = await import('./guidance')
+    await syncGuidanceRuntime()
+    const title = mocks.api.syncRoutinePaceKeeper.mock.calls[0]![0].title as string
+    expect(title.length).toBeLessThanOrEqual(240)
+    expect(title).not.toContain('\t')
+    expect([...title].some(character => character.length === 1 && /[\ud800-\udfff]/.test(character))).toBe(false)
+    expect(settings().routines.morning[0]!.title).toBe(original)
+  })
 })
