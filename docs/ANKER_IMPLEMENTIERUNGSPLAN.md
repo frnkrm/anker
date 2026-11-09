@@ -1,5 +1,48 @@
 # Anker 2.0: Implementierungsplan
 
+## Anker v7 – PC-Begleiter, Abend und Morgen (09.11.2026)
+
+**Auftrag aktiv, Phase 1 abgeschlossen, Umsetzung läuft.** Ausgang `main`/`0084063345791302bb414d930ee066d777dc57cf`, App 1.4.0-rc.1/Code14. Root-Arbeitsbaum war sauber. Keine geltende AGENTS-Datei vorgefunden; kurze Verweisdatei neu angelegt. README, CLAUDE, Struktur, Anleitung, Changelog, aktueller Plan und v7-Anhang geprüft; bestehender Daten-/Wecker-/Fokus-/PC-Pfad an konkretem Code auditiert. Der Anhang liegt bytegleich unter `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`. Sicherung des getrackten Ausgangscodes: `/workspace/.cache/anker/v7/baseline-main-0084063.tar.gz`, SHA256 `fe04d501f291e97e3397fa5ac4f53725c936f94cfda078f122fbeea2ddf87f79`. Kein Export vom Handy, keine Änderung seiner Daten.
+
+**Arbeitsverzeichnis/Branch:** `/workspace/anker`, `entwicklung/anker-v7-pc`. Reine Baseline im detached Worktree `/workspace/anker-v7-baseline`. Kern, Android, PC-Begleiter, PC-Transport und UI schreiben ausschließlich in eigenen v7-Worktrees und werden nacheinander integriert. Keine parallelen schreibenden Agenten im selben Arbeitsbaum.
+
+### Verbindliche Entscheidungen bei widersprechenden Vorgaben
+
+| Konflikt | Gewählte Integration |
+|---|---|
+| Anhang Tauri/`desktop/`, direkter Auftrag bevorzugt Python/`pc-companion` | Python-Begleiter unter `pc-companion/`; bestehender TS/React-/Kotlin-App-Stack bleibt. Kein zweites Desktop-Produkt. |
+| Anhang nur gepinntes HTTPS, direkt Echtzeit-WebSocket | WSS mit gepinntem TLS-Blattzertifikat, mDNS `_anker._tcp.local.`; REST-Healthcheck und verschlüsselter POST-Rückfall. Kein Klartext und kein Pflichtserver. |
+| Anhang Wecker unverändert, direkt neue Morgenverkettung/Anti-Relapse | Bestehender AlarmController bleibt alleiniger Besitzer. Neue Optionen ausdrücklich aus; bestehende Vorwecker-/Wachheits-Identitäten, QR/Rechnen/Notfall und SmartWake-Absicherung bleiben. |
+| Anhang keine roten Farben, direkt rote OLED-Nacht/Depletion-Timer | Optische Führungsvariante freiwillig; Rot bezeichnet Zustand/Restzeit, nie Verspätung oder Schuld. Normale Themen und Schriftwahl bleiben. |
+| Anhang freie Verlängerung, direkt Hardware-Notverlängerung und Sperrwächter | Standardmodus erlaubt freie Verlängerung. Strenger Modus benötigt eigene Wahl am Handy und PC; signierte zeitlich begrenzte Notverlängerung nur nach Handy-Hardwareprüfung. Begleiter bleibt beendbar, keine Hardwaretasten-/Administrationssperre. |
+| Direkter Beispielbefehl `shutdown /s /t 30` vs. Bestand schützt ungespeicherte Programme | Eigener 60-Sekunden-Speicherhinweis, danach optional `/s /t 0`, niemals `/f`. Windows-Anmeldung wird nicht fernentsperrt; Morgenabschluss beendet nur den Wieder-Sperrwächter. |
+| Automatischer Fokusstart vs. „ersten Schritt nicht gestartet“ | Automatischer Countdown beweist keine reale Handlung. Auto-Zombie orientiert sich an ausbleibender bewusster Interaktion/Schrittbestätigung und ist gesondert abschaltbar. |
+| Privater Brain-Dump vs. morgens am PC zeigen | Notiz im vorhandenen lokalen `tomorrowSteps`; PC-Übertragung nur mit eigenem Freigabeschalter. Standardmäßig nur Zeiten, Zustände und Schrittnummern. |
+
+### Technische Delta-Matrix
+
+Status: **V** vorhanden · **I** in Umsetzung · **O** offen · **X** externe/echte Geräteprüfung. Diese Matrix ist keine zweite Produktplanung.
+
+| IDs | Bestand / Integration | Aktueller Status und Nachweis-Gate |
+|---|---|---|
+| P00 | Code14: 912 Logik-/248 Browser-/122 native Fälle aus bisherigem Abschluss; neue eingefrorene Baseline | I – frische Logik/Build/PC/Update bereits grün, Browser/native laufen; tatsächliche Zahlen im Testprotokoll ergänzen |
+| PC-01/09/10/12, P02/P08 | Neuer Python-Begleiter, Tkinter/Windows-Adapter, Autostart, private Datenablage, eigene Anforderungen/Startskripte | I – reine Adapter-/UI-/Robustheitstests; Windows-Installation und echte Systemeffekte X |
+| PC-02/03/04, P01/P03 | Neuer v3-Vertrag, AES-GCM/ECDH/HKDF, QR+PC-Bestätigung, mDNS, gepinntes WSS | I – gemeinsame Fixtures, Replay/Tamper/Pin-/Ablauf-/Integrationstests |
+| PC-05/08/13, P04/P06 | Planer bleibt Handy; ACK passend zu Revision, verschlüsselte Outbox, atomare Receipts, kein Geheimnis in Backup/Sync | I – Store-/Protokoll-/Transporttests; echte LAN-Kopplung X |
+| PC-06/07/11, P05 | Sichtbare Eskalation, eigene Schonfrist, optionale Sperre/Ducking, alte Aufgabe verhindert Doppelwirkung | I – simulierte Windows-Effekte, Offline-/Uhr-/Neustartfälle; Vollbild/Session/Audio X |
+| AB-01/02/03/04/07 | Vorhandene Morgen-Notizen, freie Plananpassung und Abendübergang wiederverwenden; Speicherpunkt, Dämmerung, Wenn-dann-Plan | I – Notiz-/Ereignis-/Verlängerungs-/UI-Tests |
+| AB-05/06 | Optionaler Abendlichthinweis und revisionstreue Entlastung von Handy-PC-Hinweisen | O – erst nach sicheren gemeinsamen Empfangsregeln integrieren |
+| MO-01/02/04, VI-01/02/03/04, P07 | Licht-Vorlage, neutraler 7-/14-Tage-Rhythmus, bestehender Ring, Morgen-Countdown und Tray | I – keine automatische Routinenänderung; 320px/160% und tatsächliche Daten getrennt prüfen |
+| Direkt: Circadian UI/Depletion | Vorhandene Tokens, FocusFrame und RingTimer statt neuer Timer-Engine | I – freiwillige Zustandsfarben und reduzierte Bewegung |
+| Direkt: PaceKeeper/Schlafaudio | Vorhandene lokale Stimme/Audiopriorität; eigener sichtbarer Routine-Dienst und begrenztes lokal erzeugtes Brown Noise | I – Schwellen/Deduplizierung/Pause/Deadline/Alarmvorrang automatisch; Hörbarkeit X |
+| Direkt: Zero-Gap/Anti-Relapse | QR→Fokus bereits vorhanden; atomarer Handoff plus nativer Einmalbeleg, vorhandener 5-Minuten-Check | I – Crash-/Duplikat-/04:00-/DB-Fehlerfälle, kein neuer Weckerbesitzer |
+| Direkt: Zombie/Abendphasen | Benannte Projektion auf bestehenden Plan; essentielle Schrittflags ohne Überschreibmigration; Nacht-Sperrfakt statt zweitem Plan | I – leere/alte Auswahl wird nie als erledigt ausgegeben, Tageswechsel und Notverlängerung prüfen |
+| PC-14/MO-03/MO-05, P09 | Relay/Health-Schlafimport/Lichtgeräte | O – Kann-Module bzw. Machbarkeitsnotiz; keine externe Aktivierung und keine zusätzliche Schlafberechtigung ohne eigenen Auftrag |
+| P10 | Gemeinsame Regression und Abschlussdokumentation | O – implementiert/automatisch/Windows/Android sauber trennen; Version bisher unverändert |
+
+**Nächster Schritt:** Verträge und reine Logik vertikal fertigstellen; danach isolierte Module integrieren und die gemeinsame Regression ausführen. Neue Handy-/Windows-Beobachtungen werden nicht aus Altberichten oder Mockantworten abgeleitet.
+
+
 ## Gesamtauftrag v6: Baseline und aktueller Fortschritt
 
 **UI-Gesamtauftrag Code 14, 08.11.2026 – implementiert und automatisch geprüft:** Beide UI-Aufträge zusammengeführt, drei Haupttabs und gebündelte Bereiche, gemeinsame Form-/Fokusbausteine, kompakte Routinen und rücknehmbare Listenänderungen. Anzeigename **Anker**, Version **1.4.0-rc.1 / Code 14**, bestehende Paketkennung und Signatur. Quelle `1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a`, Laufzeitkennung `46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87`. **912 Logikfälle, 248 Browserfälle in [grüner CI](https://github.com/frnkrm/anker/actions/runs/42451162451), 122 frisch ausgeführte native JUnit-Fälle, 36 Update-Mock-/19 PowerShell-Fälle und vier Parser erfolgreich; keine Browser-Skips oder Retries.** APK signiert, vollständig heruntergeladen und bytegleich geprüft. [Installation](INSTALLATION_ANKER_CODE14.md) · [Anforderungsmatrix und Abweichungen](UI_UEBERARBEITUNG_CODE14.md) · [Nachweis](ANKER_CODE14_NACHWEIS.json). Neue echte Geräteprüfungen bleiben offen; frühere Berichte und die folgenden Code-13-/E00-Absätze bleiben historische Belege.
