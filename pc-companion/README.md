@@ -20,7 +20,7 @@ Der bisherige PowerShell-PC-Stopp bleibt eine getrennte Alternative.
    Bei der Windows-Firewall
    ausschließlich **private Netzwerke** zulassen. Port **47830/TCP** und lokales
    mDNS **5353/UDP** müssen im Heimnetz erreichbar sein; keine Routerfreigabe nötig.
-3. **Mit Handy koppeln** wählen, den QR-Code unter **Anker → PC → Mit PC koppeln**
+3. **Mit Handy koppeln** wählen, den QR-Code unter **Anker → Mehr → Abend & Alltag → PC-Stopp → Lokaler PC-Begleiter**
    scannen und den gleichen vierstelligen Prüfcode am PC bestätigen.
 4. Zuerst **Testabend** wählen. Der Test dauert zwei Minuten und löst keine
    Windows-Sperre, kein Herunterfahren und keine Audioänderung aus.
@@ -66,7 +66,7 @@ Im installierten Ordner liegen auch Anleitung und `uninstall.ps1` für später.
   **Heute ohne PC-Stopp** setzen. Ein unveränderter Handyauftrag hebt eine lokale
   Verlängerung nicht auf.
 - Im ausdrücklich eingeschalteten strengen Modus kommt eine Notverlängerung nur
-  vom bestätigten QR-/NFC-Weg im Handy. Der PC stellt kein solches Token aus.
+  vom bestätigten Anker-QR im Handy. Der PC stellt kein solches Token aus.
   Die Annahme wird erst nach passender PC-Antwort bestätigt.
 - Vor einer Windows-Aktion gibt es mindestens **60 Sekunden zum Speichern**.
   Standard ist Sperren. Ruhezustand und Herunterfahren sind eigene Wahlen.
