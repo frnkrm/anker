@@ -195,6 +195,45 @@ class WindowsBoundaryTests(unittest.TestCase):
         platform._event("shutdown")
         self.assertEqual(events, ["shutdown"])
 
+    def test_wts_lock_and_unlock_survive_an_inaccessible_input_desktop(self):
+        api = FakeWindows(); api.locked = lambda: None
+        platform = WindowsPlatform(api)
+        self.assertIsNone(platform.sample()["locked"])
+        platform._event("lock")
+        self.assertEqual(platform.sample(), {"locked": True, "idleSeconds": 18.5, "powerEvent": "lock"})
+        self.assertTrue(platform.sample()["locked"])
+        platform._event("unlock")
+        self.assertEqual(platform.sample(), {"locked": False, "idleSeconds": 18.5, "powerEvent": "unlock"})
+        self.assertFalse(platform.sample()["locked"])
+
+    def test_lock_request_and_unrelated_events_do_not_claim_observed_lock(self):
+        api = FakeWindows(); api.locked = lambda: None
+        platform = WindowsPlatform(api)
+        platform.lock()
+        self.assertEqual(api.lock_calls, 1)
+        for event in [None, "sleep", "resume", "shutdown-requested"]:
+            if event is not None: platform._event(event)
+            self.assertIsNone(platform.sample()["locked"])
+
+    def test_confirmed_wts_state_wins_over_a_racing_desktop_read(self):
+        api = FakeWindows(); platform = WindowsPlatform(api)
+        def stale_desktop():
+            platform._event("lock")
+            return False
+        api.locked = stale_desktop
+        self.assertTrue(platform.sample()["locked"])
+        api.locked = lambda: self.fail("Ein bestätigter WTS-Stand braucht keinen unsicheren Desktop-Rückfall")
+        self.assertTrue(platform.sample()["locked"])
+
+    def test_session_end_and_listener_detach_require_fresh_observation(self):
+        api = FakeWindows(); api.locked = lambda: None
+        platform = WindowsPlatform(api); platform._event("lock")
+        platform._event("logoff")
+        self.assertIsNone(platform.sample()["locked"])
+        platform._event("lock"); platform.detach_window()
+        self.assertIsNone(platform.sample()["locked"])
+        self.assertIsNone(WindowsPlatform(api).sample()["locked"])
+
     def test_audio_starts_only_after_opt_in_and_waits_full_minute(self):
         endpoint = FakeVolume(); ducker = MasterAudioDucker(endpoint)
         ducker.tick(0, False); self.assertEqual(endpoint.writes, [])

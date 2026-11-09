@@ -100,6 +100,7 @@ class WindowsPlatform:
         self._lock = threading.Lock()
         self._on_system_event = on_system_event
         self._window_hook: WindowEvents | None = None
+        self._session_locked: bool | None = None
 
     def _get_api(self) -> WindowsApi:
         if self._api is None:
@@ -151,6 +152,12 @@ class WindowsPlatform:
 
     def _event(self, name: str) -> None:
         with self._lock:
+            # A real WTS event confirms the current session. LockWorkStation's
+            # return value only confirms that a request was accepted.
+            if name in {"lock", "unlock"}:
+                self._session_locked = name == "lock"
+            elif name == "logoff":
+                self._session_locked = None
             self._events.append(name)
         if self._on_system_event is not None:
             # A caller can synchronously persist WM_ENDSESSION before process exit.
@@ -158,8 +165,14 @@ class WindowsPlatform:
 
     def sample(self) -> dict[str, object]:
         api = self._get_api()
-        value: dict[str, object] = {"locked": api.locked(), "idleSeconds": api.idle_seconds()}
         with self._lock:
+            confirmed = self._session_locked
+        # OpenInputDesktop can be denied on the secure lock desktop. Once WTS
+        # has supplied a session state, an unknown desktop cannot erase it.
+        detected = api.locked() if confirmed is None else None
+        value: dict[str, object] = {"idleSeconds": api.idle_seconds()}
+        with self._lock:
+            value["locked"] = self._session_locked if self._session_locked is not None else detected
             if self._events:
                 value["powerEvent"] = self._events.popleft()
         return value
@@ -174,6 +187,10 @@ class WindowsPlatform:
         if self._window_hook is not None:
             self._window_hook.close()
             self._window_hook = None
+        with self._lock:
+            # Without the listener a later unlock could no longer update this
+            # fact; a newly attached/current session must be observed afresh.
+            self._session_locked = None
 
     def register_hotkeys(self, savepoint: Callable[[], None], thought: Callable[[], None]) -> bool:
         return self._window_hook.register_hotkeys(savepoint, thought) if self._window_hook is not None else False
