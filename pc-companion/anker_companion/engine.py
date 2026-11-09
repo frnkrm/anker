@@ -1,0 +1,337 @@
+"""Finite opt-in Windows execution of phone-owned timestamps; injectable clock/platform."""
+from __future__ import annotations
+
+from copy import deepcopy
+import time
+from typing import Any
+
+from .protocol import ProtocolError, plan_date, stamp, text, utc, validate_briefing, validate_state
+from .storage import AtomicStateStore
+
+NIGHT = {"BEDTIME_HARD_CUT", "NIGHT_LOCK", "MORNING_PENDING", "MORNING_ACTIVE", "ALARM_RINGING", "ZOMBIE_MODE"}
+
+
+class CompanionEngine:
+    def __init__(self, store: AtomicStateStore, platform: Any, clock=time.time, ui: Any = None, audio: Any = None):
+        self.store, self.platform, self.clock, self.ui, self.audio = store, platform, clock, ui, audio
+        self.last_now = clock()
+        self.test_started: float | None = None
+        self.last_view: dict[str, Any] = {}
+        self._legacy_checked = float("-inf")
+        self._legacy_result = True
+        # Login/restart never inherits an almost-finished save grace.
+        self.store.update(lambda data: data["runtime"].update(graceStartedAt=None, lastLockAt=0, bootAt=self.last_now))
+
+    def _message(self, message: str) -> None:
+        if self.ui:
+            self.ui.render({**self.last_view, "message": message})
+
+    def accept_state(self, state: dict[str, Any], pair: str, sent_at: float, now: float | None = None) -> dict[str, Any]:
+        now = self.clock() if now is None else now
+        state = deepcopy(validate_state(state))
+        def change(data: dict[str, Any]) -> None:
+            old = data.get("snapshot")
+            if old and stamp(state["generatedAt"]) < stamp(old["generatedAt"]):
+                raise ProtocolError("stale-state")
+            runtime = data["runtime"]
+            latch = self.active_latch(data, now)
+            if latch is None:
+                runtime["nightLatch"] = None
+            if state["state"] == "MORNING_COMPLETED" and latch and latch["sessionId"] != state["sessionId"]:
+                raise ProtocolError("morning-session")
+            same_pc = bool(old and old["sessionId"] == state["sessionId"] and old["schedule"].get("bedAt") == state["schedule"].get("bedAt") and old["revision"] == state["revision"])
+            if not same_pc and not latch:
+                runtime.update(graceStartedAt=None, actedTarget=None, extensionAt=None, extensionRevision=None)
+            runtime.update(sourcePair=pair, sourceSkew=abs(sent_at - now) > 120, receivedAt=now)
+            data["snapshot"] = state
+            if state["state"] == "MORNING_COMPLETED":
+                runtime.update(nightLatch=None, graceStartedAt=None, emergencyUntil=None, actedTarget=None)
+            elif state["lockEnforced"] and state["state"] in NIGHT and not latch:
+                runtime["nightLatch"] = {"sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state)}
+        self.store.update(change)
+        return self.ack(state["revision"], now)
+
+    def accept_briefing(self, briefing: dict[str, Any], now: float | None = None) -> dict[str, Any]:
+        briefing = deepcopy(validate_briefing(briefing))
+        self.store.update(lambda data: data.update(briefing=briefing))
+        return self.ack(briefing["revision"], self.clock() if now is None else now)
+
+    def _effective(self, data: dict[str, Any], now: float) -> tuple[dict[str, Any] | None, list[str], dict[str, Any]]:
+        state = data.get("snapshot")
+        latch = self.active_latch(data, now)
+        if latch and latch.get("state", {}).get("prefs", {}).get("strictLock"):
+            state = deepcopy(latch["state"])
+            current = data.get("snapshot")
+            if current and current["sessionId"] == state["sessionId"]:
+                state["date"] = current["date"]
+        warnings: list[str] = []
+        local = data["localPrefs"]
+        effective = {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False}
+        if not state:
+            return None, ["no-schedule"], effective
+        remote = state["prefs"]
+        effective = {**remote, **{key: bool(remote.get(key) and local.get(key)) for key in effective}}
+        effective["stopAction"] = local.get("stopAction", remote["stopAction"])
+        effective["graceSeconds"] = max(local.get("graceSeconds", 60), remote["graceSeconds"])
+        effective["dimMax"] = min(local.get("dimMax", .4), remote["dimMax"])
+        if not effective["enforceEnabled"]:
+            warnings.append("local-enforcement-off")
+        if data["runtime"].get("sourceSkew"):
+            warnings.append("clock-skew")
+        if stamp(state["validUntil"]) <= now:
+            warnings.append("source-expired")
+        if now - self._legacy_checked >= 60 or now < self._legacy_checked:
+            try:
+                self._legacy_result = self.platform.legacy_conflict()
+            except Exception:
+                self._legacy_result = True
+            self._legacy_checked = now
+        if self._legacy_result:
+            warnings.append("legacy-conflict")
+        deadline = stamp(state["schedule"]["morningDeadlineAt"], True)
+        if state["state"] in NIGHT and deadline is not None and now >= deadline:
+            warnings.append("morning-deadline-reached")
+        return state, warnings, effective
+
+    @staticmethod
+    def active_latch(data: dict[str, Any], now: float) -> dict[str, Any] | None:
+        latch = data["runtime"].get("nightLatch")
+        if not latch or now >= stamp(latch["validUntil"]):
+            return None
+        deadline = stamp(latch["morningDeadlineAt"], True)
+        return latch if deadline is None or now < deadline else None
+
+    def ack(self, revision: str, now: float | None = None) -> dict[str, Any]:
+        now = self.clock() if now is None else now
+        data = self.store.read()
+        state, warnings, pref = self._effective(data, now)
+        date = state["date"] if state else plan_date(now)
+        mode = "paused"
+        target = None
+        if state:
+            target = self._target(data, state, now)
+            if state["state"] == "MORNING_COMPLETED":
+                mode = "released"
+            elif data["runtime"].get("suspendedDate") == plan_date(now):
+                mode = "suspended-today"
+            elif "legacy-conflict" in warnings:
+                mode = "legacy-conflict"
+            elif not warnings and pref["enforceEnabled"] and target is not None:
+                mode = "locked" if data["runtime"].get("observedLocked") is True else "scheduled"
+        effective = {"date": date, "mode": mode}
+        if target is not None and mode == "scheduled":
+            effective["stopAt"] = utc(target)
+        return {"type": "ack", "revision": revision, "receivedAt": utc(now), "effective": effective,
+                "companion": {"version": "0.1.0", "protocol": 3}, "warnings": warnings}
+
+    def _target(self, data: dict[str, Any], state: dict[str, Any], now: float) -> float | None:
+        runtime = data["runtime"]
+        target = stamp(state["schedule"]["bedAt"], True)
+        extension = runtime.get("extensionAt")
+        if extension is not None and runtime.get("extensionRevision") == state["revision"]:
+            target = extension
+        emergency = runtime.get("emergencyUntil")
+        if emergency is not None and emergency > now:
+            target = emergency
+        return target
+
+    def _phase(self, data: dict[str, Any], state: dict[str, Any], now: float, target: float | None) -> str:
+        phase = state["state"]
+        if phase == "MORNING_COMPLETED":
+            return phase
+        latch = self.active_latch(data, now)
+        if latch and latch["sessionId"] == state["sessionId"]:
+            deadline = stamp(latch["morningDeadlineAt"], True)
+            if now < stamp(latch["validUntil"]) and (deadline is None or now < deadline):
+                wake = stamp(latch["wakeAt"], True)
+                return "MORNING_PENDING" if wake is not None and now >= wake else "NIGHT_LOCK"
+        if target is None:
+            return phase
+        if now >= target:
+            return "BEDTIME_HARD_CUT"
+        delta = target - (stamp(state["schedule"]["bedAt"], True) or target)
+        brain = stamp(state["schedule"]["brainDumpAt"], True)
+        wind = stamp(state["schedule"]["windDownAt"], True)
+        if brain is not None and now >= brain + delta:
+            return "BRAIN_DUMP_T10"
+        if wind is not None and now >= wind + delta:
+            return "WIND_DOWN_T30"
+        return phase if phase not in NIGHT else "DAY_ACTIVE"
+
+    def tick(self, now: float | None = None) -> dict[str, Any]:
+        now = self.clock() if now is None else now
+        data = self.store.read()
+        rollback = now < self.last_now
+        self.last_now = now
+        try:
+            sample = self.platform.sample()
+        except Exception:
+            sample = {"locked": None, "idleSeconds": 0}
+        if data["runtime"].get("observedLocked") != sample.get("locked"):
+            self.store.update(lambda item: item["runtime"].update(observedLocked=sample.get("locked")))
+        if rollback or sample.get("powerEvent") in {"resume", "wake"}:
+            self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None, lastLockAt=0))
+            data = self.store.read()
+        self._observe_rest(sample, data, now)
+        state, warnings, pref = self._effective(data, now)
+        phase = "IDLE"
+        target = None
+        grace_remaining = None
+        dim = 0.0
+        message = "Mit deinem Handy koppeln" if not data["pairs"] else "Warte auf einen aktuellen Abendplan"
+        test_mode = self.test_started is not None
+        if test_mode:
+            elapsed = max(0, now - self.test_started)
+            phase = "WIND_DOWN_T30" if elapsed < 40 else "BRAIN_DUMP_T10" if elapsed < 80 else "BEDTIME_HARD_CUT"
+            target = self.test_started + 120
+            message = "Testabend · keine Sperre und kein Herunterfahren"
+            if elapsed >= 120:
+                self.test_started = None
+        elif state:
+            target = self._target(data, state, now)
+            phase = self._phase(data, state, now, target)
+            suspended = data["runtime"].get("suspendedDate") == plan_date(now)
+            valid = not any(item in warnings for item in ("clock-skew", "source-expired", "legacy-conflict", "morning-deadline-reached")) and not suspended
+            enabled = valid and pref["enforceEnabled"]
+            if suspended:
+                phase = "IDLE"; message = "Heute ohne PC-Stopp"
+            elif warnings:
+                message = {"clock-skew": "Bitte Windows-Uhr und Handy-Uhr abgleichen", "source-expired": "Plan abgelaufen · Handy erneut abgleichen", "legacy-conflict": "Klassisches PC-Stopp-Paket zuerst prüfen", "local-enforcement-off": "PC-Automatik ist ausgeschaltet", "morning-deadline-reached": "Schutzzeit beendet · Morgen am Handy prüfen"}.get(warnings[0], "Plan prüfen")
+            else:
+                message = "Dein nächster Schritt wartet auf dem Handy"
+            if valid and pref["dimEnabled"] and target is not None and phase not in {"MORNING_COMPLETED", "MORNING_PENDING"} and sample.get("locked") is not True:
+                dim = max(0.0, min(pref["dimMax"], pref["dimMax"] * (1 - (target - now) / 1800)))
+            if phase in {"BEDTIME_HARD_CUT", "NIGHT_LOCK", "MORNING_PENDING"} and target is not None and now >= target and enabled:
+                runtime = data["runtime"]
+                grace = runtime.get("graceStartedAt")
+                if grace is None:
+                    self.store.update(lambda item: item["runtime"].update(graceStartedAt=now))
+                    grace = now
+                grace_remaining = max(0, int(pref["graceSeconds"] - (now - grace)))
+                if grace_remaining == 0 and not runtime.get("actedTarget"):
+                    self._act(pref["stopAction"], state, target, now)
+                if pref["strictLock"] and state["lockEnforced"] and sample.get("locked") is False and runtime.get("actedTarget") and now - runtime.get("lastLockAt", 0) >= 10:
+                    try:
+                        self.platform.lock()
+                        self.store.update(lambda item: item["runtime"].update(lastLockAt=now))
+                    except Exception:
+                        message = "Windows konnte die Sperre noch nicht ausführen"
+            elif data["runtime"].get("graceStartedAt") is not None:
+                self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None))
+            if self.audio:
+                self.audio.tick(now, valid and pref["audioDuck"] and phase in {"BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} and sample.get("locked") is not True)
+            if phase == "MORNING_COMPLETED" and state.get("brainDump") and data["runtime"].get("shownBrainDump") != state["sessionId"]:
+                note = state["brainDump"]
+                if self.ui:
+                    self.ui.show_note("Für heute gemerkt", note["text"] + ("\n" + note["nextStep"] if note.get("nextStep") else ""))
+                self.store.update(lambda item: item["runtime"].update(shownBrainDump=state["sessionId"]))
+        if self.audio and (not state or test_mode):
+            self.audio.restore()
+        remaining = max(0, int(target - now)) if target is not None else 0
+        view = {"state": phase, "phase": phase, "title": {"WIND_DOWN_T30": "Zeit für deinen Übergang", "BRAIN_DUMP_T10": "Gedanken für morgen parken", "BEDTIME_HARD_CUT": "Jetzt in Ruhe speichern", "NIGHT_LOCK": "PC-Ruhe", "MORNING_PENDING": "Dein Morgen wartet", "MORNING_COMPLETED": "Morgenroutine abgeschlossen"}.get(phase, "Anker PC-Begleiter"),
+                "message": message, "remainingSeconds": remaining, "graceRemaining": grace_remaining,
+                "dimOpacity": dim, "prefs": pref, "legacyConflict": "legacy-conflict" in warnings,
+                "paired": bool(data["pairs"]), "testMode": test_mode, "warnings": warnings,
+                "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False, "dimMax": .25, "graceSeconds": 60, "stopAction": "lock", **data["localPrefs"]}}
+        self.last_view = view
+        if self.ui:
+            self.ui.render(view)
+        return view
+
+    def _act(self, action: str, state: dict[str, Any], target: float, now: float) -> None:
+        try:
+            if action == "hibernate":
+                self.platform.hibernate()
+            elif action == "shutdown":
+                self.platform.shutdown()
+            else:
+                self.platform.lock()
+            self.store.update(lambda item: item["runtime"].update(actedTarget=target, lastLockAt=now))
+            if action == "shutdown":
+                self.store.event(now, state["date"], "shutdown-started")
+        except Exception:
+            self.store.event(now, state["date"], "shutdown-blocked")
+
+    def _observe_rest(self, sample: dict[str, Any], data: dict[str, Any], now: float) -> None:
+        state = data.get("snapshot")
+        if not state:
+            return
+        runtime = data["runtime"]
+        bed = stamp(state["schedule"]["bedAt"], True)
+        rest = runtime.get("rest")
+        if rest is None and (bed is None or not bed - 7200 <= now <= stamp(state["validUntil"])):
+            return
+        basis = "lock" if sample.get("locked") is True else "idle" if sample.get("idleSeconds", 0) >= 900 else None
+        power = sample.get("powerEvent")
+        if power in {"sleep", "shutdown", "logoff"}:
+            basis = "user-shutdown" if power == "shutdown" else power
+        if basis and rest is None:
+            self.store.update(lambda item: item["runtime"].update(rest={"at": now, "basis": basis, "emitted": False}))
+        elif rest:
+            if not rest["emitted"] and now - rest["at"] >= 1800:
+                self.store.event(rest["at"], plan_date(rest["at"]), "pc-rest", basis=rest["basis"])
+                self.store.update(lambda item: item["runtime"]["rest"].update(emitted=True))
+                rest["emitted"] = True
+            if not basis:
+                if rest["emitted"]:
+                    self.store.event(now, state["date"], "pc-resumed")
+                self.store.update(lambda item: item["runtime"].update(rest=None))
+
+    def system_event(self, name: str) -> None:
+        """Called synchronously by WM_ENDSESSION/power hooks before Windows suspends."""
+        if name not in {"sleep", "shutdown", "logoff"}:
+            return
+        data = self.store.read()
+        self._observe_rest({"powerEvent": name, "locked": None, "idleSeconds": 0}, data, self.clock())
+
+    def extend(self, minutes: int, now: float | None = None) -> None:
+        now = self.clock() if now is None else now
+        data = self.store.read(); state, _, pref = self._effective(data, now)
+        if not state:
+            raise ProtocolError("no-schedule")
+        if pref["strictLock"]:
+            raise ProtocolError("phone-override-required")
+        target = max(now, self._target(data, state, now) or now) + minutes * 60
+        self.store.update(lambda item: item["runtime"].update(extensionAt=target, extensionRevision=state["revision"], graceStartedAt=None, actedTarget=None, nightLatch=None))
+        self.store.event(now, state["date"], "extended", newStopAt=utc(target))
+
+    def pause(self, now: float | None = None) -> None:
+        now = self.clock() if now is None else now
+        data = self.store.read(); _, _, pref = self._effective(data, now)
+        if pref["strictLock"]:
+            raise ProtocolError("phone-override-required")
+        self.store.update(lambda item: item["runtime"].update(suspendedDate=plan_date(now), graceStartedAt=None, actedTarget=None, nightLatch=None))
+        self.store.event(now, plan_date(now), "suspended-today")
+
+    def resume(self) -> None:
+        self.store.update(lambda item: item["runtime"].update(suspendedDate=None, graceStartedAt=None, actedTarget=None))
+        self.store.event(self.clock(), plan_date(self.clock()), "resumed-today")
+
+    def save_note(self, value: str, next_step: str = "", kind: str = "save-point") -> None:
+        text(value); text(next_step, empty=True)
+        now = self.clock()
+        fields = {"text": value}
+        if next_step:
+            fields["nextStep"] = next_step
+        self.store.event(now, plan_date(now), kind, **fields)
+        if kind == "save-point":
+            self.store.update(lambda item: item["notes"].append({"text": value, "nextStep": next_step, "shown": False}))
+
+    def start_test(self) -> None:
+        self.test_started = self.clock()
+        self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None))
+
+    def local_settings(self, prefs: dict[str, Any]) -> None:
+        bools = {"enforceEnabled", "strictLock", "dimEnabled", "audioDuck"}
+        if set(prefs) - bools - {"stopAction", "graceSeconds", "dimMax"} or any(not isinstance(value, bool) for key, value in prefs.items() if key in bools):
+            raise ProtocolError("preference")
+        if "stopAction" in prefs and prefs["stopAction"] not in {"lock", "hibernate", "shutdown"}:
+            raise ProtocolError("preference")
+        if "graceSeconds" in prefs and (isinstance(prefs["graceSeconds"], bool) or not isinstance(prefs["graceSeconds"], int) or not 60 <= prefs["graceSeconds"] <= 600):
+            raise ProtocolError("preference")
+        if "dimMax" in prefs and (isinstance(prefs["dimMax"], bool) or not isinstance(prefs["dimMax"], (int, float)) or not 0 <= prefs["dimMax"] <= .4):
+            raise ProtocolError("preference")
+        latch = self.active_latch(self.store.read(), self.clock())
+        if latch and latch.get("state", {}).get("prefs", {}).get("strictLock") and (prefs.get("enforceEnabled") is False or prefs.get("strictLock") is False):
+            raise ProtocolError("phone-override-required")
+        self.store.update(lambda item: item["localPrefs"].update(prefs))

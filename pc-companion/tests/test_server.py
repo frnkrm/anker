@@ -1,0 +1,174 @@
+import asyncio
+from copy import deepcopy
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+import aiohttp
+from aiohttp import web
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+
+from anker_companion.engine import CompanionEngine
+from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, pair_proof, public_bytes, seal, stamp, utc
+from anker_companion.server import BridgeServer, PairingManager, allowed_address, tls_context
+from anker_companion.storage import AtomicStateStore
+from tests.helpers import Clock, FakePlatform, TestVault, state
+
+
+class ServerTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.clock = Clock()
+        self.platform = FakePlatform()
+        self.vault = TestVault()
+        self.store = AtomicStateStore(Path(self.temp.name) / "state", self.vault)
+        self.engine = CompanionEngine(self.store, self.platform, self.clock)
+        context, self.pin, _ = tls_context(self.store, Path(self.temp.name))
+        self.pairing = PairingManager(self.store, "Fixture PC", self.pin, ["127.0.0.1:47830"], self.clock)
+        self.bridge = BridgeServer(self.store, self.engine, self.pairing, clock=self.clock, allow_loopback=True)
+        self.runner = web.AppRunner(self.bridge.app, access_log=None)
+        await self.runner.setup()
+        listener = web.TCPSite(self.runner, "127.0.0.1", 0, ssl_context=context)
+        await listener.start()
+        port = listener._server.sockets[0].getsockname()[1]
+        self.url = f"https://127.0.0.1:{port}"
+        self.client = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=aiohttp.Fingerprint(bytes.fromhex(self.pin))), trust_env=True)
+        self.addAsyncCleanup(self.client.close)
+        self.addAsyncCleanup(self.runner.cleanup)
+        self.phone = ec.generate_private_key(ec.SECP256R1())
+        self.signing = ec.generate_private_key(ec.SECP256R1())
+        self.send_seq = 0
+        self.receive_seq = 0
+
+    async def pair(self, approve=True):
+        qr = self.pairing.create()["data"]
+        self.identifier = qr["id"]
+        self.incoming, self.outgoing = derive_keys(self.phone, qr["k"], __import__("anker_companion.protocol", fromlist=["unb64"]).unb64(qr["s"]))
+        phone = b64(public_bytes(self.phone.public_key()))
+        signing = b64(public_bytes(self.signing.public_key()))
+        from anker_companion.protocol import unb64
+        request = {"id": self.identifier, "n": "Fixture phone", "k": phone, "signingKey": signing,
+                   "proof": pair_proof(unb64(qr["s"]), self.identifier, phone, signing)}
+        async with self.client.post(self.url + "/v3/pair", json=request) as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual((await response.json())["status"], "pending")
+        if approve:
+            self.pairing.approve(self.identifier)
+        return qr, request
+
+    def envelope(self, payload):
+        self.send_seq += 1
+        return seal(self.identifier, "phone", self.send_seq, payload, self.incoming, self.clock())
+
+    async def exchange(self, payload):
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(payload)) as response:
+            self.assertEqual(response.status, 200, await response.text())
+            envelope, result = open_envelope(await response.json(), self.identifier, "pc", self.receive_seq, self.outgoing)
+            self.receive_seq = envelope["seq"]
+            return result
+
+    async def test_pairing_needs_physical_confirmation_and_expires_once(self):
+        qr, request = await self.pair(approve=False)
+        self.assertFalse(self.store.read()["pairs"])
+        async with self.client.get(self.url + "/v3/pair/" + self.identifier) as response:
+            self.assertEqual((await response.json())["status"], "pending")
+        self.pairing.approve(self.identifier)
+        self.assertIn(self.identifier, self.store.read()["pairs"])
+        async with self.client.post(self.url + "/v3/pair", json=request) as response:
+            self.assertEqual(response.status, 400)
+        self.clock.now += 601
+        self.assertEqual(self.pairing.status(self.identifier)["status"], "expired")
+
+    async def test_real_wss_ack_and_replay_rejection(self):
+        await self.pair()
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as socket:
+            envelope = self.envelope(state(self.clock))
+            await socket.send_json(envelope)
+            message = await socket.receive_json()
+            _, result = open_envelope(message, self.identifier, "pc", 0, self.outgoing)
+            self.assertEqual(result["type"], "ack")
+            self.assertEqual(result["revision"], "rev1")
+            self.assertEqual(self.store.read()["pairs"][self.identifier]["receiveSeq"], 1)
+            await socket.send_json(envelope)
+            message = await socket.receive()
+            self.assertEqual(message.type, aiohttp.WSMsgType.CLOSE)
+            self.assertEqual(socket.close_code, 1008)
+
+    async def test_rest_unknown_fields_tamper_and_browser_origin_never_have_effects(self):
+        await self.pair()
+        bad = state(self.clock); bad["unknown"] = True
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(bad)) as response:
+            self.assertEqual(response.status, 400)
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(state(self.clock)), headers={"Origin": "https://attacker.invalid"}) as response:
+            self.assertEqual(response.status, 403)
+            self.assertNotIn("Access-Control-Allow-Origin", response.headers)
+        envelope = self.envelope(state(self.clock)); envelope["ct"] = "AA"
+        async with self.client.post(self.url + "/v3/link", json=envelope) as response:
+            self.assertEqual(response.status, 400)
+        self.assertIsNone(self.store.read()["snapshot"])
+        self.assertEqual(self.platform.effects, [])
+
+    async def test_wrong_certificate_pin_is_rejected_before_request(self):
+        bad = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=aiohttp.Fingerprint(bytes(32))), trust_env=True)
+        self.addAsyncCleanup(bad.close)
+        with self.assertRaises(aiohttp.ServerFingerprintMismatch):
+            await bad.get(self.url + "/health")
+
+    async def test_outbox_pull_is_at_least_once_and_cursor_never_skips_page(self):
+        await self.pair()
+        for index in range(105):
+            self.store.event(self.clock(), "2026-11-12", "thought", text=f"Fixture {index}")
+        page = await self.exchange({"type": "pull", "after": 0})
+        self.assertEqual(len(page["items"]), 100)
+        self.assertEqual(page["lastSeq"], 100)
+        again = await self.exchange({"type": "pull", "after": 0})
+        self.assertEqual(page["items"], again["items"])
+        last = await self.exchange({"type": "pull", "after": 100})
+        self.assertEqual(len(last["items"]), 5)
+        self.assertEqual(last["lastSeq"], 105)
+
+    async def test_durable_receive_sequence_survives_restart(self):
+        await self.pair()
+        await self.exchange(state(self.clock))
+        restored = AtomicStateStore(self.store.path, self.vault)
+        self.assertEqual(restored.read()["pairs"][self.identifier]["receiveSeq"], 1)
+        self.assertNotIn(b"phoneToPc", self.store.path.read_bytes())
+        self.assertNotIn(b"Fixture phone", self.store.path.read_bytes())
+
+    async def test_emergency_ack_correlates_only_signed_real_grant_and_same_command_is_idempotent(self):
+        await self.pair()
+        value = state(self.clock); value.update(state="NIGHT_LOCK", lockEnforced=True); value["prefs"]["strictLock"] = True
+        await self.exchange(value)
+        token = {"v": 3, "pair": self.identifier, "sessionId": value["sessionId"], "date": value["date"],
+                 "issuedAt": utc(self.clock()), "expiresAt": utc(self.clock() + 300), "until": utc(self.clock() + 900), "nonce": b64(bytes(range(16)))}
+        token["signature"] = b64(self.signing.sign(canonical(token), ec.ECDSA(hashes.SHA256())))
+        command = {"type": "command", "id": "hardware-fixture", "action": "EMERGENCY_EXTENSION", "token": token}
+        accepted = await self.exchange(command)
+        self.assertEqual(accepted["commandId"], "hardware-fixture")
+        self.assertEqual(accepted["emergencyUntil"], token["until"])
+        repeated = await self.exchange(command)
+        self.assertEqual(repeated["emergencyUntil"], accepted["emergencyUntil"])
+        changed = deepcopy(command); changed["token"]["nonce"] = b64(bytes([1]) * 16)
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(changed)) as response:
+            self.assertEqual(response.status, 400)
+
+    async def test_unpair_is_authenticated_and_removes_state_and_secret_keys(self):
+        await self.pair(); await self.exchange(state(self.clock))
+        response = await self.exchange({"type": "command", "id": "unpair-fixture", "action": "unpair"})
+        self.assertEqual(response["commandId"], "unpair-fixture")
+        self.assertEqual(self.store.read()["pairs"], {})
+        self.assertIsNone(self.store.read()["snapshot"])
+
+    async def test_public_address_is_not_local_and_origin_never_gets_cors(self):
+        self.assertFalse(allowed_address("8.8.8.8"))
+        self.assertFalse(allowed_address("127.0.0.1"))
+        self.assertTrue(allowed_address("127.0.0.1", True))
+        self.assertTrue(allowed_address("192.168.1.20"))
+        self.assertTrue(allowed_address("fd00::1"))
+
+
+if __name__ == "__main__":
+    unittest.main()
