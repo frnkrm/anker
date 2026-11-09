@@ -178,6 +178,8 @@ class SmartWakeService : Service(), SensorEventListener {
             // Eigene Sprachausgabe und Diktat dürfen die Messung nicht stören oder selbst auslösen.
             AlarmTonePreview.stopForPriorityAudio()
             LocalVoiceController.silenceForAlarm()
+            RoutinePaceKeeperService.stopForPriorityAudio(this)
+            SleepAudioService.stopForPriorityAudio(this)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) throw SecurityException("Mikrofonfreigabe fehlt")
             val sm = getSystemService(SensorManager::class.java)
             val sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) ?: throw IllegalStateException("Bewegungssensor fehlt")

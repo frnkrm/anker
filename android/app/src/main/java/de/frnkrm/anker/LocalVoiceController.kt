@@ -23,6 +23,7 @@ import java.util.Locale
 class LocalVoiceController(private val context: Context) {
     companion object {
         private var current: WeakReference<LocalVoiceController>? = null
+        fun hasActiveVoice(): Boolean = current?.get()?.let { it.recognizer != null || it.speakingUtterance != null || it.pendingSpeech != null } == true
         fun silenceForAlarm() { current?.get()?.let { voice ->
             if (Looper.myLooper() == voice.handler.looper) { voice.stopDictation(); voice.stopSpeaking() }
             else voice.handler.post { voice.stopDictation(); voice.stopSpeaking() }

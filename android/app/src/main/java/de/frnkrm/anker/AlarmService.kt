@@ -98,6 +98,7 @@ class AlarmService : Service() {
     private val audioLease = AudioPlaybackLease()
     private var activeKind: AlarmKind? = null
     private var activeStartedAt = 0L
+    private var fadeTick: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -259,7 +260,8 @@ class AlarmService : Service() {
                     AudioManager.AUDIOFOCUS_GAIN -> if (audioLease.gain(id)) {
                         val state = AlarmController.state(this)
                         if (activeKind == kind && state.ringing == kind && state.ringStartedAt == startedAt && !AlarmMachine.ringExpired(state, System.currentTimeMillis())) {
-                            AnkerPrefs.setAudioOk(this, playFirstAvailable(volume))
+                            AnkerPrefs.setAudioOk(this, playFirstAvailable(playerVolume(kind, startedAt, volume), volume))
+                            schedulePreWakeFade(kind, startedAt, volume)
                         } else {
                             audioLease.cancel()
                         }
@@ -278,7 +280,8 @@ class AlarmService : Service() {
             getSystemService(AudioManager::class.java)?.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
         } catch (_: Exception) { false }
         // Weder abgelehnter noch verzögerter Fokus bestätigt eine laufende Tonausgabe.
-        AnkerPrefs.setAudioOk(this, audioLease.requested(id, granted) && playFirstAvailable(volume))
+        AnkerPrefs.setAudioOk(this, audioLease.requested(id, granted) && playFirstAvailable(playerVolume(kind, startedAt, volume), volume))
+        if (granted) schedulePreWakeFade(kind, startedAt, volume)
         if (!granted) {
             try { getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(request) } catch (_: Exception) { }
             focus = null
@@ -286,7 +289,23 @@ class AlarmService : Service() {
     }
 
     /** Wecker-Ton, sonst Benachrichtigungs- oder Klingelton, zuletzt ein erzeugter Ton. */
-    private fun playFirstAvailable(volume: Float): Boolean {
+    private fun playerVolume(kind: AlarmKind, startedAt: Long, maximum: Float): Float =
+        if (kind == AlarmKind.PRE_WAKE && AnkerPrefs.config(this)?.preWakeFadeIn == true)
+            PreWakeFadeModel.volume(System.currentTimeMillis() - startedAt, maximum) else maximum
+
+    private fun schedulePreWakeFade(kind: AlarmKind, startedAt: Long, maximum: Float) {
+        fadeTick?.let { handler.removeCallbacks(it) }; fadeTick = null
+        if (kind != AlarmKind.PRE_WAKE || AnkerPrefs.config(this)?.preWakeFadeIn != true || player == null) return
+        val tick = object : Runnable { override fun run() {
+            if (activeKind != kind || activeStartedAt != startedAt || player == null) return
+            val gain = playerVolume(kind, startedAt, maximum)
+            try { player?.setVolume(gain, gain) } catch (_: Exception) { return }
+            if (gain < maximum) handler.postDelayed(this, 1_000)
+        } }
+        fadeTick = tick; handler.post(tick)
+    }
+
+    private fun playFirstAvailable(volume: Float, fallbackVolume: Float = volume): Boolean {
         val types = intArrayOf(RingtoneManager.TYPE_ALARM, RingtoneManager.TYPE_NOTIFICATION, RingtoneManager.TYPE_RINGTONE)
         for (t in types) {
             val uri = RingtoneManager.getDefaultUri(t) ?: continue
@@ -308,7 +327,8 @@ class AlarmService : Service() {
             }
         }
         return try {
-            val fallback = ToneGenerator(AudioManager.STREAM_ALARM, (volume * 100).toInt())
+            // ToneGenerator has no gain ramp. A gentle audible fallback is safer than a silent failed fade.
+            val fallback = ToneGenerator(AudioManager.STREAM_ALARM, (fallbackVolume * 100).toInt())
             tone = fallback
             fallback.startTone(ToneGenerator.TONE_CDMA_HIGH_L)
         } catch (_: Exception) {
@@ -318,6 +338,7 @@ class AlarmService : Service() {
 
     /** Fokusverlust stoppt nur den Ton; Alarmzustand, Vibration und Sicherheitslimit bleiben aktiv. */
     private fun stopPlayback() {
+        fadeTick?.let { handler.removeCallbacks(it) }; fadeTick = null
         player?.run {
             try {
                 stop()
