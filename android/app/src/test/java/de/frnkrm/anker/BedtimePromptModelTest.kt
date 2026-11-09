@@ -23,6 +23,8 @@ class BedtimePromptModelTest {
         assertEquals(start + 15 * 60_000, s.dueElapsed)
         assertEquals(wall + 15 * 60_000, s.dueAt)
         assertEquals(s, due(s, at = s.dueElapsed - 1))
+        assertTrue(s.wakeup)
+        assertTrue(s.allowWhileIdle)
     }
     @Test fun zeroMinutesIsAConsciousImmediateOneShot() {
         val s = waiting(0)
@@ -112,5 +114,65 @@ class BedtimePromptModelTest {
             assertEquals(reason, ended.reason)
             assertEquals(ended, due(ended))
         }
+    }
+
+    @Test fun visiblyOnButNoninteractiveDisplayStillAllowsTheDueCheckWithoutAssumingSamsungProtection() {
+        val s = waiting()
+        val shown = BedtimePromptModel.due(s, s.sessionId, s.dueElapsed, 7, false, true, true, false, 2)
+        assertEquals(BedtimePromptPhase.SHOWN, shown.phase)
+        assertEquals(BedtimePromptForeground.NOT_REQUESTED, shown.foreground)
+        assertEquals(0, shown.foregroundAttempts)
+    }
+
+    @Test fun offDozeAodAndSuspendedDisplaysNeverShowEvenWithStaleInteractiveTrue() {
+        val s = waiting()
+        for (display in listOf(1, 3, 4, 5, 6)) for (interactive in listOf(false, true)) {
+            val skipped = BedtimePromptModel.due(s, s.sessionId, s.dueElapsed, 7, interactive, true, true, false, display)
+            assertEquals("screen-off", skipped.reason)
+            assertEquals(BedtimePromptPhase.SKIPPED, skipped.phase)
+            assertEquals(skipped, BedtimePromptModel.due(skipped, s.sessionId, s.dueElapsed + 1, 7, true, true, true, false, 2))
+        }
+    }
+
+    @Test fun absentDisplayEvidenceUsesInteractiveButNeverInventsAnOnDisplay() {
+        for (display in listOf(null, 0)) {
+            assertTrue(BedtimePromptModel.screenVisible(true, display))
+            assertFalse(BedtimePromptModel.screenVisible(false, display))
+        }
+        assertEquals("locked", BedtimePromptModel.due(waiting(), "night-a", waiting().dueElapsed, 7, false, false, true, false, 2).reason)
+    }
+
+    @Test fun requestingAnActivityDoesNotConfirmItsForegroundAndAnUnobservedStartTimesOut() {
+        val shown = due(waiting())
+        val requested = BedtimePromptModel.requestForeground(shown, shown.sessionId, shown.dueElapsed + 200, true)
+        assertEquals(BedtimePromptForeground.REQUESTED, requested.foreground)
+        assertEquals(1, requested.foregroundAttempts)
+        assertEquals(requested, BedtimePromptModel.reconcile(requested, requested.foregroundRequestedElapsed + BedtimePromptModel.FOREGROUND_CONFIRMATION_MS - 1, 7))
+        val unconfirmed = BedtimePromptModel.reconcile(requested, requested.foregroundRequestedElapsed + BedtimePromptModel.FOREGROUND_CONFIRMATION_MS, 7)
+        assertEquals(BedtimePromptForeground.UNCONFIRMED, unconfirmed.foreground)
+        assertEquals(BedtimePromptPhase.SHOWN, unconfirmed.phase) // explicit overlay fallback remains available
+    }
+
+    @Test fun automaticLaunchesAreBoundedButAnExplicitUserRetryCanStillOpenTheSameLiveHint() {
+        var current = due(waiting())
+        repeat(2) { index -> current = BedtimePromptModel.requestForeground(current, current.sessionId, current.dueElapsed + 200 + index * 1000, true) }
+        assertEquals(2, current.foregroundAttempts)
+        assertEquals(current, BedtimePromptModel.requestForeground(current, current.sessionId, current.dueElapsed + 2400, true))
+        val manual = BedtimePromptModel.requestForeground(current, current.sessionId, current.dueElapsed + 2500, false)
+        assertEquals(3, manual.foregroundAttempts)
+        val confirmed = BedtimePromptModel.foregroundConfirmed(manual, manual.sessionId, manual.dueElapsed + 2600)
+        assertEquals(BedtimePromptForeground.CONFIRMED, confirmed.foreground)
+        assertEquals(confirmed, BedtimePromptModel.requestForeground(confirmed, confirmed.sessionId, confirmed.dueElapsed + 2700, true))
+    }
+
+    @Test fun oldSessionsExpiredHintsAndAcknowledgementsCannotAcquireNewForegroundFacts() {
+        val shown = due(waiting())
+        assertEquals(shown, BedtimePromptModel.requestForeground(shown, "old-night", shown.dueElapsed, false))
+        assertEquals(shown, BedtimePromptModel.foregroundConfirmed(shown, "old-night", shown.dueElapsed))
+        assertEquals(shown, BedtimePromptModel.foregroundConfirmed(shown, shown.sessionId, shown.visibleUntilElapsed))
+        val stopped = BedtimePromptModel.stop(shown)
+        assertEquals(stopped, BedtimePromptModel.requestForeground(stopped, stopped.sessionId, shown.dueElapsed + 1, false))
+        assertEquals(stopped, BedtimePromptModel.foregroundConfirmed(stopped, stopped.sessionId, shown.dueElapsed + 1))
+        assertEquals(stopped, BedtimePromptModel.foregroundFailed(stopped, stopped.sessionId))
     }
 }

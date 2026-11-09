@@ -83,6 +83,9 @@ export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, 
   }
   const waiting = state?.phase === 'waiting'
   const shown = state?.phase === 'shown'
+  const foregroundMessage = state?.foregroundStatus === 'unconfirmed' || state?.foregroundStatus === 'failed'
+    ? 'Android hat den Wechsel zu Anker nicht bestätigt. Öffne Anker bei Bedarf selbst. Eine Spiele- oder Systemeinblendung kann darüber liegen; den Spiel-Touchschutz löst du wie gewohnt am Handy.'
+    : state?.foregroundStatus === 'requested' ? 'Das Öffnen von Anker wurde angefordert. Eine Rückmeldung zum Vordergrund steht noch aus.' : undefined
   const finished = !!state?.sessionId && (state.phase === 'skipped' || state.phase === 'error')
   const validDelay = Number.isInteger(delayMinutes) && delayMinutes >= 0 && delayMinutes <= 60
   const acknowledge = () => {
@@ -111,6 +114,7 @@ export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, 
     {enabled && !supported && <p className="text-sm text-muted">Im Browser wird kein Schlafhinweis gestartet.</p>}
     {enabled && waiting && <p role="status" className="text-sm text-muted">Stummer Schlafhinweis vorgemerkt{state?.dueAt ? ` · ${time(state.dueAt)}` : ''}.</p>}
     {shown && <p role="status" className="text-sm text-muted">{BEDTIME_PROMPT_TEXT}</p>}
+    {shown && foregroundMessage && <p role="status" className="text-sm text-muted">{foregroundMessage}</p>}
     {error && <p role="alert" className="text-sm text-muted">{error}</p>}
   </>
 
@@ -119,6 +123,7 @@ export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, 
     {!enabled && !waiting && !shown && !finished ? <p className="text-sm text-muted">Der Schlafhinweis ist aus. Du kannst ihn unter <Link className="underline" to="/einstellungen/schlaf">Schlaf & Anker</Link> einschalten.</p> : !supported ? <p className="text-sm text-muted">Der Hinweis über anderen Apps ist nur in der Android-App verfügbar. Im Browser wird kein Schlafhinweis gestartet.</p> : <>
       {shown ? <div role="status" className="space-y-3">
         <p className="break-words">{BEDTIME_PROMPT_TEXT}</p>
+        {foregroundMessage && <p className="text-sm text-muted">{foregroundMessage}</p>}
         <Button disabled={busy || !state.sessionId} className="w-full" onClick={acknowledge}>Hinweis beenden</Button>
       </div> : waiting ? <>
         <p role="status" className="text-sm text-muted">Schlafhinweis für diesen Start vorgemerkt.{state.dueAt !== undefined && Number.isFinite(state.dueAt) ? ` Vorgesehener Zeitpunkt: ${time(state.dueAt)}.${state.dueAt <= nowMs ? ' Der vorgesehene Zeitpunkt ist erreicht.' : ''}` : ''}</p>

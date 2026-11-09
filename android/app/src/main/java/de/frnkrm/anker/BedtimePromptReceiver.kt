@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
-/** Eigene non-WAKEUP-Sitzung, niemals ein Anker-Wecker. */
+/** Eigene kurze CPU-Zustandsprüfung; weder Anzeige einschalten noch einen Anker-Wecker starten. */
 class BedtimePromptReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         try { when (intent.action) {

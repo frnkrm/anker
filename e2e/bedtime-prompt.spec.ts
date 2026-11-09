@@ -280,3 +280,29 @@ test('Web startet keine native Messung und beschreibt die Grenze nur bei aktivie
   await expect(page.getByText('Im Browser wird kein Schlafhinweis gestartet.', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Android-Freigabe einrichten', exact: true })).toHaveCount(0)
 })
+
+test('Nicht bestätigter Vordergrundwechsel bleibt ehrlich und beendet keine Handlung bei großer Schrift', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 })
+  await nativeBedtime(page, { granted: true, waiting: true })
+  await page.evaluate(() => { document.documentElement.style.fontSize = '160%' })
+  const before = await stored(page)
+  await page.evaluate(() => {
+    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
+    Object.assign(value.state, { foregroundStatus: 'unconfirmed', foregroundAttempts: 2, displayState: 2,
+      screenInteractive: false, overlayAttached: true, wakeup: true, allowWhileIdle: true })
+    value.phase('shown')
+  })
+  await expect(page.getByText(/Android hat den Wechsel zu Anker nicht bestätigt/)).toBeVisible()
+  expect((await probe(page)).calls.filter(call => call.method === 'ackBedtimePrompt')).toHaveLength(0)
+  expect(await starts(page)).toEqual([])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+  await page.evaluate(() => {
+    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
+    value.state.foregroundStatus = 'confirmed'
+    value.phase('shown')
+  })
+  await expect(page.getByText(/Android hat den Wechsel zu Anker nicht bestätigt/)).toHaveCount(0)
+  await expect(page.getByText(TEXT, { exact: true })).toBeVisible()
+  expect((await probe(page)).calls.filter(call => call.method === 'ackBedtimePrompt')).toHaveLength(0)
+  expect(await stored(page)).toEqual(before)
+})
