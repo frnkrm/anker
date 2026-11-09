@@ -75,4 +75,18 @@ class RoutinePaceKeeperModelTest {
         assertFalse(RoutinePaceKeeperModel.tick(lateResume, 160_001).pulse)
         assertTrue(RoutinePaceKeeperModel.tick(lateResume, 190_000).pulse)
     }
+
+    @Test fun quietHoursAcrossMidnightSuppressAndConsumeCuesWithoutCatchup() {
+        val spec = spec().copy(quietStart = 23 * 60, quietEnd = 7 * 60)
+        assertTrue(RoutinePaceKeeperModel.quietAt(spec, 0))
+        assertTrue(RoutinePaceKeeperModel.quietAt(spec, 23 * 60))
+        assertFalse(RoutinePaceKeeperModel.quietAt(spec, 7 * 60))
+        assertFalse(RoutinePaceKeeperModel.quietAt(spec.copy(quietStart = 0, quietEnd = 0), 0))
+        val initial = RoutinePaceKeeperModel.sync(null, spec, "running", 100_000)
+        val silent = RoutinePaceKeeperModel.tick(initial, 160_000, quiet = true)
+        assertFalse(silent.pulse); assertNull(silent.speech)
+        val resumed = RoutinePaceKeeperModel.tick(silent.state, 160_001)
+        assertFalse(resumed.pulse); assertNull(resumed.speech)
+        assertTrue(RoutinePaceKeeperModel.tick(resumed.state, 190_000).pulse)
+    }
 }

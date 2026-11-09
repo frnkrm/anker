@@ -48,12 +48,18 @@ class RoutinePaceKeeperService : Service() {
         }
         private fun interval(o: JSONObject): Int {
             val value = number(o, "intervalSeconds", 60)
-            require(value in 15L..300L) { "Ungültiger Begleitungsabstand." }
+            require(value in 15L..600L) { "Ungültiger Begleitungsabstand." }
+            return value.toInt()
+        }
+        private fun quietMinute(o: JSONObject, key: String): Int {
+            val value = number(o, key, 0)
+            require(value in 0L..1439L) { "Ungültige Ruhezeit." }
             return value.toInt()
         }
         private fun spec(o: JSONObject) = RoutinePaceSpec(o.getString("sessionId"), o.getString("stepId"), VoiceModel.transcript(listOf(o.optString("title", "")))?.take(240) ?: "",
             number(o, "durationMs"), number(o, "deadlineAt", 0), interval(o),
-            o.optBoolean("hapticsEnabled", false), o.optBoolean("thresholds", true), o.optBoolean("speakStep", false), o.optString("strength", "gentle"))
+            o.optBoolean("hapticsEnabled", false), o.optBoolean("thresholds", true), o.optBoolean("speakStep", false), o.optString("strength", "gentle"),
+            quietMinute(o, "quietStart"), quietMinute(o, "quietEnd"))
         private fun decode(o: JSONObject): RoutinePaceState {
             val passed = o.optJSONArray("passedThresholds") ?: JSONArray()
             return RoutinePaceState(spec(o), o.optString("phase", "stopped"), o.optLong("lastBucket"),
@@ -63,6 +69,7 @@ class RoutinePaceKeeperService : Service() {
             put("requestId", request); put("sessionId", s.spec.sessionId); put("stepId", s.spec.stepId); put("title", s.spec.title)
             put("durationMs", s.spec.durationMs); put("deadlineAt", s.spec.deadlineAt); put("intervalSeconds", s.spec.intervalSeconds)
             put("hapticsEnabled", s.spec.hapticsEnabled); put("thresholds", s.spec.thresholds); put("speakStep", s.spec.speakStep); put("strength", s.spec.strength)
+            put("quietStart", s.spec.quietStart); put("quietEnd", s.spec.quietEnd)
             put("phase", s.phase); put("lastBucket", s.lastBucket); put("announced", s.announced); put("passedThresholds", JSONArray(s.passedThresholds.sorted()))
             put("updatedAt", System.currentTimeMillis())
         }
@@ -146,7 +153,9 @@ class RoutinePaceKeeperService : Service() {
         if (ending) return
         if (SystemClock.elapsedRealtime() >= expiresElapsed) { finish("expired", "timer-limit"); return }
         if (priorityAudio(this@RoutinePaceKeeperService)) { finish("interrupted", "priority-audio"); return }
-        val result = RoutinePaceKeeperModel.tick(before, System.currentTimeMillis())
+        val quiet = isQuiet(before.spec)
+        if (quiet && (pendingIntro != null || utteranceId != null)) { stopSpeech(); speechStatus("blocked") }
+        val result = RoutinePaceKeeperModel.tick(before, System.currentTimeMillis(), quiet)
         current = result.state
         try { if (result.state != before) save(this@RoutinePaceKeeperService, encode(result.state, requestId).put("speechStatus", read(this@RoutinePaceKeeperService)?.optString("speechStatus", "idle") ?: "idle")) }
         catch (_: Exception) { finish("error", "storage-failed"); return }
@@ -201,13 +210,17 @@ class RoutinePaceKeeperService : Service() {
     }
 
     private fun speechStatus(value: String) { try { read(this)?.takeIf { it.optString("requestId") == requestId }?.let { save(this, it.put("speechStatus", value)) } } catch (_: Exception) { } }
+    private fun isQuiet(spec: RoutinePaceSpec): Boolean {
+        val local = java.time.Instant.ofEpochMilli(System.currentTimeMillis()).atZone(AlarmPlanner.ZONE)
+        return RoutinePaceKeeperModel.quietAt(spec, local.hour * 60 + local.minute)
+    }
     private fun stopSpeech() {
         speechLease.cancel(); pendingIntro = null; utteranceId = null
         try { tts?.stop() } catch (_: Exception) { }
         speechFocus?.let { try { getSystemService(AudioManager::class.java)?.abandonAudioFocusRequest(it) } catch (_: Exception) { } }; speechFocus = null
     }
     private fun speak(text: String) {
-        if (ending || priorityAudio(this) || LocalVoiceController.hasActiveVoice()) { speechStatus("blocked"); return }
+        if (ending || priorityAudio(this) || LocalVoiceController.hasActiveVoice() || current?.spec?.let { isQuiet(it) } == true) { speechStatus("blocked"); return }
         stopSpeech(); pendingIntro = text
         if (ttsReady) { speakPending(); return }
         if (ttsFailed) { pendingIntro = null; speechStatus("unavailable"); return }
@@ -228,7 +241,7 @@ class RoutinePaceKeeperService : Service() {
     private fun speakPending() {
         val text = pendingIntro ?: return
         pendingIntro = null
-        if (ending || priorityAudio(this) || LocalVoiceController.hasActiveVoice() || current?.phase != "running") { speechStatus("blocked"); return }
+        if (ending || priorityAudio(this) || LocalVoiceController.hasActiveVoice() || current?.phase != "running" || current?.spec?.let { isQuiet(it) } == true) { speechStatus("blocked"); return }
         val engine = tts ?: return
         val voice = engine.voices?.filter { !it.isNetworkConnectionRequired && it.locale.language == Locale.GERMAN.language }?.minByOrNull { it.name }
         if (voice == null) { speechStatus("unavailable"); return }

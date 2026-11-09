@@ -12,6 +12,8 @@ data class RoutinePaceSpec(
     val thresholds: Boolean = true,
     val speakStep: Boolean = false,
     val strength: String = "gentle",
+    val quietStart: Int = 0,
+    val quietEnd: Int = 0,
 )
 
 data class RoutinePaceState(
@@ -33,9 +35,14 @@ object RoutinePaceKeeperModel {
         require(spec.stepId.isNotBlank() && spec.stepId.length <= 128)
         require(spec.title.length <= 240 && spec.title.none { it < ' ' && it != '\n' })
         require(spec.durationMs in 1_000..MAX_DURATION_MS)
-        require(spec.deadlineAt >= 0 && spec.intervalSeconds in 15..300)
+        require(spec.deadlineAt >= 0 && spec.intervalSeconds in 15..600)
         require(spec.strength == "gentle" || spec.strength == "strong")
+        require(spec.quietStart in 0..1439 && spec.quietEnd in 0..1439)
     }
+
+    fun quietAt(spec: RoutinePaceSpec, minute: Int): Boolean =
+        if (spec.quietStart <= spec.quietEnd) minute >= spec.quietStart && minute < spec.quietEnd
+        else minute >= spec.quietStart || minute < spec.quietEnd
 
     fun remaining(spec: RoutinePaceSpec, now: Long): Long =
         (spec.deadlineAt - now).coerceIn(0, spec.durationMs)
@@ -60,19 +67,19 @@ object RoutinePaceKeeperModel {
         return RoutinePaceState(spec, phase, elapsed / (spec.intervalSeconds * 1000L), passedThresholds = passed)
     }
 
-    fun tick(s: RoutinePaceState, now: Long): RoutinePaceTick {
+    fun tick(s: RoutinePaceState, now: Long, quiet: Boolean = false): RoutinePaceTick {
         if (s.phase != "running") return RoutinePaceTick(s)
         val left = remaining(s.spec, now)
         if (left <= 0) return RoutinePaceTick(s.copy(phase = "expired"))
         val elapsed = s.spec.durationMs - left
         val bucket = elapsed / (s.spec.intervalSeconds * 1000L)
         val crossed = CHECKPOINTS.filter { it !in s.passedThresholds && left * 100 <= s.spec.durationMs * it }.toSet()
-        val pulse = s.spec.hapticsEnabled && (bucket > s.lastBucket || (s.spec.thresholds && crossed.isNotEmpty()))
-        val speech = if (s.spec.speakStep && !s.announced) {
+        val pulse = !quiet && s.spec.hapticsEnabled && (bucket > s.lastBucket || (s.spec.thresholds && crossed.isNotEmpty()))
+        val speech = if (!quiet && s.spec.speakStep && !s.announced) {
             val minutes = (left + 59_999) / 60_000
             "${s.spec.title.ifBlank { "Dein nächster Schritt" }}. $minutes ${if (minutes == 1L) "Minute" else "Minuten"}."
         } else null
-        return RoutinePaceTick(s.copy(lastBucket = maxOf(s.lastBucket, bucket), announced = s.announced || speech != null,
+        return RoutinePaceTick(s.copy(lastBucket = maxOf(s.lastBucket, bucket), announced = s.announced || quiet || speech != null,
             passedThresholds = s.passedThresholds + crossed), pulse, speech)
     }
 }
