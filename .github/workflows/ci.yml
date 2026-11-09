@@ -16,7 +16,17 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - name: Logiktests mit überprüfbarer Zusammenfassung
+        run: |
+          npm test -- --reporter=default --reporter=json --outputFile=vitest-results.json
+          python3 - <<'PY'
+          import json, pathlib
+          result = json.loads(pathlib.Path('vitest-results.json').read_text())
+          passed, failed, skipped = (result[key] for key in ['numPassedTests', 'numFailedTests', 'numPendingTests'])
+          if result.get('success') is not True or not isinstance(passed, int) or passed <= 0 or failed != 0 or skipped != 0:
+              raise SystemExit('Die vollständige Logikprüfung ist nicht grün.')
+          print(f'::notice title=Anker Vitest::{passed} passed; {failed} failed; {skipped} skipped')
+          PY
       - name: PC-Stopp mit PowerShell prüfen
         run: npm run test:pc
       - name: Android-Updateprüfung ohne echte Schlüssel testen

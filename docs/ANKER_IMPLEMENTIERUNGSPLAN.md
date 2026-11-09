@@ -1,5 +1,15 @@
 # Anker 2.0: Implementierungsplan
 
+## v7-Updateauftrag – vollständiges Paket bereitstellen (09.11.2026)
+
+Der Nutzer hat die durchgehende Fertigstellung und Updatebereitstellung jetzt ausdrücklich beauftragt. Ausgang ist der saubere lokale Abschluss `c996171`. Sicherung: `/workspace/.cache/anker/v7-followup/pre-update-c996171.tar.gz`, SHA256 `a516a9ee887843d07e8d17b8d93d74218fe14b71cde2c7cf2da297c78294ec13`. Der vorherige Abschnitt „keine neue APK“ dokumentiert den früheren, engeren Auftrag und blockiert diese neue Freigabe nicht.
+
+**Umsetzung läuft:** AB-05 (Abendlicht) und AB-06 (Handy-PC-Hinweise nur bei passender Bestätigung entlasten) ergänzen den vorhandenen Erinnerungsweg. MO-03 ergänzt freiwillige lokale Health-Connect-Schlafvorschläge; keine automatische Übernahme, keine Synchronisierung, eigene Einträge geschützt. Das Windows-Quellpaket bekommt einen geprüften Installations-/Start-/Updateweg und eine deterministische Paketprüfung. Android wird **1.5.0-rc.1 / Code15**, Name **Anker**, gleiche Paketkennung und vorhandene B4-Signatur. Nutzerdaten, Schlüssel und alte Geräteberichte bleiben erhalten. Umsetzung weiterhin in getrennten Arbeitsbäumen, Integration nur durch Root.
+
+**Liefer-Gates:** integrierte Logik-/Browser-/Python-/PowerShell-/Updateprüfung, frische native Tests und beide Compile-/Manifestvarianten, Release-Lint und unsignierte APK mit exakt denselben Webdateien. Anschließend exakte erfolgreiche GitHub-CI, bestehende Signatur prüfen, nur die freigegebene APK signieren und getrennte APK-/PC-Downloadpakete vollständig nachlesen. Eine erfolgreiche Softwareprüfung setzt keine Geräte-Häkchen.
+
+**Unverändert bedingte Extras:** PC-14 Relay setzt ausdrücklich eine eingerichtete Supabase-Instanz voraus; diese liegt nicht vor und wird durch einen APK-Auftrag nicht kostenpflichtig eingerichtet. MO-05 verlangt ausdrücklich nur eine Machbarkeitsnotiz, keine neue Licht-Hardware. Der Windows-Begleiter erhält einen vollständigen manuellen Updateweg; ein automatischer Download-/Ausführungskanal und eine kostenpflichtige Windows-Codesignatur werden nicht still aktiviert.
+
 ## Anker v7 – PC-Begleiter, Abend und Morgen (09.11.2026)
 
 ### Erneuter Auftragsabgleich und gezielte Folgekorrekturen
