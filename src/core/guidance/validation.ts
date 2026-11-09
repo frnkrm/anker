@@ -45,6 +45,10 @@ export function guidanceLocal(value: unknown): GuidanceLocal {
 export function rememberGuidanceReceipt(local: GuidanceLocal, receipt: string): void {
   if (!identifier(receipt)) throw new Error('Die Bestätigung ist ungültig.')
   local.receipts = [...new Set([...local.receipts, receipt])].slice(-256)
+  pruneGuidanceDays(local)
+}
+
+export function pruneGuidanceDays(local: GuidanceLocal): void {
   const dates = Object.keys(local.days).sort().slice(-64)
   local.days = Object.fromEntries(dates.map(date => [date, local.days[date]!]))
 }

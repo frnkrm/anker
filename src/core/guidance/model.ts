@@ -46,7 +46,7 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   const completedAt = Math.max(0, ...Object.entries(facts).filter(([date]) => !nightEntry || date > nightEntry[0]).map(([, value]) => value.morningCompletedAt ?? 0))
   const completeAfterNight = complete && !!nightEntry && plan.date > nightEntry[0]
   const unreleased = !!night?.nightLockedAt && night.nightLockedAt > completedAt && !completeAfterNight
-  const emergency = Math.max(0, ...Object.values(facts).map(value => value.emergencyUntil ?? 0)) > nowMs
+  const emergency = (night?.emergencyUntil ?? 0) > nowMs
   const lockEnforced = preferences.enabled && preferences.pcLock && unreleased && !emergency
   const session = local.focus
   const target = session?.target
@@ -56,11 +56,12 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   const morningEnd = plan.blocks.find(block => block.routine === 'morning')?.end ?? plan.wake
   const morningVisibleUntil = zonedToUtc(plan.date, Math.max(plan.wake + 120, morningEnd + 30))
   const currentMorning = (activated || active) && (!nightEntry || plan.date > nightEntry[0])
+  const recentlyCompleted = day?.morningCompletedAt !== undefined && day.morningCompletedAt <= nowMs && nowMs - day.morningCompletedAt < 2 * 3600_000
+  const morningVisible = nowMs < morningVisibleUntil || recentlyCompleted
   const autoZombieDue = preferences.enabled && preferences.autoZombie && activated && !complete && !day?.firstInteractionAt
     && !log?.override.zombie && nowMs - day.morningActivatedAt! >= preferences.autoZombieAfterSeconds * 1000
-  const brainDumpIds = complete ? [...new Set([
+  const brainDumpIds = complete && currentMorning && morningVisible ? [...new Set([
     ...(facts[addDays(plan.date, -1)]?.brainDumpShownAt ? [] : facts[addDays(plan.date, -1)]?.brainDumpIds ?? []),
-    ...(day?.brainDumpShownAt ? [] : day?.brainDumpIds ?? []),
   ])].filter(id => local.tomorrowSteps.some(step => step.id === id && step.doneAt === undefined)) : []
   const effectiveComplete = complete && (!nightEntry || plan.date > nightEntry[0])
   const view: GuidanceView = { phase: 'DAY_ACTIVE', date: plan.date, lockEnforced, autoZombieDue, morningCompleted: effectiveComplete, brainDumpIds }
@@ -68,7 +69,7 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   if (open[0]) view.routineStep = { id: open[0].id, index: all.findIndex(step => step.id === open[0]!.id), total: all.length }
   if (alarm?.ringing) return { ...view, phase: 'ALARM_RINGING' }
   if (!preferences.enabled) return log?.override.zombie && active ? { ...view, phase: 'ZOMBIE_MODE' } : view
-  if (complete && currentMorning && nowMs < morningVisibleUntil) return { ...view, phase: 'MORNING_COMPLETED' }
+  if (complete && currentMorning && morningVisible) return { ...view, phase: 'MORNING_COMPLETED' }
   if (currentMorning && !complete) return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }
   if (!complete && nowMs >= zonedToUtc(plan.date, plan.wake) && (nowMs < morningVisibleUntil || unreleased && !!nightEntry && plan.date > nightEntry[0])) {
     return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }

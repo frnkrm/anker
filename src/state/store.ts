@@ -50,6 +50,7 @@ import { assertWorkChanges, endBreak, startBreak, startSession, stopSession } fr
 import { validCommitment, validPlace } from '../core/travel'
 import { migrateWeatherState } from '../core/weatherProfile'
 import { key } from '../data/merge'
+import { genuineMorningCompleted, guidanceLocal, guidancePlanDate, guidancePreferences, guidanceTimestamp, pruneGuidanceDays, rememberGuidanceReceipt, validGuidanceDate, validGuidanceLocal, validIfThenPlan, validMorningAlarmHandoff, type GuidanceDay, type GuidanceLocal, type IfThenPlan, type MorningAlarmHandoff } from '../core/guidance'
 import { getRepository, type Rec, type Repository } from '../data'
 import type { Collection, RepositoryWrite } from '../data/types'
 
@@ -89,6 +90,15 @@ interface AppState {
   saveSettings(fn: (s: Settings) => Settings): Promise<void>
   updateDay(date: DateStr, fn: (log: DayLog) => DayLog): Promise<void>
   acknowledgePlanConflict(date: DateStr, conflictId: string): Promise<void>
+  activateMorningFromAlarm(handoff: MorningAlarmHandoff): Promise<boolean>
+  setZombie(date: DateStr, enabled: boolean, source?: 'manual' | 'automatic'): Promise<void>
+  recordGuidanceInteraction(date: DateStr, at?: number): Promise<void>
+  verifyBedtime(date: DateStr, receiptId: string, at?: number): Promise<void>
+  extendGuidanceEmergency(date: DateStr, receiptId: string, until: number, at?: number): Promise<void>
+  saveBrainDump(date: DateStr, text: string, nextStep?: string): Promise<string | undefined>
+  markBrainDumpShown(date: DateStr): Promise<void>
+  saveIfThenPlan(plan: IfThenPlan): Promise<void>
+  chooseMorningLight(accept: boolean): Promise<void>
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   applyReminderAction(action: ReminderAction): Promise<ReminderApplyResult>
@@ -185,6 +195,28 @@ function atomic<T>(operation: () => Promise<T>): Promise<T> {
   pendingAtomicAction = barrier
   void barrier.then(() => { if (pendingAtomicAction === barrier) pendingAtomicAction = undefined })
   return task
+}
+
+function validateGuidanceTime(date: DateStr, at: number): void {
+  if (!validGuidanceDate(date) || !guidanceTimestamp(at) || at > Date.now() + 5000 || Date.now() - at > 24 * 3600_000) throw new Error('Die Bestätigung ist nicht mehr aktuell.')
+}
+
+function editGuidance(date: DateStr, edit: (day: GuidanceDay, facts: GuidanceLocal, local: LocalData) => void | boolean): Promise<void> {
+  return atomic(async () => {
+    if (!validGuidanceDate(date)) throw new Error('Der Plantag ist ungültig.')
+    const before = useApp.getState()
+    const local = structuredClone(before.local)
+    const facts = guidanceLocal(local.guidance)
+    const day = facts.days[date] ??= {}
+    if (edit(day, facts, local) === false) return
+    pruneGuidanceDays(facts)
+    local.guidance = facts
+    if (!validGuidanceLocal(facts)) throw new Error('Die Begleitung konnte nicht sicher gespeichert werden.')
+    if (JSON.stringify(before.local) === JSON.stringify(local)) return
+    await repo.put('meta', 'local', sourceLocal(local))
+    useApp.setState({ local })
+    changed()
+  })
 }
 const listeners = new Set<() => void>()
 let changeTimer: ReturnType<typeof setTimeout> | undefined
@@ -292,7 +324,7 @@ function editTaskData(edit: (data: TaskData) => void): Promise<void> {
       if (!taskFocusIsOpen(data.local.focus.target, data)) data.local.focus = undefined
     }
     data.local.focusHistory = data.local.focusHistory?.filter((focus) => {
-      if (focus.target.kind === 'routine') return focus.target.date === today() && !before.days[focus.target.date]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
+      if (focus.target.kind === 'routine') return focus.target.date === guidancePlanDate(data.local, today(), Date.now()) && !before.days[focus.target.date]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
       return taskFocusIsOpen(focus.target, data)
     })
     stampTaskChanges(before.inbox, data.inbox)
@@ -456,6 +488,7 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const savedLocal = await source.get<LocalData>('meta', 'local')
   const savedRecovery = recoveryFields(savedLocal)
   const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...savedRecovery, deviceTests: deviceTestsFromLocal(savedLocal) }
+  if (!validGuidanceLocal(local.guidance)) local.guidance = undefined
   // Alte/ungültige Cachekopien bleiben ohne Einfluss auf die echten Quelldaten.
   const savedCatalog = await source.get<TimeCatalogSnapshot>('meta', TIME_CATALOG_RECORD_ID)
   local.timeCatalog = validTimeCatalog(savedCatalog) ? savedCatalog : undefined
@@ -463,8 +496,9 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   if (!validConflictAcknowledgements(local.acknowledgedPlanConflicts)) local.acknowledgedPlanConflicts = undefined
   local.work = local.work.map(normaliseTask)
   local.resume = usableResume(local.resume, inbox, local.work)
+  const routineDate = guidancePlanDate(local, t, Date.now())
   const relevant = (focus: FocusSession): boolean => focus.target.kind === 'routine'
-    ? focus.target.date === t && !days[t]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
+    ? focus.target.date === routineDate && !days[routineDate]?.steps[stepKey(focus.target.routine, focus.target.stepId)]
     : taskFocusIsOpen(focus.target, { inbox, local })
   if (local.focus && !relevant(local.focus)) local.focus = undefined
   local.focusHistory = local.focusHistory?.filter(relevant)
@@ -556,6 +590,183 @@ export const useApp = create<AppState>()((set, get) => ({
     changed()
   },
 
+  activateMorningFromAlarm(handoff) {
+    return atomic(async () => {
+      const before = get()
+      const preferences = guidancePreferences(before.settings.guidance)
+      if (!preferences.enabled || !preferences.zeroGapMorning) return false
+      const now = Date.now()
+      if (!validMorningAlarmHandoff(handoff, now)
+        || ![todayBerlin(handoff.alarmAt), todayBerlin(handoff.confirmedAt)].includes(handoff.targetDate)) throw new Error('Die Weckerbestätigung ist nicht mehr aktuell.')
+      const local = structuredClone(before.local)
+      const facts = guidanceLocal(local.guidance)
+      const receipt = `morning:${handoff.occurrenceId}`
+      if (facts.receipts.includes(receipt)) return true
+      const log = structuredClone(before.days[handoff.targetDate] ?? emptyLog(handoff.targetDate))
+      log.wakeAt ??= handoff.confirmedAt
+      const day = facts.days[handoff.targetDate] ??= {}
+      day.alarmOccurrenceId = handoff.occurrenceId
+      day.alarmAt = handoff.alarmAt
+      day.morningActivatedAt ??= handoff.confirmedAt
+      const plan = planFor(handoff.targetDate, { ...before, local, days: { ...before.days, [handoff.targetDate]: log } })
+      const step = openSteps(plan, log, 'morning')[0]
+      const inbox = structuredClone(before.inbox)
+      if (step) {
+        const target: FocusTarget = { kind: 'routine', date: handoff.targetDate, routine: 'morning', stepId: step.id, minimal: !!step.useMinimal }
+        if (local.focus && sameFocusTarget(local.focus.target, target)) {
+          local.focus.timer = resumeCountdown(local.focus.timer, now)
+        } else {
+          archiveFocus({ local, inbox })
+          const archived = archivedFocus({ local, inbox }, target)
+          const seconds = (step.useMinimal && step.minimal ? step.minimal.minutes : step.minutes) * 60
+          local.focus = archived ? { ...archived, timer: resumeCountdown(archived.timer, now) } : { id: randomId(), target, timer: createCountdown(seconds, now) }
+        }
+      } else if (genuineMorningCompleted(plan, log)) day.morningCompletedAt ??= now
+      rememberGuidanceReceipt(facts, receipt)
+      local.guidance = facts
+      const writes: RepositoryWrite[] = [
+        { collection: 'days', id: handoff.targetDate, data: log },
+        { collection: 'meta', id: 'local', data: sourceLocal(local) },
+      ]
+      stampTaskChanges(before.inbox, inbox)
+      stampTaskChanges(before.local.work, local.work)
+      for (const item of inbox) if (JSON.stringify(item) !== JSON.stringify(before.inbox.find(old => old.id === item.id))) writes.push({ collection: 'inbox', id: item.id, data: item })
+      await repo.putMany(writes)
+      set({ local, inbox, days: { ...before.days, [handoff.targetDate]: log } })
+      changed()
+      return true
+    })
+  },
+
+  setZombie(date, enabled, source = 'manual') {
+    return atomic(async () => {
+      if (!validGuidanceDate(date)) throw new Error('Der Plantag ist ungültig.')
+      const before = get()
+      const log = structuredClone(before.days[date] ?? emptyLog(date))
+      if (!!log.override.zombie === enabled && (source === 'automatic' || !!before.local.guidance?.days[date]?.firstInteractionAt)) return
+      log.override = { ...log.override, zombie: enabled }
+      const local = structuredClone(before.local)
+      const facts = guidanceLocal(local.guidance)
+      const day = facts.days[date] ??= {}
+      if (source === 'manual') day.firstInteractionAt ??= Date.now()
+      const plan = planFor(date, { ...before, local, days: { ...before.days, [date]: log } })
+      const previous = local.focus
+      if (previous?.target.kind === 'routine' && previous.target.date === date) {
+        const previousTarget = previous.target
+        const open = openSteps(plan, log, previousTarget.routine)
+        const targetStep = open.find(step => step.id === previousTarget.stepId)
+        if (!targetStep || previous.target.minimal !== !!targetStep.useMinimal) {
+          archiveFocus({ local, inbox: structuredClone(before.inbox) })
+          const step = open[0]
+          if (step) {
+            const target: FocusTarget = { ...previousTarget, stepId: step.id, minimal: !!step.useMinimal }
+            const seconds = (step.useMinimal && step.minimal ? step.minimal.minutes : step.minutes) * 60
+            const archived = archivedFocus({ local, inbox: structuredClone(before.inbox) }, target)
+            local.focus = archived ? { ...archived, timer: resumeCountdown(archived.timer, Date.now()) } : { id: randomId(), target, timer: createCountdown(seconds, Date.now()) }
+          }
+        }
+      }
+      if (genuineMorningCompleted(plan, log)) day.morningCompletedAt ??= Date.now()
+      pruneGuidanceDays(facts)
+      local.guidance = facts
+      await repo.putMany([{ collection: 'days', id: date, data: log }, { collection: 'meta', id: 'local', data: sourceLocal(local) }])
+      set({ local, days: { ...before.days, [date]: log } })
+      changed()
+    })
+  },
+
+  recordGuidanceInteraction(date, at = Date.now()) {
+    validateGuidanceTime(date, at)
+    return editGuidance(date, day => {
+      if (!guidancePreferences(get().settings.guidance).enabled) return false
+      if (day.morningActivatedAt === undefined || at >= day.morningActivatedAt) day.firstInteractionAt ??= at
+    })
+  },
+
+  verifyBedtime(date, receiptId, at = Date.now()) {
+    validateGuidanceTime(date, at)
+    return editGuidance(date, (day, facts) => {
+      const preferences = guidancePreferences(get().settings.guidance)
+      if (!preferences.enabled || !preferences.bedtimeQr) return false
+      const receipt = `bed:${receiptId}`
+      if (facts.receipts.includes(receipt)) return false
+      rememberGuidanceReceipt(facts, receipt)
+      day.bedVerifiedAt ??= at
+      day.nightLockedAt ??= at
+      // A bathroom QR confirms the evening transition, not that somebody is already in bed.
+    })
+  },
+
+  extendGuidanceEmergency(date, receiptId, until, at = Date.now()) {
+    validateGuidanceTime(date, at)
+    if (!guidanceTimestamp(until) || until <= at || until - at > 18 * 3600_000) return Promise.reject(new Error('Die Verlängerung ist ungültig.'))
+    return editGuidance(date, (_day, facts) => {
+      const preferences = guidancePreferences(get().settings.guidance)
+      if (!preferences.enabled || !preferences.pcLock) return false
+      const night = Object.values(facts.days).filter(value => value.nightLockedAt !== undefined && value.nightLockedAt <= at && at - value.nightLockedAt < 18 * 3600_000)
+        .sort((a, b) => b.nightLockedAt! - a.nightLockedAt!)[0]
+      if (!night) return false
+      const receipt = `emergency:${receiptId}`
+      if (facts.receipts.includes(receipt)) return false
+      rememberGuidanceReceipt(facts, receipt)
+      night.emergencyUntil = until
+    })
+  },
+
+  saveBrainDump(date, text, nextStep) {
+    return atomic(async () => {
+      if (!validGuidanceDate(date)) throw new Error('Der Plantag ist ungültig.')
+      const note = text.trim()
+      if (!note) return undefined
+      if (note.length > 500 || (nextStep?.trim().length ?? 0) > 500) throw new Error('Bitte halte den Gedanken bei höchstens 500 Zeichen.')
+      const before = get()
+      const local = structuredClone(before.local)
+      const facts = guidanceLocal(local.guidance)
+      const day = facts.days[date] ??= {}
+      const now = Date.now()
+      const nextDate = addDays(date, 1)
+      const resumeAt = Math.max(now + 1, zonedToUtc(nextDate, planFor(nextDate, before).wake))
+      const step: TomorrowStep = { id: randomId(), title: nextStep?.trim() ? note : 'Für morgen', nextStep: nextStep?.trim() || note, createdAt: now, resumeAt, remind: false }
+      local.tomorrowSteps.push(step)
+      day.brainDumpIds = [...(day.brainDumpIds ?? []), step.id].slice(-64)
+      delete day.brainDumpShownAt
+      pruneGuidanceDays(facts)
+      local.guidance = facts
+      await repo.put('meta', 'local', sourceLocal(local))
+      set({ local })
+      changed()
+      return step.id
+    })
+  },
+
+  markBrainDumpShown(date) {
+    return editGuidance(date, day => { if (day.brainDumpIds?.length) day.brainDumpShownAt = Date.now() })
+  },
+
+  saveIfThenPlan(plan) {
+    if (!validIfThenPlan(plan)) return Promise.reject(new Error('Der Abendplan ist ungültig.'))
+    return editGuidance(today(), (_day, facts) => { facts.ifThen = { ...plan, wish: plan.wish.trim(), outcome: plan.outcome.trim(), obstacle: plan.obstacle.trim(), sentence: plan.sentence.trim() } })
+  },
+
+  chooseMorningLight(accept) {
+    return atomic(async () => {
+      const before = get()
+      const local = structuredClone(before.local)
+      const facts = guidanceLocal(local.guidance)
+      facts.lightSuggestion = accept ? 'accepted' : 'declined'
+      local.guidance = facts
+      let settings = before.settings
+      if (accept && !before.settings.routines.morning.some(step => step.id === 'light')) {
+        const steps = [...before.settings.routines.morning]
+        steps.splice(Math.min(1, steps.length), 0, { id: 'light', title: 'Licht: Vorhang auf, ans Fenster oder 10 Minuten raus', minutes: 10, minimal: { title: 'Vorhang auf, Licht an', minutes: 1 } })
+        settings = { ...before.settings, routines: { ...before.settings.routines, morning: steps } }
+      }
+      await repo.putMany([{ collection: 'meta', id: 'local', data: sourceLocal(local) }, ...(settings !== before.settings ? [{ collection: 'settings' as const, id: 'main', data: settings }] : [])])
+      set({ local, settings })
+      changed()
+    })
+  },
+
   acknowledgePlanConflict(date, conflictId) {
     return atomic(async () => {
       const st = get()
@@ -588,9 +799,22 @@ export const useApp = create<AppState>()((set, get) => ({
       const a = applyAwards(plan, log, st.game, st.settings)
       log = a.log
       const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: log }]
+      let local = st.local
+      const changedMorning = Object.entries(log.steps).some(([key, value]) => key.startsWith('morning:') && value !== st.days[date]?.steps[key])
+      if (changedMorning && guidancePreferences(st.settings.guidance).enabled) {
+        local = structuredClone(st.local)
+        const facts = guidanceLocal(local.guidance)
+        const day = facts.days[date] ??= {}
+        day.firstInteractionAt ??= Date.now()
+        day.morningActivatedAt ??= Date.now()
+        if (genuineMorningCompleted(plan, log)) day.morningCompletedAt ??= Date.now()
+        pruneGuidanceDays(facts)
+        local.guidance = facts
+        records.push({ collection: 'meta', id: 'local', data: sourceLocal(local) })
+      }
       if (a.gained) records.push({ collection: 'game', id: 'main', data: a.game })
       await repo.putMany(records)
-      set({ days: { ...st.days, [date]: log }, game: a.game })
+      set({ days: { ...st.days, [date]: log }, game: a.game, local })
       if (a.gained) {
       // XP zählen weiter, aber bei Überlastung oder abgeschaltetem Spiel erscheint nichts davon
       if (st.settings.support.gameVisible && log.override.mode !== 'ueberlastet') {
@@ -869,7 +1093,7 @@ export const useApp = create<AppState>()((set, get) => ({
       if (!validFocusTarget(target)) throw new Error('Der Fokus ist ungültig.')
       if (target.kind === 'routine') {
         const st = get()
-        if (target.date !== today() || st.days[target.date]?.steps[stepKey(target.routine, target.stepId)]
+        if (target.date !== guidancePlanDate(st.local, today(), Date.now()) || st.days[target.date]?.steps[stepKey(target.routine, target.stepId)]
           || !planFor(target.date, st).blocks.some((block) => block.routine === target.routine && block.steps?.some((step) => step.id === target.stepId))) return
       } else if (!taskFocusIsOpen(target, data)) return
       if (data.local.focus && sameFocusTarget(data.local.focus.target, target)) return
