@@ -83,6 +83,7 @@ export default function Settings() {
       <Section title="Einrichtung & Daten">
         <Row label="Einrichtungs-Check" to="/check" />
         <Row label="Sicherung" to="/backup" />
+        <Row label="Weckerverlauf & Diagnose" sub="Log ansehen und ausgewählte Angaben exportieren" to="/diagnose" />
         <Row label="Kalender & Sync" to="/verbindungen" />
         <Row label="Druckansicht" to="/druck" />
         <Row label="Hilfe & Anlaufstellen" to="/hilfe" />

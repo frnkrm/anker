@@ -35,6 +35,7 @@ const Places = lazy(() => import('./ui/pages/Places'))
 const Check = lazy(() => import('./ui/pages/Check'))
 const TimeOverview = lazy(() => import('./ui/pages/TimeOverview'))
 const DeviceTests = lazy(() => import('./ui/pages/DeviceTests'))
+const Diagnostics = lazy(() => import('./ui/pages/Diagnostics'))
 const PcStop = lazy(() => import('./ui/pages/PcStop'))
 const Connections = lazy(() => import('./ui/pages/Connections'))
 const Food = lazy(() => import('./ui/pages/Daily').then((m) => ({ default: m.Food })))
@@ -252,6 +253,7 @@ export default function App() {
             <Route path="/check" element={<Check />} />
             <Route path="/zeiten" element={<TimeOverview />} />
             <Route path="/geraetetest" element={<DeviceTests />} />
+            <Route path="/diagnose" element={<Diagnostics />} />
             <Route path="/wecker" element={<AlarmHub />} />
             <Route path="/wecker/klingelt" element={<AlarmRinging />} />
             <Route path="/pc-stopp" element={<PcStop />} />

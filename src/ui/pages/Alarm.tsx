@@ -105,6 +105,7 @@ export function AlarmDiagnosis() {
   const preWakePlanning = alarmPlanningStatus({ scheduledAt: d.preWakeAt, mainConfirmed: d.preWakeConfirmed, exact: d.exact, error: d.error }, enabled)
   return (
     <Section title="So steht dein Wecker" hint="Alle Werte kommen direkt von Android.">
+      <Row label="Weckerverlauf & Diagnose" sub="Vergangene Signale, Tonausgabe und auswählbarer Debugexport" to="/diagnose" />
       <DiagRow
         state={!enabled ? 'off' : planning.ok ? 'ok' : 'warn'}
         label={d.scheduledAt ? `Nächster Hauptwecker: ${fmtDateTime(d.scheduledAt)}` : 'Kein Hauptwecker geplant'}
