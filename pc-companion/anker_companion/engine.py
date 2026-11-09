@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime
 import time
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from .protocol import ProtocolError, plan_date, stamp, text, utc, validate_briefing, validate_state
 from .storage import AtomicStateStore
@@ -37,8 +39,19 @@ class CompanionEngine:
             latch = self.active_latch(data, now)
             if latch is None:
                 runtime["nightLatch"] = None
-            if state["state"] == "MORNING_COMPLETED" and latch and latch["sessionId"] != state["sessionId"]:
-                raise ProtocolError("morning-session")
+            elif latch.get("scheduledNight") and pair == latch.get("pair") and state["lockEnforced"] and state["state"] in NIGHT and state["sessionId"].startswith("night:" + latch["date"] + ":") and abs(sent_at - now) <= 120 and stamp(state["validUntil"]) > now:
+                # A later real phone bedtime override replaces only the identity
+                # of our schedule-only latch, never its consent or finite bounds.
+                latch = deepcopy(latch)
+                original_session = latch["sessionId"]
+                latch.update(sessionId=state["sessionId"], scheduledNight=False)
+                latch["state"]["sessionId"] = state["sessionId"]
+                runtime["nightLatch"] = latch
+                if runtime.get("emergencySessionId") == original_session:
+                    runtime["emergencySessionId"] = state["sessionId"]
+            if state["state"] == "MORNING_COMPLETED" and latch:
+                if not self.matches_night_session(data, latch, state, pair, now) or abs(sent_at - now) > 120 or stamp(state["validUntil"]) <= now or stamp(state["generatedAt"]) > now + 120:
+                    raise ProtocolError("morning-session")
             same_pc = bool(old and old["sessionId"] == state["sessionId"] and old["schedule"].get("bedAt") == state["schedule"].get("bedAt") and old["revision"] == state["revision"])
             if not same_pc and not latch:
                 runtime.update(graceStartedAt=None, actedTarget=None, extensionAt=None, extensionRevision=None)
@@ -47,7 +60,7 @@ class CompanionEngine:
             if state["state"] == "MORNING_COMPLETED":
                 runtime.update(nightLatch=None, graceStartedAt=None, emergencyUntil=None, actedTarget=None)
             elif state["lockEnforced"] and state["state"] in NIGHT and not latch and all((state["prefs"]["enforceEnabled"], state["prefs"]["strictLock"], data["localPrefs"].get("enforceEnabled"), data["localPrefs"].get("strictLock"))):
-                runtime["nightLatch"] = {"sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state)}
+                runtime["nightLatch"] = {"pair": pair, "sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state)}
         self.store.update(change)
         return self.ack(state["revision"], now)
 
@@ -101,7 +114,7 @@ class CompanionEngine:
         if latched:
             state = deepcopy(latch["state"])
             current = data.get("snapshot")
-            if current and current["sessionId"] == state["sessionId"]:
+            if current and self.matches_night_session(data, latch, current, data["runtime"].get("sourcePair"), now, allow_original=True):
                 state["date"] = current["date"]
         warnings: list[str] = []
         snapshot_current = state is not None and stamp(state["validUntil"]) > now and state["date"] == plan_date(now)
@@ -148,6 +161,25 @@ class CompanionEngine:
             return None
         deadline = stamp(latch["morningDeadlineAt"], True)
         return latch if deadline is None or now < deadline else None
+
+    @staticmethod
+    def matches_night_session(data: dict[str, Any], latch: dict[str, Any], state: dict[str, Any], pair: str, now: float, allow_original: bool = False) -> bool:
+        if pair != latch.get("pair", data["runtime"].get("sourcePair")):
+            return False
+        if state["sessionId"] == latch["sessionId"] and (not latch.get("scheduledNight") or allow_original):
+            return True
+        # The PC's schedule-only latch has no phone nightLockedAt fact. After
+        # 04:00 the phone legitimately uses day:<wakeDate>; bind only that dated
+        # morning to this pair, never arbitrary new sessions or other mornings.
+        if not latch.get("scheduledNight"):
+            return False
+        wake = stamp(latch["wakeAt"], True)
+        incoming_wake = stamp(state["schedule"]["wakeAt"], True)
+        if wake is None or incoming_wake is None:
+            return False
+        date = datetime.fromtimestamp(wake, ZoneInfo("Europe/Berlin")).date().isoformat()
+        incoming_date = datetime.fromtimestamp(incoming_wake, ZoneInfo("Europe/Berlin")).date().isoformat()
+        return state["sessionId"] == "day:" + date and state["date"] == date and incoming_date == date and plan_date(now) == date
 
     def ack(self, revision: str, now: float | None = None) -> dict[str, Any]:
         now = self.clock() if now is None else now
@@ -247,7 +279,7 @@ class CompanionEngine:
             # A live, explicitly enabled night schedule starts its finite watchdog
             # at bedtime even if the user has not yet scanned the phone's QR/NFC.
             if enabled and pref["strictLock"] and target is not None and now >= target and state["state"] != "MORNING_COMPLETED" and not state.get("_briefing") and not self.active_latch(data, now):
-                latch = {"sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state), "scheduledNight": True}
+                latch = {"pair": data["runtime"].get("sourcePair"), "sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state), "scheduledNight": True}
                 self.store.update(lambda item: item["runtime"].update(nightLatch=latch))
                 data = self.store.read()
             if suspended:

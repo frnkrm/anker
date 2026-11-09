@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
@@ -305,10 +306,23 @@ class BridgeServer:
                 if not state:
                     raise ProtocolError("no-schedule")
                 runtime = data["runtime"]
+                latch = self.engine.active_latch(data, now)
+                grant_session = state["sessionId"]
+                if latch:
+                    if not self.engine.matches_night_session(data, latch, state, identifier, now, allow_original=True):
+                        raise ProtocolError("token-identity")
+                    # Verify the real phone signature against its current dated
+                    # identity, but keep the original finite PC night as the grant.
+                    state = deepcopy(state)
+                    bounds = [stamp(state["validUntil"]), stamp(latch["validUntil"])]
+                    if latch["morningDeadlineAt"] is not None:
+                        bounds.append(stamp(latch["morningDeadlineAt"]))
+                    state["validUntil"] = utc(min(bounds))
+                    grant_session = latch["sessionId"]
                 nonces = set(runtime.get("emergencyNonces", []))
                 until = verify_emergency(payload["token"], identifier, data["pairs"][identifier]["signingKey"], state, nonces, now)
                 nonces.add(payload["token"]["nonce"])
-                self.store.update(lambda item: item["runtime"].update(emergencyUntil=until, emergencySessionId=state["sessionId"], emergencyNonces=sorted(nonces)[-1000:], graceStartedAt=None, actedTarget=None))
+                self.store.update(lambda item: item["runtime"].update(emergencyUntil=until, emergencySessionId=grant_session, emergencyNonces=sorted(nonces)[-1000:], graceStartedAt=None, actedTarget=None))
                 receipt["emergencyUntil"] = utc(until)
             def remember(item):
                 item["commandIds"] = [*item["commandIds"], payload["id"]][-5000:]

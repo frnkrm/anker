@@ -212,6 +212,79 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.bridge.ui_action({"action": "settings", "prefs": {"enforceEnabled": True}, "requestId": "settings-one"})
         self.assertEqual(ui.messages[-1]["actionResult"], {"action": "settings", "ok": True, "requestId": "settings-one"})
 
+    async def scheduled_monday_night(self):
+        self.clock.now = stamp("2026-11-09T21:00:00Z")
+        await self.pair()
+        self.engine.local_settings({"enforceEnabled": True, "strictLock": True})
+        value = state(self.clock, sessionId="day:2026-11-09", date="2026-11-09")
+        value["prefs"].update(strictLock=True, offlinePolicy="fixed-time")
+        await self.exchange(value)
+        self.clock.now += 1800; self.engine.tick(); self.clock.now += 60; self.engine.tick()
+        self.assertTrue(self.store.read()["runtime"]["nightLatch"]["scheduledNight"])
+        self.assertFalse(value["lockEnforced"])
+        self.clock.now = stamp("2026-11-10T07:15:00Z")
+        completed = deepcopy(value)
+        completed.update(state="MORNING_COMPLETED", sessionId="day:2026-11-10", date="2026-11-10", generatedAt=utc(self.clock()))
+        return value, completed
+
+    async def test_encrypted_real_tuesday_completion_releases_only_its_monday_schedule_latch(self):
+        value, completed = await self.scheduled_monday_night()
+        for patch in ({"sessionId": "day:2026-11-09", "date": "2026-11-09"}, {"sessionId": "day:2026-11-11", "date": "2026-11-11"}, {"sessionId": "unrelated"}):
+            bad = {**completed, **patch}
+            async with self.client.post(self.url + "/v3/link", json=self.envelope(bad)) as response:
+                self.assertEqual(response.status, 400)
+            self.assertIsNotNone(self.engine.active_latch(self.store.read(), self.clock()))
+        wrong_morning = deepcopy(completed)
+        wrong_morning["schedule"].update(wakeAt="2026-11-11T06:00:00Z", morningDeadlineAt="2026-11-11T09:00:00Z")
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(wrong_morning)) as response:
+            self.assertEqual(response.status, 400)
+        other_pair = "other-fixture-pair"
+        self.store.update(lambda data: data["pairs"].update({other_pair: {**data["pairs"][self.identifier], "receiveSeq": 0, "sendSeq": 0}}))
+        foreign = seal(other_pair, "phone", 1, completed, self.incoming, self.clock())
+        async with self.client.post(self.url + "/v3/link", json=foreign) as response:
+            self.assertEqual(response.status, 400)
+        self.assertIsNotNone(self.engine.active_latch(self.store.read(), self.clock()))
+        result = await self.exchange(completed)
+        self.assertEqual(result["effective"]["mode"], "released")
+        self.assertIsNone(self.engine.active_latch(self.store.read(), self.clock()))
+        self.clock.now += 15; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock"])
+
+    async def test_new_day_hardware_emergency_binds_to_original_finite_schedule_latch(self):
+        value, completed = await self.scheduled_monday_night()
+        active = {**completed, "state": "MORNING_ACTIVE"}
+        await self.exchange(active)
+        original = self.store.read()["runtime"]["nightLatch"]
+        token = {"v": 3, "pair": self.identifier, "sessionId": active["sessionId"], "date": active["date"],
+                 "issuedAt": utc(self.clock()), "expiresAt": utc(self.clock() + 300), "until": utc(self.clock() + 900), "nonce": b64(bytes(range(16)))}
+        token["signature"] = b64(self.signing.sign(canonical(token), ec.ECDSA(hashes.SHA256())))
+        accepted = await self.exchange({"type": "command", "id": "tuesday-hardware", "action": "EMERGENCY_EXTENSION", "token": token})
+        runtime = self.store.read()["runtime"]
+        self.assertEqual(accepted["emergencyUntil"], token["until"])
+        self.assertEqual(accepted["effective"]["date"], "2026-11-10")
+        self.assertEqual(runtime["emergencySessionId"], value["sessionId"])
+        self.assertEqual(runtime["nightLatch"]["validUntil"], original["validUntil"])
+        self.assertEqual(self.engine.ack(active["revision"])["effective"]["stopAt"], token["until"])
+        self.clock.now += 10; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock"])
+
+    async def test_later_real_bedtime_override_upgrades_identity_without_extending_auto_night(self):
+        value, _ = await self.scheduled_monday_night()
+        self.clock.now = stamp("2026-11-09T22:00:00Z")
+        actual = deepcopy(value)
+        actual.update(state="NIGHT_LOCK", sessionId="night:2026-11-09:bed-override", lockEnforced=True, generatedAt=utc(self.clock()), validUntil=utc(self.clock() + 18 * 3600))
+        await self.exchange(actual)
+        latch = self.store.read()["runtime"]["nightLatch"]
+        self.assertFalse(latch["scheduledNight"])
+        self.assertEqual(latch["sessionId"], actual["sessionId"])
+        self.assertEqual(latch["validUntil"], value["validUntil"])
+        self.clock.now = stamp("2026-11-10T07:15:00Z")
+        bad = {**actual, "state": "MORNING_COMPLETED", "sessionId": "day:2026-11-10", "date": "2026-11-10", "generatedAt": utc(self.clock())}
+        async with self.client.post(self.url + "/v3/link", json=self.envelope(bad)) as response:
+            self.assertEqual(response.status, 400)
+        completed = {**bad, "sessionId": actual["sessionId"]}
+        self.assertEqual((await self.exchange(completed))["effective"]["mode"], "released")
+
 
 if __name__ == "__main__":
     unittest.main()

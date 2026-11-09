@@ -151,3 +151,13 @@ an seiner zugesagten Stoppzeit auch dann, wenn der NFC-/QR-Abschluss am Handy no
 aussteht. Gewöhnliche neue Zustände oder geänderte Einstellungen heben diese
 begrenzte Nachtfreigabe nicht auf; dafür dienen echter Morgenabschluss oder
 signierte Hardware-Notverlängerung.
+Eine ausschließlich am PC-Zeitpunkt aktivierte Nacht ist intern `scheduledNight`.
+Ohne Handy-Bett-Override wechselt dessen Standard-ID nach 04:00 von
+`day:<Abenddatum>` zu `day:<Weckdatum>`. Nur ein authentifiziertes echtes
+`MORNING_COMPLETED` desselben Pair, exakt mit dieser neuen ID, diesem Berliner
+Plantag und einem `wakeAt` desselben Kalendertags löst die zugehörige Auto-Nacht.
+Andere Tage, Paare und Session-IDs lösen sie nicht. Ein danach bestätigter
+Hardware-Bett-Override derselben Nacht übernimmt nur die echte `night:…`-Identität;
+Frist, Freigaben und ursprüngliche Zeitpunkte werden nicht verlängert. Danach
+gilt wieder ausschließlich dieselbe Hardware-Nacht-ID. Signierte Notverlängerungen
+können dieselbe eng begrenzte Zuordnung nutzen; der PC signiert keine Tokens.
