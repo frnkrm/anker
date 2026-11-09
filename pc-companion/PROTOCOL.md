@@ -88,6 +88,10 @@ bis ein neuer uhrzeitlich plausibler Auftrag bestätigt wurde.
 `days` (1–14) enthält `{date,validUntil,pc:{mode:"scheduled"|"paused",stopAt?,localTime?},
 bedAt?,wakeAt?,windDownAt?,brainDumpAt?,morningDeadlineAt?,morning?:{leaveAt?,workStartAt?,homeOffice}}`.
 Ein unveränderter PC-Eintrag überschreibt eine lokale Standardmodus-Verlängerung nicht.
+Der PC wählt ausschließlich den expliziten Eintrag zum aktuellen Berliner Plantag
+mit noch gültigem Tages- und Gesamtbriefing. Pausierte, fehlende oder abgelaufene
+Tage erzeugen keinen Ersatztermin. `pcStopAt` bzw. `pc.stopAt` ist die genaue
+PC-Stopp-Zeit; `bedAt` bleibt die davon unabhängige Schlafenszeit.
 
 `ack`: `{type:"ack",revision,receivedAt,effective:{date,mode,stopAt?},
 companion:{version:"0.1.0",protocol:3},warnings}`.
@@ -99,6 +103,14 @@ Modi: `scheduled`, `paused`, `suspended-today`, `legacy-conflict`, `locked`, `re
 Nur passende Revision und heutige Gültigkeit dürfen in Android als bestätigt gelten.
 Bekannte Warnungen: `clock-skew`, `local-enforcement-off`, `legacy-conflict`,
 `source-expired`, `no-schedule`, `morning-deadline-reached`, `pairing-required`.
+Zusätzlich `link-stale`: Nach 90 Sekunden ohne authentifizierten Kontakt pausiert
+`offlinePolicy=pause` alle neuen Wirkungen. Ping/Pong auf einem durch mindestens
+einen gültigen AES-Frame authentifizierten WSS-Socket hält den Kontakt frisch;
+ein alter `generatedAt`-Wert allein unterbricht den laufenden Auftrag nicht.
+`fixed-time` verwendet ein gültiges, explizit vorbereitetes Tagesbriefing oder
+den noch gültigen heutigen Zustandsauftrag. Eine bereits aktivierte strikte Nacht
+läuft bei Verbindungsverlust nur bis zu ihrer ursprünglichen endlichen Grenze.
+Ein Tagesbriefing ohne echte Nacht-Session startet keinen neuen Nacht-Watchdog.
 
 `command`: `{type:"command",id,action,minutes?,token?}`. Aktionen `ping`, `unpair`,
 `test-evening`, `resume-today`, `suspend-today`, `extend`, `EMERGENCY_EXTENSION`.
@@ -134,3 +146,8 @@ Termine. Nach Neustart, Aufwachen oder Uhr-Rückstellung beginnt die Schonfrist 
 Testabend: zwei Minuten, keine Systemwirkung. Standardmodus hat +15/+30 und
 „Heute ohne PC-Stopp“. Strenger Modus ist eigens bestätigt, bleibt beendbar und
 überwacht alle zehn Sekunden nur die Sitzung, keine Programme/Fenster/Tastaturen.
+Bei beiderseitig aktiviertem strengem Modus beginnt ein gültiger Handy-Nachtauftrag
+an seiner zugesagten Stoppzeit auch dann, wenn der NFC-/QR-Abschluss am Handy noch
+aussteht. Gewöhnliche neue Zustände oder geänderte Einstellungen heben diese
+begrenzte Nachtfreigabe nicht auf; dafür dienen echter Morgenabschluss oder
+signierte Hardware-Notverlängerung.

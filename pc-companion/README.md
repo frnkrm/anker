@@ -53,8 +53,14 @@ blockieren. Eine kostenpflichtige Signierung wurde nicht eingerichtet.
   40 Prozent Deckkraft, kein Schlaf- oder Blaulicht-Heilversprechen. Audio wird
   optional jede Minute um neun Prozent abgesenkt und respektiert manuelle Änderungen.
 
-Bei WLAN-Ausfall bleiben nur gültige bestätigte Zeitpunkte wirksam. Nach deren
-Ablauf entstehen keine neuen Termine. Anmeldung, Aufwachen und eine zurückgestellte
+Bei WLAN-Ausfall pausiert die Standardwahl nach 90 Sekunden ohne authentifizierten
+Kontakt. Die eigene Wahl **Feste Zeit verwenden** führt nur die ausdrücklich
+vorbereiteten, noch gültigen Tagesaufträge aus; sie erfindet keinen nächsten Termin.
+Eine bereits aktivierte strikte Nacht bleibt bis zu ihrer ursprünglichen endlichen
+Grenze bestehen. Der 14-Tage-Cache wählt ausschließlich den Eintrag zum aktuellen
+Berliner Plantag (Wechsel 04:00); ein fehlender oder pausierter Tag bleibt frei.
+Eine Tagesvorschau ohne echte Nacht-Session startet keinen neuen Nacht-Watchdog.
+Anmeldung, Aufwachen und eine zurückgestellte
 Uhr beginnen eine neue volle Speicherfrist. Der Nutzer behält seine Windows-Rechte;
 dies ist kein manipulationssicherer Administrator- oder Überwachungsdienst.
 
@@ -88,6 +94,7 @@ eigene Schlüssel, Notizen und Protokolle entfernt; der klassische PC-Stopp blei
 ```powershell
 python -m anker_companion --port 47830 --name "Mein PC"
 python -m unittest discover -s tests -v
+node tests/node_phone_simulator.mjs
 ```
 
 Unter Linux laufen ausschließlich injizierte Plattform-/Vault-Mocks und lokale

@@ -210,14 +210,16 @@ class BridgeServer:
         identifier = request.query.get("pair", "")
         if identifier not in self.store.read()["pairs"]:
             raise ProtocolError("pairing-required")
-        socket_ = web.WebSocketResponse(max_msg_size=MAX_BYTES, heartbeat=10, receive_timeout=30)
+        socket_ = web.WebSocketResponse(max_msg_size=MAX_BYTES, heartbeat=10, receive_timeout=30, autoping=False)
         await socket_.prepare(request)
         self.sockets.add(socket_)
+        authenticated = False
         try:
             async for message in socket_:
                 if message.type == WSMsgType.TEXT:
                     try:
                         reply = self.exchange(message.data, expected_pair=identifier)
+                        authenticated = True
                         await socket_.send_json(reply)
                     except ProtocolError:
                         await socket_.close(code=1008, message=b"message-rejected")
@@ -225,6 +227,11 @@ class BridgeServer:
                     except Exception:
                         await socket_.close(code=1011, message=b"temporary-failure")
                         break
+                elif message.type in {WSMsgType.PING, WSMsgType.PONG}:
+                    if message.type == WSMsgType.PING:
+                        await socket_.pong(message.data)
+                    if authenticated and identifier in self.store.read()["pairs"]:
+                        self.engine.link_contact()
                 elif message.type in {WSMsgType.BINARY, WSMsgType.ERROR}:
                     await socket_.close(code=1008, message=b"message-rejected")
                     break
@@ -250,6 +257,7 @@ class BridgeServer:
         now = self.clock()
         with self.store.transaction():
             self.store.accept_receive(identifier, envelope["seq"])
+            self.engine.link_contact(now, force=True)
             response = self._apply(payload, identifier, stamp(envelope["sentAt"]), now)
         # An unpair acknowledgement is encrypted before the now-unused key is erased.
         if payload.get("action") == "unpair":
@@ -265,10 +273,16 @@ class BridgeServer:
         if kind == "state":
             return self.engine.accept_state(payload, identifier, sent_at, now)
         if kind == "briefing":
-            return self.engine.accept_briefing(payload, now)
+            return self.engine.accept_briefing(payload, now, sent_at)
         if kind == "pull":
             data = self.store.read()
-            items = [item for item in data["outbox"] if item["seq"] > payload["after"]][:100]
+            items = []
+            for item in (entry for entry in data["outbox"] if entry["seq"] > payload["after"]):
+                candidate = {"type": "events", "items": [*items, item], "lastSeq": item["seq"]}
+                # Leave space for base64 expansion, GCM tag and envelope metadata.
+                if len(items) >= 100 or len(canonical(candidate)) > 46 * 1024:
+                    break
+                items.append(item)
             return {"type": "events", "items": items, "lastSeq": items[-1]["seq"] if items else max(payload["after"], data["eventSeq"])}
         data = self.store.read()
         command_hash = hashlib.sha256(canonical(payload)).hexdigest()
@@ -294,7 +308,7 @@ class BridgeServer:
                 nonces = set(runtime.get("emergencyNonces", []))
                 until = verify_emergency(payload["token"], identifier, data["pairs"][identifier]["signingKey"], state, nonces, now)
                 nonces.add(payload["token"]["nonce"])
-                self.store.update(lambda item: item["runtime"].update(emergencyUntil=until, emergencyNonces=sorted(nonces)[-1000:], graceStartedAt=None, actedTarget=None))
+                self.store.update(lambda item: item["runtime"].update(emergencyUntil=until, emergencySessionId=state["sessionId"], emergencyNonces=sorted(nonces)[-1000:], graceStartedAt=None, actedTarget=None))
                 receipt["emergencyUntil"] = utc(until)
             def remember(item):
                 item["commandIds"] = [*item["commandIds"], payload["id"]][-5000:]
@@ -348,8 +362,18 @@ class BridgeServer:
             else:
                 return
             self.engine._message("Gespeichert")
-        except (ProtocolError, OSError, RuntimeError):
+            if self.ui:
+                result = {"action": kind, "ok": True}
+                if isinstance(action.get("requestId"), str):
+                    result["requestId"] = action["requestId"]
+                self.ui.render({**self.engine.last_view, "actionResult": result})
+        except Exception:
             self.engine._message("Noch nicht übernommen. Bitte Einstellung und Verbindung prüfen.")
+            if self.ui:
+                result = {"action": kind, "ok": False}
+                if isinstance(action.get("requestId"), str):
+                    result["requestId"] = action["requestId"]
+                self.ui.render({**self.engine.last_view, "actionResult": result})
 
 
 class Discovery:

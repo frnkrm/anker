@@ -97,6 +97,21 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(message.type, aiohttp.WSMsgType.CLOSE)
             self.assertEqual(socket.close_code, 1008)
 
+    async def test_heartbeat_freshness_requires_authenticated_socket_not_known_pair_id(self):
+        await self.pair()
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier, autoping=False) as socket:
+            await socket.ping(b"not-authenticated")
+            self.assertEqual((await socket.receive()).type, aiohttp.WSMsgType.PONG)
+            self.assertNotIn("linkSeenAt", self.store.read()["runtime"])
+            await socket.send_json(self.envelope(state(self.clock)))
+            await socket.receive_json()
+            original = self.clock()
+            self.clock.now += 100
+            await socket.ping(b"authenticated")
+            self.assertEqual((await socket.receive()).type, aiohttp.WSMsgType.PONG)
+            self.assertGreater(self.store.read()["runtime"]["linkSeenAt"], original)
+            self.assertNotIn("link-stale", self.engine.ack("rev1")["warnings"])
+
     async def test_rest_unknown_fields_tamper_and_browser_origin_never_have_effects(self):
         await self.pair()
         bad = state(self.clock); bad["unknown"] = True
@@ -129,6 +144,19 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         last = await self.exchange({"type": "pull", "after": 100})
         self.assertEqual(len(last["items"]), 5)
         self.assertEqual(last["lastSeq"], 105)
+
+    async def test_utf8_outbox_pages_fit_envelope_and_event_cursor_never_skips(self):
+        await self.pair()
+        for index in range(50):
+            self.store.event(self.clock(), "2026-11-12", "save-point", text="字" * 500, nextStep="語" * 500)
+        cursor, seen = 0, []
+        while len(seen) < 50:
+            batch = await self.exchange({"type": "pull", "after": cursor})
+            self.assertTrue(batch["items"])
+            self.assertEqual(batch["lastSeq"], batch["items"][-1]["seq"])
+            seen.extend(item["seq"] for item in batch["items"])
+            cursor = batch["lastSeq"]
+        self.assertEqual(seen, list(range(1, 51)))
 
     async def test_durable_receive_sequence_survives_restart(self):
         await self.pair()
@@ -168,6 +196,21 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(allowed_address("127.0.0.1", True))
         self.assertTrue(allowed_address("192.168.1.20"))
         self.assertTrue(allowed_address("fd00::1"))
+
+    async def test_ui_ack_only_after_durable_commit_and_echoes_exact_request(self):
+        class UI:
+            def __init__(self): self.messages = []
+            def render(self, value): self.messages.append(value)
+        ui = UI(); self.bridge.ui = ui; self.engine.ui = ui
+        self.bridge.ui_action({"action": "thought", "text": "Synthetische Notiz", "requestId": "dialog-one"})
+        self.assertEqual(ui.messages[-1]["actionResult"], {"action": "thought", "ok": True, "requestId": "dialog-one"})
+        before = self.store.read(); self.vault.fail = True
+        self.bridge.ui_action({"action": "savepoint", "text": "Noch nicht gespeichert", "requestId": "dialog-two"})
+        self.assertEqual(ui.messages[-1]["actionResult"], {"action": "savepoint", "ok": False, "requestId": "dialog-two"})
+        self.assertEqual(self.store.read(), before)
+        self.vault.fail = False
+        self.bridge.ui_action({"action": "settings", "prefs": {"enforceEnabled": True}, "requestId": "settings-one"})
+        self.assertEqual(ui.messages[-1]["actionResult"], {"action": "settings", "ok": True, "requestId": "settings-one"})
 
 
 if __name__ == "__main__":

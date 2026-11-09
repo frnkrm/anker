@@ -42,7 +42,7 @@ class CompanionEngine:
             same_pc = bool(old and old["sessionId"] == state["sessionId"] and old["schedule"].get("bedAt") == state["schedule"].get("bedAt") and old["revision"] == state["revision"])
             if not same_pc and not latch:
                 runtime.update(graceStartedAt=None, actedTarget=None, extensionAt=None, extensionRevision=None)
-            runtime.update(sourcePair=pair, sourceSkew=abs(sent_at - now) > 120, receivedAt=now)
+            runtime.update(sourcePair=pair, sourceSkew=abs(sent_at - now) > 120, receivedAt=now, linkSeenAt=now)
             data["snapshot"] = state
             if state["state"] == "MORNING_COMPLETED":
                 runtime.update(nightLatch=None, graceStartedAt=None, emergencyUntil=None, actedTarget=None)
@@ -51,20 +51,66 @@ class CompanionEngine:
         self.store.update(change)
         return self.ack(state["revision"], now)
 
-    def accept_briefing(self, briefing: dict[str, Any], now: float | None = None) -> dict[str, Any]:
+    def accept_briefing(self, briefing: dict[str, Any], now: float | None = None, sent_at: float | None = None) -> dict[str, Any]:
+        now = self.clock() if now is None else now
         briefing = deepcopy(validate_briefing(briefing))
-        self.store.update(lambda data: data.update(briefing=briefing))
-        return self.ack(briefing["revision"], self.clock() if now is None else now)
+        def change(data):
+            old = data.get("briefing")
+            if old and stamp(briefing["generatedAt"]) < stamp(old["generatedAt"]):
+                raise ProtocolError("stale-briefing")
+            data["briefing"] = briefing
+            data["runtime"].update(briefingSkew=abs((now if sent_at is None else sent_at) - now) > 120, linkSeenAt=now)
+        self.store.update(change)
+        return self.ack(briefing["revision"], now)
+
+    def link_contact(self, now: float | None = None, force: bool = False) -> None:
+        """A valid AES frame or a heartbeat on its authenticated socket keeps the lease live."""
+        now = self.clock() if now is None else now
+        if force or now - self.store.read()["runtime"].get("linkSeenAt", float("-inf")) >= 10:
+            self.store.update(lambda data: data["runtime"].update(linkSeenAt=now))
+
+    @staticmethod
+    def _briefing_state(data: dict[str, Any], now: float) -> dict[str, Any] | None:
+        """Select an already dated phone entry. Never calculate a tomorrow from yesterday."""
+        briefing = data.get("briefing")
+        if not briefing or stamp(briefing["validUntil"]) <= now:
+            return None
+        entry = next((item for item in briefing["days"] if item["date"] == plan_date(now) and stamp(item["validUntil"]) > now), None)
+        if entry is None:
+            return None
+        scheduled = entry["pc"]["mode"] == "scheduled"
+        schedule = {key: entry.get(key) for key in ("windDownAt", "brainDumpAt", "bedAt", "wakeAt", "morningDeadlineAt")}
+        schedule["pcStopAt"] = entry["pc"]["stopAt"] if scheduled else None
+        schedule.update(entry.get("morning", {}))
+        prefs = deepcopy(briefing["prefs"])
+        # A future daily entry has no hardware-authenticated night session. It can
+        # perform its opted-in one-shot PC stop, never create a new night watchdog.
+        prefs["strictLock"] = False
+        if not scheduled:
+            prefs.update(enforceEnabled=False, dimEnabled=False, audioDuck=False)
+        return {"type": "state", "state": "DAY_ACTIVE", "sessionId": "briefing:" + entry["date"],
+                "revision": briefing["revision"], "date": entry["date"], "generatedAt": briefing["generatedAt"],
+                "validUntil": utc(min(stamp(entry["validUntil"]), stamp(briefing["validUntil"]))),
+                "remainingSeconds": 0, "routineStep": None, "lockEnforced": False,
+                "schedule": schedule, "prefs": prefs, "_briefing": True}
 
     def _effective(self, data: dict[str, Any], now: float) -> tuple[dict[str, Any] | None, list[str], dict[str, Any]]:
         state = data.get("snapshot")
         latch = self.active_latch(data, now)
-        if latch and latch.get("state", {}).get("prefs", {}).get("strictLock"):
+        latched = bool(latch and latch.get("state", {}).get("prefs", {}).get("strictLock"))
+        if latched:
             state = deepcopy(latch["state"])
             current = data.get("snapshot")
             if current and current["sessionId"] == state["sessionId"]:
                 state["date"] = current["date"]
         warnings: list[str] = []
+        snapshot_current = state is not None and stamp(state["validUntil"]) > now and state["date"] == plan_date(now)
+        link_fresh = now - data["runtime"].get("linkSeenAt", float("-inf")) <= 90
+        briefing = self._briefing_state(data, now)
+        # Connected live snapshots take precedence. On rollover/expired leases use
+        # only today's explicit cached entry. Fixed-time also permits this offline.
+        if not latched and briefing is not None and (not snapshot_current or not link_fresh and briefing["prefs"]["offlinePolicy"] == "fixed-time"):
+            state = briefing
         local = data["localPrefs"]
         effective = {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False}
         if not state:
@@ -76,10 +122,12 @@ class CompanionEngine:
         effective["dimMax"] = min(local.get("dimMax", .4), remote["dimMax"])
         if not effective["enforceEnabled"]:
             warnings.append("local-enforcement-off")
-        if data["runtime"].get("sourceSkew"):
+        if data["runtime"].get("briefingSkew" if state.get("_briefing") else "sourceSkew"):
             warnings.append("clock-skew")
-        if stamp(state["validUntil"]) <= now:
+        if stamp(state["validUntil"]) <= now or not latched and state["date"] != plan_date(now):
             warnings.append("source-expired")
+        if not link_fresh and remote["offlinePolicy"] == "pause" and not latched:
+            warnings.append("link-stale")
         if now - self._legacy_checked >= 60 or now < self._legacy_checked:
             try:
                 self._legacy_result = self.platform.legacy_conflict()
@@ -89,7 +137,7 @@ class CompanionEngine:
         if self._legacy_result:
             warnings.append("legacy-conflict")
         deadline = stamp(state["schedule"]["morningDeadlineAt"], True)
-        if state["state"] in NIGHT and deadline is not None and now >= deadline:
+        if state["state"] != "MORNING_COMPLETED" and deadline is not None and now >= deadline:
             warnings.append("morning-deadline-reached")
         return state, warnings, effective
 
@@ -126,12 +174,13 @@ class CompanionEngine:
 
     def _target(self, data: dict[str, Any], state: dict[str, Any], now: float) -> float | None:
         runtime = data["runtime"]
-        target = stamp(state["schedule"]["bedAt"], True)
+        schedule = state["schedule"]
+        target = stamp(schedule.get("pcStopAt") if "pcStopAt" in schedule else schedule["bedAt"], True)
         extension = runtime.get("extensionAt")
         if extension is not None and runtime.get("extensionRevision") == state["revision"]:
             target = extension
         emergency = runtime.get("emergencyUntil")
-        if emergency is not None and emergency > now:
+        if emergency is not None and emergency > now and runtime.get("emergencySessionId") == state["sessionId"]:
             target = emergency
         return target
 
@@ -149,7 +198,9 @@ class CompanionEngine:
             return phase
         if now >= target:
             return "BEDTIME_HARD_CUT"
-        delta = target - (stamp(state["schedule"]["bedAt"], True) or target)
+        schedule = state["schedule"]
+        base = stamp(schedule.get("pcStopAt") if "pcStopAt" in schedule else schedule["bedAt"], True)
+        delta = target - (base if base is not None else target)
         brain = stamp(state["schedule"]["brainDumpAt"], True)
         wind = stamp(state["schedule"]["windDownAt"], True)
         if brain is not None and now >= brain + delta:
@@ -191,12 +242,18 @@ class CompanionEngine:
             target = self._target(data, state, now)
             phase = self._phase(data, state, now, target)
             suspended = data["runtime"].get("suspendedDate") == plan_date(now)
-            valid = not any(item in warnings for item in ("clock-skew", "source-expired", "legacy-conflict", "morning-deadline-reached")) and not suspended
+            valid = not any(item in warnings for item in ("clock-skew", "source-expired", "legacy-conflict", "morning-deadline-reached", "link-stale")) and not suspended
             enabled = valid and pref["enforceEnabled"]
+            # A live, explicitly enabled night schedule starts its finite watchdog
+            # at bedtime even if the user has not yet scanned the phone's QR/NFC.
+            if enabled and pref["strictLock"] and target is not None and now >= target and state["state"] != "MORNING_COMPLETED" and not state.get("_briefing") and not self.active_latch(data, now):
+                latch = {"sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state), "scheduledNight": True}
+                self.store.update(lambda item: item["runtime"].update(nightLatch=latch))
+                data = self.store.read()
             if suspended:
                 phase = "IDLE"; message = "Heute ohne PC-Stopp"
             elif warnings:
-                message = {"clock-skew": "Bitte Windows-Uhr und Handy-Uhr abgleichen", "source-expired": "Plan abgelaufen · Handy erneut abgleichen", "legacy-conflict": "Klassisches PC-Stopp-Paket zuerst prüfen", "local-enforcement-off": "PC-Automatik ist ausgeschaltet", "morning-deadline-reached": "Schutzzeit beendet · Morgen am Handy prüfen"}.get(warnings[0], "Plan prüfen")
+                message = {"clock-skew": "Bitte Windows-Uhr und Handy-Uhr abgleichen", "source-expired": "Plan abgelaufen · Handy erneut abgleichen", "link-stale": "Handy nicht verbunden · PC-Automatik pausiert", "legacy-conflict": "Klassisches PC-Stopp-Paket zuerst prüfen", "local-enforcement-off": "PC-Automatik ist ausgeschaltet", "morning-deadline-reached": "Schutzzeit beendet · Morgen am Handy prüfen"}.get(warnings[0], "Plan prüfen")
             else:
                 message = "Dein nächster Schritt wartet auf dem Handy"
             if valid and pref["dimEnabled"] and target is not None and phase not in {"MORNING_COMPLETED", "MORNING_PENDING"} and sample.get("locked") is not True:
@@ -210,7 +267,7 @@ class CompanionEngine:
                 grace_remaining = max(0, int(pref["graceSeconds"] - (now - grace)))
                 if grace_remaining == 0 and not runtime.get("actedTarget"):
                     self._act(pref["stopAction"], state, target, now)
-                if pref["strictLock"] and state["lockEnforced"] and sample.get("locked") is False and runtime.get("actedTarget") and now - runtime.get("lastLockAt", 0) >= 10:
+                if pref["strictLock"] and (state["lockEnforced"] or (self.active_latch(data, now) or {}).get("scheduledNight")) and sample.get("locked") is False and runtime.get("actedTarget") and now - runtime.get("lastLockAt", 0) >= 10:
                     try:
                         self.platform.lock()
                         self.store.update(lambda item: item["runtime"].update(lastLockAt=now))

@@ -118,7 +118,7 @@ def prefs(value: Any) -> dict[str, Any]:
         boolean(result[name])
     if isinstance(result["dimMax"], bool) or not isinstance(result["dimMax"], (int, float)) or not math.isfinite(result["dimMax"]) or not 0 <= result["dimMax"] <= 0.4:
         raise ProtocolError("dim")
-    if result["offlinePolicy"] not in ("pause", "fixed-time") or result["stopAction"] not in ("lock", "hibernate", "shutdown"):
+    if not isinstance(result["offlinePolicy"], str) or not isinstance(result["stopAction"], str) or result["offlinePolicy"] not in ("pause", "fixed-time") or result["stopAction"] not in ("lock", "hibernate", "shutdown"):
         raise ProtocolError("preference")
     integer(result["graceSeconds"], 60, 600)
     if "ifThen" in result:
@@ -128,7 +128,7 @@ def prefs(value: Any) -> dict[str, Any]:
 
 def validate_state(value: Any) -> dict[str, Any]:
     result = obj(value, {"type", "state", "sessionId", "revision", "date", "generatedAt", "validUntil", "remainingSeconds", "routineStep", "lockEnforced", "schedule", "prefs"}, {"brainDump"})
-    if result["type"] != "state" or result["state"] not in STATES:
+    if result["type"] != "state" or not isinstance(result["state"], str) or result["state"] not in STATES:
         raise ProtocolError("state")
     text(result["sessionId"], 128); text(result["revision"], 128); day(result["date"])
     generated, until = stamp(result["generatedAt"]), stamp(result["validUntil"])
@@ -200,7 +200,7 @@ def validate_payload(value: Any) -> dict[str, Any]:
     elif kind == "command":
         obj(value, {"type", "id", "action"}, {"minutes", "token"})
         text(value["id"], 128)
-        if value["action"] not in {"ping", "unpair", "test-evening", "resume-today", "suspend-today", "extend", "EMERGENCY_EXTENSION"}:
+        if not isinstance(value["action"], str) or value["action"] not in {"ping", "unpair", "test-evening", "resume-today", "suspend-today", "extend", "EMERGENCY_EXTENSION"}:
             raise ProtocolError("action")
         if "minutes" in value:
             integer(value["minutes"], 1, 24 * 60)

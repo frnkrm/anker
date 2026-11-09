@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from anker_companion.engine import CompanionEngine
-from anker_companion.protocol import ProtocolError, utc
+from anker_companion.protocol import ProtocolError, plan_date, utc
 from anker_companion.storage import AtomicStateStore
 from tests.helpers import Clock, FakePlatform, TestVault, state
 
@@ -19,6 +19,9 @@ class EngineTests(unittest.TestCase):
         self.store = AtomicStateStore(Path(self.directory.name) / "state", self.vault)
         self.engine = CompanionEngine(self.store, self.platform, self.clock)
         self.value = state(self.clock)
+        # These effect tests explicitly choose the prepared fixed-time fallback;
+        # separate tests below exercise the default pause-on-disconnect policy.
+        self.value["prefs"]["offlinePolicy"] = "fixed-time"
         self.engine.accept_state(self.value, "pair", self.clock())
 
     def allow(self, strict=False):
@@ -142,6 +145,86 @@ class EngineTests(unittest.TestCase):
         self.vault.fail = False
         restored = AtomicStateStore(self.store.path, self.vault)
         self.assertEqual(restored.read(), before)
+
+    def test_offline_pause_has_no_new_system_effects_after_ninety_seconds(self):
+        self.value["prefs"].update(offlinePolicy="pause", dimEnabled=True, audioDuck=True)
+        self.engine.accept_state(self.value, "pair", self.clock()); self.allow()
+        self.engine.local_settings({"dimEnabled": True, "audioDuck": True})
+        self.clock.now += 1800
+        view = self.engine.tick()
+        self.assertIn("link-stale", view["warnings"])
+        self.assertEqual(view["dimOpacity"], 0)
+        self.assertIsNone(view["graceRemaining"])
+        self.clock.now += 120; self.engine.tick()
+        self.assertEqual(self.platform.effects, [])
+
+    def test_authenticated_heartbeat_preserves_older_generated_state_until_lease(self):
+        self.value["prefs"]["offlinePolicy"] = "pause"
+        self.engine.accept_state(self.value, "pair", self.clock()); self.allow()
+        self.clock.now += 1800; self.engine.link_contact()
+        self.assertEqual(self.engine.tick()["graceRemaining"], 60)
+        self.clock.now += 60; self.engine.link_contact(); self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock"])
+        self.assertEqual(self.store.read()["snapshot"]["generatedAt"], self.value["generatedAt"])
+
+    def briefing(self, mode="scheduled", policy="fixed-time"):
+        prefs = deepcopy(self.value["prefs"]); prefs["offlinePolicy"] = policy
+        return {"type": "briefing", "revision": "days-r1", "generatedAt": utc(self.clock()),
+                "validUntil": "2026-11-15T03:00:00Z", "prefs": prefs, "days": [
+                    {"date": "2026-11-12", "validUntil": "2026-11-13T03:00:00Z", "pc": {"mode": "scheduled", "stopAt": "2026-11-12T21:30:00Z", "localTime": "22:30"}},
+                    {"date": "2026-11-13", "validUntil": "2026-11-14T03:00:00Z", "pc": {"mode": mode, **({"stopAt": "2026-11-13T22:00:00Z", "localTime": "23:00"} if mode == "scheduled" else {})}, "bedAt": "2026-11-13T22:30:00Z"}]}
+
+    def test_cached_exact_next_day_uses_its_pc_time_not_yesterday_or_bedtime(self):
+        self.engine.accept_briefing(self.briefing()); self.allow()
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-13T22:00:00+00:00").timestamp()
+        ack = self.engine.ack("days-r1")
+        self.assertEqual(ack["effective"], {"date": "2026-11-13", "mode": "scheduled", "stopAt": "2026-11-13T22:00:00.000Z"})
+        self.assertEqual(self.engine.tick()["graceRemaining"], 60)
+        self.clock.now += 60; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock"])
+
+    def test_paused_missing_and_expired_cached_days_never_invent_schedule(self):
+        self.allow(); self.engine.accept_briefing(self.briefing(mode="paused"))
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-13T22:00:00+00:00").timestamp()
+        self.assertEqual(self.engine.ack("days-r1")["effective"]["mode"], "paused")
+        self.engine.tick(); self.clock.now += 60; self.engine.tick()
+        self.assertEqual(self.platform.effects, [])
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-14T03:00:00+00:00").timestamp()
+        self.assertEqual(plan_date(self.clock()), "2026-11-14")
+        self.assertIn("source-expired", self.engine.tick()["warnings"])
+        self.assertEqual(self.platform.effects, [])
+
+    def test_cached_pause_policy_still_requires_live_authenticated_contact(self):
+        self.allow(); self.engine.accept_briefing(self.briefing(policy="pause"))
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-13T22:00:00+00:00").timestamp()
+        self.assertIn("link-stale", self.engine.tick()["warnings"])
+        self.assertEqual(self.platform.effects, [])
+        self.engine.link_contact()
+        self.assertEqual(self.engine.tick()["graceRemaining"], 60)
+
+    def test_scheduled_strict_night_starts_before_phone_hardware_scan_and_survives_offline(self):
+        self.value["prefs"].update(strictLock=True, offlinePolicy="pause")
+        self.engine.accept_state(self.value, "pair", self.clock()); self.allow(strict=True)
+        self.clock.now += 1800; self.engine.link_contact(); self.engine.tick()
+        self.assertFalse(self.value["lockEnforced"])
+        self.assertTrue(self.store.read()["runtime"]["nightLatch"]["scheduledNight"])
+        self.clock.now += 100; self.engine.tick(); self.clock.now += 10; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock", "lock"])
+        changed = deepcopy(self.value)
+        changed.update(state="DAY_ACTIVE", generatedAt=utc(self.clock()), revision="new")
+        changed["prefs"].update(strictLock=False, enforceEnabled=False)
+        self.engine.accept_state(changed, "pair", self.clock())
+        self.clock.now += 10; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock", "lock", "lock"])
+
+    def test_fixed_time_daily_briefing_never_creates_unscoped_strict_watchdog(self):
+        self.allow(strict=True)
+        briefing = self.briefing(); briefing["prefs"]["strictLock"] = True
+        self.engine.accept_briefing(briefing)
+        self.clock.now = __import__("datetime").datetime.fromisoformat("2026-11-13T22:00:00+00:00").timestamp()
+        self.engine.tick(); self.clock.now += 60; self.engine.tick(); self.clock.now += 20; self.engine.tick()
+        self.assertEqual(self.platform.effects, ["lock"])
+        self.assertIsNone(self.engine.active_latch(self.store.read(), self.clock()))
 
 
 if __name__ == "__main__":
