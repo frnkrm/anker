@@ -5,6 +5,18 @@ import org.junit.Test
 import java.net.InetAddress
 
 class PcLinkModelTest {
+    private val nightNow = PcLinkModel.timestamp("2026-11-12T22:30:00Z")
+    private fun automaticNight() = PcLinkModel.EmergencyState(
+        revision = "pc3:night", date = "2026-11-12", generatedAt = nightNow - 1_000,
+        validUntil = nightNow + 12 * 60 * 60_000L, morningDeadlineAt = nightNow + 10 * 60 * 60_000L,
+        targetAt = nightNow - 30 * 60_000L, lockEnforced = false,
+        strictEnabled = true, enforcementEnabled = true,
+    )
+    private fun confirmedNight() = PcLinkModel.EmergencyAcknowledgement(
+        revision = "pc3:night", date = "2026-11-12", mode = "locked", receivedAt = nightNow - 10,
+        localReceivedAt = nightNow - 5, stopAt = nightNow - 30 * 60_000L,
+    )
+
     @Test fun privateLanAndLoopbackAreAllowedButInternetAndUnspecifiedAreNot() {
         for (host in listOf("10.2.3.4", "172.16.2.3", "192.168.10.2", "169.254.1.1", "127.0.0.1", "::1", "fd12::1", "fe80::1")) {
             assertTrue(host, PcLinkModel.privateAddress(InetAddress.getByName(host)))
@@ -85,5 +97,62 @@ class PcLinkModelTest {
         assertThrows(IllegalStateException::class.java) { PcLinkModel.emergencyUntil(now, 5, now + 60_000, now) }
         assertThrows(IllegalArgumentException::class.java) { PcLinkModel.emergencyUntil(now, 121, now + PcLinkModel.MAX_LEASE_MS) }
         assertThrows(IllegalArgumentException::class.java) { PcLinkModel.emergencyUntil(Long.MAX_VALUE, 120, Long.MAX_VALUE) }
+    }
+
+    @Test fun automaticPcNightCanUseFreshAuthenticatedConfirmationWithoutPhoneBedFact() {
+        val state = automaticNight()
+        assertFalse(state.lockEnforced)
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, confirmedNight(), nightNow))
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, confirmedNight().copy(mode = "scheduled"), nightNow))
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state, null, nightNow))
+    }
+
+    @Test fun aNightConfirmationCannotBelongToAnotherDayRevisionOrInactiveMode() {
+        val state = automaticNight(); val ack = confirmedNight()
+        for (unrelated in listOf(ack.copy(revision = "pc3:other"), ack.copy(date = "2026-11-11"), ack.copy(mode = "paused"), ack.copy(mode = "released"))) {
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state, unrelated, nightNow))
+        }
+        for (warning in listOf("clock-skew", "local-enforcement-off", "legacy-conflict", "source-expired", "link-stale", "pairing-required", "morning-deadline-reached", "unknown-future-warning")) {
+            assertFalse(warning, PcLinkModel.emergencyNightConfirmed(state, ack.copy(warnings = setOf(warning)), nightNow))
+        }
+    }
+
+    @Test fun remoteClockToleranceNeverReplacesFreshNonfutureLocalContact() {
+        val state = automaticNight(); val ack = confirmedNight()
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, ack.copy(receivedAt = nightNow + 120_000), nightNow))
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, ack.copy(receivedAt = nightNow - 120_000), nightNow))
+        for (invalid in listOf(ack.copy(receivedAt = nightNow + 120_001), ack.copy(receivedAt = nightNow - 120_001), ack.copy(localReceivedAt = nightNow + 1), ack.copy(localReceivedAt = nightNow - 120_001))) {
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state, invalid, nightNow))
+        }
+    }
+
+    @Test fun automaticNightNeedsAnAlreadyDueAcknowledgedTarget() {
+        val state = automaticNight(); val ack = confirmedNight()
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state, ack.copy(stopAt = nightNow + 1), nightNow))
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(targetAt = null), ack.copy(stopAt = null), nightNow))
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(targetAt = nightNow + 1), ack.copy(stopAt = null), nightNow))
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, ack.copy(stopAt = null), nightNow))
+    }
+
+    @Test fun morningProjectionCanStillExtendTheAuthenticatedOriginalNightTarget() {
+        val state = automaticNight().copy(date = "2026-11-13", targetAt = nightNow + 20 * 60 * 60_000L)
+        val ack = confirmedNight().copy(date = "2026-11-13")
+        assertTrue(PcLinkModel.emergencyNightConfirmed(state, ack, nightNow))
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state, ack.copy(stopAt = null), nightNow))
+        assertFalse(PcLinkModel.emergencyNightConfirmed(state, ack.copy(date = "2026-11-12"), nightNow))
+    }
+
+    @Test fun consentAndFiniteLeaseRemainRequiredEvenWithAnExplicitPhoneNight() {
+        for (phoneFact in listOf(false, true)) {
+            val state = automaticNight().copy(lockEnforced = phoneFact)
+            val ack = confirmedNight()
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(strictEnabled = false), ack, nightNow))
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(enforcementEnabled = false), ack, nightNow))
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(validUntil = nightNow), ack, nightNow))
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(morningDeadlineAt = nightNow), ack, nightNow))
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(generatedAt = nightNow + 120_001), ack, nightNow))
+            assertFalse(PcLinkModel.emergencyNightConfirmed(state.copy(validUntil = state.generatedAt + PcLinkModel.MAX_LEASE_MS + 1), ack, nightNow))
+        }
+        assertTrue(PcLinkModel.emergencyNightConfirmed(automaticNight().copy(lockEnforced = true), null, nightNow))
     }
 }

@@ -11,6 +11,7 @@ object PcLinkModel {
     const val MAX_SAFE_SEQUENCE = 9_007_199_254_740_991L
     const val MAX_PAIR_AGE_MS = 10 * 60_000L
     const val MAX_LEASE_MS = 18 * 60 * 60_000L
+    const val MAX_ACK_AGE_MS = 120_000L
     private val identifier = Regex("[A-Za-z0-9._:-]{1,160}")
     private val base64 = Regex("[A-Za-z0-9_-]+")
 
@@ -91,6 +92,50 @@ object PcLinkModel {
 
     fun validPairExpiry(expiresAt: Long, now: Long): Boolean = expiresAt > now && expiresAt - now <= MAX_PAIR_AGE_MS
     fun validLease(generatedAt: Long, validUntil: Long): Boolean = validUntil > generatedAt && validUntil - generatedAt <= MAX_LEASE_MS
+
+    data class EmergencyState(
+        val revision: String,
+        val date: String,
+        val generatedAt: Long,
+        val validUntil: Long,
+        val morningDeadlineAt: Long?,
+        val targetAt: Long?,
+        val lockEnforced: Boolean,
+        val strictEnabled: Boolean,
+        val enforcementEnabled: Boolean,
+    )
+
+    /** Supplied only from a PC payload that has passed native AEAD/sequence validation. */
+    data class EmergencyAcknowledgement(
+        val revision: String,
+        val date: String,
+        val mode: String,
+        val receivedAt: Long,
+        val localReceivedAt: Long?,
+        val stopAt: Long?,
+        val warnings: Set<String> = emptySet(),
+    )
+
+    /** QR proof is checked separately before this bounded, content-free night gate. */
+    fun emergencyNightConfirmed(state: EmergencyState, acknowledgement: EmergencyAcknowledgement?, now: Long): Boolean {
+        if (now !in 0..Long.MAX_VALUE - MAX_ACK_AGE_MS || state.generatedAt < 0
+            || !state.strictEnabled || !state.enforcementEnabled
+            || !validLease(state.generatedAt, state.validUntil)
+            || state.generatedAt > now + MAX_ACK_AGE_MS
+            || state.validUntil <= now || state.morningDeadlineAt?.let { it <= now } == true) return false
+        // Preserve an explicitly confirmed phone-night, while keeping its original consent/lease gates.
+        if (state.lockEnforced) return true
+        val ack = acknowledgement ?: return false
+        if (ack.revision != state.revision || ack.date != state.date
+            || ack.mode !in setOf("locked", "scheduled") || ack.warnings.isNotEmpty()
+            || ack.receivedAt < now - MAX_ACK_AGE_MS || ack.receivedAt > now + MAX_ACK_AGE_MS) return false
+        val localReceivedAt = ack.localReceivedAt
+        if (localReceivedAt != null && (localReceivedAt <= 0 || localReceivedAt > now || now - localReceivedAt > MAX_ACK_AGE_MS)) return false
+        // After 04:00 the phone already projects the next evening. The authenticated
+        // PC ACK can still identify the actual, already-due target of the prior-night latch.
+        val target = ack.stopAt ?: state.targetAt
+        return target != null && target in 0..now
+    }
 
     /** Hardware extensions end with this night's lease and its existing morning safety deadline. */
     fun emergencyUntil(now: Long, minutes: Int, validUntil: Long, morningDeadlineAt: Long? = null): Long {

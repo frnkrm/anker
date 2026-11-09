@@ -205,8 +205,30 @@ object PcBridgeClient {
         val validUntil = PcLinkModel.timestamp(current.getString("validUntil"))
         val schedule = current.getJSONObject("schedule")
         val deadline = if (schedule.isNull("morningDeadlineAt")) null else PcLinkModel.timestamp(schedule.getString("morningDeadlineAt"))
+        val preferences = current.getJSONObject("prefs")
+        val targetKey = if (preferences.optBoolean("bedtimeSequence")) "bedAt" else if (schedule.has("pcStopAt")) "pcStopAt" else "bedAt"
+        val target = if (schedule.isNull(targetKey)) null else PcLinkModel.timestamp(schedule.getString(targetKey))
+        val acknowledgement = data.optJSONObject("ack")?.let { ack ->
+            runCatching {
+                val effective = ack.getJSONObject("effective")
+                val warnings = ack.getJSONArray("warnings")
+                PcLinkModel.EmergencyAcknowledgement(
+                    revision = ack.getString("revision"), date = effective.getString("date"), mode = effective.getString("mode"),
+                    receivedAt = PcLinkModel.timestamp(ack.getString("receivedAt")),
+                    localReceivedAt = data.optLong("lastReceivedAt").takeIf { it > 0 },
+                    stopAt = if (effective.has("stopAt")) PcLinkModel.timestamp(effective.getString("stopAt")) else null,
+                    warnings = (0 until warnings.length()).map { warnings.getString(it) }.toSet(),
+                )
+            }.getOrNull()
+        }
+        val night = PcLinkModel.EmergencyState(
+            revision = current.getString("revision"), date = current.getString("date"),
+            generatedAt = PcLinkModel.timestamp(current.getString("generatedAt")), validUntil = validUntil,
+            morningDeadlineAt = deadline, targetAt = target, lockEnforced = current.optBoolean("lockEnforced"),
+            strictEnabled = preferences.optBoolean("strictLock"), enforcementEnabled = preferences.optBoolean("enforceEnabled"),
+        )
+        check(PcLinkModel.emergencyNightConfirmed(night, acknowledgement, now)) { "PC_NIGHT_NOT_CONFIRMED" }
         val until = PcLinkModel.emergencyUntil(now, minutes, validUntil, deadline)
-        check(until > now && current.optBoolean("lockEnforced")) { "PC_NO_ACTIVE_NIGHT" }
         val token = JSONObject().put("v", 3).put("pair", data.getString("pairId"))
             .put("sessionId", current.getString("sessionId")).put("date", current.getString("date"))
             .put("issuedAt", Instant.ofEpochMilli(now).toString()).put("expiresAt", Instant.ofEpochMilli(minOf(now + 5 * 60_000L, until)).toString())
@@ -477,7 +499,8 @@ object PcBridgeClient {
     }
 
     private fun validatePreferences(value: JSONObject) {
-        exact(value, setOf("enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"), setOf("ifThen"))
+        exact(value, setOf("enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"), setOf("ifThen", "bedtimeSequence"))
+        if (value.has("bedtimeSequence")) require(value.get("bedtimeSequence") is Boolean) { "PC_PAYLOAD_INVALID" }
         for (key in setOf("enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "shareBrainDump", "morningCountdown")) require(value.get(key) is Boolean) { "PC_PAYLOAD_INVALID" }
         require(value.get("dimMax") is Number && value.getDouble("dimMax") in 0.0..0.4 && whole(value, "graceSeconds") in 60..600
             && value.getString("offlinePolicy") in setOf("pause", "fixed-time") && value.getString("stopAction") in setOf("lock", "hibernate", "shutdown")) { "PC_PAYLOAD_INVALID" }
@@ -485,10 +508,11 @@ object PcBridgeClient {
     }
 
     private fun validateEvent(value: JSONObject) {
-        exact(value, setOf("id", "seq", "at", "date", "kind"), setOf("basis", "newStopAt", "text", "nextStep"))
+        exact(value, setOf("id", "seq", "at", "date", "kind"), setOf("basis", "newStopAt", "text", "nextStep", "anchor"))
         require(PcLinkModel.validIdentifier(value.getString("id")) && PcLinkModel.validSequence(whole(value, "seq")) && value.getString("kind") in eventKinds) { "PC_EVENT_INVALID" }
         LocalDate.parse(value.getString("date")); PcLinkModel.timestamp(value.getString("at")); optionalTimestamp(value, "newStopAt")
         for (key in setOf("text", "nextStep")) if (value.has(key)) boundedText(value.getString(key), 500)
+        if (value.has("anchor")) require(value.getString("kind") == "extended" && value.get("anchor") is String && value.getString("anchor") in setOf("bed", "pc-stop")) { "PC_EVENT_INVALID" }
         if (value.has("basis")) require(value.getString("basis") in setOf("anker-shutdown", "user-shutdown", "sleep", "lock", "logoff", "idle")) { "PC_EVENT_INVALID" }
     }
 
