@@ -2,6 +2,7 @@
 /// <reference lib="dom.iterable" />
 import { expect, test, type Page } from '@playwright/test'
 import type { Settings } from '../src/core/types'
+import { guidancePreferences } from '../src/core/guidance'
 import { seedRecords, storedRecord } from './helpers/storage'
 import { chooseValue } from './helpers/controls'
 
@@ -12,6 +13,7 @@ async function setup(page: Page, fontScale = 1) {
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
   const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
   settings.appearance.fontScale = fontScale
+  settings.guidance = { ...guidancePreferences(settings.guidance), eveningLight: true, sleepNoise: true, paceHaptics: true, autoZombie: true }
   settings.sport.kind = 'gym'
   settings.support.eveningPreset.enabled = true
   settings.support.windDown = { enabled: true, at: 21 * 60, activity: 'In Ruhe ein paar Seiten lesen' }
@@ -21,7 +23,7 @@ async function setup(page: Page, fontScale = 1) {
 }
 
 const routes = [
-  '/einstellungen', '/einstellungen/schlaf', '/einstellungen/arbeit', '/einstellungen/weg',
+  '/einstellungen', '/einstellungen/schlaf', '/einstellungen/begleitung', '/einstellungen/arbeit', '/einstellungen/weg',
   '/einstellungen/sport', '/einstellungen/abende', '/einstellungen/abendmodus',
   '/einstellungen/morgenroutine', '/einstellungen/abendroutine', '/einstellungen/erinnerungen',
   '/einstellungen/hilfen', '/einstellungen/darstellung', '/einstellungen/assistenz',

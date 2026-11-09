@@ -185,6 +185,8 @@ Unter **Einstellungen → Abend & Morgen begleiten** schaltest du die Begleitung
 | Zombie-Kernschritte | In den Routinedetails selbst auswählen. Bewusst wechseln oder optional nach ausbleibender erster Rückmeldung. Ausgelassene Schritte bleiben ohne Erledigt-Haken/Punkte. |
 | Drei Abendphasen | 30 Minuten vor Bettzeit ankommen, 10 Minuten vorher Gedanken parken, zur Bettzeit den nächsten Schritt zeigen. Ein offenes Ende pausiert die zeitgesteuerten Phasen. |
 | Abend-QR und Schlafrauschen | Der vorhandene Anker-QR bestätigt den Übergang; optional folgt lokal erzeugtes, ausblendendes Brown Noise, zunächst 20 Minuten. Jederzeit stoppbar; der Scan behauptet nicht, dass du schläfst. |
+| Abendlicht | Freiwilliger einzelner Hinweis mit eigener Vorlaufzeit von 15–240 Minuten vor Bett, zunächst 120. Sanfter Abendübergang oder drei Abendphasen ersetzen ihn, damit keine zusätzlichen Hinweise gestapelt werden. Keine automatische Lampensteuerung. |
+| Handy-PC-Hinweise entlasten | Nur bei gewählter Option und frischer passender PC-Bestätigung für denselben Tag und Plan bleiben PC-Stopp-Hinweise am Handy ruhig. Bei Trennung, neuer Revision oder abgelaufenem Beleg werden sie innerhalb ihrer ursprünglichen Frist wieder möglich; Bett-Erinnerung und Wecker bleiben unabhängig. |
 
 **Gedanken für morgen:** Der Parkplatz nutzt deine vorhandenen privaten nächsten Schritte. Nach tatsächlich abgeschlossener Morgenroutine wird die Abendnotiz wieder angeboten. **Mein Wenn-dann-Abendplan** ist eine freiwillige lokale Notiz für dein eigenes Hindernis und deinen nächsten kleinen Übergang. Beide Inhalte werden nur nach eigener zusätzlicher Freigabe am PC angezeigt.
 
