@@ -208,7 +208,7 @@ class RoutinePaceKeeperService : Service() {
         try {
             engine.voice = voice
             val attrs = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
-            engine.setAudioAttributes(attrs)
+            if (engine.setAudioAttributes(attrs) != TextToSpeech.SUCCESS) { speechStatus("unavailable"); return }
             val lease = speechLease.begin()
             val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(attrs)
                 .setOnAudioFocusChangeListener({ change -> if (change < 0 && speechLease.lose(lease, false)) { stopSpeech(); speechStatus("interrupted") } }, handler).build()

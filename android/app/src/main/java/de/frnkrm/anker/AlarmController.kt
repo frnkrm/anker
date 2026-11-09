@@ -201,7 +201,7 @@ object AlarmController {
         val s = state(ctx)
         if (s.morningHandoffAt <= 0 || token != handoffToken(s)) return false
         AnkerPrefs.saveState(ctx, AlarmMachine.ackMorningHandoff(s, s.morningHandoffAt))
-        return true
+        return state(ctx).morningHandoffAt == 0L
     }
 
     @Synchronized
