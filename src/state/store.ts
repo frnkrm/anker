@@ -923,7 +923,9 @@ export const useApp = create<AppState>()((set, get) => ({
   applyPcEvents(payload) {
     return atomic(async () => {
       const before = get()
-      const result = reducePcEvents({ payload, local: before.local, days: before.days, inbox: before.inbox, nowMs: Date.now() })
+      const nowMs = Date.now()
+      const currentPlan = planFor(activePlanDate(nowMs, todayBerlin), before)
+      const result = reducePcEvents({ payload, local: before.local, days: before.days, inbox: before.inbox, nowMs, settings: before.settings, currentPlan })
       const records: RepositoryWrite[] = []
       if (JSON.stringify(result.local) !== JSON.stringify(before.local)) records.push({ collection: 'meta', id: 'local', data: sourceLocal(result.local) })
       for (const [date, day] of Object.entries(result.days)) if (JSON.stringify(day) !== JSON.stringify(before.days[date])) records.push({ collection: 'days', id: date, data: day })

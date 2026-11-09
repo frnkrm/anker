@@ -1,13 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
+import { guidancePreferences } from '../core/guidance'
+import { buildDayPlan } from '../core/planner'
 import { makeBackup, parseBackup, previewImport } from '../core/export/backup'
 import { defaultPcBridgeLocal, reducePcEvents, validPcBridgeLocal } from '../core/pcLink'
 import type { PcEventsPayload, PcLinkEvent } from '../core/pcLink'
 import { addDays, zonedToUtc } from '../core/time'
-import type { LocalData } from '../core/types'
+import type { DayLog, LocalData, Settings } from '../core/types'
 import { MemoryRepository } from '../data/memory'
 import type { Repository } from '../data/types'
-import { useApp } from './store'
+import { planFor, useApp } from './store'
 
 const storage = vi.hoisted(() => ({ repo: undefined as Repository | undefined }))
 vi.mock('../data', () => ({ getRepository: async () => storage.repo! }))
@@ -17,6 +19,15 @@ const event = (seq: number, kind: PcLinkEvent['kind'] = 'pc-rest', patch: Partia
 const payload = (...items: PcLinkEvent[]): PcEventsPayload => ({ type: 'events', items, lastSeq: Math.max(0, ...items.map(e => e.seq)) })
 const local = (): LocalData => ({ ...emptyLocal(), pcBridge: { ...defaultPcBridgeLocal(), enabled: true, automaticRestEvents: true } })
 const reduce = (data: PcEventsPayload, value = local(), nowMs = at(1321)) => reducePcEvents({ payload: data, local: value, days: {}, inbox: [], nowMs })
+const bedtimeSettings = (screenOffMin = 30): Settings => {
+  const settings = defaultSettings(date)
+  settings.anchor.manual = { wake: true, pcStop: true, bed: true }
+  settings.pcStop = 1350
+  settings.bed = 1380
+  settings.sleep.screenOffMin = screenOffMin
+  settings.guidance = { ...guidancePreferences(), enabled: true, eveningEscalation: true }
+  return settings
+}
 
 beforeEach(async () => {
   vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(at(1321))
@@ -103,6 +114,29 @@ describe('Reine PC-Ereignisprojektion', () => {
 })
 
 describe('Atomare persistierte PC-Quittierung', () => {
+  it('übernimmt eine Bettzeitverlängerung genau einmal ohne zusätzliche Bildschirm-aus-Minuten und hält Speichern atomar', async () => {
+    await useApp.getState().saveSettings(() => bedtimeSettings())
+    const before = { local: structuredClone(useApp.getState().local), days: structuredClone(useApp.getState().days), game: structuredClone(useApp.getState().game) }
+    const data = payload(event(1, 'extended', { anchor: 'bed', newStopAt: new Date(at(1395)).toISOString() }))
+    const writes = vi.spyOn(storage.repo!, 'putMany').mockRejectedValueOnce(new Error('disk'))
+    await expect(useApp.getState().applyPcEvents(data)).rejects.toThrow('disk')
+    expect(useApp.getState()).toMatchObject(before)
+    expect((await storage.repo!.get<LocalData>('meta', 'local'))?.pcBridge?.cursor).toBe(0)
+    expect(await storage.repo!.get('days', date)).toBeUndefined()
+    writes.mockClear()
+    expect(await useApp.getState().applyPcEvents(data)).toEqual({ appliedIds: ['event-1'], cursor: 1 })
+    expect(writes).toHaveBeenCalledTimes(1)
+    expect(writes.mock.calls[0]![0].map(record => [record.collection, record.id])).toEqual([['meta', 'local'], ['days', date]])
+    expect(useApp.getState().days[date]?.override).toEqual({ lateUntil: 1365, adjusted: true })
+    expect(planFor(date).bed).toBe(1395)
+    expect(useApp.getState().game).toEqual(before.game)
+    expect(useApp.getState().days[date]?.steps).toEqual({})
+    expect((await storage.repo!.get<DayLog>('days', date))?.override.lateUntil).toBe(1365)
+    writes.mockClear()
+    expect(await useApp.getState().applyPcEvents(data)).toEqual({ appliedIds: ['event-1'], cursor: 1 })
+    expect(writes).not.toHaveBeenCalled()
+    expect(planFor(date).bed).toBe(1395)
+  })
   it('schreibt Cursor, Receipts, Tagesfakt und Inbox in genau einer Transaktion; kein Arbeitsende/XP', async () => {
     await useApp.getState().workStart({ at: at(1000) })
     const before = structuredClone({ local: useApp.getState().local, game: useApp.getState().game })
@@ -137,6 +171,73 @@ describe('Atomare persistierte PC-Quittierung', () => {
     expect(await Promise.all([useApp.getState().applyPcEvents(data), useApp.getState().applyPcEvents(data)])).toEqual([{ appliedIds: ['event-1'], cursor: 1 }, { appliedIds: ['event-1'], cursor: 1 }])
     expect(write).toHaveBeenCalledTimes(1)
     expect(useApp.getState().inbox).toHaveLength(1)
+  })
+})
+
+describe('Explizite Bettzeit-Verlängerung aus demselben Tagesplan', () => {
+  it.each([0, 5, 30, 90])('plant bei %s Bildschirm-aus-Minuten Bett +15 als genau +15 statt einer zweiten Pufferzugabe', screenOff => {
+    const settings = bedtimeSettings(screenOff)
+    const currentPlan = buildDayPlan({ date, settings })
+    const value = event(1, 'extended', { anchor: 'bed', newStopAt: new Date(at(1395)).toISOString() })
+    const result = reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1321), settings, currentPlan })
+    const next = buildDayPlan({ date, settings, override: result.days[date]?.override })
+    expect(result.days[date]?.override.lateUntil).toBe(1395 - Math.min(screenOff, 30))
+    expect(next.bed).toBe(1395)
+    expect(result.days[date]?.steps).toEqual({})
+  })
+  it('erhält die bisherige PC-Stopp-Semantik für explizite und alte Meldungen', () => {
+    const settings = bedtimeSettings()
+    const currentPlan = buildDayPlan({ date, settings })
+    for (const anchor of [undefined, 'pc-stop'] as const) {
+      const value = event(1, 'extended', { ...(anchor === undefined ? {} : { anchor }), newStopAt: new Date(at(1365)).toISOString() })
+      const result = reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1321), settings, currentPlan })
+      expect(result.days[date]?.override.lateUntil).toBe(1365)
+      const next = buildDayPlan({ date, settings, override: result.days[date]?.override })
+      expect(next.pcStop).toBe(1365)
+      expect(next.bed).toBe(1395)
+    }
+  })
+  it('rundet eine Sekunden-Zielzeit auf die nächste darstellbare Planminute auf', () => {
+    const settings = bedtimeSettings()
+    const value = event(1, 'extended', { anchor: 'bed', newStopAt: new Date(at(1395) + 30_000).toISOString() })
+    const result = reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1321), settings, currentPlan: buildDayPlan({ date, settings }) })
+    expect(buildDayPlan({ date, settings, override: result.days[date]?.override }).bed).toBe(1396)
+  })
+  it('ordnet eine Bettverlängerung nach Mitternacht weiterhin derselben Nacht zu', () => {
+    const settings = bedtimeSettings()
+    settings.pcStop = 0; settings.bed = 30
+    const value = event(1, 'extended', { anchor: 'bed', at: new Date(at(1469)).toISOString(), newStopAt: new Date(at(1485)).toISOString() })
+    const result = reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1469), settings, currentPlan: buildDayPlan({ date, settings }) })
+    expect(result.days[date]?.override.lateUntil).toBe(1455)
+    expect(result.days[addDays(date, 1)]).toBeUndefined()
+    expect(buildDayPlan({ date, settings, override: result.days[date]?.override }).bed).toBe(1485)
+  })
+  it('bewahrt ein offenes Ende, spätere Handyentscheidungen und alte Nachrichten unverändert', () => {
+    const settings = bedtimeSettings()
+    const value = event(1, 'extended', { anchor: 'bed', newStopAt: new Date(at(1395)).toISOString() })
+    for (const lateUntil of ['open', 1390] as const) {
+      const day: DayLog = { date, override: { lateUntil }, steps: {} }
+      const result = reducePcEvents({ payload: payload(value), local: local(), days: { [date]: day }, inbox: [], nowMs: at(1321), settings, currentPlan: buildDayPlan({ date, settings, override: day.override }) })
+      expect(result.days[date]).toEqual(day)
+    }
+    const laterPhone = bedtimeSettings(); laterPhone.bed = 1410
+    expect(reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1321), settings: laterPhone, currentPlan: buildDayPlan({ date, settings: laterPhone }) }).days).toEqual({})
+    for (const nowMs of [at(1330), at(1321, addDays(date, 1))]) {
+      expect(reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs, settings, currentPlan: buildDayPlan({ date, settings }) }).days).toEqual({})
+    }
+  })
+  it('journalisiert ohne bekannte passende Abendfolge nur die ausdrückliche PC-Nachricht', () => {
+    const settings = bedtimeSettings()
+    const value = event(1, 'extended', { anchor: 'bed', newStopAt: new Date(at(1395)).toISOString() })
+    const currentPlan = buildDayPlan({ date, settings })
+    const masterOff = { ...settings, guidance: { ...settings.guidance!, enabled: false } }
+    const sequenceOff = { ...settings, guidance: { ...settings.guidance!, eveningEscalation: false } }
+    for (const context of [{ currentPlan }, { settings }, { settings: masterOff, currentPlan }, { settings: sequenceOff, currentPlan }, { settings, currentPlan: { ...currentPlan, date: addDays(date, 1) } }]) {
+      const result = reducePcEvents({ payload: payload(value), local: local(), days: {}, inbox: [], nowMs: at(1321), ...context })
+      expect(result.days).toEqual({})
+      expect(result.appliedIds).toEqual(['event-1'])
+      expect(result.local.pcBridge?.events).toEqual([value])
+    }
   })
 })
 
