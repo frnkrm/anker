@@ -40,6 +40,10 @@ data class AlarmConfig(
     val label: String = "Aufstehen",
     val smartWakeEnabled: Boolean = false,
     val smartWakeWindowMinutes: Int = 45,
+    val preWakeFadeIn: Boolean = false,
+    val antiRelapseEnabled: Boolean = false,
+    val antiRelapseDelayMinutes: Int = 5,
+    val zeroGapEnabled: Boolean = false,
 )
 
 data class NextAlarms(val mainAt: Long, val preWakeAt: Long)
@@ -60,6 +64,14 @@ data class AlarmState(
     val snoozeAt: Long = 0,
     val testAt: Long = 0,
     val wakeCheckAt: Long = 0,
+    /** Inhaltsfreie Bindung: ein Rückfall-Wecker je tatsächlich ausgelöstem Haupttermin. */
+    val antiRelapseAt: Long = 0,
+    val antiRelapseOriginAt: Long = 0,
+    val antiRelapseTriggeredAt: Long = 0,
+    /** Bleibt bis zur bestätigten Übernahme durch den App-Store erhalten. */
+    val morningHandoffAt: Long = 0,
+    val morningHandoffOriginAt: Long = 0,
+    val morningHandoffMethod: String = "",
     val snoozeUsed: Boolean = false,
     val lastMainFiredAt: Long = 0,
     val lastPreWakeFiredAt: Long = 0,
@@ -114,6 +126,25 @@ object AlarmMachine {
 
     /** Wege ohne Prüfung. Sie gelten nur für Test, Vorwecker und Wachheits-Check. */
     private val LIGHT_METHODS = setOf("test", "prewake", "check")
+    private val CONFIRMED_METHODS = setOf("qr", "math", "emergency")
+
+    private fun mainOriginAt(s: AlarmState, firedAt: Long = s.lastMainFiredAt): Long =
+        if (s.smartTargetAt > 0 && s.smartTriggeredAt > 0 &&
+            (firedAt == s.smartTriggeredAt || firedAt == s.smartTargetAt)) s.smartTargetAt else firedAt
+
+    // Bei frühem Smart Wake liegt die Zielzeit noch in der Zukunft. Die Frist beginnt beim echten Klingeln.
+    private fun recentMain(s: AlarmState, now: Long): Boolean =
+        s.lastMainFiredAt in 1..now && now - s.lastMainFiredAt <= LATE_GRACE_MS
+
+    private fun pendingRelapse(s: AlarmState, now: Long): Boolean =
+        s.antiRelapseAt > 0 && s.wakeCheckAt == s.antiRelapseAt && s.antiRelapseOriginAt > 0 &&
+            s.antiRelapseOriginAt == mainOriginAt(s) && s.antiRelapseTriggeredAt == 0L &&
+            s.lastWakeCheckFiredAt < s.antiRelapseAt && recentMain(s, now)
+
+    private fun cancelRelapse(s: AlarmState): AlarmState = s.copy(
+        wakeCheckAt = if (s.wakeCheckAt == s.antiRelapseAt) 0 else s.wakeCheckAt,
+        antiRelapseAt = 0,
+    )
 
     /** Erst nach erfolgreichem Dienststart. Die gespeicherte Vorwecker-Einstellung bleibt erhalten. */
     fun preparedSmartWake(s: AlarmState, cfg: AlarmConfig?, targetAt: Long, now: Long): AlarmState? {
@@ -152,18 +183,26 @@ object AlarmMachine {
             AlarmKind.TEST -> s.testAt
             AlarmKind.WAKE_CHECK -> s.wakeCheckAt
         }
+        if (kind == AlarmKind.WAKE_CHECK && s.antiRelapseAt > 0) return FireDecision(s, false)
         if (at <= 0 || at != expected) return FireDecision(s, false)
         return fired(s, kind, at, now)
     }
 
     /** Ein Alarm ist fällig. Doppelte Broadcasts klingeln nicht zweimal, Höherrangiges wird nie verdrängt. */
     fun fired(s: AlarmState, kind: AlarmKind, at: Long, now: Long): FireDecision {
+        if (kind == AlarmKind.WAKE_CHECK && s.antiRelapseAt > 0) return FireDecision(s, false)
         if (kind == AlarmKind.MAIN && at > 0 && at == s.smartConfirmedAt) return FireDecision(s, false)
         if (at > 0 && at <= lastFired(s, kind)) return FireDecision(s, false)
         val stamp = if (at > 0) at else now
         val marked = when (kind) {
             // Nur ein echter Hauptwecker gibt das Schlummern wieder frei
-            AlarmKind.MAIN -> s.copy(mainAt = 0, lastMainFiredAt = stamp, snoozeUsed = if (s.smartTargetAt == stamp) s.snoozeUsed else false, wakeCheckAt = 0)
+            AlarmKind.MAIN -> s.copy(
+                mainAt = 0, lastMainFiredAt = stamp,
+                snoozeUsed = if (s.smartTargetAt == stamp) s.snoozeUsed else false,
+                wakeCheckAt = 0, antiRelapseAt = 0,
+                antiRelapseOriginAt = if (s.antiRelapseOriginAt == mainOriginAt(s, stamp)) s.antiRelapseOriginAt else 0,
+                antiRelapseTriggeredAt = if (s.antiRelapseOriginAt == mainOriginAt(s, stamp)) s.antiRelapseTriggeredAt else 0,
+            )
             AlarmKind.PRE_WAKE -> s.copy(preWakeAt = 0, lastPreWakeFiredAt = stamp)
             AlarmKind.SNOOZE -> s.copy(snoozeAt = 0, lastSnoozeFiredAt = stamp)
             AlarmKind.TEST -> s.copy(testAt = 0, lastTestFiredAt = stamp, testResult = "rang", testResultAt = now)
@@ -182,12 +221,54 @@ object AlarmMachine {
         if ((kind == AlarmKind.MAIN || kind == AlarmKind.SNOOZE) && method in LIGHT_METHODS) return s
         val base = s.copy(ringing = null, ringStartedAt = 0, lastStopMethod = method, lastStopAt = now)
         return if (kind == AlarmKind.MAIN || kind == AlarmKind.SNOOZE) {
-            val check = if (cfg?.wakeCheckEnabled == true) now + cfg.wakeCheckDelayMinutes * 60_000L else 0L
-            base.copy(snoozeAt = 0, wakeCheckAt = check, smartConfirmedAt = if (s.smartTriggeredAt > 0) s.smartTargetAt else s.smartConfirmedAt)
+            val origin = mainOriginAt(s)
+            val confirmed = method in CONFIRMED_METHODS && origin > 0
+            val alreadyTriggered = s.antiRelapseOriginAt == origin && s.antiRelapseTriggeredAt > 0
+            val relapse = cfg?.enabled == true && cfg.antiRelapseEnabled && confirmed &&
+                recentMain(s, now) && !alreadyTriggered
+            val check = when {
+                relapse -> now + cfg!!.antiRelapseDelayMinutes.coerceIn(1, 30) * 60_000L
+                cfg?.antiRelapseEnabled == true -> 0L
+                cfg?.wakeCheckEnabled == true -> now + cfg.wakeCheckDelayMinutes * 60_000L
+                else -> 0L
+            }
+            base.copy(
+                snoozeAt = 0, wakeCheckAt = check,
+                antiRelapseAt = if (relapse) check else 0,
+                antiRelapseOriginAt = if (relapse) origin else s.antiRelapseOriginAt,
+                antiRelapseTriggeredAt = if (relapse) 0 else s.antiRelapseTriggeredAt,
+                morningHandoffAt = if (cfg?.zeroGapEnabled == true && confirmed) now else s.morningHandoffAt,
+                morningHandoffOriginAt = if (cfg?.zeroGapEnabled == true && confirmed) origin else s.morningHandoffOriginAt,
+                morningHandoffMethod = if (cfg?.zeroGapEnabled == true && confirmed) method else s.morningHandoffMethod,
+                smartConfirmedAt = if (s.smartTriggeredAt > 0) s.smartTargetAt else s.smartConfirmedAt,
+            )
         } else {
             base
         }
     }
+
+    /** Nur die gebundene aktuelle Wachheits-Zustellung darf einmal als Hauptwecker zurückkehren. */
+    fun relapseDue(s: AlarmState, cfg: AlarmConfig?, scheduledAt: Long, now: Long): FireDecision {
+        if (cfg?.enabled != true || !cfg.antiRelapseEnabled || scheduledAt <= 0 ||
+            scheduledAt != s.antiRelapseAt || now < scheduledAt || s.ringing != null || !pendingRelapse(s, now)) {
+            return FireDecision(s, false)
+        }
+        return FireDecision(s.copy(
+            ringing = AlarmKind.MAIN, ringStartedAt = now, snoozeUsed = true,
+            wakeCheckAt = 0, antiRelapseAt = 0,
+            lastWakeCheckFiredAt = scheduledAt, antiRelapseTriggeredAt = now,
+        ), true)
+    }
+
+    /** Eine echte Morgenhandlung bestätigt nur den noch offenen Check, niemals einen klingelnden Wecker. */
+    fun confirmMorningActivity(s: AlarmState, now: Long): AlarmState =
+        if (s.ringing == null && pendingRelapse(s, now)) cancelRelapse(s) else s
+
+    /** Erst nach dauerhafter Übernahme im App-Store bestätigen; alte Bestätigungen berühren nichts Neues. */
+    fun ackMorningHandoff(s: AlarmState, at: Long): AlarmState =
+        if (at > 0 && s.morningHandoffAt == at) s.copy(
+            morningHandoffAt = 0, morningHandoffOriginAt = 0, morningHandoffMethod = "",
+        ) else s
 
     /**
      * Der Dienst darf nur ohne klingelnden Zustand enden. Auch beim Empfang eines verzögerten
@@ -233,6 +314,11 @@ object AlarmMachine {
         var state = s
         var late: AlarmKind? = null
 
+        if (state.antiRelapseAt > 0 &&
+            (cfg?.enabled != true || !cfg.antiRelapseEnabled || !pendingRelapse(state, now))) {
+            state = cancelRelapse(state)
+        }
+
         // Auch ein Abbruch zwischen bestätigtem Stoppen und Neuplanen darf keinen zweiten Alarm nachholen.
         if (state.mainAt > 0 && state.mainAt == state.smartConfirmedAt) state = state.copy(mainAt = 0, preWakeAt = 0)
 
@@ -246,7 +332,11 @@ object AlarmMachine {
             else state = state.copy(snoozeAt = 0)
         }
         if (state.preWakeAt in 1..now) state = state.copy(preWakeAt = 0)
-        if (state.wakeCheckAt in 1..now) state = state.copy(wakeCheckAt = 0)
+        if (state.wakeCheckAt in 1..now) {
+            if (cfg?.enabled == true && cfg.antiRelapseEnabled && late == null &&
+                state.ringing == null && pendingRelapse(state, now)) late = AlarmKind.WAKE_CHECK
+            else state = cancelRelapse(state).copy(wakeCheckAt = 0)
+        }
         if (state.testAt in 1..now) {
             state = state.copy(testAt = 0, testResult = "failed", testResultAt = now)
         }
@@ -258,7 +348,8 @@ object AlarmMachine {
                 state = state.copy(mainAt = next.mainAt, preWakeAt = next.preWakeAt)
             }
             if (!cfg.enabled) state = state.copy(snoozeAt = 0, wakeCheckAt = 0)
-            if (!cfg.wakeCheckEnabled) state = state.copy(wakeCheckAt = 0)
+            if ((!cfg.wakeCheckEnabled && !cfg.antiRelapseEnabled) ||
+                (cfg.antiRelapseEnabled && state.wakeCheckAt != state.antiRelapseAt)) state = state.copy(wakeCheckAt = 0)
         }
         state = if (state.mainAt > 0 && state.mainAt == state.preWakePausedForTargetAt) state.copy(preWakeAt = 0)
             else state.copy(preWakePausedForTargetAt = 0)
