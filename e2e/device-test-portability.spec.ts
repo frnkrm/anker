@@ -58,7 +58,7 @@ test('Altdatei hat vor Bestätigung keine Wirkung; Historie bleibt sichtbar und 
   await expect(page.getByRole('status').filter({ hasText: 'Die früheren Belege wurden gespeichert' })).toBeVisible()
   await expect(page.getByText('Früher geprüft: 2 Testpunkte mit erhaltenen Rückmeldungen.', { exact: true })).toBeVisible()
   await expect(page.getByText(/0 von 6 kurzen Updateprüfungen/)).toBeVisible()
-  await expect(page.getByText('Noch nie geprüft: 94 freiwillige Testpunkte.', { exact: false })).toBeVisible()
+  await expect(page.getByText('Noch nie geprüft: 101 freiwillige Testpunkte.', { exact: false })).toBeVisible()
   await expect(page.getByText('Am Handy früher geprüft', { exact: true })).toBeVisible()
   await page.getByRole('checkbox', { name: /Für diesen Stand noch offen/ }).check()
   await expect(page.getByLabel('Test auswählen', { exact: true })).toContainText('Früher geprüft')
