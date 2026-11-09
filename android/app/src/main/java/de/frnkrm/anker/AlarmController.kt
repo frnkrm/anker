@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import com.getcapacitor.JSObject
 
 /**
  * Einziger Besitzer des Weckerzustands. Receiver, Dienst und Web-App gehen alle hier durch.
@@ -106,16 +107,24 @@ object AlarmController {
         arm(ctx, AlarmKind.SNOOZE, r.state.snoozeAt.takeIf { it > now } ?: 0)
         arm(ctx, AlarmKind.WAKE_CHECK, r.state.wakeCheckAt)
         arm(ctx, AlarmKind.TEST, r.state.testAt)
-        r.fireLate?.let { onFire(ctx, it, if (it == AlarmKind.MAIN) r.state.mainAt else r.state.snoozeAt) }
+        r.fireLate?.let { kind -> onFire(ctx, kind, when (kind) {
+            AlarmKind.MAIN -> r.state.mainAt
+            AlarmKind.SNOOZE -> r.state.snoozeAt
+            AlarmKind.WAKE_CHECK -> r.state.wakeCheckAt
+            else -> 0L
+        }) }
     }
 
     /** Alarmzeitpunkt erreicht. Danach sofort den nächsten Morgen planen, unabhängig von der App. */
     @Synchronized
     fun onFire(ctx: Context, kind: AlarmKind, at: Long) {
         val now = System.currentTimeMillis()
-        val d = AlarmMachine.firedScheduled(state(ctx), kind, at, now)
+        val before = state(ctx)
+        val d = if (kind == AlarmKind.WAKE_CHECK && before.antiRelapseAt > 0)
+            AlarmMachine.relapseDue(before, AnkerPrefs.config(ctx), at, now)
+            else AlarmMachine.firedScheduled(before, kind, at, now)
         AnkerPrefs.saveState(ctx, d.state)
-        if (d.ring && kind == AlarmKind.MAIN) SmartWakeService.stopIfRunning("Der feste Hauptwecker übernimmt.")
+        if (d.ring && d.state.ringing == AlarmKind.MAIN) SmartWakeService.stopIfRunning("Der Hauptwecker übernimmt.")
         if (d.ring) startRinging(ctx)
         reconcile(ctx, "fired")
     }
@@ -123,6 +132,8 @@ object AlarmController {
     private fun startRinging(ctx: Context) {
         AlarmTonePreview.stopForPriorityAudio()
         LocalVoiceController.silenceForAlarm()
+        RoutinePaceKeeperService.stopForPriorityAudio(ctx)
+        SleepAudioService.stopForPriorityAudio(ctx)
         ReminderScheduler.onAlarmStarted(ctx)
         try {
             ContextCompat.startForegroundService(ctx, Intent(ctx, AlarmService::class.java))
@@ -160,6 +171,48 @@ object AlarmController {
         AnkerPrefs.saveState(ctx, next)
         if (AlarmMachine.shouldStopRingingService(next)) AlarmService.stop(ctx)
         reconcile(ctx, "stopped")
+    }
+
+    private fun handoffToken(s: AlarmState) = "${s.morningHandoffOriginAt}:${s.morningHandoffAt}"
+
+    /** Content-free receipt survives a WebView/process failure until Store persistence is acknowledged. */
+    @Synchronized
+    fun pendingMorningHandoff(ctx: Context): JSObject {
+        var s = state(ctx)
+        val now = System.currentTimeMillis()
+        if (s.morningHandoffAt > 0 && (now < s.morningHandoffAt || now - s.morningHandoffAt > AlarmMachine.LATE_GRACE_MS || AnkerPrefs.config(ctx)?.zeroGapEnabled != true)) {
+            s = AlarmMachine.ackMorningHandoff(s, s.morningHandoffAt)
+            AnkerPrefs.saveState(ctx, s)
+        }
+        return JSObject().apply {
+            put("pending", s.morningHandoffAt > 0)
+            put("antiRelapseAt", s.antiRelapseAt)
+            if (s.antiRelapseAt > 0) put("activityToken", "${s.antiRelapseOriginAt}:${s.antiRelapseAt}")
+            if (s.morningHandoffAt > 0) {
+                put("token", handoffToken(s)); put("at", s.morningHandoffAt)
+                put("targetAt", s.morningHandoffOriginAt); put("method", s.morningHandoffMethod)
+                put("expiresAt", s.morningHandoffAt + AlarmMachine.LATE_GRACE_MS)
+            }
+        }
+    }
+
+    @Synchronized
+    fun ackMorningHandoff(ctx: Context, token: String): Boolean {
+        val s = state(ctx)
+        if (s.morningHandoffAt <= 0 || token != handoffToken(s)) return false
+        AnkerPrefs.saveState(ctx, AlarmMachine.ackMorningHandoff(s, s.morningHandoffAt))
+        return true
+    }
+
+    @Synchronized
+    fun confirmMorningActivity(ctx: Context, token: String? = null): Boolean {
+        val before = state(ctx)
+        if (token != null && token != "${before.antiRelapseOriginAt}:${before.antiRelapseAt}") return false
+        val next = AlarmMachine.confirmMorningActivity(before, System.currentTimeMillis())
+        if (next == before) return false
+        AnkerPrefs.saveState(ctx, next)
+        reconcile(ctx, "morning-confirmed")
+        return true
     }
 
     @Synchronized

@@ -139,7 +139,9 @@ object AlarmMachine {
     private fun pendingRelapse(s: AlarmState, now: Long): Boolean =
         s.antiRelapseAt > 0 && s.wakeCheckAt == s.antiRelapseAt && s.antiRelapseOriginAt > 0 &&
             s.antiRelapseOriginAt == mainOriginAt(s) && s.antiRelapseTriggeredAt == 0L &&
-            s.lastWakeCheckFiredAt < s.antiRelapseAt && recentMain(s, now)
+            s.lastWakeCheckFiredAt < s.antiRelapseAt &&
+            s.lastMainFiredAt in 1..now && now - s.lastMainFiredAt <= 2 * LATE_GRACE_MS &&
+            now - s.antiRelapseAt <= LATE_GRACE_MS
 
     private fun cancelRelapse(s: AlarmState): AlarmState = s.copy(
         wakeCheckAt = if (s.wakeCheckAt == s.antiRelapseAt) 0 else s.wakeCheckAt,
@@ -227,7 +229,7 @@ object AlarmMachine {
             val relapse = cfg?.enabled == true && cfg.antiRelapseEnabled && confirmed &&
                 recentMain(s, now) && !alreadyTriggered
             val check = when {
-                relapse -> now + cfg!!.antiRelapseDelayMinutes.coerceIn(1, 30) * 60_000L
+                relapse -> now + cfg.antiRelapseDelayMinutes.coerceIn(1, 30) * 60_000L
                 cfg?.antiRelapseEnabled == true -> 0L
                 cfg?.wakeCheckEnabled == true -> now + cfg.wakeCheckDelayMinutes * 60_000L
                 else -> 0L

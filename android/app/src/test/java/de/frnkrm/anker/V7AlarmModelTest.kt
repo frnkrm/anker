@@ -86,7 +86,7 @@ class V7AlarmModelTest {
             Triple(s.copy(antiRelapseTriggeredAt = due), cfg, due),
             Triple(s.copy(wakeCheckAt = due + 1), cfg, due),
             Triple(s.copy(ringing = AlarmKind.TEST), cfg, due),
-            Triple(s, cfg, now + AlarmMachine.LATE_GRACE_MS + 1),
+            Triple(s, cfg, due + AlarmMachine.LATE_GRACE_MS + 1),
         )
         for ((state, config, time) in invalid) {
             assertEquals(FireDecision(state, false), AlarmMachine.relapseDue(state, config, due, time))
@@ -143,10 +143,17 @@ class V7AlarmModelTest {
             assertEquals(0L, suppressed.state.antiRelapseAt)
             assertNull(suppressed.fireLate)
         }
-        val old = AlarmMachine.reconcile(s, cfg, now + AlarmMachine.LATE_GRACE_MS + 1)
+        val old = AlarmMachine.reconcile(s, cfg, s.antiRelapseAt + AlarmMachine.LATE_GRACE_MS + 1)
         assertEquals(0L, old.state.wakeCheckAt)
         assertEquals(0L, old.state.antiRelapseAt)
         assertNull(old.fireLate)
-        assertEquals(0L, AlarmMachine.reconcile(old.state, cfg, now + AlarmMachine.LATE_GRACE_MS + 2).state.antiRelapseAt)
+        assertEquals(0L, AlarmMachine.reconcile(old.state, cfg, s.antiRelapseAt + AlarmMachine.LATE_GRACE_MS + 2).state.antiRelapseAt)
+    }
+
+    @Test fun spaeteBestaetigungErhaeltIhreEigenenFuenfMinuten() {
+        val ringing = AlarmMachine.fired(AlarmState(mainAt = now), AlarmKind.MAIN, now, now).state.copy(mainAt = next)
+        val stopped = AlarmMachine.stopped(ringing, "qr", cfg, now + 29 * 60_000L)
+        assertEquals(now + 34 * 60_000L, stopped.antiRelapseAt)
+        assertTrue(AlarmMachine.relapseDue(stopped, cfg, stopped.antiRelapseAt, stopped.antiRelapseAt).ring)
     }
 }

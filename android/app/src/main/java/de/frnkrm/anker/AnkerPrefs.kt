@@ -39,6 +39,12 @@ object AnkerPrefs {
             .put("snoozeAt", s.snoozeAt)
             .put("testAt", s.testAt)
             .put("wakeCheckAt", s.wakeCheckAt)
+            .put("antiRelapseAt", s.antiRelapseAt)
+            .put("antiRelapseOriginAt", s.antiRelapseOriginAt)
+            .put("antiRelapseTriggeredAt", s.antiRelapseTriggeredAt)
+            .put("morningHandoffAt", s.morningHandoffAt)
+            .put("morningHandoffOriginAt", s.morningHandoffOriginAt)
+            .put("morningHandoffMethod", s.morningHandoffMethod)
             .put("snoozeUsed", s.snoozeUsed)
             .put("lastMainFiredAt", s.lastMainFiredAt)
             .put("lastPreWakeFiredAt", s.lastPreWakeFiredAt)
@@ -71,6 +77,12 @@ object AnkerPrefs {
                 snoozeAt = o.optLong("snoozeAt"),
                 testAt = o.optLong("testAt"),
                 wakeCheckAt = o.optLong("wakeCheckAt"),
+                antiRelapseAt = o.optLong("antiRelapseAt"),
+                antiRelapseOriginAt = o.optLong("antiRelapseOriginAt"),
+                antiRelapseTriggeredAt = o.optLong("antiRelapseTriggeredAt"),
+                morningHandoffAt = o.optLong("morningHandoffAt"),
+                morningHandoffOriginAt = o.optLong("morningHandoffOriginAt"),
+                morningHandoffMethod = o.optString("morningHandoffMethod", ""),
                 snoozeUsed = o.optBoolean("snoozeUsed"),
                 lastMainFiredAt = o.optLong("lastMainFiredAt"),
                 lastPreWakeFiredAt = o.optLong("lastPreWakeFiredAt"),
@@ -102,6 +114,10 @@ object AnkerPrefs {
             .put("label", c.label)
             .put("smartWakeEnabled", c.smartWakeEnabled)
             .put("smartWakeWindowMinutes", c.smartWakeWindowMinutes)
+            .put("preWakeFadeIn", c.preWakeFadeIn)
+            .put("antiRelapseEnabled", c.antiRelapseEnabled)
+            .put("antiRelapseDelayMinutes", c.antiRelapseDelayMinutes)
+            .put("zeroGapEnabled", c.zeroGapEnabled)
         prefs(ctx).edit().putString("alarmConfig", o.toString()).commit()
     }
 
@@ -124,6 +140,10 @@ object AnkerPrefs {
                 label = o.optString("label", "Aufstehen"),
                 smartWakeEnabled = o.optBoolean("smartWakeEnabled", false),
                 smartWakeWindowMinutes = o.optInt("smartWakeWindowMinutes", 45),
+                preWakeFadeIn = o.optBoolean("preWakeFadeIn", false),
+                antiRelapseEnabled = o.optBoolean("antiRelapseEnabled", false),
+                antiRelapseDelayMinutes = o.optInt("antiRelapseDelayMinutes", 5).coerceIn(1, 30),
+                zeroGapEnabled = o.optBoolean("zeroGapEnabled", false),
             )
         } catch (_: Exception) {
             null
