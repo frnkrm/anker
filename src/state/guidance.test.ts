@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
-import { deriveGuidance, guidancePlanDate, guidancePreferences } from '../core/guidance'
+import { deriveGuidance, genuineMorningCompleted, guidancePlanDate, guidancePreferences } from '../core/guidance'
 import { makeBackup, parseBackup } from '../core/export/backup'
 import { addDays, zonedToUtc } from '../core/time'
 import type { LocalData } from '../core/types'
@@ -113,6 +113,38 @@ describe('Atomarer Einstieg nach dem Hauptwecker', () => {
 })
 
 describe('Kleine echte Handlungen statt künstlicher Erledigungen', () => {
+  it.each(['manual', 'automatic'] as const)('erhält einen laufenden minimalen Abendfokus beim %s-Morgenwechsel', async source => {
+    await useApp.getState().saveSettings(s => ({ ...s, routines: {
+      morning: [
+        { id: 'm-first', title: 'Wasser', minutes: 3, minimal: { title: 'Ein Schluck', minutes: 1 }, isEssentialForZombieMode: true },
+        { id: 'm-second', title: 'Morgenzusatz', minutes: 4 },
+      ],
+      evening: [
+        { id: 'e-first', title: 'Abendschritt', minutes: 10, minimal: { title: 'Kleine eigene Abendwahl', minutes: 2 }, isEssentialForZombieMode: false },
+        { id: 'e-second', title: 'Abendzusatz', minutes: 12, minimal: { title: 'Ein kleiner Teil', minutes: 1 }, isEssentialForZombieMode: true },
+      ],
+    } }))
+    await useApp.getState().activateMorningFromAlarm(handoff())
+    await useApp.getState().setStep(date, 'evening', 'e-second', 'minimal')
+    await useApp.getState().ensureFocus({ kind: 'routine', date, routine: 'evening', stepId: 'e-first', minimal: true }, 120)
+    const before = structuredClone(useApp.getState().local.focus!)
+    const evening = structuredClone(planFor(date).blocks.find(block => block.routine === 'evening'))
+    const steps = structuredClone(useApp.getState().days[date]!.steps)
+    const game = structuredClone(useApp.getState().game)
+    const savedEvening = structuredClone(useApp.getState().settings.routines.evening)
+    for (const enabled of [true, false]) {
+      vi.setSystemTime(Date.now() + 15_000)
+      await useApp.getState().setZombie(date, enabled, source)
+      expect(useApp.getState().local.focus).toEqual(before)
+      expect(planFor(date).blocks.find(block => block.routine === 'evening')).toEqual(evening)
+      expect(useApp.getState().settings.routines.evening).toEqual(savedEvening)
+      expect(useApp.getState().days[date]!.steps).toEqual(steps)
+      expect(useApp.getState().game).toEqual(game)
+      expect(genuineMorningCompleted(planFor(date), useApp.getState().days[date])).toBe(false)
+      expect(useApp.getState().local.guidance?.days[date]?.morningCompletedAt).toBeUndefined()
+      expect(planFor(date).blocks.find(block => block.routine === 'morning')!.steps!.map(step => step.id)).toEqual(enabled ? ['m-first'] : ['m-first', 'm-second'])
+    }
+  })
   it('reduziert auf eigene Kernschritte, erhält andere Modi und keine ausgelassenen Häkchen', async () => {
     await useApp.getState().saveSettings(s => ({ ...s, routines: { ...s.routines, morning: [
       { id: 'water', title: 'Wasser', minutes: 3, minimal: { title: 'Ein Schluck', minutes: 1 }, isEssentialForZombieMode: true },

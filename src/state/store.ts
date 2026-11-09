@@ -655,7 +655,7 @@ export const useApp = create<AppState>()((set, get) => ({
       if (source === 'manual') day.firstInteractionAt ??= Date.now()
       const plan = planFor(date, { ...before, local, days: { ...before.days, [date]: log } })
       const previous = local.focus
-      if (previous?.target.kind === 'routine' && previous.target.date === date) {
+      if (previous?.target.kind === 'routine' && previous.target.date === date && previous.target.routine === 'morning') {
         const previousTarget = previous.target
         const open = openSteps(plan, log, previousTarget.routine)
         const targetStep = open.find(step => step.id === previousTarget.stepId)

@@ -22,6 +22,8 @@ async function setup(page: Page, fontScale: number) {
       { id: `${routine.id}-short`, title: 'Wasser bereitstellen', minutes: 1, minimal: { title: 'Ein Schluck', minutes: 1 } },
       { id: `${routine.id}-custom`, title: 'Eigener Schritt', minutes: 47 },
     ]
+    // Eine frühere Abendmarkierung bleibt gespeichert, bietet dort aber keine wirkungslose Auswahl.
+    if (routine.id === 'evening') steps[0]!.isEssentialForZombieMode = true
     settings.routines[routine.id] = steps
   }
   await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
@@ -70,17 +72,22 @@ for (const { width, fontScale, availableWidth } of viewports) {
       // Die gemalte Checkbox ist kleiner als ihr zugeordnetes, vollständig klickbares
       // Label. Auch der Rand außerhalb des Kästchens muss die Auswahl dauerhaft ändern.
       const essential = cards.first().getByRole('checkbox', { name: 'Kernschritt im Zombie-Modus', exact: true })
-      const essentialTarget = essential.locator('xpath=ancestor::label[1]')
-      const targetBox = (await essentialTarget.boundingBox())!
-      const paintBox = (await essential.boundingBox())!
-      expect(targetBox.width, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
-      expect(targetBox.height, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
-      const labelPoint = { x: targetBox.width - 8, y: targetBox.height / 2 }
-      expect(targetBox.x + labelPoint.x, `${routine.heading}: Labelklick außerhalb des Kästchens`).toBeGreaterThan(paintBox.x + paintBox.width)
-      await expect(essential).not.toBeChecked()
-      await essentialTarget.click({ position: labelPoint })
-      await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines[routine.id][0]?.isEssentialForZombieMode).toBe(true)
-      await expect(essential).toBeChecked()
+      if (routine.id === 'morning') {
+        const essentialTarget = essential.locator('xpath=ancestor::label[1]')
+        const targetBox = (await essentialTarget.boundingBox())!
+        const paintBox = (await essential.boundingBox())!
+        expect(targetBox.width, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
+        expect(targetBox.height, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
+        const labelPoint = { x: targetBox.width - 8, y: targetBox.height / 2 }
+        expect(targetBox.x + labelPoint.x, `${routine.heading}: Labelklick außerhalb des Kästchens`).toBeGreaterThan(paintBox.x + paintBox.width)
+        await expect(essential).not.toBeChecked()
+        await essentialTarget.click({ position: labelPoint })
+        await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines.morning[0]?.isEssentialForZombieMode).toBe(true)
+        await expect(essential).toBeChecked()
+      } else {
+        await expect(essential).toHaveCount(0)
+        expect((await storedRecord<Settings>(page, 'settings', 'main'))?.routines.evening[0]?.isEssentialForZombieMode).toBe(true)
+      }
       const geometry = await cards.evaluateAll((nodes) => {
         const rect = (node: Element | Range) => {
           const box = node.getBoundingClientRect()

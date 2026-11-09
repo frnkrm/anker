@@ -377,7 +377,7 @@ function RoutineEditor({ s, save, r }: { s: S; save: (fn: (s: S) => S) => Promis
           <SettingRow label="Dauer"><Stepper label="Dauer" value={step.minutes} step={1} min={1} max={120} onChange={(value) => upd(step.id, { minutes: value })} /></SettingRow>
           <TextInput aria-label="Minimal-Version" placeholder="Eine kleine Version" value={step.minimal?.title ?? ''} onChange={(event) => { const title = event.target.value; edit((current) => current.map((item) => item.id === step.id ? { ...item, minimal: title ? { title, minutes: item.minimal?.minutes ?? 1 } : undefined } : item)) }} />
           {step.minimal && <SettingRow label="Kleine Version"><Stepper label="Dauer kleine Version" value={step.minimal.minutes} min={1} max={120} onChange={(value) => upd(step.id, { minimal: { ...step.minimal!, minutes: value } })} /></SettingRow>}
-          <Checkbox checked={step.isEssentialForZombieMode ?? false} onChange={isEssentialForZombieMode => upd(step.id, { isEssentialForZombieMode })}>Kernschritt im Zombie-Modus</Checkbox>
+          {r === 'morning' && <Checkbox checked={step.isEssentialForZombieMode ?? false} onChange={isEssentialForZombieMode => upd(step.id, { isEssentialForZombieMode })}>Kernschritt im Zombie-Modus</Checkbox>}
           <Button size="sm" variant="ghost" className="justify-self-end" onClick={() => void remove(step)}>Entfernen</Button>
         </div>
       </details>}
