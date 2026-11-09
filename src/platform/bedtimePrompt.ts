@@ -9,6 +9,15 @@ export interface BedtimePromptState {
   overlayPermission: boolean
   exact: boolean
   reason?: string
+  /** Tatsächlicher Zustand des eingebauten Displays; DOZE/AOD zählt nicht als eingeschaltet. */
+  displayState?: number
+  screenInteractive?: boolean
+  overlayAttached?: boolean
+  /** CPU-Prüftermin; kein Einschalten des Bildschirms. */
+  wakeup?: boolean
+  allowWhileIdle?: boolean
+  foregroundStatus?: 'not-requested' | 'requested' | 'confirmed' | 'unconfirmed' | 'failed'
+  foregroundAttempts?: number
 }
 
 export interface BedtimeApi {

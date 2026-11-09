@@ -45,7 +45,13 @@ class AnkerNativePlugin : Plugin() {
     private val voice by lazy { LocalVoiceController(context) }
     private val alarmTonePreview by lazy { AlarmTonePreview(context) }
     override fun handleOnResume() { super.handleOnResume(); voiceForeground = true; try { BedtimePromptController.onAppResume(context) } catch (_: Exception) { } }
-    override fun handleOnPause() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); super.handleOnPause(); activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking(); alarmTonePreview.stop() } }
+    override fun handleOnPause() {
+        voiceForeground = false
+        dictationLease.cancel(); speechLease.cancel()
+        try { BedtimePromptController.onAppPause(context) } catch (_: Exception) { }
+        super.handleOnPause()
+        activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking(); alarmTonePreview.stop() }
+    }
     override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy(); alarmTonePreview.stop() }; super.handleOnDestroy() }
 
     @PluginMethod fun getVoiceCapabilities(call: PluginCall) { activity.runOnUiThread { call.resolve(voice.capabilities()) } }
@@ -411,6 +417,13 @@ class AnkerNativePlugin : Plugin() {
     }
 
     // ---------- Erinnerungen ----------
+
+    /** Ausschließlich das begrenzte app-eigene Journal, ohne Logcat oder fremde Appdaten. */
+    @PluginMethod
+    fun getDiagnosticJournal(call: PluginCall) { execute {
+        try { call.resolve(JSObject(NativeDiagnosticJournal.snapshot(context).toString())) }
+        catch (_: Exception) { call.reject("DIAGNOSTIC_READ_FAILED") }
+    } }
 
     @PluginMethod
     fun syncReminders(call: PluginCall) {

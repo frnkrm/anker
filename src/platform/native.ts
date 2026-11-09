@@ -225,6 +225,8 @@ export interface AnkerNativePlugin {
   confirmTest(o: { heard: boolean }): Promise<void>
   playTestTone(): Promise<{ ok: boolean }>
   getAlarmDiagnostics(): Promise<AlarmDiagnostics>
+  /** Begrenztes lokales Diagnosejournal; niemals Logcat, private Inhalte oder ein Zustellbeleg. */
+  getDiagnosticJournal(): Promise<unknown>
   syncReminders(o: { reminders: NativeReminder[]; relevant: string[]; revisions: Record<string, string>; policy?: ReminderPolicy; ruleSnapshot?: NativeReminderRuleSnapshot }): Promise<void>
   drainReminderActions(): Promise<{ actions: ReminderActionInfo[] }>
   ackReminderActions(o: { ids: string[] }): Promise<void>
@@ -253,6 +255,7 @@ export interface AnkerNativePlugin {
 
 // Im Web gibt es keinen Wecker: nur still antworten, nie so tun, als wäre etwas geplant
 const web: Partial<AnkerNativePlugin> = {
+  async getDiagnosticJournal() { return { version: 1, available: false, retentionDays: 7, maxEntries: 800, events: [] } },
   async getVoiceCapabilities() { return { dictationSupported: false, speechSupported: false, localOnly: true } },
   async startDictation() { return { status: 'unavailable' } },
   async stopDictation() {},
