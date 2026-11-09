@@ -4,6 +4,7 @@ import { defaultSettings, emptyLocal } from '../src/core/defaults'
 import { initialGame, XP } from '../src/core/game'
 import type { BedtimePromptState } from '../src/platform/bedtimePrompt'
 import type { Settings } from '../src/core/types'
+import type { DiagnosticExport } from '../src/core/diagnostics'
 import { seedRecords, storedRecord } from './helpers/storage'
 
 const START = Date.parse('2026-11-06T23:30:00+01:00')
@@ -22,10 +23,11 @@ interface BedtimeProbe {
 }
 
 /** Kontrollierte Capacitor-/SQLite-Brücke. Dies prüft weder Android-Overlays noch Entsperrung am Gerät. */
-async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean } = {}) {
+async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean; diagnostics?: boolean } = {}) {
   const settings = { ...defaultSettings('2026-11-06'), onboarded: true }
   settings.sleep.fallAsleepMin = options.delay ?? 15
   settings.sleep.bedtimePromptEnabled = true
+  if (options.diagnostics) { settings.alarm.qrSecret = 'PRIVATE_QR'; settings.routines.morning[0]!.title = 'PRIVATE_STEP'; settings.support.windDown.activity = 'PRIVATE_THOUGHT' }
   const now = options.daytime ? Date.parse('2026-11-06T10:00:00+01:00') : START
   await page.clock.setFixedTime(new Date(now))
   await page.addInitScript(({ settings, local, game, options, now }) => {
@@ -51,20 +53,30 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
       appActive(isActive) { for (const listener of listeners.values()) if (listener.event === 'appStateChange') listener.callback({ isActive }) },
     }
     const bedtime = ['getBedtimePromptState', 'startBedtimePrompt', 'stopBedtimePrompt', 'ackBedtimePrompt', 'openOverlayPermissionSettings']
-    const common = ['getAlarmState', 'getAlarmDiagnostics', 'getSmartWakeState', 'syncAlarmConfig', 'syncReminders', 'drainReminderActions', 'ackReminderActions', 'setReminderFocus', 'updateWidget', 'getGeofenceState', 'ackGeofenceSuggestions', 'stopSpeaking']
+    const common = ['getAlarmState', 'getAlarmDiagnostics', 'getDiagnosticJournal', 'getSmartWakeState', 'syncAlarmConfig', 'syncReminders', 'drainReminderActions', 'ackReminderActions', 'setReminderFocus', 'updateWidget', 'getGeofenceState', 'ackGeofenceSuggestions', 'stopSpeaking']
+    const observableActions = ['testAlarm', 'playTestTone', 'stopAlarm', 'snoozeAlarm', 'startSmartWake', 'startSleepAudio', 'syncRoutinePaceKeeper', 'pcBridgeStart']
     Object.assign(window, { __bedtimeProbe: probe, CapacitorCustomPlatform: { name: 'android' }, Capacitor: {
       PluginHeaders: [
         { name: 'App', methods: ['getLaunchUrl', 'getInfo', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
-        { name: 'AnkerNative', methods: [...bedtime, ...common, 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
+        { name: 'AnkerNative', methods: [...bedtime, ...common, ...observableActions, 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
         { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'executeSet', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
+        { name: 'Filesystem', methods: [{ name: 'writeFile', rtype: 'promise' }] },
+        { name: 'Share', methods: [{ name: 'share', rtype: 'promise' }] },
       ],
       async nativePromise(plugin: string, method: string, raw: Record<string, unknown> = {}) {
         if (method === 'removeListener') { listeners.delete(String(raw.callbackId)); return {} }
-        if (plugin === 'App') return method === 'getLaunchUrl' ? { url: 'de.frnkrm.anker.mobile://now' } : { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'Browserfixture', build: '0' }
+        if (plugin === 'Filesystem' || plugin === 'Share') { probe.calls.push({ method: `${plugin}.${method}`, options: { ...raw } }); return plugin === 'Filesystem' ? { uri: `file:///cache/${String(raw.path)}` } : {} }
+        if (plugin === 'App') return method === 'getLaunchUrl' ? (options.diagnostics ? {} : { url: 'de.frnkrm.anker.mobile://now' }) : { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'Browserfixture', build: '0' }
         if (plugin === 'AnkerNative') {
-          if (bedtime.includes(method)) probe.calls.push({ method, options: { ...raw } })
+          probe.calls.push({ method, options: { ...raw } })
+          if (method === 'getDiagnosticJournal') return { version: 1, retentionDays: 7, maxEntries: 800, pendingEvents: 0, droppedEvents: 0, secret: 'PRIVATE_JOURNAL', events: [
+            { seq: 1, at: now - 7_200_000, elapsedMs: 100, category: 'bedtime', code: 'scheduled', details: {} },
+            { seq: 2, at: now - 1_800_000, elapsedMs: 200, category: 'alarm', code: 'player_started', details: { started: true } },
+            { seq: 3, at: now - 900_000, elapsedMs: 300, category: 'bedtime', code: 'foreground_unconfirmed', details: { displayState: 2, interactive: false, foreground: false, reasonCode: 'foreground-unconfirmed', message: 'PRIVATE_ERROR', sessionId: 'PRIVATE_SESSION' }, note: 'PRIVATE_NOTE' },
+            { seq: 4, at: now - 300_000, elapsedMs: 400, category: 'bedtime', code: 'stopped', details: {} },
+          ] }
           if (method === 'getBedtimePromptState') {
-            const value = { ...probe.state }
+            const value = { ...probe.state, ...(options.diagnostics ? { sessionId: 'PRIVATE_STATUS_SESSION', note: 'PRIVATE_STATUS_NOTE' } : {}) }
             if (probe.holdNextRead) {
               probe.holdNextRead = false; probe.pendingReads++
               return await new Promise<BedtimePromptState>((resolve) => probe.release.push(() => { probe.pendingReads--; resolve(value) }))
@@ -304,5 +316,47 @@ test('Nicht bestätigter Vordergrundwechsel bleibt ehrlich und beendet keine Han
   await expect(page.getByText(/Android hat den Wechsel zu Anker nicht bestätigt/)).toHaveCount(0)
   await expect(page.getByText(TEXT, { exact: true })).toBeVisible()
   expect((await probe(page)).calls.filter(call => call.method === 'ackBedtimePrompt')).toHaveLength(0)
+  expect(await stored(page)).toEqual(before)
+})
+
+test('Native Diagnose teilt nur gewählte Logzeiten und sichere Einstellungen ohne Dienste zu starten', async ({ page }) => {
+  await nativeBedtime(page, { granted: true, daytime: true, diagnostics: true })
+  await page.goto('/diagnose')
+  await expect(page.getByRole('heading', { name: 'Weckerverlauf & Diagnose', exact: true })).toBeVisible()
+  const exportButton = page.getByRole('button', { name: 'Ausgewählte Diagnose exportieren', exact: true })
+  await expect(exportButton).toBeEnabled()
+  await expect(page.getByText('Im Browser gibt es kein Android-Weckerjournal.', { exact: false })).toHaveCount(0)
+  const before = await stored(page)
+  const callsBefore = (await probe(page)).calls.length
+  await page.getByRole('radio', { name: 'Zeitraum wählen', exact: true }).click()
+  await page.getByLabel('Von auswählen', { exact: true }).fill('2026-11-06T09:00')
+  await page.getByLabel('Bis auswählen', { exact: true }).fill('2026-11-06T09:50')
+  await page.getByText('Log- und Einstellungsbereiche auswählen', { exact: true }).click()
+  await page.getByRole('checkbox', { name: 'Wecker', exact: true }).uncheck()
+  await page.getByRole('checkbox', { name: 'Systemereignisse', exact: true }).uncheck()
+  await page.getByRole('checkbox', { name: 'Schlaf- und Abendoptionen', exact: true }).check()
+  await expect(page.getByRole('checkbox', { name: 'Stummer Schlafhinweis', exact: true })).toBeChecked()
+  await expect(page.getByRole('checkbox', { name: 'Wecker und Aufstehzeiten', exact: true })).not.toBeChecked()
+  await expect(page.getByRole('status').filter({ hasText: 'Auswahl:' })).toHaveText('Auswahl: 1 Logeinträge · 1 Einstellungsbereiche.')
+  await exportButton.click()
+  await expect(page.getByText('Diagnosedatei erstellt. Im Teilen-Menü entscheidest du selbst, wohin sie geht.', { exact: true })).toBeVisible()
+
+  const calls = (await probe(page)).calls.slice(callsBefore)
+  expect(calls.map(call => call.method)).toEqual(['getAlarmDiagnostics', 'getBedtimePromptState', 'getDiagnosticJournal', 'Filesystem.writeFile', 'Share.share'])
+  const write = calls.find(call => call.method === 'Filesystem.writeFile')!.options
+  const share = calls.find(call => call.method === 'Share.share')!.options
+  expect(write).toMatchObject({ directory: 'CACHE', path: expect.stringMatching(/^Anker-Diagnose-.*\.json$/) })
+  expect(share).toEqual({ title: write.path, files: [`file:///cache/${String(write.path)}`] })
+  const json = Buffer.from(String(write.data), 'base64').toString('utf8')
+  const report = JSON.parse(json) as DiagnosticExport
+  expect(report.app).toMatchObject({ name: 'Anker', platform: 'android' })
+  expect(report.manifest.selection).toEqual({ from: Date.parse('2026-11-06T09:00:00+01:00'), to: Date.parse('2026-11-06T09:50:00+01:00'), categories: ['bedtime'], settingsGroups: ['sleep'], includeCurrentStatus: true })
+  expect(report.logs).toEqual([{ seq: 3, at: Date.parse('2026-11-06T09:45:00+01:00'), elapsedMs: 300, category: 'bedtime', code: 'foreground_unconfirmed', details: { displayState: 2, interactive: false, foreground: false, reasonCode: 'foreground-unconfirmed' } }])
+  expect(Object.keys(report.settings ?? {})).toEqual(['sleep'])
+  expect(report.settings!.sleep).toMatchObject({ fallAsleepMin: 15, bedtimePromptEnabled: true })
+  expect(Object.keys(report.runtime ?? {}).sort()).toEqual(['bedtime', 'device'])
+  expect(report.runtime?.bedtime).toEqual({ phase: 'idle', overlayPermission: true, exact: true })
+  expect(json).not.toContain('PRIVATE_')
+  expect(await starts(page)).toEqual([])
   expect(await stored(page)).toEqual(before)
 })
