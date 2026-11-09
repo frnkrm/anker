@@ -29,13 +29,17 @@ data class ReminderRuleOccurrence(val ruleId: String, val date: String, val at: 
 
 object ReminderRules {
     private val CRITICAL_BASE_KEYS = setOf("leave", "latest-leave", "latest-start", "pcstop", "bed", "meds")
+    private val SOFT_GUIDANCE_KEYS = setOf("guidance-wind-down", "guidance-brain-dump")
     private const val SEARCH_DAYS = 400L
 
     /** Invalid/corrupted or unsupported rules are ignored rather than turned into arbitrary alarms. */
     private fun valid(rule: NativeReminderRule): Boolean =
-        rule.key in CRITICAL_BASE_KEYS && rule.weekday in 0..6 && rule.minute in 0..2879 &&
+        (rule.key in CRITICAL_BASE_KEYS || rule.key in SOFT_GUIDANCE_KEYS) && rule.weekday in 0..6 && rule.minute in 0..2879 &&
             rule.ruleId == "basis:${rule.weekday}:${rule.key}" && rule.revision.isNotBlank() &&
-            rule.channel in setOf("wecker", "uebergang", "sanft") && rule.slot in 0..2 && rule.rank >= 0
+            rule.channel in setOf("wecker", "uebergang", "sanft") && rule.slot in 0..2 && rule.rank >= 0 &&
+            (rule.key !in SOFT_GUIDANCE_KEYS || (rule.channel == "sanft" && !rule.exact))
+
+    fun critical(key: String): Boolean = key in CRITICAL_BASE_KEYS
 
     /**
      * One strictly future occurrence only. Missed days are never replayed. The caller persists

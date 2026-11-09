@@ -51,6 +51,7 @@ object ReminderLogic {
 
     /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
     fun tapDestination(key: String): String? = when {
+        key == "guidance-wind-down" || key == "guidance-brain-dump" -> "now"
         key == "wind-down" -> "evening"
         key.startsWith("thought-review:") && key.length > "thought-review:".length -> "thoughts"
         key.startsWith("tomorrow-step:") && key.length > "tomorrow-step:".length -> "evening"

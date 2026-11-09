@@ -140,7 +140,9 @@ object ReminderScheduler {
         onProtectedDisplaysChanged(ctx)
     }
 
-    private fun protectedDisplays(ctx: Context): Int = (if (AnkerPrefs.isRinging(ctx)) 1 else 0) + (if (SmartWakeService.hasForeground()) 1 else 0)
+    private fun protectedDisplays(ctx: Context): Int = (if (AnkerPrefs.isRinging(ctx)) 1 else 0) +
+        (if (SmartWakeService.hasForeground()) 1 else 0) + (if (RoutinePaceKeeperService.hasForeground()) 1 else 0) +
+        (if (SleepAudioService.hasForeground()) 1 else 0) + (if (PcBridgeService.hasForeground()) 1 else 0)
 
     private fun ruleSnapshot(ctx: Context): NativeReminderRuleSnapshot? = try {
         val o = JSONObject(AnkerPrefs.reminderRules(ctx))
@@ -161,7 +163,7 @@ object ReminderScheduler {
             if (out.any { it.ruleId == rule.ruleId && it.at > now }) continue
             val occurrence = ReminderRules.nextOccurrence(rule, snapshot, now, consumed.optLong(rule.ruleId)) ?: continue
             out.add(ReminderEntry(rule.key, occurrence.date, occurrence.at, rule.channel, rule.title, rule.body, false, rule.slot, rule.rank, rule.exact,
-                revision = rule.revision + "|" + occurrence.date, token = java.util.UUID.randomUUID().toString(), critical = true, ruleId = rule.ruleId))
+                revision = rule.revision + "|" + occurrence.date, token = java.util.UUID.randomUUID().toString(), critical = ReminderRules.critical(rule.key), ruleId = rule.ruleId))
         }
         return out.sortedBy { it.at }
     }

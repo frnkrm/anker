@@ -28,9 +28,10 @@ class PcBridgeService : Service() {
         }
         return try {
             val notification = notification()
+            foreground = true
+            ReminderScheduler.onProtectedDisplaysChanged(this)
             if (Build.VERSION.SDK_INT >= 34) startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
             else startForeground(NOTIFICATION_ID, notification)
-            foreground = true
             if (loop == null) loop = worker.scheduleWithFixedDelay({
                 try {
                     if (!PcBridgeClient.state(applicationContext).optBoolean("requestedActive")) stopSelf()
@@ -42,6 +43,7 @@ class PcBridgeService : Service() {
             START_STICKY
         } catch (_: Exception) {
             foreground = false
+            try { ReminderScheduler.onProtectedDisplaysChanged(this) } catch (_: Exception) { }
             PcBridgeClient.serviceFailed(applicationContext, "PC_FOREGROUND_NOT_ALLOWED")
             stopSelf()
             START_NOT_STICKY
@@ -53,6 +55,7 @@ class PcBridgeService : Service() {
         worker.shutdownNow()
         PcBridgeClient.serviceDestroyed()
         foreground = false
+        try { ReminderScheduler.onProtectedDisplaysChanged(this) } catch (_: Exception) { }
         super.onDestroy()
     }
 

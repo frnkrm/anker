@@ -1,5 +1,6 @@
 import { addDays, utcToZoned, zonedToUtc, type DateStr } from './time'
 import type { DayLog, Settings } from './types'
+import { guidancePreferences } from './guidance/settings'
 
 /**
  * Kleiner Spiegel für den nativen Wecker. Quelle und Konfliktregel: Der Store der App ist die Wahrheit,
@@ -19,6 +20,10 @@ export interface NativeAlarmConfig {
   wakeCheckDelayMinutes: number
   smartWakeEnabled: boolean
   smartWakeWindowMinutes: number
+  preWakeFadeIn: boolean
+  antiRelapseEnabled: boolean
+  antiRelapseDelayMinutes: number
+  zeroGapEnabled: boolean
   label: string
 }
 
@@ -44,6 +49,8 @@ export function alarmPlanningStatus(state: { scheduledAt?: number | null; mainCo
 }
 
 export function buildAlarmConfig(s: Settings, days: Record<DateStr, DayLog | undefined>, today: DateStr): NativeAlarmConfig {
+  const guidance = guidancePreferences(s.guidance)
+  const antiRelapseEnabled = guidance.enabled && guidance.antiRelapse
   const skipDates = Object.values(days)
     .filter((l): l is DayLog => !!l && l.date >= today && l.override.dayType === 'sick')
     .map((l) => l.date)
@@ -59,10 +66,14 @@ export function buildAlarmConfig(s: Settings, days: Record<DateStr, DayLog | und
     wakeOverrides,
     preWakeEnabled: s.alarm.preWakeEnabled,
     preWakeLeadMinutes: s.alarm.preWakeLeadMinutes,
-    wakeCheckEnabled: s.alarm.wakeCheckEnabled,
+    wakeCheckEnabled: s.alarm.wakeCheckEnabled || antiRelapseEnabled,
     wakeCheckDelayMinutes: s.alarm.wakeCheckDelayMinutes,
     smartWakeEnabled: s.alarm.smartWake.enabled,
     smartWakeWindowMinutes: s.alarm.smartWake.windowMinutes,
+    preWakeFadeIn: guidance.enabled && guidance.preWakeFadeIn,
+    antiRelapseEnabled,
+    antiRelapseDelayMinutes: guidance.antiRelapseMinutes,
+    zeroGapEnabled: guidance.enabled && guidance.zeroGapMorning,
     label: 'Aufstehen',
   }
 }

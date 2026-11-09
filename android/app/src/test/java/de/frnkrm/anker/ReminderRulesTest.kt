@@ -95,4 +95,21 @@ class ReminderRulesTest {
         assertNull(ReminderRules.nextOccurrence(r, snapshot(r.copy(revision = "r2")), utc("2026-11-01T12:00:00Z")))
         assertNull(ReminderRules.nextOccurrence(r, snapshot(r), Long.MAX_VALUE))
     }
+
+    @Test fun guidanceRulesRemainSoftAndCannotEscapeQuietHours() {
+        val now = utc("2026-11-01T12:00:00Z")
+        for (key in listOf("guidance-wind-down", "guidance-brain-dump")) {
+            val soft = rule(key = key).copy(channel = "sanft", exact = false)
+            assertNotNull(ReminderRules.nextOccurrence(soft, snapshot(soft), now))
+            assertFalse(ReminderRules.critical(key))
+            assertEquals("now", ReminderLogic.tapDestination(key))
+            val midnight = utc("2026-11-01T23:30:00Z")
+            val entry = ReminderEntry(key, "2026-11-02", midnight, "sanft", "Anker", "Öffne Anker.", false, 0, 1, false,
+                critical = ReminderRules.critical(key))
+            assertFalse(ReminderLogic.allowed(entry, midnight, ReminderPolicy(23 * 60, 7 * 60), 0))
+            assertNull(ReminderRules.nextOccurrence(soft.copy(exact = true), snapshot(soft.copy(exact = true)), now))
+            assertNull(ReminderRules.nextOccurrence(soft.copy(channel = "wecker"), snapshot(soft.copy(channel = "wecker")), now))
+        }
+        assertTrue(ReminderRules.critical("bed"))
+    }
 }

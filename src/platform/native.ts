@@ -109,6 +109,72 @@ export type ReminderActionInfo = ReminderAction
 export interface VoiceCapabilities { dictationSupported: boolean; speechSupported: boolean | null; localOnly: boolean }
 export interface VoiceResult { status: 'text' | 'cancelled' | 'unavailable' | 'permission-denied' | 'busy' | 'empty' | 'timeout' | 'spoken'; text?: string }
 
+export interface MorningHandoff {
+  pending: boolean
+  antiRelapseAt: number
+  token?: string
+  activityToken?: string
+  at?: number
+  targetAt?: number
+  method?: 'qr' | 'math' | 'emergency'
+  expiresAt?: number
+}
+
+/** A disabled mirror needs no timer data; Android validates all fields before an enabled start. */
+export interface RoutinePaceRequest {
+  enabled: boolean
+  sessionId?: string
+  stepId?: string
+  title?: string
+  durationMs?: number
+  deadlineAt?: number
+  status?: 'running' | 'paused' | 'stopped'
+  intervalSeconds?: number
+  hapticsEnabled?: boolean
+  thresholds?: boolean
+  speakStep?: boolean
+  strength?: 'gentle' | 'strong'
+  quietStart?: number
+  quietEnd?: number
+}
+
+export interface RoutinePaceState {
+  active: boolean
+  phase: 'idle' | 'prepared' | 'running' | 'paused' | 'stopped' | 'expired' | 'blocked' | 'interrupted' | 'error'
+  sessionId?: string
+  stepId?: string
+  deadlineAt?: number
+  /** requested means accepted by the local engine, not proof that a cue was heard. */
+  speechStatus: 'idle' | 'initializing' | 'requested' | 'unavailable' | 'blocked' | 'interrupted'
+  error?: string
+}
+
+export interface SleepAudioState {
+  active: boolean
+  phase: 'idle' | 'prepared' | 'playing' | 'stopped' | 'finished' | 'interrupted' | 'error'
+  localOnly: true
+  sessionId?: string
+  deadlineAt?: number
+  error?: string
+}
+
+export interface NativePcBridgeState {
+  state: 'unpaired' | 'pairing' | 'paired-never-reached' | 'connected' | 'unreachable' | 'rejected' | 'companion-outdated'
+  connected: boolean
+  active: boolean
+  requestedActive?: boolean
+  autoReconnect?: boolean
+  lastReceivedAt?: number
+  pairId?: string
+  pcName?: string
+  code?: string
+  ack?: unknown
+  emergencyAck?: { commandId: string; until: number; receivedAt: number }
+  error?: string
+}
+
+export interface NativePcDevice { name: string; host: string; port: number; version: number }
+
 export type NativeGeofenceVisit = GeofenceVisit
 export interface GeofenceState extends GeofenceStatus { suggestions: GeofenceSuggestion[] }
 
@@ -119,6 +185,27 @@ export interface AnkerNativePlugin {
   stopDictation(): Promise<void>
   speakCue(o: { text: string }): Promise<VoiceResult>
   stopSpeaking(): Promise<void>
+  getMorningHandoff(): Promise<MorningHandoff>
+  ackMorningHandoff(o: { token: string }): Promise<{ acknowledged: boolean }>
+  confirmMorningActivity(o: { token?: string }): Promise<{ confirmed: boolean }>
+  syncRoutinePaceKeeper(o: RoutinePaceRequest): Promise<RoutinePaceState>
+  stopRoutinePaceKeeper(o: { sessionId?: string }): Promise<RoutinePaceState>
+  getRoutinePaceKeeperState(): Promise<RoutinePaceState>
+  startSleepAudio(o: { durationMinutes: number; volume?: number }): Promise<SleepAudioState>
+  stopSleepAudio(): Promise<SleepAudioState>
+  getSleepAudioState(): Promise<SleepAudioState>
+  pcBridgeDiscover(o: { timeoutMs?: number }): Promise<{ devices: NativePcDevice[] }>
+  pcBridgePair(o: { qr: string; deviceName: string }): Promise<NativePcBridgeState>
+  pcBridgeGetState(): Promise<NativePcBridgeState>
+  pcBridgeConfigure(o: { qrHash?: string; autoReconnect?: boolean }): Promise<NativePcBridgeState>
+  pcBridgeSend(o: { payload: object }): Promise<{ sent: boolean; queued: boolean }>
+  pcBridgeStart(): Promise<NativePcBridgeState>
+  pcBridgeStop(): Promise<NativePcBridgeState>
+  pcBridgeDrainEvents(): Promise<{ events: unknown[]; lastSeq: number }>
+  pcBridgeAckEvents(o: { ids: string[] }): Promise<{ lastSeq: number }>
+  pcBridgeUnpair(): Promise<NativePcBridgeState>
+  pcBridgeEmergency(o: { qr: string; minutes: number }): Promise<{ until: number; tokenId: string; sent: boolean }>
+  pcBridgeWakeOnLan(o: { mac: string; broadcast?: string }): Promise<{ sent: boolean }>
   syncGeofences(o: GeofenceSnapshot): Promise<GeofenceStatus>
   getGeofenceState(): Promise<GeofenceState>
   ackGeofenceSuggestions(o: { ids: string[] }): Promise<void>
@@ -171,6 +258,27 @@ const web: Partial<AnkerNativePlugin> = {
   async stopDictation() {},
   async speakCue() { return { status: 'unavailable' } },
   async stopSpeaking() {},
+  async getMorningHandoff() { return { pending: false, antiRelapseAt: 0 } },
+  async ackMorningHandoff() { return { acknowledged: false } },
+  async confirmMorningActivity() { return { confirmed: false } },
+  async syncRoutinePaceKeeper() { return { active: false, phase: 'idle', speechStatus: 'unavailable', error: 'unavailable' } },
+  async stopRoutinePaceKeeper() { return { active: false, phase: 'stopped', speechStatus: 'unavailable' } },
+  async getRoutinePaceKeeperState() { return { active: false, phase: 'idle', speechStatus: 'unavailable' } },
+  async startSleepAudio() { return { active: false, phase: 'error', localOnly: true, error: 'unavailable' } },
+  async stopSleepAudio() { return { active: false, phase: 'stopped', localOnly: true } },
+  async getSleepAudioState() { return { active: false, phase: 'idle', localOnly: true } },
+  async pcBridgeDiscover() { return { devices: [] } },
+  async pcBridgePair() { return { state: 'unpaired', connected: false, active: false, error: 'unavailable' } },
+  async pcBridgeGetState() { return { state: 'unpaired', connected: false, active: false } },
+  async pcBridgeConfigure() { return { state: 'unpaired', connected: false, active: false, error: 'unavailable' } },
+  async pcBridgeSend() { return { sent: false, queued: false } },
+  async pcBridgeStart() { return { state: 'unpaired', connected: false, active: false, error: 'unavailable' } },
+  async pcBridgeStop() { return { state: 'unpaired', connected: false, active: false } },
+  async pcBridgeDrainEvents() { return { events: [], lastSeq: 0 } },
+  async pcBridgeAckEvents() { return { lastSeq: 0 } },
+  async pcBridgeUnpair() { return { state: 'unpaired', connected: false, active: false } },
+  async pcBridgeEmergency() { return { until: 0, tokenId: '', sent: false } },
+  async pcBridgeWakeOnLan() { return { sent: false } },
   async syncGeofences() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable' } },
   async getGeofenceState() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable', suggestions: [] } },
   async ackGeofenceSuggestions() {},

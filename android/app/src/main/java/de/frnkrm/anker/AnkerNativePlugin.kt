@@ -28,6 +28,7 @@ import com.getcapacitor.annotation.CapacitorPlugin
 import com.getcapacitor.annotation.Permission
 import com.getcapacitor.annotation.PermissionCallback
 import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.ref.WeakReference
 
 /** Brücke zwischen der Web-App und dem nativen Teil: Wecker, Erinnerungen, Widget, Druck, Einstellungen. */
@@ -72,6 +73,58 @@ class AnkerNativePlugin : Plugin() {
         }
     }
     @PluginMethod fun stopSpeaking(call: PluginCall) { speechLease.cancel(); activity.runOnUiThread { voice.stopSpeaking(); call.resolve() } }
+
+    // ---------- Freiwillige lokale Routine-/Schlafbegleitung ----------
+    private fun guidance(call: PluginCall, action: () -> JSObject) { activity.runOnUiThread {
+        try { call.resolve(action()) } catch (_: Exception) { call.reject("Die lokale Begleitung konnte nicht sicher geändert werden.") }
+    } }
+    @PluginMethod fun getMorningHandoff(call: PluginCall) = guidance(call) { AlarmController.pendingMorningHandoff(context) }
+    @PluginMethod fun ackMorningHandoff(call: PluginCall) = guidance(call) {
+        JSObject().put("acknowledged", AlarmController.ackMorningHandoff(context, call.getString("token") ?: ""))
+    }
+    @PluginMethod fun confirmMorningActivity(call: PluginCall) = guidance(call) {
+        JSObject().put("confirmed", AlarmController.confirmMorningActivity(context, call.getString("token")))
+    }
+    @PluginMethod fun syncRoutinePaceKeeper(call: PluginCall) = guidance(call) { RoutinePaceKeeperService.sync(context, call.data) }
+    @PluginMethod fun stopRoutinePaceKeeper(call: PluginCall) = guidance(call) { RoutinePaceKeeperService.stop(context, call.getString("sessionId")) }
+    @PluginMethod fun getRoutinePaceKeeperState(call: PluginCall) = guidance(call) { RoutinePaceKeeperService.state(context) }
+    @PluginMethod fun startSleepAudio(call: PluginCall) = guidance(call) { SleepAudioService.start(context, call.data) }
+    @PluginMethod fun stopSleepAudio(call: PluginCall) = guidance(call) { SleepAudioService.stop(context) }
+    @PluginMethod fun getSleepAudioState(call: PluginCall) = guidance(call) { SleepAudioService.state(context) }
+
+    // Netzwerk, Discovery, Keystore und persistente Ereignisse laufen nie auf dem UI-Thread.
+    private fun pcBridge(call: PluginCall, action: () -> JSONObject) { execute {
+        try { call.resolve(JSObject(action().toString())) }
+        catch (_: Exception) { call.reject("PC_BRIDGE_REQUEST_FAILED") }
+    } }
+    @PluginMethod fun pcBridgeDiscover(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.discover(context, call.getLong("timeoutMs") ?: 3_000L)
+    }
+    @PluginMethod fun pcBridgePair(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.pair(context, call.getString("qr") ?: "", call.getString("deviceName") ?: "Anker Handy")
+    }
+    @PluginMethod fun pcBridgeGetState(call: PluginCall) = pcBridge(call) { PcBridgeClient.state(context) }
+    @PluginMethod fun pcBridgeConfigure(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.configure(context, call.getString("qrHash"), call.getBoolean("autoReconnect"))
+    }
+    @PluginMethod fun pcBridgeSend(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.send(context, call.getObject("payload") ?: throw IllegalArgumentException("PC_PAYLOAD_MISSING"))
+    }
+    @PluginMethod fun pcBridgeStart(call: PluginCall) = pcBridge(call) { PcBridgeClient.start(context) }
+    @PluginMethod fun pcBridgeStop(call: PluginCall) = pcBridge(call) { PcBridgeClient.stop(context) }
+    @PluginMethod fun pcBridgeDrainEvents(call: PluginCall) = pcBridge(call) { PcBridgeClient.drainEvents(context) }
+    @PluginMethod fun pcBridgeAckEvents(call: PluginCall) = pcBridge(call) {
+        val ids = call.getArray("ids") ?: JSONArray()
+        require(ids.length() <= 500) { "PC_EVENT_IDS_INVALID" }
+        PcBridgeClient.ackEvents(context, (0 until ids.length()).map { ids.getString(it) })
+    }
+    @PluginMethod fun pcBridgeUnpair(call: PluginCall) = pcBridge(call) { PcBridgeClient.unpair(context) }
+    @PluginMethod fun pcBridgeEmergency(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.emergency(context, call.getString("qr") ?: "", call.getInt("minutes") ?: 0)
+    }
+    @PluginMethod fun pcBridgeWakeOnLan(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.wakeOnLan(call.getString("mac") ?: "", call.getString("broadcast") ?: "255.255.255.255")
+    }
 
     // ---------- Einmaliger, stummer Schlafhinweis; eigener nativer Zustandsbesitzer ----------
     private fun bedtime(call: PluginCall, action: () -> JSObject) { activity.runOnUiThread {
@@ -197,6 +250,10 @@ class AnkerNativePlugin : Plugin() {
                 label = call.getString("label") ?: "Aufstehen",
                 smartWakeEnabled = call.getBoolean("smartWakeEnabled") ?: false,
                 smartWakeWindowMinutes = (call.getInt("smartWakeWindowMinutes") ?: 45).coerceIn(5, 90),
+                preWakeFadeIn = call.getBoolean("preWakeFadeIn") ?: false,
+                antiRelapseEnabled = call.getBoolean("antiRelapseEnabled") ?: false,
+                antiRelapseDelayMinutes = (call.getInt("antiRelapseDelayMinutes") ?: 5).coerceIn(1, 30),
+                zeroGapEnabled = call.getBoolean("zeroGapEnabled") ?: false,
             )
             AlarmController.syncConfig(context, cfg)
             call.resolve(stateObject())
