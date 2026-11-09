@@ -67,6 +67,8 @@ class LocalVoiceController(private val context: Context) {
         stopDictation()
         if (destroyed || Build.VERSION.SDK_INT < 31 || !dictationAvailable()) { callback(result("unavailable")); return }
         if (priorityAudioActive()) { callback(result("busy")); return }
+        RoutinePaceKeeperService.silenceForUserVoice()
+        SleepAudioService.stopForPriorityAudio(context)
         stopSpeaking()
         val generation = ++dictationGeneration
         dictationResult = callback

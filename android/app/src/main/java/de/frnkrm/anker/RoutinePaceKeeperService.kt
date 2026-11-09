@@ -115,6 +115,13 @@ class RoutinePaceKeeperService : Service() {
             else service.handler.post { service.finish("interrupted", "priority-audio") }
         }
 
+        /** An explicit dictation request wins over an optional spoken step, without ending its timer. */
+        fun silenceForUserVoice() {
+            val service = instance ?: return
+            if (Looper.myLooper() == service.handler.looper) { service.stopSpeech(); service.speechStatus("blocked") }
+            else service.handler.post { service.stopSpeech(); service.speechStatus("blocked") }
+        }
+
         private fun priorityAudio(ctx: Context): Boolean = AlarmController.state(ctx).ringing != null ||
             SmartWakeService.status(ctx).optString("phase") == "measuring"
     }
