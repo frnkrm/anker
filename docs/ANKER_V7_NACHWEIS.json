@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T01:19:40.534237+00:00",
+  "softwareCommit": "655c63cbbd6e64d8ed5ec79c757a2366699ff931",
+  "branch": "entwicklung/anker-v7-pc",
+  "runtimeSourceCommit": "820e5c8423995ec44654b9d7464cf69833bcffaa",
+  "sourceIdentity": "02876ad10c4caf5e3d3422ebf3db3731af611e71c1176a67c5110d182b2de1a0",
+  "sourceInputFingerprint": "8d816ab912f7c1d0ef99989d8663b42c7134f5cbe261297aa2cf479eb62d5c16",
+  "effectiveNativeInputFingerprint": "fd762b443741b2a0e4d3b42c87a60c15c2bee2d9cf087dc756c1687eaedb5c0f",
+  "webDistributionFingerprint": "6b9ac73e4c1df72f1c3ebd498ddb02bf40a993223b79fd77b651e7ea54086295",
+  "runtimeInputsCompared": 368,
+  "runtimeInputMismatches": [],
+  "identicalTestedWebFiles": 63,
+  "version": {
+    "name": "1.4.0-rc.1",
+    "code": 14,
+    "newApkBuilt": false,
+    "signingChanged": false
+  },
+  "results": {
+    "logic": {
+      "passed": 1017,
+      "files": 102,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "startTime": "2026-11-09T01:10:39.951Z",
+      "duration": 492239.81100000005,
+      "expected": 263,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "workers": 2,
+      "retries": 0,
+      "engine": "/usr/bin/chromium"
+    },
+    "native": {
+      "suites": 17,
+      "tests": 161,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "freshAfterStartedAt": true,
+      "gradleTasksExecuted": 367,
+      "reusedTests": false
+    },
+    "pcCompanion": {
+      "passed": 72,
+      "failed": 0,
+      "platform": "Linux with injected Windows/DPAPI/audio boundaries"
+    },
+    "crossLanguageTlsInterop": {
+      "passed": true,
+      "transport": "Node HTTPS ↔ Python pinned TLS",
+      "physicalConfirmation": true,
+      "ack": true,
+      "outbox": true,
+      "replayRejected": true,
+      "tamperRejected": true,
+      "wrongPinRejected": true,
+      "systemEffects": 0
+    },
+    "legacyPc": {
+      "passed": 19,
+      "parsedScripts": 4
+    },
+    "updateMocks": {
+      "passed": 36
+    },
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 1
+    },
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "visualReview": {
+      "scenarios": 4,
+      "observedProblems": 0,
+      "screenshots": [
+        {
+          "file": "/workspace/.cache/anker/v7/ui-visual/01-morgen-cyan.png",
+          "sha256": "db186747e94ed1eb199de87f0c263be9c62c74889823d50bf8a6a365c7376b85"
+        },
+        {
+          "file": "/workspace/.cache/anker/v7/ui-visual/02-abend-gedanken.png",
+          "sha256": "b74c62314263353513f0fe67eac5fa5f108def09a9b9e6ca7af8e0368dfee5e6"
+        },
+        {
+          "file": "/workspace/.cache/anker/v7/ui-visual/03-nacht-oled.png",
+          "sha256": "bf688fd2a0eaa30dbd52afa98307e8d80db820705cdfc6e9b88bafcbe8ea944a"
+        },
+        {
+          "file": "/workspace/.cache/anker/v7/ui-visual/04-pc-320-160.png",
+          "sha256": "188dfd22a3e81fc9ddee41efee07ec7a32a943dbfb1bc6a1ae2c78b3cdfbbe85"
+        }
+      ]
+    }
+  },
+  "realDevices": {
+    "galaxyS26Ultra": "not tested",
+    "windowsDesktopGuiAndSystemEffects": "not tested"
+  },
+  "remoteCi": {
+    "executedForV7": false,
+    "linuxWindowsMatrixConfigured": true
+  },
+  "publication": {
+    "pushed": false,
+    "released": false,
+    "newApk": false
+  },
+  "commands": {
+    "logic": "npm run test -- --maxWorkers=2",
+    "lint": "npm run lint",
+    "types": "npm run typecheck",
+    "production": "npm run build",
+    "browser": "npx playwright test --config=/workspace/.cache/anker/v7/playwright-final.config.ts",
+    "python": "python -m unittest discover -s tests -q (pc-companion, isolated pinned venv)",
+    "interop": "node pc-companion/tests/node_phone_simulator.mjs",
+    "legacyPc": "npm run test:pc (PowerShell 7.5.4 on Linux)",
+    "update": "python3 scripts/test-android-update.py (PowerShell available)"
+  },
+  "evidence": [
+    {
+      "file": "/workspace/.cache/anker/v7/root-vitest-complete.log",
+      "sha256": "ab3bb8445effd8e57e50b749a3dc109019d12821e80ef6b2024ab6f9ee9e233e"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-lint-tested.log",
+      "sha256": "67f20e6419ec48c46b76193c339730179def733e6fa065a3c89e4b078f392759"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-typecheck-last.log",
+      "sha256": "3eefcbd083505e8024dd8f74939decc4a051d1d4c706761886d40bc919d1d502"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-build-complete.log",
+      "sha256": "98978ec4cdbb476d1d0cb89936e253a5e7fdba3b8ebbbe3c6cd59bc49adf188b"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-browser-tested.log",
+      "sha256": "1dabc25a317136b512c33d981ddc7b715bd3888ec4da596c37c9e2ff401337ab"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-python-tested.log",
+      "sha256": "425850db6202095164c62ac6682005c514aa3acb0d6ddc389726f2ef16e7db55"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-interop-tested.log",
+      "sha256": "e8ab5c3a2ba6834ef3f033f5271f95b4bab5a52f824ee027fdefd042402da53d"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-powershell-final.log",
+      "sha256": "565562d9eb06e1e041d6935a5732980a3b57829dd0f588ce79991de69d1baf14"
+    },
+    {
+      "file": "/workspace/.cache/anker/v7/root-update-final.log",
+      "sha256": "416e51b2016642bd0ced8f60c67f768b226b8d9463fd31f8bb88d3c553afd11d"
+    }
+  ],
+  "browserJson": {
+    "file": "/workspace/.cache/anker/v7/final/browser-results.json",
+    "sha256": "f21e3ebd967b2aad072b89aa112b60bddde9d6bd70ad4f204560e5ed0f374a20"
+  },
+  "nativeProof": {
+    "file": "ANKER_V7_NATIVE_NACHWEIS.json",
+    "sha256": "e0de1102768233b52f3062347de96639acfa0cd0d3991da6d555606af5c30016"
+  },
+  "preservedEarlierRuns": [
+    {
+      "kind": "unchanged baseline",
+      "passed": 247,
+      "failed": 1,
+      "file": "ANKER_V7_BASELINE.json"
+    },
+    {
+      "kind": "interrupted for final policy fixes",
+      "passed": 78,
+      "failed": 1,
+      "interrupted": 2,
+      "notRun": 182,
+      "cache": "/workspace/.cache/anker/v7/first-browser-partial"
+    },
+    {
+      "kind": "full before checkbox hit-area measurement correction",
+      "passed": 258,
+      "failed": 5,
+      "cache": "/workspace/.cache/anker/v7/first-complete-layout-findings"
+    }
+  ],
+  "notActivated": [
+    "relay",
+    "sleep-health-import",
+    "light-devices",
+    "automatic-companion-updates",
+    "paid-services"
+  ]
+}

@@ -1,6 +1,6 @@
 # ⚓ Anker
 
-**Aktueller Entwicklungsauftrag v7: Abend, Morgen und lokaler PC-Begleiter.** Die neuen Hilfen bauen auf dem bestehenden Tagesplan, Wecker und Speicher auf und beginnen ausgeschaltet. [Bedienung und Windows-Setup](docs/PC_BEGLEITER.md) · [Architektur](docs/PC_LINK_PROTOKOLL.md) · [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) · [tatsächliche Testnachweise](docs/ANKER_TESTNACHWEISE.md). Echte Windows- und Galaxy-Prüfungen stehen noch aus; für diesen Auftrag wurde keine neue APK veröffentlicht und keine Versions- oder Signaturänderung vorgenommen.
+**v7 implementiert und lokal geprüft: Abend, Morgen und lokaler PC-Begleiter.** Die neuen Hilfen bauen auf dem bestehenden Tagesplan, Wecker und Speicher auf und beginnen ausgeschaltet. [Bedienung und Windows-Setup](docs/PC_BEGLEITER.md) · [Architektur](docs/PC_LINK_PROTOKOLL.md) · [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) · [tatsächliche Testnachweise](docs/ANKER_TESTNACHWEISE.md). Echte Windows- und Galaxy-Prüfungen stehen noch aus; für diesen Auftrag wurde keine neue APK veröffentlicht und keine Versions- oder Signaturänderung vorgenommen.
 
 **Zuletzt veröffentlichter Stand: Anker 1.4.0-rc.1 / Code 14.** [Signierte APK als ZIP](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108) · [Installation](docs/INSTALLATION_ANKER_CODE14.md) · [UI-Umsetzung und Prüfstand](docs/UI_UEBERARBEITUNG_CODE14.md). Dieser Download enthält die neuen v7-Funktionen noch nicht.
 

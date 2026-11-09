@@ -2,7 +2,7 @@
 
 ## Unveröffentlicht – v7: Abend, Morgen und lokaler PC-Begleiter (2026-11-09)
 
-App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neues APK oder Windows-Installationspaket veröffentlicht. Die neue gemeinsame Softwareprüfung wird im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression) an den integrierten Quellstand gebunden; echte Samsung-/Windows-Versuche bleiben offen. Der bestehende Code14-Download enthält diese Entwicklung noch nicht.
+App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neues APK oder Windows-Installationspaket veröffentlicht. Die gemeinsame Softwareprüfung ist im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression) an den integrierten Quellstand gebunden; echte Samsung-/Windows-Versuche bleiben offen. Der bestehende Code14-Download enthält diese Entwicklung noch nicht.
 
 - Freiwillige Abend-/Morgenführung aus demselben Tagesplan: Cyan/Amber/OLED-Darstellung, Zeitbogen und bestehender Fokus-Timer mit Restzeitfarben. Keine automatische Erledigung aus Zeitablauf.
 - Optionale lokale Schrittstimme und Vibrationsimpulse, begrenztes ausblendendes Brown Noise, direkter Morgenfokus nach bestätigtem Wecker, Ein-Tipp-Wachrückfrage und selbst gewählte Zombie-Kernschritte. Weckerbesitz, alternative Beenden-Wege und Notfall-Stopp bleiben erhalten.

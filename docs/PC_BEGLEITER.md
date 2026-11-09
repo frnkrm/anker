@@ -2,7 +2,7 @@
 
 Der Windows-Begleiter verbindet sich direkt im Heimnetz mit Anker auf Android. Das Handy behält den Tagesplan; der PC zeigt den bestätigten Stand und kann nach deiner Wahl beim Aufhören helfen. Ein Konto oder Cloudserver ist dafür nicht erforderlich.
 
-**Entwicklungsstand v7, 09.11.2026:** Die neue Verbindung und Begleitung werden im Repository integriert. Diese Anleitung beschreibt den neuen Codepfad, keine bereits veröffentlichte Windows-Installation oder neue APK. Version und Signatur der Android-App sind unverändert. Automatische Ergebnisse stehen in [Testnachweise](ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression). Echte LAN-, Windows- und Galaxy-S26-Ultra-Prüfungen sind noch offen.
+**Entwicklungsstand v7, 09.11.2026:** Die neue Verbindung und Begleitung sind im Repository implementiert und lokal automatisch geprüft. Diese Anleitung beschreibt den neuen Codepfad, keine bereits veröffentlichte Windows-Installation oder neue APK. Version und Signatur der Android-App sind unverändert. Automatische Ergebnisse stehen in [Testnachweise](ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression). Echte LAN-, Windows- und Galaxy-S26-Ultra-Prüfungen sind noch offen.
 
 ## Zuerst ausprobieren, danach Wirkungen wählen
 
@@ -73,14 +73,21 @@ Die Handyoptionen liegen unter **Einstellungen → Abend & Morgen begleiten**. D
 |---|---|
 | 30 Minuten vorher | Warmer Übergang, sichtbare verbleibende Zeit; optionaler PC-Schleier |
 | 10 Minuten vorher | Gedanken für morgen parken, Speicherpunkt setzen; auf Wunsch den PC-Ton langsam reduzieren |
-| Bettzeit | Nächsten kleinen Abend-Schritt zeigen; bei freigegebenem PC-Eingriff zunächst mindestens **60 Sekunden zum Speichern** |
-| Nach der bewussten Abendbestätigung | Optional lokales Brown Noise mit Ausblendung; im gewählten strengen PC-Modus beginnt die begrenzte Nachtfreigabe |
+| Bettzeit | Nächsten kleinen Abend-Schritt zeigen; bei gewählter QR-Bestätigung deinen Anker-Code scannen |
+| Eigene PC-Stoppzeit | Bei freigegebenem PC-Eingriff zunächst mindestens **60 Sekunden zum Speichern**, danach die gewählte Aktion |
+| Nach der bewussten Abendbestätigung | Optional lokales Brown Noise mit Ausblendung; der Scan bestätigt den Übergang, keinen tatsächlichen Schlaf |
 
 Der Speicherpunkt ist eine Notiz, zum Beispiel „Dokument gespeichert; morgen bei Absatz 3 weiter“. Anker speichert keine anderen Programme für dich. Bei gewähltem Herunterfahren lautet der Windows-Aufruf nach dem eigenen Countdown `shutdown /s /t 0`, niemals mit `/f`. Ungespeicherte Programme können das verhindern; rechtzeitig selbst speichern bleibt nötig.
 
 Im normalen Modus kannst du **+15 Minuten**, **+30 Minuten** oder **Heute ohne PC-Stopp** wählen. Der tatsächliche neue Termin wird an dasselbe Handy zurückgemeldet. Ein offenes Abendende erzeugt keine erfundene Bettzeit und pausiert die zeitgesteuerten Abendphasen. Ein später eintreffender unveränderter Plan nimmt eine bereits angenommene freie Verlängerung nicht still zurück.
 
 Im gesondert gewählten strengen Modus wird eine Notverlängerung am Handy über deinen vorhandenen **Anker-QR** bestätigt. Der PC kann das dafür nötige signierte Token nicht selbst erzeugen. Erst die passende Empfangsbestätigung mit Zielzeit bestätigt die Verlängerung. NFC wird in diesem Arbeitsstand nicht als eigener neuer Einrichtungsweg angeboten.
+
+Die eigene PC-Stoppzeit bleibt von der Bettzeit getrennt. Vorbereitete Morgenzeiten gehören zum tatsächlichen nächsten Morgen, einschließlich seiner Arbeits- oder Homeoffice-Auswahl. Der PC erzeugt keine eigenen Ersatzzeiten.
+
+**Bei Verbindungsunterbrechung:** Nach 90 Sekunden ohne authentifizierten Kontakt greift die gewählte Offline-Regel. „Pause“ setzt neue Wirkungen aus; „Vorbereitete Zeiten“ verwendet nur den ausdrücklich gelieferten, noch gültigen Eintrag des passenden Berliner Plantags. Der Vorrat reicht bis zu 14 Tage. Ein fehlender, abgelaufener oder als offen markierter Tag wird nicht durch den Vortag ersetzt. Eine schon beiderseits freigegebene strenge Nacht bleibt innerhalb ihrer ursprünglichen Frist geschützt. Diese Frist endet spätestens drei Stunden nach der vorbereiteten Weckzeit und nie später als die ursprüngliche, höchstens 18 Stunden gültige Nachtfreigabe. Ein späterer Abgleich verlängert sie nicht still.
+
+Ein ausdrücklich gewählter strenger PC-Abend kann auch ohne vorherigen Handy-Bettscan an der gelieferten Grenze beginnen. Der echte Abschluss des zugehörigen Morgens gibt ihn dennoch frei; ein späterer Bett-QR oder Tageswechsel erzeugt keine unbegrenzte neue Sperre. Eine erledigte Abendroutine allein bestätigt weder Bettzeit noch Schlaf und unterdrückt deshalb die späteren T30-/T10-/Bett-Hinweise nicht.
 
 **Beenden bleibt möglich.** Das Hauptfenster und das Tray bieten einen sichtbaren Ausgang. Der Begleiter blockiert keine Systemtasten, erhebt sich nicht zum Administrator und entsperrt Windows niemals selbst. Der echte Abschluss der Morgenroutine beendet lediglich den Wieder-Sperrwächter; anmelden musst du dich weiterhin selbst. Optionales Wake-on-LAN kann einen entsprechend eingerichteten PC wecken, keine Windows-Anmeldung ersetzen.
 

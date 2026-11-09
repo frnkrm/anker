@@ -44,6 +44,10 @@ Der verschlüsselte JSON-Umschlag hat genau `v`, `kind`, `pair`, `from`, `seq`, 
 
 Die Planzeit kommt vom Handy. `date` ist der Berliner Plantag mit Wechsel um 04:00. Eine begrenzte Nacht-Session kann diesen Wechsel überschreiten, ohne zur nächsten unbegrenzten Nacht zu werden. `validUntil` und `morningDeadlineAt` begrenzen Offlinewirkung und Wieder-Sperrwächter; große Uhrabweichungen verhindern Systemwirkungen. Details und Grenzwerte sind im Serververtrag verbindlich.
 
+Freitextgrenzen zählen wie Android/JavaScript **UTF-16-Codeeinheiten**. Ein Emoji bleibt bei der begrenzten Übertragung ganz; der gespeicherte Originaltext wird nicht verändert. Nur authentifizierte WSS-Verbindungen verlängern die 90-Sekunden-Kontaktfrist. `link-stale` benennt einen fehlenden aktuellen Kontakt; Offlinepause und expliziter Tagesvorrat bleiben unterschiedliche Entscheidungen. Bereits freigegebene strenge Nächte behalten ihre feste Obergrenze.
+
+Bei einer automatisch aus dem bestätigten Zeitfenster begonnenen Nacht kennt das Handy zunächst noch keine Bett-QR-Session. Nur derselbe gekoppelte Teilnehmer und der exakt zugehörige tatsächliche Morgen dürfen diese Sitzung abschließen. Ein späterer echter Bett-QR derselben Nacht kann deren Identität übernehmen, erhält aber die ursprüngliche Frist und Freigaben. Hardwarebestätigte Nächte verlangen anschließend wieder genau ihre Session-ID; fremde Tage, Teilnehmer oder Sessions geben sie nicht frei.
+
 ## Strenger Modus und Ausstieg
 
 Systemwirkungen benötigen gültigen Auftrag, passende lokale PC-Freigabe und die Handywahl. Eine alte Aufgabe **Anker PC-Stopp** verhindert neue Systemwirkungen. Vor Sperren, Ruhezustand oder Herunterfahren läuft eine eigene Speicherfrist von mindestens 60 Sekunden. Nach Neustart/Wiederaufwachen wird sie neu begonnen.
