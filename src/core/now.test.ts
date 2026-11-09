@@ -22,6 +22,12 @@ describe('nowView', () => {
     expect(v.action).toMatchObject({ type: 'step', routine: 'morning', index: 0 })
     expect(v.hard!.key).toBe('leave')
   })
+  it('echtes frühes Aufwachen zeigt auch 45 Minuten vor dem Hauptwecker die Morgenroutine', () => {
+    const beforeMainAlarm = plan.wake - 45
+    expect(nowView(plan, undefined, beforeMainAlarm).action.type).toBe('sleep')
+    expect(nowView(plan, log({ wakeAt: zonedToUtc(MON, beforeMainAlarm) }), beforeMainAlarm).action)
+      .toMatchObject({ type: 'step', routine: 'morning', index: 0 })
+  })
   it('erledigte Schritte werden übersprungen', () => {
     const v = nowView(plan, log({ wakeAt: 1, steps: { 'morning:water': 'done', 'morning:move': 'minimal' } }), plan.wake + 5)
     expect(v.action).toMatchObject({ type: 'step', index: 2 })

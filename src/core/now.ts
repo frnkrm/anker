@@ -83,7 +83,7 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   const t = fmtTime
   const sick = plan.dayType === 'sick'
 
-  if (m < plan.wake - 30 || (!plan.openEnd && m >= plan.bed + 120)) {
+  if ((!log?.wakeAt && m < plan.wake - 30) || (!plan.openEnd && m >= plan.bed + 120)) {
     return view(m >= plan.bed ? { type: 'night', title: 'Gute Nacht', sub: 'Schlaf ist heute dein wichtigster Schritt.' } : { type: 'sleep', title: 'Schlafen', sub: `Aufstehen um ${t(plan.wake)}` })
   }
   if (!log?.wakeAt && !sick && m < plan.wake + 120) {
