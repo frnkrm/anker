@@ -210,6 +210,58 @@ class TestUpload(unittest.TestCase):
         self.assert_reason("DRAFT_RESPONSE_MISMATCH", self.upload, api)
         self.assertFalse(any(c[0]=="PUT" or c[3] for c in api.calls))
 
+    def test_conflict_report_contains_only_structural_status_and_numeric_versions(self):
+        api=FakeApi(bundles=[MATCHING],releases=[{"name":PRIVATE_ERROR,"releaseNotes":[{"text":PRIVATE_ERROR}],"status":"completed","versionCodes":["16"]}])
+        report=uploader.new_report()
+        self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
+        self.assertEqual(report["trackObservation"],{"trackMatches":True,"releasesShape":"list","releases":[{"status":"completed","versionCodes":[16]}],"truncated":False})
+        self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
+        self.assertFalse(report["draftVerified"] or report["commitAttempted"])
+
+    def test_track_observation_redacts_hostile_track_status_versions_and_freetext(self):
+        raw={"track":PRIVATE_ERROR,"name":PRIVATE_ERROR,"releases":[{"status":PRIVATE_ERROR,"versionCodes":["16",PRIVATE_ERROR,True,16,"2100000001","00016"],"releaseNotes":[PRIVATE_ERROR]}, {"status":{"private":PRIVATE_ERROR},"versionCodes":None}]}
+        observation=uploader.track_observation(raw)
+        self.assertEqual(observation,{"trackMatches":False,"releasesShape":"list","releases":[{"status":"unknown","versionCodes":[16]},{"status":"unknown","versionCodes":[]}],"truncated":True})
+        self.assertNotIn(PRIVATE_ERROR,json.dumps(observation))
+        self.assertNotIn("name",json.dumps(observation))
+        self.assertNotIn("releaseNotes",json.dumps(observation))
+
+    def test_track_observation_is_bounded_to_six_releases_and_six_codes_each(self):
+        raw={"track":"internal","releases":[{"status":"draft","versionCodes":[str(v) for v in range(101,109)]} for _ in range(8)]}
+        observation=uploader.track_observation(raw)
+        self.assertEqual(len(observation["releases"]),6)
+        self.assertTrue(observation["truncated"])
+        self.assertTrue(all(row=={"status":"draft","versionCodes":[101,102,103,104,105,106]} for row in observation["releases"]))
+        self.assertEqual(uploader.track_observation({"track":"internal","releases":[{"status":"draft","versionCodes":["1","2100000000"]}]} )["releases"][0]["versionCodes"],[1,2100000000])
+
+    def test_missing_malformed_or_empty_release_versions_still_fail_and_remain_observable(self):
+        for release in [{"status":"draft"},{"status":"draft","versionCodes":[]},{"status":"draft","versionCodes":PRIVATE_ERROR},PRIVATE_ERROR]:
+            api=FakeApi(releases=[release]);report=uploader.new_report()
+            self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
+            observed=report["trackObservation"]
+            self.assertEqual(observed["releases"][0]["versionCodes"],[])
+            self.assertTrue(observed["truncated"])
+            self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
+            self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
+
+    def test_wrong_track_and_nonlist_releases_are_diagnosed_without_changing_guards(self):
+        for track in [{"track":PRIVATE_ERROR,"releases":[]},{"track":"internal","releases":{"secret":PRIVATE_ERROR}}]:
+            api=FakeApi();api.track=track;report=uploader.new_report()
+            self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.perform_upload,api,b"offline-approved-bundle",report)
+            observation=report["trackObservation"]
+            self.assertEqual(observation["trackMatches"],track["track"]=="internal")
+            self.assertEqual(observation["releasesShape"],"list" if isinstance(track["releases"],list) else "invalid")
+            self.assertEqual(observation["releases"],[])
+            self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
+            self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
+
+    def test_existing_exact_draft_observation_preserves_readonly_idempotency(self):
+        api=FakeApi(bundles=[MATCHING],releases=[TARGET]);report=self.upload(api)
+        self.assertEqual(report["status"],"already-draft")
+        self.assertEqual(report["trackObservation"],{"trackMatches":True,"releasesShape":"list","releases":[{"status":"draft","versionCodes":[16]}],"truncated":False})
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":commit" in c[1] for c in api.calls))
+
     def test_existing_same_version_wrong_hash_or_duplicate_stops_without_upload(self):
         for bundles in [[{"versionCode":16,"sha256":"0"*64}],[MATCHING,MATCHING]]:
             api=FakeApi(bundles=bundles)

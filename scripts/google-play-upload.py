@@ -258,6 +258,41 @@ def known_bundle(response: dict) -> bool:
     return bool(hits)
 
 
+def track_observation(response: dict) -> dict:
+    """Public structural facts only; this summary never authorizes a mutation."""
+    observation = {"trackMatches": response.get("track") == "internal", "releasesShape": "list", "releases": [], "truncated": False}
+    releases = response.get("releases", [])
+    if not isinstance(releases, list):
+        observation.update(releasesShape="invalid", truncated=True)
+        return observation
+    observation["truncated"] = len(releases) > 6
+    for release in releases[:6]:
+        status, versions = "unknown", []
+        if not isinstance(release, dict):
+            observation["truncated"] = True
+        else:
+            raw_status = release.get("status")
+            if isinstance(raw_status, str) and raw_status in {"draft", "completed", "inProgress", "halted"}:
+                status = raw_status
+            else:
+                observation["truncated"] = True
+            raw_versions = release.get("versionCodes")
+            if not isinstance(raw_versions, list) or not raw_versions:
+                observation["truncated"] = True
+            else:
+                if len(raw_versions) > 6:
+                    observation["truncated"] = True
+                for value in raw_versions[:6]:
+                    if isinstance(value, str) and re.fullmatch(r"[1-9][0-9]{0,9}", value) and int(value) <= 2100000000:
+                        versions.append(int(value))
+                    else:
+                        observation["truncated"] = True
+                if len(set(versions)) != len(versions):
+                    observation["truncated"] = True
+        observation["releases"].append({"status": status, "versionCodes": versions})
+    return observation
+
+
 def inspect_track(response: dict) -> tuple[list[dict], bool]:
     if response.get("track") != "internal":
         raise UploadError("EXISTING_RELEASE_CONFLICT")
@@ -295,7 +330,9 @@ def perform_upload(api: Transport, data: bytes, report: dict) -> None:
         base = API_PATH + "/" + own_edit
         reused = known_bundle(api.request("GET", base + "/bundles"))
         # Inspect before uploading: unexpected live/foreign releases cause no bundle mutation.
-        releases, existing_draft = inspect_track(api.request("GET", base + "/tracks/internal"))
+        track = api.request("GET", base + "/tracks/internal")
+        report["trackObservation"] = track_observation(track)
+        releases, existing_draft = inspect_track(track)
         report["bundleReused"] = reused
         if existing_draft:
             if not reused:
