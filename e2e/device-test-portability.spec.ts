@@ -30,13 +30,13 @@ async function downloadReports(page: Page) {
   return readFile((await (await event).path())!, 'utf8')
 }
 
-test('Sechs kurze Originalfälle sind Standard; alle 96 bleiben freiwillig erreichbar', async ({ page }) => {
+test('Sechs kurze Originalfälle sind Standard; alle 103 bleiben freiwillig erreichbar', async ({ page }) => {
   await onboard(page)
   await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Kurzer Updatecheck')
   expect(await choiceValues(page, 'Test auswählen')).toEqual(['1', '21', '62', '92', '95', '96'])
-  await expect(page.getByText('Noch nie geprüft: 96 freiwillige Testpunkte.', { exact: false })).toBeVisible()
+  await expect(page.getByText('Noch nie geprüft: 103 freiwillige Testpunkte.', { exact: false })).toBeVisible()
   await chooseValue(page, 'Testbereich', 'Alle')
-  expect(await choiceValues(page, 'Test auswählen')).toHaveLength(96)
+  expect(await choiceValues(page, 'Test auswählen')).toHaveLength(103)
   await page.getByRole('button', { name: 'Kurzer Updatecheck', exact: true }).click()
   await chooseValue(page, 'Test auswählen', '96')
   await page.reload()

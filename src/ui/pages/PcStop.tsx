@@ -9,6 +9,7 @@ import { useToday } from '../../state/hooks'
 import { useApp } from '../../state/store'
 import { LateForm } from '../components/TodayDifferent'
 import { BackButton, Button, Card, MoreInfo, Page, Sheet } from '../components/ui'
+import { PcCompanionPanel } from './PcCompanionPanel'
 
 export default function PcStop() {
   const { date, plan, m } = useToday()
@@ -46,9 +47,10 @@ export default function PcStop() {
       <Card className="space-y-3 text-center">
         <p className="text-muted">Heute</p>
         <p className={command.mode === 'paused' ? 'text-2xl font-semibold' : 'text-5xl font-semibold tabular-nums'}>{command.mode === 'paused' ? 'Ohne festen PC-Stopp' : fmtTime(plan.pcStop)}</p>
-        <p className="text-sm text-muted">{user ? 'Verbindung bereit · Empfang am PC noch nicht bestätigt' : 'Änderungen werden derzeit nicht an einen PC übertragen.'}</p>
+        <p className="text-sm text-muted">{user ? 'Klassisches Paket: Serververbindung bereit · Empfang am PC noch nicht bestätigt' : 'Klassisches Paket: keine Serverübertragung eingerichtet.'}</p>
         <Button variant="primary" className="w-full" disabled={busy} onClick={() => setEditing(true)}>Zeit ändern</Button>
       </Card>
+      <PcCompanionPanel />
       <MoreInfo summary="Verbindung und bereitgestellten Plan ansehen">
         <p className="text-sm text-muted">Das ist dein gewünschter Plan. Ein bereitgestellter Auftrag bestätigt keinen Empfang am PC.</p>
         <Button className="w-full" variant="ghost" disabled={busy} onClick={async () => {

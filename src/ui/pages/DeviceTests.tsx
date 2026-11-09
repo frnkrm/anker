@@ -16,7 +16,26 @@ import { Button, Card, Checkbox, Choice, Page, Row, Section, TextInput } from '.
 import { AlarmDiagnosis, fmtDateTime } from './Alarm'
 
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
-const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85, 86, 88, 90, 94, 95])
+const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85, 86, 88, 90, 94, 95, 97, 98, 99, 100, 101, 102])
+const V7_GROUP = 'v7: Abend, Morgen und PC gemeinsam'
+const V7_LINKS: Record<number, { label: string; to: string }[]> = {
+  97: [{ label: 'Sicherung und alte Werte vergleichen', to: '/backup' }, { label: 'Freiwillige Begleitung öffnen', to: '/einstellungen/begleitung' }, { label: 'Lokale PC-Kopplung öffnen', to: '/pc-stopp' }],
+  98: [{ label: 'Zeitfarben und Zeitbogen wählen', to: '/einstellungen/begleitung' }, { label: 'Schriftgröße einstellen', to: '/einstellungen/darstellung' }, { label: 'Jetzt ansehen', to: '/' }],
+  99: [{ label: 'Echten Wecker und QR prüfen', to: '/wecker' }, { label: 'Morgenübergang wählen', to: '/einstellungen/begleitung' }, { label: 'Morgenroutine im Fokus öffnen', to: '/fokus/morning' }],
+  100: [{ label: 'Impulse und Wachrückfrage wählen', to: '/einstellungen/begleitung' }, { label: 'Morgen-Kernschritte wählen', to: '/einstellungen/routinen#morning' }, { label: 'Morgenroutine ausprobieren', to: '/fokus/morning' }],
+  101: [{ label: 'Abendphasen und Rauschen wählen', to: '/einstellungen/begleitung' }, { label: 'Abend auf Jetzt begleiten', to: '/' }, { label: 'Vorhandenen Anker-QR ansehen', to: '/wecker' }],
+  102: [{ label: 'PC-Antworten und Befehle prüfen', to: '/pc-stopp' }, { label: 'Strengen PC-Abend ansehen', to: '/einstellungen/begleitung' }],
+  103: [{ label: 'Wenn-dann-Plan und Lichtvorschlag ansehen', to: '/einstellungen/begleitung' }, { label: 'Gedanken auf Jetzt vergleichen', to: '/' }, { label: 'Rhythmus-Woche öffnen', to: '/rhythmus' }],
+}
+const V7_HELP: Record<number, string[]> = {
+  97: ['Exportiere zuerst deine bisherigen Daten und Testberichte. Vergleiche nach dem Update Routinen, Einstellungen und Spielstand. Es wird nichts für dich gelöscht.', 'Lies die neuen Optionen zunächst ausgeschaltet. Koppeln ist von der Erlaubnis für PC-Eingriffe getrennt. Kopplungscodes, Schlüssel und Passwörter gehören nicht in deine Testnotiz.'],
+  98: ['Wähle die Zeitfarben und den Zeitbogen bewusst. Prüfe Morgen, Abend und Nacht bei passender tatsächlicher Uhrzeit; ein Bildschirmfoto allein bestätigt keine zeitliche Umschaltung.', 'Teste 160 Prozent Schrift, schmale Ansicht, Systemleisten und reduzierte Bewegung. Texte und Bedienelemente dürfen weder verschwinden noch übereinanderliegen. Stelle deine Darstellung danach nach Wunsch ein.'],
+  99: ['Notiere deine echten Weckerzeiten. Ein separater Testwecker prüft nicht den Morgenübergang. Prüfe diesen mit einem bewusst gewählten echten Hauptwecker und deinem Anker-QR.', 'Nach bestätigtem QR soll derselbe nächste Morgenschritt mit laufender Zeit erscheinen. Beende die App und öffne wieder: Ein übernommener Übergang darf nicht mehrfach starten oder erledigen. Zähle nur tatsächlich gemachte Schritte als erledigt.'],
+  100: ['Wähle für einen kurzen Versuch Impulse oder lokale Stimme und markiere eigene Kernschritte. Prüfe laufend, Pause, App-Wechsel und den Vorrang eines echten Alarms.', 'Teste manuelle und automatische kleine Routine getrennt. Ein Timerablauf darf keine Nutzerinteraktion oder Erledigung erfinden. Die Wachrückfrage braucht deinen tatsächlichen Tipp; ohne ihn kann der Hauptwecker erneut klingeln. Noch nicht beobachtete Teile bleiben offen.'],
+  101: ['Notiere deine Abendzeiten und wähle die drei Phasen bewusst. Zur passenden Uhrzeit prüfst du Übergang, Gedankenfeld und Abend-QR. Ein offenes Ende soll die zeitgesteuerten Phasen pausieren.', 'Der QR bestätigt den Abendübergang, nicht das Liegen im Bett oder Schlaf. Prüfe Rauschen, Fade-Out und Stoppen getrennt. Eine Notverlängerung braucht Anker-QR und eine passende PC-Antwort.'],
+  102: ['Prüfe zuerst die getrennten Anzeigen für Live-Verbindung und übernommenen Plan. Nur eine passende aktuelle PC-Antwort bestätigt den Empfang. Ein verbundenes WLAN oder aktiver Handydienst reicht nicht.', 'Teste PC-Freigabe, Speicherfenster, Pause, Verlängerung, WLAN-Ausfall und Rückkehr jeweils bewusst. Der strenge Modus nutzt QR-Notverlängerung; ein altes Windows-Paket darf keine zweite Sperre erzeugen.', 'Wake-on-LAN ist optional und braucht einen passend eingerichteten PC. Ein gesendetes Paket bestätigt noch keinen PC-Start. Notiere nur die Varianten, die du wirklich beobachtet hast.'],
+  103: ['Parke einen eigenen kurzen Abendgedanken. Nach tatsächlich abgeschlossener Morgenroutine soll dieselbe Notiz wieder erscheinen, ohne dadurch als erledigt zu gelten.', 'Wenn-dann-Satz und Licht-Schritt werden nur auf deinen Tipp übernommen. Prüfe in der Rhythmus-Woche 7 und 14 Tage: Fehlende Ist-Zeiten bleiben ohne Eintrag, ein Planwert wird nicht als gemessene Zeit ausgegeben.'],
+}
 
 const CAMPAIGN_LINKS: Record<number, { label: string; to: string }[]> = {
   86: [{ label: 'Sicherung und Vorschau öffnen', to: '/backup' }, { label: 'Vorhandene Aufgaben vergleichen', to: '/inbox' }],
@@ -71,6 +90,7 @@ const E03_HELP: Record<number, string[]> = {
 }
 
 function linksFor(id: number): { label: string; to: string }[] {
+  if (V7_LINKS[id]) return V7_LINKS[id]
   if (id === 21 || id === 67) return [{ label: 'Erinnerungen ansehen', to: '/einstellungen/erinnerungen' }, { label: 'Abendroutine ansehen', to: '/einstellungen/abendroutine' }, { label: 'Wirkung auf Jetzt vergleichen', to: '/' }]
   if (id === 96) return [{ label: 'Einschlafdauer ansehen', to: '/einstellungen/schlaf' }, { label: 'Stummen Hinweis auf Jetzt prüfen', to: '/' }]
   if (CAMPAIGN_LINKS[id]) return CAMPAIGN_LINKS[id]
@@ -100,6 +120,7 @@ function linksFor(id: number): { label: string; to: string }[] {
 }
 
 function extraHelp(id: number): string[] {
+  if (V7_HELP[id]) return V7_HELP[id]
   if (id === 21 || id === 67) return ['Nutze eine bewusst gewählte Test-Erinnerung und notiere vorher deine Zeiten. Die Links führen zu Erinnerungen, Abendroutine und Jetzt; ein Testwecker prüft diese Antworten nicht.', 'Bei Erledigt bestätigst du die angezeigte Handlung wirklich. Bei der Abendroutine werden nur noch offene geplante Schritte erledigt; bisherige Ergebnisse bleiben. Heute nicht lässt offene Abend-Schritte für heute entfallen, ohne neue Punkte oder Erledigt-Häkchen.', 'Bei geschlossener App ist die Auswahl zunächst sicher vorgemerkt und wird beim Öffnen übernommen. 5 Min später verschiebt nur die Erinnerung; auf Jetzt entsteht dadurch keine Erledigung. Ruhe/Fokus können eine normale Erinnerung unterdrücken. Nach zweimaligem Verschieben bleiben Erledigt und Heute nicht verfügbar.', 'Öffne Anker anschließend erneut und vergleiche den Zustand. Halte nur tatsächlich beobachtete Teile fest und stelle geänderte Testzeiten wieder zurück.']
   if (id === 96) return ['Notiere zuerst deine eigene Einschlafdauer. Ändere sie nur für deinen bewussten Versuch und stelle sie danach wieder her.', 'Öffne Jetzt zur Bettzeit. Lies den freiwilligen Fensterhinweis und entscheide selbst über die Android-Freigabe. Öffnen dieses Links startet den Hinweis nicht.', 'Prüfe eingeschalteten und gesperrten Bildschirm getrennt. Ohne tatsächliche Beobachtung bleiben diese Teile offen; der Hinweis ersetzt keinen Wecker.']
   if (CAMPAIGN_HELP[id]) return CAMPAIGN_HELP[id]
@@ -131,7 +152,7 @@ export default function DeviceTests() {
   const progress = useApp((s) => s.local.deviceTests)
   const saved = deviceTestsFromLocal({ deviceTests: progress })
   const [params, setParams] = useSearchParams()
-  const [group, setGroup] = useState(() => params.get('auswahl') === 'kurz' || !params.has('fall') ? DEVICE_TEST_SHORT_GROUP
+  const [group, setGroup] = useState(() => params.get('auswahl') === 'v7' || Number(params.get('fall')) >= 97 && Number(params.get('fall')) <= 103 ? V7_GROUP : params.get('auswahl') === 'kurz' || !params.has('fall') ? DEVICE_TEST_SHORT_GROUP
     : Number(params.get('fall')) >= 86 && Number(params.get('fall')) <= 95 ? DEVICE_TEST_CAMPAIGN_GROUP : 'Alle')
   const [onlyOpen, setOnlyOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)
@@ -144,10 +165,12 @@ export default function DeviceTests() {
   const passed = catalog.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
   const campaign = catalog.filter((test) => test.group === DEVICE_TEST_CAMPAIGN_GROUP)
   const campaignPassed = campaign.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
+  const v7 = catalog.filter((test) => test.group === V7_GROUP)
+  const v7Passed = v7.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
   const earlier = catalog.map((test) => ({ test, previous: deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous })).filter((entry) => entry.previous.length)
   const neverTested = catalog.filter((test) => !saved.reports[test.id] && !saved.history?.[test.id]?.length).length
   const shortPassed = short.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
-  const select = (id: number, selectedGroup = group) => setParams({ fall: String(id), ...(selectedGroup === DEVICE_TEST_SHORT_GROUP ? { auswahl: 'kurz' } : {}) })
+  const select = (id: number, selectedGroup = group) => setParams({ fall: String(id), ...(selectedGroup === DEVICE_TEST_SHORT_GROUP ? { auswahl: 'kurz' } : selectedGroup === V7_GROUP ? { auswahl: 'v7' } : {}) })
 
   return <Page title="Gemeinsam testen" back="/mehr">
     <Card className="space-y-2">
@@ -171,6 +194,11 @@ export default function DeviceTests() {
       {earlier.length > 3 && <details className="rounded-2xl border border-line p-3"><summary className="min-h-11 py-2">Alle {earlier.length} früher geprüften Testpunkte anzeigen</summary>
         <div className="space-y-2">{earlier.slice(3).map(({ test, previous }) => <Row key={test.id} label={`Test ${test.id}: ${TEST_RESULT_LABEL[previous[0]!.result]} – früher geprüft`} onClick={() => { setGroup('Alle'); setOnlyOpen(false); select(test.id, 'Alle') }} />)}</div>
       </details>}
+    </Section>}
+    {v7.length > 0 && <Section title="v7 in sieben Stationen ausprobieren">
+      <p className="px-1 text-sm text-muted">Abend, Morgen und PC gehören zusammen. Diese sieben Sammelstationen führen dich direkt zu den passenden Einstellungen. Du brauchst nicht zusätzlich alle alten Einzelfälle zu wiederholen.</p>
+      <Button className="w-full" onClick={() => { setGroup(V7_GROUP); setOnlyOpen(false); select(97, V7_GROUP) }}>v7 gemeinsam ausprobieren · 7 Stationen</Button>
+      <p className="px-1 text-sm text-muted">{v7Passed} von {v7.length} Stationen {platform === 'android' ? 'auf Android' : 'im Browser'} für diesen Stand gemeldet. Wähle „Teilweise“, solange ein Abschnitt noch offen ist.</p>
     </Section>}
     <Section title="Womit möchtest du anfangen?">
       <p className="px-1 text-muted">Für einen kurzen Updatecheck reichen zunächst {short.length} ausgewählte Originalfälle. Wähle nur, was du heute ausprobieren möchtest. Die vollständigen Einzelfälle bleiben freiwillig verfügbar.</p>
