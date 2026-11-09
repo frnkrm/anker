@@ -58,12 +58,20 @@ async function fixture(page: Page) {
     { id: 'private', label: 'Privater Ort', kind: 'private', latitude: 50.1, longitude: 7.1, externalUse: { routes: true } },
   ]
   data.assistance = { routes: { enabled: true, version: 1, at: zonedToUtc(DATE, 480), automatic: false } }
+  // Die laufende App hält noch den ungesäten Spielstand. Vor direkten Fixture-Writes
+  // entladen, damit ihr verzögerter Fortschrittsabgleich keine Testdaten überschreibt.
+  await page.goto(`${server.url}/icon.svg`)
+  expect(await page.evaluate(() => ({ type: document.contentType, appRoot: !!document.getElementById('root'), scripts: document.querySelectorAll('script').length })))
+    .toEqual({ type: 'image/svg+xml', appRoot: false, scripts: 0 })
   await seedRecords(page, [
     { collection: 'settings', id: 'main', data: settings },
     { collection: 'meta', id: 'local', data },
     { collection: 'game', id: 'main', data: { ...initialGame(DATE), xp: 37 } },
   ])
+  expect((await storedRecord<GameState>(page, 'game', 'main'))?.xp).toBe(37)
   await page.goto(`${server.url}/arbeitszeit`)
+  await expect(page.getByRole('button', { name: 'Arbeit starten', exact: true })).toBeVisible()
+  expect((await storedRecord<GameState>(page, 'game', 'main'))?.xp).toBe(37)
   await page.getByRole('button', { name: 'Arbeit starten', exact: true }).click()
   await expect.poll(async () => (await local(page))?.workSessions.length).toBe(1)
   await clock(page, 720)
