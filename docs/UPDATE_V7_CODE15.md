@@ -6,7 +6,7 @@
 
 1. Das APK-Paket vollständig herunterladen und entpacken.
 2. **Anker.apk** antippen und **Aktualisieren** bestätigen. Die installierte Anker-App behalten; eine Deinstallation ist für dieses Update nicht vorgesehen.
-3. Anker öffnen und unter **Mehr → Gemeinsam testen → v7 gemeinsam ausprobieren · 7 Stationen** mit G97 beginnen. Alte Berichte bleiben erhalten; nur eigene Beobachtungen bestätigen.
+3. Anker öffnen: **Mehr → Einstellungen → Zusätzliche Werkzeuge → Test- und Entwicklerwerkzeuge anzeigen** einschalten. Darunter **Gemeinsam testen → v7 gemeinsam ausprobieren · 7 Stationen** wählen und mit G97 beginnen. Alte Berichte bleiben erhalten; nur eigene Beobachtungen bestätigen.
 
 Das Update verwendet denselben Release-Schlüssel wie Code14. Android prüft die Signatur zusätzlich beim Installieren. Falls „App nicht installiert“ erscheint, die vorhandene App behalten und die genaue Meldung sowie ihre unter **Über Anker** angezeigte Version notieren.
 
