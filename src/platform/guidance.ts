@@ -140,11 +140,19 @@ const syncNativeGuidance = coalesceAsync(async () => {
   }
   // Only an actual user action can satisfy this guard; an automatic countdown/Zombie switch cannot.
   const day = st.local.guidance?.days[date]
-  if (preferences.antiRelapse && day?.firstInteractionAt && day.morningActivatedAt !== undefined && day.firstInteractionAt >= day.morningActivatedAt) {
+  if (preferences.antiRelapse && day?.firstInteractionAt && day.morningActivatedAt !== undefined && day.firstInteractionAt >= day.morningActivatedAt && day.firstInteractionAt <= now) {
     const pending = await AnkerNative.getMorningHandoff()
     if (pending.activityToken && pending.activityToken !== activityToken) {
-      const result = await AnkerNative.confirmMorningActivity({ token: pending.activityToken })
-      if (result.confirmed) activityToken = pending.activityToken
+      const current = useApp.getState()
+      const currentNow = Date.now()
+      const currentDay = current.local.guidance?.days[guidancePlanDate(current.local, today(), currentNow)]
+      const interaction = currentDay?.firstInteractionAt
+      const afterActivation = interaction !== undefined && currentDay?.morningActivatedAt !== undefined && interaction >= currentDay.morningActivatedAt && interaction <= currentNow
+      const afterReceipt = !pending.pending || pending.at !== undefined && interaction !== undefined && interaction >= pending.at
+      if (afterActivation && afterReceipt && guidancePreferences(current.settings.guidance).enabled && guidancePreferences(current.settings.guidance).antiRelapse) {
+        const result = await AnkerNative.confirmMorningActivity({ token: pending.activityToken })
+        if (result.confirmed) activityToken = pending.activityToken
+      }
     }
   }
 })

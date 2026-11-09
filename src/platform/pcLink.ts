@@ -64,24 +64,36 @@ export async function discoverPcCompanions(): Promise<{ services: { name: string
 }
 
 let configured = ''
+let pairingGeneration = 0
+let pairingOperations = 0
+const samePair = (generation: number) => generation === pairingGeneration && pairingOperations === 0
 async function configureBridge(enabled: boolean): Promise<void> {
+  const generation = pairingGeneration
   const raw = useApp.getState().settings.alarm.qrSecret
   // Only the hash crosses this configuration boundary. The QR itself is submitted solely on a scan.
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw))
+  if (generation !== pairingGeneration) return
   const qrHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
   const key = `${enabled}:${qrHash}`
   if (configured === key) return
   await AnkerNative.pcBridgeConfigure({ qrHash, autoReconnect: enabled })
-  configured = key
+  if (generation === pairingGeneration) configured = key
 }
 
 export async function pairPcCompanion(qr: string): Promise<void> {
   if (!isNative()) throw new Error('Die PC-Kopplung ist auf Android verfügbar.')
+  if (pairingOperations) throw new Error('Die vorherige Kopplungsänderung wird noch abgeschlossen.')
   parsePairingCode(qr)
-  await configureBridge(true)
-  await AnkerNative.pcBridgePair({ qr, deviceName: 'Anker Android' })
-  await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...(local.pcBridge ?? defaultPcBridgeLocal()), enabled: true, status: 'paired-never-reached', events: [], receipts: [], cursor: 0, ack: undefined, wantedRevision: undefined } }))
-  lastStateRevision = ''; lastBriefingRevision = ''
+  const generation = ++pairingGeneration
+  pairingOperations++
+  try {
+    await configureBridge(true)
+    if (generation !== pairingGeneration) return
+    await AnkerNative.pcBridgePair({ qr, deviceName: 'Anker Android' })
+    if (generation !== pairingGeneration) return
+    await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...(local.pcBridge ?? defaultPcBridgeLocal()), enabled: true, status: 'paired-never-reached', events: [], receipts: [], cursor: 0, ack: undefined, wantedRevision: undefined } }))
+    lastStateRevision = ''; lastBriefingRevision = ''
+  } finally { pairingOperations-- }
 }
 
 export async function startPcCompanion(): Promise<void> {
@@ -99,25 +111,32 @@ export async function stopPcCompanion(): Promise<void> {
 }
 
 export async function unpairPcCompanion(): Promise<void> {
-  if (isNative()) await AnkerNative.pcBridgeUnpair()
-  await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...(local.pcBridge ?? defaultPcBridgeLocal()), enabled: false, status: 'unpaired', ack: undefined, wantedRevision: undefined, pcName: undefined, events: [], receipts: [], cursor: 0 } }))
-  configured = ''; lastStateRevision = ''; lastBriefingRevision = ''
+  ++pairingGeneration
+  pairingOperations++
+  try {
+    if (isNative()) await AnkerNative.pcBridgeUnpair()
+    await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...(local.pcBridge ?? defaultPcBridgeLocal()), enabled: false, status: 'unpaired', ack: undefined, wantedRevision: undefined, pcName: undefined, events: [], receipts: [], cursor: 0 } }))
+    configured = ''; lastStateRevision = ''; lastBriefingRevision = ''
+  } finally { pairingOperations-- }
 }
 
 export async function updatePcBridgePreferences(patch: Partial<PcLinkPreferences>): Promise<void> {
   const { strictLock, ifThen, ...localPatch } = patch
   if (strictLock !== undefined || ifThen !== undefined) throw new Error('Die strenge Nachtbegleitung wird in Abend & Morgen gewählt.')
-  const candidate = { ...localBridge(), preferences: { ...localBridge().preferences, ...localPatch } }
-  // Reuse the exact wire validator before persisting a setting; no relaxed UI-only schema.
-  const state = snapshot()
-  parsePcPayload({ ...state, prefs: { ...preferences(candidate), enforceEnabled: candidate.preferences.enforceEnabled } })
-  await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...(local.pcBridge ?? defaultPcBridgeLocal()), preferences: candidate.preferences } }))
+  await useApp.getState().saveLocal(local => {
+    const bridge = local.pcBridge ?? defaultPcBridgeLocal()
+    const candidate = { ...bridge, preferences: { ...bridge.preferences, ...localPatch } }
+    // Validate and merge inside the Store queue so simultaneous independent choices survive.
+    parsePcPayload({ ...snapshot(), prefs: { ...preferences(candidate), enforceEnabled: candidate.preferences.enforceEnabled } })
+    return { ...local, pcBridge: candidate }
+  })
   await syncPcBridge()
 }
 
 /** Receipt effects and the native outbox acknowledgement have deliberately separate commits. */
-async function drainPcEvents(): Promise<void> {
+async function drainPcEvents(generation: number): Promise<boolean> {
   const pending = await AnkerNative.pcBridgeDrainEvents()
+  if (!samePair(generation)) return false
   if (!Array.isArray(pending.events) || pending.events.length > 1000 || !pending.events.every(isPcLinkEvent)) throw new Error('Die PC-Rückmeldung ist ungültig.')
   const events = pending.events.filter(isPcLinkEvent)
   for (let offset = 0; offset < events.length; offset += 100) {
@@ -125,8 +144,11 @@ async function drainPcEvents(): Promise<void> {
     const payload: PcEventsPayload = { type: 'events', items, lastSeq: Math.max(pending.lastSeq, ...items.map(item => item.seq)) }
     parsePcPayload(payload)
     const committed = await useApp.getState().applyPcEvents(payload)
+    if (!samePair(generation)) return false
     if (committed.appliedIds.length) await AnkerNative.pcBridgeAckEvents({ ids: committed.appliedIds })
+    if (!samePair(generation)) return false
   }
+  return true
 }
 
 let lastStateRevision = ''
@@ -138,16 +160,27 @@ let lastReconnectAt = 0
 
 const reconcilePcBridge = coalesceAsync(async () => {
   if (!isNative() || !useApp.getState().ready || !useApp.getState().settings.onboarded) return
+  if (pairingOperations) return
+  if (!localBridge().enabled && disabled) return
+  const generation = pairingGeneration
   // Apply offline PC actions before a fresh planner snapshot can overwrite their intent.
-  await drainPcEvents()
+  if (!await drainPcEvents(generation)) return
   const local = localBridge()
   if (!local.enabled) {
-    if (!disabled) { await configureBridge(false); await AnkerNative.pcBridgeStop(); disabled = true }
+    if (!disabled) {
+      await configureBridge(false)
+      if (!samePair(generation)) return
+      await AnkerNative.pcBridgeStop()
+      if (!samePair(generation)) return
+      disabled = true
+    }
     return
   }
   disabled = false
   await configureBridge(true)
+  if (!samePair(generation)) return
   let native: NativePcView = await AnkerNative.pcBridgeGetState()
+  if (!samePair(generation)) return
   if (native.requestedActive && !native.active && Date.now() - lastReconnectAt >= 30000 && globalThis.document?.visibilityState === 'visible') {
     lastReconnectAt = Date.now()
     native = await AnkerNative.pcBridgeStart()
@@ -155,18 +188,22 @@ const reconcilePcBridge = coalesceAsync(async () => {
   if (['unpaired', 'pairing', 'rejected', 'companion-outdated'].includes(native.state)) return
   const now = Date.now()
   const alarm = await AnkerNative.getAlarmState()
+  if (!samePair(generation)) return
   const wanted = snapshot(now, alarm)
   const briefing = briefingFor(wanted)
   if (briefing.revision !== lastBriefingRevision) {
     const result = await AnkerNative.pcBridgeSend({ payload: briefing })
+    if (!samePair(generation)) return
     if (result.sent) lastBriefingRevision = briefing.revision
   }
   const runningStepChanged = ['MORNING_ACTIVE', 'ZOMBIE_MODE'].includes(wanted.state) && wanted.remainingSeconds !== lastRemainingSeconds
   if (wanted.revision !== lastStateRevision || runningStepChanged || now - lastStateSentAt >= 25000) {
     const result = await AnkerNative.pcBridgeSend({ payload: wanted })
+    if (!samePair(generation)) return
     if (result.sent) { lastStateRevision = wanted.revision; lastStateSentAt = now; lastRemainingSeconds = wanted.remainingSeconds }
   }
   native = await AnkerNative.pcBridgeGetState()
+  if (!samePair(generation)) return
   const status = pcConnectionStatus({ nativeState: native.state, connected: native.connected, ack: native.ack, wanted, nowMs: Date.now() })
   const previous = localBridge()
   const ack = isPcAck(native.ack) ? native.ack : previous.ack
@@ -178,9 +215,12 @@ const reconcilePcBridge = coalesceAsync(async () => {
   const wol = localBridge().wakeOnLan
   if (wanted.state === 'MORNING_COMPLETED' && wol?.enabled && wol.lastMorning !== wanted.date) {
     const sent = await AnkerNative.pcBridgeWakeOnLan({ mac: wol.mac, broadcast: wol.broadcast })
+    if (!samePair(generation)) return
     if (sent.sent) await useApp.getState().saveLocal(localData => {
       const bridge = localData.pcBridge ?? defaultPcBridgeLocal()
-      return { ...localData, pcBridge: { ...bridge, wakeOnLan: { ...wol, lastMorning: wanted.date } } }
+      const current = bridge.wakeOnLan
+      if (!current || current.mac !== wol.mac || current.broadcast !== wol.broadcast) return localData
+      return { ...localData, pcBridge: { ...bridge, wakeOnLan: { ...current, lastMorning: wanted.date } } }
     })
   }
 })

@@ -55,7 +55,7 @@ export interface PcBriefingDay {
   morning?: { leaveAt?: string; workStartAt?: string; homeOffice: boolean }
 }
 export interface PcBriefingPayload { type: 'briefing'; revision: string; generatedAt: string; validUntil: string; days: PcBriefingDay[]; prefs: PcLinkPreferences }
-export const PC_ACK_WARNINGS = ['clock-skew', 'local-enforcement-off', 'legacy-conflict', 'source-expired', 'no-schedule', 'morning-deadline-reached', 'pairing-required'] as const
+export const PC_ACK_WARNINGS = ['clock-skew', 'local-enforcement-off', 'legacy-conflict', 'source-expired', 'no-schedule', 'morning-deadline-reached', 'pairing-required', 'link-stale'] as const
 export interface PcAck {
   type: 'ack'
   revision: string

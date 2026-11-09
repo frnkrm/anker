@@ -103,6 +103,25 @@ describe('Dauerhafte Übergabe und freiwillige native Begleitung', () => {
     expect(mocks.state.verifyBedtime).toHaveBeenCalledTimes(1)
   })
 
+  it('akzeptiert eine importierte zukünftige Interaktion nicht als heutige Wachbestätigung', async () => {
+    settings().guidance!.antiRelapse = true
+    local().guidance = { days: { '2026-11-08': { morningActivatedAt: at - 1000, firstInteractionAt: at + 60000 } }, receipts: [] }
+    mocks.api.getMorningHandoff.mockResolvedValue({ pending: false, activityToken: 'new-guard' })
+    const { syncGuidanceRuntime } = await import('./guidance')
+    await syncGuidanceRuntime()
+    expect(mocks.api.confirmMorningActivity).not.toHaveBeenCalled()
+  })
+
+  it('bestätigt einen neu eingegangenen Override nicht mit einer Handlung vor dessen Quittierung', async () => {
+    settings().guidance!.antiRelapse = true
+    local().guidance = { days: { '2026-11-08': { morningActivatedAt: at - 60000, firstInteractionAt: at - 30000 } }, receipts: [] }
+    mocks.api.getMorningHandoff.mockResolvedValue({ pending: true, at, targetAt: at - 120000, activityToken: 'fresh-guard' })
+    const { syncGuidanceRuntime } = await import('./guidance')
+    await syncGuidanceRuntime()
+    expect(mocks.api.getMorningHandoff).toHaveBeenCalled()
+    expect(mocks.api.confirmMorningActivity).not.toHaveBeenCalled()
+  })
+
   it('wartet beim Schlafrauschen begrenzt auf den echten Vordergrundstart', async () => {
     settings().guidance!.sleepNoise = true
     mocks.api.startSleepAudio.mockResolvedValue({ active: false, phase: 'prepared' })

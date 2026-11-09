@@ -7,6 +7,7 @@ import type { DayLog, LocalData, Settings } from '../core/types'
 const mocks = vi.hoisted(() => ({ native: true, state: {} as Record<string, unknown>, api: {
   pcBridgeDrainEvents: vi.fn(), pcBridgeAckEvents: vi.fn(), pcBridgeConfigure: vi.fn(), pcBridgeGetState: vi.fn(),
   pcBridgeSend: vi.fn(), pcBridgeStart: vi.fn(), pcBridgeStop: vi.fn(), pcBridgeEmergency: vi.fn(),
+  pcBridgeUnpair: vi.fn(),
   pcBridgeWakeOnLan: vi.fn(), getAlarmState: vi.fn(),
 }, view: {} as { state: 'connected'; connected: boolean; active: boolean; requestedActive: boolean; ack?: unknown; emergencyAck?: { commandId: string; until: number; receivedAt: number } } }))
 vi.mock('./native', () => ({ isNative: () => mocks.native, AnkerNative: mocks.api }))
@@ -109,5 +110,32 @@ describe('PC-Plattformgrenzen und wahrheitsgemäße Bestätigungen', () => {
     await expect(syncPcBridge()).rejects.toThrow()
     expect(mocks.state.applyPcEvents).not.toHaveBeenCalled()
     expect(mocks.api.pcBridgeAckEvents).not.toHaveBeenCalled()
+  })
+
+  it('mischt gleichzeitige unabhängige PC-Einstellungen erst innerhalb der Speicherqueue', async () => {
+    let queue = Promise.resolve()
+    vi.mocked(mocks.state.saveLocal as (fn: (value: LocalData) => LocalData) => Promise<void>).mockImplementation(fn => {
+      queue = queue.then(() => { mocks.state.local = fn(local()) })
+      return queue
+    })
+    const { updatePcBridgePreferences } = await import('./pcLink')
+    await Promise.all([updatePcBridgePreferences({ dimEnabled: true }), updatePcBridgePreferences({ audioDuck: true })])
+    expect(local().pcBridge?.preferences.dimEnabled).toBe(true)
+    expect(local().pcBridge?.preferences.audioDuck).toBe(true)
+  })
+
+  it('verwirft eine verspätete Ereignisantwort nach dem Entkoppeln', async () => {
+    let release!: (value: unknown) => void
+    mocks.api.pcBridgeDrainEvents.mockImplementationOnce(() => new Promise(resolve => { release = resolve }))
+    const { syncPcBridge, unpairPcCompanion } = await import('./pcLink')
+    const running = syncPcBridge()
+    await Promise.resolve()
+    await unpairPcCompanion()
+    release({ events: [{ id: 'old-pair-event', seq: 100, at: new Date(at).toISOString(), date: '2026-11-09', kind: 'thought', text: 'Alter PC' }], lastSeq: 0 })
+    await running
+    expect(mocks.state.applyPcEvents).not.toHaveBeenCalled()
+    expect(mocks.api.pcBridgeAckEvents).not.toHaveBeenCalled()
+    expect(local().pcBridge?.cursor).toBe(0)
+    expect(local().pcBridge?.enabled).toBe(false)
   })
 })
