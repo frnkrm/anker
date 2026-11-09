@@ -1,14 +1,16 @@
 # ⚓ Anker
 
-**Anker 1.4.0-rc.1 / Code 14:** Die vereinfachte Oberfläche bündelt Alltag, Fokus und Einstellungen. [Signierte APK als ZIP](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108) · [Installation](docs/INSTALLATION_ANKER_CODE14.md) · [Umsetzung und Prüfstand](docs/UI_UEBERARBEITUNG_CODE14.md). Die App heißt wieder Anker; Paketkennung und bestehende Release-Signatur bleiben erhalten.
+**Aktueller Entwicklungsauftrag v7: Abend, Morgen und lokaler PC-Begleiter.** Die neuen Hilfen bauen auf dem bestehenden Tagesplan, Wecker und Speicher auf und beginnen ausgeschaltet. [Bedienung und Windows-Setup](docs/PC_BEGLEITER.md) · [Architektur](docs/PC_LINK_PROTOKOLL.md) · [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) · [tatsächliche Testnachweise](docs/ANKER_TESTNACHWEISE.md). Echte Windows- und Galaxy-Prüfungen stehen noch aus; für diesen Auftrag wurde keine neue APK veröffentlicht und keine Versions- oder Signaturänderung vorgenommen.
+
+**Zuletzt veröffentlichter Stand: Anker 1.4.0-rc.1 / Code 14.** [Signierte APK als ZIP](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108) · [Installation](docs/INSTALLATION_ANKER_CODE14.md) · [UI-Umsetzung und Prüfstand](docs/UI_UEBERARBEITUNG_CODE14.md). Dieser Download enthält die neuen v7-Funktionen noch nicht.
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
-**E04–E09 implementiert – 1.3.0-rc.1.** Die gemeinsame Softwareprüfung ist grün: 780 Logik-/139 Browser-/87 native Modelltests und 19 PowerShell-Fälle. Echte Handytests folgen gemeinsam. Implementierung, automatische Prüfungen und echte Android-Geräteberichte sind getrennt im [Implementierungsplan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](docs/ANKER_TESTNACHWEISE.md) dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Standort- oder Sprachdienste auf deinem Handy.
+Implementierung, automatische Prüfungen und echte Android-/Windows-Beobachtungen werden getrennt dokumentiert. Ein erfolgreicher Build bestätigt weder Weck-Hörbarkeit noch funktionierende Sprachdienste oder eine tatsächliche PC-Sperre.
 
 - **Android-App** (Capacitor) und **Web-Version/PWA** (Netlify, für den PC) aus derselben Codebasis
 - **Offline zuerst:** Alles Wichtige läuft ohne Konto, ohne Server, ohne Internet
-- **Optionale Extras:** Sync, Kalender, Health Connect, Wetter, PC-Stopp, lokale Sprache, besuchsbezogene Standorthinweise sowie KI- und Verkehrsvorschläge. Sensible neue Extras beginnen ausgeschaltet. Ein Ausfall ändert keinen erledigten Schritt und lässt manuelle Wege verfügbar; Freigaben werden nicht still erteilt.
+- **Optionale Extras:** Sync, Kalender, Health Connect, Wetter, PC-Stopp, lokaler Windows-Begleiter, lokale Sprache, besuchsbezogene Standorthinweise sowie KI- und Verkehrsvorschläge. Sensible neue Extras beginnen ausgeschaltet. Ein Ausfall ändert keinen erledigten Schritt und lässt manuelle Wege verfügbar; Freigaben werden nicht still erteilt.
 - Keine Werbung, kein Tracking, keine Analytics
 
 > Anker ersetzt keine ärztliche Beratung. Anlaufstellen findest du in der App unter **Mehr → Einstellungen → Hilfe**.
@@ -29,7 +31,7 @@ Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**,
 Voraussetzungen: Node.js 24, für Android zusätzlich JDK 21 und Android SDK (Platform 36).
 
 ```bash
-npm install
+npm ci
 npm run dev          # Web-Version auf http://localhost:5173
 npm test             # Logik-Tests (Vitest)
 npm run test:e2e     # Smoke-Test der Web-Version (Playwright)
@@ -40,6 +42,17 @@ node scripts/gradle.mjs :app:testDebugUnitTest  # Kotlin-Logik (JUnit)
 ```
 
 Die Debug-APK liegt danach unter `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+Der neue Windows-Begleiter verwendet Python 3.11+, `aiohttp`, `zeroconf`, lokale TLS/WSS-Kommunikation und eine Tk-Oberfläche. Windows-Effekte liegen hinter injizierbaren Adaptern; reine Tests können unter Linux laufen:
+
+```bash
+cd pc-companion
+python -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+Windows-Start und Benutzer-Autostart sind in [PC_BEGLEITER.md](docs/PC_BEGLEITER.md#windows-einrichten) beschrieben. Die vorhandenen PowerShell-Exporttests `npm run test:pc` prüfen weiterhin den klassischen PC-Stopp, nicht die neue Windows-Laufzeit.
 
 **Fertiges Update lokal signieren:** Ein vorbereitetes Updatepaket kann mit `scripts/sign-local-update.mjs` signiert werden, ohne das Projekt unter Windows neu zu bauen. Benötigt werden Node, Java17 oder neuer und der **bisherige** lokale Debugschlüssel; ein Android-SDK ist ab Signierhilfe2 nicht mehr nötig. Im Paket liegen CMD-Starter, unsigniertes APK und `update-info.json` mit Prüfsummen, Paket/Version und dem bestätigten öffentlichen Zertifikatsfingerabdruck. `tools/` enthält die unveränderte Apache-2.0-Bibliothek apksig8.13.0 mit Lizenz/Herkunft sowie den aus `scripts/AnkerApkTool.java` mit `javac --release 17` kompilierten lokalen Helfer und dessen Quelltext. JAR und Klasse werden vor Ausführung per SHA256 geprüft. Der Helfer erzeugt keinen Schlüssel, überträgt nichts und installiert nichts. Er prüft die neue Signatur und, falls vorhanden, die alte lokale APK; Android prüft beim Installieren zusätzlich die Kompatibilität zur tatsächlich installierten App. Ein abweichendes Schlüsselpasswort wird lokal geklärt, nicht im Chat geteilt.
 
@@ -59,7 +72,9 @@ Umgebungsvariablen: `.env.example` nach `.env` kopieren und ausfüllen. **Alle s
    ```
 3. Bei jedem Push laufen automatisch Lint, Typecheck, Tests, Build und der Smoke-Test (`.github/workflows/ci.yml`).
 
-### 2. Supabase (optional: Sync + PC-Stopp mit Verlängerung)
+### 2. Supabase (optional: Sync + klassischer PC-Stopp)
+
+Der neue lokale PC-Begleiter benötigt Supabase nicht. Die folgende Einrichtung betrifft den bisherigen Server-/PowerShell-Weg.
 
 1. Auf [supabase.com](https://supabase.com) ein Projekt anlegen, Region **Frankfurt (eu-central-1)**.
 2. **Datenbank:** Im Dashboard → *SQL Editor* den Inhalt von `supabase/migrations/20261028000001_init.sql` ausführen.
@@ -75,7 +90,7 @@ Umgebungsvariablen: `.env.example` nach `.env` kopieren und ausfüllen. **Alle s
    ```
 4. **Login per Magic Link:** *Authentication → URL Configuration*
    - *Site URL:* deine Netlify-Adresse, z. B. `https://anker-frnkrm.netlify.app`
-   - *Redirect URLs:* `https://anker-frnkrm.netlify.app/verbindungen` und `de.frnkrm.anker://login`
+   - *Redirect URLs:* `https://anker-frnkrm.netlify.app/verbindungen` und `de.frnkrm.anker.mobile://login`
 5. *Project Settings → API:* `Project URL` und `anon public` Key in `.env` eintragen:
    ```
    VITE_SUPABASE_URL=https://xxxx.supabase.co
@@ -109,7 +124,7 @@ Die App protokolliert auf dem Server keine Aufgaben-/Adress-Prompts. Technische 
      ```
      VITE_GOOGLE_WEB_CLIENT_ID=1234-abc.apps.googleusercontent.com
      ```
-   - **Android:** Paketname `de.frnkrm.anker`, dazu der **SHA-1-Fingerabdruck** deines Signaturschlüssels:
+   - **Android:** Paketname `de.frnkrm.anker.mobile`, dazu der **SHA-1-Fingerabdruck** deines Signaturschlüssels:
      ```bash
      # Release-Schlüssel (siehe Abschnitt 5)
      keytool -list -v -keystore anker.keystore -alias anker
@@ -165,7 +180,7 @@ Die signierte APK hängt danach am GitHub-Release (`.github/workflows/release.ym
 
 ### 6. Paketname ändern (falls nötig)
 
-Zentral in `app.config.ts`, außerdem `namespace`/`applicationId` in `android/app/build.gradle`, das Java/Kotlin-Paket unter `android/app/src/main/java/` und die Redirect-URL in Supabase.
+Die installierte App verwendet `de.frnkrm.anker.mobile`. Das Kotlin-Namespace und die Komponentenklassen bleiben `de.frnkrm.anker`. Diese Namen nicht global ersetzen. Eine bewusst beauftragte Identitätsänderung betrifft `app.config.ts`, `applicationId`, Ressourcen, Authorities und Login-Redirects; vorhandene Updates benötigen dieselbe App-Kennung und Signatur.
 
 ### 7. APK installieren
 
@@ -197,7 +212,11 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 **Gemeinsam testen:** Die App führt durch den jeweils aktuellen Katalog mit direkten Einstellungswegen. E04–E09 ergänzt eine gemeinsame Prüfrunde; einzelne Detailversuche und frühere Berichte bleiben erhalten. Testseitenbesuch und Build setzen keine Geräte-Häkchen. Neue Android-Laufzeit-, Sprach-, Standort- und Papiernachweise stehen weiterhin aus.
 
-### 9. PC-Stopp (Windows)
+### 9. Lokaler PC-Begleiter und klassischer PC-Stopp (Windows)
+
+**Neu in v7:** Unter **Mehr → PC-Stopp → Lokaler PC-Begleiter** koppelt das Handy direkt per QR mit dem Windows-PC. Beide zeigen einen Prüfcode; erst nach PC-Bestätigung und passender Empfangsbestätigung gilt der Plan als angekommen. TCP 47830 und mDNS `_anker._tcp.local.` bleiben im privaten Heimnetz. Neue Systemwirkungen und der zusätzliche strenge Modus benötigen eigene Freigaben. Vor dem gewählten Eingriff gibt es mindestens 60 Sekunden zum Speichern; **Beenden** bleibt möglich. Der echte Morgenabschluss beendet den Wieder-Sperrwächter und entsperrt Windows nicht automatisch. [Vollständiger Setup- und Prüfweg](docs/PC_BEGLEITER.md).
+
+Der klassische Export bleibt als eigener zweiter Weg erhalten. Seine Aufgabe **Anker PC-Stopp** blockiert neue Begleiter-Eingriffe bis zur ausdrücklichen Bereinigung, damit beide Wege nicht gleichzeitig wirken. Für den bisherigen Export gilt:
 
 1. In der App: **Mehr → PC-Stopp → Paket für Windows herunterladen** (am besten in der Web-Version direkt auf dem PC).
    Mit Anmeldung kann das Paket einen persönlichen Token für deinen Server enthalten. Die App zeigt, ob der gewünschte Auftrag bereitgestellt wurde; Empfang und spätere Ausführung am PC sind dadurch nicht bestätigt. Ohne Server verwendet ein neu erstelltes Paket eine ausdrücklich gewählte feste Zeit.
@@ -212,6 +231,7 @@ Unter *PC-Stopp → Abendzeit ändern* kannst du frei verlängern oder das Ende 
 ## Datenschutz & Backup
 
 - Daten liegen lokal: SQLite auf Android, IndexedDB im Browser.
+- Der lokale PC-Begleiter erhält standardmäßig nur Zustände, Zeiten und Schrittnummern. Private Abendtexte brauchen eine eigene Freigabe. Kopplungsgeheimnisse bleiben in Android-Keystore bzw. Windows-DPAPI, außerhalb von JSON-Sicherung, Sync und Logs. Er beobachtet keine Programme, Fenstertitel, URLs oder Tastatureingaben.
 - Termine, Orte, Arbeitsaufgaben und Einnahmeprotokoll werden nie synchronisiert.
 - **Wetterort, Ortsfreigaben, Packlisten und Vorschlagsfreigaben** sind lokale Daten. Sync überträgt den Wetterort und seine Aktivierung nicht; frühere Serverstände werden dadurch nicht rückwirkend gelöscht.
 - **Externe Dienste:** Wetter nur nach Wahl eines lokalen Wetterorts; Maps öffnet erst beim Antippen. KI, Routes und Android-/Google-Standorthinweise haben eigene Freigaben und unterschiedliche Empfänger. Daten und Grenzen: [Flexible Planung](docs/FLEXIBLE_PLANUNG.md).
@@ -223,6 +243,8 @@ Unter *PC-Stopp → Abendzeit ändern* kannst du frei verlängern oder das Ende 
 
 - [Anleitung](docs/ANLEITUNG.md): Bedienung, Funktionen, bekannte Grenzen
 - [Struktur des Repositorys](docs/STRUKTUR.md): wo liegt was, wo ändere ich was
+- [PC-Begleiter](docs/PC_BEGLEITER.md): Windows-Installation, Kopplung, gemeinsame Abend-/Morgenrunde und sieben Prüfstationen
+- [Anker-Link v3](docs/PC_LINK_PROTOKOLL.md): Datenfluss, Empfang, Verschlüsselung und Speichergates
 - [Flexible Planung](docs/FLEXIBLE_PLANUNG.md): Zustände, Wege, Schlaf, externe Dienste
 - [Optionale Dienste](docs/OPTIONALE_DIENSTE.md): KI-/Routes-Konfiguration, Freigaben, Kosten und fachliche Grenzen
 - [Geräteprüfung](docs/GERAETETEST.md): was auf dem Handy von Hand zu prüfen ist

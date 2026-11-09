@@ -8,6 +8,7 @@ alle Online-Extras optional und still bei Fehlern.
 
 - Zuerst `docs/ANKER_IMPLEMENTIERUNGSPLAN.md` und `docs/ANKER_TESTNACHWEISE.md` lesen; danach den tatsächlich aktuellen Code prüfen.
 - Technischer Gesamtauftrag: `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md`. Das private Original ist bewusst nicht Teil des öffentlichen Repositorys.
+- Aktueller v7-Auftrag: `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`; direkte Nutzerangaben bei Widerspruch gemäß Delta-Matrix des Implementierungsplans. Python unter `pc-companion/`, kein paralleles Tauri-Projekt.
 - Bestehende Modelle und Nutzerdaten erhalten; neue Funktionen auf den vorhandenen Planer/Store aufbauen.
 - Implementiert, automatisch geprüft und am echten Android-Gerät geprüft getrennt ausweisen. Das Aktivitäts-Weckfenster bleibt ohne Gerätebeleg experimentell.
 
@@ -52,7 +53,10 @@ android/app/src/main/java/de/frnkrm/anker/   Kotlin: AnkerNativePlugin, AlarmMod
                    ReminderModel/Scheduler, Widget, Receiver
 supabase/          migrations/ (RLS, upsert_records mit LWW), functions/pc-stop (Deno)
 e2e/               Playwright-Smoke-Test
+pc-companion/      Python: lokales gepinntes TLS/WSS, mDNS, DPAPI, Tk/Tray, Windows-Adapter
 ```
+
+v7: `core/guidance/` projiziert denselben Plan auf Abend-/Morgenphasen; `core/pcLink/` hält den gemeinsamen v3-Vertrag. Datenkanal in Android: `PcBridgeClient`/`PcBridgeService`, Geheimnisse nur nativ im Keystore-geschützten Speicher. `pc-companion/PROTOCOL.md` und `docs/PC_LINK_PROTOKOLL.md` gemeinsam mit TS/Kotlin/Python pflegen. PC-Wirkung und Receipt vor Queue-ACK atomar speichern. Ein bestätigter Frame ist noch kein passender Plan-ACK.
 
 Datenfluss: UI → Store-Aktion → Repository (lokal, `dirty=1`) → `onPlanChange` → effects.ts plant
 Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1 min, Kalender 15 min).
@@ -62,7 +66,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - TypeScript strict, `noUncheckedIndexedAccess`. Keine `any`.
 - Neue Logik zuerst in `src/core/` als reine Funktion + Vitest-Test, dann UI.
 - Zeiten im Plan immer als Plan-Minuten; nur an Rändern (Notifications, Kalender, Logs) in UTC-ms umrechnen.
-- Texte: Deutsch, du-Form, freundlich, kurz. Kein „verpasst/versagt“, keine roten Farben (Tokens: accent, warm).
+- Texte: Deutsch, du-Form, freundlich, kurz. Kein „verpasst/versagt“. Normale Tokens `accent`, `warm` erhalten. Die freiwillige v7-Farbvariante darf gedimmtes Rot für Nacht/Restzeit verwenden, nie als Strafe oder Wertung.
 - Optionale Extras nie blockierend: `safe()` verwenden, Fehler nur loggen.
 - Store-Aktionen sind die einzige Stelle, die ins Repository schreibt.
 - Native Fähigkeiten über `AnkerNative` (TS: `src/platform/native.ts`, Kotlin: `AnkerNativePlugin.kt`), beide Seiten synchron halten.
@@ -83,6 +87,15 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Wochenhinweise werden aus dem vorhandenen TS-Planer als neutrale Basisregeln gespiegelt; Kotlin rechnet nur nächste Berliner Vorkommnisse. Datiertes/Snooze/Sichtbares trennen, bekannte Ausnahmen erhalten, keine versäumten Wochen nachholen. Erforderliche Anzeigen reservieren Budget vor dem Posten.
 - Druck nutzt gemeinsame `PrintSheet`-Daten, dedizierten Druck-WebView oder eigenen Android-PDF-Renderer. Haupt-WebView nicht zerstören; Öffnen/Teilen ist keine Druckbestätigung. Keine neue QR-Erzeugung beim Druck.
 - Status ehrlich führen: „am Gerät verifiziert“ nur nach echtem Handy-Test (`docs/GERAETETEST.md`).
+
+## Lokaler PC-Begleiter und Führung (v7)
+
+- Neue Führung, Hintergrundaudio und PC-Systemwirkungen sind freiwillig und beginnen aus. Strenger Modus benötigt eine zusätzliche Wahl an Handy und PC. Offenes Abendende bleibt ohne erfundene Grenze.
+- `AlarmController` bleibt alleiniger Weckerbesitzer; Zero-Gap über dauerhafte atomare Morgenübergabe, keine unabhängige Alarmplanung. Automatischer Countdown, Zombie-Filter und Timerablauf erledigen nichts.
+- Privater Brain-Dump nutzt `tomorrowSteps`, nicht eine zweite Inbox. PC erhält standardmäßig nur Zustände/Zeiten/Schrittnummern. Freitextfreigaben sind eigene Entscheidungen.
+- Mindestens 60 Sekunden eigene PC-Speicherfrist, danach nur gewählter Effekt; Shutdown `/s /t 0`, nie `/f` oder ein positiver `/t`-Wert. Klassische Aufgabe `Anker PC-Stopp` verhindert Doppelwirkung.
+- Der optionale Nachtwächter ist an bestätigte Session/Gültigkeit gebunden. Strenge Notverlängerung nur per signiertem Handy-Hardwarebeleg; PC kann keine Tokens ausstellen. Begleiter bleibt beendbar, Windows wird nie fernentsperrt.
+- Python-Tests: aus `pc-companion` mit `python -m unittest discover -s tests -v`. Linux-Mocks und TLS-Schleifen sind keine echte Windows-/Android-UI-Prüfung. Kein neuer Relay-, Health-Schlafimport-, APK-/Versions- oder Veröffentlichungsauftrag aus v7 ableiten.
 
 ## Flexible Planung (Regeln, Details in docs/FLEXIBLE_PLANUNG.md)
 

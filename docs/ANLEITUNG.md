@@ -2,7 +2,7 @@
 
 Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, und kannst Pläne ändern oder Freizeit wählen.
 
-**E04–E09 implementiert, gemeinsame Geräteprüfung offen:** Frühere Builds wurden auf deinem Galaxy S26 Ultra teilweise geprüft; diese Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten. Sie bestätigen neue Funktionen nicht automatisch. Der gemeinsame neue Prüfdurchgang unter **Mehr → Gemeinsam testen** steht noch am echten Gerät aus, einschließlich Wecker, lokaler Sprache und Standorthinweisen. Für Weckertests bleibt ein unabhängiger Wecker sinnvoll. Tatsächliche automatische Nachweise stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md); Anbieterbetrieb, Schlüssel und Kostenfreigaben sind gesonderte Einrichtungsschritte. Für APK und Dienste siehe [README](../README.md).
+**Entwicklung v7: Abend, Morgen und lokaler PC-Begleiter.** Die neuen Hilfen sind freiwillig und beginnen ausgeschaltet. Die bisher veröffentlichte Code14-APK enthält sie noch nicht; für diesen Arbeitsstand ist keine neue APK veröffentlicht. Frühere Galaxy-Berichte bleiben in [GERAETETEST.md](GERAETETEST.md) erhalten und bestätigen neue Funktionen nicht automatisch. Unter **Gemeinsam testen** gibt es zusätzlich sieben gemeinsame v7-Stationen, damit Handy und PC zusammen geprüft werden. Für Weckertests einen unabhängigen Wecker verwenden. Tatsächliche automatische Ergebnisse stehen im [Testprotokoll](ANKER_TESTNACHWEISE.md).
 
 ## Dein Tag mit Anker
 
@@ -20,9 +20,9 @@ Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, u
 - Pausen, Nichtnutzung und bewusst geänderte Pläne nehmen dir keine XP, Kapitel oder Abzeichen weg. Es gibt keinen Nachholauftrag.
 - Krank? Oben rechts **„Krank“** wählen, dann gibt es nur das Nötigste und nichts geht verloren.
 
-## Die fünf Bereiche
+## Die Hauptbereiche
 
-Unten ist die Navigation: **Jetzt · Tag · 💭 · Spiel · Mehr**
+Unten ist die Navigation: **Jetzt · Tag · Mehr**. Der Gedanken-Knopf bleibt als eigene kleine Aktion erreichbar. Unter **Mehr** liegen Arbeit, Abend & Alltag, Schlaf & Wecker, Spiel und die Einstellungen.
 
 ### Jetzt
 - **Die eine Aktion**, groß, mit einem Hauptknopf und höchstens zwei weiteren. Darüber in einem Satz, warum das gerade dran ist, wenn es dafür einen echten Grund gibt.
@@ -83,7 +83,7 @@ Private und berufliche Aufgaben nutzen dieselben vorhandenen Schritte: starten, 
 ### Tag
 Der Ablauf für heute, morgen und übermorgen, dazu die heutigen Kernziele mit Häkchen.
 
-### 💭 Gedanken
+### Gedanken
 Von fast überall in einer Zeile festhalten. Danach zeigt Anker „Du warst bei: …“ und einen Knopf **Weiter**. Der Gedanke bleibt erst mal geparkt. Abends gehst du sie unter **Mehr → Gedanken** durch: **Behalten**, **Morgen erledigen**, **Arbeit** oder **Löschen**.
 
 **„Morgen erledigen“** erscheint am nächsten Tag unter **Tag** als flexible Aufgabe und nach Feierabend auf der Startseite. Es bleibt verschiebbar und wird nie zum festen Termin. Erledigt ist überall erledigt, unter *Gedanken* kannst du es zurücknehmen.
@@ -171,7 +171,36 @@ Der Wecker plant sich selbst weiter, auch wenn die App zu ist. Er klingelt jeden
 
 **So steht dein Wecker** (unter *Wecker* und im *Einrichtungs-Check*) zeigt, was Android tatsächlich meldet: nächster Wecker, letzter Test, Lautstärke, Bluetooth, Rechte, jeweils mit dem Weg in die richtige Einstellung. Anker ändert von sich aus weder Lautstärke noch „Nicht stören“, und die Lautstärketasten funktionieren normal.
 
-## PC-Stopp
+## Neue Abend- und Morgenbegleitung (v7)
+
+Unter **Einstellungen → Abend & Morgen begleiten** schaltest du die Begleitung ein und wählst die gewünschten Teile selbst. Ausgeschaltete Begleitung verändert weder deine Routinen noch deine gespeicherten Notizen.
+
+| Auswahl | Was du bemerkst |
+|---|---|
+| Zustandsfarben | Morgens kühles Cyan, abends warme Farben, nachts OLED-Schwarz mit gedimmten Akzenten. Keine Wertung von Verspätung. |
+| Zeitbogen und Fokusfarbverlauf | Zeit wird als schrumpfende Fläche sichtbar. Ablauf erledigt keinen Schritt. |
+| Routineimpulse und lokale Stimme | Vibration in gewähltem Abstand und optional bei 50/25/10 Prozent Restzeit; private Schritttitel werden nur mit eigener Vorlesewahl laut gesprochen. Pause, Stopp und Wecker haben Vorrang. |
+| Direkt nach dem Wecker beginnen | Nach bestätigtem Hauptwecker startet der erste offene Morgenschritt mit Countdown. Ein Tipp bestätigt erst deine echte Beteiligung; ein laufender Timer ist kein Erledigt-Haken. |
+| Wachsein bestätigen | Nach zunächst fünf Minuten eine kurze Ein-Tipp-Rückfrage. Bleibt sie aus, kann der Hauptwecker einmal wieder klingeln. |
+| Zombie-Kernschritte | In den Routinedetails selbst auswählen. Bewusst wechseln oder optional nach ausbleibender erster Rückmeldung. Ausgelassene Schritte bleiben ohne Erledigt-Haken/Punkte. |
+| Drei Abendphasen | 30 Minuten vor Bettzeit ankommen, 10 Minuten vorher Gedanken parken, zur Bettzeit den nächsten Schritt zeigen. Ein offenes Ende pausiert die zeitgesteuerten Phasen. |
+| Abend-QR und Schlafrauschen | Der vorhandene Anker-QR bestätigt den Übergang; optional folgt lokal erzeugtes, ausblendendes Brown Noise, zunächst 20 Minuten. Jederzeit stoppbar; der Scan behauptet nicht, dass du schläfst. |
+
+**Gedanken für morgen:** Der Parkplatz nutzt deine vorhandenen privaten nächsten Schritte. Nach tatsächlich abgeschlossener Morgenroutine wird die Abendnotiz wieder angeboten. **Mein Wenn-dann-Abendplan** ist eine freiwillige lokale Notiz für dein eigenes Hindernis und deinen nächsten kleinen Übergang. Beide Inhalte werden nur nach eigener zusätzlicher Freigabe am PC angezeigt.
+
+Unter **Abend & Alltag → Rhythmus-Woche** vergleichst du sieben oder vierzehn Tage: geplante und tatsächlich eingetragene PC-, Bett- und Aufstehzeit samt deinem Aufstehfenster. Fehlende Werte bleiben offen. Ein freiwilliger Licht-Schritt wird nur auf deinen Tipp in die bestehende Routine übernommen. Ein echter Lichtwecker, Schlafdatenimport oder eine medizinische Wirkungsbewertung wird damit nicht aktiviert.
+
+Diese Optionen brauchen echte gemeinsame Versuche, insbesondere Hintergrundimpulse, lokale Stimme, Schlafrauschen, erneutes Klingeln und App-Wiederöffnung. Ihre Implementierung ist kein Hörbarkeits- oder Schlafnachweis. Die bestehenden alternativen Weckerwege und der Notfall-Stopp bleiben erhalten.
+
+## Lokaler PC-Begleiter (v7)
+
+**Mehr → PC-Stopp → Lokaler PC-Begleiter** verbindet Anker im gemeinsamen Heimnetz mit dem neuen Windows-Begleiter. Kein Konto nötig. Am PC Kopplung öffnen, am Handy scannen und den vierstelligen Code vergleichen; erst nach ausdrücklicher PC-Bestätigung wird gekoppelt. Live-Verbindung und aktueller Planempfang werden getrennt angezeigt. Ein gesendeter Befehl ist noch keine bestätigte Wirkung.
+
+PC-Hilfen und Eingriffe haben eigene Freigaben auf beiden Seiten. Vor einer gewählten Sperre, einem Ruhezustand oder Herunterfahren gibt es mindestens 60 Sekunden zum Speichern. Im normalen Modus kannst du frei verlängern oder den Abend aussetzen. Der zusätzliche strenge Modus verlangt für eine Notverlängerung deinen Anker-QR am Handy. **Beenden bleibt am PC möglich.** Ein echter Morgenabschluss beendet nur den Wieder-Sperrwächter; Windows meldet dich nicht selbst an. Wake-on-LAN braucht eine eigene Wahl und passende PC-Hardware.
+
+Die vollständigen [Windows-Befehle, Netzwerkhinweise und sieben gemeinsamen Prüfungen](PC_BEGLEITER.md) stehen in der Begleiter-Anleitung. Das klassische Paket bleibt ein zweiter Weg; seine alte Aufgabe wird vor neuen Eingriffen als Konflikt angezeigt und nicht heimlich entfernt.
+
+## Klassischer PC-Stopp
 
 Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtsklick auf `install.ps1` → **„Mit PowerShell ausführen“**.
 
@@ -203,6 +232,8 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | **Kalender** | Google-Termine im Tagesplan, Routinen in eigenen Kalender schreiben, `.ics`-Export |
 | **Daten** | Läuft offline und ohne Konto, Sicherung als JSON, optionaler Sync |
 | **Anzeige** | Dunkel oder hell, Schriftgröße 80–160 % |
+| **Abend- und Morgenbegleitung (v7)** | Freiwillige Zustandsfarben, Zeitbogen, lokale Schrittbegleitung, ehrlicher Morgenübergang, Zombie-Kernschritte und Gedankenparkplatz |
+| **Lokaler PC-Begleiter (v7)** | Verschlüsselte Heimnetz-Kopplung, Empfang, Speicherpunkt, optionale Dämmerung und PC-Eingriffe mit sichtbarem Ausstieg |
 | **Hilfe** | Wege zur ADHS-Diagnose, kostenlose Schuldnerberatung |
 
 ### Handy oder PC?
@@ -214,6 +245,7 @@ Unter *Mehr → PC-Stopp* lädst du das Windows-Paket. Entpacken, dann Rechtskli
 | Erinnerungen | ✓ | – |
 | Wecker, QR-Scan, Widget, Health Connect | ✓ | – |
 | Gemeinsame Daten auf beiden Geräten | nur mit Sync | nur mit Sync |
+| Neuer lokaler Windows-Begleiter | native Heimnetz-Verbindung | nur Vorschau, keine Live-Kopplung |
 
 Ohne Sync hat jedes Gerät seine eigenen Daten.
 
@@ -287,6 +319,8 @@ Das experimentelle **Aktivitäts-Weckfenster** findest du unter **Wecker & QR-Co
 5. Du kannst einzelne Berichte wieder öffnen, die Begleitung pausieren oder nur die Testberichte als JSON exportieren. Der Export wird erst auf deinen Tipp zum Download/Teilen angeboten. Senden entscheidest du selbst.
 
 Die Testseite ändert selbst keine Alltags-Häkchen, XP oder Weckregeln. Benötigt ein Versuch andere Zeiten oder Systemoptionen, änderst du sie bewusst in den verlinkten Einstellungen und stellst danach deine Werte wieder her. Testberichte und Entwürfe liegen im vorhandenen lokalen Speicher, ohne Sync, und sind in deiner JSON-Sicherung enthalten. Berichte zu einem anderen Codestand bleiben erhalten und zählen für den neuen Stand als offen. Vollständige Geräteprüfung der neuen Etappe steht noch aus.
+
+Für den gemeinsamen Abend-/Morgen-/PC-Lauf wähle **v7 gemeinsam ausprobieren · 7 Stationen**. G97–G103 bündeln die neuen Funktionen; die bisherigen sechs kurzen Updateprüfungen bleiben der Standard. Es ist nicht nötig, alle 103 Detailfälle durchzugehen. Der bestehende Berichtsexport erhält auch bei v7 Historie, Plattform und Buildbezug.
 
 ## Uhrzeiten und Dauern schneller eingeben
 

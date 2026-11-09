@@ -2,7 +2,7 @@
 
 Wo liegt was, und wo änderst du was? Die Bedienung der App steht in [ANLEITUNG.md](ANLEITUNG.md), die Einrichtung der Dienste im [README](../README.md).
 
-**E04–E09 in Entwicklung.** Diese Übersicht umfasst die erweiterten Quellmodule. Ob ein Teil bereits integriert, automatisch geprüft oder am echten Android-Gerät bestätigt ist, steht getrennt im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md). Es gibt weiterhin einen gemeinsamen Planer und ein gemeinsames Repository.
+**v7: Abend, Morgen und PC-Begleiter.** Es gibt weiterhin einen Tagesplaner, eine Store-Schreibqueue und den bestehenden Android-Weckerbesitzer. Die neue Zustandsprojektion und PC-Ausführung werden daran angeschlossen. Implementierung, automatische Tests und echte Android-/Windows-Beobachtungen stehen getrennt im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md).
 
 ## Der Grundgedanke
 
@@ -17,6 +17,11 @@ flowchart TD
   Platform --> State
   Platform --> Native["android/ – Kotlin: Wecker, Widget"]
   Platform --> Cloud["supabase/ und Google – optional"]
+  State --> Guidance["core/guidance – Projektion desselben Plans"]
+  Platform --> Bridge["PcBridgeClient – gepinntes TLS/WSS, optional"]
+  Bridge --> PC["pc-companion – Python, lokale PC-Ausführung"]
+  PC --> Receipts["Store: Wirkung + Receipt atomar"]
+  Receipts --> State
 ```
 
 **Was bei einem Tipp passiert:**
@@ -34,6 +39,7 @@ flowchart TD
 | `src/` | Der App-Code (Web und Android teilen ihn sich) |
 | `android/` | Android-Projekt von Capacitor plus eigener Kotlin-Code |
 | `supabase/` | RLS-/Budgetmigrationen sowie getrennte Functions `pc-stop` und `assistant` |
+| `pc-companion/` | Lokaler Python-Windows-Begleiter: TLS/WSS, mDNS, verschlüsselter Zustand, Tk/Tray und getrennte Windows-Adapter |
 | `e2e/` | Playwright-Prüfungen gegen Produktionsbuilds; kontrollierte Backendantworten ausschließlich in Testhelfern |
 | `scripts/` | `icons.mjs` (Icons erzeugen), `gradle.mjs` (Gradle unter Windows und Linux starten) |
 | `public/` | App-Icons für die Web-Version |
@@ -57,6 +63,8 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `defaults.ts` | Standardwerte und Zeitvorschlag, rückwärts vom Arbeitsbeginn |
 | `now.ts` | Was der Tagesplan gerade vorsieht |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
+| `guidance/` | Benannte Abend-/Morgenphasen aus vorhandenem Plan und echten Tatsachen; Einstellungen, Kernschritte und Validierung |
+| `pcLink/` | v3-Typen, Briefing-/Statusprüfung, Ereignisregeln und gemeinsame Krypto-Fixtures; kein zweiter Planer |
 | `tasks.ts`, `focus.ts`, `recovery.ts` | Gemeinsame private/berufliche Aufgaben und echte Teilabschlüsse, Fokus-Timer und Wiedereinstieg ohne starren Stundenverfall |
 | `flexible.ts` | Planrücknahme mit privater Basis und Erhalt tatsächlich erfolgter Handlungen |
 | `travel.ts` | Gemeinsame Datengrenzen für Orte und Termine, offene/Remote-Orte, manueller Wegbedarf |
@@ -100,6 +108,8 @@ Alles liegt als gleichförmiger Datensatz vor: `{ collection, id, data, updated_
 
 Aufgabenänderungen und echte Teilabschlüsse werden über die bestehende Schreibqueue serialisiert. Eine KI-Übernahme kann zusätzlich den erwarteten Task-Snapshot und die aktuelle Freigabe innerhalb derselben Mutation prüfen. Routenübernahmen, Arbeitszeitkorrekturen und Rücknahmen prüfen ebenfalls den aktuellen relevanten Stand; verspätete Antworten dürfen keine neueren Nutzereingaben überschreiben.
 
+v7 hält Abend-/Morgenfakten in `LocalData.guidance` und verwendet für den Gedankenparkplatz weiterhin `tomorrowSteps`. Die Morgenübergabe, der bestehende Fokus und ein Ereignis-Receipt werden dauerhaft zusammen gespeichert, bevor ein nativer Einmalbeleg quittiert wird. Ein Timerstart zählt nicht als echte Schrittbestätigung. PC-Ereignisse übernehmen Wirkung und Receipt ebenfalls gemeinsam, erst danach wird die native Queue bestätigt. Private Kopplungsschlüssel liegen außerhalb des generischen Repositorys und werden nicht mit JSON-Sicherung oder Sync übertragen.
+
 ## `src/platform/` – Handy und Internet
 
 Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weiter.
@@ -110,6 +120,7 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `notifications.ts` | Übergibt Erinnerungen an den nativen Teil, trägt Knopf-Aktionen im Store nach |
 | `alarm.ts` | Wecker-Konfiguration an Kotlin, Fehler landen sichtbar im Store (nicht über `safe()`) |
 | `native.ts` | Brücke zum Kotlin-Plugin |
+| `guidance.ts` | Begrenzte lokale Routinebegleitung, Abendbestätigung, Brown-Noise-Steuerung und Hardware-Notverlängerung über die vorhandene Native-Brücke |
 | `weather.ts` | Open-Meteo, nur wenn eingeschaltet |
 | `assistance.ts` | Bewusster Fähigkeitencheck und authentifizierte Vorschlagsaufrufe über den eigenen Server, Validierung/Abbruch; keine Provider-Schlüssel im Client |
 | `traffic.ts` | Begrenzte manuelle/automatische Routenanfragen und explizite Übernahme in den bestehenden Termin |
@@ -143,6 +154,8 @@ Alle Aufrufe von außen sind abgesichert: Fällt etwas aus, läuft der Rest weit
 | `Check.tsx` | `/check` | Einrichtungs-Check |
 | `DeviceTests.tsx` | `/geraetetest` | Ein Versuch nach dem anderen, Einstellungswege, lokaler Nutzerbericht/Entwurf, Testexport |
 | `PcStop.tsx` | `/pc-stopp` | PC-Stopp und Windows-Paket |
+| `GuidanceSettings.tsx` | `/einstellungen/begleitung` | Freiwillige Abend-/Morgenführung, Farben, Tempo, Zombie-Kernschritte und Audio |
+| `RhythmWeek.tsx` | `/rhythmus` | 7-/14-Tage-Ansicht: Plan und tatsächlich bestätigte Zeiten ohne Bewertung |
 | `Connections.tsx` | `/verbindungen` | Sync, Google, `.ics` |
 | `Static.tsx` | `/hilfe`, `/backup`, `/druck` | Hilfe, Sicherung, Druckansicht |
 
@@ -156,6 +169,10 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 | `AnkerNativePlugin.kt` | Brücke zur Web-App, Gegenstück zu `src/platform/native.ts` |
 | `AlarmModel.kt` | Reine Wecker-Logik: Alarmarten, Planung, Zustandsübergänge (JUnit) |
 | `AlarmController.kt` | Einziger Besitzer des Weckerzustands, plant bei Android ein |
+| `RoutinePaceKeeperModel.kt`, `RoutinePaceKeeperService.kt` | Befristete laufende Routine, lokale TTS-/Vibrationshinweise, Pause/Deduplizierung/Weckervorrang |
+| `SleepAudioModel.kt`, `SleepAudioService.kt` | Lokal erzeugtes, zeitlich begrenztes Brown Noise mit Ausblendung und sichtbarem Stopp |
+| `PcLinkModel.kt`, `PcBridgeCrypto.kt`, `PcBridgeVault.kt` | Native v3-Prüfungen, AES-GCM/ECDH, Keystore-geschützte Schlüssel und langlebige Sequenzen |
+| `PcBridgeDiscovery.kt`, `PcBridgeClient.kt`, `PcBridgeService.kt` | Kurze lokale NSD-Suche, gepinntes WSS, begrenztes Wiederverbinden und Native-Status |
 | `AlarmService.kt` | Klingeln im Vordergrund, Zeitlimit, Ton-Rückfallkette |
 | `ReminderModel.kt` | Reine Slot- und Warteschlangenlogik (JUnit) |
 | `ReminderScheduler.kt` | Stellt Erinnerungen ohne JavaScript zu, Knöpfe in Meldungen |
@@ -167,6 +184,23 @@ Eigener Code liegt in `app/src/main/java/de/frnkrm/anker/`:
 | `AnkerPrefs.kt` | Kleiner Speicher für den nativen Teil |
 
 Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/build.gradle` (Signierung, Versionen). Das Web-Bundle unter `app/src/main/assets/public/` wird von `cap sync` erzeugt, also nicht von Hand ändern.
+
+## `pc-companion/` – lokaler Windows-Begleiter
+
+| Datei | Aufgabe |
+|---|---|
+| `PROTOCOL.md` | Verbindlicher v3-Drahtvertrag, passend zu TypeScript-/Kotlin-Fixtures |
+| `anker_companion/protocol.py` | Strikte Schema-/Zeit-/Sequenzprüfung und verschlüsselte Umschläge |
+| `server.py` | `aiohttp`-TLS/WSS, einmalige QR-Kopplung, Empfang, REST-Healthcheck und mDNS |
+| `storage.py`, `vault.py` | Atomarer lokaler Zustand, DPAPI pro Windows-Benutzer; kein Klartext-Fallback |
+| `engine.py` | Reine zeit- und freigabengeprüfte PC-Abläufe, Schonfrist, Ereignis-Outbox und Nachtwächter |
+| `windows.py` | Sitzungs-/Energie-/Leerlaufgrenzen, optionales Ducking und explizite Windows-Aufrufe; in Tests injizierbar |
+| `ui.py` | Tk-Hauptfenster, Kopplung, Tray und klickdurchlässige Mehrmonitor-Anzeigen; sichtbares Beenden |
+| `__main__.py` | Windows-Einstieg, Einzelinstanz, Thread-/Service-Lebensdauer, technische Logs |
+| `install.ps1`, `Start.cmd`, `uninstall.ps1` | Python-Umgebung und Benutzer-Autostart; keine automatische Firewalländerung |
+| `tests/` | Python-Vertrags-, Speicher-, Zeit-, TLS/WSS- und simulierte Plattformtests |
+
+Das Handy liefert den Plan. Der Begleiter besitzt nur einen begrenzten Ausführungszustand und entscheidet nicht selbst über Routinen, Arbeitszeit oder Punkte. Die alte Aufgabe **Anker PC-Stopp** blockiert neue Systemwirkungen bis zur ausdrücklichen Bereinigung. Windows wird niemals automatisch entsperrt. [Setup und Grenzen](PC_BEGLEITER.md) · [Datenvertrag und Architektur](PC_LINK_PROTOKOLL.md).
 
 ## `supabase/` – optionaler Server
 
@@ -190,6 +224,9 @@ Wichtig außerdem: `app/src/main/AndroidManifest.xml` (Berechtigungen) und `app/
 | Eine neue Seite ergänzen | Datei in `src/ui/pages/`, Route in `src/App.tsx`, Link in `More.tsx` |
 | Wecker-Regeln ändern | `android/…/AlarmModel.kt` samt Test, Anzeige in `src/ui/pages/Alarm.tsx` |
 | Was als Nächstes dran ist | `src/core/support.ts` |
+| Abend-/Morgenphase oder Zombie-Kernschritte | `src/core/guidance/`, über dieselben Store-Aktionen und den vorhandenen Fokus |
+| Lokale PC-Verbindung | `src/core/pcLink/`, Native-Brücke und `android/…/PcBridge*.kt`; Vertrag in `pc-companion/PROTOCOL.md` |
+| PC-Schonfrist oder Windows-Effekt | `pc-companion/anker_companion/engine.py` und `windows.py`, mit injizierten Plattformtests |
 | Termine und Wege | `src/core/planner/adaptive.ts`, Regeln in [FLEXIBLE_PLANUNG.md](FLEXIBLE_PLANUNG.md) |
 | Sichtbare Slots ändern | `slotFor` in `src/core/reminders/build.ts`, Regeln in `android/…/ReminderModel.kt` |
 
@@ -223,7 +260,9 @@ node scripts/gradle.mjs :app:testDebugUnitTest
 - **Vitest** deckt `src/core/` und den Speicher ab.
 - **JUnit** deckt die reine Kotlin-Logik ab: Alarmarten, Folgetag, Schlummern, Zeitumstellung, Slots, Warteschlange.
 - **Playwright** prüft die wichtigsten Wege der Web-Version, auch die Druckansicht.
+- **Python unittest** unter `pc-companion/` prüft den neuen lokalen Vertrag und PC-Ablauf; Systemeffekte werden durch Mockadapter ersetzt. Ein echter TLS/WSS-Test auf Linux ist keine Windows- oder Samsung-Prüfung.
 - **Nicht durch Logik-/Browsertests bestätigt:** tatsächliche Android-Zustellung, Klingeln, Vollbild, lokales ASR/TTS, Geofence-Registrierung/-Erkennung, Druckdialog, SQLite-Laufzeit auf dem Gerät und der bewusst einzurichtende reale Supabase-/Providerbetrieb. Ein Android-Build bestätigt Kompilierbarkeit. Kontrollierte Backend-/Pluginantworten in Tests bestätigen keine echte API oder Hardware. Handprüfung: [GERAETETEST.md](GERAETETEST.md).
+- **Weitere v7-Gerätegrenzen:** echte Windows-Installation, mehrere Monitore/Skalierung, exklusives Vollbild, Lautstärke, Sessionwechsel, Android-Standby/WLAN und Wake-on-LAN. Dafür gibt es sieben gemeinsame Stationen G97–G103, keine automatisch gesetzten Erfolge.
 
 ## E02: Zustellung, Persistenz und Druck
 

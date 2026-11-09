@@ -1,5 +1,17 @@
 # Patch Notes
 
+## Unveröffentlicht – v7: Abend, Morgen und lokaler PC-Begleiter (2026-11-09)
+
+App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neues APK oder Windows-Installationspaket veröffentlicht. Die neue gemeinsame Softwareprüfung wird im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression) an den integrierten Quellstand gebunden; echte Samsung-/Windows-Versuche bleiben offen. Der bestehende Code14-Download enthält diese Entwicklung noch nicht.
+
+- Freiwillige Abend-/Morgenführung aus demselben Tagesplan: Cyan/Amber/OLED-Darstellung, Zeitbogen und bestehender Fokus-Timer mit Restzeitfarben. Keine automatische Erledigung aus Zeitablauf.
+- Optionale lokale Schrittstimme und Vibrationsimpulse, begrenztes ausblendendes Brown Noise, direkter Morgenfokus nach bestätigtem Wecker, Ein-Tipp-Wachrückfrage und selbst gewählte Zombie-Kernschritte. Weckerbesitz, alternative Beenden-Wege und Notfall-Stopp bleiben erhalten.
+- Abendphasen 30/10 Minuten vor Bett, privater Gedankenparkplatz, Speicherpunkt und Wenn-dann-Plan. Offenes Ende bleibt offen; tatsächliche Morgenabschlüsse und private Textfreigaben bleiben getrennte Handlungen.
+- Neuer Python-Begleiter unter `pc-companion/`: lokale QR-Kopplung mit PC-Bestätigung, gepinntes TLS/WSS, mDNS, dauerhafte verschlüsselte Ereignisse und ehrlicher Planempfang. Standardmäßig nur Zeiten, Zustände und Schrittnummern; keine Programmanalyse.
+- Optionaler PC-Schleier, Audio-Ducking und gewählte Abendaktion nach mindestens 60 Sekunden eigener Speicherfrist. Klassische PC-Stopp-Aufgabe verhindert Doppelwirkung. Separater strenger Modus mit begrenztem Wieder-Sperrwächter und signierter QR-Notverlängerung am Handy; sichtbares Beenden bleibt möglich. Der Morgenabschluss entsperrt Windows nicht automatisch.
+- Freiwilliger Licht-Schritt, neutrale 7-/14-Tage-Rhythmusansicht und optionaler Morgen-Countdown/Wake-on-LAN. Kein Relay, Schlafdatenimport, Lichtgerät oder kostenpflichtiger Dienst aktiviert.
+- Sieben gemeinsame Prüfstationen 97–103 im bestehenden Bericht-/Exportmodell; die bisherigen sechs kurzen Updateprüfungen und alle alten Ergebnisse bleiben erhalten. [Bedienung und Windows-Setup](docs/PC_BEGLEITER.md) · [Architektur und Datenvertrag](docs/PC_LINK_PROTOKOLL.md).
+
 ## 1.3.0-rc.6 – Kompakte Routinekarten (2026-11-07)
 
 875 Logik-/220 Browserfälle und CI28 grün. Signiertes Code13-Update mit [geprüftem ZIP-Handydownload](docs/INSTALLATION_ANKER_NEU.md); dieselbe Signatur wie Code11/12. Native122Fälle für unveränderte Inputs wiederverwendet. Neuer Samsung-Test offen.

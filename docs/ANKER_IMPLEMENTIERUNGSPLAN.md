@@ -2,7 +2,7 @@
 
 ## Anker v7 – PC-Begleiter, Abend und Morgen (09.11.2026)
 
-**Auftrag aktiv, Phase 1 abgeschlossen, Umsetzung läuft.** Ausgang `main`/`0084063345791302bb414d930ee066d777dc57cf`, App 1.4.0-rc.1/Code14. Root-Arbeitsbaum war sauber. Keine geltende AGENTS-Datei vorgefunden; kurze Verweisdatei neu angelegt. README, CLAUDE, Struktur, Anleitung, Changelog, aktueller Plan und v7-Anhang geprüft; bestehender Daten-/Wecker-/Fokus-/PC-Pfad an konkretem Code auditiert. Der Anhang liegt bytegleich unter `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`. Sicherung des getrackten Ausgangscodes: `/workspace/.cache/anker/v7/baseline-main-0084063.tar.gz`, SHA256 `fe04d501f291e97e3397fa5ac4f53725c936f94cfda078f122fbeea2ddf87f79`. Kein Export vom Handy, keine Änderung seiner Daten.
+**Auftrag aktiv, Phase 1 abgeschlossen, Integration und gemeinsame Regression laufen.** Ausgang `main`/`0084063345791302bb414d930ee066d777dc57cf`, App 1.4.0-rc.1/Code14. Root-Arbeitsbaum war sauber. Keine geltende AGENTS-Datei vorgefunden; kurze Verweisdatei neu angelegt. README, CLAUDE, Struktur, Anleitung, Changelog, aktueller Plan und v7-Anhang geprüft; bestehender Daten-/Wecker-/Fokus-/PC-Pfad an konkretem Code auditiert. Der Anhang liegt bytegleich unter `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`. Sicherung des getrackten Ausgangscodes: `/workspace/.cache/anker/v7/baseline-main-0084063.tar.gz`, SHA256 `fe04d501f291e97e3397fa5ac4f53725c936f94cfda078f122fbeea2ddf87f79`. Kein Export vom Handy, keine Änderung seiner Daten. **Kein Versionswechsel, neuer APK-Build zur Verteilung, Signieren, Push oder Release aus diesem Auftrag abgeleitet.**
 
 **Arbeitsverzeichnis/Branch:** `/workspace/anker`, `entwicklung/anker-v7-pc`. Reine Baseline im detached Worktree `/workspace/anker-v7-baseline`. Kern, Android, PC-Begleiter, PC-Transport und UI schreiben ausschließlich in eigenen v7-Worktrees und werden nacheinander integriert. Keine parallelen schreibenden Agenten im selben Arbeitsbaum.
 
@@ -21,26 +21,35 @@
 
 ### Technische Delta-Matrix
 
-Status: **V** vorhanden · **I** in Umsetzung · **O** offen · **X** externe/echte Geräteprüfung. Diese Matrix ist keine zweite Produktplanung.
+Status: **V** vorhandenen Pfad wiederverwendet · **I** implementierter/in Integration befindlicher Codepfad, noch kein gemeinsamer Abschluss · **O** offen/zurückgestellt · **X** echte Geräte-/externe Prüfung. Automatische Ausführungen stehen ausschließlich im [Testprotokoll](ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression). Diese Matrix ist keine zweite Produktplanung.
 
 | IDs | Bestand / Integration | Aktueller Status und Nachweis-Gate |
 |---|---|---|
-| P00 | Code14: 912 Logik-/248 Browser-/122 native Fälle aus bisherigem Abschluss; neue eingefrorene Baseline | I – frische Logik/Build/PC/Update bereits grün, Browser/native laufen; tatsächliche Zahlen im Testprotokoll ergänzen |
-| PC-01/09/10/12, P02/P08 | Neuer Python-Begleiter, Tkinter/Windows-Adapter, Autostart, private Datenablage, eigene Anforderungen/Startskripte | I – reine Adapter-/UI-/Robustheitstests; Windows-Installation und echte Systemeffekte X |
-| PC-02/03/04, P01/P03 | Neuer v3-Vertrag, AES-GCM/ECDH/HKDF, QR+PC-Bestätigung, mDNS, gepinntes WSS | I – gemeinsame Fixtures, Replay/Tamper/Pin-/Ablauf-/Integrationstests |
-| PC-05/08/13, P04/P06 | Planer bleibt Handy; ACK passend zu Revision, verschlüsselte Outbox, atomare Receipts, kein Geheimnis in Backup/Sync | I – Store-/Protokoll-/Transporttests; echte LAN-Kopplung X |
-| PC-06/07/11, P05 | Sichtbare Eskalation, eigene Schonfrist, optionale Sperre/Ducking, alte Aufgabe verhindert Doppelwirkung | I – simulierte Windows-Effekte, Offline-/Uhr-/Neustartfälle; Vollbild/Session/Audio X |
-| AB-01/02/03/04/07 | Vorhandene Morgen-Notizen, freie Plananpassung und Abendübergang wiederverwenden; Speicherpunkt, Dämmerung, Wenn-dann-Plan | I – Notiz-/Ereignis-/Verlängerungs-/UI-Tests |
-| AB-05/06 | Optionaler Abendlichthinweis und revisionstreue Entlastung von Handy-PC-Hinweisen | O – erst nach sicheren gemeinsamen Empfangsregeln integrieren |
-| MO-01/02/04, VI-01/02/03/04, P07 | Licht-Vorlage, neutraler 7-/14-Tage-Rhythmus, bestehender Ring, Morgen-Countdown und Tray | I – keine automatische Routinenänderung; 320px/160% und tatsächliche Daten getrennt prüfen |
-| Direkt: Circadian UI/Depletion | Vorhandene Tokens, FocusFrame und RingTimer statt neuer Timer-Engine | I – freiwillige Zustandsfarben und reduzierte Bewegung |
-| Direkt: PaceKeeper/Schlafaudio | Vorhandene lokale Stimme/Audiopriorität; eigener sichtbarer Routine-Dienst und begrenztes lokal erzeugtes Brown Noise | I – Schwellen/Deduplizierung/Pause/Deadline/Alarmvorrang automatisch; Hörbarkeit X |
-| Direkt: Zero-Gap/Anti-Relapse | QR→Fokus bereits vorhanden; atomarer Handoff plus nativer Einmalbeleg, vorhandener 5-Minuten-Check | I – Crash-/Duplikat-/04:00-/DB-Fehlerfälle, kein neuer Weckerbesitzer |
-| Direkt: Zombie/Abendphasen | Benannte Projektion auf bestehenden Plan; essentielle Schrittflags ohne Überschreibmigration; Nacht-Sperrfakt statt zweitem Plan | I – leere/alte Auswahl wird nie als erledigt ausgegeben, Tageswechsel und Notverlängerung prüfen |
+| P00 | Code14 eingefroren, Paketlock und 630 tatsächlich installierte Versionen geprüft | Abgeschlossen: 912/912 Vitest, 122/122 frische JUnit, 19 PC-/36 Updatefälle; Browser 247/248 mit erhaltenem Nachtlabel-Befund P00-B01. Keine grüne Baseline behauptet |
+| PC-01/09/10/12, P02/P08 | Python `pc-companion/`, Tk/Tray, Windows-Adapter, DPAPI, Benutzer-Autostart und eigener CI-Pfad | I – Quellen und simulierbare Grenzen vorhanden. Kein signierter Windows-Installer; echte Installation, Skalierung und Systemeffekte X |
+| PC-02/03/04, P01/P03 | `core/pcLink`, v3-Fixtures, AES-GCM/ECDH/HKDF, einmaliger QR+PC-Bestätigung, mDNS und gepinntes WSS | I – passende TS/Kotlin/Python-Verträge. Android-Daten über WSS+Reconnect; POST/v3/link nur zusätzlicher Serverendpunkt, kein behaupteter Native-Fallback |
+| PC-05/08/13, P04/P06 | Handyplan/Revision → aktueller ACK; dauerhafte PC-Outbox → atomare Store-Wirkung/Receipts; native Geheimnisse außerhalb Backup/Sync | I – Empfang und Live-Verbindung getrennt, private Texte eigens freigegeben. Echte LAN-/Standby-Kopplung X |
+| PC-06/07/11, P05 | Countdown/Schleier, optionale Sperre/Ducking, eigene mindestens 60 s Schonfrist; Altpaket-Konflikt verhindert Doppelwirkung | I – Windows-Adapter injizierbar, Normalmodus frei verlängerbar; begrenzter strenger Wächter nur gesondert gewählt. Vollbild/Session/Audio X |
+| AB-01/02/03/04/07 | `tomorrowSteps`, `adjustDay` und vorhandener Abendübergang; PC-Speicherpunkt, Dämmerung und lokaler Wenn-dann-Plan | I – keine zweite Notiz-/Planungsdatenbank; Notiz-/Ereignis-/Verlängerungsfälle der Gesamtregression zuordnen |
+| AB-05/06 | Optionaler Abendlichthinweis und Empfangs-abhängige Entlastung zusätzlicher Handy-PC-Hinweise | O – nur bestätigte implementierte Ersatzregeln zählen; keine ungeprüfte automatische Abschaltung. v7-T30/T10 ersetzt bei gewählter Eskalation alte doppelte Abendserien |
+| MO-01/02/04, VI-01/02/03/04, P07 | Bewusste Licht-Vorlage, `/rhythmus` mit7/14 Tagen, bestehender Ring, Morgen-Countdown und Tray | I – Plan und tatsächliche Einträge getrennt; keine automatische Routinenänderung. Darstellung320 px/160 % automatisch, echte Skalierung X |
+| Direkt: Circadian UI/Depletion | Vorhandene Tokens, FocusFrame und RingTimer statt neuer Timer-Engine | I – freiwilliges Cyan/Amber/OLED, maximal reduzierte Nachtansicht und reduzierte Bewegung; Farben erledigen nichts |
+| Direkt: PaceKeeper/Schlafaudio | Lokale Stimme/Audiopriorität, `RoutinePaceKeeperService`, begrenzter `SleepAudioService` | I – Schwellen, Deduplizierung, Pause, Deadline und Alarmvorrang in Modellen prüfbar. Tatsächliche Stimme, Vibration, Ausblendung und Hörbarkeit X |
+| Direkt: Zero-Gap/Anti-Relapse | V: QR→Fokus; I: dauerhafte atomare Morgenübergabe, nativer Einmalbeleg, Wieder-Klingeln über denselben AlarmController | I – DB-Fehler/Crash/Duplikat/04:00 ohne falschen Schrittabschluss. Ein-Tipp-Wachbestätigung, kein neuer Step-Counter. Echtes erneutes Klingeln X |
+| Direkt: Zombie/Abendphasen | `core/guidance` als Planprojektion; essentielle Schrittflags, lokaler Nachtfakt und signierter QR-Notverlängerungsbeleg | I – keine Überschreibmigration; leere/ausgelassene Schritte erzeugen keinen echten Morgenabschluss. T30/T10 auch im bestehenden nativen Reminderpfad vorgesehen; Zustellung X |
 | PC-14/MO-03/MO-05, P09 | Relay/Health-Schlafimport/Lichtgeräte | O – Kann-Module bzw. Machbarkeitsnotiz; keine externe Aktivierung und keine zusätzliche Schlafberechtigung ohne eigenen Auftrag |
-| P10 | Gemeinsame Regression und Abschlussdokumentation | O – implementiert/automatisch/Windows/Android sauber trennen; Version bisher unverändert |
+| P10 | Gemeinsame Regression und Abschlussdokumentation | I – README/Struktur/Anleitung, eigener Setup-/Vertragstext und sieben Stationen97–103. Endgültige gemeinsame Zahlen und Quellbindung noch im Testprotokoll ergänzen |
 
-**Nächster Schritt:** Verträge und reine Logik vertikal fertigstellen; danach isolierte Module integrieren und die gemeinsame Regression ausführen. Neue Handy-/Windows-Beobachtungen werden nicht aus Altberichten oder Mockantworten abgeleitet.
+### Integration und verbleibende Gates
+
+1. **P00 abgeschlossen:** eingefrorene Baseline mit unverändert erhaltenem Fehlerbeleg und unabhängigen Native-Inputs. Auf `npm ci` wurde im Baseline-Worktree bewusst verzichtet, um die gemeinsam genutzten installierten Abhängigkeiten nicht zu verändern; Lockhash und alle erforderlichen physischen Versionen wurden stattdessen geprüft. Dies ist als Abweichung protokolliert.
+2. **P01–P07 implementieren/integrationsprüfen:** ein Vertrag und ein Planner; native Belege erst nach durablem Store-Commit bestätigen. Separat geschriebene Worktrees werden nacheinander integriert. Ein grüner Teiltest ist kein gemeinsamer Abschluss.
+3. **P08 Dokumentation/CI:** Python-Tests unter Linux und Windows konfigurieren; eine konfigurierte Windows-CI ist noch keine tatsächlich ausgeführte Windowsprüfung. Benutzerinstallation ohne Admin/Firewalländerung dokumentiert. Neue Stationen nutzen vorhandene Testberichte, Historie und Export statt eines zweiten Modells.
+4. **P09 zurückgestellt:** Relay, Health-Schlafimport, automatische Begleiter-Updates und echte Lichtgeräte bleiben ohne zusätzliche Aktivierung. Keine neue Schlafberechtigung oder kostenpflichtige Einrichtung.
+5. **P10 offen bis gemeinsamer Nachweis:** Lint/TypeScript/Vitest/Build/Produktionsbrowser, PC-Python samt echter lokaler TLS-Schleife, klassische PowerShell-/Updatefälle und frische native Modelle am integrierten Stand. Fehler und Grenzen erhalten; danach exakte Quelle und Zahlen im Testprotokoll binden.
+6. **Echte Geräteprüfung X:** G97–G103 unter **v7 gemeinsam ausprobieren · 7 Stationen** verbinden Samsung und Windows. Alte G1–G96 und ihre Berichte bleiben unverändert. Installation, native Audio-/Hintergrund-/Sessionwirkung, LAN und WoL nur nach tatsächlich beobachtetem Versuch bestätigen.
+
+**Bedienung/Architektur:** [PC_BEGLEITER.md](PC_BEGLEITER.md), [PC_LINK_PROTOKOLL.md](PC_LINK_PROTOKOLL.md). **Nächster Schritt:** integrierten Code gemeinsam prüfen, verbleibende Fehler korrigieren und Abschlusszahlen mit Quellbindung ergänzen. Kein neuer Gerätebericht, Release oder Versionswechsel wird daraus abgeleitet.
 
 
 ## Gesamtauftrag v6: Baseline und aktueller Fortschritt

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "task": "v7 P00 baseline",
+  "sourceCommit": "0084063345791302bb414d930ee066d777dc57cf",
+  "worktree": "/workspace/anker-v7-baseline",
+  "branch": "detached HEAD",
+  "worktreeClean": true,
+  "runtimeFingerprint": "46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87",
+  "nativeInputFingerprint": "80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85",
+  "dependencies": {
+    "sourceCommit": "0084063345791302bb414d930ee066d777dc57cf",
+    "lockSha256": "658b104264213915a3baf47f81bc94adeb1e449913546bc93303854e30416333",
+    "packageVersionsVerified": 630,
+    "missingRequired": [],
+    "versionMismatches": [],
+    "missingOptionalCount": 61,
+    "npmCiExecuted": false,
+    "reason": "Existing dependency tree retained and linked read-only to preserve parent; every physically installed lockfile package version checked. npm ls on node_modules directory symlink reports extraneous/missing graph artifacts, retained separately; actual lint/tsc/Vitest/build verify runtime use.",
+    "checkedAt": "2026-11-09T00:06:45.101111+00:00"
+  },
+  "checks": {
+    "lint": {
+      "status": "passed",
+      "errors": 0,
+      "knownWarnings": 1,
+      "command": "npm run lint"
+    },
+    "typecheck": {
+      "status": "passed",
+      "command": "npm run typecheck"
+    },
+    "unit": {
+      "status": "passed",
+      "passed": 912,
+      "failed": 0,
+      "pending": 0,
+      "command": "npm test -- --reporter=json --outputFile=<cache>/unit-results.json"
+    },
+    "build": {
+      "status": "passed",
+      "command": "npm run build",
+      "productionFiles": 60
+    },
+    "browser": {
+      "status": "failed",
+      "passed": 247,
+      "failed": 1,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "workers": 2,
+      "durationSeconds": 527.7021,
+      "command": "npx playwright test -c <cache>/playwright.config.ts",
+      "configNote": "Frozen baseline production dist; system /usr/bin/chromium; port4173; no configuration or assertion relaxed."
+    },
+    "pc": {
+      "status": "passed",
+      "cases": 19,
+      "parsedScripts": 4,
+      "command": "PATH=<cached pwsh>/runtime:$PATH npm run test:pc",
+      "actualWindows": false
+    },
+    "updateMocks": {
+      "status": "passed",
+      "tests": 36,
+      "command": "PATH=<cached pwsh>/runtime:$PATH python3 scripts/test-android-update.py",
+      "privateKeysUsed": false
+    },
+    "native": {
+      "status": "passed",
+      "tests": 122,
+      "suites": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "freshRerun": true,
+      "testsReused": false,
+      "executedTasks": 369,
+      "report": "native/NATIVE-RESULT.json",
+      "command": [
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--max-workers=2",
+        "--console=plain",
+        "--init-script",
+        "/workspace/.cache/anker/v7/baseline/native/isolate-dependency-builds.gradle",
+        "--no-build-cache",
+        "--rerun-tasks",
+        "--init-script",
+        "/workspace/.cache/anker/v7/baseline/native/resolved-artifacts.init.gradle",
+        ":app:checkDebugAarMetadata",
+        ":app:checkReleaseAarMetadata",
+        ":app:compileDebugKotlin",
+        ":app:compileReleaseKotlin",
+        ":app:processDebugManifest",
+        ":app:processReleaseManifest",
+        ":app:testDebugUnitTest",
+        ":app:auditDebugResolvedArtifacts",
+        ":app:auditReleaseResolvedArtifacts"
+      ],
+      "realAndroidDevice": false
+    }
+  },
+  "preexistingFindings": [
+    {
+      "id": "P00-B01",
+      "file": "e2e/smoke.spec.ts",
+      "testLine": 64,
+      "assertionLine": 79,
+      "expected": "Gespeichert dialog contains the currently visible heading Ab ins Bett",
+      "observed": "Main heading Ab ins Bett; dialog context Gute Nacht",
+      "evidence": "browser-results/smoke-Startseite-eine-Haup-a57a9-ndlungen-Gedanke-und-zurück/error-context.md",
+      "classification": "Clock-dependent existing UI/context wording mismatch; first full baseline run preserved; no retry or source change."
+    }
+  ],
+  "physicalTests": {
+    "android": "not run",
+    "windows": "not run"
+  },
+  "privateKeysAccessed": false,
+  "originalCode14NativeEvidenceFilesUnchanged": 46,
+  "finishedAt": "2026-11-09T00:21:30.770119+00:00"
+}

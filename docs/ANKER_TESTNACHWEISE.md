@@ -1,5 +1,46 @@
 # Anker: Testnachweise
 
+## v7 – Audit, Baseline und gemeinsame Regression
+
+**09.11.2026, P00:** Der echte Ausgangscode wurde vor der Implementierung im getrennten, sauberen detached Worktree `/workspace/anker-v7-baseline` eingefroren. Quelle `0084063345791302bb414d930ee066d777dc57cf`, Laufzeitkennung `46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87`. Die historischen Code14-Ergebnisse darunter bleiben historisch; sie ersetzen den neuen Lauf nicht.
+
+| Frische Baseline-Ausführung | Tatsächliches Ergebnis | Grenze / Beleg |
+|---|---|---|
+| `npm run lint`, `npm run typecheck` | Beide Exit 0; eine bekannte TaskAssistance-Cleanup-Warnung, keine Lintfehler | Statische Prüfung |
+| `npm test` | **912/912**, 0 Fehler/übersprungen | Neue JSON-Ausgabe im eingefrorenen Baseline-Cache |
+| `npm run build` | Exit 0, 60 Produktionsdateien | Hashmanifest des tatsächlich geprüften Builds |
+| Produktions-Playwright, System-Chromium, 2 Worker, 0 Retries | **247 bestanden,1 fehlgeschlagen**,0 übersprungen/Flakies; 8,8 min | Vollständiger erster Lauf erhalten, keine Wiederholung als grüne Baseline ausgegeben |
+| `npm run test:pc` mit PowerShell 7.5.4 | **19/19** und 4 geparste Exportskripte | Linux mit simulierten Windowswirkungen; kein echter Windowslauf |
+| `python3 scripts/test-android-update.py` mit vorhandenem `pwsh` | **36/36**, 0 übersprungen | Offline-Mocks, keine privaten Signierschlüssel |
+| Gradle AAR/Debug-/Release-Kotlin/Manifest/JUnit mit `--rerun-tasks --no-build-cache --max-workers=2` | **122/122** aus 11 Suiten, 0 Fehler/Skips; 369 Tasks tatsächlich ausgeführt | Frische isolierte Native-Kopie, kein Release-APK/Signieren/Gerätetest |
+
+**P00-B01, erhaltener Rotnachweis:** `e2e/smoke.spec.ts:64/79` erwartete nach dem Gedanken-Speichern die gerade sichtbare Jetzt-Überschrift „Ab ins Bett“. Der Dialog nannte den Kontext „Gute Nacht“. Fehlerbild enthält beide Texte. Das ist ein bei nächtlicher Uhrzeit sichtbarer vorhandener Kontextfehler, keine behauptete Datenverlustrückmeldung. Der Befund wird im v7-Pfad korrigiert und gezielt/regressiv nachzuweisen sein; die Baseline bleibt mit einem Fehler erhalten.
+
+**Abhängigkeiten:** `npm ci` wurde für diesen eingefrorenen Worktree bewusst nicht ausgeführt. `node_modules` verweist auf den bereits installierten, benötigten gemeinsamen Baum. Paketlock-SHA256 `658b104264213915a3baf47f81bc94adeb1e449913546bc93303854e30416333`; 630 physisch installierte Paketversionen abgeglichen, 0 erforderliche fehlend/abweichend, 61 optionale Plattformpakete nicht vorhanden. `npm ls` meldet wegen des verlinkten Verzeichnisses Graphartefakte; diese Ausgabe wurde erhalten und nicht als saubere Neuinstallation ausgegeben.
+
+**Native-Bindung:** Laufzeit-/Native-Inputkennung nach isoliertem `cap sync`: `80f3774db7fc58a3f8eb3155c3de568b4d6930413c9505c1358d306e5ca17d85`. Nur die bekannte generierte `config.xml` änderte sich dabei gegenüber der ungesyncten Quelle. Alle 46 alten Code14-Nativebelege bleiben bytegleich. Die Baseline ist unabhängig von den neuen Implementierungs-Worktrees.
+
+Maschinenbeleg: [ANKER_V7_BASELINE.json](ANKER_V7_BASELINE.json). Vollständige lokale Logs, Eingangs-/Ausgangshashes, JSON-Berichte und der erhaltene Fehlerkontext: `/workspace/.cache/anker/v7/baseline/`, insbesondere `BASELINE-RESULT.json`, `evidence-sha256.json`, `native/NATIVE-RESULT.json` und `browser-results/`. Diese Pfade gehören zur Ausführungsumgebung, nicht zum Windows-PC des Nutzers.
+
+### Integrierter v7-Stand: Nachweise vor Abschluss ergänzen
+
+**Die folgende gemeinsame Regression ist noch nicht als Abschluss ausgewertet.** Einzeln bestandene Modulprüfungen werden nicht zu einer angeblich bestandenen Gesamtsuite addiert. Die endgültige Quelle, Laufzeitkennung und tatsächlichen Zahlen werden nach Integration ergänzt; neue echte Android- und Windowsbeobachtungen bleiben offen.
+
+| Anforderung | Konkreter Code-/Prüfpfad | Abschlussgate |
+|---|---|---|
+| P01/P03, PC-02/03/04 | `core/pcLink`-Fixtures/Schema/Krypto, `PcLinkModel`/`PcBridgeCrypto`, Python `test_protocol`/`test_server`; echte lokale TLS/WSS-Schleife mit kontrolliertem Telefontestclient | Gemeinsame Protokoll-/Replay-/Manipulations-/Pin-/Ablaufprüfung am integrierten Stand ergänzen; echtes LAN X |
+| P02/P05/P08, PC-01/06/07/09/10/11/12 | Python `test_engine`, `test_windows`, `test_vault`, Install-/Start-/Uninstall-Skripte und Windows-CI-Konfiguration | Mocks belegen keine echte GUI, Autostart-, Lautstärke- oder Sessionwirkung; Windows X |
+| P04/P06, PC-05/08/13 | Store-PC-Ereignisfälle, atomare Receipts, Status-/ACK- und UI-Fälle, Backup-/Syncausschluss | Commit vor ACK, Duplikate/Fehler und bestehende Nutzerentscheidung erhalten; integrierte Zahlen ergänzen |
+| AB-01/02/03/04/07, MO-01/02/04, VI-01/02/03/04 | Gedanken-/Speicherpunkt-/Wenn-dann-/Rhythmus-/Licht-/PC-UI-Fälle, 320 px/160 %, reduzierte Bewegung | Browser prüft Bedienung mit kontrollierten Brücken, nicht echte PC-/Androidwirkung |
+| Direkt: Zero-Gap/Zombie/Anti-Relapse/Abendphasen | `core/guidance`, Store-Morgenübergabe, Reminder `build`/`rules`, native Alarmmodelle und Einmalbelege | DB-Fehler/Crash/Mehrfachtipp/04:00, kein falscher Abschluss; echte Hintergrundzustellung/Klingeln X |
+| Direkt: Pacekeeper/Brown Noise | `RoutinePaceKeeperModel`, `SleepAudioModel`, begrenzte Dienste und lokale TTS-Verfügbarkeit | Modell, Kotlincompile und Priorität automatisch; tatsächliche Hörbarkeit/Vibration/Fade X |
+| P10: Bestand bleibt nutzbar | Vollständige Vitest-/Produktionsbrowser-/native Regression, klassische 19 PC-/36 Updatefälle | Endgültige Quelle, Befehle und Zahlen nach Abschluss ergänzen; kein neues APK/Signieren/Release behauptet |
+| Gemeinsamer Gerätebericht | G97–G103, vorhandene Berichte/Entwürfe/Export/Historie | **Offen:** Windows und Galaxy S26 Ultra; frühere 96 IDs/Berichte unverändert |
+
+Die getrennt entwickelten Windows-Grenzen haben bereits **11 reine Plattform-/Audio-Mockfälle und 5 DPAPI-Grenzfälle** bestanden (`/workspace/.cache/anker/v7/windows-adapters/WINDOWS-ADAPTERS-RESULT.json`). Import/Compile liefen unter Linux. Kein DISPLAY/Xvfb vorhanden: keine Tk-Sichtprüfung, 200 %-Skalierung oder echte Windows-API-Ausführung daraus abgeleitet. Weitere Modul-/Gesamtzahlen werden nach tatsächlicher Ausführung am integrierten Stand ergänzt.
+
+Unverändert aus: Relay, Health-Connect-Schlafimport, Lichtgeräte, automatische Begleiter-Updates und externe kostenpflichtige Dienste. Keine neue APK, Signatur oder App-Version ist Gegenstand dieses Nachweises.
+
 ## UI-Code 14 – gemeinsamer Umbau am 08.11.2026
 
 **Gesamtabschluss:** Exakt `1e1f0218ddaf14fa25b4dff0d3d9a0cc6ffb324a` / `46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87`. **912/912 Vitest**, **248/248 externe Gesamtbrowserfälle** in [CI-Gesamtprüfung](https://github.com/frnkrm/anker/actions/runs/42451162451), keine Fehler, Flakies, Skips oder Retries. Zusätzlich **122/122 frisch ausgeführte Android-JUnit-Fälle**, beide AAR-/Kotlin-/Manifestprüfungen, 36 Update-Mocks und 19 PowerShell-Fälle/vier Parser grün. Neuer Android-Release, Name Anker, Code14, 60 Webassets, 23 Berechtigungen, drei DEX-Dateien, 16 JNI-Bibliotheken und acht ELF64 mit 16-KB-Segmenten geprüft. Gleiche B4-Signatur, v2/v3/16KB, unveränderte Payload nach Signierung. APK `e4685b32f9796c462f7d8f683088312e13fe2c324d702e002f6a3f5bb56bd834`; vollständiger Chromium-ZIP-Download `3b0584636576ab2d55d30db9f5d4bfa6b60e70734f894dd40ccc3b09e79a7779`, CRC und alle enthaltenen Dateien bytegleich. [Abschlussbeleg](ANKER_CODE14_NACHWEIS.json). **Neue physische Android-/Samsung-/Windowsprüfungen offen.** Die folgenden Absätze dokumentieren die früheren Zwischenstände dieses Auftrags.
