@@ -229,6 +229,13 @@ jobs:
           if process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
               print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 16; Status ' + status)
               sys.exit(0)
+          if (process.returncode == 0 and status == 'already-active'
+              and result.get('activeReleaseVerified') is True and result.get('bundleReused') is True
+              and result.get('existingReleaseStatus') == 'completed'
+              and result.get('commitAttempted') is False and result.get('bundleUploadConfirmed') is False
+              and result.get('publishedByThisRun') is False):
+              print('::notice title=Anker Play Upload::Bereits vorhanden bestätigt; Kanal internal; Version 16; Status completed; identisches geprüftes Bundle; kein neuer Upload oder Release')
+              sys.exit(0)
           reason = result.get('reason', 'NO_CONFIRMED_RESULT')
           if not isinstance(reason, str) or re.fullmatch('[A-Z_]{1,80}', reason) is None:
               reason = 'NO_CONFIRMED_RESULT'

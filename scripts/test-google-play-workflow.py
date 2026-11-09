@@ -500,6 +500,33 @@ class UploadResultTests(unittest.TestCase):
         self.assertEqual(safe, {'trackMatches': False, 'releasesShape': 'invalid', 'truncated': True,
                                'releases': [{'status': 'unknown', 'versionCodes': [16]}] * 6})
 
+    def test_verified_existing_active_bundle_is_success_without_claiming_a_new_draft(self):
+        result = {'status': 'already-active', 'activeReleaseVerified': True, 'bundleReused': True,
+                  'existingReleaseStatus': 'completed', 'commitAttempted': False,
+                  'bundleUploadConfirmed': False, 'publishedByThisRun': False}
+        code, output = self.execute(result, 0)
+        self.assertEqual(code, 0)
+        self.assertIn('Bereits vorhanden bestätigt', output)
+        self.assertIn('identisches geprüftes Bundle', output)
+        self.assertIn('kein neuer Upload oder Release', output)
+        self.assertNotIn('Entwurf bestätigt', output)
+
+    def test_existing_active_success_needs_every_readonly_identity_and_process_confirmation(self):
+        result = {'status': 'already-active', 'activeReleaseVerified': True, 'bundleReused': True,
+                  'existingReleaseStatus': 'completed', 'commitAttempted': False,
+                  'bundleUploadConfirmed': False, 'publishedByThisRun': False}
+        for key, bad in [('activeReleaseVerified', False), ('bundleReused', False),
+                         ('existingReleaseStatus', 'inProgress'), ('commitAttempted', True),
+                         ('bundleUploadConfirmed', True), ('publishedByThisRun', True)]:
+            with self.subTest(field=key):
+                changed = {**result, key: bad}
+                code, output = self.execute(changed, 0)
+                self.assertEqual(code, 2)
+                self.assertNotIn('Bereits vorhanden bestätigt', output)
+        code, output = self.execute(result, 2)
+        self.assertEqual(code, 2)
+        self.assertNotIn('Bereits vorhanden bestätigt', output)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

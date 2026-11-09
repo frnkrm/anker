@@ -2,12 +2,13 @@
 
 ## Google-Play-Uploadworkflow – lokale Vorbereitung (10.11.2026)
 
-Neue Automation für den bereits geprüften Code16-AAB-Stand, kein App-/Paket-/Versionswechsel. **Nach der Diagnosergänzung 34 Upload-, 24 OAuth- und 28 Workflow-Testmethoden (86 insgesamt) grün**, einschließlich tatsächlicher Ausführung der eingebetteten CI-/Übergabe-/Ergebnisprüfungen mit synthetischen HTTP-Antworten. Der erste reale Runnerlauf verwendete den vorherigen Stand mit 78 Methoden. Keine echten Google-Zugangsdaten in diesen Offlineprüfungen. Actionlint1.7.9 prüft beide geänderten Workflowdateien erfolgreich. Das tatsächlich heruntergeladene feste AAB und beide Skript-/Manifesthashes bestehen zusätzlich die reale lokale Übergabeprüfung vor Authentifizierung.
+Neue Automation für den bereits geprüften Code16-AAB-Stand, kein App-/Paket-/Versionswechsel. **Nach Diagnose und rein lesendem Bestandspfad 38 Upload-, 24 OAuth- und 30 Workflow-Testmethoden (92 insgesamt) grün**, einschließlich tatsächlicher Ausführung der eingebetteten CI-/Übergabe-/Ergebnisprüfungen mit synthetischen HTTP-Antworten. Der erste reale Runnerlauf verwendete den vorherigen Stand mit 78, der zweite mit 86 Methoden. Keine echten Google-Zugangsdaten in diesen Offlineprüfungen. Actionlint1.7.9 prüft beide geänderten Workflowdateien erfolgreich. Das tatsächlich heruntergeladene feste AAB und beide Skript-/Manifesthashes bestehen zusätzlich die reale lokale Übergabeprüfung vor Authentifizierung.
 
 | Grenze | Konkreter Nachweis |
 |---|---|
 | Manifest, Artefakt und Version unveränderlich | `scripts/test-google-play-upload.py`: manipulierte Freigabe, falsche Bundlebytes/SHA/Version, korrekte reine Vorbereitung |
 | Nur interne Entwürfe und Bestandserhalt | Derselbe Test: fremde/aktive Releases, Konflikte, Idempotenz, bestehende Drafts, `ERROR_IF_IN_REVIEW`, kein Commitfallback |
+| Identischer bereits aktiver Einzelrelease | Uploadtests: nur richtige Bundle-SHA + `internal` + genau ein `completed`-Release16 ergibt reine Leseerkennung; keine Bundle-/Track-/Validate-/Commitmutation. Workflowtests verlangen sämtliche Bestätigungen und nennen ausdrücklich keinen neuen Upload/Entwurf |
 | Keine falsche Erfolgsmeldung | Uploadtests: Timeout/5xx/unklarer Commit/Readback, kein Mutationsretry; Workflowtests: Notice nur aus bestätigtem Draft und erfolgreichem Prozess |
 | Servicekonto nur für Android Publisher | `scripts/test-google-play-auth.py`: feste Claims, kein `sub`, echte lokale RS256-Verifikation mit synthetischem RSA-Schlüssel, temporäre Rechte und Bereinigung, Redirect-/Fehler-/Outputredaktion |
 | Secret erst nach geprüfter Übergabe | `scripts/test-google-play-workflow.py`: fehlerhafte CI/Matrix/Quelle/Zertifikat, veränderte Skripte/Manifest/Bundle, zusätzliche Dateien/Symlinks, Secret-/Tokenreichweite und Runnergrenzen |
@@ -15,6 +16,8 @@ Neue Automation für den bereits geprüften Code16-AAB-Stand, kein App-/Paket-/V
 [Workflow und Befugnisse](GOOGLE_PLAY_UPLOAD_WORKFLOW.md) · [feste Freigabe](PLAY_UPLOAD_APPROVAL.json). Nachweise im Cloudcache `/workspace/.cache/anker/play-upload-workflow/`. Code16-App-CI und 197 Android-JUnit sind weiterhin deren bestehende, unveränderte Nachweise; hier nicht neu ausgeführt.
 
 **Echter Runner-/Google-Versuch:** [42720560496](https://github.com/frnkrm/anker/actions/runs/42720560496) auf `55a383fb5ad9c62aa4233bce2f6958716326fef4`: beide Vorprüfungen/Secret/OAuth bestanden; Play-API lesend erreicht. Der Uploadschritt stoppt mit `EXISTING_RELEASE_CONFLICT` vor Bundleupload/Trackänderung/Commit. Die erste Annotation enthält keine genauere Bestandsstruktur. Deshalb weder aktiven Release noch gespeicherten Entwurf aus ihr ableiten. Eine begrenzte, separat redigierte Bestandsdiagnose ergänzt den folgenden Versuch; keine Google-Ergebnisse aus Offline-Mocks.
+
+**Zweiter Runnerlauf:** [42721343910](https://github.com/frnkrm/anker/actions/runs/42721343910), `19115e2a6b4ddab0c9f06480f591e007805a9fef`: Google-Anmeldung erneut grün; sichere Bestandsannotation bestätigt `internal`, einen einzelnen `completed`-Release mit Version16, keine abgeschnittenen Werte. Draftpfad stoppt vor jeder Bundle-/Track-/Commitmutation. Der aktive Sonderfall wird anschließend nur mit zusätzlicher exakter Bundle-SHA rein lesend als `already-active` bestätigt; der tatsächliche Nachweis bleibt bis zum Abschluss dieses Runnerlaufs offen.
 
 
 ## Code16 – Weckerverlauf, selektiver Export und Schlafhinweis
