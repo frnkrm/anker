@@ -6,6 +6,7 @@ import type { DayLog, LocalData } from '../types'
 import { parseBackup, makeBackup } from '../export/backup'
 import { deriveGuidance, genuineMorningCompleted, guidancePlanDate, guidancePreferences, validGuidanceLocal, validGuidancePreferences, zombieRoutineSteps } from './index'
 import { recordForSync } from '../syncPrivacy'
+import { createCountdown } from '../focus'
 
 const date = '2026-11-12'
 const at = (minutes: number, day = date) => zonedToUtc(day, minutes)
@@ -79,6 +80,44 @@ describe('Kernschritte im vorhandenen Planer', () => {
 })
 
 describe('Eine Zustandsprojektion, kein zweiter Plan', () => {
+  it.each([false, true])('lässt einen alten offenen Morgen später den Abend nicht verdrängen (Zombie=%s)', zombie => {
+    const s = settings(); s.guidance = { ...s.guidance, autoZombie: true }
+    const log = { ...day(), wakeAt: at(420), override: { zombie } }
+    const plan = buildDayPlan({ date, settings: s, override: log.override })
+    const step = plan.blocks.find(block => block.routine === 'morning')!.steps![0]!
+    const local: LocalData = { ...emptyLocal(), guidance: { receipts: ['morning:real-alarm'], days: { [date]: { alarmOccurrenceId: 'real-alarm', alarmAt: at(420), morningActivatedAt: at(420) } } },
+      focus: { id: 'old-morning-focus', target: { kind: 'routine', date, routine: 'morning', stepId: step.id, minimal: !!step.useMinimal }, timer: createCountdown(60, at(420)) } }
+    const before = structuredClone({ log, local })
+    expect(deriveGuidance({ plan, log, settings: s, local, nowMs: at(421) }).phase).toBe(zombie ? 'ZOMBIE_MODE' : 'MORNING_ACTIVE')
+    for (const [minute, phase] of [[720, 'DAY_ACTIVE'], [1350, 'WIND_DOWN_T30'], [1370, 'BRAIN_DUMP_T10'], [1380, 'BEDTIME_HARD_CUT']] as const) {
+      expect(deriveGuidance({ plan, log, settings: s, local, nowMs: at(minute) })).toMatchObject({ phase, morningCompleted: false, autoZombieDue: false, lockEnforced: false })
+      expect({ log, local }).toEqual(before)
+    }
+    expect(local.focus?.timer).toMatchObject({ status: 'running', deadlineAt: at(421) })
+    expect(genuineMorningCompleted(plan, log)).toBe(false)
+    s.guidance.enabled = false
+    expect(deriveGuidance({ plan, log, settings: s, local, nowMs: at(1370) }).phase).toBe('DAY_ACTIVE')
+  })
+  it('begrenzt auch einen nur aktivierten ausstehenden Morgen ohne Fokus auf das vorhandene Morgenfenster', () => {
+    const s = settings(); s.guidance = { ...s.guidance, autoZombie: true }
+    const plan = buildDayPlan({ date, settings: s })
+    const local: LocalData = { ...emptyLocal(), guidance: { receipts: [], days: { [date]: { morningActivatedAt: at(420) } } } }
+    expect(deriveGuidance({ plan, log: day(), settings: s, local, nowMs: at(421) })).toMatchObject({ phase: 'MORNING_PENDING', autoZombieDue: true })
+    expect(deriveGuidance({ plan, log: day(), settings: s, local, nowMs: at(1370) })).toMatchObject({ phase: 'BRAIN_DUMP_T10', autoZombieDue: false, morningCompleted: false })
+  })
+  it.each([false, true])('hält eine echte unreleased Nacht nach dem Morgenfenster unverändert (Zombie=%s)', zombie => {
+    const s = settings(); s.guidance = { ...s.guidance, autoZombie: true }
+    const previous = addDays(date, -1)
+    const log = { ...day(), override: { zombie } }
+    const plan = buildDayPlan({ date, settings: s, override: log.override })
+    const step = plan.blocks.find(block => block.routine === 'morning')!.steps![0]!
+    const local: LocalData = { ...emptyLocal(), guidance: { receipts: [], days: { [previous]: { nightLockedAt: at(1380, previous) }, [date]: { morningActivatedAt: at(420) } } },
+      focus: { id: 'guarded-morning-focus', target: { kind: 'routine', date, routine: 'morning', stepId: step.id, minimal: !!step.useMinimal }, timer: createCountdown(60, at(420)) } }
+    const before = structuredClone({ log, local })
+    expect(deriveGuidance({ plan, log, settings: s, local, nowMs: at(660) })).toMatchObject({ phase: zombie ? 'ZOMBIE_MODE' : 'MORNING_ACTIVE', lockEnforced: true, morningCompleted: false, autoZombieDue: !zombie })
+    expect(deriveGuidance({ plan, log, settings: s, local, nowMs: at(1020) })).toMatchObject({ phase: 'DAY_ACTIVE', lockEnforced: false, morningCompleted: false, autoZombieDue: false })
+    expect({ log, local }).toEqual(before)
+  })
   it('behält einen echten frühen Alarmtag auch zwischen zwei Routinen-Schritten bei', () => {
     const next = addDays(date, 1); const local = emptyLocal()
     local.guidance = { receipts: ['morning:native-id'], days: { [next]: { alarmOccurrenceId: 'native-id', alarmAt: at(210, next), morningActivatedAt: at(211, next) } } }

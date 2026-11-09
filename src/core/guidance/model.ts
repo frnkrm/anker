@@ -59,9 +59,11 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   const currentMorning = (activated || active) && (!nightEntry || plan.date > nightEntry[0])
   const recentlyCompleted = day?.morningCompletedAt !== undefined && day.morningCompletedAt <= nowMs && nowMs - day.morningCompletedAt < 2 * 3600_000
   const morningVisible = nowMs < morningVisibleUntil || recentlyCompleted
+  const morningAfterUnreleasedNight = unreleased && !!nightEntry && plan.date > nightEntry[0]
   const interactedSinceActivation = day?.firstInteractionAt !== undefined && day.morningActivatedAt !== undefined
     && day.firstInteractionAt >= day.morningActivatedAt && day.firstInteractionAt <= nowMs
   const autoZombieDue = preferences.enabled && preferences.autoZombie && activated && !complete && !interactedSinceActivation
+    && (morningVisible || morningAfterUnreleasedNight)
     && !log?.override.zombie && nowMs - day.morningActivatedAt! >= preferences.autoZombieAfterSeconds * 1000
   const brainDumpIds = complete && currentMorning && morningVisible ? [...new Set([
     ...(facts[addDays(plan.date, -1)]?.brainDumpShownAt ? [] : facts[addDays(plan.date, -1)]?.brainDumpIds ?? []),
@@ -71,9 +73,10 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   if (active && session) view.remainingSeconds = Math.ceil(remainingMs(session.timer, nowMs) / 1000)
   if (open[0]) view.routineStep = { id: open[0].id, index: all.findIndex(step => step.id === open[0]!.id), total: all.length }
   if (alarm?.ringing) return { ...view, phase: 'ALARM_RINGING' }
-  if (!preferences.enabled) return log?.override.zombie && active ? { ...view, phase: 'ZOMBIE_MODE' } : view
+  if (!preferences.enabled) return log?.override.zombie && active && morningVisible ? { ...view, phase: 'ZOMBIE_MODE' } : view
   if (complete && currentMorning && morningVisible) return { ...view, phase: 'MORNING_COMPLETED' }
-  if (currentMorning && !complete) return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }
+  // Ein offener, alter Morgen bleibt wiederaufnehmbar, verdrängt aber keinen neuen Abend.
+  if (currentMorning && morningVisible && !complete) return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }
   if (!complete && nowMs >= zonedToUtc(plan.date, plan.wake) && (nowMs < morningVisibleUntil || unreleased && !!nightEntry && plan.date > nightEntry[0])) {
     return { ...view, phase: log?.override.zombie ? 'ZOMBIE_MODE' : active ? 'MORNING_ACTIVE' : 'MORNING_PENDING' }
   }
