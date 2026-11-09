@@ -52,7 +52,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
       // Eine abgeleitete Übersicht kann Arbeits-/Orts-/Gesundheitsquellen zusammenführen.
       // Auch vollständige Backups enthalten deshalb ausschließlich die Originaldaten.
       data = without(data, ['timeCatalog'])
-      if (!selection.health) data = without(data, ['meds', 'sleepDiary'])
+      if (!selection.health) data = without(data, ['meds', 'sleepDiary', 'guidance'])
       if (!selection.deviceTests) data = without(data, ['deviceTests'])
       if (!selection.places) {
         data = without(data, ['places', 'commitments', 'planUndo', 'weather', 'weatherProfile', 'packTemplates', 'routeProfile', 'routeEstimates', 'acknowledgedPlanConflicts'])

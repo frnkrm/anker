@@ -15,6 +15,7 @@ import { validWorkSession } from '../worktime'
 import { validHomeOfficeContacts } from '../homeOfficeContact'
 import { TIME_CATALOG_RECORD_ID } from '../timeCatalog'
 import { validConflictAcknowledgements } from '../planConflicts'
+import { validGuidanceLocal, validGuidancePreferences } from '../guidance'
 
 export const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const text = (value: unknown): value is string => typeof value === 'string'
@@ -71,7 +72,8 @@ export function validSettings(value: unknown): boolean {
     if (object(value.alarm.smartWake) && !optional(value.alarm.smartWake, 'windowMinutes', (v) => Number.isInteger(v) && Number(v) >= 5 && Number(v) <= 90)) return false
   }
   if (object(value.weather) && (!optional(value.weather, 'lat', (v) => finite(v) && Math.abs(v) <= 90) || !optional(value.weather, 'lng', (v) => finite(v) && Math.abs(v) <= 180))) return false
-  return validExtrasSettings(value.extras)
+  if (object(value.routines) && !Object.values(value.routines).every(steps => !Array.isArray(steps) || steps.every(step => object(step) && optional(step, 'isEssentialForZombieMode', flag => typeof flag === 'boolean')))) return false
+  return validExtrasSettings(value.extras) && validGuidancePreferences(value.guidance)
 }
 
 function validSteps(value: unknown): boolean {
@@ -84,7 +86,7 @@ function validOverride(value: unknown): boolean {
     || !optional(value, 'latestStart', (v) => v === null || finite(v))
     || !optional(value, 'lateUntil', (v) => v === 'open' || finite(v))
     || !optional(value, 'backAt', timestamp)
-    || !fields(value, ['homeOffice', 'light', 'adjusted'], (v) => typeof v === 'boolean')
+    || !fields(value, ['homeOffice', 'light', 'zombie', 'adjusted'], (v) => typeof v === 'boolean')
     || !optional(value, 'reason', text) || !fields(value, ['coveredSteps', 'uncoveredSteps'], stringList)) return false
   if (!optional(value, 'dayType', (v) => choice(v, ['work', 'weekend', 'vacation', 'sick']))
     || !optional(value, 'evening', (v) => choice(v, ['free', 'friends', 'sport', 'cook', 'appointment']))
@@ -123,7 +125,7 @@ function validInbox(value: unknown, id: string): boolean {
 function validLocal(value: unknown): boolean {
   if (!object(value) || !validHomeOfficeContacts(value.homeOfficeContact) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
     || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)
-    || !validConflictAcknowledgements(value.acknowledgedPlanConflicts)) return false
+    || !validConflictAcknowledgements(value.acknowledgedPlanConflicts) || !validGuidanceLocal(value.guidance)) return false
   if (object(value.planUndo) && !Object.values(value.planUndo).every((entry) => object(entry) && validPlanningLocal({ commitments: entry.commitments }))) return false
   if (!optional(value, 'workSessions', (v) => Array.isArray(v) && v.every(validWorkSession))) return false
   if (!optional(value, 'handover', (v) => object(v) && Object.entries(v).every(([day, entry]) => date(day) && object(entry) && text(entry.open) && text(entry.next)))) return false

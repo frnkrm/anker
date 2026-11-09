@@ -17,7 +17,7 @@ export function recordForSync(record: Rec): Rec | undefined {
   const projected = weatherRecordForSync(record)
   if (projected.collection !== 'settings' || !object(projected.data)) return projected
   // Freigaben gehören zum jeweiligen Gerät, nicht zum Settings-Abgleich eines anderen Geräts.
-  const data = Object.fromEntries(Object.entries(projected.data).filter(([key]) => !['integrations', 'extras'].includes(key)))
+  const data = Object.fromEntries(Object.entries(projected.data).filter(([key]) => !['integrations', 'extras', 'guidance'].includes(key)))
   if (!object(data.alarm)) return { ...projected, data }
   const alarm = Object.fromEntries(Object.entries(data.alarm).filter(([key]) => !['qrSecret', 'medicationEnabled', 'medicationReminderAt'].includes(key)))
   return { ...projected, data: { ...data, alarm } }

@@ -3,6 +3,7 @@ import type { FocusSession, StuckSession } from './focus'
 import type { AssistancePreferences } from './assistance'
 import type { ExtraLocal, ExtraSettings } from './extras'
 import type { TimeCatalogSnapshot } from './timeCatalog'
+import type { GuidanceLocal, GuidancePreferences } from './guidance/types'
 
 export type StepTag = 'movement' | 'tidy' | 'face' | 'teeth' | 'prep' | 'inbox' | 'gymbag' | 'breakfast'
 
@@ -13,6 +14,8 @@ export interface RoutineStep {
   /** Kleinstmögliche Version, zählt ebenfalls als erfüllt. */
   minimal?: { title: string; minutes: number }
   tag?: StepTag
+  /** Eigene Auswahl für die minimale Morgenbegleitung; fehlend verändert alte Routinen nicht. */
+  isEssentialForZombieMode?: boolean
 }
 
 export type RoutineId = 'morning' | 'evening'
@@ -78,6 +81,7 @@ export interface Settings {
   goal: MainGoal
   themeId: ThemeId
   appearance: { dark: boolean; fontScale: number; developerTools?: boolean }
+  guidance?: Partial<GuidancePreferences>
   /** Index 0 = Montag */
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
@@ -170,6 +174,8 @@ export interface DayOverride {
   mode?: SupportMode
   /** „Tag neu sortieren“: Rest des Tages in kleinen Versionen */
   light?: boolean
+  /** Tagesbezogene Kernschritte, keine Erledigung der ausgeblendeten Schritte. */
+  zombie?: boolean
   /** Einmalige Weckzeit für diesen Tag, nach Bestätigung. Ändert nie den Standard. */
   wakeOverride?: number
   /** Länger wach: bis zu dieser Zeit (Plan-Minuten) oder offen */
@@ -605,6 +611,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Private Zustandsfakten der freiwilligen Abend-/Morgenbegleitung. */
+  guidance?: GuidanceLocal
   /** Bewusst bestätigte Überschneidungen je Plantag. Wie Termine ausschließlich lokal. */
   acknowledgedPlanConflicts?: Record<DateStr, string[]>
   /** Abgeleitete lokale Leseübersicht. Niemals Planquelle, Sync- oder Backupinhalt. */

@@ -22,6 +22,7 @@ import type {
 } from '../types'
 import { hardConflicts, legSpan, planLegs } from './adaptive'
 import { allMinimal, busyMinutes, fitSteps, minimalMinutes, placeAfter, totalMinutes } from './fit'
+import { zombieRoutineSteps } from '../guidance/routines'
 
 export interface PlanInput {
   date: DateStr
@@ -129,8 +130,8 @@ export function buildDayPlan(input: PlanInput): DayPlan {
 
   // ---------- Krank-Modus ----------
   if (dayType === 'sick') {
-    const basicsM = allMinimal(s.routines.morning.filter((x) => x.tag && SICK_BASICS.has(x.tag) && !covered.has(`morning:${x.id}`)))
-    const basicsE = allMinimal(s.routines.evening.filter((x) => x.tag && SICK_BASICS.has(x.tag)))
+    const basicsM = allMinimal(zombieRoutineSteps(s.routines.morning, !!o.zombie).filter((x) => (o.zombie || x.tag && SICK_BASICS.has(x.tag)) && !covered.has(`morning:${x.id}`)))
+    const basicsE = allMinimal(zombieRoutineSteps(s.routines.evening, !!o.zombie).filter((x) => o.zombie || x.tag && SICK_BASICS.has(x.tag)))
     // Krank reduziert eigene Aufgaben, sagt aber keine bestätigte Verpflichtung ab.
     const legs = planLegs(input.commitments ?? [], { settings: s, places: input.places ?? [] })
     const anchors = morningAnchors({ date, settings: s, legs, events: calendarEvents })
@@ -172,7 +173,7 @@ export function buildDayPlan(input: PlanInput): DayPlan {
   let leaveOverride: number | undefined
 
   // Schon versorgte Schritte entfallen für heute. Sie gelten damit nicht als heute erledigt.
-  let morningSteps = s.routines.morning.filter((x) => !covered.has(`morning:${x.id}`)).map((x) => ({ ...x }))
+  let morningSteps = zombieRoutineSteps(s.routines.morning, !!o.zombie).filter((x) => !covered.has(`morning:${x.id}`)).map((x) => ({ ...x }))
 
   // Wege und Termine dieses Tages
   const officeOnsite = isWorkDayOnsite(dayType, o, w) && !(input.commitments ?? []).some((c) => c.replacesCommute && c.status !== 'cancelled')
@@ -188,7 +189,7 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
   const workStart = firstRegular ? minutesOnPlanDay(date, firstRegular.startAt) : plannedStart
   const officeLeave = isWork ? (homeOffice ? plannedStart - s.travel.homeOfficeStartupMin : officeOnsite ? plannedStart - s.commute.minutes - s.commute.bufferMin : undefined) : undefined
   const sportToday = isSportDay(date, s) && dayType !== 'vacation'
-  const morningSport = sportToday && s.sport.time === 'morning'
+  const morningSport = sportToday && s.sport.time === 'morning' && !o.zombie
   let gymBlock: Block | undefined
 
   const leave = leaveOverride ?? officeLeave
@@ -225,9 +226,9 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
   const routineStart = gymBlock ? gymBlock.end : wake + activation
   const window = morningEnd - routineStart
   // Wenig Energie, überlastet oder „Tag neu sortieren“: sofort die kleinen Versionen, ohne weitere Frage
-  const low = !!o.light || o.mode === 'wenig-energie' || o.mode === 'ueberlastet'
+  const low = !!o.light || !!o.zombie || o.mode === 'wenig-energie' || o.mode === 'ueberlastet'
   const overloaded = o.mode === 'ueberlastet'
-  if (overloaded) morningSteps = morningSteps.filter((x) => (x.tag && SICK_BASICS.has(x.tag)) || x.id === 'keys')
+  if (overloaded && !o.zombie) morningSteps = morningSteps.filter((x) => (x.tag && SICK_BASICS.has(x.tag)) || x.id === 'keys')
   const fit = low ? { steps: allMinimal(morningSteps), minimal: true, fits: true } : fitSteps(morningSteps, window)
   // Morgenroutine bewusst später: gleicher Inhalt, spätere Zeit
   const morningLater = typeof o.routineAt?.morning === 'number' ? o.routineAt.morning : undefined
@@ -346,7 +347,8 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
     eveningSteps = [...eveningSteps.slice(0, at + 1), { id: 'gymbag', title: 'Sporttasche packen', minutes: 3, tag: 'gymbag' }, ...eveningSteps.slice(at + 1)]
   }
 
-  if (overloaded) eveningSteps = eveningSteps.filter((x) => x.tag && SICK_BASICS.has(x.tag))
+  if (o.zombie) eveningSteps = zombieRoutineSteps(eveningSteps, true)
+  else if (overloaded) eveningSteps = eveningSteps.filter((x) => x.tag && SICK_BASICS.has(x.tag))
 
   const available = pcStop - home - busyMinutes(home, pcStop, busy)
   const routineFull = eveningSteps.reduce((sum, x) => sum + x.minutes, 0)

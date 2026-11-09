@@ -1,5 +1,6 @@
 import type { EveningPlan, LocalData, RoutineStep, Settings, WorkDay } from './types'
 import { roundDownTo } from './time'
+import { guidancePreferences } from './guidance/settings'
 
 export const DEFAULT_MORNING: RoutineStep[] = [
   { id: 'water', title: 'Aufstehen, Glas Wasser', minutes: 3, minimal: { title: 'Ein Schluck Wasser', minutes: 1 } },
@@ -114,6 +115,7 @@ export function defaultSettings(today: string): Settings {
     goal: 'on-time-rested',
     themeId: 'seefahrt',
     appearance: { dark: true, fontScale: 1, developerTools: false },
+    guidance: guidancePreferences(),
     work,
     commute: { minutes: 35, mode: 'auto', bufferMin: 10 },
     sleep: { needMin: 480, fallAsleepMin: 15, screenOffMin: 30, bedtimePromptEnabled: false },
@@ -222,6 +224,7 @@ export function migrateSettings(s: Settings, today: string): Settings {
     game: { ...d.game, ...s.game },
     alarm: { ...d.alarm, ...s.alarm, smartWake: { ...d.alarm.smartWake, ...s.alarm?.smartWake } },
     appearance: { ...d.appearance, ...s.appearance, developerTools: s.appearance?.developerTools === true },
+    guidance: guidancePreferences(s.guidance),
     focus: { ...d.focus, ...s.focus },
     travel: { ...d.travel, ...s.travel },
     flex: { ...d.flex, ...s.flex },
