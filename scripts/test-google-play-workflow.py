@@ -472,6 +472,34 @@ class UploadResultTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn('NO_CONFIRMED_RESULT', output)
 
+    def test_conflict_observation_exposes_only_bounded_status_and_numeric_versions(self):
+        observation = {'trackMatches': True, 'releasesShape': 'list', 'truncated': False,
+                       'releases': [{'status': 'completed', 'versionCodes': [15]},
+                                    {'status': 'draft', 'versionCodes': [16]}]}
+        code, output = self.execute({'status': 'failed', 'reason': 'EXISTING_RELEASE_CONFLICT',
+                                    'trackObservation': observation}, 2)
+        self.assertEqual(code, 2)
+        prefix = '::notice title=Anker Play Bestandsprüfung::'
+        line = next(line for line in output.splitlines() if line.startswith(prefix))
+        self.assertEqual(json.loads(line.removeprefix(prefix)), observation)
+        self.assertNotIn('Entwurf bestätigt', output)
+
+    def test_conflict_observation_never_echoes_remote_fields_or_hostile_values(self):
+        observation = {'trackMatches': SYNTHETIC_TOKEN, 'releasesShape': PRIVATE_BODY, 'truncated': PRIVATE_BODY,
+                       'token': SYNTHETIC_TOKEN, 'releases': [
+                           {'status': PRIVATE_BODY, 'versionCodes': [SYNTHETIC_TOKEN, True, 0, -1, 2100000001, 16],
+                            'name': PRIVATE_BODY, 'releaseNotes': [SYNTHETIC_TOKEN]}] * 20}
+        code, output = self.execute({'status': 'failed', 'reason': 'EXISTING_RELEASE_CONFLICT',
+                                    'trackObservation': observation}, 2)
+        self.assertEqual(code, 2)
+        self.assertNotIn(PRIVATE_BODY, output)
+        self.assertNotIn(SYNTHETIC_TOKEN, output)
+        prefix = '::notice title=Anker Play Bestandsprüfung::'
+        line = next(line for line in output.splitlines() if line.startswith(prefix))
+        safe = json.loads(line.removeprefix(prefix))
+        self.assertEqual(safe, {'trackMatches': False, 'releasesShape': 'invalid', 'truncated': True,
+                               'releases': [{'status': 'unknown', 'versionCodes': [16]}] * 6})
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

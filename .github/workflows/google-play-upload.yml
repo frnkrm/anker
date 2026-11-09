@@ -205,6 +205,26 @@ jobs:
               result = json.loads(report.read_text())
           except Exception:
               result = {}
+          observation = result.get('trackObservation')
+          if isinstance(observation, dict):
+              rows = observation.get('releases')
+              safe_rows = []
+              if isinstance(rows, list):
+                  for row in rows[:6]:
+                      if not isinstance(row, dict):
+                          continue
+                      state = row.get('status')
+                      state = state if state in ['draft', 'completed', 'inProgress', 'halted'] else 'unknown'
+                      versions = row.get('versionCodes')
+                      versions = [v for v in versions[:6] if type(v) is int and 1 <= v <= 2100000000] if isinstance(versions, list) else []
+                      safe_rows.append({'status': state, 'versionCodes': versions})
+              safe_observation = {
+                  'trackMatches': observation.get('trackMatches') is True,
+                  'releasesShape': 'list' if observation.get('releasesShape') == 'list' else 'invalid',
+                  'releases': safe_rows,
+                  'truncated': observation.get('truncated') is not False,
+              }
+              print('::notice title=Anker Play Bestandsprüfung::' + json.dumps(safe_observation, separators=(',', ':')))
           status = result.get('status')
           if process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
               print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 16; Status ' + status)
