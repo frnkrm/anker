@@ -1,6 +1,6 @@
 # Anker: erster Google-Play-Upload
 
-**Nachtrag 10.11.2026:** Nutzer bestätigt inzwischen die angelegte Play-App und das Repository-Secret. Der [neue Uploadworkflow](GOOGLE_PLAY_UPLOAD_WORKFLOW.md) ist implementiert und lokal geprüft; ein tatsächlicher Google-Upload wird erst nach dessen Runner-Ergebnis bestätigt. Die Zugriffs-/Kontoangaben vom 9. November darunter bleiben der historische Vorbereitungsstand.
+**Nachtrag 10.11.2026:** Der [neue Uploadworkflow](GOOGLE_PLAY_UPLOAD_WORKFLOW.md) bestätigt in [Lauf42721896696](https://github.com/frnkrm/anker/actions/runs/42721896696) tatsächlich die Google-Anmeldung und **bereits das identische Code16-Bundle im internen Test, Status `completed`**. Deshalb nur lesende Bestandsbestätigung `already-active`, kein erneuter Upload oder neu veröffentlichter Release. 92 Offline-Tests sowie der echte GitHub-/Google-Abgleich grün. [Nachweis](PLAY_CODE16_KONTO_NACHWEIS.json). Testerzugang, Googles App-Signieridentität und Handyinstallation nicht aus diesem API-Nachweis ableiten. Die Zugriffs-/Kontoangaben vom 9. November darunter bleiben der historische Vorbereitungsstand.
 
 
 Stand 9. November 2026: **Bundle vorbereitet und signiert; noch nicht zu Google hochgeladen.** Das Entwicklerkonto ist laut Nutzer vorhanden, Anker noch nicht angelegt. Es wurden keine App, kein Testrelease, keine Play-App-Signing-Aufnahme und keine kostenpflichtige Aktivierung im Google-Konto vorgenommen.

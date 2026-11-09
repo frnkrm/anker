@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T23:38:04.515047+00:00",
+  "packageName": "de.frnkrm.anker.mobile",
+  "versionCode": 16,
+  "appSourceCommit": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+  "sourceFingerprint": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+  "workflowCommit": "d1ff7b90035786e4d0411431dbac4d3a216c1041",
+  "workflowPath": ".github/workflows/google-play-upload.yml",
+  "runId": 42721896696,
+  "runURL": "https://github.com/frnkrm/anker/actions/runs/42721896696",
+  "branch": "main",
+  "event": "push",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "name": "Bundle und Uploadwerkzeuge prüfen",
+      "jobId": 129517628431,
+      "url": "https://github.com/frnkrm/anker/actions/runs/42721896696/job/129517628431",
+      "conclusion": "success"
+    },
+    {
+      "name": "Play-Entwurf hochladen",
+      "jobId": 129517713923,
+      "url": "https://github.com/frnkrm/anker/actions/runs/42721896696/job/129517713923",
+      "conclusion": "success"
+    }
+  ],
+  "result": "already-active",
+  "googleOAuthVerified": true,
+  "existingInternalReleaseVerified": true,
+  "trackObservation": {
+    "trackMatches": true,
+    "releasesShape": "list",
+    "releases": [
+      {
+        "status": "completed",
+        "versionCodes": [
+          16
+        ]
+      }
+    ],
+    "truncated": false
+  },
+  "existingBundleSha256": "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e",
+  "bundleIdentityEvidence": "Verified exact public publisher source and workflow; successful already-active branch requires known_bundle exact integer version16/hash and one internal/completed release16, then returns before mutation. The independently bound success wrapper also requires no bundle upload/commit/publication.",
+  "newBundleUploadedByThisWork": false,
+  "trackUpdatedByThisWork": false,
+  "editCommittedByThisWork": false,
+  "publishedByThisWork": false,
+  "draftVerified": false,
+  "ownProbeEditCleanup": "attempted; detail not anonymously observed",
+  "localChecks": {
+    "passed": 92,
+    "areas": [
+      {
+        "area": "publisher",
+        "passed": 38,
+        "sha256": "253b0a8b1ac3a87b9d734ad874e4620d4be98e2eed01cdaa28300bfdfcdaff2a",
+        "cacheLog": "/workspace/.cache/anker/play-upload-workflow/upload-active-tests.log"
+      },
+      {
+        "area": "oauth",
+        "passed": 24,
+        "sha256": "159a3b19f9eb1ab42e121f8c190fc529e69e45deb74fb9b3e825e92053992c44",
+        "cacheLog": "/workspace/.cache/anker/play-upload-workflow/auth-active-tests.log"
+      },
+      {
+        "area": "workflow",
+        "passed": 30,
+        "sha256": "e459ade05b73cad7c354e17050abd427e7e714041f08dcb1adf8e3f2f693bf4f",
+        "cacheLog": "/workspace/.cache/anker/play-upload-workflow/workflow-active-tests.log"
+      }
+    ],
+    "actionlintVersion": "1.7.9",
+    "actionlintSucceeded": true
+  },
+  "normalCI": {
+    "runURL": "https://github.com/frnkrm/anker/actions/runs/42720560357",
+    "sourceCommit": "55a383fb5ad9c62aa4233bce2f6958716326fef4",
+    "conclusion": "success",
+    "vitestPassed": 1095,
+    "playwrightPassed": 271,
+    "allThreeJobsSucceeded": true,
+    "scope": "initial automation commit; same unchanged app inputs. Later automation revisions separately tested in successful Play preflight."
+  },
+  "appInputsUnchangedSinceTaskBaseline": "1476f005961e8a62d1fb5d353489d25d815a1b41",
+  "previousSafeStops": [
+    {
+      "runId": 42720560496,
+      "reason": "EXISTING_RELEASE_CONFLICT",
+      "bundleUploadAttempted": false
+    },
+    {
+      "runId": 42721343910,
+      "reason": "EXISTING_RELEASE_CONFLICT",
+      "bundleUploadAttempted": false
+    }
+  ],
+  "googleAppSigningIdentityVerified": false,
+  "testerEnrollmentVerified": false,
+  "realDeviceInstallVerified": false,
+  "publicEvidenceSha256": {
+    "job-129517713923.html": "82af599f9b033f75bbd87df47deef60a2215899ae5e4c25cb9b5a7c43bdc5e18",
+    "run.html": "fe0f617c084ecfb255aeeaa907c1fab9b07583f23a86033c2ce1dd125888326c",
+    "google-play-upload.yml": "df9d975885d7e5fde21c6b8b9937e975b7237a936eb307746e32ccaf0ba292ed",
+    "job-129517628431.html": "f7b675a9132c6a369cca894c254236fb89a5c4c6ff77eb9c4ca6fae7c9f8dd83",
+    "google-play-upload.py": "0db30fe9444a2f5e08a4bba94ce50279bcec4b8e697e92da2de11c35d6c64ab0"
+  }
+}
