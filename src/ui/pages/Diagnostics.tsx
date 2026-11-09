@@ -107,6 +107,7 @@ export default function Diagnostics() {
         {period === 'custom' && <div className="space-y-3"><DateField label="Von" type="datetime-local" value={from} onChange={setFrom} /><DateField label="Bis" type="datetime-local" value={to} onChange={setTo} /></div>}
         <MoreInfo summary="Log- und Einstellungsbereiche auswählen">
         <Card className="space-y-2"><h2 className="font-semibold">Log- und Statusbereiche</h2>
+          <p className="text-sm text-muted">Neue Ereignisverläufe gibt es für Wecker, Schlafhinweis und System. Alltags-Erinnerungen und PC-Verbindung liefern hier zunächst ihren aktuellen technischen Status.</p>
           {DIAGNOSTIC_CATEGORIES.map(category => <Checkbox key={category} label={DIAGNOSTIC_CATEGORY_LABELS[category]} checked={categories.includes(category)} onChange={checked => setCategories(value => toggle(value, category, checked))} />)}
           <Checkbox label="Aktueller technischer Status: Planungszeiten, Lautstärke und Rechte" checked={includeCurrentStatus} onChange={setIncludeCurrentStatus} />
         </Card>
