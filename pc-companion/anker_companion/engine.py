@@ -242,7 +242,10 @@ class CompanionEngine:
             return "BRAIN_DUMP_T10"
         if wind is not None and now >= wind + delta:
             return "WIND_DOWN_T30"
-        return phase if phase not in NIGHT else "DAY_ACTIVE"
+        # Cached timed phases cannot outlive a deliberate extension. The new
+        # supplied thresholds above determine when their banner/ducking resumes.
+        # An independent evening transition and a real night latch stay intact.
+        return phase if phase not in NIGHT | {"WIND_DOWN_T30", "BRAIN_DUMP_T10"} else "DAY_ACTIVE"
 
     def tick(self, now: float | None = None) -> dict[str, Any]:
         now = self.clock() if now is None else now

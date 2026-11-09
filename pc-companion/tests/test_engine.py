@@ -8,6 +8,7 @@ from anker_companion.engine import CompanionEngine
 from anker_companion.protocol import ProtocolError, plan_date, utc
 from anker_companion.storage import AtomicStateStore
 from tests.helpers import Clock, FakePlatform, TestVault, state
+from tests.test_windows import ui_double
 
 
 class EngineTests(unittest.TestCase):
@@ -90,6 +91,58 @@ class EngineTests(unittest.TestCase):
                 self.assertEqual(engine.tick()["state"], "BRAIN_DUMP_T10")
                 clock.now = cut
                 self.assertEqual(engine.tick()["graceRemaining"], 60)
+                self.assertEqual(platform.effects, [])
+
+    def test_extension_resets_a_cached_t30_or_brain_phase_until_its_shifted_boundary(self):
+        for bedtime_sequence in (False, True):
+            for cached_phase, before_cut in [("WIND_DOWN_T30", 1800), ("BRAIN_DUMP_T10", 600)]:
+                with self.subTest(bedtimeSequence=bedtime_sequence, cached=cached_phase):
+                    clock, platform, engine, audio_ticks, cut = self.different_stop_timeline(bedtime_sequence)
+                    clock.now = cut - before_cut
+                    cached = engine.store.read()["snapshot"]
+                    cached.update(state=cached_phase, revision="cached-" + cached_phase, generatedAt=utc(clock()), remainingSeconds=before_cut)
+                    engine.accept_state(cached, "pair", clock())
+                    ui, _widgets = ui_double(lambda _action: self.fail("A phase render must not issue system actions"))
+                    bars = []; ui._progress_bar = bars.append
+
+                    def draw():
+                        view = engine.tick()
+                        ui.snapshot = view
+                        ui._render()
+                        return view
+
+                    self.assertEqual(draw()["state"], cached_phase)
+                    self.assertEqual(bars[-1], before_cut)
+                    engine.extend(15)
+                    self.assertEqual(engine.store.read()["runtime"]["extensionAt"], cut + 900)
+                    shifted = draw()
+                    # A T30 extension moves before the new first cue; a T10
+                    # extension falls back into the new T30 window (25 min left).
+                    self.assertEqual(shifted["state"], "DAY_ACTIVE" if cached_phase == "WIND_DOWN_T30" else "WIND_DOWN_T30")
+                    self.assertEqual(bars[-1], None if cached_phase == "WIND_DOWN_T30" else 1500)
+                    self.assertFalse(audio_ticks[-1][1])
+                    if cached_phase == "WIND_DOWN_T30":
+                        self.assertIsNone(ui._card)
+                        clock.now = cut + 900 - 1800
+                        self.assertEqual(draw()["state"], "WIND_DOWN_T30")
+                        self.assertEqual(bars[-1], 1800)
+                    clock.now = cut + 900 - 600
+                    self.assertEqual(draw()["state"], "BRAIN_DUMP_T10")
+                    self.assertEqual(bars[-1], 600)
+                    self.assertTrue(audio_ticks[-1][1])
+                    self.assertEqual(engine.store.read()["runtime"]["extensionAt"], cut + 900)
+                    self.assertEqual(platform.effects, [])
+
+    def test_extension_keeps_an_independently_selected_evening_transition(self):
+        for bedtime_sequence in (False, True):
+            with self.subTest(bedtimeSequence=bedtime_sequence):
+                _clock, platform, engine, audio_ticks, _cut = self.different_stop_timeline(bedtime_sequence)
+                cached = engine.store.read()["snapshot"]
+                cached.update(state="EVENING_WIND_DOWN", revision="independent-evening")
+                engine.accept_state(cached, "pair", _clock())
+                engine.extend(15)
+                self.assertEqual(engine.tick()["state"], "EVENING_WIND_DOWN")
+                self.assertFalse(audio_ticks[-1][1])
                 self.assertEqual(platform.effects, [])
 
     def test_no_effect_without_both_explicit_permissions(self):
