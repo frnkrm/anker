@@ -47,9 +47,16 @@ object RoutinePaceKeeperModel {
         require(now >= 0)
         val phase = if (status == "running" && spec.deadlineAt <= now) "expired" else status
         val same = previous?.spec?.let { it.sessionId == spec.sessionId && it.stepId == spec.stepId && it.durationMs == spec.durationMs } == true
-        if (same) return previous.copy(spec = spec, phase = phase)
-        val elapsed = spec.durationMs - remaining(spec, now)
-        val passed = CHECKPOINTS.filter { remaining(spec, now) * 100 <= spec.durationMs * it }.toSet()
+        val left = if (phase == "running") remaining(spec, now) else spec.durationMs
+        val elapsed = spec.durationMs - left
+        val passed = CHECKPOINTS.filter { left * 100 <= spec.durationMs * it }.toSet()
+        if (same) {
+            val next = previous.copy(spec = spec, phase = phase)
+            return if (previous.phase != "running" && phase == "running") next.copy(
+                lastBucket = maxOf(previous.lastBucket, elapsed / (spec.intervalSeconds * 1000L)),
+                passedThresholds = previous.passedThresholds + passed,
+            ) else next
+        }
         return RoutinePaceState(spec, phase, elapsed / (spec.intervalSeconds * 1000L), passedThresholds = passed)
     }
 

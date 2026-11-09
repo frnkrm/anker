@@ -63,4 +63,16 @@ class RoutinePaceKeeperModelTest {
             try { RoutinePaceKeeperModel.validate(bad); fail("Invalid request accepted") } catch (_: IllegalArgumentException) { }
         }
     }
+
+    @Test fun enablingWhilePausedDoesNotConsumeFutureSignalsOrCatchUpOldOnes() {
+        val paused = RoutinePaceKeeperModel.sync(null, spec().copy(deadlineAt = 0), "paused", 100_000)
+        assertTrue(paused.passedThresholds.isEmpty())
+        assertEquals(0L, paused.lastBucket)
+        val resumed = RoutinePaceKeeperModel.sync(paused, spec(), "running", 100_000)
+        assertFalse(RoutinePaceKeeperModel.tick(resumed, 100_000).pulse)
+        assertTrue(RoutinePaceKeeperModel.tick(resumed, 160_000).pulse)
+        val lateResume = RoutinePaceKeeperModel.sync(paused, spec(), "running", 160_000)
+        assertFalse(RoutinePaceKeeperModel.tick(lateResume, 160_001).pulse)
+        assertTrue(RoutinePaceKeeperModel.tick(lateResume, 190_000).pulse)
+    }
 }
