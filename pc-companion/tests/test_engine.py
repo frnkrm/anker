@@ -80,7 +80,7 @@ class EngineTests(unittest.TestCase):
 
     def test_strict_relock_each_ten_seconds_and_reject_pc_extension(self):
         self.value["prefs"]["strictLock"] = True; self.value["lockEnforced"] = True; self.value["state"] = "NIGHT_LOCK"
-        self.engine.accept_state(self.value, "pair", self.clock()); self.allow(strict=True)
+        self.allow(strict=True); self.engine.accept_state(self.value, "pair", self.clock())
         self.clock.now += 1800; self.engine.tick(); self.clock.now += 60; self.engine.tick()
         self.clock.now += 9; self.engine.tick(); self.assertEqual(len(self.platform.effects), 1)
         self.clock.now += 1; self.engine.tick(); self.assertEqual(len(self.platform.effects), 2)
@@ -91,7 +91,7 @@ class EngineTests(unittest.TestCase):
 
     def test_valid_night_crosses_four_and_matching_morning_completion_releases(self):
         self.value["state"] = "NIGHT_LOCK"; self.value["lockEnforced"] = True; self.value["prefs"]["strictLock"] = True
-        self.engine.accept_state(self.value, "pair", self.clock()); self.allow(strict=True)
+        self.allow(strict=True); self.engine.accept_state(self.value, "pair", self.clock())
         self.clock.now += 8 * 3600  # 06:00 Berlin next day, same night lease.
         self.engine.tick(); self.clock.now += 60; self.engine.tick()
         self.assertEqual(self.platform.effects, ["lock"])
@@ -106,7 +106,7 @@ class EngineTests(unittest.TestCase):
 
     def test_ordinary_day_snapshot_does_not_release_strict_night_latch(self):
         self.value["state"] = "NIGHT_LOCK"; self.value["lockEnforced"] = True; self.value["prefs"]["strictLock"] = True
-        self.engine.accept_state(self.value, "pair", self.clock()); self.allow(strict=True)
+        self.allow(strict=True); self.engine.accept_state(self.value, "pair", self.clock())
         self.clock.now += 1800; self.engine.tick(); self.clock.now += 60; self.engine.tick()
         changed = deepcopy(self.value)
         changed.update(state="DAY_ACTIVE", lockEnforced=False, revision="ordinary-new-plan", generatedAt=utc(self.clock()))
@@ -156,6 +156,16 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(view["dimOpacity"], 0)
         self.assertIsNone(view["graceRemaining"])
         self.clock.now += 120; self.engine.tick()
+        self.assertEqual(self.platform.effects, [])
+
+    def test_phone_strict_state_never_removes_unconsented_local_choice(self):
+        self.value.update(state="NIGHT_LOCK", lockEnforced=True)
+        self.value["prefs"]["strictLock"] = True
+        self.engine.accept_state(self.value, "pair", self.clock())
+        self.assertIsNone(self.engine.active_latch(self.store.read(), self.clock()))
+        self.engine.local_settings({"enforceEnabled": True, "strictLock": False})
+        self.engine.local_settings({"enforceEnabled": False})
+        self.clock.now += 1800; self.engine.tick(); self.clock.now += 60; self.engine.tick()
         self.assertEqual(self.platform.effects, [])
 
     def test_authenticated_heartbeat_preserves_older_generated_state_until_lease(self):

@@ -46,7 +46,7 @@ class CompanionEngine:
             data["snapshot"] = state
             if state["state"] == "MORNING_COMPLETED":
                 runtime.update(nightLatch=None, graceStartedAt=None, emergencyUntil=None, actedTarget=None)
-            elif state["lockEnforced"] and state["state"] in NIGHT and not latch:
+            elif state["lockEnforced"] and state["state"] in NIGHT and not latch and all((state["prefs"]["enforceEnabled"], state["prefs"]["strictLock"], data["localPrefs"].get("enforceEnabled"), data["localPrefs"].get("strictLock"))):
                 runtime["nightLatch"] = {"sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state)}
         self.store.update(change)
         return self.ack(state["revision"], now)
