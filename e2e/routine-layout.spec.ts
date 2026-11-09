@@ -67,6 +67,20 @@ for (const { width, fontScale, availableWidth } of viewports) {
         expect(collapsed[1]!.gripBottom).toBeLessThanOrEqual(navTop)
       }
       for (const summary of await cards.locator('summary').all()) await summary.click()
+      // Die gemalte Checkbox ist kleiner als ihr zugeordnetes, vollständig klickbares
+      // Label. Auch der Rand außerhalb des Kästchens muss die Auswahl dauerhaft ändern.
+      const essential = cards.first().getByRole('checkbox', { name: 'Kernschritt im Zombie-Modus', exact: true })
+      const essentialTarget = essential.locator('xpath=ancestor::label[1]')
+      const targetBox = (await essentialTarget.boundingBox())!
+      const paintBox = (await essential.boundingBox())!
+      expect(targetBox.width, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
+      expect(targetBox.height, `${routine.heading}: zugeordnete Checkbox-Bedienfläche`).toBeGreaterThanOrEqual(44)
+      const labelPoint = { x: targetBox.width - 8, y: targetBox.height / 2 }
+      expect(targetBox.x + labelPoint.x, `${routine.heading}: Labelklick außerhalb des Kästchens`).toBeGreaterThan(paintBox.x + paintBox.width)
+      await expect(essential).not.toBeChecked()
+      await essentialTarget.click({ position: labelPoint })
+      await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.routines[routine.id][0]?.isEssentialForZombieMode).toBe(true)
+      await expect(essential).toBeChecked()
       const geometry = await cards.evaluateAll((nodes) => {
         const rect = (node: Element | Range) => {
           const box = node.getBoundingClientRect()
@@ -90,10 +104,12 @@ for (const { width, fontScale, availableWidth } of viewports) {
             break
           }
           if (!label) throw new Error('Sichtbare Dauer-Beschriftung fehlt')
-          const controls = [...inputs, ...buttons].map((node) => ({
-            name: node.getAttribute('aria-label') ?? node.textContent?.trim() ?? '',
-            ...rect(node),
-          }))
+          const controls = [...inputs, ...buttons].map((node) => {
+            const checkbox = node instanceof HTMLInputElement && node.type === 'checkbox'
+            const target = checkbox ? node.closest('label') : node
+            if (!target) throw new Error('Der Checkbox fehlt ihre zugeordnete Bedienfläche')
+            return { name: node.getAttribute('aria-label') ?? target.textContent?.trim() ?? '', ...rect(target) }
+          })
           const buttonTexts = buttons.map((button) => {
             const range = document.createRange()
             range.selectNodeContents(button)
