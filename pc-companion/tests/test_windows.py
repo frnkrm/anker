@@ -27,6 +27,15 @@ class UiWidget(UiValue):
     def configure(self, **options): self.options.update(options)
     def title(self, _value): pass
     def geometry(self, _value): pass
+    def minsize(self, *_values): pass
+    def attributes(self, *_values): pass
+    def overrideredirect(self, _value): pass
+    def update_idletasks(self): pass
+    def winfo_screenwidth(self): return 1920
+    def winfo_width(self): return 600
+    def delete(self, _value): self.draws = []
+    def create_rectangle(self, *values, **options): self.draws.append(("rectangle", values, options))
+    def create_text(self, *values, **options): self.draws.append(("text", values, options))
     def bind(self, name, callback): self.events[name] = callback
     def protocol(self, name, callback): self.events[name] = callback
     def focus_set(self): pass
@@ -47,17 +56,67 @@ def ui_double(on_action):
         result = UiValue(value); strings.append(result); return result
     def button(parent, text, command, **_kwargs):
         result = widget(parent, text=text, command=command); buttons.append(result); return result
-    ui.root = UiWidget(); ui.status = UiValue("")
+    ui.root = UiWidget(); ui.status = UiValue(""); ui.remaining = UiValue("")
     ui.tk = SimpleNamespace(Toplevel=window, Entry=entry, BooleanVar=UiValue, StringVar=string,
-                            Checkbutton=widget, Frame=widget, Radiobutton=widget, Spinbox=widget, Scale=widget)
+                            Checkbutton=widget, Frame=widget, Radiobutton=widget, Spinbox=widget, Scale=widget, Canvas=widget)
     ui.messagebox = SimpleNamespace(showinfo=lambda *_args, **_kwargs: None, askokcancel=lambda *_args, **_kwargs: True)
     ui._scroll_body = lambda value: value
-    ui._label = lambda parent, text="", **_kwargs: widget(parent, text=text)
+    ui._label = lambda parent, text="", **options: widget(parent, text=text, **options)
     ui._button = button
+    ui._style_window = lambda *_args, **_kwargs: None
     return ui, SimpleNamespace(widgets=widgets, entries=entries, windows=windows, buttons=buttons, strings=strings)
 
 
 class DesktopActionBoundaryTests(unittest.TestCase):
+    def test_evening_engine_shape_keeps_the_top_countdown_when_grace_is_null(self):
+        ui, _view = ui_double(lambda _action: self.fail("Rendering must not issue a system action"))
+        shown = []; ui._progress_bar = shown.append
+        for state, remaining in [("WIND_DOWN_T30", 1800), ("BRAIN_DUMP_T10", 600)]:
+            ui.snapshot = {"state": state, "remainingSeconds": remaining, "graceRemaining": None,
+                           "title": "Gedanken für morgen parken" if state == "BRAIN_DUMP_T10" else "Zeit für deinen Übergang",
+                           "message": "Dein nächster Schritt wartet auf dem Handy", "prefs": {}}
+            ui._render()
+            self.assertEqual(shown[-1], remaining)
+            self.assertEqual(ui.remaining.get(), f"Noch {remaining // 60} Min")
+
+    def test_brain_dump_overlay_names_the_phase_and_exposes_a_live_seconds_countdown(self):
+        ui, view = ui_double(lambda _action: self.fail("Rendering must not issue a system action"))
+        progress = []; ui._progress_bar = progress.append
+        ui.snapshot = {"state": "BRAIN_DUMP_T10", "remainingSeconds": 600, "graceRemaining": None,
+                       "title": "Gedanken für morgen parken", "message": "Öffne dafür Anker am Handy", "prefs": {}}
+        ui._render()
+        self.assertTrue(any(widget.options.get("text") == "Gedanken für morgen parken" for widget in view.widgets))
+        self.assertTrue(any(widget.options.get("text") == "Öffne dafür Anker am Handy" for widget in view.widgets))
+        ui.snapshot.update(state="BEDTIME_HARD_CUT", title="Jetzt in Ruhe speichern", graceRemaining=60, remainingSeconds=0)
+        ui._render()
+        count_label = next(widget for widget in reversed(view.widgets) if widget.options.get("variable") is ui.remaining)
+        self.assertEqual(count_label.options["variable"].get(), "Zum Speichern: 01:00")
+        # An enabled strict schedule latches NIGHT_LOCK on the next engine tick;
+        # its still-running save grace must remain visible on top of the game.
+        ui.snapshot.update(state="NIGHT_LOCK", title="PC-Ruhe", graceRemaining=59)
+        ui._render()
+        self.assertEqual(progress[-1], 59)
+        self.assertEqual(count_label.options["variable"].get(), "Zum Speichern: 00:59")
+        card = ui._card
+        for seconds, expected in [(1, "00:01"), (0, "00:00")]:
+            ui.snapshot["graceRemaining"] = seconds
+            ui._render()
+            self.assertIs(ui._card, card)
+            self.assertEqual(count_label.options["variable"].get(), f"Zum Speichern: {expected}")
+
+    def test_save_grace_progress_uses_its_full_duration_instead_of_thirty_minutes(self):
+        ui, _view = ui_double(lambda _action: self.fail("Drawing must not issue an action"))
+        ui.snapshot = {"graceRemaining": 60, "prefs": {"graceSeconds": 60}}
+        ui._progress_bar(60)
+        rectangle = next(value for value in ui._bar_canvas.draws if value[0] == "rectangle")
+        self.assertEqual(rectangle[1][2], 600)
+        self.assertIn("Speichern 01:00", ui._bar_canvas.draws[-1][2]["text"])
+        ui.snapshot["graceRemaining"] = 30; ui._progress_bar(30)
+        self.assertEqual(ui._bar_canvas.draws[0][1][2], 300)
+        ui.snapshot["graceRemaining"] = None; ui._progress_bar(1800)
+        self.assertEqual(ui._bar_canvas.draws[0][1][2], 600)
+        self.assertIn("noch 30 Min", ui._bar_canvas.draws[-1][2]["text"])
+
     def test_settings_preserve_local_choices_when_the_phone_is_off(self):
         actions = []; ui, view = ui_double(actions.append)
         ui.snapshot = {"localPrefs": {"enforceEnabled": True, "strictLock": True, "dimEnabled": True, "audioDuck": True,

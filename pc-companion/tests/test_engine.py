@@ -2,6 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 
 from anker_companion.engine import CompanionEngine
 from anker_companion.protocol import ProtocolError, plan_date, utc
@@ -26,6 +27,70 @@ class EngineTests(unittest.TestCase):
 
     def allow(self, strict=False):
         self.engine.local_settings({"enforceEnabled": True, "strictLock": strict})
+
+    def different_stop_timeline(self, bedtime_sequence):
+        directory = tempfile.TemporaryDirectory(); self.addCleanup(directory.cleanup)
+        clock = Clock("2026-11-12T20:00:00Z")
+        platform = FakePlatform()
+        store = AtomicStateStore(Path(directory.name) / "state", TestVault())
+        audio_ticks = []
+        audio = SimpleNamespace(tick=lambda at, enabled: audio_ticks.append((at, enabled)), restore=lambda: None)
+        engine = CompanionEngine(store, platform, clock, audio=audio)
+        value = state(clock, state="DAY_ACTIVE")
+        value["prefs"].update(bedtimeSequence=bedtime_sequence, offlinePolicy="fixed-time", audioDuck=True)
+        bed = clock() + 7200  # 23:00 Berlin, separate PC stop at 22:30.
+        pc_stop = bed - 1800
+        value["schedule"].update(pcStopAt=utc(pc_stop), bedAt=utc(bed), windDownAt=utc(bed - 1800), brainDumpAt=utc(bed - 600))
+        engine.local_settings({"enforceEnabled": True, "audioDuck": True})
+        engine.accept_state(value, "pair", clock())
+        return clock, platform, engine, audio_ticks, bed if bedtime_sequence else pc_stop
+
+    def test_selected_bedtime_or_legacy_pc_stop_runs_all_three_phases(self):
+        for bedtime_sequence in (False, True):
+            with self.subTest(bedtimeSequence=bedtime_sequence):
+                clock, platform, engine, audio_ticks, cut = self.different_stop_timeline(bedtime_sequence)
+                clock.now = cut - 1801
+                self.assertEqual(engine.tick()["state"], "DAY_ACTIVE")
+                clock.now = cut - 1800
+                wind = engine.tick()
+                self.assertEqual((wind["state"], wind["remainingSeconds"], wind["graceRemaining"]), ("WIND_DOWN_T30", 1800, None))
+                self.assertFalse(audio_ticks[-1][1])
+                clock.now = cut - 600
+                brain = engine.tick()
+                self.assertEqual((brain["state"], brain["remainingSeconds"]), ("BRAIN_DUMP_T10", 600))
+                self.assertTrue(audio_ticks[-1][1])
+                clock.now = cut
+                self.assertEqual(engine.tick()["graceRemaining"], 60)
+                clock.now += 59
+                self.assertEqual(engine.tick()["graceRemaining"], 1)
+                self.assertEqual(platform.effects, [])
+                clock.now += 1
+                self.assertEqual(engine.tick()["graceRemaining"], 0)
+                self.assertEqual(platform.effects, ["lock"])
+                platform.observation["locked"] = True; engine.tick()
+                self.assertEqual(engine.ack("rev1")["effective"], {"date": "2026-11-12", "mode": "locked", "stopAt": utc(cut)})
+
+    def test_extension_moves_the_complete_sequence_for_both_timing_choices(self):
+        for bedtime_sequence in (False, True):
+            with self.subTest(bedtimeSequence=bedtime_sequence):
+                clock, platform, engine, _audio_ticks, original_cut = self.different_stop_timeline(bedtime_sequence)
+                engine.extend(15)
+                extended = engine.store.read()["outbox"][-1]
+                self.assertEqual(extended["newStopAt"], utc(original_cut + 900))
+                if bedtime_sequence:
+                    self.assertEqual(extended["anchor"], "bed")
+                else:
+                    self.assertNotIn("anchor", extended)
+                cut = original_cut + 900
+                clock.now = original_cut - 1800
+                self.assertEqual(engine.tick()["state"], "DAY_ACTIVE")
+                clock.now = cut - 1800
+                self.assertEqual(engine.tick()["state"], "WIND_DOWN_T30")
+                clock.now = cut - 600
+                self.assertEqual(engine.tick()["state"], "BRAIN_DUMP_T10")
+                clock.now = cut
+                self.assertEqual(engine.tick()["graceRemaining"], 60)
+                self.assertEqual(platform.effects, [])
 
     def test_no_effect_without_both_explicit_permissions(self):
         self.clock.now += 2000

@@ -113,9 +113,11 @@ def boolean(value: Any) -> bool:
 
 
 def prefs(value: Any) -> dict[str, Any]:
-    result = obj(value, PREF_KEYS, {"ifThen"})
+    result = obj(value, PREF_KEYS, {"ifThen", "bedtimeSequence"})
     for name in ("enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "shareBrainDump", "morningCountdown"):
         boolean(result[name])
+    if "bedtimeSequence" in result:
+        boolean(result["bedtimeSequence"])
     if isinstance(result["dimMax"], bool) or not isinstance(result["dimMax"], (int, float)) or not math.isfinite(result["dimMax"]) or not 0 <= result["dimMax"] <= 0.4:
         raise ProtocolError("dim")
     if not isinstance(result["offlinePolicy"], str) or not isinstance(result["stopAction"], str) or result["offlinePolicy"] not in ("pause", "fixed-time") or result["stopAction"] not in ("lock", "hibernate", "shutdown"):
@@ -184,6 +186,26 @@ def validate_briefing(value: Any) -> dict[str, Any]:
             boolean(morning["homeOffice"])
             for name in {"leaveAt", "workStartAt"} & morning.keys():
                 stamp(morning[name], True)
+    return result
+
+
+def validate_event(value: Any) -> dict[str, Any]:
+    result = obj(value, {"id", "seq", "at", "date", "kind"}, {"basis", "newStopAt", "text", "nextStep", "anchor"})
+    text(result["id"], 128); integer(result["seq"], 1); stamp(result["at"]); day(result["date"])
+    if not isinstance(result["kind"], str) or result["kind"] not in EVENT_KINDS:
+        raise ProtocolError("event-kind")
+    if "basis" in result and (not isinstance(result["basis"], str) or result["basis"] not in {"anker-shutdown", "user-shutdown", "sleep", "lock", "logoff", "idle"}):
+        raise ProtocolError("event-basis")
+    if "anchor" in result and (not isinstance(result["anchor"], str) or result["anchor"] not in {"bed", "pc-stop"}):
+        raise ProtocolError("event-anchor")
+    if "newStopAt" in result:
+        stamp(result["newStopAt"])
+    if result["kind"] == "extended":
+        stamp(result.get("newStopAt"))
+    for name in {"text", "nextStep"} & result.keys():
+        text(result[name], empty=True)
+    if result["kind"] in {"thought", "save-point"}:
+        text(result.get("text"))
     return result
 
 

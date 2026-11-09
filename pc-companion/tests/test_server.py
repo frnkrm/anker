@@ -212,14 +212,18 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.bridge.ui_action({"action": "settings", "prefs": {"enforceEnabled": True}, "requestId": "settings-one"})
         self.assertEqual(ui.messages[-1]["actionResult"], {"action": "settings", "ok": True, "requestId": "settings-one"})
 
-    async def scheduled_monday_night(self):
+    async def scheduled_monday_night(self, bedtime_sequence=None):
         self.clock.now = stamp("2026-11-09T21:00:00Z")
         await self.pair()
         self.engine.local_settings({"enforceEnabled": True, "strictLock": True})
         value = state(self.clock, sessionId="day:2026-11-09", date="2026-11-09")
         value["prefs"].update(strictLock=True, offlinePolicy="fixed-time")
+        if bedtime_sequence is not None:
+            value["prefs"]["bedtimeSequence"] = bedtime_sequence
+            value["schedule"]["pcStopAt"] = utc(stamp(value["schedule"]["bedAt"]) - 1800)
         await self.exchange(value)
-        self.clock.now += 1800; self.engine.tick(); self.clock.now += 60; self.engine.tick()
+        self.clock.now = stamp(value["schedule"]["bedAt"] if bedtime_sequence is not False else value["schedule"]["pcStopAt"])
+        self.engine.tick(); self.clock.now += 60; self.engine.tick()
         self.assertTrue(self.store.read()["runtime"]["nightLatch"]["scheduledNight"])
         self.assertFalse(value["lockEnforced"])
         self.clock.now = stamp("2026-11-10T07:15:00Z")
@@ -267,6 +271,38 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.engine.ack(active["revision"])["effective"]["stopAt"], token["until"])
         self.clock.now += 10; self.engine.tick()
         self.assertEqual(self.platform.effects, ["lock"])
+
+    async def assert_auto_night_emergency_without_prior_phone_qr(self, bedtime_sequence):
+        original, morning = await self.scheduled_monday_night(bedtime_sequence)
+        active = {**morning, "state": "MORNING_ACTIVE"}
+        self.assertFalse(active["lockEnforced"])
+        self.platform.observation["locked"] = True
+        self.engine.tick()
+        acknowledged = await self.exchange(active)
+        expected_stop = original["schedule"]["bedAt"] if bedtime_sequence else original["schedule"]["pcStopAt"]
+        self.assertEqual(acknowledged["effective"], {"date": "2026-11-10", "mode": "locked", "stopAt": expected_stop})
+        self.assertLess(stamp(acknowledged["effective"]["stopAt"]), self.clock())
+        self.assertEqual(acknowledged["warnings"], [])
+        latch = self.engine.active_latch(self.store.read(), self.clock())
+        token = {"v": 3, "pair": self.identifier, "sessionId": active["sessionId"], "date": active["date"],
+                 "issuedAt": utc(self.clock()), "expiresAt": utc(self.clock() + 300), "until": utc(self.clock() + 900), "nonce": b64(bytes(range(16)))}
+        token["signature"] = b64(self.signing.sign(canonical(token), ec.ECDSA(hashes.SHA256())))
+        accepted = await self.exchange({"type": "command", "id": "real-qr-after-auto-night", "action": "EMERGENCY_EXTENSION", "token": token})
+        self.assertEqual(accepted["emergencyUntil"], token["until"])
+        self.assertEqual(self.store.read()["runtime"]["emergencySessionId"], latch["sessionId"])
+        self.assertEqual(self.store.read()["runtime"]["nightLatch"]["validUntil"], latch["validUntil"])
+        beyond = {**token, "until": utc(stamp(latch["morningDeadlineAt"]) + 60), "nonce": b64(bytes(range(16, 32)))}
+        beyond.pop("signature")
+        beyond["signature"] = b64(self.signing.sign(canonical(beyond), ec.ECDSA(hashes.SHA256())))
+        async with self.client.post(self.url + "/v3/link", json=self.envelope({"type": "command", "id": "outside-original-night", "action": "EMERGENCY_EXTENSION", "token": beyond})) as response:
+            self.assertEqual(response.status, 400)
+        self.assertEqual(self.store.read()["runtime"]["nightLatch"]["validUntil"], latch["validUntil"])
+
+    async def test_observed_locked_ack_allows_signed_qr_for_automatic_legacy_night_after_four(self):
+        await self.assert_auto_night_emergency_without_prior_phone_qr(False)
+
+    async def test_observed_locked_ack_allows_signed_qr_for_automatic_bedtime_night_after_four(self):
+        await self.assert_auto_night_emergency_without_prior_phone_qr(True)
 
     async def test_later_real_bedtime_override_upgrades_identity_without_extending_auto_night(self):
         value, _ = await self.scheduled_monday_night()

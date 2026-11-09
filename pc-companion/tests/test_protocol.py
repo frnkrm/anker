@@ -7,7 +7,7 @@ import unittest
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
-from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, public_bytes, seal, stamp, text, unb64, validate_payload, validate_state, verify_emergency, utc, plan_date
+from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, public_bytes, seal, stamp, text, unb64, validate_payload, validate_state, validate_event, verify_emergency, utc, plan_date
 from tests.helpers import Clock, state
 
 
@@ -20,6 +20,31 @@ class ProtocolTests(unittest.TestCase):
         value = state(self.clock)
         value["schedule"] = {key: None for key in value["schedule"]}
         self.assertIs(validate_state(value), value)
+
+    def test_bedtime_sequence_is_an_optional_explicit_boolean(self):
+        original = state(self.clock)
+        self.assertIs(validate_state(original), original)
+        self.assertNotIn("bedtimeSequence", original["prefs"])
+        for enabled in (False, True):
+            value = state(self.clock)
+            value["prefs"]["bedtimeSequence"] = enabled
+            self.assertIs(validate_state(value), value)
+        for invalid in (1, "true", None):
+            value = state(self.clock)
+            value["prefs"]["bedtimeSequence"] = invalid
+            with self.assertRaises(ProtocolError):
+                validate_state(value)
+
+    def test_extension_event_keeps_legacy_shape_and_accepts_explicit_bed_anchor(self):
+        event = {"id": "extension-one", "seq": 1, "at": utc(self.clock()), "date": "2026-11-12", "kind": "extended", "newStopAt": utc(self.clock() + 900)}
+        self.assertIs(validate_event(event), event)
+        for anchor in ("bed", "pc-stop"):
+            self.assertEqual(validate_event({**event, "anchor": anchor})["anchor"], anchor)
+        for anchor in ("other", None, 1):
+            with self.assertRaises(ProtocolError):
+                validate_event({**event, "anchor": anchor})
+        with self.assertRaises(ProtocolError):
+            validate_event({**event, "extra": True})
 
     def test_unknown_fields_and_impossible_lease_are_rejected(self):
         for value in [dict(state(self.clock), extra=True), dict(state(self.clock), validUntil=utc(self.clock() + 19 * 3600))]:

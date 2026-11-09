@@ -227,9 +227,12 @@ class DesktopUI:
         state = str(item.get("state", item.get("phase", "IDLE")))
         text = str(item.get("message") or item.get("title") or ("Gekoppelt" if item.get("paired") else "Noch nicht gekoppelt"))
         self.status.set(text[:500])
-        seconds = item.get("graceRemaining", item.get("remainingSeconds"))
+        grace = item.get("graceRemaining")
+        saving = isinstance(grace, (int, float)) and not isinstance(grace, bool) and math.isfinite(grace)
+        seconds = grace if saving else item.get("remainingSeconds")
         seconds = max(0, int(seconds)) if isinstance(seconds, (int, float)) and math.isfinite(seconds) else None
-        self.remaining.set(f"Noch {math.ceil(seconds / 60)} Min" if seconds is not None and seconds > 0 else "")
+        self.remaining.set(f"Zum Speichern: {seconds // 60:02d}:{seconds % 60:02d}" if saving and seconds is not None
+                           else f"Noch {math.ceil(seconds / 60)} Min" if seconds is not None and seconds > 0 else "")
         opacity = item.get("dimOpacity", 0)
         if not isinstance(opacity, (int, float)) or not math.isfinite(opacity):
             opacity = 0
@@ -237,7 +240,7 @@ class DesktopUI:
             self._show_overlays(max(0.0, min(0.4, float(opacity))))
         else:
             self._hide_overlays()
-        self._progress_bar(seconds if state in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT"} else None)
+        self._progress_bar(seconds if saving or state in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT"} else None)
         card_key = item.get("cardId") or ((state, bool(item.get("testMode"))) if state in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} else None)
         if card_key and card_key != self._last_card:
             self._last_card = card_key
@@ -360,8 +363,12 @@ class DesktopUI:
             self._style_window(self._bar, transparent=True)
         width = self._bar.winfo_width()
         self._bar_canvas.delete("all")
-        self._bar_canvas.create_rectangle(0, 34, width * min(1, seconds / 1800), 42, fill=self.ACCENT, outline="")
-        self._bar_canvas.create_text(width / 2, 17, text=f"Anker · noch {math.ceil(seconds/60)} Min", fill=self.FG, font=("Segoe UI", 12))
+        grace = self.snapshot.get("graceRemaining")
+        saving = isinstance(grace, (int, float)) and not isinstance(grace, bool) and math.isfinite(grace)
+        total = max(60, int(self.snapshot.get("prefs", {}).get("graceSeconds", 60))) if saving else 1800
+        self._bar_canvas.create_rectangle(0, 34, width * min(1, seconds / total), 42, fill=self.ACCENT, outline="")
+        caption = f"Anker · Speichern {seconds // 60:02d}:{seconds % 60:02d}" if saving else f"Anker · noch {math.ceil(seconds/60)} Min"
+        self._bar_canvas.create_text(width / 2, 17, text=caption, fill=self.FG, font=("Segoe UI", 12))
 
     def _show_card(self, state: str, message: str, seconds: int | None) -> None:
         if self._card is not None:
@@ -370,12 +377,15 @@ class DesktopUI:
         self._card.title("Anker")
         self._card.configure(bg=self.BG)
         self._card.attributes("-topmost", True)
-        self._card.geometry("440x230")
-        self._card.minsize(340, 210)
+        self._card.geometry("440x290")
+        self._card.minsize(340, 260)
         self._card.bind("<Escape>", lambda _event: self._card.withdraw())
-        title = "Testabend" if self.snapshot.get("testMode") else "Zeit für den Übergang"
+        title = str(self.snapshot.get("title") or {"WIND_DOWN_T30": "Zeit für deinen Übergang", "BRAIN_DUMP_T10": "Gedanken für morgen parken", "BEDTIME_HARD_CUT": "Jetzt in Ruhe speichern", "NIGHT_LOCK": "PC-Ruhe"}.get(state, "Zeit für deinen Übergang"))
+        if self.snapshot.get("testMode"):
+            title = "Testabend · " + title
         self._label(self._card, title, size=18).pack(fill="x", padx=16, pady=(16, 6))
         self._label(self._card, message[:500]).pack(fill="x", padx=16, pady=6)
+        self._label(self._card, variable=self.remaining, size=20).pack(fill="x", padx=16, pady=6)
         buttons = self.tk.Frame(self._card, bg=self.BG); buttons.pack(fill="x", padx=16, pady=10)
         actions = [("Speicherpunkt", lambda: self._form("savepoint"))]
         if self._strict():

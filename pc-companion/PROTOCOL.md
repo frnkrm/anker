@@ -59,7 +59,7 @@ remainingSeconds, routineStep=null|{index,total}, lockEnforced,
 schedule={windDownAt,brainDumpAt,bedAt,wakeAt,morningDeadlineAt,
           pcStopAt?,leaveAt?,workStartAt?,homeOffice?},
 prefs={enforceEnabled,strictLock,dimEnabled,dimMax,audioDuck,shareBrainDump,
-       morningCountdown,offlinePolicy,stopAction,graceSeconds,ifThen?}, brainDump?
+       morningCountdown,offlinePolicy,stopAction,graceSeconds,ifThen?,bedtimeSequence?}, brainDump?
 ```
 
 Zustände: `DAY_ACTIVE`, `IDLE`, `MORNING_PENDING`, `MORNING_ACTIVE`,
@@ -71,6 +71,12 @@ pausierter Ablauf). Es werden dafür keine Uhrzeiten erfunden. Auch optionale
 Schedule-Zeitpunkte dürfen null sein. `prefs.ifThen` ist ein Text mit höchstens
 500 Zeichen und wird nur nach der eigenen Wahl „Auf dem PC zeigen“ gesendet.
 `routineStep` enthält nur Index/Gesamtzahl, keine Aufgabentitel. `dimMax` 0–0,4;
+`bedtimeSequence` ist optional und bei Abwesenheit `false`. Nur die ausdrücklich
+gewählte dreistufige Abendbegleitung sendet `true`: Der PC verwendet dann `bedAt`
+für T30/T10 und den finalen Schnitt. Andernfalls bleibt `pcStopAt` maßgeblich;
+die vom Handy gelieferten bettbezogenen Vorphasen werden zusammen um die
+Differenz zur gewählten PC-Zeit verschoben. Eine Verlängerung verschiebt die
+gesamte Serie. Ein offenes Ende ohne Zielzeit erzeugt keine Ersatzzeit.
 `offlinePolicy`: `pause`/`fixed-time`; `stopAction`: `lock`/`hibernate`/`shutdown`;
 `graceSeconds` mindestens 60. Alle Wirkungsfreigaben starten aus.
 Brain-Dump ist `{text:string,nextStep?:string}` (je Text höchstens 500 Zeichen),
@@ -101,6 +107,10 @@ ID und bestätigte Zielzeit belegen die Annahme; ein gesendeter WebSocket-Frame
 allein bestätigt sie nicht.
 Modi: `scheduled`, `paused`, `suspended-today`, `legacy-conflict`, `locked`, `released`.
 Nur passende Revision und heutige Gültigkeit dürfen in Android als bestätigt gelten.
+`effective.stopAt` ist auch bei tatsächlich beobachtetem Modus `locked` enthalten.
+Damit kann das Handy nach dem 04-Uhr-Tageswechsel die bereits fällige ursprüngliche
+PC-Nacht vor einem QR-Notverlängerungstoken prüfen, ohne eine neue Bettbestätigung
+oder ein bloßes erfolgreiches Lock-API-Kommando als Beobachtung auszugeben.
 Bekannte Warnungen: `clock-skew`, `local-enforcement-off`, `legacy-conflict`,
 `source-expired`, `no-schedule`, `morning-deadline-reached`, `pairing-required`.
 Zusätzlich `link-stale`: Nach 90 Sekunden ohne authentifizierten Kontakt pausiert
@@ -128,10 +138,14 @@ Endpunkt zum Ausstellen solcher Tokens. Er kann Windows nicht selbst entsperren,
 sondern beendet beim Morgenabschluss lediglich den Wieder-Sperr-Watchdog.
 
 `pull`: `{type:"pull",after}`. Antwort `events`: `{type:"events",items,lastSeq}`.
-Ereignisse `{id,seq,at,date,kind,basis?,newStopAt?,text?,nextStep?}`; `kind`:
+Ereignisse `{id,seq,at,date,kind,basis?,newStopAt?,text?,nextStep?,anchor?}`; `kind`:
 `pc-rest`, `pc-resumed`, `extended`, `suspended-today`, `resumed-today`,
 `shutdown-started`, `shutdown-blocked`, `save-point`, `thought`, `unpaired`.
 `basis`: `anker-shutdown`, `user-shutdown`, `sleep`, `lock`, `logoff`, `idle`.
+Ein `extended`-Ereignis der Bettzeit-Sequenz trägt `anchor:"bed"`, damit das Handy
+die echte neue Bettgrenze übernimmt, ohne seinen alten Bildschirm-aus-Puffer
+nochmals hinzuzurechnen. Normale PC-Verlängerungen behalten die bisherige Form
+ohne Anker; ein explizites `anchor:"pc-stop"` ist ebenfalls zulässig.
 Outbox dauerhaft, mindestens einmal zugestellt; Handy speichert Wirkung und Receipt
 atomar, erst dann den Cursor. Kein Ereignis erledigt eigenständig eine Routine.
 

@@ -199,7 +199,7 @@ class CompanionEngine:
             elif not warnings and pref["enforceEnabled"] and target is not None:
                 mode = "locked" if data["runtime"].get("observedLocked") is True else "scheduled"
         effective = {"date": date, "mode": mode}
-        if target is not None and mode == "scheduled":
+        if target is not None and mode in {"scheduled", "locked"}:
             effective["stopAt"] = utc(target)
         return {"type": "ack", "revision": revision, "receivedAt": utc(now), "effective": effective,
                 "companion": {"version": "0.1.0", "protocol": 3}, "warnings": warnings}
@@ -207,7 +207,8 @@ class CompanionEngine:
     def _target(self, data: dict[str, Any], state: dict[str, Any], now: float) -> float | None:
         runtime = data["runtime"]
         schedule = state["schedule"]
-        target = stamp(schedule.get("pcStopAt") if "pcStopAt" in schedule else schedule["bedAt"], True)
+        target_key = "bedAt" if state["prefs"].get("bedtimeSequence", False) else "pcStopAt" if "pcStopAt" in schedule else "bedAt"
+        target = stamp(schedule[target_key], True)
         extension = runtime.get("extensionAt")
         if extension is not None and runtime.get("extensionRevision") == state["revision"]:
             target = extension
@@ -231,7 +232,9 @@ class CompanionEngine:
         if now >= target:
             return "BEDTIME_HARD_CUT"
         schedule = state["schedule"]
-        base = stamp(schedule.get("pcStopAt") if "pcStopAt" in schedule else schedule["bedAt"], True)
+        # The phone supplies its T30/T10 offsets relative to bedAt. Preserve the
+        # chosen PC stop by shifting the whole sequence, not only the final cut.
+        base = stamp(schedule["bedAt"], True)
         delta = target - (base if base is not None else target)
         brain = stamp(state["schedule"]["brainDumpAt"], True)
         wind = stamp(state["schedule"]["windDownAt"], True)
@@ -382,7 +385,8 @@ class CompanionEngine:
             raise ProtocolError("phone-override-required")
         target = max(now, self._target(data, state, now) or now) + minutes * 60
         self.store.update(lambda item: item["runtime"].update(extensionAt=target, extensionRevision=state["revision"], graceStartedAt=None, actedTarget=None, nightLatch=None))
-        self.store.event(now, state["date"], "extended", newStopAt=utc(target))
+        anchor = {"anchor": "bed"} if state["prefs"].get("bedtimeSequence", False) else {}
+        self.store.event(now, state["date"], "extended", newStopAt=utc(target), **anchor)
 
     def pause(self, now: float | None = None) -> None:
         now = self.clock() if now is None else now

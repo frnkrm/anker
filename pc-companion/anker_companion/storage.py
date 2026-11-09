@@ -105,11 +105,12 @@ class AtomicStateStore:
         self.update(change)
 
     def event(self, at: float, date: str, kind: str, **fields: Any) -> dict[str, Any]:
-        from .protocol import utc
+        from .protocol import utc, validate_event
         import uuid
         def change(state: dict[str, Any]) -> dict[str, Any]:
             state["eventSeq"] += 1
             entry = {"id": str(uuid.uuid4()), "seq": state["eventSeq"], "at": utc(at), "date": date, "kind": kind, **fields}
+            validate_event(entry)
             state["outbox"].append(entry)
             # A finite local history; no message content is ever written to logs.
             state["outbox"] = [item for item in state["outbox"] if item["at"] >= utc(at - 30 * 86400)][-10000:]
