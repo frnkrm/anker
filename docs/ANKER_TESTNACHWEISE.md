@@ -1,5 +1,36 @@
 # Anker: Testnachweise
 
+## v7 – Folgeaudit und korrigierter gemeinsamer Stand
+
+**09.11.2026:** Erneuter v7-Anhang bytegleich; sauberer Audit-Ausgang `ad91ca2`. Vor Änderungen stimmten die 368 damaligen Laufzeit-Eingaben und 63 Produktionsdateien mit dem bisherigen Nachweis überein. Der Audit fand dennoch echte Übergangsfehler; die folgenden Korrekturen sind implementiert und frisch gemeinsam geprüft. Frühere Baseline-/v7-Berichte bleiben unverändert erhalten.
+
+**Geprüfte Softwarequelle:** `7cccb464b6df0132b76abfbe991a5a16eb7136a5`, Branch `entwicklung/anker-v7-pc`, Laufzeitkennung `78f5e674939bed16a04877835c83efba5602a6f550b8879eca08ecb730b14590`. App weiter **1.4.0-rc.1 / Code14**; anschließende Abschlussdokumentation verändert diese Software-Inputs nicht.
+
+| Tatsächlich ausgeführte Abschlussprüfung | Ergebnis | Grenze |
+|---|---|---|
+| `npm test -- --maxWorkers=2` | **1.043/1.043**, 103 Dateien, keine Skips | Vollständige Logik-/Store-/Facade-Suite |
+| Produktions-Playwright mit System-Chromium, 2 Worker | **265/265**, 0 Fehler/Flakies/Skips, **0 Retries**, 9,3 min | Vollständiger Lauf; 20 zuvor gezielte Fälle sind enthalten, nicht zusätzlich gezählt |
+| Frische isolierte Gradle-Prüfung, `--offline --rerun-tasks --no-build-cache --max-workers=2` | **167/167 JUnit**, 17 Suiten, **367/367 Aufgaben ausgeführt**; beide AAR-/Kotlin-/Manifestvarianten grün | Keine wiederverwendeten Testausgaben, keine APK, Signierung oder physisches Gerät |
+| Python-Gesamtsuite im gepinnten Companion-Venv | **83/83**, keine Skips | Linux mit injizierten Windows-/Tk-/Audio-/DPAPI-Grenzen |
+| Echte lokale Node↔Python-TLS-Schleife | Kopplungsbestätigung, ACK/Outbox und Replay-/Manipulations-/Pin-Abwehr grün; `systemEffects=0` | Synthetischer Telefonclient, kein Android↔Windows-LAN-Nachweis |
+| PowerShell-Exportfälle / Update-Mocks | **19/19 + 4 Parser**, **36/36** | Linux, simulierte Windows-/Installationswirkungen |
+| TypeScript, Produktionsbuild/PWA, Lint | Erfolgreich; **0 Lintfehler, 1 bekannte Warnung** in `TaskAssistance.tsx:41` | 63 Produktionsdateien, 64 PWA-Precache-Einträge |
+
+**Artefaktbindung:** Alle **369 Laufzeit-Eingaben**, 17 native Testquelldateien und sechs zusätzliche Produktionseingaben wurden gegen die Root-Quelle abgeglichen. Genau die im Browser geprüften **63 Produktionsdateien** wurden bytegleich in den isolierten Native-Lauf übernommen; zwei reguläre Cordova-Shims kommen hinzu. Die Inputs blieben während der Ausführung unverändert. Native-Nachweis-SHA256: `f208675a22883f0c8a81a78bda6887d63fa45951cfc83fba8759d5a5c9bbd9b9`.
+
+| Behobener Auditbefund | Konkrete Testnachweise innerhalb der obigen Gesamtläufe |
+|---|---|
+| PC-Leiste verschwindet bei leerer Speicherfrist; Phase/Sekunden fehlen | Python `test_windows`/`test_engine`: echte Engine-Snapshots, Null-Fallback, laufende Sekunden und 60→59→0 |
+| Unterschiedliche Bett-/PC-Zeit überspringt T10; alte Phase bleibt nach Verlängerung aktiv | Python `test_engine`/`test_server`, TS-Protokoll und `e2e/v7-pc-panel.spec.ts`: freiwillige Bettzeitfolge, klassischer PC-Stopp, verschobene Schwellen und unveränderte Handyzeiten |
+| QR-Notverlängerung nach automatischer PC-Nacht ohne Handy-Bett-QR unmöglich | `PcLinkModelTest.kt`, Facade- und Serverfälle: passende frische authentifizierte ACKs, verspäteter Empfang, Revision/Tag, abgelaufene Grenzen und Nacht nach 04 Uhr; Hardware-/Schlüsselprüfung bleibt |
+| +15 Bettverlängerung addiert Bildschirm-aus-Puffer erneut | TS-PC-Ereignis-/Storetests: optionaler Bettanker durch denselben Planner, Mitternacht, neuere Handywahl, atomarer Retry/Replay |
+| Morgen-Zombie reduziert auch Abendroutine/Fokus | Planner-/Store-/Guidancefälle und Routine-Layoutbrowser: Abenddaten und Fokus erhalten, Zombie ausschließlich morgens |
+| Unerledigter Morgen verdrängt den nächsten Abend | `guidance.test.ts` und `e2e/v7-guidance.spec.ts`: T30/T10/Hard-Cut trotz offenem Morgen, keine erfundene Erledigung; echte Nachtbindung bleibt begrenzt erhalten |
+
+**Belege:** [Gesamtnachweis mit Befehlen und Log-Hashes](ANKER_V7_FOLGE_NACHWEIS.json), [vollständiger frischer Native-Nachweis](ANKER_V7_FOLGE_NATIVE_NACHWEIS.json). Vollständige lokale Ausgaben und Browser-JSON liegen unter `/workspace/.cache/anker/v7-followup/`; sie gehören zur Cloud-Arbeitsumgebung. Ein anfänglicher Fehler im neuen Testdatenfeld und die vorzeitig weitergeschaltete Testuhr vor einer asynchronen Kryptobarriere bleiben dort dokumentiert. Beide Testfehler sind korrigiert; keine Timeoutlockerung oder Wiederholungen zum Grünmachen.
+
+**Implementiert ≠ am Gerät geprüft:** Die bestehenden sieben v7-Stationen G97–G103 bleiben offen, G100–G102 haben präzisere Anleitungen. Alle 103 IDs, historische Berichte und Exportwege bleiben erhalten, keine automatischen Geräte-Häkchen. Galaxy S26 Ultra, Windows/Tk, LAN/mDNS, echte Audio-/Vibrations-/Standby-/Sperrwirkung und WoL wurden nicht physisch geprüft. Kein Remote-CI-Lauf, Push, Release, APK-Build, APK-Signierschlüsselzugriff oder Versionswechsel für diese Korrekturen.
+
 ## v7 – Audit, Baseline und gemeinsame Regression
 
 **09.11.2026, P00:** Der echte Ausgangscode wurde vor der Implementierung im getrennten, sauberen detached Worktree `/workspace/anker-v7-baseline` eingefroren. Quelle `0084063345791302bb414d930ee066d777dc57cf`, Laufzeitkennung `46cc0637832d20687f2a246cd3dd13a69b08efde6f071f6756ab942aa86b3e87`. Die historischen Code14-Ergebnisse darunter bleiben historisch; sie ersetzen den neuen Lauf nicht.

@@ -1,0 +1,4633 @@
+{
+  "schema": "anker-native-verification-v1",
+  "startedAt": "2026-11-09T09:08:49.421034+00:00",
+  "sourceCommit": "7cccb464b6df0132b76abfbe991a5a16eb7136a5",
+  "sourceTree": "7ec8813dcaca9dd58dc14c4f749252379010f617",
+  "sourceInputFingerprintSha256": "664d37b7fa49a9d562456b3a4c6aaf9371644ac6c9040440c9a25437d2a35830",
+  "sourceInputs": [
+    {
+      "path": "android/app/build.gradle",
+      "sha256": "430ceb85bda133956b3f036fa6519cf49034430a176d06fef0ba1a8c989e68d2"
+    },
+    {
+      "path": "android/app/capacitor.build.gradle",
+      "sha256": "7187863481ca2a40d1e39bbec9d7b03f15232d35886da3f73dca817162a5b4b3"
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "sha256": "9aa78548369e572cf6042a8f559fd0615be121bda5be4c50c9b7cba26877644b"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmController.kt",
+      "sha256": "61b8e4f3b090c9a41355676d8d803efd6082ff86645b151ef103e047d8736956"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmModel.kt",
+      "sha256": "c45717baa985e69511476a9146d884b4559f61406cc84b49fbc9605ced14d495"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmService.kt",
+      "sha256": "d67f535f9737a591ae2807b83626a90d98452f10c55de45165793efd2bff0b74"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmTonePreview.kt",
+      "sha256": "19e7e2f9c89a6c950e9044daa8184c7db21361f9c02f9245d7752cc1e1cc1669"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerNativePlugin.kt",
+      "sha256": "3c88e72cb7340062ce3a283f61b0ed743998d2782ab256926e4914a7311adf01"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerPrefs.kt",
+      "sha256": "781469ead2c2d84d995e6563d9af467bc0850ecf937cfd43ed99bb10cab0221c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerWidget.kt",
+      "sha256": "3dd29dfa7344a427b420b714bef1dab00dc0427d5f9fdb9830775e7c64334079"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AudioPlaybackLease.kt",
+      "sha256": "44c480086b10b6247d2c05777f68e9adce178212168ff8d47f7e8becda0720ab"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptController.kt",
+      "sha256": "a4caa6e5abbe7edb36a220f0cba055f709f54652aef17cf348e0d4aae01f4a51"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptModel.kt",
+      "sha256": "e583836d5c4e109eadd4b38770bccf7e4c63b50ee0896b3425360639aa75f6e7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptReceiver.kt",
+      "sha256": "eea1de07ede7c3a5d3485337cce63a8ce8faadca45f9099ec1ae6a3ca72ac5af"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceManager.kt",
+      "sha256": "09d7ab3a1700980a3193f5fe6fe070cb8eb410bc99ff3cb96f6c2937649a2d4b"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceModel.kt",
+      "sha256": "4630e980aabd12272937ab43d3b1d5d6636d97f70a28ffcac26f9f4a7f8b7f3a"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceReceiver.kt",
+      "sha256": "499429a4a044ee9ef3ef44de40f446d6c0cfbb29f3d7264c8866cf55a60581d7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/LocalVoiceController.kt",
+      "sha256": "6ec6a1625a88ed33031f72beef7b464ccc8653e4d7a17b649bc2e6cf215919e8"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/MainActivity.kt",
+      "sha256": "49456ec2311d28891bf25aa953808d60a20c39dcd82b0cec6fcad8212e3511da"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeClient.kt",
+      "sha256": "e51d2af9c323604dfecb2bef89258d4567b587c45464d420d89a5ef2c7668470"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeCrypto.kt",
+      "sha256": "5fc5582e36eb4af0bd8c54a9d902fca03129de582807e54bc8600b67f906ed9c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeDiscovery.kt",
+      "sha256": "f98d3e508339d3356c59a280fc24ee9bc3de29b527915c878cf249298174cb21"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeService.kt",
+      "sha256": "c1747100947f4a9c8b294ae1a8cfc4f82e3793d7e9eb0b8949ed13dbd23f50db"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeVault.kt",
+      "sha256": "caf506b22f514f9c334332a3e96e666c1178269d517f45066295125be94796d3"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcLinkModel.kt",
+      "sha256": "15e371bd25228103fd18d4d5887819ab8c62f1721ca52c5ff65087008acf95fb"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PreWakeFadeModel.kt",
+      "sha256": "dc0636ed160cdd98e86b27e28e5cb67b202443f77d64faab9f97c7ec34a9116f"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PrintModel.kt",
+      "sha256": "0f4719af545c57aa78b78a72dfbc381357e2a1cfb8bac2db99933fa53dd79a62"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PrintRenderer.kt",
+      "sha256": "fd179de04de5de6916f54499b9e786e08179198c4cb18333d753ac0bacd6cb38"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/Receivers.kt",
+      "sha256": "51946feb352acfe41d366c9877cc2e3c76809d56e0a87f3036346227e5736a0c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderModel.kt",
+      "sha256": "b2a149a6406bd049f3aa9ca5d04d29b03ef9a04cb1616a3138468e9d25872498"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderRules.kt",
+      "sha256": "9ec528e95d278dbb67f9497c9f2828b8de255095e59d2dc4b82422e70b6cd761"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderScheduler.kt",
+      "sha256": "6c72b4a22db056d3e9a22c28f27c29a8a838b895f435e3ee5462fa04f3cd3b85"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/RoutinePaceKeeperModel.kt",
+      "sha256": "f4abad6ed006b2ff4dbd9c84bf5b7db0a5d17d99bcd58aa3d1b4934d185edd61"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/RoutinePaceKeeperService.kt",
+      "sha256": "a2d967aabc01e8a8278854ffb17c332ca5a26650daa344ef05d7d4afa7831733"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SleepAudioModel.kt",
+      "sha256": "95f85d8fbec02e6c1c1298d320f0ebe10902c2b85ff37b00a7e22e64426057fd"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SleepAudioService.kt",
+      "sha256": "b1ed602601c16da4dd02c56ca917202b02951fc65615e2a821d3d57037798e3f"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SmartWakeModel.kt",
+      "sha256": "a53a6e6a00bf92f4189f371d623fee0a41521008ec1dc5097a6a00bd58579da7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SmartWakeService.kt",
+      "sha256": "c959fe1bf51e13ea9ffa7a21d08780c2ba970a90d8bcca07e5739eeadb0c0c49"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/VoiceModel.kt",
+      "sha256": "b6e4288170efc0d1db9f5c4a347592828ef3fb23d7755e55e1582271287f473a"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/WidgetModel.kt",
+      "sha256": "0122167b32768822107ce9b97a2ee20fced29d8a2f866990d954c10ded7b9b54"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-hdpi/splash.png",
+      "sha256": "08cc34ad7713fe7ed58bceaa37b2387b670c53cd60264b4bd6442db3098e75dc"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-mdpi/splash.png",
+      "sha256": "5cf98b4451bd99b20df26f9e608a46946118be6b0ae90762f9ca1786a30c76ff"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xhdpi/splash.png",
+      "sha256": "22f87e1e3bc89aa01a7dbc39c9a4db058cd0bf4ad3fe9f55712bf69eb997f4bf"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
+      "sha256": "42aa26392546fcdee1b8d3ac6d4b41bfcceb41dc6a4f3a3c30c24a8a8f4db862"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
+      "sha256": "60393ce8636fd263e4e1fea3fd4ab2de948c6295e898fda9b50ac4e5283be809"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-hdpi/splash.png",
+      "sha256": "c5015f4ba3628392b538386c5e210f0b94f352a3160adab934fd0311972137ca"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-mdpi/splash.png",
+      "sha256": "07fa579e1c83e04ba7f9cbcbfcf41b68e15fe3638f2c44a04e58b809103e6b69"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xhdpi/splash.png",
+      "sha256": "b73049cb37fe76d6c11b87a796766bf6af0c85483b31eb6a921657b0d764a4b9"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
+      "sha256": "0c7f1212f25b7b90e9a6e1d320013e4ff3d3e03e634cbb07b7b7981cac51627f"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
+      "sha256": "3db071a03b2f8ffe0dfd4170fc59842d53cd15bba5e88af59401d58efabf7827"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml",
+      "sha256": "a8514094f754b099d3e55ce1d6e0b2de79db418b2eeacb0fc2a6bb0bfadef221"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "718ba51adf166bb55c3e9936bb8199a0148457f7f0191aaa2f37a94f3159d6ec"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_stat_anker.xml",
+      "sha256": "ed1f158a56b862ea3a5c97a41c2bf8da00977f91f5a3e31817b225f1eab11e2d"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/splash.png",
+      "sha256": "5cf98b4451bd99b20df26f9e608a46946118be6b0ae90762f9ca1786a30c76ff"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_bg.xml",
+      "sha256": "b91a6639a2cb0b947b5531b7814210d116c49cf0619e14239fed7a92a15d59e6"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_button.xml",
+      "sha256": "0d81db0ae025c71ffc2b67373d0f9aec14efd84736e7b319d18129ee1640d38d"
+    },
+    {
+      "path": "android/app/src/main/res/layout/activity_main.xml",
+      "sha256": "5d770feb791313b947020cbfc57e5c733c556dac5e9e49261a1190e527073253"
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_anker.xml",
+      "sha256": "6f712a3f7e6e7c05264420fab950f9c957aab72b40c5abca1748a2062bebba4d"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "9c3a7e0a6515c6e1a7ae834a9ae430311ebc3241f7b2e5e7f0460aa690709a7c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "sha256": "9c3a7e0a6515c6e1a7ae834a9ae430311ebc3241f7b2e5e7f0460aa690709a7c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "sha256": "29b2f64b19134181c524b70398fe30d7483ad034f5df92b1a7ccfe54f7b8f4cd"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "sha256": "8a018fbd7d288b024370c4da6143ba4a1fb5575a2561bb08b31d8babb0f1447f"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+      "sha256": "12e94287d9088e44b6f49e18ef20bba59b2479db3099970088692e70af0577e2"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "sha256": "2a47a22b58ec101feecdc22afd50604bcbda60790ba426bb6bbfc843e2c95811"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "sha256": "db2806a6646d9906e9c75ffa4ee1c251af12073b1b77a903e6a8b9320b62a1af"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+      "sha256": "98426d18b10d7b5a26375651a28e8350a9480be6b02173b71d2785f7a6763698"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "sha256": "239611111c47527bfe55b65c190dadda13b46acdb76fbd66ffd1f86b621b45b5"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "sha256": "d17383fa7966d563c2796315161f5389a59e92aa007615611ca63fbdca6639dd"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+      "sha256": "71780213971eb7874765b598a262b69b967364b25f4aea01f4743ce2a4735b5c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "sha256": "ce62ca6518cf237d14c17f1ec895eb0e0eb594d99d9491cd672ef3ef3a92ba0c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "sha256": "b01f4d682e5bf453ab26882908583fbdb62fb543e4c6076b944c2fc51fd35c28"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "sha256": "e3de316c6955e84958c9f91181541270200a014417c402a208eccc98dad73e00"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "sha256": "e25b7cd4e5c0c2450573a2e69e4a121c77d5bc1806784cbcf1b7054d29cfb9c8"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "sha256": "96f94dd5f8c638035f525513b3643b98168319db8a2a741873a60e264f72deeb"
+    },
+    {
+      "path": "android/app/src/main/res/values/ic_launcher_background.xml",
+      "sha256": "ed947d81d6ed0faf0fd541668af73fd2664b9f063191555fe695f8b6fd27e5b4"
+    },
+    {
+      "path": "android/app/src/main/res/values/strings.xml",
+      "sha256": "7922f6e6f45e430c8426156479c5d872829d24f496e3466d8818d96f140ade70"
+    },
+    {
+      "path": "android/app/src/main/res/values/styles.xml",
+      "sha256": "18ebba36575e9461347ee67361b23caf095f158ee85dbefe1b83a4669ba5bd6c"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_backup_rules.xml",
+      "sha256": "d5cc4726498feaf3bf21a3e83704f4cfd64369907cd2b0ec9520de2b50fdd68f"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_data_extraction_rules.xml",
+      "sha256": "8693e12c4f42536546cce62c5e3e7652f0941797ea9aa7fc97a82b359df98e51"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_shortcuts.xml",
+      "sha256": "4d6b1c62c7b28036b5574cc8a77ed3557d4bfb278a3655949855a62c63652fc0"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_widget_info.xml",
+      "sha256": "00f30ceba069145afaa076fd6484ad4561fbd60dcb262a6d1b95abafd5651337"
+    },
+    {
+      "path": "android/app/src/main/res/xml/file_paths.xml",
+      "sha256": "a46ed43ef65c90cb6778f4581decf3556e3f0055aad8f36d69dae16f9a0e99aa"
+    },
+    {
+      "path": "android/build.gradle",
+      "sha256": "0388bc75da63d16fa6d472db1eaff06ae92ee89a5c4d2cd66427124b05ffd7f2"
+    },
+    {
+      "path": "android/capacitor.settings.gradle",
+      "sha256": "d01e23353b49dcc0383b1a13afb94a848f440e550c7cb73737ecb34f6aadf690"
+    },
+    {
+      "path": "android/gradle.properties",
+      "sha256": "3bab15c5b8bc4c2f4b6cf525497d15ad4abca53a460e6dd2eb0f0135817d31e6"
+    },
+    {
+      "path": "android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "9a479a85aa879bb55284fc16d0de5b81a745c3854f4e2d88c42e7debaf007435"
+    },
+    {
+      "path": "android/settings.gradle",
+      "sha256": "6ce098d15ebd69b44c4ecd786bca1bdc366340d2459b2af4d7bb0ab317aa9669"
+    },
+    {
+      "path": "android/variables.gradle",
+      "sha256": "f1ff33589bbb0a61e1c5551ac173fcf58ee94e19149582c75e91a0c2f68eec4d"
+    },
+    {
+      "path": "capacitor.config.ts",
+      "sha256": "fd8c767affcb1f91d0f674d1da0266e329ea3ec5f19874b0b68c0f0748de55ba"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "658b104264213915a3baf47f81bc94adeb1e449913546bc93303854e30416333"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ca89f77bcd308a1b3cd20e34626bf5ec13187814fc73830ec00ca0dfa8af2c2c"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "eb7dc492bbd538fd6e15b32ba159a36ff1e1f66d3af5d616b332d919ef2fc0ee"
+    },
+    {
+      "path": "src/core/alarm.test.ts",
+      "sha256": "834888809b0d00a9744c6bd00836062fe74f05c3524dbb470fee8239380fc2ce"
+    },
+    {
+      "path": "src/core/alarm.ts",
+      "sha256": "512ecaa732cec173f0bef3086835647107885955ab9718bf647e82944d9de6ef"
+    },
+    {
+      "path": "src/core/assistance.test.ts",
+      "sha256": "26d36906b423364e4e525fa19d51de5d99efc80b019dd470a06a353344293806"
+    },
+    {
+      "path": "src/core/assistance.ts",
+      "sha256": "80b1baf0d950ec84a083c3a3547ae6e8a813a397965f2a94f692b97824368005"
+    },
+    {
+      "path": "src/core/coalesced.test.ts",
+      "sha256": "fd55818ef18cc76c5b71876af57301f3028d5b0c38324a91eab16598c83ccd1a"
+    },
+    {
+      "path": "src/core/coalesced.ts",
+      "sha256": "962f456c64ccefc5b76d12273f17641295deb8a5b51fa887531c5609f5c781f3"
+    },
+    {
+      "path": "src/core/defaults.ts",
+      "sha256": "a2567337603ecde714c8f1328fd4d506fae5d5f4ed4b3f936ab202fdc12deafd"
+    },
+    {
+      "path": "src/core/defaultsUi.test.ts",
+      "sha256": "499fe1f34bfbb9696ab8ebd408efa470398c15fb36e0bf5aad5caf687ed7cb9d"
+    },
+    {
+      "path": "src/core/deviceTestPortability.test.ts",
+      "sha256": "0b75985d71820567f3fc5848a0cd60279cf0c038b069eea00402b34daec6f7b3"
+    },
+    {
+      "path": "src/core/deviceTests.test.ts",
+      "sha256": "28650260af7862eafc5f98ff44f267b1101c8f486e596eb82412ccb024e53b9b"
+    },
+    {
+      "path": "src/core/deviceTests.ts",
+      "sha256": "f5d8621bbc03ca37499b8123ee26f59148dde1b85f42b5f40a574be780edad7f"
+    },
+    {
+      "path": "src/core/evening.test.ts",
+      "sha256": "d5ae2bbb4e578bc4f59f1eb03d18efa27e77f6150b6ff4345cc51985f4d8372e"
+    },
+    {
+      "path": "src/core/evening.ts",
+      "sha256": "8b1ec9c85e08a9fa481ff05d7f13a70469f60071c9ebb2a5140b685a7f448710"
+    },
+    {
+      "path": "src/core/export/backup.ts",
+      "sha256": "62fc176a63f3942ed00dadfba4b207ca03ca5e121417fc245c9ad68e2591803c"
+    },
+    {
+      "path": "src/core/export/backupRestore.test.ts",
+      "sha256": "2ea8c36b3e8d9c95050069a8d34bab1e41fdc31adc38612d2b7058c4de8728d5"
+    },
+    {
+      "path": "src/core/export/backupSafety.test.ts",
+      "sha256": "8b148d8c16b08975e081192bd10ccb4ca7a30a95686c759845f1088e722e412b"
+    },
+    {
+      "path": "src/core/export/backupValidation.ts",
+      "sha256": "ff6d7cd298b0dd78d9885b5736438f520ffe2f8efa34f856083be7a38f9d4e02"
+    },
+    {
+      "path": "src/core/export/export.test.ts",
+      "sha256": "302c3ddcec95203140667bdf8dfff17c6230a0ce0166aeb599c838cd33c9ab48"
+    },
+    {
+      "path": "src/core/export/ics.ts",
+      "sha256": "6fae6a9883292a8ae64c43a8be0a66883bd57516f989e21facaa9f98e37dc7e0"
+    },
+    {
+      "path": "src/core/export/pcstop.ts",
+      "sha256": "af1d2e37e2d00d303435151d03137cfa5c5ae3ebfb2966e12e8f68883fba3dbe"
+    },
+    {
+      "path": "src/core/extras.test.ts",
+      "sha256": "e2a559c05a6d6c6b1ce15aed0e194e46b0fffa7f0dc0dd04fd29e6f046a400a5"
+    },
+    {
+      "path": "src/core/extras.ts",
+      "sha256": "cda3c1e7e6d061c158d9683ccfbebcd2f2aaddc840ca57e5d39d98cb6c964a3e"
+    },
+    {
+      "path": "src/core/flexible.test.ts",
+      "sha256": "d3efc4b716e02f333e907b1110ff4bb2a9b46ba631d3baa0186ed64be7f2ed37"
+    },
+    {
+      "path": "src/core/flexible.ts",
+      "sha256": "ba6d1c093ba43f75e6de65133e40e8e95010145be1ea8d3320156fb72dc720a7"
+    },
+    {
+      "path": "src/core/flexibleState.test.ts",
+      "sha256": "3ca827d35a51b2459c7ca1bdf12e4109642b7d0209503696521976fe305a7e5a"
+    },
+    {
+      "path": "src/core/focus.test.ts",
+      "sha256": "33efbc2a2a5a42f64fa651172b002dd535d3681bbbc28b616d92f8d005a79eb3"
+    },
+    {
+      "path": "src/core/focus.ts",
+      "sha256": "1ef3d19cca22bff5d6c049fdc3186da74bc6496806da3a8699b62f37a0244ebd"
+    },
+    {
+      "path": "src/core/game/awards.ts",
+      "sha256": "f6cfd413280b1e9a626727c24112fcd1aa30624a80826ea6a9f4341f001ce37b"
+    },
+    {
+      "path": "src/core/game/chapter.ts",
+      "sha256": "5076c74dfb4fac281d68efa5a21b8ef483903c416498fe82c1f01168abeff799"
+    },
+    {
+      "path": "src/core/game/evaluate.ts",
+      "sha256": "62891ddc55e70c59cc64f756b16b5c110c9207350f249c76c5f0cd2c63ddcc40"
+    },
+    {
+      "path": "src/core/game/game.test.ts",
+      "sha256": "10ce8ae4e64e4d0a5496d406eadd6667903893bd368ddbf73aa901d34a611611"
+    },
+    {
+      "path": "src/core/game/index.ts",
+      "sha256": "5d1c9a896ccb999d55fe5f58d646b0aeda649ec3d7c077ff37d09114927e3b92"
+    },
+    {
+      "path": "src/core/game/progress.ts",
+      "sha256": "57650e637a7fcee99aee5d6ebf1b16da45a41f27d6f3bdb652278b539edba3d5"
+    },
+    {
+      "path": "src/core/game/themes.ts",
+      "sha256": "de1af27d457e7a2d93306034d94456851c8e65750bc7309a4ddc0fd132562f4c"
+    },
+    {
+      "path": "src/core/game/xp.ts",
+      "sha256": "9b810dd691321eec557d87a1282d23576e1898af445ab36c8d4645b158f95543"
+    },
+    {
+      "path": "src/core/geofences.test.ts",
+      "sha256": "7c24b52b597c4cd7c14d742d761c553da9551b8952f23306ef2c1257ca75bae0"
+    },
+    {
+      "path": "src/core/geofences.ts",
+      "sha256": "21fa11e8e527456565d60637b77abf73e825f66ac7cbe7331141a20f7cd5f06c"
+    },
+    {
+      "path": "src/core/guidance/guidance.test.ts",
+      "sha256": "5e66b8d222d0ed04352e71008356484a21c7711c74a1826dfb9eb5bcf2956c7a"
+    },
+    {
+      "path": "src/core/guidance/index.ts",
+      "sha256": "1e0af72dea69ed14441fbdab07587f4d9812554567cc091d433847a4c4587072"
+    },
+    {
+      "path": "src/core/guidance/model.ts",
+      "sha256": "941ce4a9fb0b143f77dfb188e76c904a4698889d340bef403f72cf6e8511b48d"
+    },
+    {
+      "path": "src/core/guidance/routines.ts",
+      "sha256": "71affef8cb0400be3012b72eeef256058dea48fbdc3d5fabf0a1574a881d5299"
+    },
+    {
+      "path": "src/core/guidance/settings.ts",
+      "sha256": "1068f31abd05092ee52410b4849f8bff4b54d4d14274e12f197c257b5790b9e6"
+    },
+    {
+      "path": "src/core/guidance/types.ts",
+      "sha256": "3be45a10bce288bddd6835f3cf1cbeddaa6a704a89b6dcf535f602364e1b865d"
+    },
+    {
+      "path": "src/core/guidance/validation.ts",
+      "sha256": "61dc93c65183aba1057ac3362ca7a8cec0aa12f9a4c6bf6fd4a5cbda3e8c2c6b"
+    },
+    {
+      "path": "src/core/homeOfficeContact.test.ts",
+      "sha256": "41f0f54f903814be4e952e38565881b56a5d858647d0ac7f180c4bedf47cc4c5"
+    },
+    {
+      "path": "src/core/homeOfficeContact.ts",
+      "sha256": "9878573a7cc0373e026629893e6c633aec53567f4e7bb53dd1282018b93facde"
+    },
+    {
+      "path": "src/core/morning.ts",
+      "sha256": "b45c6dfb531e233c3a74d4e1516ed3caca83a4c59f1867ce3b6238aae59d388f"
+    },
+    {
+      "path": "src/core/now.test.ts",
+      "sha256": "7c47133f3c12344623334dcd624203d0c397562a16dc27a99d939df6029344ee"
+    },
+    {
+      "path": "src/core/now.ts",
+      "sha256": "4431b583768138c83cdd006fa1772f76ed9765a2a79f096e073ad8bae91e3d8e"
+    },
+    {
+      "path": "src/core/packing.ts",
+      "sha256": "45cc2f43cc9d91bc93cdb652a91b3dc59895748dadbdc294e41a765b8b13b01c"
+    },
+    {
+      "path": "src/core/pcLink/briefing.test.ts",
+      "sha256": "0bf26e3a83144929dc29514b4866eae55ab3c9166f2857173395f57ae179d080"
+    },
+    {
+      "path": "src/core/pcLink/briefing.ts",
+      "sha256": "93693ef19c77a46944fbf530f57aec3988f28c625711ebb5c13bd7637ac6c3e7"
+    },
+    {
+      "path": "src/core/pcLink/crypto.ts",
+      "sha256": "88b10cb1250e3ce60082f6f57be573aeda6af1b922f5c5b36a061fd33774972e"
+    },
+    {
+      "path": "src/core/pcLink/events.ts",
+      "sha256": "98ced2f01a52984c0abb9790fd85a580b1eab8511c6ec44f0c6cf4e118e6068c"
+    },
+    {
+      "path": "src/core/pcLink/fixtures/v3-crypto.json",
+      "sha256": "dcca7e9f8e37e3521f10a38026d5f1228aacb1b840753eef730522605f5308d3"
+    },
+    {
+      "path": "src/core/pcLink/index.ts",
+      "sha256": "1441de5a56cb3a65ed0527d6572267623d8ac8917bae473c69b78f3f27995323"
+    },
+    {
+      "path": "src/core/pcLink/protocol.test.ts",
+      "sha256": "5a3f2e22c8d97d28eae22c5c09e3c3097b2ade26a0809dba68e1827ac711f42d"
+    },
+    {
+      "path": "src/core/pcLink/status.ts",
+      "sha256": "128661eda2157c213cc742e000b6afe0fba533618084e615155db00d90948fa3"
+    },
+    {
+      "path": "src/core/pcLink/types.ts",
+      "sha256": "12325b0c37c7cb3573189946857b0c70610e1ea698aef3c052b45d41f2c1f440"
+    },
+    {
+      "path": "src/core/pcLink/validation.ts",
+      "sha256": "ca17e473957bfc07005dfdb54383c0bf67ba9bc3235b5adc1cb6a8daa98a4984"
+    },
+    {
+      "path": "src/core/pcStop.test.ts",
+      "sha256": "ad05bc7f6da3ff63324d28afc98d611e8a5b893c52f315a977aa57717acf0561"
+    },
+    {
+      "path": "src/core/pcStop.ts",
+      "sha256": "13e82766737bb900a2b956f63dd6080d80836f26d768d687a15fca82adcd7645"
+    },
+    {
+      "path": "src/core/planConflicts.test.ts",
+      "sha256": "e901d7b17742ed2461152eac833c311aa95e33c45be292503314fb426f83535d"
+    },
+    {
+      "path": "src/core/planConflicts.ts",
+      "sha256": "588b001feba5de0fd9fdd2ed1796a7778f8d3382b05d8741555f8b536f847846"
+    },
+    {
+      "path": "src/core/planner/adaptive.ts",
+      "sha256": "ec4890fca74dee6800a2b78d2f9c9c2e0025f5d409d61e5db3a8268f85bef2d9"
+    },
+    {
+      "path": "src/core/planner/fit.ts",
+      "sha256": "6fe52324d1ee3b9d963927632f9732f6dad63d3310840efd3e964667af5f5a1b"
+    },
+    {
+      "path": "src/core/planner/index.ts",
+      "sha256": "ca21e1791d52cb23c541670f0ad8eb159dceaec9cc8a50a61d1ff9ad60f76e2d"
+    },
+    {
+      "path": "src/core/planner/plan.test.ts",
+      "sha256": "bff0f5f962ea40488a189a5e98ac9082d4e385a36e1947e725fc8ad33b2e5303"
+    },
+    {
+      "path": "src/core/planner/plan.ts",
+      "sha256": "d94ccfe1df76fc7249e94d5257d4c74f9793258d324562c3b901e741b992a643"
+    },
+    {
+      "path": "src/core/planner/review-context.test.ts",
+      "sha256": "e4af63f8277cf8a60ca321eebb93425ee4088511f62f8a56462b04081c90c213"
+    },
+    {
+      "path": "src/core/planner/zombie-scope.test.ts",
+      "sha256": "67de0da1b64bd96bb545f0a2702272441821361e29878a37d6acfb6bc9911574"
+    },
+    {
+      "path": "src/core/print.test.ts",
+      "sha256": "39c3a2f5b13d4d3efa54a24ca152852556098fbb1b0359ce18f2093d989b7e52"
+    },
+    {
+      "path": "src/core/print.ts",
+      "sha256": "39606db04a57f015f51bfb9910a38c12f8c19d92583a1b7d930409b0d493f5cc"
+    },
+    {
+      "path": "src/core/recovery.test.ts",
+      "sha256": "56fbba0097a4726c0a8ffe716a93993078897358d400aa41c5cbf9052ddfc79f"
+    },
+    {
+      "path": "src/core/recovery.ts",
+      "sha256": "2564b4490bead3be2008435dd2eb8bf7794ae0e020b7bdca104802043654a004"
+    },
+    {
+      "path": "src/core/reminders/actions.ts",
+      "sha256": "0012796fc4a5b15f61a49a291eab95668393e060d18aa8f6261f2a8df428b2f2"
+    },
+    {
+      "path": "src/core/reminders/build.test.ts",
+      "sha256": "b9a6ceccec3fe890953c994b0ecd31f06d2691f89deb7a6f84079c07bf0bcf12"
+    },
+    {
+      "path": "src/core/reminders/build.ts",
+      "sha256": "bd6dd3a17e284bdbf1814a2f571c7040f5e8f0b2584c6003820178ebd02a7d5a"
+    },
+    {
+      "path": "src/core/reminders/dates.test.ts",
+      "sha256": "2e663136c2227f14e02952742f8afced9130c9dbfcfdf78f430af0e2163ea57a"
+    },
+    {
+      "path": "src/core/reminders/dates.ts",
+      "sha256": "f2e6e6d85fd5d7e80ef50b570bd2e528a71080e961300c2c0d85090bed385644"
+    },
+    {
+      "path": "src/core/reminders/deadlineRevision.test.ts",
+      "sha256": "a71f9a815902c73c80f676bf26a014c1a5f0544a7e22b5262ad8f2f700d43e97"
+    },
+    {
+      "path": "src/core/reminders/evening.test.ts",
+      "sha256": "bed31202b4621f5248da5ea6783f5d54e8bd85606945df207701d0b0f55312c9"
+    },
+    {
+      "path": "src/core/reminders/guidance.test.ts",
+      "sha256": "c2016c36fdd9544b0a233d023358a3cb0916309ce252046677c08a14fb1b6575"
+    },
+    {
+      "path": "src/core/reminders/policy.test.ts",
+      "sha256": "6c219eae6233fdc9f65a0ecbee4fd9ecc846782f73c82a13576415495738a448"
+    },
+    {
+      "path": "src/core/reminders/rules.test.ts",
+      "sha256": "56edf8d85de7d30d338b42de43d116b89c8efcf00d528b8c29700e7869798a2b"
+    },
+    {
+      "path": "src/core/reminders/rules.ts",
+      "sha256": "4b68218bbcabbcc2e87e85a285d108bce4bff991981487e8e6d21811172db8b3"
+    },
+    {
+      "path": "src/core/sleep.test.ts",
+      "sha256": "3535f1887b9521349cc53a8f4eacb3a02ed8f9fa3dd177b05719eecb8ce5a534"
+    },
+    {
+      "path": "src/core/sleep.ts",
+      "sha256": "a8c98cf2664a942cc9f8e832639e1b3b174d7d94b16c9300de342a853f940cf3"
+    },
+    {
+      "path": "src/core/sleepDiary.test.ts",
+      "sha256": "994aa60a4abbd0776af35bc0c0dd6c467b8db0113ba00a6ab8d039aeb009b2c2"
+    },
+    {
+      "path": "src/core/sleepDiary.ts",
+      "sha256": "cafa288184c3965e8d9c90b9e554d155b4295987fab2d11cfd4c43eebc68078e"
+    },
+    {
+      "path": "src/core/sleepTransition.test.ts",
+      "sha256": "76f080cb791320451bfa898c9d977f048e50d61e1ece3a9fd11b12d3cbddf8d2"
+    },
+    {
+      "path": "src/core/smartWake.test.ts",
+      "sha256": "2ddc77bb4a67f82d9dc368ddc660da4d4a59953c9c9ea216bbe31a3acf13a83f"
+    },
+    {
+      "path": "src/core/smartWake.ts",
+      "sha256": "3a74e30820e29f82f89f5bbb66224b3c4df70bedc970838482b99bad5d10165f"
+    },
+    {
+      "path": "src/core/sortable.test.ts",
+      "sha256": "d6ee9b8b3d19909d5cd887e117221fce8797a9ff1f493ce27f4541890c6bdc58"
+    },
+    {
+      "path": "src/core/sortable.ts",
+      "sha256": "98d2e5080ef07804032bc7566f290550688582a01242be5f8dc5c11d0853fca4"
+    },
+    {
+      "path": "src/core/support.test.ts",
+      "sha256": "03583ded95f5cbc6ceb8ea92bca94275f48c57c7a0e3ae2c1daa30732747841a"
+    },
+    {
+      "path": "src/core/support.ts",
+      "sha256": "f0877599b8a8164ba5f34208571b58c271d4ebf167da058a39e73886a879a74c"
+    },
+    {
+      "path": "src/core/syncPrivacy.ts",
+      "sha256": "e2beb9484fe4ec3693943d017cc32ddac66954aff43a999784348163d4012408"
+    },
+    {
+      "path": "src/core/taskSelection.test.ts",
+      "sha256": "e8fa8a5d3a63bfcaae3cec325ade5596bdf17482d1c23de4141f76687a257b15"
+    },
+    {
+      "path": "src/core/tasks.test.ts",
+      "sha256": "fbe99816fd61e49214e005ba5185dd6216ee36507282156b9550092a3b590246"
+    },
+    {
+      "path": "src/core/tasks.ts",
+      "sha256": "74a400afade5c7492f004041782004c763344dd6c1f3813b250854e420f7265e"
+    },
+    {
+      "path": "src/core/time.test.ts",
+      "sha256": "e220ab56512744ede6a72ca709247b31409f2fae11a8bd3ef35e7b6334dd234f"
+    },
+    {
+      "path": "src/core/time.ts",
+      "sha256": "5d69510807db34dd34fe4746816597012c0c323efcc362e36ffe4d177fa2b7c8"
+    },
+    {
+      "path": "src/core/timeCatalog.test.ts",
+      "sha256": "1a1a29a4e61e91a2fa6518366e8334409fc31974dfa7d6a8bcc03b7587e151af"
+    },
+    {
+      "path": "src/core/timeCatalog.ts",
+      "sha256": "98a0e6bc5ce2aa2fa1d57fb8a3b85bcdc503eda0c493406aaf24513049414ee1"
+    },
+    {
+      "path": "src/core/traffic.test.ts",
+      "sha256": "9ff4fc3dcaa743eaa45297d514b2919f6226df816cd9bbaa0f54208b8575296b"
+    },
+    {
+      "path": "src/core/traffic.ts",
+      "sha256": "d50e145d96929a0119ff83af95dd93b70317accd91355c14cbef9aeedae2b037"
+    },
+    {
+      "path": "src/core/travel.test.ts",
+      "sha256": "046bdacd912870193a71b56a511fa86512928a83ae54e3d2883e28b26b705062"
+    },
+    {
+      "path": "src/core/travel.ts",
+      "sha256": "8fa46048a7674eedc865639958028fe9aaa16f8385df99db151f8b1f304b3cfc"
+    },
+    {
+      "path": "src/core/trial.test.ts",
+      "sha256": "5fb5bdd2cbde9f8df8e404ff8eba05250cb4601693f09a9757402edbb6ebacd6"
+    },
+    {
+      "path": "src/core/trial.ts",
+      "sha256": "455d52aa4059cd58ddc69a62858a85314de7b029ce850f8128d5bb5b6332a8dc"
+    },
+    {
+      "path": "src/core/types.ts",
+      "sha256": "e067da7cd5ddeda12970d8c05b18a0b45214f01b5a10e9a4adfdeee7aefa74e1"
+    },
+    {
+      "path": "src/core/uiText.test.ts",
+      "sha256": "41e51adc97b0e974de1f76813331dd1f64c0100ba72145f5cd20c42d6bca10dc"
+    },
+    {
+      "path": "src/core/uiText.ts",
+      "sha256": "f65851f635a9bd8eeba3a9db0cac685d3127beeab03a8c06add72599b0b61a74"
+    },
+    {
+      "path": "src/core/upcomingWork.test.ts",
+      "sha256": "b5a96346449020ee89690f8297149c1aa63ab0fb938ac2cd2d2797f48e863441"
+    },
+    {
+      "path": "src/core/upcomingWork.ts",
+      "sha256": "0b006ae98e3199906f8b0e855ad12865f678ad316e93efbbb0477c3586882462"
+    },
+    {
+      "path": "src/core/weather.test.ts",
+      "sha256": "72d6be9d4bd5505a28732a6d7506f76c289be804bd9ce01ec681e3e6fe7d6801"
+    },
+    {
+      "path": "src/core/weather.ts",
+      "sha256": "621381182976773c40cab8297b60f72df2b9c6e94bfadec98926245b173622ab"
+    },
+    {
+      "path": "src/core/weatherProfile.ts",
+      "sha256": "e7a981cb4cb5a3dc40359635e1fd5ee9059123a63ae9e99531b4e3cddd84f307"
+    },
+    {
+      "path": "src/core/widget.test.ts",
+      "sha256": "3f09a1add548a92189d4a86799453109f09731800b2f066c3ef8fc1ac46bca28"
+    },
+    {
+      "path": "src/core/widget.ts",
+      "sha256": "f8a62d92963af393283fc720aa7596f836e61628af5874dc89cb99d167b02871"
+    },
+    {
+      "path": "src/core/widgetLabels.test.ts",
+      "sha256": "c697037fafd06fa15ed06a9c7cf7fc265073da930c2c945ef95b068544efebf0"
+    },
+    {
+      "path": "src/core/widgetPrivacy.test.ts",
+      "sha256": "3f31959a9a933567bc784fcf3fd759747b47a35ae85779bf5774432369305e52"
+    },
+    {
+      "path": "src/core/workNightContext.test.ts",
+      "sha256": "30d34022677c72b8813dc01aec625465c321e0895ea58479df9e0f7d9cc4068c"
+    },
+    {
+      "path": "src/core/worktime.test.ts",
+      "sha256": "409fc21095efcac952a300b37ba1ed3290939d03f13e88a43e5287978c9b4b99"
+    },
+    {
+      "path": "src/core/worktime.ts",
+      "sha256": "ce12593c33f312e322863f6aa1ff0f955a5d04231fb1b8da2eae2db741828a0a"
+    },
+    {
+      "path": "src/core/worktimeDelta.test.ts",
+      "sha256": "5e177cd19cf25051e973f0892ce4e8b2e3906d6b9b5521ab92613385af80e800"
+    },
+    {
+      "path": "src/core/worktimeNext.test.ts",
+      "sha256": "2aa08608216dd548760ca591aa3dada654079335ae7705a1eba4934e87aa3de8"
+    },
+    {
+      "path": "src/data/dexie.ts",
+      "sha256": "4540d841caf1927ebc3399ef8a1b9d646bf16c8de3b7627e9933a0e7cce091eb"
+    },
+    {
+      "path": "src/data/index.test.ts",
+      "sha256": "323b7142e8dc8df796f64dbb28ae41fb07ed45385b40ade20f3338eca7e05883"
+    },
+    {
+      "path": "src/data/index.ts",
+      "sha256": "800a506016550ecca6b5edb0ab4ff2423302554c44b13000d1c08eb4eff88ff3"
+    },
+    {
+      "path": "src/data/memory.ts",
+      "sha256": "5b037634a7557731fef5470ac5b1f0ee9592162caf81f729d387c03cceecbc9b"
+    },
+    {
+      "path": "src/data/merge.ts",
+      "sha256": "4047cc66f3bc01f5470d94ebdfea9df2f853efe35c26a083fe1ccda9148a3c9e"
+    },
+    {
+      "path": "src/data/repository.test.ts",
+      "sha256": "0e044b8c872bf58b95a8089fe8560b372f01c7104d02e9b9e3061a0affe517bc"
+    },
+    {
+      "path": "src/data/sqlite.test.ts",
+      "sha256": "8f2ed580a40342be0e60a584499ef8eb3f08e0da5e3006d66359a1909c3f782c"
+    },
+    {
+      "path": "src/data/sqlite.ts",
+      "sha256": "1cbd6961a2d4536d3229059340194aaa42d45122b0504dcf1d2cbf0920b63fc5"
+    },
+    {
+      "path": "src/data/types.ts",
+      "sha256": "c283260d83308b415f66b0035374c2dc0bba50914f422f0ddab5c191b30789bf"
+    },
+    {
+      "path": "src/device-tests.d.ts",
+      "sha256": "5948cffb3e85f7974ce86233c8b9601fa484d8033d3bb3c344b388e037b572f7"
+    },
+    {
+      "path": "src/index.css",
+      "sha256": "a7ec5118717b6c3b761c77d298f010d193492350258e30e7abd11b97cd0dd76f"
+    },
+    {
+      "path": "src/main.tsx",
+      "sha256": "d4f3a194baaa2acd3b537cb707d426e7c66c306578102de433b31f15e7cd6b00"
+    },
+    {
+      "path": "src/platform/alarm.test.ts",
+      "sha256": "f2753bbfea28ef5810d3aa064be6169a534cc6a64a763f7356bdba2980839143"
+    },
+    {
+      "path": "src/platform/alarm.ts",
+      "sha256": "e9297c19fc5d9a24cb38e7fc8a766661d21903b0f52ebe736e440e809d6df32c"
+    },
+    {
+      "path": "src/platform/assistance.test.ts",
+      "sha256": "30cde7839d6ed9e2cdcb0f25968bebdb8e3c783e8a44192d13cf1dea90600872"
+    },
+    {
+      "path": "src/platform/assistance.ts",
+      "sha256": "8805bfdd6c520c56da87b2928997d15b811763edb713335bdb8a9e9106de20a2"
+    },
+    {
+      "path": "src/platform/assistanceConsent.test.ts",
+      "sha256": "4082bd6a76e9b9bc0eb4b2ccbb1451888d7e40c95fcd87928b67ddb2dd4d8e05"
+    },
+    {
+      "path": "src/platform/bedtimePrompt.ts",
+      "sha256": "14c60a3f6ebf1163a4ad5a0ac1a5f8bfcceedcfc897af4c015422b1eb1aaac3d"
+    },
+    {
+      "path": "src/platform/effects.test.ts",
+      "sha256": "23f1aa9d4ae3841800ab09a8b8f35078cdb02168fe94166539e22cb58733cabb"
+    },
+    {
+      "path": "src/platform/effects.ts",
+      "sha256": "c51171f31c56468c0e8ebb3f8e9a2c4597833dbf939afd6cbe97658088cdcd7f"
+    },
+    {
+      "path": "src/platform/files.test.ts",
+      "sha256": "ce64bfd95a1ef841bca8f2491de5fc6d677b462f416a11dd11da177753a05762"
+    },
+    {
+      "path": "src/platform/files.ts",
+      "sha256": "841c1600743ae68ba416d2de45fefbdccffac71547eb947e8e6ffb061d10ac3d"
+    },
+    {
+      "path": "src/platform/geofences.test.ts",
+      "sha256": "2770f4add95ff74de1367f2a24a3e8a8cb416e76a56f0cc814a92968c47f3010"
+    },
+    {
+      "path": "src/platform/geofences.ts",
+      "sha256": "20050ac2c8d2b5ed1201bf35a72525dc108c1800686891387e0134bfd6b77bb9"
+    },
+    {
+      "path": "src/platform/google.test.ts",
+      "sha256": "2e801f56762c863d3b38fd26d0d574db5bf6e25782736a981af5dda1913bc656"
+    },
+    {
+      "path": "src/platform/google.ts",
+      "sha256": "03e39e4a98adc788b7316adcfbc833715c25fc1bf9bcb2024747ac3cfa947a9d"
+    },
+    {
+      "path": "src/platform/guidance.test.ts",
+      "sha256": "1740b4584ece69b36a80f9afa3b34fd5a11f204d66846f1fcff143c31a922bcc"
+    },
+    {
+      "path": "src/platform/guidance.ts",
+      "sha256": "b45fa7313b8901441dc8558139846aef3285e31f89ef7af54e5931e68a2f21d1"
+    },
+    {
+      "path": "src/platform/health.test.ts",
+      "sha256": "554090b8126f609960a211196d742bb542315352bbc5eeb9599889ea02e722d4"
+    },
+    {
+      "path": "src/platform/health.ts",
+      "sha256": "b7a84e945a08d55e2105ba7a3e5f15c0de972059e31c47d83799cf16855eccdd"
+    },
+    {
+      "path": "src/platform/links.test.ts",
+      "sha256": "f64b9ef43e90142fa5f518ea1a224644664fa81916e4ea448f305727c9ebc702"
+    },
+    {
+      "path": "src/platform/links.ts",
+      "sha256": "3b6c6dd756be2ce2017b53107b0baaf7cb1bae0dcfc03de3d4374fc339c85641"
+    },
+    {
+      "path": "src/platform/native.test.ts",
+      "sha256": "44f93c818a67d5f3a32e7ad7ea6dcef092f4989bf961afe36d47f0384fb360c7"
+    },
+    {
+      "path": "src/platform/native.ts",
+      "sha256": "efac8d4f687171127637a5f510addf3369044b00a86d70fe614cda3cf082f4f0"
+    },
+    {
+      "path": "src/platform/nativeSafe.test.ts",
+      "sha256": "022a3d9a07ae15ce1b8900e83976f7a1e58ffd520edd5f635e9a5d34340a53fc"
+    },
+    {
+      "path": "src/platform/notifications.test.ts",
+      "sha256": "d4ff35e47f08b72b39df0439630c368f7860c960af28c6711ac22dc576d4e2a0"
+    },
+    {
+      "path": "src/platform/notifications.ts",
+      "sha256": "9c7a7114d3235b5be831c92da50da33115eefb5a2dbce6f5eb3fe39df620cf19"
+    },
+    {
+      "path": "src/platform/pcLink.test.ts",
+      "sha256": "3da61d0f5088bf4474cdec76350537be1cfc4838753d9b54fedc10222ae4e678"
+    },
+    {
+      "path": "src/platform/pcLink.ts",
+      "sha256": "ec628a4357ace52149245edfd791b6e996f9bbd3ae5defd10579dfa8f404061d"
+    },
+    {
+      "path": "src/platform/pcStop.test.ts",
+      "sha256": "d7a3309554289742d39ce929540035a0f930e24237e8d72be65a9e12d8674a13"
+    },
+    {
+      "path": "src/platform/print.ts",
+      "sha256": "9e8c8c66c624c1a45bfd4fe272ec0cca12e1926a69077afb12e09bcef528a81a"
+    },
+    {
+      "path": "src/platform/qr.ts",
+      "sha256": "fc338407264e7564039457b9c4f338b468c736b94f81cb6ad958dab8b592f8d4"
+    },
+    {
+      "path": "src/platform/supabase.test.ts",
+      "sha256": "b3666fa92426e322265e89243c13e3869d6d280e077f7c6d4bcd20a89a3f23fd"
+    },
+    {
+      "path": "src/platform/supabase.ts",
+      "sha256": "1b0128a83bb4b391a4d7ce05382d3fd161fcb534fc595629e51f609306a34e1b"
+    },
+    {
+      "path": "src/platform/supabaseAuth.test.ts",
+      "sha256": "65bfeaf0bbd14e61dfbd021ab925460aa0b74c1cf01bb40a97cf67c7206bacff"
+    },
+    {
+      "path": "src/platform/syncPrivacy.test.ts",
+      "sha256": "0fb25437c69866627f3c11481d5608037df2fe1e22d9452922b5279d302f5640"
+    },
+    {
+      "path": "src/platform/syncPull.test.ts",
+      "sha256": "fd05664ec5efebdd41fb60205884e3cb58420f6c71cbf8240482414b2140d688"
+    },
+    {
+      "path": "src/platform/syncPull.ts",
+      "sha256": "d5e42f76be6c641e17f94acbb5a023d3c28cf052d30863f8f3d57d6f982774f6"
+    },
+    {
+      "path": "src/platform/traffic.test.ts",
+      "sha256": "15ce1ec566b85e3cdc41fa1322ccf245bced753baed1182dd0327e055ffddbe9"
+    },
+    {
+      "path": "src/platform/traffic.ts",
+      "sha256": "f1c1d868d55b34b5c3aded9e2a867af704f4e4b6ad2e60e0b5caae35e42bf9bc"
+    },
+    {
+      "path": "src/platform/wakeChange.test.ts",
+      "sha256": "989e3725808bdf7e5f3d0e7df45c8c4103d706fff971fc5660c8bb552c04e8a2"
+    },
+    {
+      "path": "src/platform/wakeChange.ts",
+      "sha256": "4056ec3d1ae91b5d74f3f21e71032e9746eba90fab9fcab4b4cb1f2f945d8f51"
+    },
+    {
+      "path": "src/platform/weather.test.ts",
+      "sha256": "6b25cb3f387e2d1896c8ab521fb133b7bdfeb3c4bee9dccf13bf286eb5a8d768"
+    },
+    {
+      "path": "src/platform/weather.ts",
+      "sha256": "5691522298212c7547520222e688eb5a34916b9316d1f66a2ea3f2de0a502a34"
+    },
+    {
+      "path": "src/state/backupRestore.test.ts",
+      "sha256": "d0d774e24370e0ebcde0679aaee4c62cac8c3c5c9592c4e8b903d1ba31393a3b"
+    },
+    {
+      "path": "src/state/calendar.test.ts",
+      "sha256": "03fda121957719912a768fc1e49e4f1e66c21a6abe5ea7e00713853bee0a934d"
+    },
+    {
+      "path": "src/state/deviceTests.test.ts",
+      "sha256": "36dc7825ad9511ed8a830623313f9cda3ed4c65023f0445ac4da68f393e22153"
+    },
+    {
+      "path": "src/state/evening.test.ts",
+      "sha256": "eb7bca80d2bd18235df795e9db989c61a43cf73009381189bcf581c33dd1e436"
+    },
+    {
+      "path": "src/state/flexible.test.ts",
+      "sha256": "b626a4bbab86fcb172f314bdf6f42268486ffff583b8b41c3b6751742e05153a"
+    },
+    {
+      "path": "src/state/guidance.test.ts",
+      "sha256": "ce757921debb8c35dc45a93b859032c4162f290dffe244f9100fa58589da9458"
+    },
+    {
+      "path": "src/state/hooks.ts",
+      "sha256": "55b470e89d0f9d8f5e5f520251ff04eb42224f27dae6efd68554f4399be27c7b"
+    },
+    {
+      "path": "src/state/importSafety.test.ts",
+      "sha256": "6ac02261ca6c3d1a1f14ec08464bac423d17a1ffce4ef6376d172eb6ced3dc83"
+    },
+    {
+      "path": "src/state/pcEvents.test.ts",
+      "sha256": "d7f26af229aeb17964e4bb380ac0d37cb9c2fb833d1b31281f834463034ea870"
+    },
+    {
+      "path": "src/state/store.test.ts",
+      "sha256": "ee54c1e3aa3277842af2e10753c82fad16d10f74f5c5d5479e7338eb52de2fa7"
+    },
+    {
+      "path": "src/state/store.ts",
+      "sha256": "2081fd26b47f68bdea497bb7ca4d3e7807817fefa44f48ebc5554c91d7043308"
+    },
+    {
+      "path": "src/state/subtaskFocus.test.ts",
+      "sha256": "66631b775bc0c6925d847ac9ab0123907d0d2148dc45cfe76d309601d994084a"
+    },
+    {
+      "path": "src/state/syncConsent.test.ts",
+      "sha256": "5a82c81437fd790f86ed13e3b85ac5bbc34c882b8a846daa413872cf5e72aa49"
+    },
+    {
+      "path": "src/state/taskAssistance.test.ts",
+      "sha256": "5ca21bca4226e20b16abd679ddb5a27c0d27c60cf514b7e89fe98840ea75e90e"
+    },
+    {
+      "path": "src/state/tasks.test.ts",
+      "sha256": "da3a9878e6340e4c18230ee7ca65283041ed1b9bade1660d55438442478dfd8d"
+    },
+    {
+      "path": "src/state/timeCatalog.test.ts",
+      "sha256": "a22e75ab0ea92dfdda65db5a2b2f5012f65b22cd08675a1ad3a1372bde878276"
+    },
+    {
+      "path": "src/state/travel.test.ts",
+      "sha256": "4e33bc11ebd1c705a0770d72e1d5dd2853b5ec1629d08a9fdb8771d64846970e"
+    },
+    {
+      "path": "src/state/uiActions.test.ts",
+      "sha256": "6b1ff7bc7792cd178b271d530ac535199d7d1d6e63f85b03a9b7269cc41933b5"
+    },
+    {
+      "path": "src/state/useFocusClock.ts",
+      "sha256": "b776fcc55d99cdc1e6f86e1f57863cac6b576a6d1792ea9181150751fbd62190"
+    },
+    {
+      "path": "src/state/useGeofences.ts",
+      "sha256": "6cfd568346b3cca4b7ff0c8d3b08369b5da0bfd6c702803a7efef9054327ff1e"
+    },
+    {
+      "path": "src/state/useGuidanceView.ts",
+      "sha256": "78d55981835f26f6222729bae5626b2050058a288888137100883e5dd32c2041"
+    },
+    {
+      "path": "src/state/worktime.test.ts",
+      "sha256": "95a841fdb6fa947098e1a822bb160676ac5874ecd7141af758866ec4e54188a2"
+    },
+    {
+      "path": "src/ui/components/BedtimePrompt.tsx",
+      "sha256": "0316aaa54093eba82e3f649feaf64281792c8073543a108dcbc0325c274db1cc"
+    },
+    {
+      "path": "src/ui/components/CommitmentForm.tsx",
+      "sha256": "a4bb2c7e437d7b4f5099857debecbc6a598b8f069179ce8d0df3b46e15506ca3"
+    },
+    {
+      "path": "src/ui/components/DayCommitments.tsx",
+      "sha256": "bbfa14a37217ab260eb92ec140dd072de863340ff5452ff350f65c91f354ae7d"
+    },
+    {
+      "path": "src/ui/components/DayTasks.tsx",
+      "sha256": "e25485b83e2f1905ccfac40934dfd0bc5af8266258c60302f56f7b6678a23211"
+    },
+    {
+      "path": "src/ui/components/EveningTools.tsx",
+      "sha256": "05e6d503b7afef54ea29c73c20963b43c8d63b7336d44a351256f5947d419405"
+    },
+    {
+      "path": "src/ui/components/ExtraControls.tsx",
+      "sha256": "7d3eaa37cc68d75e4710145d05cabffd77177e5435a566e3bf6c25b88a2b688e"
+    },
+    {
+      "path": "src/ui/components/FocusFrame.tsx",
+      "sha256": "52a16859af6a101aa30d45183cfd4d1e4de7072aa61e12828b0f457f12ac84dc"
+    },
+    {
+      "path": "src/ui/components/GeofenceVisit.tsx",
+      "sha256": "e4e63bc37923953c9fcbdb31df010e6913dcaf83b52c94321af2a4e960ad448c"
+    },
+    {
+      "path": "src/ui/components/GuidanceControls.tsx",
+      "sha256": "d9dca08a336043f4c186648934d9d98ab89b3247b3e85c9a52301e3035579c96"
+    },
+    {
+      "path": "src/ui/components/GuidanceRuntime.tsx",
+      "sha256": "8e395991739b18a1fb9ac8c032afa2233e5b7e05e9450450e952ae333512119a"
+    },
+    {
+      "path": "src/ui/components/GuidanceTimeArc.tsx",
+      "sha256": "aa0289787e534552fa8e80621378d07263b4b743730838afa660193fc8e5724f"
+    },
+    {
+      "path": "src/ui/components/HomeOfficeContact.tsx",
+      "sha256": "b4730670fc20a1b14a90b7ac912cfe22eebfc3ad1cf003e7e93cbf5f15c6a8e8"
+    },
+    {
+      "path": "src/ui/components/HubContent.tsx",
+      "sha256": "66775c826d26ec1b94bfa45261580fab44142eb4ec8e63709c92b427e2512356"
+    },
+    {
+      "path": "src/ui/components/Packing.tsx",
+      "sha256": "1b5fdadb278a9d7be1ac768c106433707b0c8b89ed3318707ef899e0a50d4554"
+    },
+    {
+      "path": "src/ui/components/QrCode.tsx",
+      "sha256": "2e905c754605e44b663f2b099b2d776e37d5c95a7cb5abd9c6accc9424ae577d"
+    },
+    {
+      "path": "src/ui/components/RouteEstimateCard.tsx",
+      "sha256": "7cb2c76d6a81a107fd2b11a9171830dd9974f5af2b6c9cd2f6f655c32bba1aab"
+    },
+    {
+      "path": "src/ui/components/Shell.tsx",
+      "sha256": "44b1c06ef2b5466334407fb275c070b1f9d832fb78fa622d31b7747ba603ce5f"
+    },
+    {
+      "path": "src/ui/components/SmartWake.tsx",
+      "sha256": "cd4ad2b667121cf41f5bbf20f92c381e78e67b18b80aa44a2a99ef53dcb3a44b"
+    },
+    {
+      "path": "src/ui/components/Sortable.tsx",
+      "sha256": "a107a9291f5e7dd433dd51be6820e2f429680bd25a5babcda2b7b650eff4119e"
+    },
+    {
+      "path": "src/ui/components/SportToggle.tsx",
+      "sha256": "4689d8530378bdb4dbb000de911dbf6e9a3f1a6e7eba91c7cc08b687f6f9ddaa"
+    },
+    {
+      "path": "src/ui/components/Stuck.tsx",
+      "sha256": "3dc48de56111ad0466f801b36f1ea843840426891c5f1b8ed77f2366f8937682"
+    },
+    {
+      "path": "src/ui/components/TaskAssistance.tsx",
+      "sha256": "bb410e522270a8cfc7fe0f01f9b7001303c0bcf416206371f7bfb7dccef20c4d"
+    },
+    {
+      "path": "src/ui/components/TaskDetails.tsx",
+      "sha256": "504eab0d6865205e74f077cdac37a3d3daaf80e71f6f7e112edc133f67fe04e0"
+    },
+    {
+      "path": "src/ui/components/TaskPurpose.tsx",
+      "sha256": "0680f14f0e2d3f62c937ed5d02b64b0b721a7eacd85cfed075ed70335496824d"
+    },
+    {
+      "path": "src/ui/components/Timeline.tsx",
+      "sha256": "415329dcdd57f2505de3f0854c4455de32635a2647146d475f297f9afe54b15e"
+    },
+    {
+      "path": "src/ui/components/TodayDifferent.tsx",
+      "sha256": "c169bcdb764f3b80eac035b212d81dbf769b302c0d1b10f08e95b147a8a47a89"
+    },
+    {
+      "path": "src/ui/components/WakeSuggestion.tsx",
+      "sha256": "a31f113adad480de9f15fb57b8ad7ca0f2544e3a940505a8ff14d00e7c929a23"
+    },
+    {
+      "path": "src/ui/components/WeatherCard.tsx",
+      "sha256": "3a742ff6b2fb08acac0bac64775aa70586ed4aa1e3cd9a3714d035897794d0e1"
+    },
+    {
+      "path": "src/ui/components/WeatherSettings.tsx",
+      "sha256": "b0bac6444f526a1c53abe5f2cb7d51651b1799f5506eefd68d27bb308890373a"
+    },
+    {
+      "path": "src/ui/components/WorkControls.tsx",
+      "sha256": "064f1b22f0706a0dd8808308581fc0d82d7ac9fc4b86b723fc225cb1d7e674db"
+    },
+    {
+      "path": "src/ui/components/accessibility.test.ts",
+      "sha256": "f888d86b67789285a1aadc97cebf810c543483b1c129a098e52d2ade50b49916"
+    },
+    {
+      "path": "src/ui/components/fieldValues.test.ts",
+      "sha256": "8f1a13a45791e16f5bfd45c9037bc6d254269ed7d67ee04e24e88fe4552e0cf7"
+    },
+    {
+      "path": "src/ui/components/fieldValues.ts",
+      "sha256": "690d9ba22f7d2fcea9d951096e0ca216b9005a010e97810e2f5e0ef41f942b87"
+    },
+    {
+      "path": "src/ui/components/listUndo.test.ts",
+      "sha256": "9566a602a70e43978369e855bca63def90e480c990b2ace2f242ca3eec395957"
+    },
+    {
+      "path": "src/ui/components/listUndo.ts",
+      "sha256": "9f6c2a41cc9e44708ebb7ab0686add0ccd81cf6209613f782fa027637b165676"
+    },
+    {
+      "path": "src/ui/components/nowTitle.ts",
+      "sha256": "1744507f99535c670ada5739963b1636f735510f598694899639fb01877a5af8"
+    },
+    {
+      "path": "src/ui/components/ui.tsx",
+      "sha256": "68043a5b11c29a3f5bde31e6e9f7063cb0eb74705270b9138fba7cd7321d5ab6"
+    },
+    {
+      "path": "src/ui/pages/Alarm.tsx",
+      "sha256": "124ec5a0d7f2f61cb277b54ade744f582389797256fe4db3d340ff0881af836c"
+    },
+    {
+      "path": "src/ui/pages/AssistanceSettings.tsx",
+      "sha256": "c958cbe1119850484770f5ebe8f3e956b5b3cb518139b12b68770f91ca78004a"
+    },
+    {
+      "path": "src/ui/pages/Check.tsx",
+      "sha256": "13d1083bf8eabfc8f1400ebe97696d6b46c8fc92baca18356c2100d933e520e5"
+    },
+    {
+      "path": "src/ui/pages/Connections.tsx",
+      "sha256": "9531c7d24dcc694935c7641785eda8b6138a27cd419f2c2858ef7828dec71d8c"
+    },
+    {
+      "path": "src/ui/pages/Daily.tsx",
+      "sha256": "55daa922c11ad36734fd299accd59298122979c890ca521f8dfabb2503e82da0"
+    },
+    {
+      "path": "src/ui/pages/Day.tsx",
+      "sha256": "238dfb346635f3b67913a9362abcb0d95a2f57000616844d82f81f5fe527190a"
+    },
+    {
+      "path": "src/ui/pages/DeviceTests.tsx",
+      "sha256": "2d193c6ebd004bc8f3654d5774040aeded47ca7f1101731d4de05ae336fc7468"
+    },
+    {
+      "path": "src/ui/pages/Evening.tsx",
+      "sha256": "b619018d15fe595c426f10f117d66bc1297fbd7dedfc04d1774d237e00956296"
+    },
+    {
+      "path": "src/ui/pages/Focus.tsx",
+      "sha256": "64e901280bbe168ae332e07e551b0302d8c133be009a3ac8e352388c6052aa08"
+    },
+    {
+      "path": "src/ui/pages/Game.tsx",
+      "sha256": "db6e7487b5fcef789801b9eea356509aa086896375ba3331816a2813e0567e81"
+    },
+    {
+      "path": "src/ui/pages/GuidanceSettings.tsx",
+      "sha256": "2cca0c14a0eee52962180ac6ecd48e1c16d25d5d4c6ac0aac99d2094131ccb1a"
+    },
+    {
+      "path": "src/ui/pages/Hubs.tsx",
+      "sha256": "e7c207aed1c1b0328a723da04f39bc8bee75a72830b7aa15f1d0ec9691327fc1"
+    },
+    {
+      "path": "src/ui/pages/Inbox.tsx",
+      "sha256": "d7834ea05c2db5db5c3825708f3ab9064bcc1d31b34b60ddb93073602115e84c"
+    },
+    {
+      "path": "src/ui/pages/More.tsx",
+      "sha256": "45cfde08475a6e695764a36850aab27fa54840e804a5aeee49ef17f4f941518c"
+    },
+    {
+      "path": "src/ui/pages/Now.tsx",
+      "sha256": "cd5c9a651cccdb48a3fdc52b23aabaccc9731ebe7d544982fbe7c1db42bec07f"
+    },
+    {
+      "path": "src/ui/pages/Onboarding.tsx",
+      "sha256": "2ae40a188145f6f2b0dd7a86035ccab1425a6f4a0c8a21e5c28f23cc0795bb93"
+    },
+    {
+      "path": "src/ui/pages/PcCompanionPanel.tsx",
+      "sha256": "f94d46c4fe4791eb38628b5bd51ac568f1fb53b04ec8324678d20fdb734cf70c"
+    },
+    {
+      "path": "src/ui/pages/PcStop.tsx",
+      "sha256": "4b3377a5fe91cba9c42633cf9631ec2333a632b2343d1dea3f63ce5c192df391"
+    },
+    {
+      "path": "src/ui/pages/Places.tsx",
+      "sha256": "7696edb595d1f5f125027b1649aa3bf5147616e47e5815c63ff8b996ab827a1f"
+    },
+    {
+      "path": "src/ui/pages/QuickEntries.tsx",
+      "sha256": "a50de29ee9a22058a456b3c99db1cbef3e2281bac787b5647c84087e1996dc5c"
+    },
+    {
+      "path": "src/ui/pages/RhythmWeek.tsx",
+      "sha256": "fca23391ee1d5721772e8b3d34a6430a32e00b908015808d831301ab3f2309d7"
+    },
+    {
+      "path": "src/ui/pages/Settings.tsx",
+      "sha256": "ec9c4043cdb5acf068a08d1bc39e1a7488892ef69fdc70249f110ddf7f06e558"
+    },
+    {
+      "path": "src/ui/pages/Shop.tsx",
+      "sha256": "c66e39fde892cc91e42a1471ef58b9f8662b7cbe24d46c14314aa37b490671c0"
+    },
+    {
+      "path": "src/ui/pages/SleepDiary.tsx",
+      "sha256": "c9909ae1f472c5724229a2a94547633f2fec96d5254305631e98c32aa1d07e4a"
+    },
+    {
+      "path": "src/ui/pages/Static.tsx",
+      "sha256": "dc1cfada769b740684fc32955c67e951d9ea5cee6a672cf3b8f59455c0e54e26"
+    },
+    {
+      "path": "src/ui/pages/TaskFocus.tsx",
+      "sha256": "b3d09d03b5e0a12e181836fd4e227fc99898807953b8e0bd3cb00c672d1b8a68"
+    },
+    {
+      "path": "src/ui/pages/TimeOverview.tsx",
+      "sha256": "98c724f4535124b662ef7dcccfacd2722487fe511d880b654956a77ca379ff73"
+    },
+    {
+      "path": "src/ui/pages/WindDown.tsx",
+      "sha256": "132898e8e824f6cad24495f681bb76b3ba243fff1b63e409ae34925b3341b6ec"
+    },
+    {
+      "path": "src/ui/pages/Work.tsx",
+      "sha256": "266e5384cd09ce5f4ed566d8203bffb7086a197eb697a2f7d4a85f6eed3b945c"
+    },
+    {
+      "path": "src/ui/pages/WorkTime.tsx",
+      "sha256": "9ad59cd16060e766f778ac8e1226baeeb4337ecd6693b2b7a35fa20799e2f152"
+    },
+    {
+      "path": "src/ui/pages/now.css",
+      "sha256": "fb75f7e228d4e08a3ec6c24c78b84e45344f6790792c53b754600a4b34787fcb"
+    },
+    {
+      "path": "tsconfig.app.json",
+      "sha256": "f2f4d45dc7887e94c3213db132b93dfcb78b495177f4717b301c34105ef486c2"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "e8d6f7b50828db3953e21c7e92584f9206b3cd2551b4012507372afbb7fe9ce3"
+    },
+    {
+      "path": "tsconfig.node.json",
+      "sha256": "7dfdf4cc23777ba2e08bc403f5d670f5b03298911957bc1a95bf1afe5c07e1e9"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "9b0e488c99494d9e5a66964536a1ee123bcb294e1fb14618494e36f611a40656"
+    }
+  ],
+  "nativeTestSourceFingerprintSha256": "017ebc51a531a1a0834d79fcd883f512ff42cd910c0663a9a160756c94d298b2",
+  "nativeTestSources": [
+    {
+      "path": "android/app/src/test/java/com/getcapacitor/myapp/ExampleUnitTest.java",
+      "sha256": "d4045ae8fac1f0807e6b24eb34e68409a9a235df9d1a3f896fb8c9a49424363d"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/AlarmModelTest.kt",
+      "sha256": "1adcd0d295c6ead729ea06f16d32911f73d74c90355b6c165df1d47d38540081"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/AudioPlaybackLeaseTest.kt",
+      "sha256": "c965c298f59400e5a458a379819706f0eb08a730231108c5b4027853a92c0707"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/BedtimePromptModelTest.kt",
+      "sha256": "2818fbf486de2984eb04d7e8300aa23082f81bc0574428528ee0cb39be3cd703"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/GeofenceModelTest.kt",
+      "sha256": "fc5937766141c0eebaeb324c8a6f691d6dfb6f4a353db8f9d6795557e80d696b"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/PcBridgeCryptoTest.kt",
+      "sha256": "95d19d2ab6b570f8765b56ad056367e432fa379d4f35c43139048bb91573d904"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/PcLinkModelTest.kt",
+      "sha256": "648bc471d573e0a4099c5bd8bc9cae2cb7675f90a555623f13cbab2d3513554b"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/PreWakeFadeModelTest.kt",
+      "sha256": "85a9958d932e236d376169c85124135ccd3e3bcd7a85721d064321dee21b7c0b"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/PrintModelTest.kt",
+      "sha256": "029f737341706a0072777f258c8123765c02e4389ec1f9dd6c5ac70acbebfeda"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/ReminderModelTest.kt",
+      "sha256": "4c153af86bdd51f27c1b3db823d1d0c8d27c78d84c278f13101d0556bf76de13"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/ReminderRulesTest.kt",
+      "sha256": "a339b208c201e787ba1e8ed01cec9ed0030b40a28461b294464da816a5e8340c"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/RoutinePaceKeeperModelTest.kt",
+      "sha256": "c83a6b3ac7ddb11b716eebf67dc3cf831e7dc901aba92b1060ace81d1733e884"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/SleepAudioModelTest.kt",
+      "sha256": "3d008f178326d0bce66f69fe502f0b602f9122b0ce1affa8cb77322df7d32417"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/SmartWakeModelTest.kt",
+      "sha256": "150bce143530b2f239baa267f7d8fbfc862775d4b430ad5ac7224d014cdae987"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/V7AlarmModelTest.kt",
+      "sha256": "8034c982fc4ed05fe1139dc5293bbe2b15662a2964d0a30d2ed6696d9f9168c4"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/VoiceModelTest.kt",
+      "sha256": "29e64c58a290cdc20cf820af3b712aacc8bf48f7ec0541d2c0bd6eed67f99917"
+    },
+    {
+      "path": "android/app/src/test/java/de/frnkrm/anker/WidgetModelTest.kt",
+      "sha256": "b68e7d1dafc522bb1dba834b3c72ed962a99941d91fa313ab96931998400e3ca"
+    }
+  ],
+  "additionalProductionInputs": [
+    {
+      "path": "index.html",
+      "sha256": "0233f6410ded8d224bdb8659aae611c8be58a1b6b06562b5b4f3d8efb24d4d4f"
+    },
+    {
+      "path": "app.config.ts",
+      "sha256": "64faa64dde115c96aded23cf7da11b4798fbab94bd9561d5701e5e9a1a5f810c"
+    },
+    {
+      "path": "docs/GERAETETEST.md",
+      "sha256": "12f7578a65d2dfedcda98800c45447eee64377a416ad6cbb4346eaad458f3ca4"
+    },
+    {
+      "path": "supabase/functions/_shared/assistanceProtocol.ts",
+      "sha256": "1c7465853189fcff90c9b8797a37731a650410f1f8be64e9fa5cf393a21907a6"
+    },
+    {
+      "path": "supabase/functions/_shared/assistantHandler.ts",
+      "sha256": "45f72c84fc943a9ea4d5f4494af323581d0c09322d0e53f2f9edf82fd3795061"
+    },
+    {
+      "path": "supabase/functions/_shared/pcStopProtocol.ts",
+      "sha256": "f4c7581526684c972d45715b4437462599324c47251188697cbb1d2bd4cd747e"
+    }
+  ],
+  "versionCode": 14,
+  "versionName": "1.4.0-rc.1",
+  "workspace": "/workspace/anker-v7-native-followup-final",
+  "dependencyWorkspace": "/workspace/.cache/anker/v7-followup/native/node_modules",
+  "jvm": "/workspace/.cache/anker/jdk-downloads/jdk-21.0.8",
+  "sdk": "/workspace/.cache/anker/android-sdk",
+  "maxGradleWorkers": 2,
+  "rerunTasks": true,
+  "noBuildCache": true,
+  "signedApkBuilt": false,
+  "realAndroidDeviceTested": false,
+  "commands": [
+    {
+      "name": "copy-root-production-distribution-readonly",
+      "source": "/workspace/anker/dist",
+      "target": "/workspace/anker-v7-native-followup-final/dist",
+      "fileCount": 63,
+      "sha256AllFilesMatch": true
+    },
+    {
+      "name": "capacitor-sync",
+      "command": [
+        "node",
+        "node_modules/@capacitor/cli/bin/capacitor",
+        "sync",
+        "android"
+      ],
+      "log": "/workspace/.cache/anker/v7-followup/native/capacitor-sync.log",
+      "exitCode": 0,
+      "elapsedSeconds": 1.626,
+      "logSha256": "b3a099859e38c04a0d0a7b32be18a637f7ef01a653118b7e7e46e2ebf21afed6"
+    },
+    {
+      "name": "gradle-fresh",
+      "command": [
+        "bash",
+        "android/gradlew",
+        "-p",
+        "android",
+        "--offline",
+        "--no-daemon",
+        "--max-workers=2",
+        "--console=plain",
+        "--init-script",
+        "/workspace/.cache/anker/v7-followup/native/isolate-dependency-builds.gradle",
+        "--no-build-cache",
+        "--rerun-tasks",
+        ":app:checkDebugAarMetadata",
+        ":app:checkReleaseAarMetadata",
+        ":app:processDebugMainManifest",
+        ":app:processReleaseMainManifest",
+        ":app:compileDebugKotlin",
+        ":app:compileReleaseKotlin",
+        ":app:testDebugUnitTest"
+      ],
+      "log": "/workspace/.cache/anker/v7-followup/native/gradle-fresh.log",
+      "exitCode": 0,
+      "elapsedSeconds": 127.297,
+      "logSha256": "a088552c288c8b8f6de92dde1c86ce5fbcc923076bfe0b99b08aa707d9f96944"
+    }
+  ],
+  "rootProductionBundle": {
+    "observedRootCommitAtCopy": "7cccb464b6df0132b76abfbe991a5a16eb7136a5",
+    "runtimeSourceInputsIdenticalToSnapshot": true,
+    "runtimeSourceInputCount": 369,
+    "rootSourceIdentityProvidedByRoot": "78f5e674939bed16a04877835c83efba5602a6f550b8879eca08ecb730b14590",
+    "fingerprintSha256": "36b42b6f673a15026e9c41811c96915d724256fe20935809ea3976d553535fa3",
+    "files": [
+      {
+        "path": "dist/assets/Alarm-BVVG2rk3.js",
+        "sha256": "88339affee738460ba6e97f87d21ee8b0ab1accc164ce139339db804f1955707",
+        "bytes": 26677
+      },
+      {
+        "path": "dist/assets/AssistanceSettings-CoMMWslQ.js",
+        "sha256": "60a8f931451f824c12cac032027bff8051bb9068461a2c2b97be37ecf9fc7698",
+        "bytes": 8327
+      },
+      {
+        "path": "dist/assets/Check-BurlH5om.js",
+        "sha256": "cc9e3a06564c6aa9a62d00df53cf9ee0b34a1ebb5b364ffdfed527f7bddba7b7",
+        "bytes": 4225
+      },
+      {
+        "path": "dist/assets/Connections-B8h8P6Vd.js",
+        "sha256": "a7f83f1138cbbeecb8ac44c6c16c50230fa0fa063416f0c41de79deb5741d7ec",
+        "bytes": 4131
+      },
+      {
+        "path": "dist/assets/Daily-D60Se1_I.js",
+        "sha256": "3e5be22b67f95212e7e17d62956839730c6cf0f0213f53dbd0b047c719371e90",
+        "bytes": 11267
+      },
+      {
+        "path": "dist/assets/Day-BtYIpXmN.js",
+        "sha256": "1fb020eea7107211c4c4b80ef1808a64fa91f29d8c42bdf45757d764f2570967",
+        "bytes": 8214
+      },
+      {
+        "path": "dist/assets/DayTasks-BAk-SQY0.js",
+        "sha256": "591ad4123d9bf07b719c31b49934027c5204ad255bce15eff45815cce5fd3654",
+        "bytes": 13163
+      },
+      {
+        "path": "dist/assets/DeviceTests-Cc75_Byt.js",
+        "sha256": "4b71d527dfe348a15e3039ab867dc264ea3b3cfaf9f0e75ede6cd75a37646129",
+        "bytes": 78954
+      },
+      {
+        "path": "dist/assets/EveningTools-L4tMCn2d.js",
+        "sha256": "6033027ef1c875260226da6c656bc0039c2e13b2b4e6690eacd129c04f7cc6c5",
+        "bytes": 2879
+      },
+      {
+        "path": "dist/assets/ExtraControls-DtqA-K29.js",
+        "sha256": "c41d6867537f3a932b7c573c82ec45db9f44dd89578c62d37845182156aeffbe",
+        "bytes": 6563
+      },
+      {
+        "path": "dist/assets/Focus-KP-_fOs0.js",
+        "sha256": "d35efd9c9fbc42e31a0c2568cf1828b96d9d2ba16e1fed5884a3570b5d0b8515",
+        "bytes": 8484
+      },
+      {
+        "path": "dist/assets/FocusFrame-Bl-jEXJ6.js",
+        "sha256": "985ceab717f64a7aba6ed3988bb6d10983d08c9e1860da0b6f27070a53b5c300",
+        "bytes": 869
+      },
+      {
+        "path": "dist/assets/HubContent-C_w3lyF9.js",
+        "sha256": "c6d85d967ca69dbfd0f8e48a4a244a5a41fcb93d3af6cf4f72e754ceec8a872f",
+        "bytes": 346
+      },
+      {
+        "path": "dist/assets/Hubs-C6DRAqzy.js",
+        "sha256": "a8d0c858d609d19597399394130f7683921ed45e188aa5d4b3d5a0255017cb77",
+        "bytes": 47289
+      },
+      {
+        "path": "dist/assets/Inbox-CwMCleeP.js",
+        "sha256": "b77befc6702392cf4194298f88b7720fb2ca0a31d5bbba9884cef1f8460b3f68",
+        "bytes": 8877
+      },
+      {
+        "path": "dist/assets/More-D7vlhK7H.js",
+        "sha256": "f91c0db4673d568bbb290d30d7cf6fd4a67f602c33f235b59540535d5f8abb8b",
+        "bytes": 2806
+      },
+      {
+        "path": "dist/assets/Onboarding-FaY1cbYi.js",
+        "sha256": "54108a5c2a271a280531a68d9c46b7c841867d66c79b922afec35be6635cd637",
+        "bytes": 6466
+      },
+      {
+        "path": "dist/assets/PcStop-YFipvfu8.js",
+        "sha256": "bc599739e68f7a155e3d0ade68d36a9133e7fae5a1231ca3a67331ca711768fc",
+        "bytes": 46355
+      },
+      {
+        "path": "dist/assets/Places-C1G2D29z.js",
+        "sha256": "a9c94cea155658e1cfa2442cf7e719ad188b91c044791c9ac6f2853c3b873cb8",
+        "bytes": 7103
+      },
+      {
+        "path": "dist/assets/QrCode-g_7rQZrs.js",
+        "sha256": "adcfa90b5e2ed4aca9701473f6084f347608adb983de896461eba47a77d0dd70",
+        "bytes": 24087
+      },
+      {
+        "path": "dist/assets/QuickEntries-1EZKMEn8.js",
+        "sha256": "aeaa19f1971c094ff5607daa48cdd35630295560c0c7299bf7dcc660142393cd",
+        "bytes": 3938
+      },
+      {
+        "path": "dist/assets/RhythmWeek-D09azJQu.js",
+        "sha256": "59a3213ad11cb1d88dfab1f9343f7cf1a9a7009f22190b9bab0bea712d327832",
+        "bytes": 5531
+      },
+      {
+        "path": "dist/assets/RouteEstimateCard-C7wN5gJU.js",
+        "sha256": "707ac720ee56c4d0da36dffb0641e5b1d15fb0466b70f7f71ed520c22b650413",
+        "bytes": 9290
+      },
+      {
+        "path": "dist/assets/Settings-CxZBshVD.js",
+        "sha256": "9b8c4833f3a9c6199ea7db4f50b996a5c8fa8eccdb68ae976d2d324cbc29ee67",
+        "bytes": 45210
+      },
+      {
+        "path": "dist/assets/Sortable-Bsrs5_Wb.js",
+        "sha256": "1c8869b2b1280361e5898b84cca84d7043307aeb5cf3428931491a2fac06f35b",
+        "bytes": 4283
+      },
+      {
+        "path": "dist/assets/Static-DRuOdxjT.js",
+        "sha256": "cde0eaa86a413a07b47db1f2e3cc1c1e663f0316f3d44973c359a3bd11607816",
+        "bytes": 18174
+      },
+      {
+        "path": "dist/assets/TaskFocus-DkXl2Zpe.js",
+        "sha256": "c05d93bdb117c03a3ef2d6ba0e38e1d76854aaff8ac307a2a6986b8755f4d9f5",
+        "bytes": 11700
+      },
+      {
+        "path": "dist/assets/TimeOverview-BTvkSnv7.js",
+        "sha256": "56efdb1d1bba27c8eae6807cc4c7da3a6c0e88a714f984dfef713c71cddc4d5f",
+        "bytes": 8741
+      },
+      {
+        "path": "dist/assets/WindDown-DqdzgZo6.js",
+        "sha256": "cdcdd192bb862940c65af071c595e3d5703c247a394d2d0203da08027fbc6e10",
+        "bytes": 3471
+      },
+      {
+        "path": "dist/assets/assistance-hlAj-_nP.js",
+        "sha256": "140237a1148061efdf6328dec80dea468c67ca452f4249b34a7e971f6d974e4f",
+        "bytes": 4278
+      },
+      {
+        "path": "dist/assets/definitions-CABDGlQN.js",
+        "sha256": "c5c107cf9a26ca865c4a2659b478ee5c1197bf9994ea6e866f7672a99443081e",
+        "bytes": 1434
+      },
+      {
+        "path": "dist/assets/dexie-BCkLnYMt.js",
+        "sha256": "a8721da99f95d2e33bc9a6fd8e1d28484ccae60707ca1541ee37b9c803e4af53",
+        "bytes": 99269
+      },
+      {
+        "path": "dist/assets/dist-DcsUVknb.js",
+        "sha256": "c8dfe2b99e56c96eaade8d41ef974e96b38c6be2f9df4cfd0e9531d9770fbea7",
+        "bytes": 7770
+      },
+      {
+        "path": "dist/assets/files-DoD3DflA.js",
+        "sha256": "796f5838aff5347a32ec4ffcb8fbcf2653c8ffd99d7effc208832e52c7b868a0",
+        "bytes": 2386
+      },
+      {
+        "path": "dist/assets/guidance-75VPSt_F.js",
+        "sha256": "2ea67f1ab1aec342b22875c8761eade141be9b892cca14d77e3048d29f24ccf1",
+        "bytes": 14723
+      },
+      {
+        "path": "dist/assets/hooks-CxO-p7lg.js",
+        "sha256": "e8416a97cf70871c8eb570b08ebe04fc9e078655d1e9217e3eaf85f444f19067",
+        "bytes": 1099
+      },
+      {
+        "path": "dist/assets/index-DY3a7vxQ.css",
+        "sha256": "dc6717d42d3faeb8d808696f06d0fe7a398355ac39facbbf20a60683e5f9dda4",
+        "bytes": 38563
+      },
+      {
+        "path": "dist/assets/index-yk-NlaAF.js",
+        "sha256": "714fe647270031e8be719a94726d25232c2afa0276217fc0fbccdc286e6dcb37",
+        "bytes": 431985
+      },
+      {
+        "path": "dist/assets/merge-DpDRz7CM.js",
+        "sha256": "775da85c5fc2824cbf658d19cedf151d1ce8a3531aa88951bcee3033218f59eb",
+        "bytes": 115
+      },
+      {
+        "path": "dist/assets/preload-helper-BLdHbfdN.js",
+        "sha256": "8aec9ff75ffa86a03d51268b63126abadb3754aa5a6b6c5bb16e4e2446a63dee",
+        "bytes": 1519
+      },
+      {
+        "path": "dist/assets/rolldown-runtime-WkwZ5CU-.js",
+        "sha256": "2629f2ad3cb75a57d98de697127f5af7d777ef572bbcdfa6e3ce8f438cd4527e",
+        "bytes": 599
+      },
+      {
+        "path": "dist/assets/sqlite-CNjjOAzF.js",
+        "sha256": "717de9ce1c2b8c42264e8b0e86c7d2048d5f3e2f09eff76ef19b9056309c0f51",
+        "bytes": 16554
+      },
+      {
+        "path": "dist/assets/supabase-D2x8iseL.js",
+        "sha256": "3a1b1348e490af24ffd8382e0323e325bfca2eaf23e15fb8b7435ead9e6a802d",
+        "bytes": 4680
+      },
+      {
+        "path": "dist/assets/support-pnTOPIrH.js",
+        "sha256": "d559f1d37648f47cc9e7e69aacb2c0249e934498f074b8fc7520a3b179be7c98",
+        "bytes": 11741
+      },
+      {
+        "path": "dist/assets/ui-DjnLCag6.js",
+        "sha256": "dc06abd4eb1249023d3d042e12f04bfca04a3b01e7018e1d88613440e89bd6ff",
+        "bytes": 273983
+      },
+      {
+        "path": "dist/assets/weather-Dleu2LOG.js",
+        "sha256": "d66123d354c371b8cbe0c377a047f390728e7d4417530abcbf4a2d86bea468ea",
+        "bytes": 5191
+      },
+      {
+        "path": "dist/assets/web-B8r6_vxr.js",
+        "sha256": "eb5d3c1a8d5def0c3d528069c1cdbac717782591bc74a03530a5d64c80a33581",
+        "bytes": 8470
+      },
+      {
+        "path": "dist/assets/web-BJzidajJ.js",
+        "sha256": "130b583dbd7d1aa7f015308157216865f13c34840268637fa383f978711407a6",
+        "bytes": 996
+      },
+      {
+        "path": "dist/assets/web-C8kWUwB5.js",
+        "sha256": "583e7b19e8fc39e9f53905e4dc7442021fba4cf8ff2b91264f87963f85205a88",
+        "bytes": 843
+      },
+      {
+        "path": "dist/assets/web-CLm6Ds7Z.js",
+        "sha256": "498ec5c77158a11c27109bf43c7d6a922a945a8bf66376c5d05f669a617a3663",
+        "bytes": 361
+      },
+      {
+        "path": "dist/assets/web-DOHLYb0X.js",
+        "sha256": "364798a1d8b18c558ae36a23959c182ad47cf7970c0cb3ccacb0809d148e604c",
+        "bytes": 3467
+      },
+      {
+        "path": "dist/assets/web-Dp59xo_i.js",
+        "sha256": "b8f07e12fbbe01e66a67f7dab6e3f7bb8cb9dc5a98b9fc084b4e68841dc548a8",
+        "bytes": 14977
+      },
+      {
+        "path": "dist/assets/web-DygZmq-4.js",
+        "sha256": "a534cf422f72576e7bb552d14ef40486b64d09f37e22d41063d7ed654b0e9616",
+        "bytes": 4437
+      },
+      {
+        "path": "dist/assets/web-Kh2XW3f4.js",
+        "sha256": "1adcbb04103a207b3da540c1c37cf5dd8e9f1772eddf829c9552959db37dd171",
+        "bytes": 9463
+      },
+      {
+        "path": "dist/assets/web-Zm42oYYI.js",
+        "sha256": "d9992ee92e80891231dba6bfe1010e687b96643e094c8ffeb9ee7e863a951e79",
+        "bytes": 364
+      },
+      {
+        "path": "dist/icon-192.png",
+        "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a",
+        "bytes": 6541
+      },
+      {
+        "path": "dist/icon-512.png",
+        "sha256": "ab138838cd6470c7a9e04555a1c99873b7257efe49c624589c86e019c7f424bc",
+        "bytes": 17795
+      },
+      {
+        "path": "dist/icon.svg",
+        "sha256": "6bdc58f0762ec315be71e86554650b56aaa0377cca0ea793bf688b1f4035e5ce",
+        "bytes": 468
+      },
+      {
+        "path": "dist/index.html",
+        "sha256": "b509a2bfc1f00d3e1fec6574ea1e1ac39c337f64aa4dda83be1d84869c18eafb",
+        "bytes": 1784
+      },
+      {
+        "path": "dist/manifest.webmanifest",
+        "sha256": "8c5d40c53c8806ce801e4454c892e8dbf62ebe3c34a7fe7dac786703e2126b12",
+        "bytes": 421
+      },
+      {
+        "path": "dist/registerSW.js",
+        "sha256": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b",
+        "bytes": 134
+      },
+      {
+        "path": "dist/sw.js",
+        "sha256": "27278b855ae180c46b1a2c706dc082165dcfaf8fb06514cdad6eaaa68095e978",
+        "bytes": 4090
+      },
+      {
+        "path": "dist/workbox-9c191d2f.js",
+        "sha256": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37",
+        "bytes": 15112
+      }
+    ]
+  },
+  "webDistribution": {
+    "fingerprintSha256": "36b42b6f673a15026e9c41811c96915d724256fe20935809ea3976d553535fa3",
+    "files": [
+      {
+        "path": "dist/assets/Alarm-BVVG2rk3.js",
+        "sha256": "88339affee738460ba6e97f87d21ee8b0ab1accc164ce139339db804f1955707",
+        "bytes": 26677
+      },
+      {
+        "path": "dist/assets/AssistanceSettings-CoMMWslQ.js",
+        "sha256": "60a8f931451f824c12cac032027bff8051bb9068461a2c2b97be37ecf9fc7698",
+        "bytes": 8327
+      },
+      {
+        "path": "dist/assets/Check-BurlH5om.js",
+        "sha256": "cc9e3a06564c6aa9a62d00df53cf9ee0b34a1ebb5b364ffdfed527f7bddba7b7",
+        "bytes": 4225
+      },
+      {
+        "path": "dist/assets/Connections-B8h8P6Vd.js",
+        "sha256": "a7f83f1138cbbeecb8ac44c6c16c50230fa0fa063416f0c41de79deb5741d7ec",
+        "bytes": 4131
+      },
+      {
+        "path": "dist/assets/Daily-D60Se1_I.js",
+        "sha256": "3e5be22b67f95212e7e17d62956839730c6cf0f0213f53dbd0b047c719371e90",
+        "bytes": 11267
+      },
+      {
+        "path": "dist/assets/Day-BtYIpXmN.js",
+        "sha256": "1fb020eea7107211c4c4b80ef1808a64fa91f29d8c42bdf45757d764f2570967",
+        "bytes": 8214
+      },
+      {
+        "path": "dist/assets/DayTasks-BAk-SQY0.js",
+        "sha256": "591ad4123d9bf07b719c31b49934027c5204ad255bce15eff45815cce5fd3654",
+        "bytes": 13163
+      },
+      {
+        "path": "dist/assets/DeviceTests-Cc75_Byt.js",
+        "sha256": "4b71d527dfe348a15e3039ab867dc264ea3b3cfaf9f0e75ede6cd75a37646129",
+        "bytes": 78954
+      },
+      {
+        "path": "dist/assets/EveningTools-L4tMCn2d.js",
+        "sha256": "6033027ef1c875260226da6c656bc0039c2e13b2b4e6690eacd129c04f7cc6c5",
+        "bytes": 2879
+      },
+      {
+        "path": "dist/assets/ExtraControls-DtqA-K29.js",
+        "sha256": "c41d6867537f3a932b7c573c82ec45db9f44dd89578c62d37845182156aeffbe",
+        "bytes": 6563
+      },
+      {
+        "path": "dist/assets/Focus-KP-_fOs0.js",
+        "sha256": "d35efd9c9fbc42e31a0c2568cf1828b96d9d2ba16e1fed5884a3570b5d0b8515",
+        "bytes": 8484
+      },
+      {
+        "path": "dist/assets/FocusFrame-Bl-jEXJ6.js",
+        "sha256": "985ceab717f64a7aba6ed3988bb6d10983d08c9e1860da0b6f27070a53b5c300",
+        "bytes": 869
+      },
+      {
+        "path": "dist/assets/HubContent-C_w3lyF9.js",
+        "sha256": "c6d85d967ca69dbfd0f8e48a4a244a5a41fcb93d3af6cf4f72e754ceec8a872f",
+        "bytes": 346
+      },
+      {
+        "path": "dist/assets/Hubs-C6DRAqzy.js",
+        "sha256": "a8d0c858d609d19597399394130f7683921ed45e188aa5d4b3d5a0255017cb77",
+        "bytes": 47289
+      },
+      {
+        "path": "dist/assets/Inbox-CwMCleeP.js",
+        "sha256": "b77befc6702392cf4194298f88b7720fb2ca0a31d5bbba9884cef1f8460b3f68",
+        "bytes": 8877
+      },
+      {
+        "path": "dist/assets/More-D7vlhK7H.js",
+        "sha256": "f91c0db4673d568bbb290d30d7cf6fd4a67f602c33f235b59540535d5f8abb8b",
+        "bytes": 2806
+      },
+      {
+        "path": "dist/assets/Onboarding-FaY1cbYi.js",
+        "sha256": "54108a5c2a271a280531a68d9c46b7c841867d66c79b922afec35be6635cd637",
+        "bytes": 6466
+      },
+      {
+        "path": "dist/assets/PcStop-YFipvfu8.js",
+        "sha256": "bc599739e68f7a155e3d0ade68d36a9133e7fae5a1231ca3a67331ca711768fc",
+        "bytes": 46355
+      },
+      {
+        "path": "dist/assets/Places-C1G2D29z.js",
+        "sha256": "a9c94cea155658e1cfa2442cf7e719ad188b91c044791c9ac6f2853c3b873cb8",
+        "bytes": 7103
+      },
+      {
+        "path": "dist/assets/QrCode-g_7rQZrs.js",
+        "sha256": "adcfa90b5e2ed4aca9701473f6084f347608adb983de896461eba47a77d0dd70",
+        "bytes": 24087
+      },
+      {
+        "path": "dist/assets/QuickEntries-1EZKMEn8.js",
+        "sha256": "aeaa19f1971c094ff5607daa48cdd35630295560c0c7299bf7dcc660142393cd",
+        "bytes": 3938
+      },
+      {
+        "path": "dist/assets/RhythmWeek-D09azJQu.js",
+        "sha256": "59a3213ad11cb1d88dfab1f9343f7cf1a9a7009f22190b9bab0bea712d327832",
+        "bytes": 5531
+      },
+      {
+        "path": "dist/assets/RouteEstimateCard-C7wN5gJU.js",
+        "sha256": "707ac720ee56c4d0da36dffb0641e5b1d15fb0466b70f7f71ed520c22b650413",
+        "bytes": 9290
+      },
+      {
+        "path": "dist/assets/Settings-CxZBshVD.js",
+        "sha256": "9b8c4833f3a9c6199ea7db4f50b996a5c8fa8eccdb68ae976d2d324cbc29ee67",
+        "bytes": 45210
+      },
+      {
+        "path": "dist/assets/Sortable-Bsrs5_Wb.js",
+        "sha256": "1c8869b2b1280361e5898b84cca84d7043307aeb5cf3428931491a2fac06f35b",
+        "bytes": 4283
+      },
+      {
+        "path": "dist/assets/Static-DRuOdxjT.js",
+        "sha256": "cde0eaa86a413a07b47db1f2e3cc1c1e663f0316f3d44973c359a3bd11607816",
+        "bytes": 18174
+      },
+      {
+        "path": "dist/assets/TaskFocus-DkXl2Zpe.js",
+        "sha256": "c05d93bdb117c03a3ef2d6ba0e38e1d76854aaff8ac307a2a6986b8755f4d9f5",
+        "bytes": 11700
+      },
+      {
+        "path": "dist/assets/TimeOverview-BTvkSnv7.js",
+        "sha256": "56efdb1d1bba27c8eae6807cc4c7da3a6c0e88a714f984dfef713c71cddc4d5f",
+        "bytes": 8741
+      },
+      {
+        "path": "dist/assets/WindDown-DqdzgZo6.js",
+        "sha256": "cdcdd192bb862940c65af071c595e3d5703c247a394d2d0203da08027fbc6e10",
+        "bytes": 3471
+      },
+      {
+        "path": "dist/assets/assistance-hlAj-_nP.js",
+        "sha256": "140237a1148061efdf6328dec80dea468c67ca452f4249b34a7e971f6d974e4f",
+        "bytes": 4278
+      },
+      {
+        "path": "dist/assets/definitions-CABDGlQN.js",
+        "sha256": "c5c107cf9a26ca865c4a2659b478ee5c1197bf9994ea6e866f7672a99443081e",
+        "bytes": 1434
+      },
+      {
+        "path": "dist/assets/dexie-BCkLnYMt.js",
+        "sha256": "a8721da99f95d2e33bc9a6fd8e1d28484ccae60707ca1541ee37b9c803e4af53",
+        "bytes": 99269
+      },
+      {
+        "path": "dist/assets/dist-DcsUVknb.js",
+        "sha256": "c8dfe2b99e56c96eaade8d41ef974e96b38c6be2f9df4cfd0e9531d9770fbea7",
+        "bytes": 7770
+      },
+      {
+        "path": "dist/assets/files-DoD3DflA.js",
+        "sha256": "796f5838aff5347a32ec4ffcb8fbcf2653c8ffd99d7effc208832e52c7b868a0",
+        "bytes": 2386
+      },
+      {
+        "path": "dist/assets/guidance-75VPSt_F.js",
+        "sha256": "2ea67f1ab1aec342b22875c8761eade141be9b892cca14d77e3048d29f24ccf1",
+        "bytes": 14723
+      },
+      {
+        "path": "dist/assets/hooks-CxO-p7lg.js",
+        "sha256": "e8416a97cf70871c8eb570b08ebe04fc9e078655d1e9217e3eaf85f444f19067",
+        "bytes": 1099
+      },
+      {
+        "path": "dist/assets/index-DY3a7vxQ.css",
+        "sha256": "dc6717d42d3faeb8d808696f06d0fe7a398355ac39facbbf20a60683e5f9dda4",
+        "bytes": 38563
+      },
+      {
+        "path": "dist/assets/index-yk-NlaAF.js",
+        "sha256": "714fe647270031e8be719a94726d25232c2afa0276217fc0fbccdc286e6dcb37",
+        "bytes": 431985
+      },
+      {
+        "path": "dist/assets/merge-DpDRz7CM.js",
+        "sha256": "775da85c5fc2824cbf658d19cedf151d1ce8a3531aa88951bcee3033218f59eb",
+        "bytes": 115
+      },
+      {
+        "path": "dist/assets/preload-helper-BLdHbfdN.js",
+        "sha256": "8aec9ff75ffa86a03d51268b63126abadb3754aa5a6b6c5bb16e4e2446a63dee",
+        "bytes": 1519
+      },
+      {
+        "path": "dist/assets/rolldown-runtime-WkwZ5CU-.js",
+        "sha256": "2629f2ad3cb75a57d98de697127f5af7d777ef572bbcdfa6e3ce8f438cd4527e",
+        "bytes": 599
+      },
+      {
+        "path": "dist/assets/sqlite-CNjjOAzF.js",
+        "sha256": "717de9ce1c2b8c42264e8b0e86c7d2048d5f3e2f09eff76ef19b9056309c0f51",
+        "bytes": 16554
+      },
+      {
+        "path": "dist/assets/supabase-D2x8iseL.js",
+        "sha256": "3a1b1348e490af24ffd8382e0323e325bfca2eaf23e15fb8b7435ead9e6a802d",
+        "bytes": 4680
+      },
+      {
+        "path": "dist/assets/support-pnTOPIrH.js",
+        "sha256": "d559f1d37648f47cc9e7e69aacb2c0249e934498f074b8fc7520a3b179be7c98",
+        "bytes": 11741
+      },
+      {
+        "path": "dist/assets/ui-DjnLCag6.js",
+        "sha256": "dc06abd4eb1249023d3d042e12f04bfca04a3b01e7018e1d88613440e89bd6ff",
+        "bytes": 273983
+      },
+      {
+        "path": "dist/assets/weather-Dleu2LOG.js",
+        "sha256": "d66123d354c371b8cbe0c377a047f390728e7d4417530abcbf4a2d86bea468ea",
+        "bytes": 5191
+      },
+      {
+        "path": "dist/assets/web-B8r6_vxr.js",
+        "sha256": "eb5d3c1a8d5def0c3d528069c1cdbac717782591bc74a03530a5d64c80a33581",
+        "bytes": 8470
+      },
+      {
+        "path": "dist/assets/web-BJzidajJ.js",
+        "sha256": "130b583dbd7d1aa7f015308157216865f13c34840268637fa383f978711407a6",
+        "bytes": 996
+      },
+      {
+        "path": "dist/assets/web-C8kWUwB5.js",
+        "sha256": "583e7b19e8fc39e9f53905e4dc7442021fba4cf8ff2b91264f87963f85205a88",
+        "bytes": 843
+      },
+      {
+        "path": "dist/assets/web-CLm6Ds7Z.js",
+        "sha256": "498ec5c77158a11c27109bf43c7d6a922a945a8bf66376c5d05f669a617a3663",
+        "bytes": 361
+      },
+      {
+        "path": "dist/assets/web-DOHLYb0X.js",
+        "sha256": "364798a1d8b18c558ae36a23959c182ad47cf7970c0cb3ccacb0809d148e604c",
+        "bytes": 3467
+      },
+      {
+        "path": "dist/assets/web-Dp59xo_i.js",
+        "sha256": "b8f07e12fbbe01e66a67f7dab6e3f7bb8cb9dc5a98b9fc084b4e68841dc548a8",
+        "bytes": 14977
+      },
+      {
+        "path": "dist/assets/web-DygZmq-4.js",
+        "sha256": "a534cf422f72576e7bb552d14ef40486b64d09f37e22d41063d7ed654b0e9616",
+        "bytes": 4437
+      },
+      {
+        "path": "dist/assets/web-Kh2XW3f4.js",
+        "sha256": "1adcbb04103a207b3da540c1c37cf5dd8e9f1772eddf829c9552959db37dd171",
+        "bytes": 9463
+      },
+      {
+        "path": "dist/assets/web-Zm42oYYI.js",
+        "sha256": "d9992ee92e80891231dba6bfe1010e687b96643e094c8ffeb9ee7e863a951e79",
+        "bytes": 364
+      },
+      {
+        "path": "dist/icon-192.png",
+        "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a",
+        "bytes": 6541
+      },
+      {
+        "path": "dist/icon-512.png",
+        "sha256": "ab138838cd6470c7a9e04555a1c99873b7257efe49c624589c86e019c7f424bc",
+        "bytes": 17795
+      },
+      {
+        "path": "dist/icon.svg",
+        "sha256": "6bdc58f0762ec315be71e86554650b56aaa0377cca0ea793bf688b1f4035e5ce",
+        "bytes": 468
+      },
+      {
+        "path": "dist/index.html",
+        "sha256": "b509a2bfc1f00d3e1fec6574ea1e1ac39c337f64aa4dda83be1d84869c18eafb",
+        "bytes": 1784
+      },
+      {
+        "path": "dist/manifest.webmanifest",
+        "sha256": "8c5d40c53c8806ce801e4454c892e8dbf62ebe3c34a7fe7dac786703e2126b12",
+        "bytes": 421
+      },
+      {
+        "path": "dist/registerSW.js",
+        "sha256": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b",
+        "bytes": 134
+      },
+      {
+        "path": "dist/sw.js",
+        "sha256": "27278b855ae180c46b1a2c706dc082165dcfaf8fb06514cdad6eaaa68095e978",
+        "bytes": 4090
+      },
+      {
+        "path": "dist/workbox-9c191d2f.js",
+        "sha256": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37",
+        "bytes": 15112
+      }
+    ]
+  },
+  "effectiveNativeInputFingerprintSha256": "66657a4b12facdbec27ed5fdb13791f7e9b711fe5253bbba574801900711f4b3",
+  "effectiveNativeInputs": [
+    {
+      "path": "android/app/build.gradle",
+      "sha256": "430ceb85bda133956b3f036fa6519cf49034430a176d06fef0ba1a8c989e68d2"
+    },
+    {
+      "path": "android/app/capacitor.build.gradle",
+      "sha256": "7187863481ca2a40d1e39bbec9d7b03f15232d35886da3f73dca817162a5b4b3"
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "sha256": "9aa78548369e572cf6042a8f559fd0615be121bda5be4c50c9b7cba26877644b"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmController.kt",
+      "sha256": "61b8e4f3b090c9a41355676d8d803efd6082ff86645b151ef103e047d8736956"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmModel.kt",
+      "sha256": "c45717baa985e69511476a9146d884b4559f61406cc84b49fbc9605ced14d495"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmService.kt",
+      "sha256": "d67f535f9737a591ae2807b83626a90d98452f10c55de45165793efd2bff0b74"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AlarmTonePreview.kt",
+      "sha256": "19e7e2f9c89a6c950e9044daa8184c7db21361f9c02f9245d7752cc1e1cc1669"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerNativePlugin.kt",
+      "sha256": "3c88e72cb7340062ce3a283f61b0ed743998d2782ab256926e4914a7311adf01"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerPrefs.kt",
+      "sha256": "781469ead2c2d84d995e6563d9af467bc0850ecf937cfd43ed99bb10cab0221c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AnkerWidget.kt",
+      "sha256": "3dd29dfa7344a427b420b714bef1dab00dc0427d5f9fdb9830775e7c64334079"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/AudioPlaybackLease.kt",
+      "sha256": "44c480086b10b6247d2c05777f68e9adce178212168ff8d47f7e8becda0720ab"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptController.kt",
+      "sha256": "a4caa6e5abbe7edb36a220f0cba055f709f54652aef17cf348e0d4aae01f4a51"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptModel.kt",
+      "sha256": "e583836d5c4e109eadd4b38770bccf7e4c63b50ee0896b3425360639aa75f6e7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/BedtimePromptReceiver.kt",
+      "sha256": "eea1de07ede7c3a5d3485337cce63a8ce8faadca45f9099ec1ae6a3ca72ac5af"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceManager.kt",
+      "sha256": "09d7ab3a1700980a3193f5fe6fe070cb8eb410bc99ff3cb96f6c2937649a2d4b"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceModel.kt",
+      "sha256": "4630e980aabd12272937ab43d3b1d5d6636d97f70a28ffcac26f9f4a7f8b7f3a"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/GeofenceReceiver.kt",
+      "sha256": "499429a4a044ee9ef3ef44de40f446d6c0cfbb29f3d7264c8866cf55a60581d7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/LocalVoiceController.kt",
+      "sha256": "6ec6a1625a88ed33031f72beef7b464ccc8653e4d7a17b649bc2e6cf215919e8"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/MainActivity.kt",
+      "sha256": "49456ec2311d28891bf25aa953808d60a20c39dcd82b0cec6fcad8212e3511da"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeClient.kt",
+      "sha256": "e51d2af9c323604dfecb2bef89258d4567b587c45464d420d89a5ef2c7668470"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeCrypto.kt",
+      "sha256": "5fc5582e36eb4af0bd8c54a9d902fca03129de582807e54bc8600b67f906ed9c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeDiscovery.kt",
+      "sha256": "f98d3e508339d3356c59a280fc24ee9bc3de29b527915c878cf249298174cb21"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeService.kt",
+      "sha256": "c1747100947f4a9c8b294ae1a8cfc4f82e3793d7e9eb0b8949ed13dbd23f50db"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcBridgeVault.kt",
+      "sha256": "caf506b22f514f9c334332a3e96e666c1178269d517f45066295125be94796d3"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PcLinkModel.kt",
+      "sha256": "15e371bd25228103fd18d4d5887819ab8c62f1721ca52c5ff65087008acf95fb"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PreWakeFadeModel.kt",
+      "sha256": "dc0636ed160cdd98e86b27e28e5cb67b202443f77d64faab9f97c7ec34a9116f"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PrintModel.kt",
+      "sha256": "0f4719af545c57aa78b78a72dfbc381357e2a1cfb8bac2db99933fa53dd79a62"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/PrintRenderer.kt",
+      "sha256": "fd179de04de5de6916f54499b9e786e08179198c4cb18333d753ac0bacd6cb38"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/Receivers.kt",
+      "sha256": "51946feb352acfe41d366c9877cc2e3c76809d56e0a87f3036346227e5736a0c"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderModel.kt",
+      "sha256": "b2a149a6406bd049f3aa9ca5d04d29b03ef9a04cb1616a3138468e9d25872498"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderRules.kt",
+      "sha256": "9ec528e95d278dbb67f9497c9f2828b8de255095e59d2dc4b82422e70b6cd761"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/ReminderScheduler.kt",
+      "sha256": "6c72b4a22db056d3e9a22c28f27c29a8a838b895f435e3ee5462fa04f3cd3b85"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/RoutinePaceKeeperModel.kt",
+      "sha256": "f4abad6ed006b2ff4dbd9c84bf5b7db0a5d17d99bcd58aa3d1b4934d185edd61"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/RoutinePaceKeeperService.kt",
+      "sha256": "a2d967aabc01e8a8278854ffb17c332ca5a26650daa344ef05d7d4afa7831733"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SleepAudioModel.kt",
+      "sha256": "95f85d8fbec02e6c1c1298d320f0ebe10902c2b85ff37b00a7e22e64426057fd"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SleepAudioService.kt",
+      "sha256": "b1ed602601c16da4dd02c56ca917202b02951fc65615e2a821d3d57037798e3f"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SmartWakeModel.kt",
+      "sha256": "a53a6e6a00bf92f4189f371d623fee0a41521008ec1dc5097a6a00bd58579da7"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/SmartWakeService.kt",
+      "sha256": "c959fe1bf51e13ea9ffa7a21d08780c2ba970a90d8bcca07e5739eeadb0c0c49"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/VoiceModel.kt",
+      "sha256": "b6e4288170efc0d1db9f5c4a347592828ef3fb23d7755e55e1582271287f473a"
+    },
+    {
+      "path": "android/app/src/main/java/de/frnkrm/anker/WidgetModel.kt",
+      "sha256": "0122167b32768822107ce9b97a2ee20fced29d8a2f866990d954c10ded7b9b54"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-hdpi/splash.png",
+      "sha256": "08cc34ad7713fe7ed58bceaa37b2387b670c53cd60264b4bd6442db3098e75dc"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-mdpi/splash.png",
+      "sha256": "5cf98b4451bd99b20df26f9e608a46946118be6b0ae90762f9ca1786a30c76ff"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xhdpi/splash.png",
+      "sha256": "22f87e1e3bc89aa01a7dbc39c9a4db058cd0bf4ad3fe9f55712bf69eb997f4bf"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
+      "sha256": "42aa26392546fcdee1b8d3ac6d4b41bfcceb41dc6a4f3a3c30c24a8a8f4db862"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
+      "sha256": "60393ce8636fd263e4e1fea3fd4ab2de948c6295e898fda9b50ac4e5283be809"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-hdpi/splash.png",
+      "sha256": "c5015f4ba3628392b538386c5e210f0b94f352a3160adab934fd0311972137ca"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-mdpi/splash.png",
+      "sha256": "07fa579e1c83e04ba7f9cbcbfcf41b68e15fe3638f2c44a04e58b809103e6b69"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xhdpi/splash.png",
+      "sha256": "b73049cb37fe76d6c11b87a796766bf6af0c85483b31eb6a921657b0d764a4b9"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
+      "sha256": "0c7f1212f25b7b90e9a6e1d320013e4ff3d3e03e634cbb07b7b7981cac51627f"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
+      "sha256": "3db071a03b2f8ffe0dfd4170fc59842d53cd15bba5e88af59401d58efabf7827"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml",
+      "sha256": "a8514094f754b099d3e55ce1d6e0b2de79db418b2eeacb0fc2a6bb0bfadef221"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "718ba51adf166bb55c3e9936bb8199a0148457f7f0191aaa2f37a94f3159d6ec"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_stat_anker.xml",
+      "sha256": "ed1f158a56b862ea3a5c97a41c2bf8da00977f91f5a3e31817b225f1eab11e2d"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/splash.png",
+      "sha256": "5cf98b4451bd99b20df26f9e608a46946118be6b0ae90762f9ca1786a30c76ff"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_bg.xml",
+      "sha256": "b91a6639a2cb0b947b5531b7814210d116c49cf0619e14239fed7a92a15d59e6"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_button.xml",
+      "sha256": "0d81db0ae025c71ffc2b67373d0f9aec14efd84736e7b319d18129ee1640d38d"
+    },
+    {
+      "path": "android/app/src/main/res/layout/activity_main.xml",
+      "sha256": "5d770feb791313b947020cbfc57e5c733c556dac5e9e49261a1190e527073253"
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_anker.xml",
+      "sha256": "6f712a3f7e6e7c05264420fab950f9c957aab72b40c5abca1748a2062bebba4d"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "9c3a7e0a6515c6e1a7ae834a9ae430311ebc3241f7b2e5e7f0460aa690709a7c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "sha256": "9c3a7e0a6515c6e1a7ae834a9ae430311ebc3241f7b2e5e7f0460aa690709a7c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "sha256": "29b2f64b19134181c524b70398fe30d7483ad034f5df92b1a7ccfe54f7b8f4cd"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "sha256": "8a018fbd7d288b024370c4da6143ba4a1fb5575a2561bb08b31d8babb0f1447f"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+      "sha256": "12e94287d9088e44b6f49e18ef20bba59b2479db3099970088692e70af0577e2"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "sha256": "2a47a22b58ec101feecdc22afd50604bcbda60790ba426bb6bbfc843e2c95811"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "sha256": "db2806a6646d9906e9c75ffa4ee1c251af12073b1b77a903e6a8b9320b62a1af"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+      "sha256": "98426d18b10d7b5a26375651a28e8350a9480be6b02173b71d2785f7a6763698"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "sha256": "239611111c47527bfe55b65c190dadda13b46acdb76fbd66ffd1f86b621b45b5"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "sha256": "d17383fa7966d563c2796315161f5389a59e92aa007615611ca63fbdca6639dd"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+      "sha256": "71780213971eb7874765b598a262b69b967364b25f4aea01f4743ce2a4735b5c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "sha256": "ce62ca6518cf237d14c17f1ec895eb0e0eb594d99d9491cd672ef3ef3a92ba0c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "sha256": "b01f4d682e5bf453ab26882908583fbdb62fb543e4c6076b944c2fc51fd35c28"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "sha256": "e3de316c6955e84958c9f91181541270200a014417c402a208eccc98dad73e00"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "sha256": "e25b7cd4e5c0c2450573a2e69e4a121c77d5bc1806784cbcf1b7054d29cfb9c8"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "sha256": "96f94dd5f8c638035f525513b3643b98168319db8a2a741873a60e264f72deeb"
+    },
+    {
+      "path": "android/app/src/main/res/values/ic_launcher_background.xml",
+      "sha256": "ed947d81d6ed0faf0fd541668af73fd2664b9f063191555fe695f8b6fd27e5b4"
+    },
+    {
+      "path": "android/app/src/main/res/values/strings.xml",
+      "sha256": "7922f6e6f45e430c8426156479c5d872829d24f496e3466d8818d96f140ade70"
+    },
+    {
+      "path": "android/app/src/main/res/values/styles.xml",
+      "sha256": "18ebba36575e9461347ee67361b23caf095f158ee85dbefe1b83a4669ba5bd6c"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_backup_rules.xml",
+      "sha256": "d5cc4726498feaf3bf21a3e83704f4cfd64369907cd2b0ec9520de2b50fdd68f"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_data_extraction_rules.xml",
+      "sha256": "8693e12c4f42536546cce62c5e3e7652f0941797ea9aa7fc97a82b359df98e51"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_shortcuts.xml",
+      "sha256": "4d6b1c62c7b28036b5574cc8a77ed3557d4bfb278a3655949855a62c63652fc0"
+    },
+    {
+      "path": "android/app/src/main/res/xml/anker_widget_info.xml",
+      "sha256": "00f30ceba069145afaa076fd6484ad4561fbd60dcb262a6d1b95abafd5651337"
+    },
+    {
+      "path": "android/app/src/main/res/xml/file_paths.xml",
+      "sha256": "a46ed43ef65c90cb6778f4581decf3556e3f0055aad8f36d69dae16f9a0e99aa"
+    },
+    {
+      "path": "android/build.gradle",
+      "sha256": "0388bc75da63d16fa6d472db1eaff06ae92ee89a5c4d2cd66427124b05ffd7f2"
+    },
+    {
+      "path": "android/capacitor.settings.gradle",
+      "sha256": "750fcb52a86ee15d92ec40900f09ce0ff0fc7d1499fb2b4033a8cbf41c216b17"
+    },
+    {
+      "path": "android/gradle.properties",
+      "sha256": "3bab15c5b8bc4c2f4b6cf525497d15ad4abca53a460e6dd2eb0f0135817d31e6"
+    },
+    {
+      "path": "android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "9a479a85aa879bb55284fc16d0de5b81a745c3854f4e2d88c42e7debaf007435"
+    },
+    {
+      "path": "android/settings.gradle",
+      "sha256": "6ce098d15ebd69b44c4ecd786bca1bdc366340d2459b2af4d7bb0ab317aa9669"
+    },
+    {
+      "path": "android/variables.gradle",
+      "sha256": "f1ff33589bbb0a61e1c5551ac173fcf58ee94e19149582c75e91a0c2f68eec4d"
+    },
+    {
+      "path": "capacitor.config.ts",
+      "sha256": "fd8c767affcb1f91d0f674d1da0266e329ea3ec5f19874b0b68c0f0748de55ba"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "658b104264213915a3baf47f81bc94adeb1e449913546bc93303854e30416333"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ca89f77bcd308a1b3cd20e34626bf5ec13187814fc73830ec00ca0dfa8af2c2c"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "eb7dc492bbd538fd6e15b32ba159a36ff1e1f66d3af5d616b332d919ef2fc0ee"
+    },
+    {
+      "path": "src/core/alarm.test.ts",
+      "sha256": "834888809b0d00a9744c6bd00836062fe74f05c3524dbb470fee8239380fc2ce"
+    },
+    {
+      "path": "src/core/alarm.ts",
+      "sha256": "512ecaa732cec173f0bef3086835647107885955ab9718bf647e82944d9de6ef"
+    },
+    {
+      "path": "src/core/assistance.test.ts",
+      "sha256": "26d36906b423364e4e525fa19d51de5d99efc80b019dd470a06a353344293806"
+    },
+    {
+      "path": "src/core/assistance.ts",
+      "sha256": "80b1baf0d950ec84a083c3a3547ae6e8a813a397965f2a94f692b97824368005"
+    },
+    {
+      "path": "src/core/coalesced.test.ts",
+      "sha256": "fd55818ef18cc76c5b71876af57301f3028d5b0c38324a91eab16598c83ccd1a"
+    },
+    {
+      "path": "src/core/coalesced.ts",
+      "sha256": "962f456c64ccefc5b76d12273f17641295deb8a5b51fa887531c5609f5c781f3"
+    },
+    {
+      "path": "src/core/defaults.ts",
+      "sha256": "a2567337603ecde714c8f1328fd4d506fae5d5f4ed4b3f936ab202fdc12deafd"
+    },
+    {
+      "path": "src/core/defaultsUi.test.ts",
+      "sha256": "499fe1f34bfbb9696ab8ebd408efa470398c15fb36e0bf5aad5caf687ed7cb9d"
+    },
+    {
+      "path": "src/core/deviceTestPortability.test.ts",
+      "sha256": "0b75985d71820567f3fc5848a0cd60279cf0c038b069eea00402b34daec6f7b3"
+    },
+    {
+      "path": "src/core/deviceTests.test.ts",
+      "sha256": "28650260af7862eafc5f98ff44f267b1101c8f486e596eb82412ccb024e53b9b"
+    },
+    {
+      "path": "src/core/deviceTests.ts",
+      "sha256": "f5d8621bbc03ca37499b8123ee26f59148dde1b85f42b5f40a574be780edad7f"
+    },
+    {
+      "path": "src/core/evening.test.ts",
+      "sha256": "d5ae2bbb4e578bc4f59f1eb03d18efa27e77f6150b6ff4345cc51985f4d8372e"
+    },
+    {
+      "path": "src/core/evening.ts",
+      "sha256": "8b1ec9c85e08a9fa481ff05d7f13a70469f60071c9ebb2a5140b685a7f448710"
+    },
+    {
+      "path": "src/core/export/backup.ts",
+      "sha256": "62fc176a63f3942ed00dadfba4b207ca03ca5e121417fc245c9ad68e2591803c"
+    },
+    {
+      "path": "src/core/export/backupRestore.test.ts",
+      "sha256": "2ea8c36b3e8d9c95050069a8d34bab1e41fdc31adc38612d2b7058c4de8728d5"
+    },
+    {
+      "path": "src/core/export/backupSafety.test.ts",
+      "sha256": "8b148d8c16b08975e081192bd10ccb4ca7a30a95686c759845f1088e722e412b"
+    },
+    {
+      "path": "src/core/export/backupValidation.ts",
+      "sha256": "ff6d7cd298b0dd78d9885b5736438f520ffe2f8efa34f856083be7a38f9d4e02"
+    },
+    {
+      "path": "src/core/export/export.test.ts",
+      "sha256": "302c3ddcec95203140667bdf8dfff17c6230a0ce0166aeb599c838cd33c9ab48"
+    },
+    {
+      "path": "src/core/export/ics.ts",
+      "sha256": "6fae6a9883292a8ae64c43a8be0a66883bd57516f989e21facaa9f98e37dc7e0"
+    },
+    {
+      "path": "src/core/export/pcstop.ts",
+      "sha256": "af1d2e37e2d00d303435151d03137cfa5c5ae3ebfb2966e12e8f68883fba3dbe"
+    },
+    {
+      "path": "src/core/extras.test.ts",
+      "sha256": "e2a559c05a6d6c6b1ce15aed0e194e46b0fffa7f0dc0dd04fd29e6f046a400a5"
+    },
+    {
+      "path": "src/core/extras.ts",
+      "sha256": "cda3c1e7e6d061c158d9683ccfbebcd2f2aaddc840ca57e5d39d98cb6c964a3e"
+    },
+    {
+      "path": "src/core/flexible.test.ts",
+      "sha256": "d3efc4b716e02f333e907b1110ff4bb2a9b46ba631d3baa0186ed64be7f2ed37"
+    },
+    {
+      "path": "src/core/flexible.ts",
+      "sha256": "ba6d1c093ba43f75e6de65133e40e8e95010145be1ea8d3320156fb72dc720a7"
+    },
+    {
+      "path": "src/core/flexibleState.test.ts",
+      "sha256": "3ca827d35a51b2459c7ca1bdf12e4109642b7d0209503696521976fe305a7e5a"
+    },
+    {
+      "path": "src/core/focus.test.ts",
+      "sha256": "33efbc2a2a5a42f64fa651172b002dd535d3681bbbc28b616d92f8d005a79eb3"
+    },
+    {
+      "path": "src/core/focus.ts",
+      "sha256": "1ef3d19cca22bff5d6c049fdc3186da74bc6496806da3a8699b62f37a0244ebd"
+    },
+    {
+      "path": "src/core/game/awards.ts",
+      "sha256": "f6cfd413280b1e9a626727c24112fcd1aa30624a80826ea6a9f4341f001ce37b"
+    },
+    {
+      "path": "src/core/game/chapter.ts",
+      "sha256": "5076c74dfb4fac281d68efa5a21b8ef483903c416498fe82c1f01168abeff799"
+    },
+    {
+      "path": "src/core/game/evaluate.ts",
+      "sha256": "62891ddc55e70c59cc64f756b16b5c110c9207350f249c76c5f0cd2c63ddcc40"
+    },
+    {
+      "path": "src/core/game/game.test.ts",
+      "sha256": "10ce8ae4e64e4d0a5496d406eadd6667903893bd368ddbf73aa901d34a611611"
+    },
+    {
+      "path": "src/core/game/index.ts",
+      "sha256": "5d1c9a896ccb999d55fe5f58d646b0aeda649ec3d7c077ff37d09114927e3b92"
+    },
+    {
+      "path": "src/core/game/progress.ts",
+      "sha256": "57650e637a7fcee99aee5d6ebf1b16da45a41f27d6f3bdb652278b539edba3d5"
+    },
+    {
+      "path": "src/core/game/themes.ts",
+      "sha256": "de1af27d457e7a2d93306034d94456851c8e65750bc7309a4ddc0fd132562f4c"
+    },
+    {
+      "path": "src/core/game/xp.ts",
+      "sha256": "9b810dd691321eec557d87a1282d23576e1898af445ab36c8d4645b158f95543"
+    },
+    {
+      "path": "src/core/geofences.test.ts",
+      "sha256": "7c24b52b597c4cd7c14d742d761c553da9551b8952f23306ef2c1257ca75bae0"
+    },
+    {
+      "path": "src/core/geofences.ts",
+      "sha256": "21fa11e8e527456565d60637b77abf73e825f66ac7cbe7331141a20f7cd5f06c"
+    },
+    {
+      "path": "src/core/guidance/guidance.test.ts",
+      "sha256": "5e66b8d222d0ed04352e71008356484a21c7711c74a1826dfb9eb5bcf2956c7a"
+    },
+    {
+      "path": "src/core/guidance/index.ts",
+      "sha256": "1e0af72dea69ed14441fbdab07587f4d9812554567cc091d433847a4c4587072"
+    },
+    {
+      "path": "src/core/guidance/model.ts",
+      "sha256": "941ce4a9fb0b143f77dfb188e76c904a4698889d340bef403f72cf6e8511b48d"
+    },
+    {
+      "path": "src/core/guidance/routines.ts",
+      "sha256": "71affef8cb0400be3012b72eeef256058dea48fbdc3d5fabf0a1574a881d5299"
+    },
+    {
+      "path": "src/core/guidance/settings.ts",
+      "sha256": "1068f31abd05092ee52410b4849f8bff4b54d4d14274e12f197c257b5790b9e6"
+    },
+    {
+      "path": "src/core/guidance/types.ts",
+      "sha256": "3be45a10bce288bddd6835f3cf1cbeddaa6a704a89b6dcf535f602364e1b865d"
+    },
+    {
+      "path": "src/core/guidance/validation.ts",
+      "sha256": "61dc93c65183aba1057ac3362ca7a8cec0aa12f9a4c6bf6fd4a5cbda3e8c2c6b"
+    },
+    {
+      "path": "src/core/homeOfficeContact.test.ts",
+      "sha256": "41f0f54f903814be4e952e38565881b56a5d858647d0ac7f180c4bedf47cc4c5"
+    },
+    {
+      "path": "src/core/homeOfficeContact.ts",
+      "sha256": "9878573a7cc0373e026629893e6c633aec53567f4e7bb53dd1282018b93facde"
+    },
+    {
+      "path": "src/core/morning.ts",
+      "sha256": "b45c6dfb531e233c3a74d4e1516ed3caca83a4c59f1867ce3b6238aae59d388f"
+    },
+    {
+      "path": "src/core/now.test.ts",
+      "sha256": "7c47133f3c12344623334dcd624203d0c397562a16dc27a99d939df6029344ee"
+    },
+    {
+      "path": "src/core/now.ts",
+      "sha256": "4431b583768138c83cdd006fa1772f76ed9765a2a79f096e073ad8bae91e3d8e"
+    },
+    {
+      "path": "src/core/packing.ts",
+      "sha256": "45cc2f43cc9d91bc93cdb652a91b3dc59895748dadbdc294e41a765b8b13b01c"
+    },
+    {
+      "path": "src/core/pcLink/briefing.test.ts",
+      "sha256": "0bf26e3a83144929dc29514b4866eae55ab3c9166f2857173395f57ae179d080"
+    },
+    {
+      "path": "src/core/pcLink/briefing.ts",
+      "sha256": "93693ef19c77a46944fbf530f57aec3988f28c625711ebb5c13bd7637ac6c3e7"
+    },
+    {
+      "path": "src/core/pcLink/crypto.ts",
+      "sha256": "88b10cb1250e3ce60082f6f57be573aeda6af1b922f5c5b36a061fd33774972e"
+    },
+    {
+      "path": "src/core/pcLink/events.ts",
+      "sha256": "98ced2f01a52984c0abb9790fd85a580b1eab8511c6ec44f0c6cf4e118e6068c"
+    },
+    {
+      "path": "src/core/pcLink/fixtures/v3-crypto.json",
+      "sha256": "dcca7e9f8e37e3521f10a38026d5f1228aacb1b840753eef730522605f5308d3"
+    },
+    {
+      "path": "src/core/pcLink/index.ts",
+      "sha256": "1441de5a56cb3a65ed0527d6572267623d8ac8917bae473c69b78f3f27995323"
+    },
+    {
+      "path": "src/core/pcLink/protocol.test.ts",
+      "sha256": "5a3f2e22c8d97d28eae22c5c09e3c3097b2ade26a0809dba68e1827ac711f42d"
+    },
+    {
+      "path": "src/core/pcLink/status.ts",
+      "sha256": "128661eda2157c213cc742e000b6afe0fba533618084e615155db00d90948fa3"
+    },
+    {
+      "path": "src/core/pcLink/types.ts",
+      "sha256": "12325b0c37c7cb3573189946857b0c70610e1ea698aef3c052b45d41f2c1f440"
+    },
+    {
+      "path": "src/core/pcLink/validation.ts",
+      "sha256": "ca17e473957bfc07005dfdb54383c0bf67ba9bc3235b5adc1cb6a8daa98a4984"
+    },
+    {
+      "path": "src/core/pcStop.test.ts",
+      "sha256": "ad05bc7f6da3ff63324d28afc98d611e8a5b893c52f315a977aa57717acf0561"
+    },
+    {
+      "path": "src/core/pcStop.ts",
+      "sha256": "13e82766737bb900a2b956f63dd6080d80836f26d768d687a15fca82adcd7645"
+    },
+    {
+      "path": "src/core/planConflicts.test.ts",
+      "sha256": "e901d7b17742ed2461152eac833c311aa95e33c45be292503314fb426f83535d"
+    },
+    {
+      "path": "src/core/planConflicts.ts",
+      "sha256": "588b001feba5de0fd9fdd2ed1796a7778f8d3382b05d8741555f8b536f847846"
+    },
+    {
+      "path": "src/core/planner/adaptive.ts",
+      "sha256": "ec4890fca74dee6800a2b78d2f9c9c2e0025f5d409d61e5db3a8268f85bef2d9"
+    },
+    {
+      "path": "src/core/planner/fit.ts",
+      "sha256": "6fe52324d1ee3b9d963927632f9732f6dad63d3310840efd3e964667af5f5a1b"
+    },
+    {
+      "path": "src/core/planner/index.ts",
+      "sha256": "ca21e1791d52cb23c541670f0ad8eb159dceaec9cc8a50a61d1ff9ad60f76e2d"
+    },
+    {
+      "path": "src/core/planner/plan.test.ts",
+      "sha256": "bff0f5f962ea40488a189a5e98ac9082d4e385a36e1947e725fc8ad33b2e5303"
+    },
+    {
+      "path": "src/core/planner/plan.ts",
+      "sha256": "d94ccfe1df76fc7249e94d5257d4c74f9793258d324562c3b901e741b992a643"
+    },
+    {
+      "path": "src/core/planner/review-context.test.ts",
+      "sha256": "e4af63f8277cf8a60ca321eebb93425ee4088511f62f8a56462b04081c90c213"
+    },
+    {
+      "path": "src/core/planner/zombie-scope.test.ts",
+      "sha256": "67de0da1b64bd96bb545f0a2702272441821361e29878a37d6acfb6bc9911574"
+    },
+    {
+      "path": "src/core/print.test.ts",
+      "sha256": "39c3a2f5b13d4d3efa54a24ca152852556098fbb1b0359ce18f2093d989b7e52"
+    },
+    {
+      "path": "src/core/print.ts",
+      "sha256": "39606db04a57f015f51bfb9910a38c12f8c19d92583a1b7d930409b0d493f5cc"
+    },
+    {
+      "path": "src/core/recovery.test.ts",
+      "sha256": "56fbba0097a4726c0a8ffe716a93993078897358d400aa41c5cbf9052ddfc79f"
+    },
+    {
+      "path": "src/core/recovery.ts",
+      "sha256": "2564b4490bead3be2008435dd2eb8bf7794ae0e020b7bdca104802043654a004"
+    },
+    {
+      "path": "src/core/reminders/actions.ts",
+      "sha256": "0012796fc4a5b15f61a49a291eab95668393e060d18aa8f6261f2a8df428b2f2"
+    },
+    {
+      "path": "src/core/reminders/build.test.ts",
+      "sha256": "b9a6ceccec3fe890953c994b0ecd31f06d2691f89deb7a6f84079c07bf0bcf12"
+    },
+    {
+      "path": "src/core/reminders/build.ts",
+      "sha256": "bd6dd3a17e284bdbf1814a2f571c7040f5e8f0b2584c6003820178ebd02a7d5a"
+    },
+    {
+      "path": "src/core/reminders/dates.test.ts",
+      "sha256": "2e663136c2227f14e02952742f8afced9130c9dbfcfdf78f430af0e2163ea57a"
+    },
+    {
+      "path": "src/core/reminders/dates.ts",
+      "sha256": "f2e6e6d85fd5d7e80ef50b570bd2e528a71080e961300c2c0d85090bed385644"
+    },
+    {
+      "path": "src/core/reminders/deadlineRevision.test.ts",
+      "sha256": "a71f9a815902c73c80f676bf26a014c1a5f0544a7e22b5262ad8f2f700d43e97"
+    },
+    {
+      "path": "src/core/reminders/evening.test.ts",
+      "sha256": "bed31202b4621f5248da5ea6783f5d54e8bd85606945df207701d0b0f55312c9"
+    },
+    {
+      "path": "src/core/reminders/guidance.test.ts",
+      "sha256": "c2016c36fdd9544b0a233d023358a3cb0916309ce252046677c08a14fb1b6575"
+    },
+    {
+      "path": "src/core/reminders/policy.test.ts",
+      "sha256": "6c219eae6233fdc9f65a0ecbee4fd9ecc846782f73c82a13576415495738a448"
+    },
+    {
+      "path": "src/core/reminders/rules.test.ts",
+      "sha256": "56edf8d85de7d30d338b42de43d116b89c8efcf00d528b8c29700e7869798a2b"
+    },
+    {
+      "path": "src/core/reminders/rules.ts",
+      "sha256": "4b68218bbcabbcc2e87e85a285d108bce4bff991981487e8e6d21811172db8b3"
+    },
+    {
+      "path": "src/core/sleep.test.ts",
+      "sha256": "3535f1887b9521349cc53a8f4eacb3a02ed8f9fa3dd177b05719eecb8ce5a534"
+    },
+    {
+      "path": "src/core/sleep.ts",
+      "sha256": "a8c98cf2664a942cc9f8e832639e1b3b174d7d94b16c9300de342a853f940cf3"
+    },
+    {
+      "path": "src/core/sleepDiary.test.ts",
+      "sha256": "994aa60a4abbd0776af35bc0c0dd6c467b8db0113ba00a6ab8d039aeb009b2c2"
+    },
+    {
+      "path": "src/core/sleepDiary.ts",
+      "sha256": "cafa288184c3965e8d9c90b9e554d155b4295987fab2d11cfd4c43eebc68078e"
+    },
+    {
+      "path": "src/core/sleepTransition.test.ts",
+      "sha256": "76f080cb791320451bfa898c9d977f048e50d61e1ece3a9fd11b12d3cbddf8d2"
+    },
+    {
+      "path": "src/core/smartWake.test.ts",
+      "sha256": "2ddc77bb4a67f82d9dc368ddc660da4d4a59953c9c9ea216bbe31a3acf13a83f"
+    },
+    {
+      "path": "src/core/smartWake.ts",
+      "sha256": "3a74e30820e29f82f89f5bbb66224b3c4df70bedc970838482b99bad5d10165f"
+    },
+    {
+      "path": "src/core/sortable.test.ts",
+      "sha256": "d6ee9b8b3d19909d5cd887e117221fce8797a9ff1f493ce27f4541890c6bdc58"
+    },
+    {
+      "path": "src/core/sortable.ts",
+      "sha256": "98d2e5080ef07804032bc7566f290550688582a01242be5f8dc5c11d0853fca4"
+    },
+    {
+      "path": "src/core/support.test.ts",
+      "sha256": "03583ded95f5cbc6ceb8ea92bca94275f48c57c7a0e3ae2c1daa30732747841a"
+    },
+    {
+      "path": "src/core/support.ts",
+      "sha256": "f0877599b8a8164ba5f34208571b58c271d4ebf167da058a39e73886a879a74c"
+    },
+    {
+      "path": "src/core/syncPrivacy.ts",
+      "sha256": "e2beb9484fe4ec3693943d017cc32ddac66954aff43a999784348163d4012408"
+    },
+    {
+      "path": "src/core/taskSelection.test.ts",
+      "sha256": "e8fa8a5d3a63bfcaae3cec325ade5596bdf17482d1c23de4141f76687a257b15"
+    },
+    {
+      "path": "src/core/tasks.test.ts",
+      "sha256": "fbe99816fd61e49214e005ba5185dd6216ee36507282156b9550092a3b590246"
+    },
+    {
+      "path": "src/core/tasks.ts",
+      "sha256": "74a400afade5c7492f004041782004c763344dd6c1f3813b250854e420f7265e"
+    },
+    {
+      "path": "src/core/time.test.ts",
+      "sha256": "e220ab56512744ede6a72ca709247b31409f2fae11a8bd3ef35e7b6334dd234f"
+    },
+    {
+      "path": "src/core/time.ts",
+      "sha256": "5d69510807db34dd34fe4746816597012c0c323efcc362e36ffe4d177fa2b7c8"
+    },
+    {
+      "path": "src/core/timeCatalog.test.ts",
+      "sha256": "1a1a29a4e61e91a2fa6518366e8334409fc31974dfa7d6a8bcc03b7587e151af"
+    },
+    {
+      "path": "src/core/timeCatalog.ts",
+      "sha256": "98a0e6bc5ce2aa2fa1d57fb8a3b85bcdc503eda0c493406aaf24513049414ee1"
+    },
+    {
+      "path": "src/core/traffic.test.ts",
+      "sha256": "9ff4fc3dcaa743eaa45297d514b2919f6226df816cd9bbaa0f54208b8575296b"
+    },
+    {
+      "path": "src/core/traffic.ts",
+      "sha256": "d50e145d96929a0119ff83af95dd93b70317accd91355c14cbef9aeedae2b037"
+    },
+    {
+      "path": "src/core/travel.test.ts",
+      "sha256": "046bdacd912870193a71b56a511fa86512928a83ae54e3d2883e28b26b705062"
+    },
+    {
+      "path": "src/core/travel.ts",
+      "sha256": "8fa46048a7674eedc865639958028fe9aaa16f8385df99db151f8b1f304b3cfc"
+    },
+    {
+      "path": "src/core/trial.test.ts",
+      "sha256": "5fb5bdd2cbde9f8df8e404ff8eba05250cb4601693f09a9757402edbb6ebacd6"
+    },
+    {
+      "path": "src/core/trial.ts",
+      "sha256": "455d52aa4059cd58ddc69a62858a85314de7b029ce850f8128d5bb5b6332a8dc"
+    },
+    {
+      "path": "src/core/types.ts",
+      "sha256": "e067da7cd5ddeda12970d8c05b18a0b45214f01b5a10e9a4adfdeee7aefa74e1"
+    },
+    {
+      "path": "src/core/uiText.test.ts",
+      "sha256": "41e51adc97b0e974de1f76813331dd1f64c0100ba72145f5cd20c42d6bca10dc"
+    },
+    {
+      "path": "src/core/uiText.ts",
+      "sha256": "f65851f635a9bd8eeba3a9db0cac685d3127beeab03a8c06add72599b0b61a74"
+    },
+    {
+      "path": "src/core/upcomingWork.test.ts",
+      "sha256": "b5a96346449020ee89690f8297149c1aa63ab0fb938ac2cd2d2797f48e863441"
+    },
+    {
+      "path": "src/core/upcomingWork.ts",
+      "sha256": "0b006ae98e3199906f8b0e855ad12865f678ad316e93efbbb0477c3586882462"
+    },
+    {
+      "path": "src/core/weather.test.ts",
+      "sha256": "72d6be9d4bd5505a28732a6d7506f76c289be804bd9ce01ec681e3e6fe7d6801"
+    },
+    {
+      "path": "src/core/weather.ts",
+      "sha256": "621381182976773c40cab8297b60f72df2b9c6e94bfadec98926245b173622ab"
+    },
+    {
+      "path": "src/core/weatherProfile.ts",
+      "sha256": "e7a981cb4cb5a3dc40359635e1fd5ee9059123a63ae9e99531b4e3cddd84f307"
+    },
+    {
+      "path": "src/core/widget.test.ts",
+      "sha256": "3f09a1add548a92189d4a86799453109f09731800b2f066c3ef8fc1ac46bca28"
+    },
+    {
+      "path": "src/core/widget.ts",
+      "sha256": "f8a62d92963af393283fc720aa7596f836e61628af5874dc89cb99d167b02871"
+    },
+    {
+      "path": "src/core/widgetLabels.test.ts",
+      "sha256": "c697037fafd06fa15ed06a9c7cf7fc265073da930c2c945ef95b068544efebf0"
+    },
+    {
+      "path": "src/core/widgetPrivacy.test.ts",
+      "sha256": "3f31959a9a933567bc784fcf3fd759747b47a35ae85779bf5774432369305e52"
+    },
+    {
+      "path": "src/core/workNightContext.test.ts",
+      "sha256": "30d34022677c72b8813dc01aec625465c321e0895ea58479df9e0f7d9cc4068c"
+    },
+    {
+      "path": "src/core/worktime.test.ts",
+      "sha256": "409fc21095efcac952a300b37ba1ed3290939d03f13e88a43e5287978c9b4b99"
+    },
+    {
+      "path": "src/core/worktime.ts",
+      "sha256": "ce12593c33f312e322863f6aa1ff0f955a5d04231fb1b8da2eae2db741828a0a"
+    },
+    {
+      "path": "src/core/worktimeDelta.test.ts",
+      "sha256": "5e177cd19cf25051e973f0892ce4e8b2e3906d6b9b5521ab92613385af80e800"
+    },
+    {
+      "path": "src/core/worktimeNext.test.ts",
+      "sha256": "2aa08608216dd548760ca591aa3dada654079335ae7705a1eba4934e87aa3de8"
+    },
+    {
+      "path": "src/data/dexie.ts",
+      "sha256": "4540d841caf1927ebc3399ef8a1b9d646bf16c8de3b7627e9933a0e7cce091eb"
+    },
+    {
+      "path": "src/data/index.test.ts",
+      "sha256": "323b7142e8dc8df796f64dbb28ae41fb07ed45385b40ade20f3338eca7e05883"
+    },
+    {
+      "path": "src/data/index.ts",
+      "sha256": "800a506016550ecca6b5edb0ab4ff2423302554c44b13000d1c08eb4eff88ff3"
+    },
+    {
+      "path": "src/data/memory.ts",
+      "sha256": "5b037634a7557731fef5470ac5b1f0ee9592162caf81f729d387c03cceecbc9b"
+    },
+    {
+      "path": "src/data/merge.ts",
+      "sha256": "4047cc66f3bc01f5470d94ebdfea9df2f853efe35c26a083fe1ccda9148a3c9e"
+    },
+    {
+      "path": "src/data/repository.test.ts",
+      "sha256": "0e044b8c872bf58b95a8089fe8560b372f01c7104d02e9b9e3061a0affe517bc"
+    },
+    {
+      "path": "src/data/sqlite.test.ts",
+      "sha256": "8f2ed580a40342be0e60a584499ef8eb3f08e0da5e3006d66359a1909c3f782c"
+    },
+    {
+      "path": "src/data/sqlite.ts",
+      "sha256": "1cbd6961a2d4536d3229059340194aaa42d45122b0504dcf1d2cbf0920b63fc5"
+    },
+    {
+      "path": "src/data/types.ts",
+      "sha256": "c283260d83308b415f66b0035374c2dc0bba50914f422f0ddab5c191b30789bf"
+    },
+    {
+      "path": "src/device-tests.d.ts",
+      "sha256": "5948cffb3e85f7974ce86233c8b9601fa484d8033d3bb3c344b388e037b572f7"
+    },
+    {
+      "path": "src/index.css",
+      "sha256": "a7ec5118717b6c3b761c77d298f010d193492350258e30e7abd11b97cd0dd76f"
+    },
+    {
+      "path": "src/main.tsx",
+      "sha256": "d4f3a194baaa2acd3b537cb707d426e7c66c306578102de433b31f15e7cd6b00"
+    },
+    {
+      "path": "src/platform/alarm.test.ts",
+      "sha256": "f2753bbfea28ef5810d3aa064be6169a534cc6a64a763f7356bdba2980839143"
+    },
+    {
+      "path": "src/platform/alarm.ts",
+      "sha256": "e9297c19fc5d9a24cb38e7fc8a766661d21903b0f52ebe736e440e809d6df32c"
+    },
+    {
+      "path": "src/platform/assistance.test.ts",
+      "sha256": "30cde7839d6ed9e2cdcb0f25968bebdb8e3c783e8a44192d13cf1dea90600872"
+    },
+    {
+      "path": "src/platform/assistance.ts",
+      "sha256": "8805bfdd6c520c56da87b2928997d15b811763edb713335bdb8a9e9106de20a2"
+    },
+    {
+      "path": "src/platform/assistanceConsent.test.ts",
+      "sha256": "4082bd6a76e9b9bc0eb4b2ccbb1451888d7e40c95fcd87928b67ddb2dd4d8e05"
+    },
+    {
+      "path": "src/platform/bedtimePrompt.ts",
+      "sha256": "14c60a3f6ebf1163a4ad5a0ac1a5f8bfcceedcfc897af4c015422b1eb1aaac3d"
+    },
+    {
+      "path": "src/platform/effects.test.ts",
+      "sha256": "23f1aa9d4ae3841800ab09a8b8f35078cdb02168fe94166539e22cb58733cabb"
+    },
+    {
+      "path": "src/platform/effects.ts",
+      "sha256": "c51171f31c56468c0e8ebb3f8e9a2c4597833dbf939afd6cbe97658088cdcd7f"
+    },
+    {
+      "path": "src/platform/files.test.ts",
+      "sha256": "ce64bfd95a1ef841bca8f2491de5fc6d677b462f416a11dd11da177753a05762"
+    },
+    {
+      "path": "src/platform/files.ts",
+      "sha256": "841c1600743ae68ba416d2de45fefbdccffac71547eb947e8e6ffb061d10ac3d"
+    },
+    {
+      "path": "src/platform/geofences.test.ts",
+      "sha256": "2770f4add95ff74de1367f2a24a3e8a8cb416e76a56f0cc814a92968c47f3010"
+    },
+    {
+      "path": "src/platform/geofences.ts",
+      "sha256": "20050ac2c8d2b5ed1201bf35a72525dc108c1800686891387e0134bfd6b77bb9"
+    },
+    {
+      "path": "src/platform/google.test.ts",
+      "sha256": "2e801f56762c863d3b38fd26d0d574db5bf6e25782736a981af5dda1913bc656"
+    },
+    {
+      "path": "src/platform/google.ts",
+      "sha256": "03e39e4a98adc788b7316adcfbc833715c25fc1bf9bcb2024747ac3cfa947a9d"
+    },
+    {
+      "path": "src/platform/guidance.test.ts",
+      "sha256": "1740b4584ece69b36a80f9afa3b34fd5a11f204d66846f1fcff143c31a922bcc"
+    },
+    {
+      "path": "src/platform/guidance.ts",
+      "sha256": "b45fa7313b8901441dc8558139846aef3285e31f89ef7af54e5931e68a2f21d1"
+    },
+    {
+      "path": "src/platform/health.test.ts",
+      "sha256": "554090b8126f609960a211196d742bb542315352bbc5eeb9599889ea02e722d4"
+    },
+    {
+      "path": "src/platform/health.ts",
+      "sha256": "b7a84e945a08d55e2105ba7a3e5f15c0de972059e31c47d83799cf16855eccdd"
+    },
+    {
+      "path": "src/platform/links.test.ts",
+      "sha256": "f64b9ef43e90142fa5f518ea1a224644664fa81916e4ea448f305727c9ebc702"
+    },
+    {
+      "path": "src/platform/links.ts",
+      "sha256": "3b6c6dd756be2ce2017b53107b0baaf7cb1bae0dcfc03de3d4374fc339c85641"
+    },
+    {
+      "path": "src/platform/native.test.ts",
+      "sha256": "44f93c818a67d5f3a32e7ad7ea6dcef092f4989bf961afe36d47f0384fb360c7"
+    },
+    {
+      "path": "src/platform/native.ts",
+      "sha256": "efac8d4f687171127637a5f510addf3369044b00a86d70fe614cda3cf082f4f0"
+    },
+    {
+      "path": "src/platform/nativeSafe.test.ts",
+      "sha256": "022a3d9a07ae15ce1b8900e83976f7a1e58ffd520edd5f635e9a5d34340a53fc"
+    },
+    {
+      "path": "src/platform/notifications.test.ts",
+      "sha256": "d4ff35e47f08b72b39df0439630c368f7860c960af28c6711ac22dc576d4e2a0"
+    },
+    {
+      "path": "src/platform/notifications.ts",
+      "sha256": "9c7a7114d3235b5be831c92da50da33115eefb5a2dbce6f5eb3fe39df620cf19"
+    },
+    {
+      "path": "src/platform/pcLink.test.ts",
+      "sha256": "3da61d0f5088bf4474cdec76350537be1cfc4838753d9b54fedc10222ae4e678"
+    },
+    {
+      "path": "src/platform/pcLink.ts",
+      "sha256": "ec628a4357ace52149245edfd791b6e996f9bbd3ae5defd10579dfa8f404061d"
+    },
+    {
+      "path": "src/platform/pcStop.test.ts",
+      "sha256": "d7a3309554289742d39ce929540035a0f930e24237e8d72be65a9e12d8674a13"
+    },
+    {
+      "path": "src/platform/print.ts",
+      "sha256": "9e8c8c66c624c1a45bfd4fe272ec0cca12e1926a69077afb12e09bcef528a81a"
+    },
+    {
+      "path": "src/platform/qr.ts",
+      "sha256": "fc338407264e7564039457b9c4f338b468c736b94f81cb6ad958dab8b592f8d4"
+    },
+    {
+      "path": "src/platform/supabase.test.ts",
+      "sha256": "b3666fa92426e322265e89243c13e3869d6d280e077f7c6d4bcd20a89a3f23fd"
+    },
+    {
+      "path": "src/platform/supabase.ts",
+      "sha256": "1b0128a83bb4b391a4d7ce05382d3fd161fcb534fc595629e51f609306a34e1b"
+    },
+    {
+      "path": "src/platform/supabaseAuth.test.ts",
+      "sha256": "65bfeaf0bbd14e61dfbd021ab925460aa0b74c1cf01bb40a97cf67c7206bacff"
+    },
+    {
+      "path": "src/platform/syncPrivacy.test.ts",
+      "sha256": "0fb25437c69866627f3c11481d5608037df2fe1e22d9452922b5279d302f5640"
+    },
+    {
+      "path": "src/platform/syncPull.test.ts",
+      "sha256": "fd05664ec5efebdd41fb60205884e3cb58420f6c71cbf8240482414b2140d688"
+    },
+    {
+      "path": "src/platform/syncPull.ts",
+      "sha256": "d5e42f76be6c641e17f94acbb5a023d3c28cf052d30863f8f3d57d6f982774f6"
+    },
+    {
+      "path": "src/platform/traffic.test.ts",
+      "sha256": "15ce1ec566b85e3cdc41fa1322ccf245bced753baed1182dd0327e055ffddbe9"
+    },
+    {
+      "path": "src/platform/traffic.ts",
+      "sha256": "f1c1d868d55b34b5c3aded9e2a867af704f4e4b6ad2e60e0b5caae35e42bf9bc"
+    },
+    {
+      "path": "src/platform/wakeChange.test.ts",
+      "sha256": "989e3725808bdf7e5f3d0e7df45c8c4103d706fff971fc5660c8bb552c04e8a2"
+    },
+    {
+      "path": "src/platform/wakeChange.ts",
+      "sha256": "4056ec3d1ae91b5d74f3f21e71032e9746eba90fab9fcab4b4cb1f2f945d8f51"
+    },
+    {
+      "path": "src/platform/weather.test.ts",
+      "sha256": "6b25cb3f387e2d1896c8ab521fb133b7bdfeb3c4bee9dccf13bf286eb5a8d768"
+    },
+    {
+      "path": "src/platform/weather.ts",
+      "sha256": "5691522298212c7547520222e688eb5a34916b9316d1f66a2ea3f2de0a502a34"
+    },
+    {
+      "path": "src/state/backupRestore.test.ts",
+      "sha256": "d0d774e24370e0ebcde0679aaee4c62cac8c3c5c9592c4e8b903d1ba31393a3b"
+    },
+    {
+      "path": "src/state/calendar.test.ts",
+      "sha256": "03fda121957719912a768fc1e49e4f1e66c21a6abe5ea7e00713853bee0a934d"
+    },
+    {
+      "path": "src/state/deviceTests.test.ts",
+      "sha256": "36dc7825ad9511ed8a830623313f9cda3ed4c65023f0445ac4da68f393e22153"
+    },
+    {
+      "path": "src/state/evening.test.ts",
+      "sha256": "eb7bca80d2bd18235df795e9db989c61a43cf73009381189bcf581c33dd1e436"
+    },
+    {
+      "path": "src/state/flexible.test.ts",
+      "sha256": "b626a4bbab86fcb172f314bdf6f42268486ffff583b8b41c3b6751742e05153a"
+    },
+    {
+      "path": "src/state/guidance.test.ts",
+      "sha256": "ce757921debb8c35dc45a93b859032c4162f290dffe244f9100fa58589da9458"
+    },
+    {
+      "path": "src/state/hooks.ts",
+      "sha256": "55b470e89d0f9d8f5e5f520251ff04eb42224f27dae6efd68554f4399be27c7b"
+    },
+    {
+      "path": "src/state/importSafety.test.ts",
+      "sha256": "6ac02261ca6c3d1a1f14ec08464bac423d17a1ffce4ef6376d172eb6ced3dc83"
+    },
+    {
+      "path": "src/state/pcEvents.test.ts",
+      "sha256": "d7f26af229aeb17964e4bb380ac0d37cb9c2fb833d1b31281f834463034ea870"
+    },
+    {
+      "path": "src/state/store.test.ts",
+      "sha256": "ee54c1e3aa3277842af2e10753c82fad16d10f74f5c5d5479e7338eb52de2fa7"
+    },
+    {
+      "path": "src/state/store.ts",
+      "sha256": "2081fd26b47f68bdea497bb7ca4d3e7807817fefa44f48ebc5554c91d7043308"
+    },
+    {
+      "path": "src/state/subtaskFocus.test.ts",
+      "sha256": "66631b775bc0c6925d847ac9ab0123907d0d2148dc45cfe76d309601d994084a"
+    },
+    {
+      "path": "src/state/syncConsent.test.ts",
+      "sha256": "5a82c81437fd790f86ed13e3b85ac5bbc34c882b8a846daa413872cf5e72aa49"
+    },
+    {
+      "path": "src/state/taskAssistance.test.ts",
+      "sha256": "5ca21bca4226e20b16abd679ddb5a27c0d27c60cf514b7e89fe98840ea75e90e"
+    },
+    {
+      "path": "src/state/tasks.test.ts",
+      "sha256": "da3a9878e6340e4c18230ee7ca65283041ed1b9bade1660d55438442478dfd8d"
+    },
+    {
+      "path": "src/state/timeCatalog.test.ts",
+      "sha256": "a22e75ab0ea92dfdda65db5a2b2f5012f65b22cd08675a1ad3a1372bde878276"
+    },
+    {
+      "path": "src/state/travel.test.ts",
+      "sha256": "4e33bc11ebd1c705a0770d72e1d5dd2853b5ec1629d08a9fdb8771d64846970e"
+    },
+    {
+      "path": "src/state/uiActions.test.ts",
+      "sha256": "6b1ff7bc7792cd178b271d530ac535199d7d1d6e63f85b03a9b7269cc41933b5"
+    },
+    {
+      "path": "src/state/useFocusClock.ts",
+      "sha256": "b776fcc55d99cdc1e6f86e1f57863cac6b576a6d1792ea9181150751fbd62190"
+    },
+    {
+      "path": "src/state/useGeofences.ts",
+      "sha256": "6cfd568346b3cca4b7ff0c8d3b08369b5da0bfd6c702803a7efef9054327ff1e"
+    },
+    {
+      "path": "src/state/useGuidanceView.ts",
+      "sha256": "78d55981835f26f6222729bae5626b2050058a288888137100883e5dd32c2041"
+    },
+    {
+      "path": "src/state/worktime.test.ts",
+      "sha256": "95a841fdb6fa947098e1a822bb160676ac5874ecd7141af758866ec4e54188a2"
+    },
+    {
+      "path": "src/ui/components/BedtimePrompt.tsx",
+      "sha256": "0316aaa54093eba82e3f649feaf64281792c8073543a108dcbc0325c274db1cc"
+    },
+    {
+      "path": "src/ui/components/CommitmentForm.tsx",
+      "sha256": "a4bb2c7e437d7b4f5099857debecbc6a598b8f069179ce8d0df3b46e15506ca3"
+    },
+    {
+      "path": "src/ui/components/DayCommitments.tsx",
+      "sha256": "bbfa14a37217ab260eb92ec140dd072de863340ff5452ff350f65c91f354ae7d"
+    },
+    {
+      "path": "src/ui/components/DayTasks.tsx",
+      "sha256": "e25485b83e2f1905ccfac40934dfd0bc5af8266258c60302f56f7b6678a23211"
+    },
+    {
+      "path": "src/ui/components/EveningTools.tsx",
+      "sha256": "05e6d503b7afef54ea29c73c20963b43c8d63b7336d44a351256f5947d419405"
+    },
+    {
+      "path": "src/ui/components/ExtraControls.tsx",
+      "sha256": "7d3eaa37cc68d75e4710145d05cabffd77177e5435a566e3bf6c25b88a2b688e"
+    },
+    {
+      "path": "src/ui/components/FocusFrame.tsx",
+      "sha256": "52a16859af6a101aa30d45183cfd4d1e4de7072aa61e12828b0f457f12ac84dc"
+    },
+    {
+      "path": "src/ui/components/GeofenceVisit.tsx",
+      "sha256": "e4e63bc37923953c9fcbdb31df010e6913dcaf83b52c94321af2a4e960ad448c"
+    },
+    {
+      "path": "src/ui/components/GuidanceControls.tsx",
+      "sha256": "d9dca08a336043f4c186648934d9d98ab89b3247b3e85c9a52301e3035579c96"
+    },
+    {
+      "path": "src/ui/components/GuidanceRuntime.tsx",
+      "sha256": "8e395991739b18a1fb9ac8c032afa2233e5b7e05e9450450e952ae333512119a"
+    },
+    {
+      "path": "src/ui/components/GuidanceTimeArc.tsx",
+      "sha256": "aa0289787e534552fa8e80621378d07263b4b743730838afa660193fc8e5724f"
+    },
+    {
+      "path": "src/ui/components/HomeOfficeContact.tsx",
+      "sha256": "b4730670fc20a1b14a90b7ac912cfe22eebfc3ad1cf003e7e93cbf5f15c6a8e8"
+    },
+    {
+      "path": "src/ui/components/HubContent.tsx",
+      "sha256": "66775c826d26ec1b94bfa45261580fab44142eb4ec8e63709c92b427e2512356"
+    },
+    {
+      "path": "src/ui/components/Packing.tsx",
+      "sha256": "1b5fdadb278a9d7be1ac768c106433707b0c8b89ed3318707ef899e0a50d4554"
+    },
+    {
+      "path": "src/ui/components/QrCode.tsx",
+      "sha256": "2e905c754605e44b663f2b099b2d776e37d5c95a7cb5abd9c6accc9424ae577d"
+    },
+    {
+      "path": "src/ui/components/RouteEstimateCard.tsx",
+      "sha256": "7cb2c76d6a81a107fd2b11a9171830dd9974f5af2b6c9cd2f6f655c32bba1aab"
+    },
+    {
+      "path": "src/ui/components/Shell.tsx",
+      "sha256": "44b1c06ef2b5466334407fb275c070b1f9d832fb78fa622d31b7747ba603ce5f"
+    },
+    {
+      "path": "src/ui/components/SmartWake.tsx",
+      "sha256": "cd4ad2b667121cf41f5bbf20f92c381e78e67b18b80aa44a2a99ef53dcb3a44b"
+    },
+    {
+      "path": "src/ui/components/Sortable.tsx",
+      "sha256": "a107a9291f5e7dd433dd51be6820e2f429680bd25a5babcda2b7b650eff4119e"
+    },
+    {
+      "path": "src/ui/components/SportToggle.tsx",
+      "sha256": "4689d8530378bdb4dbb000de911dbf6e9a3f1a6e7eba91c7cc08b687f6f9ddaa"
+    },
+    {
+      "path": "src/ui/components/Stuck.tsx",
+      "sha256": "3dc48de56111ad0466f801b36f1ea843840426891c5f1b8ed77f2366f8937682"
+    },
+    {
+      "path": "src/ui/components/TaskAssistance.tsx",
+      "sha256": "bb410e522270a8cfc7fe0f01f9b7001303c0bcf416206371f7bfb7dccef20c4d"
+    },
+    {
+      "path": "src/ui/components/TaskDetails.tsx",
+      "sha256": "504eab0d6865205e74f077cdac37a3d3daaf80e71f6f7e112edc133f67fe04e0"
+    },
+    {
+      "path": "src/ui/components/TaskPurpose.tsx",
+      "sha256": "0680f14f0e2d3f62c937ed5d02b64b0b721a7eacd85cfed075ed70335496824d"
+    },
+    {
+      "path": "src/ui/components/Timeline.tsx",
+      "sha256": "415329dcdd57f2505de3f0854c4455de32635a2647146d475f297f9afe54b15e"
+    },
+    {
+      "path": "src/ui/components/TodayDifferent.tsx",
+      "sha256": "c169bcdb764f3b80eac035b212d81dbf769b302c0d1b10f08e95b147a8a47a89"
+    },
+    {
+      "path": "src/ui/components/WakeSuggestion.tsx",
+      "sha256": "a31f113adad480de9f15fb57b8ad7ca0f2544e3a940505a8ff14d00e7c929a23"
+    },
+    {
+      "path": "src/ui/components/WeatherCard.tsx",
+      "sha256": "3a742ff6b2fb08acac0bac64775aa70586ed4aa1e3cd9a3714d035897794d0e1"
+    },
+    {
+      "path": "src/ui/components/WeatherSettings.tsx",
+      "sha256": "b0bac6444f526a1c53abe5f2cb7d51651b1799f5506eefd68d27bb308890373a"
+    },
+    {
+      "path": "src/ui/components/WorkControls.tsx",
+      "sha256": "064f1b22f0706a0dd8808308581fc0d82d7ac9fc4b86b723fc225cb1d7e674db"
+    },
+    {
+      "path": "src/ui/components/accessibility.test.ts",
+      "sha256": "f888d86b67789285a1aadc97cebf810c543483b1c129a098e52d2ade50b49916"
+    },
+    {
+      "path": "src/ui/components/fieldValues.test.ts",
+      "sha256": "8f1a13a45791e16f5bfd45c9037bc6d254269ed7d67ee04e24e88fe4552e0cf7"
+    },
+    {
+      "path": "src/ui/components/fieldValues.ts",
+      "sha256": "690d9ba22f7d2fcea9d951096e0ca216b9005a010e97810e2f5e0ef41f942b87"
+    },
+    {
+      "path": "src/ui/components/listUndo.test.ts",
+      "sha256": "9566a602a70e43978369e855bca63def90e480c990b2ace2f242ca3eec395957"
+    },
+    {
+      "path": "src/ui/components/listUndo.ts",
+      "sha256": "9f6c2a41cc9e44708ebb7ab0686add0ccd81cf6209613f782fa027637b165676"
+    },
+    {
+      "path": "src/ui/components/nowTitle.ts",
+      "sha256": "1744507f99535c670ada5739963b1636f735510f598694899639fb01877a5af8"
+    },
+    {
+      "path": "src/ui/components/ui.tsx",
+      "sha256": "68043a5b11c29a3f5bde31e6e9f7063cb0eb74705270b9138fba7cd7321d5ab6"
+    },
+    {
+      "path": "src/ui/pages/Alarm.tsx",
+      "sha256": "124ec5a0d7f2f61cb277b54ade744f582389797256fe4db3d340ff0881af836c"
+    },
+    {
+      "path": "src/ui/pages/AssistanceSettings.tsx",
+      "sha256": "c958cbe1119850484770f5ebe8f3e956b5b3cb518139b12b68770f91ca78004a"
+    },
+    {
+      "path": "src/ui/pages/Check.tsx",
+      "sha256": "13d1083bf8eabfc8f1400ebe97696d6b46c8fc92baca18356c2100d933e520e5"
+    },
+    {
+      "path": "src/ui/pages/Connections.tsx",
+      "sha256": "9531c7d24dcc694935c7641785eda8b6138a27cd419f2c2858ef7828dec71d8c"
+    },
+    {
+      "path": "src/ui/pages/Daily.tsx",
+      "sha256": "55daa922c11ad36734fd299accd59298122979c890ca521f8dfabb2503e82da0"
+    },
+    {
+      "path": "src/ui/pages/Day.tsx",
+      "sha256": "238dfb346635f3b67913a9362abcb0d95a2f57000616844d82f81f5fe527190a"
+    },
+    {
+      "path": "src/ui/pages/DeviceTests.tsx",
+      "sha256": "2d193c6ebd004bc8f3654d5774040aeded47ca7f1101731d4de05ae336fc7468"
+    },
+    {
+      "path": "src/ui/pages/Evening.tsx",
+      "sha256": "b619018d15fe595c426f10f117d66bc1297fbd7dedfc04d1774d237e00956296"
+    },
+    {
+      "path": "src/ui/pages/Focus.tsx",
+      "sha256": "64e901280bbe168ae332e07e551b0302d8c133be009a3ac8e352388c6052aa08"
+    },
+    {
+      "path": "src/ui/pages/Game.tsx",
+      "sha256": "db6e7487b5fcef789801b9eea356509aa086896375ba3331816a2813e0567e81"
+    },
+    {
+      "path": "src/ui/pages/GuidanceSettings.tsx",
+      "sha256": "2cca0c14a0eee52962180ac6ecd48e1c16d25d5d4c6ac0aac99d2094131ccb1a"
+    },
+    {
+      "path": "src/ui/pages/Hubs.tsx",
+      "sha256": "e7c207aed1c1b0328a723da04f39bc8bee75a72830b7aa15f1d0ec9691327fc1"
+    },
+    {
+      "path": "src/ui/pages/Inbox.tsx",
+      "sha256": "d7834ea05c2db5db5c3825708f3ab9064bcc1d31b34b60ddb93073602115e84c"
+    },
+    {
+      "path": "src/ui/pages/More.tsx",
+      "sha256": "45cfde08475a6e695764a36850aab27fa54840e804a5aeee49ef17f4f941518c"
+    },
+    {
+      "path": "src/ui/pages/Now.tsx",
+      "sha256": "cd5c9a651cccdb48a3fdc52b23aabaccc9731ebe7d544982fbe7c1db42bec07f"
+    },
+    {
+      "path": "src/ui/pages/Onboarding.tsx",
+      "sha256": "2ae40a188145f6f2b0dd7a86035ccab1425a6f4a0c8a21e5c28f23cc0795bb93"
+    },
+    {
+      "path": "src/ui/pages/PcCompanionPanel.tsx",
+      "sha256": "f94d46c4fe4791eb38628b5bd51ac568f1fb53b04ec8324678d20fdb734cf70c"
+    },
+    {
+      "path": "src/ui/pages/PcStop.tsx",
+      "sha256": "4b3377a5fe91cba9c42633cf9631ec2333a632b2343d1dea3f63ce5c192df391"
+    },
+    {
+      "path": "src/ui/pages/Places.tsx",
+      "sha256": "7696edb595d1f5f125027b1649aa3bf5147616e47e5815c63ff8b996ab827a1f"
+    },
+    {
+      "path": "src/ui/pages/QuickEntries.tsx",
+      "sha256": "a50de29ee9a22058a456b3c99db1cbef3e2281bac787b5647c84087e1996dc5c"
+    },
+    {
+      "path": "src/ui/pages/RhythmWeek.tsx",
+      "sha256": "fca23391ee1d5721772e8b3d34a6430a32e00b908015808d831301ab3f2309d7"
+    },
+    {
+      "path": "src/ui/pages/Settings.tsx",
+      "sha256": "ec9c4043cdb5acf068a08d1bc39e1a7488892ef69fdc70249f110ddf7f06e558"
+    },
+    {
+      "path": "src/ui/pages/Shop.tsx",
+      "sha256": "c66e39fde892cc91e42a1471ef58b9f8662b7cbe24d46c14314aa37b490671c0"
+    },
+    {
+      "path": "src/ui/pages/SleepDiary.tsx",
+      "sha256": "c9909ae1f472c5724229a2a94547633f2fec96d5254305631e98c32aa1d07e4a"
+    },
+    {
+      "path": "src/ui/pages/Static.tsx",
+      "sha256": "dc1cfada769b740684fc32955c67e951d9ea5cee6a672cf3b8f59455c0e54e26"
+    },
+    {
+      "path": "src/ui/pages/TaskFocus.tsx",
+      "sha256": "b3d09d03b5e0a12e181836fd4e227fc99898807953b8e0bd3cb00c672d1b8a68"
+    },
+    {
+      "path": "src/ui/pages/TimeOverview.tsx",
+      "sha256": "98c724f4535124b662ef7dcccfacd2722487fe511d880b654956a77ca379ff73"
+    },
+    {
+      "path": "src/ui/pages/WindDown.tsx",
+      "sha256": "132898e8e824f6cad24495f681bb76b3ba243fff1b63e409ae34925b3341b6ec"
+    },
+    {
+      "path": "src/ui/pages/Work.tsx",
+      "sha256": "266e5384cd09ce5f4ed566d8203bffb7086a197eb697a2f7d4a85f6eed3b945c"
+    },
+    {
+      "path": "src/ui/pages/WorkTime.tsx",
+      "sha256": "9ad59cd16060e766f778ac8e1226baeeb4337ecd6693b2b7a35fa20799e2f152"
+    },
+    {
+      "path": "src/ui/pages/now.css",
+      "sha256": "fb75f7e228d4e08a3ec6c24c78b84e45344f6790792c53b754600a4b34787fcb"
+    },
+    {
+      "path": "tsconfig.app.json",
+      "sha256": "f2f4d45dc7887e94c3213db132b93dfcb78b495177f4717b301c34105ef486c2"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "e8d6f7b50828db3953e21c7e92584f9206b3cd2551b4012507372afbb7fe9ce3"
+    },
+    {
+      "path": "tsconfig.node.json",
+      "sha256": "7dfdf4cc23777ba2e08bc403f5d670f5b03298911957bc1a95bf1afe5c07e1e9"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "9b0e488c99494d9e5a66964536a1ee123bcb294e1fb14618494e36f611a40656"
+    }
+  ],
+  "nativeAssets": {
+    "fingerprintSha256": "3a87f273e46652ad9a3cea709752f4843257dce3f07eb56424d717b68a9915a0",
+    "files": [
+      {
+        "path": "android/app/src/main/assets/capacitor.config.json",
+        "sha256": "1315e83b6afe1b02b1143df48444424e6ab303ee9624e9d44058524341926278",
+        "bytes": 521
+      },
+      {
+        "path": "android/app/src/main/assets/capacitor.plugins.json",
+        "sha256": "bec12105056fe4aaab1ba1bd5fd3f2f3e1002159f942b00355677c9294597621",
+        "bytes": 1135
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Alarm-BVVG2rk3.js",
+        "sha256": "88339affee738460ba6e97f87d21ee8b0ab1accc164ce139339db804f1955707",
+        "bytes": 26677
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/AssistanceSettings-CoMMWslQ.js",
+        "sha256": "60a8f931451f824c12cac032027bff8051bb9068461a2c2b97be37ecf9fc7698",
+        "bytes": 8327
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Check-BurlH5om.js",
+        "sha256": "cc9e3a06564c6aa9a62d00df53cf9ee0b34a1ebb5b364ffdfed527f7bddba7b7",
+        "bytes": 4225
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Connections-B8h8P6Vd.js",
+        "sha256": "a7f83f1138cbbeecb8ac44c6c16c50230fa0fa063416f0c41de79deb5741d7ec",
+        "bytes": 4131
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Daily-D60Se1_I.js",
+        "sha256": "3e5be22b67f95212e7e17d62956839730c6cf0f0213f53dbd0b047c719371e90",
+        "bytes": 11267
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Day-BtYIpXmN.js",
+        "sha256": "1fb020eea7107211c4c4b80ef1808a64fa91f29d8c42bdf45757d764f2570967",
+        "bytes": 8214
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/DayTasks-BAk-SQY0.js",
+        "sha256": "591ad4123d9bf07b719c31b49934027c5204ad255bce15eff45815cce5fd3654",
+        "bytes": 13163
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/DeviceTests-Cc75_Byt.js",
+        "sha256": "4b71d527dfe348a15e3039ab867dc264ea3b3cfaf9f0e75ede6cd75a37646129",
+        "bytes": 78954
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/EveningTools-L4tMCn2d.js",
+        "sha256": "6033027ef1c875260226da6c656bc0039c2e13b2b4e6690eacd129c04f7cc6c5",
+        "bytes": 2879
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/ExtraControls-DtqA-K29.js",
+        "sha256": "c41d6867537f3a932b7c573c82ec45db9f44dd89578c62d37845182156aeffbe",
+        "bytes": 6563
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Focus-KP-_fOs0.js",
+        "sha256": "d35efd9c9fbc42e31a0c2568cf1828b96d9d2ba16e1fed5884a3570b5d0b8515",
+        "bytes": 8484
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/FocusFrame-Bl-jEXJ6.js",
+        "sha256": "985ceab717f64a7aba6ed3988bb6d10983d08c9e1860da0b6f27070a53b5c300",
+        "bytes": 869
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/HubContent-C_w3lyF9.js",
+        "sha256": "c6d85d967ca69dbfd0f8e48a4a244a5a41fcb93d3af6cf4f72e754ceec8a872f",
+        "bytes": 346
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Hubs-C6DRAqzy.js",
+        "sha256": "a8d0c858d609d19597399394130f7683921ed45e188aa5d4b3d5a0255017cb77",
+        "bytes": 47289
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Inbox-CwMCleeP.js",
+        "sha256": "b77befc6702392cf4194298f88b7720fb2ca0a31d5bbba9884cef1f8460b3f68",
+        "bytes": 8877
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/More-D7vlhK7H.js",
+        "sha256": "f91c0db4673d568bbb290d30d7cf6fd4a67f602c33f235b59540535d5f8abb8b",
+        "bytes": 2806
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Onboarding-FaY1cbYi.js",
+        "sha256": "54108a5c2a271a280531a68d9c46b7c841867d66c79b922afec35be6635cd637",
+        "bytes": 6466
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/PcStop-YFipvfu8.js",
+        "sha256": "bc599739e68f7a155e3d0ade68d36a9133e7fae5a1231ca3a67331ca711768fc",
+        "bytes": 46355
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Places-C1G2D29z.js",
+        "sha256": "a9c94cea155658e1cfa2442cf7e719ad188b91c044791c9ac6f2853c3b873cb8",
+        "bytes": 7103
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/QrCode-g_7rQZrs.js",
+        "sha256": "adcfa90b5e2ed4aca9701473f6084f347608adb983de896461eba47a77d0dd70",
+        "bytes": 24087
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/QuickEntries-1EZKMEn8.js",
+        "sha256": "aeaa19f1971c094ff5607daa48cdd35630295560c0c7299bf7dcc660142393cd",
+        "bytes": 3938
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/RhythmWeek-D09azJQu.js",
+        "sha256": "59a3213ad11cb1d88dfab1f9343f7cf1a9a7009f22190b9bab0bea712d327832",
+        "bytes": 5531
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/RouteEstimateCard-C7wN5gJU.js",
+        "sha256": "707ac720ee56c4d0da36dffb0641e5b1d15fb0466b70f7f71ed520c22b650413",
+        "bytes": 9290
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Settings-CxZBshVD.js",
+        "sha256": "9b8c4833f3a9c6199ea7db4f50b996a5c8fa8eccdb68ae976d2d324cbc29ee67",
+        "bytes": 45210
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Sortable-Bsrs5_Wb.js",
+        "sha256": "1c8869b2b1280361e5898b84cca84d7043307aeb5cf3428931491a2fac06f35b",
+        "bytes": 4283
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/Static-DRuOdxjT.js",
+        "sha256": "cde0eaa86a413a07b47db1f2e3cc1c1e663f0316f3d44973c359a3bd11607816",
+        "bytes": 18174
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/TaskFocus-DkXl2Zpe.js",
+        "sha256": "c05d93bdb117c03a3ef2d6ba0e38e1d76854aaff8ac307a2a6986b8755f4d9f5",
+        "bytes": 11700
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/TimeOverview-BTvkSnv7.js",
+        "sha256": "56efdb1d1bba27c8eae6807cc4c7da3a6c0e88a714f984dfef713c71cddc4d5f",
+        "bytes": 8741
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/WindDown-DqdzgZo6.js",
+        "sha256": "cdcdd192bb862940c65af071c595e3d5703c247a394d2d0203da08027fbc6e10",
+        "bytes": 3471
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/assistance-hlAj-_nP.js",
+        "sha256": "140237a1148061efdf6328dec80dea468c67ca452f4249b34a7e971f6d974e4f",
+        "bytes": 4278
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/definitions-CABDGlQN.js",
+        "sha256": "c5c107cf9a26ca865c4a2659b478ee5c1197bf9994ea6e866f7672a99443081e",
+        "bytes": 1434
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/dexie-BCkLnYMt.js",
+        "sha256": "a8721da99f95d2e33bc9a6fd8e1d28484ccae60707ca1541ee37b9c803e4af53",
+        "bytes": 99269
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/dist-DcsUVknb.js",
+        "sha256": "c8dfe2b99e56c96eaade8d41ef974e96b38c6be2f9df4cfd0e9531d9770fbea7",
+        "bytes": 7770
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/files-DoD3DflA.js",
+        "sha256": "796f5838aff5347a32ec4ffcb8fbcf2653c8ffd99d7effc208832e52c7b868a0",
+        "bytes": 2386
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/guidance-75VPSt_F.js",
+        "sha256": "2ea67f1ab1aec342b22875c8761eade141be9b892cca14d77e3048d29f24ccf1",
+        "bytes": 14723
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/hooks-CxO-p7lg.js",
+        "sha256": "e8416a97cf70871c8eb570b08ebe04fc9e078655d1e9217e3eaf85f444f19067",
+        "bytes": 1099
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/index-DY3a7vxQ.css",
+        "sha256": "dc6717d42d3faeb8d808696f06d0fe7a398355ac39facbbf20a60683e5f9dda4",
+        "bytes": 38563
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/index-yk-NlaAF.js",
+        "sha256": "714fe647270031e8be719a94726d25232c2afa0276217fc0fbccdc286e6dcb37",
+        "bytes": 431985
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/merge-DpDRz7CM.js",
+        "sha256": "775da85c5fc2824cbf658d19cedf151d1ce8a3531aa88951bcee3033218f59eb",
+        "bytes": 115
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/preload-helper-BLdHbfdN.js",
+        "sha256": "8aec9ff75ffa86a03d51268b63126abadb3754aa5a6b6c5bb16e4e2446a63dee",
+        "bytes": 1519
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/rolldown-runtime-WkwZ5CU-.js",
+        "sha256": "2629f2ad3cb75a57d98de697127f5af7d777ef572bbcdfa6e3ce8f438cd4527e",
+        "bytes": 599
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/sqlite-CNjjOAzF.js",
+        "sha256": "717de9ce1c2b8c42264e8b0e86c7d2048d5f3e2f09eff76ef19b9056309c0f51",
+        "bytes": 16554
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/supabase-D2x8iseL.js",
+        "sha256": "3a1b1348e490af24ffd8382e0323e325bfca2eaf23e15fb8b7435ead9e6a802d",
+        "bytes": 4680
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/support-pnTOPIrH.js",
+        "sha256": "d559f1d37648f47cc9e7e69aacb2c0249e934498f074b8fc7520a3b179be7c98",
+        "bytes": 11741
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/ui-DjnLCag6.js",
+        "sha256": "dc06abd4eb1249023d3d042e12f04bfca04a3b01e7018e1d88613440e89bd6ff",
+        "bytes": 273983
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/weather-Dleu2LOG.js",
+        "sha256": "d66123d354c371b8cbe0c377a047f390728e7d4417530abcbf4a2d86bea468ea",
+        "bytes": 5191
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-B8r6_vxr.js",
+        "sha256": "eb5d3c1a8d5def0c3d528069c1cdbac717782591bc74a03530a5d64c80a33581",
+        "bytes": 8470
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-BJzidajJ.js",
+        "sha256": "130b583dbd7d1aa7f015308157216865f13c34840268637fa383f978711407a6",
+        "bytes": 996
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-C8kWUwB5.js",
+        "sha256": "583e7b19e8fc39e9f53905e4dc7442021fba4cf8ff2b91264f87963f85205a88",
+        "bytes": 843
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-CLm6Ds7Z.js",
+        "sha256": "498ec5c77158a11c27109bf43c7d6a922a945a8bf66376c5d05f669a617a3663",
+        "bytes": 361
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-DOHLYb0X.js",
+        "sha256": "364798a1d8b18c558ae36a23959c182ad47cf7970c0cb3ccacb0809d148e604c",
+        "bytes": 3467
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-Dp59xo_i.js",
+        "sha256": "b8f07e12fbbe01e66a67f7dab6e3f7bb8cb9dc5a98b9fc084b4e68841dc548a8",
+        "bytes": 14977
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-DygZmq-4.js",
+        "sha256": "a534cf422f72576e7bb552d14ef40486b64d09f37e22d41063d7ed654b0e9616",
+        "bytes": 4437
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-Kh2XW3f4.js",
+        "sha256": "1adcbb04103a207b3da540c1c37cf5dd8e9f1772eddf829c9552959db37dd171",
+        "bytes": 9463
+      },
+      {
+        "path": "android/app/src/main/assets/public/assets/web-Zm42oYYI.js",
+        "sha256": "d9992ee92e80891231dba6bfe1010e687b96643e094c8ffeb9ee7e863a951e79",
+        "bytes": 364
+      },
+      {
+        "path": "android/app/src/main/assets/public/cordova.js",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "android/app/src/main/assets/public/cordova_plugins.js",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "android/app/src/main/assets/public/icon-192.png",
+        "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a",
+        "bytes": 6541
+      },
+      {
+        "path": "android/app/src/main/assets/public/icon-512.png",
+        "sha256": "ab138838cd6470c7a9e04555a1c99873b7257efe49c624589c86e019c7f424bc",
+        "bytes": 17795
+      },
+      {
+        "path": "android/app/src/main/assets/public/icon.svg",
+        "sha256": "6bdc58f0762ec315be71e86554650b56aaa0377cca0ea793bf688b1f4035e5ce",
+        "bytes": 468
+      },
+      {
+        "path": "android/app/src/main/assets/public/index.html",
+        "sha256": "b509a2bfc1f00d3e1fec6574ea1e1ac39c337f64aa4dda83be1d84869c18eafb",
+        "bytes": 1784
+      },
+      {
+        "path": "android/app/src/main/assets/public/manifest.webmanifest",
+        "sha256": "8c5d40c53c8806ce801e4454c892e8dbf62ebe3c34a7fe7dac786703e2126b12",
+        "bytes": 421
+      },
+      {
+        "path": "android/app/src/main/assets/public/registerSW.js",
+        "sha256": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b",
+        "bytes": 134
+      },
+      {
+        "path": "android/app/src/main/assets/public/sw.js",
+        "sha256": "27278b855ae180c46b1a2c706dc082165dcfaf8fb06514cdad6eaaa68095e978",
+        "bytes": 4090
+      },
+      {
+        "path": "android/app/src/main/assets/public/workbox-9c191d2f.js",
+        "sha256": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37",
+        "bytes": 15112
+      }
+    ]
+  },
+  "nativeWebDistributionMatchesRoot": true,
+  "nativeProductionWebFileCount": 63,
+  "nativeProductionWebFileMatches": [
+    {
+      "path": "android/app/src/main/assets/public/assets/Alarm-BVVG2rk3.js",
+      "rootPath": "dist/assets/Alarm-BVVG2rk3.js",
+      "sha256": "88339affee738460ba6e97f87d21ee8b0ab1accc164ce139339db804f1955707"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/AssistanceSettings-CoMMWslQ.js",
+      "rootPath": "dist/assets/AssistanceSettings-CoMMWslQ.js",
+      "sha256": "60a8f931451f824c12cac032027bff8051bb9068461a2c2b97be37ecf9fc7698"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Check-BurlH5om.js",
+      "rootPath": "dist/assets/Check-BurlH5om.js",
+      "sha256": "cc9e3a06564c6aa9a62d00df53cf9ee0b34a1ebb5b364ffdfed527f7bddba7b7"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Connections-B8h8P6Vd.js",
+      "rootPath": "dist/assets/Connections-B8h8P6Vd.js",
+      "sha256": "a7f83f1138cbbeecb8ac44c6c16c50230fa0fa063416f0c41de79deb5741d7ec"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Daily-D60Se1_I.js",
+      "rootPath": "dist/assets/Daily-D60Se1_I.js",
+      "sha256": "3e5be22b67f95212e7e17d62956839730c6cf0f0213f53dbd0b047c719371e90"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Day-BtYIpXmN.js",
+      "rootPath": "dist/assets/Day-BtYIpXmN.js",
+      "sha256": "1fb020eea7107211c4c4b80ef1808a64fa91f29d8c42bdf45757d764f2570967"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/DayTasks-BAk-SQY0.js",
+      "rootPath": "dist/assets/DayTasks-BAk-SQY0.js",
+      "sha256": "591ad4123d9bf07b719c31b49934027c5204ad255bce15eff45815cce5fd3654"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/DeviceTests-Cc75_Byt.js",
+      "rootPath": "dist/assets/DeviceTests-Cc75_Byt.js",
+      "sha256": "4b71d527dfe348a15e3039ab867dc264ea3b3cfaf9f0e75ede6cd75a37646129"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/EveningTools-L4tMCn2d.js",
+      "rootPath": "dist/assets/EveningTools-L4tMCn2d.js",
+      "sha256": "6033027ef1c875260226da6c656bc0039c2e13b2b4e6690eacd129c04f7cc6c5"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/ExtraControls-DtqA-K29.js",
+      "rootPath": "dist/assets/ExtraControls-DtqA-K29.js",
+      "sha256": "c41d6867537f3a932b7c573c82ec45db9f44dd89578c62d37845182156aeffbe"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Focus-KP-_fOs0.js",
+      "rootPath": "dist/assets/Focus-KP-_fOs0.js",
+      "sha256": "d35efd9c9fbc42e31a0c2568cf1828b96d9d2ba16e1fed5884a3570b5d0b8515"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/FocusFrame-Bl-jEXJ6.js",
+      "rootPath": "dist/assets/FocusFrame-Bl-jEXJ6.js",
+      "sha256": "985ceab717f64a7aba6ed3988bb6d10983d08c9e1860da0b6f27070a53b5c300"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/HubContent-C_w3lyF9.js",
+      "rootPath": "dist/assets/HubContent-C_w3lyF9.js",
+      "sha256": "c6d85d967ca69dbfd0f8e48a4a244a5a41fcb93d3af6cf4f72e754ceec8a872f"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Hubs-C6DRAqzy.js",
+      "rootPath": "dist/assets/Hubs-C6DRAqzy.js",
+      "sha256": "a8d0c858d609d19597399394130f7683921ed45e188aa5d4b3d5a0255017cb77"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Inbox-CwMCleeP.js",
+      "rootPath": "dist/assets/Inbox-CwMCleeP.js",
+      "sha256": "b77befc6702392cf4194298f88b7720fb2ca0a31d5bbba9884cef1f8460b3f68"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/More-D7vlhK7H.js",
+      "rootPath": "dist/assets/More-D7vlhK7H.js",
+      "sha256": "f91c0db4673d568bbb290d30d7cf6fd4a67f602c33f235b59540535d5f8abb8b"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Onboarding-FaY1cbYi.js",
+      "rootPath": "dist/assets/Onboarding-FaY1cbYi.js",
+      "sha256": "54108a5c2a271a280531a68d9c46b7c841867d66c79b922afec35be6635cd637"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/PcStop-YFipvfu8.js",
+      "rootPath": "dist/assets/PcStop-YFipvfu8.js",
+      "sha256": "bc599739e68f7a155e3d0ade68d36a9133e7fae5a1231ca3a67331ca711768fc"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Places-C1G2D29z.js",
+      "rootPath": "dist/assets/Places-C1G2D29z.js",
+      "sha256": "a9c94cea155658e1cfa2442cf7e719ad188b91c044791c9ac6f2853c3b873cb8"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/QrCode-g_7rQZrs.js",
+      "rootPath": "dist/assets/QrCode-g_7rQZrs.js",
+      "sha256": "adcfa90b5e2ed4aca9701473f6084f347608adb983de896461eba47a77d0dd70"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/QuickEntries-1EZKMEn8.js",
+      "rootPath": "dist/assets/QuickEntries-1EZKMEn8.js",
+      "sha256": "aeaa19f1971c094ff5607daa48cdd35630295560c0c7299bf7dcc660142393cd"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/RhythmWeek-D09azJQu.js",
+      "rootPath": "dist/assets/RhythmWeek-D09azJQu.js",
+      "sha256": "59a3213ad11cb1d88dfab1f9343f7cf1a9a7009f22190b9bab0bea712d327832"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/RouteEstimateCard-C7wN5gJU.js",
+      "rootPath": "dist/assets/RouteEstimateCard-C7wN5gJU.js",
+      "sha256": "707ac720ee56c4d0da36dffb0641e5b1d15fb0466b70f7f71ed520c22b650413"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Settings-CxZBshVD.js",
+      "rootPath": "dist/assets/Settings-CxZBshVD.js",
+      "sha256": "9b8c4833f3a9c6199ea7db4f50b996a5c8fa8eccdb68ae976d2d324cbc29ee67"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Sortable-Bsrs5_Wb.js",
+      "rootPath": "dist/assets/Sortable-Bsrs5_Wb.js",
+      "sha256": "1c8869b2b1280361e5898b84cca84d7043307aeb5cf3428931491a2fac06f35b"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/Static-DRuOdxjT.js",
+      "rootPath": "dist/assets/Static-DRuOdxjT.js",
+      "sha256": "cde0eaa86a413a07b47db1f2e3cc1c1e663f0316f3d44973c359a3bd11607816"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/TaskFocus-DkXl2Zpe.js",
+      "rootPath": "dist/assets/TaskFocus-DkXl2Zpe.js",
+      "sha256": "c05d93bdb117c03a3ef2d6ba0e38e1d76854aaff8ac307a2a6986b8755f4d9f5"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/TimeOverview-BTvkSnv7.js",
+      "rootPath": "dist/assets/TimeOverview-BTvkSnv7.js",
+      "sha256": "56efdb1d1bba27c8eae6807cc4c7da3a6c0e88a714f984dfef713c71cddc4d5f"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/WindDown-DqdzgZo6.js",
+      "rootPath": "dist/assets/WindDown-DqdzgZo6.js",
+      "sha256": "cdcdd192bb862940c65af071c595e3d5703c247a394d2d0203da08027fbc6e10"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/assistance-hlAj-_nP.js",
+      "rootPath": "dist/assets/assistance-hlAj-_nP.js",
+      "sha256": "140237a1148061efdf6328dec80dea468c67ca452f4249b34a7e971f6d974e4f"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/definitions-CABDGlQN.js",
+      "rootPath": "dist/assets/definitions-CABDGlQN.js",
+      "sha256": "c5c107cf9a26ca865c4a2659b478ee5c1197bf9994ea6e866f7672a99443081e"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/dexie-BCkLnYMt.js",
+      "rootPath": "dist/assets/dexie-BCkLnYMt.js",
+      "sha256": "a8721da99f95d2e33bc9a6fd8e1d28484ccae60707ca1541ee37b9c803e4af53"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/dist-DcsUVknb.js",
+      "rootPath": "dist/assets/dist-DcsUVknb.js",
+      "sha256": "c8dfe2b99e56c96eaade8d41ef974e96b38c6be2f9df4cfd0e9531d9770fbea7"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/files-DoD3DflA.js",
+      "rootPath": "dist/assets/files-DoD3DflA.js",
+      "sha256": "796f5838aff5347a32ec4ffcb8fbcf2653c8ffd99d7effc208832e52c7b868a0"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/guidance-75VPSt_F.js",
+      "rootPath": "dist/assets/guidance-75VPSt_F.js",
+      "sha256": "2ea67f1ab1aec342b22875c8761eade141be9b892cca14d77e3048d29f24ccf1"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/hooks-CxO-p7lg.js",
+      "rootPath": "dist/assets/hooks-CxO-p7lg.js",
+      "sha256": "e8416a97cf70871c8eb570b08ebe04fc9e078655d1e9217e3eaf85f444f19067"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/index-DY3a7vxQ.css",
+      "rootPath": "dist/assets/index-DY3a7vxQ.css",
+      "sha256": "dc6717d42d3faeb8d808696f06d0fe7a398355ac39facbbf20a60683e5f9dda4"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/index-yk-NlaAF.js",
+      "rootPath": "dist/assets/index-yk-NlaAF.js",
+      "sha256": "714fe647270031e8be719a94726d25232c2afa0276217fc0fbccdc286e6dcb37"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/merge-DpDRz7CM.js",
+      "rootPath": "dist/assets/merge-DpDRz7CM.js",
+      "sha256": "775da85c5fc2824cbf658d19cedf151d1ce8a3531aa88951bcee3033218f59eb"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/preload-helper-BLdHbfdN.js",
+      "rootPath": "dist/assets/preload-helper-BLdHbfdN.js",
+      "sha256": "8aec9ff75ffa86a03d51268b63126abadb3754aa5a6b6c5bb16e4e2446a63dee"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/rolldown-runtime-WkwZ5CU-.js",
+      "rootPath": "dist/assets/rolldown-runtime-WkwZ5CU-.js",
+      "sha256": "2629f2ad3cb75a57d98de697127f5af7d777ef572bbcdfa6e3ce8f438cd4527e"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/sqlite-CNjjOAzF.js",
+      "rootPath": "dist/assets/sqlite-CNjjOAzF.js",
+      "sha256": "717de9ce1c2b8c42264e8b0e86c7d2048d5f3e2f09eff76ef19b9056309c0f51"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/supabase-D2x8iseL.js",
+      "rootPath": "dist/assets/supabase-D2x8iseL.js",
+      "sha256": "3a1b1348e490af24ffd8382e0323e325bfca2eaf23e15fb8b7435ead9e6a802d"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/support-pnTOPIrH.js",
+      "rootPath": "dist/assets/support-pnTOPIrH.js",
+      "sha256": "d559f1d37648f47cc9e7e69aacb2c0249e934498f074b8fc7520a3b179be7c98"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/ui-DjnLCag6.js",
+      "rootPath": "dist/assets/ui-DjnLCag6.js",
+      "sha256": "dc06abd4eb1249023d3d042e12f04bfca04a3b01e7018e1d88613440e89bd6ff"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/weather-Dleu2LOG.js",
+      "rootPath": "dist/assets/weather-Dleu2LOG.js",
+      "sha256": "d66123d354c371b8cbe0c377a047f390728e7d4417530abcbf4a2d86bea468ea"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-B8r6_vxr.js",
+      "rootPath": "dist/assets/web-B8r6_vxr.js",
+      "sha256": "eb5d3c1a8d5def0c3d528069c1cdbac717782591bc74a03530a5d64c80a33581"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-BJzidajJ.js",
+      "rootPath": "dist/assets/web-BJzidajJ.js",
+      "sha256": "130b583dbd7d1aa7f015308157216865f13c34840268637fa383f978711407a6"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-C8kWUwB5.js",
+      "rootPath": "dist/assets/web-C8kWUwB5.js",
+      "sha256": "583e7b19e8fc39e9f53905e4dc7442021fba4cf8ff2b91264f87963f85205a88"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-CLm6Ds7Z.js",
+      "rootPath": "dist/assets/web-CLm6Ds7Z.js",
+      "sha256": "498ec5c77158a11c27109bf43c7d6a922a945a8bf66376c5d05f669a617a3663"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-DOHLYb0X.js",
+      "rootPath": "dist/assets/web-DOHLYb0X.js",
+      "sha256": "364798a1d8b18c558ae36a23959c182ad47cf7970c0cb3ccacb0809d148e604c"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-Dp59xo_i.js",
+      "rootPath": "dist/assets/web-Dp59xo_i.js",
+      "sha256": "b8f07e12fbbe01e66a67f7dab6e3f7bb8cb9dc5a98b9fc084b4e68841dc548a8"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-DygZmq-4.js",
+      "rootPath": "dist/assets/web-DygZmq-4.js",
+      "sha256": "a534cf422f72576e7bb552d14ef40486b64d09f37e22d41063d7ed654b0e9616"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-Kh2XW3f4.js",
+      "rootPath": "dist/assets/web-Kh2XW3f4.js",
+      "sha256": "1adcbb04103a207b3da540c1c37cf5dd8e9f1772eddf829c9552959db37dd171"
+    },
+    {
+      "path": "android/app/src/main/assets/public/assets/web-Zm42oYYI.js",
+      "rootPath": "dist/assets/web-Zm42oYYI.js",
+      "sha256": "d9992ee92e80891231dba6bfe1010e687b96643e094c8ffeb9ee7e863a951e79"
+    },
+    {
+      "path": "android/app/src/main/assets/public/icon-192.png",
+      "rootPath": "dist/icon-192.png",
+      "sha256": "f1212348f5218239c0d0eaaf9173e0b5fe88bc98fd7a038cd06c840b0dfd945a"
+    },
+    {
+      "path": "android/app/src/main/assets/public/icon-512.png",
+      "rootPath": "dist/icon-512.png",
+      "sha256": "ab138838cd6470c7a9e04555a1c99873b7257efe49c624589c86e019c7f424bc"
+    },
+    {
+      "path": "android/app/src/main/assets/public/icon.svg",
+      "rootPath": "dist/icon.svg",
+      "sha256": "6bdc58f0762ec315be71e86554650b56aaa0377cca0ea793bf688b1f4035e5ce"
+    },
+    {
+      "path": "android/app/src/main/assets/public/index.html",
+      "rootPath": "dist/index.html",
+      "sha256": "b509a2bfc1f00d3e1fec6574ea1e1ac39c337f64aa4dda83be1d84869c18eafb"
+    },
+    {
+      "path": "android/app/src/main/assets/public/manifest.webmanifest",
+      "rootPath": "dist/manifest.webmanifest",
+      "sha256": "8c5d40c53c8806ce801e4454c892e8dbf62ebe3c34a7fe7dac786703e2126b12"
+    },
+    {
+      "path": "android/app/src/main/assets/public/registerSW.js",
+      "rootPath": "dist/registerSW.js",
+      "sha256": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b"
+    },
+    {
+      "path": "android/app/src/main/assets/public/sw.js",
+      "rootPath": "dist/sw.js",
+      "sha256": "27278b855ae180c46b1a2c706dc082165dcfaf8fb06514cdad6eaaa68095e978"
+    },
+    {
+      "path": "android/app/src/main/assets/public/workbox-9c191d2f.js",
+      "rootPath": "dist/workbox-9c191d2f.js",
+      "sha256": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37"
+    }
+  ],
+  "capacitorGeneratedAdditionalPublicFiles": [
+    "cordova.js",
+    "cordova_plugins.js"
+  ],
+  "inputStabilityDuringGradle": true,
+  "rootProductionBundleStableDuringVerification": true,
+  "junit": {
+    "suites": 17,
+    "tests": 167,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "freshAfterStartedAt": true
+  },
+  "mergedManifests": [
+    {
+      "path": "android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+      "sha256": "5674832497d3d9233df09746cb46ff427116bc40091b79206044ea20961e0197",
+      "package": "de.frnkrm.anker.mobile",
+      "versionCode": "14",
+      "versionName": "1.4.0-rc.1"
+    },
+    {
+      "path": "android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml",
+      "sha256": "c0e82deac2adfe22f36823c645acef0a8e43208e70d12b4ebb16d46b92ff5e05",
+      "package": "de.frnkrm.anker.mobile",
+      "versionCode": "14",
+      "versionName": "1.4.0-rc.1"
+    }
+  ],
+  "manifestPolicyChecks": [
+    {
+      "path": "android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+      "allowBackup": false,
+      "optionalServices": [
+        {
+          "name": "de.frnkrm.anker.RoutinePaceKeeperService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "systemExempted"
+        },
+        {
+          "name": "de.frnkrm.anker.SleepAudioService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "mediaPlayback"
+        },
+        {
+          "name": "de.frnkrm.anker.PcBridgeService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "connectedDevice"
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml",
+      "allowBackup": false,
+      "optionalServices": [
+        {
+          "name": "de.frnkrm.anker.RoutinePaceKeeperService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "systemExempted"
+        },
+        {
+          "name": "de.frnkrm.anker.SleepAudioService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "mediaPlayback"
+        },
+        {
+          "name": "de.frnkrm.anker.PcBridgeService",
+          "exported": false,
+          "directBootAware": false,
+          "foregroundServiceType": "connectedDevice"
+        }
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.getcapacitor.myapp.ExampleUnitTest.xml",
+      "sha256": "5365507a68eb5c71b590fc4bd54011ad0ff3f7dec8874473fce508107619d1db",
+      "bytes": 426
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.AlarmModelTest.xml",
+      "sha256": "f84662773c4e0ca793268ddad0930191b6220a059314a096425f23912c821528",
+      "bytes": 3853
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.AudioPlaybackLeaseTest.xml",
+      "sha256": "a1e1d743c285d9f3e4cf1766fe487f6ff5201688968e904d48cd19ad34211290",
+      "bytes": 992
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.BedtimePromptModelTest.xml",
+      "sha256": "315214ee043402a60ccd57a58151e60c0b3e8aad4e038a98ec84ca04a80ca8af",
+      "bytes": 2360
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.GeofenceModelTest.xml",
+      "sha256": "86cde607b075740b2cbce83ae1142d37bcc2c9f8ff56c17484f84d84a6db7d04",
+      "bytes": 1228
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.PcBridgeCryptoTest.xml",
+      "sha256": "78bc563f740cc0ecae4bc8a721da5786f1ce6d7fe4105da23fab008e642d757c",
+      "bytes": 1058
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.PcLinkModelTest.xml",
+      "sha256": "7f74a637a6ca73f454b7985184d6f43f738a6e9ad60e95c4ecbe803ca14c86fe",
+      "bytes": 2452
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.PreWakeFadeModelTest.xml",
+      "sha256": "d8f79a3bb5a4546643415f07b403d59b1115f9b6939944dbeea9b4a4373ca069",
+      "bytes": 583
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.PrintModelTest.xml",
+      "sha256": "2c889983ebe1943ba52c85229f78765edca9dc1f111bf09f0009774ef5f3e40f",
+      "bytes": 1136
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.ReminderModelTest.xml",
+      "sha256": "44b269d646130c66bbf835d3b83a1376cc794b8fcb6d4e747025991cdedcdae4",
+      "bytes": 4516
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.ReminderRulesTest.xml",
+      "sha256": "078132a6a6731e2780e5c9c6c14ce3d63ef101bc2c71e5c94bce02bb6495a9d4",
+      "bytes": 1654
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.RoutinePaceKeeperModelTest.xml",
+      "sha256": "267e769455ce6ccdb6c3cb555ebb2e2f77a1a229e9a518f42b2663692aa462e4",
+      "bytes": 1323
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.SleepAudioModelTest.xml",
+      "sha256": "8ef7f5fdd30d11fc41555b81ca023043ebd1f22ad9463954b7c04d71674d7ea1",
+      "bytes": 830
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.SmartWakeModelTest.xml",
+      "sha256": "491dfe4de58e6110222c23e880ba37f8df3fcba96e18b2833627aab8fa74aa00",
+      "bytes": 1790
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.V7AlarmModelTest.xml",
+      "sha256": "4a0b0725a23de7c575bf5a284da295ac31ebbbb55c62e31a82ebaaea3a2e70de",
+      "bytes": 1507
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.VoiceModelTest.xml",
+      "sha256": "61cee50698b1893b21db6f499717e08cbed9cb88dde1efc73e224ca51bb79343",
+      "bytes": 844
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-de.frnkrm.anker.WidgetModelTest.xml",
+      "sha256": "a8400f9b0dde9f88fd2e1ee00427b9f17db829c47523373895618c250a4966b3",
+      "bytes": 542
+    },
+    {
+      "path": "android/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+      "sha256": "5674832497d3d9233df09746cb46ff427116bc40091b79206044ea20961e0197",
+      "bytes": 20829
+    },
+    {
+      "path": "android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml",
+      "sha256": "c0e82deac2adfe22f36823c645acef0a8e43208e70d12b4ebb16d46b92ff5e05",
+      "bytes": 20795
+    },
+    {
+      "path": "android/app/build/outputs/logs/manifest-merger-debug-report.txt",
+      "sha256": "db79ac32172ec711339053b120784ed8bac9aeab3b524f5687a96f610046e1d6",
+      "bytes": 193643
+    },
+    {
+      "path": "android/app/build/outputs/logs/manifest-merger-release-report.txt",
+      "sha256": "4e844a96176a3b0f4783f5d94415a5452d50505ebb597194c102f9fa9f0bd9f0",
+      "bytes": 194335
+    },
+    {
+      "path": "android/app/build/reports/tests/testDebugUnitTest/index.html",
+      "sha256": "fe53d7a856b09762d7c4038135725f5744690cfec54caf3946dee74782cf3cd8",
+      "bytes": 5977
+    }
+  ],
+  "freshGradleTaskChecks": [
+    ":app:checkDebugAarMetadata",
+    ":app:checkReleaseAarMetadata",
+    ":app:processDebugMainManifest",
+    ":app:processReleaseMainManifest",
+    ":app:compileDebugKotlin",
+    ":app:compileReleaseKotlin",
+    ":app:testDebugUnitTest"
+  ],
+  "gradleTaskSummary": "367 actionable tasks: 367 executed",
+  "passed": true,
+  "verificationScriptSha256": "9310234d5565b6e10258065649a1f7a0b30697d0a24479132e05a82ba627b787",
+  "buildIsolationScriptSha256": "a0da9504d62e670285d05026086e0400272af878934a1f723fae0f6f7b85f72d",
+  "completedAt": "2026-11-09T09:10:58.562456+00:00",
+  "elapsedSeconds": 129.179,
+  "worktreeStatusAfterBuild": "M android/capacitor.settings.gradle"
+}

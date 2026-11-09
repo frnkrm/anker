@@ -2,7 +2,7 @@
 
 ## Unveröffentlicht – v7: Abend, Morgen und lokaler PC-Begleiter (2026-11-09)
 
-App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neues APK oder Windows-Installationspaket veröffentlicht. Die gemeinsame Softwareprüfung ist im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md#v7--audit-baseline-und-gemeinsame-regression) an den integrierten Quellstand gebunden; echte Samsung-/Windows-Versuche bleiben offen. Der bestehende Code14-Download enthält diese Entwicklung noch nicht.
+App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neues APK oder Windows-Installationspaket veröffentlicht. Die aktuelle gemeinsame Softwareprüfung samt Folgeaudit ist im [Testprotokoll](docs/ANKER_TESTNACHWEISE.md#v7--folgeaudit-und-korrigierter-gemeinsamer-stand) an den integrierten Quellstand gebunden; echte Samsung-/Windows-Versuche bleiben offen. Der bestehende Code14-Download enthält diese Entwicklung noch nicht.
 
 - Freiwillige Abend-/Morgenführung aus demselben Tagesplan: Cyan/Amber/OLED-Darstellung, Zeitbogen und bestehender Fokus-Timer mit Restzeitfarben. Keine automatische Erledigung aus Zeitablauf.
 - Optionale lokale Schrittstimme und Vibrationsimpulse, begrenztes ausblendendes Brown Noise, direkter Morgenfokus nach bestätigtem Wecker, Ein-Tipp-Wachrückfrage und selbst gewählte Zombie-Kernschritte. Weckerbesitz, alternative Beenden-Wege und Notfall-Stopp bleiben erhalten.
@@ -11,6 +11,8 @@ App-Version **1.4.0-rc.1 / Code14** und Signatur bleiben unverändert. Kein neue
 - Optionaler PC-Schleier, Audio-Ducking und gewählte Abendaktion nach mindestens 60 Sekunden eigener Speicherfrist. Klassische PC-Stopp-Aufgabe verhindert Doppelwirkung. Separater strenger Modus mit begrenztem Wieder-Sperrwächter und signierter QR-Notverlängerung am Handy; sichtbares Beenden bleibt möglich. Der Morgenabschluss entsperrt Windows nicht automatisch.
 - Freiwilliger Licht-Schritt, neutrale 7-/14-Tage-Rhythmusansicht und optionaler Morgen-Countdown/Wake-on-LAN. Kein Relay, Schlafdatenimport, Lichtgerät oder kostenpflichtiger Dienst aktiviert.
 - Sieben gemeinsame Prüfstationen 97–103 im bestehenden Bericht-/Exportmodell; die bisherigen sechs kurzen Updateprüfungen und alle alten Ergebnisse bleiben erhalten. [Bedienung und Windows-Setup](docs/PC_BEGLEITER.md) · [Architektur und Datenvertrag](docs/PC_LINK_PROTOKOLL.md).
+- Folgeaudit: PC-Leiste mit Phasentitel und laufenden Sekunden; gewählte v7-Abendfolge berücksichtigt die Bettzeit, klassischer PC-Stopp bleibt eigenständig. Verlängerungen verschieben alle Vorphasen; +15 Minuten am Bett addieren den Bildschirm-aus-Puffer nicht erneut. QR-Notverlängerung funktioniert auch nach bestätigtem automatischem PC-Nachtbeginn, mit unveränderten Hardware-/Signaturgrenzen.
+- Morgen-Zombie verkleinert ausschließlich den Morgen. Ein offen gebliebener Morgen verdrängt später die Abendführung nicht und wird nicht automatisch erledigt. 1.043 Logik-/265 Browser-/167 frische JUnit-/83 Pythonfälle sowie bestehende PC-/Updateprüfungen grün; [neuer Nachweis](docs/ANKER_V7_FOLGE_NACHWEIS.json), keine Geräte-Häkchen daraus.
 
 ## 1.3.0-rc.6 – Kompakte Routinekarten (2026-11-07)
 

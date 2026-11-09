@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T09:23:51.356208+00:00",
+  "softwareCommit": "7cccb464b6df0132b76abfbe991a5a16eb7136a5",
+  "branch": "entwicklung/anker-v7-pc",
+  "auditedStartingCommit": "ad91ca2",
+  "sourceIdentity": "78f5e674939bed16a04877835c83efba5602a6f550b8879eca08ecb730b14590",
+  "requestSha256": "3fbcae2adf023dcedb3e551070ac20522fc8f7e4d3167ee85f762868499f2554",
+  "originalProofsPreserved": [
+    "ANKER_V7_BASELINE.json",
+    "ANKER_V7_NACHWEIS.json",
+    "ANKER_V7_NATIVE_NACHWEIS.json"
+  ],
+  "version": {
+    "name": "1.4.0-rc.1",
+    "code": 14,
+    "package": "de.frnkrm.anker.mobile",
+    "newApkBuilt": false,
+    "signingChanged": false
+  },
+  "results": {
+    "logic": {
+      "passed": 1043,
+      "files": 103,
+      "failed": 0,
+      "skipped": 0,
+      "command": "npm test -- --maxWorkers=2"
+    },
+    "browser": {
+      "startTime": "2026-11-09T09:08:28.291Z",
+      "duration": 559947.417,
+      "expected": 265,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "workers": 2,
+      "retries": 0,
+      "engine": "/usr/bin/chromium",
+      "command": "ANKER_V7_FOLLOWUP_RUN=browser npx playwright test --config=/workspace/.cache/anker/v7-followup/playwright.config.ts"
+    },
+    "native": {
+      "suites": 17,
+      "tests": 167,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "freshAfterStartedAt": true,
+      "gradleTasksExecuted": 367,
+      "reusedTests": false,
+      "proof": "ANKER_V7_FOLGE_NATIVE_NACHWEIS.json",
+      "proofSha256": "f208675a22883f0c8a81a78bda6887d63fa45951cfc83fba8759d5a5c9bbd9b9"
+    },
+    "pcCompanion": {
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "platform": "Linux with injected Windows/Tk/DPAPI/audio boundaries",
+      "command": "/workspace/anker-v7-companion/pc-companion/.venv/bin/python -m unittest discover -s tests",
+      "cwd": "pc-companion"
+    },
+    "crossLanguageTlsInterop": {
+      "passed": true,
+      "transport": "Node HTTPS ↔ Python pinned TLS",
+      "physicalConfirmation": true,
+      "ack": true,
+      "outbox": true,
+      "replayRejected": true,
+      "tamperRejected": true,
+      "wrongPinRejected": true,
+      "systemEffects": 0,
+      "command": "ANKER_PC_PYTHON=/workspace/anker-v7-companion/pc-companion/.venv/bin/python node pc-companion/tests/node_phone_simulator.mjs"
+    },
+    "legacyPc": {
+      "passed": 19,
+      "parsedScripts": 4,
+      "command": "PATH=/workspace/.cache/anker/pwsh/runtime:$PATH npm run test:pc"
+    },
+    "updateMocks": {
+      "passed": 36,
+      "command": "PATH=/workspace/.cache/anker/pwsh/runtime:$PATH python3 scripts/test-android-update.py"
+    },
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 1,
+      "warning": "TaskAssistance.tsx:41 react-hooks/exhaustive-deps",
+      "command": "npm run lint"
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "npm run typecheck; also tsc -b in npm run build"
+    },
+    "productionBuild": {
+      "passed": true,
+      "fileCount": 63,
+      "pwaPrecacheEntries": 64,
+      "command": "npm run build"
+    }
+  },
+  "artifactBinding": {
+    "runtimeInputsCompared": 369,
+    "runtimeInputMismatches": [],
+    "nativeTestSourcesCompared": 17,
+    "additionalProductionInputsCompared": 6,
+    "identicalTestedWebFiles": 63,
+    "additionalCordovaShims": [
+      "cordova.js",
+      "cordova_plugins.js"
+    ],
+    "sourceInputFingerprint": "664d37b7fa49a9d562456b3a4c6aaf9371644ac6c9040440c9a25437d2a35830",
+    "nativeTestSourceFingerprint": "017ebc51a531a1a0834d79fcd883f512ff42cd910c0663a9a160756c94d298b2",
+    "effectiveNativeInputFingerprint": "66657a4b12facdbec27ed5fdb13791f7e9b711fe5253bbba574801900711f4b3",
+    "webDistributionFingerprint": "36b42b6f673a15026e9c41811c96915d724256fe20935809ea3976d553535fa3",
+    "companionSourceFiles": [
+      {
+        "path": "pc-companion/.gitignore",
+        "sha256": "9d50c439c009cd82f1677aa25b9e35519483acfc74132ca641eeecbbfaeb2cc0"
+      },
+      {
+        "path": "pc-companion/Start.cmd",
+        "sha256": "d1f1255b76b3e34d844ce6fd759f3e05029906fc5a4f122e00b2177f227e8198"
+      },
+      {
+        "path": "pc-companion/anker_companion/__init__.py",
+        "sha256": "760ea540af20597f1183c17bbe0105cb9640d4063d821badbc3e8cd60abb20e1"
+      },
+      {
+        "path": "pc-companion/anker_companion/__main__.py",
+        "sha256": "dde0429ed0f6c89de6d6abde2abcb645bd78af57adf5e22e2ec335e4caca1537"
+      },
+      {
+        "path": "pc-companion/anker_companion/engine.py",
+        "sha256": "0482fc66c0ef7243f03a8ff18fa40246ce539c43de6096d508a1d663f059fd3e"
+      },
+      {
+        "path": "pc-companion/anker_companion/protocol.py",
+        "sha256": "795503d2a43d3ae08261a97ba874550ac18349593d4079c22c5b82fef3d62fde"
+      },
+      {
+        "path": "pc-companion/anker_companion/server.py",
+        "sha256": "d3ed5f957186d942b2f4edb0fd399b9f3bb3097fb1c82faae45baa8d5267f8a0"
+      },
+      {
+        "path": "pc-companion/anker_companion/storage.py",
+        "sha256": "7f9404bd5af5f1160968bb496afd8b9c402ac526adf841fe4c17568d7b00e8c0"
+      },
+      {
+        "path": "pc-companion/anker_companion/ui.py",
+        "sha256": "376b685d48e2dddc5f2ffbd31e3ce1e268572546916f57823e80dd0c5bfe8f99"
+      },
+      {
+        "path": "pc-companion/anker_companion/vault.py",
+        "sha256": "be38c725710308d8c03c18d37f54bb7f6269e39eff5caaf8a3e8e1a394cb8d32"
+      },
+      {
+        "path": "pc-companion/anker_companion/windows.py",
+        "sha256": "4a4689727af12b8809258afbf131bbaf4751bdf78593102a2efca73b0e10999e"
+      },
+      {
+        "path": "pc-companion/install.ps1",
+        "sha256": "a69f908bdd6fadc2705e63799c04736946ef5143079ab60c2c59fc962a3bc1fc"
+      },
+      {
+        "path": "pc-companion/requirements.txt",
+        "sha256": "f41182042c5d63815916d20a2a8ad85234f8743648be51c15cbb9c8432891d2a"
+      },
+      {
+        "path": "pc-companion/tests/__init__.py",
+        "sha256": "e35692b0905561ac7d86eb5984259f36b25d204db106671a08e6796dd9535ad9"
+      },
+      {
+        "path": "pc-companion/tests/helpers.py",
+        "sha256": "639d207262305a286c764906d82af3f547d59ec5d22cab2518f7429266de0c18"
+      },
+      {
+        "path": "pc-companion/tests/interop_server.py",
+        "sha256": "901787db65a02f51351862e2d3fe4ff9641ad1ca75f6e7cf7d3e646d3e778284"
+      },
+      {
+        "path": "pc-companion/tests/node_phone_simulator.mjs",
+        "sha256": "5683da3a5a51baf1e31b1b58ba90a8dab33a539379a3ddece72488a80993cbd1"
+      },
+      {
+        "path": "pc-companion/tests/test_engine.py",
+        "sha256": "58ec9e94569d80768f74e063c23aac1606105e36bdc42d741c9e76ddb08680e6"
+      },
+      {
+        "path": "pc-companion/tests/test_protocol.py",
+        "sha256": "ae1883630b6122fa1c50b81a1b3653b1c6faa2dca4710374376753aec0af8f43"
+      },
+      {
+        "path": "pc-companion/tests/test_server.py",
+        "sha256": "dd8a729dba184a3ef917d28c31f851380a2446fefb226f8eff30da2f5ae13bb5"
+      },
+      {
+        "path": "pc-companion/tests/test_vault.py",
+        "sha256": "7331f218be162ea62c5ba906a131a8827b4bbf3e8ab78616ab19302dbcbf3bc6"
+      },
+      {
+        "path": "pc-companion/tests/test_windows.py",
+        "sha256": "f5cbd6627034017445503d9b152cb4d049762d446c66de06e56ce6846b5c675a"
+      },
+      {
+        "path": "pc-companion/uninstall.ps1",
+        "sha256": "6962f2d68f64c62744a50b637588f6c238f892d5186632f6fadbe714bbc43e75"
+      }
+    ],
+    "copiedProductionBundle": true,
+    "inputsStableDuringVerification": true
+  },
+  "requirements": [
+    {
+      "requirement": "PC-06/VI-04: visible live evening bar",
+      "correction": "Fallback from null graceRemaining to remainingSeconds; phase title and live seconds.",
+      "evidence": [
+        "pc-companion/tests/test_windows.py",
+        "pc-companion/tests/test_engine.py"
+      ]
+    },
+    {
+      "requirement": "Direct T30/T10/bedtime and PC-05",
+      "correction": "Optional derived prefs.bedtimeSequence selects the existing bed target. Legacy PC-stop remains unchanged and shifts every prephase consistently.",
+      "evidence": [
+        "pc-companion/tests/test_engine.py",
+        "src/core/pcLink/protocol.test.ts",
+        "e2e/v7-pc-panel.spec.ts"
+      ]
+    },
+    {
+      "requirement": "PC-11: signed QR emergency extension",
+      "correction": "Fresh authenticated matching PC ACK can prove a due scheduled/observed night when no phone bed QR fact exists; native QR/key/lease/consent checks retained. Facade waits boundedly for the same revision.",
+      "evidence": [
+        "android/app/src/test/java/de/frnkrm/anker/PcLinkModelTest.kt",
+        "src/platform/pcLink.test.ts",
+        "pc-companion/tests/test_server.py"
+      ]
+    },
+    {
+      "requirement": "AB-04/PC-08: actual +15 minute bed extension",
+      "correction": "Optional extended.anchor=bed projects through existing lateUntil without adding screen-off buffer again; stale/older events cannot replace a newer phone choice. Cached phases reset until their shifted threshold.",
+      "evidence": [
+        "src/core/pcLink/protocol.test.ts",
+        "src/state/pcEvents.test.ts",
+        "pc-companion/tests/test_engine.py",
+        "pc-companion/tests/test_server.py"
+      ]
+    },
+    {
+      "requirement": "Direct Auto-Zombie: preserve the evening",
+      "correction": "Zombie only reduces the morning routine, including sick paths and running focus reconciliation; no done/data reset.",
+      "evidence": [
+        "src/core/guidance/guidance.test.ts",
+        "src/core/planner/zombie-scope.test.ts",
+        "src/state/guidance.test.ts",
+        "e2e/routine-layout.spec.ts"
+      ]
+    },
+    {
+      "requirement": "Direct evening escalation after an unfinished morning",
+      "correction": "Existing morning visibility window bounds morning priority and auto-Zombie; unresolved genuine night keeps its existing lease. No completion inferred.",
+      "evidence": [
+        "src/core/guidance/guidance.test.ts",
+        "e2e/v7-guidance.spec.ts"
+      ]
+    }
+  ],
+  "deviceTests": {
+    "existingIdsPreserved": 103,
+    "v7Clusters": 7,
+    "updatedInstructions": [
+      "G100",
+      "G101",
+      "G102"
+    ],
+    "newAutomaticDevicePasses": 0
+  },
+  "realDevices": {
+    "android": false,
+    "samsungGalaxyS26Ultra": false,
+    "windows": false,
+    "androidWindowsLan": false,
+    "audioHapticsStandby": false,
+    "wakeOnLan": false
+  },
+  "publication": {
+    "pushed": false,
+    "remoteCiExecuted": false,
+    "releaseCreated": false,
+    "apkBuilt": false,
+    "apkSigningKeyAccessed": false
+  },
+  "deferred": [
+    "AB-05 additional evening light hint",
+    "AB-06 automatically suppress phone reminders based on PC ACK",
+    "Relay",
+    "Health sleep import",
+    "Light devices",
+    "Companion auto-updates"
+  ],
+  "preservedIntermediateEvidence": [
+    {
+      "path": "/workspace/.cache/anker/v7-followup/root-typecheck.log",
+      "sha256": "bb6c481d0df391290394c5a7407606f9f6050cb71ca800976f2a38a375b7223d"
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/root-wire-facade.log",
+      "sha256": "681b09d0960ec6fabc78c9a516922c46bb51bf40729ec47a06c444d4deafa0b5"
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/root-wire-facade2.log",
+      "sha256": "2ac6798ee8751cc71157b9b076c1293937b96dac4c7934ba44cc86d6791ef5c4"
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/browser-targeted.log",
+      "sha256": "f016192791b13c123ff234396974ce37b1a9cd813236f07c59c1f4210d4350fe"
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/targeted/report.json",
+      "sha256": "1b5d262d726b978197bfdef3ac58d00d7dc18c443ef1cd19f88c55e1df145ace"
+    }
+  ],
+  "intermediateEvidenceNote": "Initial new-test type error and fake-clock/crypto barrier failure preserved. Fixed fixture field and awaited actual native read boundary. No retry/timeout relaxation. Targeted 20 browser cases are part of the full 265, never added to its count.",
+  "evidenceFiles": [
+    {
+      "path": "/workspace/.cache/anker/v7-followup/unit-final.log",
+      "sha256": "016575798bf560195336f27a71629a1df368421ed6b6df5e6be03717d6147cff",
+      "bytes": 881
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/browser.log",
+      "sha256": "e0b9eb2fa42653068220bde991bd0f7ba10e676194fb448c6e82e82e5669aa6a",
+      "bytes": 38767
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/browser/report.json",
+      "sha256": "1d2fa0c688d667e153ef283f5a06f35b51681d6cea92dd16ec613ca131883198",
+      "bytes": 297268
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/playwright.config.ts",
+      "sha256": "c6f943d57c339dad376a138c54af10f9d451e975030f5e55f2392a05917aedec",
+      "bytes": 750
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/python.log",
+      "sha256": "a63c8dc1630b61db25adf0a9ba104f20db6fffa1ada51f1fd6ad8a780511b08d",
+      "bytes": 868
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/interop.log",
+      "sha256": "e8ab5c3a2ba6834ef3f033f5271f95b4bab5a52f824ee027fdefd042402da53d",
+      "bytes": 202
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/powershell.log",
+      "sha256": "8a37f556165d73c3dda1e9ba4bc648c4d771f26462544e5747d2a9119a3d702e",
+      "bytes": 1474
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/update.log",
+      "sha256": "5a6b5cbaba0339c84700cd4852688751525d8898f1c8506eda110ea85f340b19",
+      "bytes": 4353
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/lint-final.log",
+      "sha256": "67f20e6419ec48c46b76193c339730179def733e6fa065a3c89e4b078f392759",
+      "bytes": 437
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/root-typecheck2.log",
+      "sha256": "3eefcbd083505e8024dd8f74939decc4a051d1d4c706761886d40bc919d1d502",
+      "bytes": 40
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/build.log",
+      "sha256": "936af1f14e49ea5f521c7177b4986784fb772e55056f003f0ceceecd1eaac968",
+      "bytes": 5030
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/native/native-verification.json",
+      "sha256": "f208675a22883f0c8a81a78bda6887d63fa45951cfc83fba8759d5a5c9bbd9b9",
+      "bytes": 173766
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/native/gradle-fresh.log",
+      "sha256": "a088552c288c8b8f6de92dde1c86ce5fbcc923076bfe0b99b08aa707d9f96944",
+      "bytes": 33977
+    },
+    {
+      "path": "/workspace/.cache/anker/v7-followup/native/capacitor-sync.log",
+      "sha256": "b3a099859e38c04a0d0a7b32be18a637f7ef01a653118b7e7e46e2ebf21afed6",
+      "bytes": 1136
+    }
+  ]
+}
