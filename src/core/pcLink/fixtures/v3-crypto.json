@@ -1,0 +1,28 @@
+{
+  "warning": "PUBLIC TEST DATA ONLY: deterministic private scalars1 and2; never runtime credentials",
+  "phonePrivateScalarHex": "0000000000000000000000000000000000000000000000000000000000000001",
+  "pcPrivateScalarHex": "0000000000000000000000000000000000000000000000000000000000000002",
+  "phonePublic": "BGsX0fLhLEJH-Lzm5WOkQPJ3A32BLeszoPShOUXYmMKWT-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU",
+  "pcPublic": "BHzyexiNA09-ilI4AwS1GsPAiWnid_IbNaYLSPxHZpl4B3dVENuO0EApPZrGn3Qw27p9reY86YIpngS3nSJ4c9E",
+  "salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+  "ikm": "fPJ7GI0DT36KUjgDBLUaw8CJaeJ38hs1pgtI_EdmmXg",
+  "phoneToPcKey": "G-piWR-qweCNCYQPM-B11HyioG2ENmZBgGZU_KcTnQs",
+  "pcToPhoneKey": "WxVkcmNGoZw83pg_z3J2QmNZzZiPBwYcmmya8KLFkJ0",
+  "aadUtf8": "{\"from\":\"phone\",\"kind\":\"anker-link\",\"pair\":\"fixture-pair\",\"sentAt\":\"2026-11-12T21:00:00.000Z\",\"seq\":1,\"v\":3}",
+  "payload": {
+    "type": "pull",
+    "after": 0
+  },
+  "plaintextUtf8": "{\"type\":\"pull\",\"after\":0}",
+  "envelope": {
+    "v": 3,
+    "kind": "anker-link",
+    "pair": "fixture-pair",
+    "from": "phone",
+    "seq": 1,
+    "sentAt": "2026-11-12T21:00:00.000Z",
+    "nonce": "AAECAwQFBgcICQoL",
+    "ct": "ayReCLbw23NP4XfzmMINYjRpDpow0jpkmW_Ri-slIvP5ym3whdrqhAs"
+  },
+  "verificationCode": "5270"
+}

@@ -28,6 +28,31 @@ beforeEach(async () => {
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers() })
 
 describe('Atomarer Einstieg nach dem Hauptwecker', () => {
+  it('wertet einen Tipp vor dem tatsächlichen Weckerübergang nicht als anschließende Aktivierung', async () => {
+    await useApp.getState().recordGuidanceInteraction(date)
+    vi.setSystemTime(Date.now() + 10 * 60_000)
+    const event = handoff()
+    await useApp.getState().activateMorningFromAlarm(event)
+    expect(useApp.getState().local.guidance?.days[date]?.firstInteractionAt).toBeUndefined()
+    vi.setSystemTime(Date.now() + 61_000)
+    const state = useApp.getState()
+    expect(deriveGuidance({ plan: planFor(date), log: state.days[date], local: state.local, settings: state.settings, nowMs: Date.now() }).autoZombieDue).toBe(true)
+    await state.recordGuidanceInteraction(date, event.confirmedAt - 1)
+    expect(useApp.getState().local.guidance?.days[date]?.firstInteractionAt).toBeUndefined()
+    await useApp.getState().recordGuidanceInteraction(date)
+    const real = useApp.getState().local.guidance?.days[date]?.firstInteractionAt
+    expect(real).toBe(Date.now())
+    await useApp.getState().activateMorningFromAlarm(event)
+    expect(useApp.getState().local.guidance?.days[date]?.firstInteractionAt).toBe(real)
+  })
+  it('ersetzt veraltete Interaktion, erhält aber echte Berührung nach einem verzögert zugestellten Override', async () => {
+    await useApp.getState().saveLocal(local => ({ ...local, guidance: { receipts: [], days: { [date]: { morningActivatedAt: Date.now() - 30_000, firstInteractionAt: Date.now() - 60_000 } } } }))
+    await useApp.getState().recordGuidanceInteraction(date)
+    expect(useApp.getState().local.guidance?.days[date]?.firstInteractionAt).toBe(Date.now())
+    const real = Date.now()
+    await useApp.getState().activateMorningFromAlarm({ ...handoff(), confirmedAt: real - 1000 })
+    expect(useApp.getState().local.guidance?.days[date]?.firstInteractionAt).toBe(real)
+  })
   it('speichert Weckzeit, ersten Countdown und Receipt einmal gemeinsam und erhält sie nach Neustart', async () => {
     const event = handoff(); const game = structuredClone(useApp.getState().game)
     const write = vi.spyOn(storage.repo!, 'putMany')

@@ -611,6 +611,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Gerätespezifische PC-Verbindung und bestätigte Ereignisse, nie Sync-/Backupinhalt. */
+  pcBridge?: import('./pcLink/types').PcBridgeLocal
   /** Private Zustandsfakten der freiwilligen Abend-/Morgenbegleitung. */
   guidance?: GuidanceLocal
   /** Bewusst bestätigte Überschneidungen je Plantag. Wie Termine ausschließlich lokal. */

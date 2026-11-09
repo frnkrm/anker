@@ -52,6 +52,7 @@ import { migrateWeatherState } from '../core/weatherProfile'
 import { key } from '../data/merge'
 import { genuineMorningCompleted, guidanceLocal, guidancePlanDate, guidancePreferences, guidanceTimestamp, pruneGuidanceDays, rememberGuidanceReceipt, validGuidanceDate, validGuidanceLocal, validIfThenPlan, validMorningAlarmHandoff, type GuidanceDay, type GuidanceLocal, type IfThenPlan, type MorningAlarmHandoff } from '../core/guidance'
 import { getRepository, type Rec, type Repository } from '../data'
+import { reducePcEvents, type PcEventsPayload } from '../core/pcLink'
 import type { Collection, RepositoryWrite } from '../data/types'
 
 export type AlarmStatus = AlarmPlanningStatus
@@ -102,6 +103,8 @@ interface AppState {
   setStep(date: DateStr, r: RoutineId, stepId: string, result: StepResult | undefined): Promise<void>
   mark(date: DateStr, field: 'wakeAt' | 'leftAt' | 'pcOffAt' | 'bedAt' | 'eveningRoutineDoneAt', at?: number): Promise<void>
   applyReminderAction(action: ReminderAction): Promise<ReminderApplyResult>
+  /** Native Ereignisse erst nach erfolgreicher atomarer Quittierung bestätigen. */
+  applyPcEvents(payload: PcEventsPayload): Promise<{ appliedIds: string[]; cursor: number }>
   setOverride(date: DateStr, patch: Partial<DayOverride>): Promise<void>
   addInbox(text: string, context?: string): Promise<string | undefined>
   parkThought(text: string, reviewAt: number, notify?: boolean): Promise<string | undefined>
@@ -607,7 +610,8 @@ export const useApp = create<AppState>()((set, get) => ({
       const day = facts.days[handoff.targetDate] ??= {}
       day.alarmOccurrenceId = handoff.occurrenceId
       day.alarmAt = handoff.alarmAt
-      day.morningActivatedAt ??= handoff.confirmedAt
+      day.morningActivatedAt = handoff.confirmedAt
+      if ((day.firstInteractionAt ?? handoff.confirmedAt) < handoff.confirmedAt) delete day.firstInteractionAt
       const plan = planFor(handoff.targetDate, { ...before, local, days: { ...before.days, [handoff.targetDate]: log } })
       const step = openSteps(plan, log, 'morning')[0]
       const inbox = structuredClone(before.inbox)
@@ -679,7 +683,9 @@ export const useApp = create<AppState>()((set, get) => ({
     validateGuidanceTime(date, at)
     return editGuidance(date, day => {
       if (!guidancePreferences(get().settings.guidance).enabled) return false
-      if (day.morningActivatedAt === undefined || at >= day.morningActivatedAt) day.firstInteractionAt ??= at
+      if (day.morningActivatedAt === undefined || at >= day.morningActivatedAt) {
+        if (day.firstInteractionAt === undefined || day.firstInteractionAt < (day.morningActivatedAt ?? 0)) day.firstInteractionAt = at
+      }
     })
   },
 
@@ -912,6 +918,23 @@ export const useApp = create<AppState>()((set, get) => ({
   async setOverride(date, patch) {
     if (pendingAtomicAction) await waitForAtomicActions()
     await get().updateDay(date, (log) => ({ ...log, override: { ...log.override, ...patch } }))
+  },
+
+  applyPcEvents(payload) {
+    return atomic(async () => {
+      const before = get()
+      const result = reducePcEvents({ payload, local: before.local, days: before.days, inbox: before.inbox, nowMs: Date.now() })
+      const records: RepositoryWrite[] = []
+      if (JSON.stringify(result.local) !== JSON.stringify(before.local)) records.push({ collection: 'meta', id: 'local', data: sourceLocal(result.local) })
+      for (const [date, day] of Object.entries(result.days)) if (JSON.stringify(day) !== JSON.stringify(before.days[date])) records.push({ collection: 'days', id: date, data: day })
+      for (const item of result.inbox) if (!before.inbox.some(old => old.id === item.id && JSON.stringify(old) === JSON.stringify(item))) records.push({ collection: 'inbox', id: item.id, data: item })
+      if (records.length) {
+        await repo.putMany(records)
+        set({ local: result.local, days: result.days, inbox: result.inbox })
+        changed()
+      }
+      return { appliedIds: result.appliedIds, cursor: result.cursor }
+    })
   },
 
   async addInbox(text, context) {

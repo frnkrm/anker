@@ -58,7 +58,8 @@ export function deriveGuidance({ plan, log, local, settings, alarm, nowMs }: Gui
   const currentMorning = (activated || active) && (!nightEntry || plan.date > nightEntry[0])
   const recentlyCompleted = day?.morningCompletedAt !== undefined && day.morningCompletedAt <= nowMs && nowMs - day.morningCompletedAt < 2 * 3600_000
   const morningVisible = nowMs < morningVisibleUntil || recentlyCompleted
-  const autoZombieDue = preferences.enabled && preferences.autoZombie && activated && !complete && !day?.firstInteractionAt
+  const interactedSinceActivation = day?.firstInteractionAt !== undefined && day.morningActivatedAt !== undefined && day.firstInteractionAt >= day.morningActivatedAt
+  const autoZombieDue = preferences.enabled && preferences.autoZombie && activated && !complete && !interactedSinceActivation
     && !log?.override.zombie && nowMs - day.morningActivatedAt! >= preferences.autoZombieAfterSeconds * 1000
   const brainDumpIds = complete && currentMorning && morningVisible ? [...new Set([
     ...(facts[addDays(plan.date, -1)]?.brainDumpShownAt ? [] : facts[addDays(plan.date, -1)]?.brainDumpIds ?? []),

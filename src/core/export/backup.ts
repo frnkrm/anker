@@ -41,7 +41,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
     && (selection.work || record.collection !== 'inbox' || !businessIds.has(record.id))).map((record) => {
     const copy = structuredClone(record)
     if (copy.deleted) return selection.work ? copy.collection === 'meta' && copy.id === 'local' && object(copy.data)
-      ? { ...copy, data: without(copy.data, ['timeCatalog']) } : copy : { ...copy, data: null }
+      ? { ...copy, data: without(copy.data, ['timeCatalog', 'pcBridge']) } : copy : { ...copy, data: null }
     if (!object(copy.data)) return copy
     let data = copy.data
     if (record.collection === 'settings') {
@@ -51,7 +51,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
     if (record.collection === 'meta' && record.id === 'local') {
       // Eine abgeleitete Übersicht kann Arbeits-/Orts-/Gesundheitsquellen zusammenführen.
       // Auch vollständige Backups enthalten deshalb ausschließlich die Originaldaten.
-      data = without(data, ['timeCatalog'])
+      data = without(data, ['timeCatalog', 'pcBridge'])
       if (!selection.health) data = without(data, ['meds', 'sleepDiary', 'guidance'])
       if (!selection.deviceTests) data = without(data, ['deviceTests'])
       if (!selection.places) {
@@ -83,7 +83,14 @@ export function parseBackup(text: string): Rec[] {
   try { value = JSON.parse(text) } catch { throw new Error('Die Datei ist kein gültiges JSON.') }
   if (!object(value) || value.app !== 'anker' || !Array.isArray(value.records)) throw new Error('Das ist keine Anker-Sicherung.')
   if (value.version !== 1) throw new Error('Diese Sicherung stammt aus einer anderen App-Version.')
-  return validatedRecords(value.records)
+  return validatedRecords(withoutPcConnection(value.records))
+}
+
+/** An imported file cannot transplant device pairing, ACKs or native cursors.
+ * The same-device connection is retained later through preserveOmitted. */
+function withoutPcConnection(records: unknown): unknown {
+  return Array.isArray(records) ? records.map(record => object(record) && record.collection === 'meta' && record.id === 'local' && object(record.data)
+    ? { ...record, data: without(record.data, ['pcBridge']) } : record) : records
 }
 
 /** Nur fehlende Objektfelder ergänzen. Vorhandene Werte/Listen bleiben weiterhin pro Record LWW. */
@@ -145,7 +152,7 @@ export interface ImportPreview {
 /** Vorschau und unmittelbarer Store-Import benutzen dieselbe Projektion, keine zweite Import-Engine. */
 export function previewImport(incoming: unknown, current: readonly Rec[], mode: BackupImportMode = 'merge', nowMs = Date.now()): ImportPreview {
   if (mode !== 'merge' && mode !== 'restore') throw new Error('Dieser Importmodus ist nicht gültig.')
-  const records = validatedRecords(incoming)
+  const records = validatedRecords(withoutPcConnection(incoming))
   const candidates = mode === 'restore' ? restoreCandidates(records, current, nowMs) : records
   const previous = new Map(current.map((record) => [key(record), record]))
   const businessIds = new Set(current.filter((record) => record.collection === 'inbox' && !record.deleted && localBusinessNote(record.data)).map((record) => record.id))
