@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { defaultPcBridgeLocal, isPcAck, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcLinkPreferences } from '../../core/pcLink'
+import { defaultPcBridgeLocal, isPcAck, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcLinkPreferences, type PcPhase } from '../../core/pcLink'
 import { guidancePreferences } from '../../core/guidance'
 import { requestEmergencyExtensionByQr } from '../../platform/guidance'
 import { isNative } from '../../platform/native'
-import { discoverPcCompanions, getPcBridgeView, pairPcCompanion, sendPcBridgeCommand, startPcCompanion, stopPcCompanion, unpairPcCompanion, updatePcBridgePreferences } from '../../platform/pcLink'
+import { discoverPcCompanions, getPcBridgePreview, getPcBridgeView, pairPcCompanion, sendPcBridgeCommand, startPcCompanion, stopPcCompanion, syncPcBridge, unpairPcCompanion, updatePcBridgePreferences } from '../../platform/pcLink'
 import { scanQr } from '../../platform/qr'
 import { useApp } from '../../state/store'
 import { Button, Card, Choice, MoreInfo, Section, SettingRow, Stepper, TextInput, Toggle } from '../components/ui'
 
 type BridgeView = Awaited<ReturnType<typeof getPcBridgeView>>
 type Discovery = Awaited<ReturnType<typeof discoverPcCompanions>>
+type Preview = Awaited<ReturnType<typeof getPcBridgePreview>>
 const time = (value: string) => new Date(value).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const WARNING_TEXT: Record<PcAck['warnings'][number], string> = {
+const WARNING_TEXT: Record<PcAck['warnings'][number] | 'link-stale', string> = {
   'clock-skew': 'Die Uhren von Handy und PC passen noch nicht zusammen. Prüfe die automatische Uhrzeit.',
   'local-enforcement-off': 'Am PC ist die lokale Ausführung noch nicht freigegeben. Eine App-Auswahl allein sperrt ihn nicht.',
   'legacy-conflict': 'Das klassische Windows-Paket ist noch aktiv. Der lokale Begleiter führt deshalb keine zusätzliche Sperre aus.',
@@ -20,6 +21,12 @@ const WARNING_TEXT: Record<PcAck['warnings'][number], string> = {
   'no-schedule': 'Der PC hat für diesen Tag keine feste Zeit übernommen.',
   'morning-deadline-reached': 'Das vorbereitete Morgenfenster ist zu Ende. Die weitere Freigabe richtet sich nach deiner PC-Einstellung.',
   'pairing-required': 'Die Kopplung muss am Handy erneut bestätigt werden.',
+  'link-stale': 'Handy gerade nicht erreichbar. Der PC folgt deiner gewählten Offline-Regel.',
+}
+const PHASE_TEXT: Record<PcPhase, string> = {
+  IDLE: 'Ruhig', DAY_ACTIVE: 'Alltag', MORNING_PENDING: 'Morgenbeginn bereit', MORNING_ACTIVE: 'Morgenroutine läuft', MORNING_COMPLETED: 'Morgenroutine tatsächlich abgeschlossen',
+  ZOMBIE_MODE: 'Kleine Morgenroutine', EVENING_WIND_DOWN: 'Abendübergang', WIND_DOWN_T30: 'Abend vorbereiten', BRAIN_DUMP_T10: 'Gedanken für morgen parken',
+  BEDTIME_HARD_CUT: 'Abend abschließen', NIGHT_LOCK: 'Gewählte Nachtbegleitung', ALARM_RINGING: 'Wecker klingelt',
 }
 const MODE_TEXT: Record<PcAck['effective']['mode'], string> = {
   scheduled: 'Stoppzeit übernommen', paused: 'ohne festen Stopp', 'suspended-today': 'für heute ausgesetzt',
@@ -35,6 +42,7 @@ export function PcCompanionPanel() {
   const native = isNative()
   const [view, setView] = useState<BridgeView>()
   const [discovery, setDiscovery] = useState<Discovery>()
+  const [preview, setPreview] = useState<Preview>()
   const [pairing, setPairing] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -105,7 +113,34 @@ export function PcCompanionPanel() {
         {ack.warnings.map(warning => <p key={warning}>{WARNING_TEXT[warning]}</p>)}
       </div></MoreInfo>}
       {native && view?.active && <p className="text-sm text-muted">Der Verbindungsdienst am Handy ist aktiv. Das allein bestätigt keinen Empfang.</p>}
+      <Button className="w-full" disabled={!native || !local.enabled || busy} onClick={() => void run(async () => {
+        await syncPcBridge()
+        const next = await getPcBridgeView()
+        setView(next)
+        setMessage(next.currentConfirmation ? 'Der PC bestätigt den aktuellen Plan.' : 'Abgleich angefragt. Der aktuelle Plan ist vom PC noch nicht bestätigt.')
+      })}>Jetzt abgleichen</Button>
     </Card>
+
+    <MoreInfo summary="Was weiß dein PC?"><div className="space-y-3">
+      <p className="text-sm text-muted">Diese lokale Vorschau verwendet genau den vorbereiteten Übertragungsplan. Sie sendet nichts und bestätigt keinen Empfang. Aufgaben- und Routinenschritttitel gehören nicht zu diesem Plan.</p>
+      <Button className="w-full" disabled={busy} onClick={() => void run(async () => { setPreview(await getPcBridgePreview()) })}>{preview ? 'Lokale Vorschau aktualisieren' : 'Lokale Vorschau anzeigen'}</Button>
+      {preview && <>
+        <p className="text-sm text-muted">Vorbereitet am {time(preview.state.generatedAt)} · {PHASE_TEXT[preview.state.state]}{preview.state.routineStep ? ` · Schritt ${preview.state.routineStep.index + 1} von ${preview.state.routineStep.total}` : ''}.</p>
+        <p className="text-sm text-muted">PC-Eingriffe {preview.state.prefs.enforceEnabled ? 'freigegeben' : 'aus'} · Abdunklung {preview.state.prefs.dimEnabled ? 'freigegeben' : 'aus'} · Audio {preview.state.prefs.audioDuck ? 'freigegeben' : 'aus'} · Abendnotiz {preview.state.prefs.shareBrainDump ? 'zur Übertragung freigegeben' : 'bleibt auf dem Handy'}.</p>
+        {preview.state.prefs.ifThen && <blockquote className="break-words border-l-2 border-line pl-3 text-sm">Dein freigegebener Wenn-dann-Satz: {preview.state.prefs.ifThen}</blockquote>}
+        {preview.state.brainDump && <blockquote className="space-y-1 break-words border-l-2 border-line pl-3 text-sm"><p>Freigegebene Abendnotiz: {preview.state.brainDump.text}</p>{preview.state.brainDump.nextStep && <p>Nächster Schritt: {preview.state.brainDump.nextStep}</p>}</blockquote>}
+        <ol className="space-y-3" aria-label="Vorbereitete PC-Tage">{preview.briefing.days.map(day => <li key={day.date} className="min-w-0 rounded-xl border border-line p-3">
+          <h3 className="break-words font-medium">{new Date(`${day.date}T12:00:00Z`).toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit' })}</h3>
+          <dl className="mt-2 space-y-2 text-sm">{[
+            ['PC-Stopp', day.pc.mode === 'paused' ? 'ohne festen Stopp' : day.pc.stopAt ? time(day.pc.stopAt) : 'noch ohne Zeit'],
+            ['Bett', day.bedAt ? time(day.bedAt) : 'offen'], ['Aufstehen', day.wakeAt ? time(day.wakeAt) : 'ohne festen Wert'],
+            ['Plan gültig bis', time(day.validUntil)],
+          ].map(([label, value]) => <div key={label} className="space-y-1"><dt className="font-medium">{label}</dt><dd className="break-words text-muted">{value}</dd></div>)}
+            {day.morning && <div className="space-y-1"><dt className="font-medium">Freigegebene Morgenzeiten</dt><dd className="break-words text-muted">{day.morning.homeOffice ? 'Homeoffice' : 'Kein Homeoffice'}{day.morning.leaveAt ? ` · Losgehen ${time(day.morning.leaveAt)}` : ''}{day.morning.workStartAt ? ` · Arbeitsbeginn ${time(day.morning.workStartAt)}` : ''}</dd></div>}
+          </dl>
+        </li>)}</ol>
+      </>}
+    </div></MoreInfo>
 
     <MoreInfo summary={paired ? 'PC-Kopplung verwalten' : 'PC erstmals koppeln'}>
       <div className="min-w-0 space-y-3">

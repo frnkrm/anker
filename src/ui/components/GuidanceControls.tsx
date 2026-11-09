@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { guidancePreferences, type GuidanceView } from '../../core/guidance'
+import { openSteps } from '../../core/now'
 import { addDays, fmtTime } from '../../core/time'
 import { confirmBedtimeByQr, confirmMorningActivity, requestEmergencyExtensionByQr, startSleepNoise, stopSleepNoise } from '../../platform/guidance'
 import { useToday } from '../../state/hooks'
@@ -107,10 +108,11 @@ export function GuidanceNightPage({ view }: { view: GuidanceView }) {
   return <div className="guidance-night-page mx-auto flex min-h-[calc(100dvh-5rem)] max-w-xl flex-col justify-center gap-5 px-5 pb-8 safe-top" data-testid="guidance-night-page">
     <p className="text-sm text-muted">{isMorning ? 'Ein kleiner Beginn' : `Bettzeit ${fmtTime(plan.bed)}`}</p>
     <h1 className="break-words text-4xl font-semibold">{isMorning ? 'Dein erster Schritt wartet' : view.phase === 'BEDTIME_HARD_CUT' ? 'Den Abend abschließen' : 'Gute Nacht'}</h1>
-    {view.phase === 'BEDTIME_HARD_CUT' ? <>
+    {view.phase === 'BEDTIME_HARD_CUT' && preferences.bedtimeQr ? <>
       <p className="text-muted">Dein Anker-Code im Bad oder Schlafzimmer bestätigt den Übergang.</p>
       <Button variant="primary" size="xl" disabled={busy} className="w-full" onClick={() => void run(confirmBedtimeByQr, 'Abendübergang bestätigt.')}>Anker-QR scannen</Button>
-    </> : isMorning ? <Link to="/fokus/morning" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-5 py-4 text-center text-2xl font-semibold text-accent-ink">Morgenroutine beginnen</Link>
+    </> : view.phase === 'BEDTIME_HARD_CUT' && openSteps(plan, log, 'evening').length > 0 ? <Link to="/fokus/evening" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-5 py-4 text-center text-2xl font-semibold text-accent-ink">Abendroutine beginnen</Link>
+      : isMorning ? <Link to="/fokus/morning" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-5 py-4 text-center text-2xl font-semibold text-accent-ink">Morgenroutine beginnen</Link>
       : !log.bedAt ? <Button variant="primary" size="xl" disabled={busy} className="w-full" onClick={() => void run(() => st.mark(date, 'bedAt'), 'Deine Bettbestätigung ist gespeichert.')}>Ich liege im Bett</Button>
         : <p role="status" className="text-muted">Für jetzt ist hier alles bereit.</p>}
     {message && <p role="status" className="text-sm text-muted">{message}</p>}

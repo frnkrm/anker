@@ -1,10 +1,11 @@
 import { App as CapApp } from '@capacitor/app'
 import { lazy, Suspense, useEffect, useEffectEvent, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { startEffects } from './platform/effects'
 import { refreshCalendar, writeAnkerBlocks } from './platform/google'
 import { AnkerNative, isNative, safe } from './platform/native'
 import { nativeDestination } from './platform/links'
+import { hasHandledMorningHandoff, resumeGuidanceHandoff } from './platform/guidance'
 import { listenForAuthLinks, syncNow } from './platform/supabase'
 import { useApp } from './state/store'
 import { useGeofenceLifecycle } from './state/useGeofences'
@@ -60,40 +61,73 @@ function useAppearance() {
 /** Native Einstiege: Wecker klingelt, Widget-Knopf „Gedanke“. */
 function NativeBridge() {
   const nav = useNavigate()
+  const location = useLocation()
   const openDestination = useEffectEvent((destination: string) => nav(destination))
+  const currentRouteKey = useEffectEvent(() => location.key)
   useEffect(() => {
     if (!isNative()) return
     let active = true
-    let alarmVersion = 0
-    const open = async (url?: string) => {
-      const version = alarmVersion
+    let entryVersion = 0
+    let startupNavigated = false
+    const startupVersion = entryVersion
+    const startupRoute = currentRouteKey()
+    // Start before awaiting the launch link: Android may return that old link much later.
+    const initialHandoff = resumeGuidanceHandoff().catch(() => false)
+    const openStartup = async (url?: string) => {
+      const recovered = await initialHandoff
       const ringing = await safe(async () => (await AnkerNative.getAlarmState()).ringing, undefined)
-      if (!active || version !== alarmVersion) return
+      if (!active || startupVersion !== entryVersion) return
       if (ringing) openDestination('/wecker/klingelt')
-      else if (url) {
+      else if (startupNavigated || currentRouteKey() !== startupRoute) return
+      else if (recovered) {
+        startupNavigated = true
+        openDestination('/fokus/morning')
+      } else if (!hasHandledMorningHandoff() && url) {
         const destination = nativeDestination(url)
         if (destination) openDestination(destination)
       }
     }
-    void open()
+    const openExplicit = async (url: string) => {
+      const version = ++entryVersion
+      const ringing = await safe(async () => (await AnkerNative.getAlarmState()).ringing, undefined)
+      if (!active || version !== entryVersion) return
+      if (ringing) openDestination('/wecker/klingelt')
+      else {
+        const destination = nativeDestination(url)
+        if (destination) openDestination(destination)
+      }
+    }
+    const recoverVisible = async () => {
+      if (document.visibilityState !== 'visible') return
+      const version = ++entryVersion
+      const route = currentRouteKey()
+      const recovered = await resumeGuidanceHandoff().catch(() => false)
+      const ringing = await safe(async () => (await AnkerNative.getAlarmState()).ringing, undefined)
+      if (!active || version !== entryVersion) return
+      if (ringing) openDestination('/wecker/klingelt')
+      else if (recovered && currentRouteKey() === route) openDestination('/fokus/morning')
+    }
+    void openStartup()
     void safe(async () => {
       const launch = await safe(() => CapApp.getLaunchUrl(), undefined)
-      if (launch?.url) await open(launch.url)
+      if (launch?.url) await openStartup(launch.url)
     }, undefined)
     const subs = [
       AnkerNative.addListener('alarmRinging', () => {
         if (!active) return
-        alarmVersion++
+        entryVersion++
         openDestination('/wecker/klingelt')
       }),
-      CapApp.addListener('appUrlOpen', ({ url }) => void open(url)),
+      CapApp.addListener('appUrlOpen', ({ url }) => void openExplicit(url)),
     ]
+    document.addEventListener('visibilitychange', recoverVisible)
     return () => {
       active = false
+      document.removeEventListener('visibilitychange', recoverVisible)
       subs.forEach((p) => void p.then((h) => h.remove()))
     }
-    // Android behält den Startlink. Seitenwechsel dürfen ihn nicht erneut öffnen;
-    // das Effect Event verwendet trotzdem die aktuelle Router-Navigation.
+    // Nur dieser Einstieg entscheidet über Navigation. Spätere echte Klicks und Alarme
+    // überholen alte Antworten; gewöhnliche Seitenwechsel lesen keinen Startlink neu.
   }, [])
   return null
 }

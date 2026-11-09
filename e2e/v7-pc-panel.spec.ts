@@ -31,6 +31,11 @@ test('PC-Webvorschau trennt Verbindung, Eingriffe und privaten Text; die klassis
   expect(saved.preferences.enforceEnabled).toBe(false)
   expect(saved.preferences.shareBrainDump).toBe(false)
   await expect(page.getByRole('button', { name: 'PC einrichten', exact: true })).toBeVisible()
+  await panel.getByText('Was weiß dein PC?', { exact: true }).click()
+  await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
+  await expect(panel.getByRole('list', { name: 'Vorbereitete PC-Tage', exact: true }).getByRole('listitem')).toHaveCount(14)
+  await expect(panel).toContainText('Abendnotiz bleibt auf dem Handy')
+  await expect(panel.getByRole('button', { name: 'Jetzt abgleichen', exact: true })).toBeDisabled()
 })
 
 test('PC-Einstellungen bleiben bei 320 Pixeln und 160 Prozent Schrift lesbar; ungültiges WoL wird nicht gespeichert', async ({ page }) => {
@@ -49,6 +54,10 @@ test('PC-Einstellungen bleiben bei 320 Pixeln und 160 Prozent Schrift lesbar; un
   await panel.getByRole('button', { name: 'Wake-on-LAN-Auswahl übernehmen', exact: true }).click()
   await expect(panel.getByRole('alert')).toContainText('Noch nichts wurde geändert.')
   expect((await storedRecord<LocalData>(page, 'meta', 'local'))?.pcBridge?.wakeOnLan).toBeUndefined()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321)
+  await panel.getByText('Was weiß dein PC?', { exact: true }).click()
+  await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
+  await expect(panel.getByRole('list', { name: 'Vorbereitete PC-Tage', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321)
 })
 

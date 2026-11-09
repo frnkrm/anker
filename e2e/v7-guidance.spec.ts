@@ -193,3 +193,20 @@ test('Gedanken merken nennt nachts dieselbe Handlung wie die sichtbare Jetzt-Sei
   await page.getByRole('button', { name: 'Merken', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Gespeichert', exact: true })).toContainText('Ab ins Bett')
 })
+
+test('Der Abendabschluss ohne QR-Freigabe führt direkt zur vorhandenen Routine', async ({ page }) => {
+  const settings = await onboard(page, '23:10')
+  settings.guidance = { ...guidancePreferences(), enabled: true, eveningEscalation: true, bedtimeQr: false }
+  settings.anchor.manual = { wake: true, bed: true, pcStop: true }
+  settings.bed = 23 * 60; settings.pcStop = 22 * 60 + 30
+  settings.routines.evening = [{ id: 'brush', title: 'Zähne putzen', minutes: 2 }]
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Den Abend abschließen', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Anker-QR scannen', exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Abendroutine beginnen', exact: true }).click()
+  await expect(page).toHaveURL(/\/fokus\/evening$/)
+  await expect(page.getByRole('heading', { name: 'Zähne putzen', exact: true })).toBeVisible()
+  expect((await storedRecord<DayLog>(page, 'days', DATE))?.bedAt).toBeUndefined()
+  expect((await storedRecord<DayLog>(page, 'days', DATE))?.steps['evening:brush']).toBeUndefined()
+})

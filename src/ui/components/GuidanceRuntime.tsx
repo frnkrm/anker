@@ -1,37 +1,24 @@
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
 import { guidancePreferences } from '../../core/guidance'
-import { resumeGuidanceHandoff, syncGuidanceRuntime } from '../../platform/guidance'
+import { syncGuidanceRuntime } from '../../platform/guidance'
 import { useApp } from '../../state/store'
 import { useGuidanceView } from '../../state/useGuidanceView'
 
 /** One mounted lifecycle owns foreground synchronization; native services own background work. */
 export function GuidanceRuntime() {
-  const navigate = useNavigate()
   const settings = useApp(state => state.settings)
   const view = useGuidanceView()
   const attemptedZombie = useRef('')
   const preferences = guidancePreferences(settings.guidance)
 
   useEffect(() => {
-    let active = true
-    let resuming = false
     const sync = () => { void syncGuidanceRuntime().catch(() => undefined) }
-    const resume = async () => {
-      if (resuming) return
-      resuming = true
-      try {
-        const recovered = await resumeGuidanceHandoff()
-        if (active && recovered) navigate('/fokus/morning', { replace: true })
-      } catch { /* The native handoff remains pending until durable storage succeeds. */ }
-      finally { resuming = false; if (active) sync() }
-    }
-    const visible = () => { if (document.visibilityState === 'visible') void resume() }
-    void resume()
+    const visible = () => { if (document.visibilityState === 'visible') sync() }
+    sync()
     const interval = window.setInterval(sync, 1000)
     document.addEventListener('visibilitychange', visible)
-    return () => { active = false; window.clearInterval(interval); document.removeEventListener('visibilitychange', visible) }
-  }, [navigate])
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', visible) }
+  }, [])
 
   useEffect(() => {
     if (!preferences.enabled || !view.autoZombieDue) { attemptedZombie.current = ''; return }

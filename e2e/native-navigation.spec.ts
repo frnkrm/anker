@@ -2,6 +2,7 @@
 /// <reference lib="dom.iterable" />
 import { expect, test, type Page } from '@playwright/test'
 import { defaultSettings } from '../src/core/defaults'
+import { guidancePreferences } from '../src/core/guidance'
 import type { ReminderDeliveryDiagnostics } from '../src/platform/native'
 
 interface BridgeProbe {
@@ -14,11 +15,21 @@ interface BridgeProbe {
   toneBlocked: boolean
   toneCalls: number
   reminderChannelOpens: string[]
+  handoffReads: number
+  handoffAcks: number
+  launchReleased: boolean
+  releaseLaunch: () => void
 }
 
 /** Browser simulation of Capacitor entry events, not an Android execution test. */
-async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = false, audio: { audioOk?: boolean; toneBlocked?: boolean; reminderDelivery?: ReminderDeliveryDiagnostics } = {}, layoutFontScale?: number) {
+async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = false, audio: { audioOk?: boolean; toneBlocked?: boolean; reminderDelivery?: ReminderDeliveryDiagnostics } = {}, layoutFontScale?: number, earlyHandoff = false) {
   const settings = { ...defaultSettings('2026-11-05'), onboarded: true }
+  if (earlyHandoff) {
+    settings.guidance = { ...guidancePreferences(), enabled: true, zeroGapMorning: true }
+    settings.anchor = { ...settings.anchor, wake: 120, manual: { wake: true, bed: true, pcStop: true } }
+    settings.routines.morning = [{ id: 'water', title: 'Ein Glas Wasser', minutes: 1 }]
+    settings.sport.days = []
+  }
   if (layoutFontScale !== undefined) {
     settings.appearance.fontScale = layoutFontScale
     settings.alarm.wakeCheckEnabled = true
@@ -27,11 +38,13 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
   }
   settings.alarm.preWakeEnabled = measurementEnabled
   settings.alarm.smartWake.enabled = measurementEnabled
-  await page.addInitScript(({ launchUrl, settings, audio }) => {
+  await page.addInitScript(({ launchUrl, settings, audio, earlyHandoff }) => {
     const callbacks = new Map<string, { plugin: string; event: string; callback: (value: unknown) => void }>()
     let nextId = 0
     const alarm = { ringing: false, kind: null as string | null, snoozed: 0, scheduledAt: new Date('2026-11-06T06:30:00+01:00').getTime(), preWakeAt: new Date('2026-11-06T06:00:00+01:00').getTime() as number | null, preWakePausedForTargetAt: 0, exact: true, mainConfirmed: true, preWakeConfirmed: true }
     let measurementActive = false
+    let handoffPending = earlyHandoff
+    const handoffAt = Date.parse('2026-11-06T02:00:00+01:00')
     const records = [{ collection: 'settings', id: 'main', data: JSON.stringify(settings), updated_at: Date.now(), deleted: 0, dirty: 0 }]
     const probe: BridgeProbe = {
       launchReads: 0,
@@ -40,6 +53,10 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
       toneBlocked: audio.toneBlocked ?? false,
       toneCalls: 0,
       reminderChannelOpens: [],
+      handoffReads: 0,
+      handoffAcks: 0,
+      launchReleased: !earlyHandoff,
+      releaseLaunch() {},
       listeners: {},
       emit(plugin, event, value) {
         for (const entry of [...callbacks.values()]) {
@@ -54,12 +71,16 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
       Capacitor: {
         PluginHeaders: [
           { name: 'App', methods: ['getLaunchUrl', 'getInfo', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
-          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'playTestTone', 'openReminderChannelSettings', 'getBedtimePromptState', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
+          { name: 'AnkerNative', methods: ['getAlarmState', 'getAlarmDiagnostics', 'playTestTone', 'openReminderChannelSettings', 'getBedtimePromptState', 'getSmartWakeState', 'startSmartWake', 'stopSmartWake', 'syncAlarmConfig', 'drainReminderActions', 'setReminderFocus', 'removeListener', 'getMorningHandoff', 'ackMorningHandoff', 'syncRoutinePaceKeeper', 'stopRoutinePaceKeeper', 'stopSleepAudio', 'pcBridgeDrainEvents', 'pcBridgeConfigure', 'pcBridgeStop'].map((name) => ({ name, rtype: 'promise' })).concat([{ name: 'addListener', rtype: 'callback' }]) },
           { name: 'CapacitorSQLite', methods: ['checkConnectionsConsistency', 'createConnection', 'open', 'execute', 'executeSet', 'query', 'run'].map((name) => ({ name, rtype: 'promise' })) },
         ],
         async nativePromise(plugin: string, method: string, options: { callbackId?: string; values?: (string | number)[]; set?: { values: (string | number)[] }[]; until?: number; channel?: string }) {
           if (method === 'removeListener') { callbacks.delete(options.callbackId!); return {} }
-          if (plugin === 'App' && method === 'getLaunchUrl') { probe.launchReads++; return { url: launchUrl } }
+          if (plugin === 'App' && method === 'getLaunchUrl') {
+            probe.launchReads++
+            if (earlyHandoff) await new Promise<void>(resolve => { probe.releaseLaunch = () => { probe.launchReleased = true; resolve() } })
+            return { url: launchUrl }
+          }
           if (plugin === 'App' && method === 'getInfo') return { id: 'de.frnkrm.anker.mobile', name: 'Anker', version: 'simulation', build: '0' }
           if (plugin === 'AnkerNative' && (method === 'getAlarmState' || method === 'syncAlarmConfig')) return { ...alarm }
           if (plugin === 'AnkerNative' && method === 'getAlarmDiagnostics') return { ...alarm, notificationsEnabled: true, fullScreen: true, alarmVolume: 5, alarmVolumeMax: 7, audioOk: probe.audioOk, interruptionFilter: 1, testResult: '', sdk: 36, device: 'Browser simulation', reminderDelivery: audio.reminderDelivery }
@@ -74,6 +95,13 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
           if (plugin === 'AnkerNative' && method === 'stopSmartWake') { measurementActive = false; return {} }
           if (plugin === 'AnkerNative' && method === 'setReminderFocus') { probe.focusUntil = options.until ?? 0; return {} }
           if (plugin === 'AnkerNative' && method === 'drainReminderActions') return { actions: [] }
+          if (plugin === 'AnkerNative' && method === 'getMorningHandoff') { probe.handoffReads++; return { pending: handoffPending, antiRelapseAt: 0, ...(handoffPending ? { token: 'early-handoff', targetAt: handoffAt, at: handoffAt, method: 'qr' } : {}) } }
+          if (plugin === 'AnkerNative' && method === 'ackMorningHandoff') { handoffPending = false; probe.handoffAcks++; return { acknowledged: true } }
+          if (plugin === 'AnkerNative' && (method === 'syncRoutinePaceKeeper' || method === 'stopRoutinePaceKeeper')) return { active: false, phase: 'idle', speechStatus: 'idle' }
+          if (plugin === 'AnkerNative' && method === 'stopSleepAudio') return { active: false, phase: 'stopped' }
+          if (plugin === 'AnkerNative' && method === 'pcBridgeDrainEvents') return { events: [], lastSeq: 0 }
+          if (plugin === 'AnkerNative' && method === 'pcBridgeConfigure') return { configured: true }
+          if (plugin === 'AnkerNative' && method === 'pcBridgeStop') return { state: 'unpaired', connected: false, active: false }
           if (plugin === 'CapacitorSQLite') {
             if (method === 'checkConnectionsConsistency') return { result: false }
             if (method === 'query') return { values: records.filter((r) => !options.values?.length || (r.collection === options.values[0] && (!options.values[1] || r.id === options.values[1]))) }
@@ -100,13 +128,47 @@ async function nativeEntry(page: Page, launchUrl: string, measurementEnabled = f
         },
       },
     })
-  }, { launchUrl, settings, audio })
+  }, { launchUrl, settings, audio, earlyHandoff })
   await page.clock.setFixedTime(new Date('2026-11-06T02:00:00+01:00'))
   await page.goto('/')
   await expect.poll(async () => (await probe(page)).launchReads).toBe(1)
-  await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ab ins Bett')
+  if (earlyHandoff) {
+    await expect(page).toHaveURL(/\/fokus\/morning$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ein Glas Wasser')
+  } else {
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ab ins Bett')
+  }
 }
+
+test('Ein verzögerter alter Startlink verdrängt keinen Morgenübergang und spätere Widget-Klicks bleiben möglich', async ({ page }) => {
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now', false, {}, undefined, true)
+  expect(await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.handoffAcks)).toBe(1)
+  await page.getByRole('button', { name: 'Zurück', exact: true }).click()
+  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.releaseLaunch())
+  await expect(page).toHaveURL(/\/mehr$/)
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.handoffReads)).toBeGreaterThanOrEqual(2)
+  await expect(page).toHaveURL(/\/mehr$/)
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://now' }))
+  await expect(page).toHaveURL(/\/$/)
+  expect(await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.handoffAcks)).toBe(1)
+})
+
+test('Ein neuer klingelnder Alarm überholt einen alten Launchlink nach dem Morgenübergang', async ({ page }) => {
+  await nativeEntry(page, 'de.frnkrm.anker.mobile://now', false, {}, undefined, true)
+  await page.evaluate(() => {
+    const bridge = (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge
+    bridge.setRinging(true)
+    bridge.emit('AnkerNative', 'alarmRinging', {})
+    bridge.releaseLaunch()
+  })
+  await expect(page).toHaveURL(/\/wecker\/klingelt$/)
+  await expect(page.getByRole('button', { name: 'Test beenden', exact: true })).toBeVisible()
+  await page.evaluate(() => (window as unknown as { __ankerBridge: BridgeProbe }).__ankerBridge.emit('App', 'appUrlOpen', { url: 'de.frnkrm.anker.mobile://now' }))
+  await expect(page).toHaveURL(/\/wecker\/klingelt$/)
+})
 
 async function probe(page: Page) {
   return page.evaluate(() => {

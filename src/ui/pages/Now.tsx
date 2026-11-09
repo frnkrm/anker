@@ -72,7 +72,8 @@ export default function Now() {
   const openDifferent = (view: typeof differentView = 'menu') => { setDifferentView(view); setDifferent(true); setAdjust(false) }
   const primaryLabelMinutes = v.estimatedMin
   const timeArc = guidanceOptions.enabled && guidanceOptions.timeArc && !!v.hard && ['pc-stop', 'bed', 'leave'].includes(v.hard.key) && v.hard.at - m > 0 && v.hard.at - m <= 60
-  if (guidanceOptions.enabled && ['NIGHT_LOCK', 'BEDTIME_HARD_CUT'].includes(guidance.phase) && (guidanceOptions.bedtimeQr || guidanceOptions.pcLock)) return <GuidanceNightPage view={guidance} />
+  if (guidanceOptions.enabled && (guidance.phase === 'NIGHT_LOCK' && (guidanceOptions.bedtimeQr || guidanceOptions.pcLock)
+    || guidance.phase === 'BEDTIME_HARD_CUT' && (guidanceOptions.eveningEscalation || guidanceOptions.bedtimeQr || guidanceOptions.pcLock))) return <GuidanceNightPage view={guidance} />
 
   return <div className="now-page" data-testid="now-page">
     {!bedtime && <>
