@@ -70,6 +70,35 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             self.receive_seq = envelope["seq"]
             return result
 
+    def sync_ui(self):
+        class UI:
+            def __init__(self): self.messages = []
+            def render(self, value): self.messages.append(value)
+            def ask_pair(self, _value): pass
+        ui = UI(); self.bridge.ui = ui; self.engine.ui = ui
+        self.bridge.sync_timeout = .5
+        return ui
+
+    def sync_results(self, ui, identifier):
+        return [item["actionResult"] for item in ui.messages if item.get("actionResult", {}).get("requestId") == identifier]
+
+    async def ws_receive(self, socket):
+        raw = await asyncio.wait_for(socket.receive_json(), 1)
+        envelope, result = open_envelope(raw, self.identifier, "pc", self.receive_seq, self.outgoing)
+        self.receive_seq = envelope["seq"]
+        return result
+
+    async def ws_exchange(self, socket, payload):
+        await socket.send_json(self.envelope(payload))
+        return await self.ws_receive(socket)
+
+    async def sync_socket(self):
+        await self.pair()
+        socket = await self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier, autoping=False)
+        self.addAsyncCleanup(socket.close)
+        await self.ws_exchange(socket, {"type": "pull", "after": 0})
+        return socket
+
     async def test_pairing_needs_physical_confirmation_and_expires_once(self):
         qr, request = await self.pair(approve=False)
         self.assertFalse(self.store.read()["pairs"])
@@ -111,6 +140,255 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((await socket.receive()).type, aiohttp.WSMsgType.PONG)
             self.assertGreater(self.store.read()["runtime"]["linkSeenAt"], original)
             self.assertNotIn("link-stale", self.engine.ack("rev1")["warnings"])
+
+    async def test_sync_needs_an_authenticated_wss_session_not_pair_id_or_tcp_connection(self):
+        ui = self.sync_ui()
+        await self.bridge.ui_action({"action": "sync", "requestId": "unpaired"})
+        self.assertEqual(self.sync_results(ui, "unpaired")[0]["status"], "unpaired")
+        await self.pair()
+        await self.exchange(state(self.clock))
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as socket:
+            await self.bridge.ui_action({"action": "sync", "requestId": "not-authenticated"})
+            self.assertEqual(self.sync_results(ui, "not-authenticated")[0]["status"], "offline")
+            self.assertEqual(self.bridge._sessions, {})
+            self.assertFalse(socket.closed)
+        await self.bridge.ui_action({"action": "sync", "requestId": "offline"})
+        self.assertEqual(self.sync_results(ui, "offline")[0]["status"], "offline")
+
+    async def test_sync_sends_encrypted_events_but_stored_state_and_ping_do_not_confirm_it(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        await self.exchange(state(self.clock))
+        self.bridge.sync_timeout = .05
+        task = self.bridge.ui_action({"action": "sync", "requestId": "no-new-state"})
+        payload = await self.ws_receive(socket)
+        self.assertEqual(payload, {"type": "events", "items": [], "lastSeq": 0})
+        self.assertEqual(self.sync_results(ui, "no-new-state"), [])
+        await socket.ping(b"not-a-plan")
+        self.assertEqual((await socket.receive()).type, aiohttp.WSMsgType.PONG)
+        await task
+        result = self.sync_results(ui, "no-new-state")
+        self.assertEqual(len(result), 1)
+        self.assertFalse(result[0]["ok"])
+        self.assertEqual(result[0]["status"], "timeout")
+
+    async def test_sync_accepts_newly_received_current_cached_state_and_reports_its_real_timestamp(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        cached = state(self.clock)
+        await self.ws_exchange(socket, cached)
+        self.clock.now += 30
+        task = self.bridge.ui_action({"action": "sync", "requestId": "fresh-receipt"})
+        await self.ws_receive(socket)
+        self.assertEqual(self.sync_results(ui, "fresh-receipt"), [])
+        await self.ws_exchange(socket, cached)
+        await task
+        result = self.sync_results(ui, "fresh-receipt")[0]
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "received")
+        self.assertEqual(result["receivedAt"], utc(self.clock()))
+        self.assertEqual(result["sourceGeneratedAt"], cached["generatedAt"])
+        self.assertNotEqual(result["receivedAt"], result["sourceGeneratedAt"])
+        self.assertEqual(self.platform.effects, [])
+
+    async def test_sync_uses_the_last_real_cursor_and_does_not_skip_open_pc_events(self):
+        ui = self.sync_ui(); await self.pair()
+        for index in range(3): self.store.event(self.clock(), "2026-11-12", "thought", text=f"Synthetic {index}")
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as socket:
+            initial = await self.ws_exchange(socket, {"type": "pull", "after": 1})
+            self.assertEqual([item["seq"] for item in initial["items"]], [2, 3])
+            task = self.bridge.ui_action({"action": "sync", "requestId": "with-events"})
+            pushed = await self.ws_receive(socket)
+            self.assertEqual(pushed, initial)
+            await self.ws_exchange(socket, state(self.clock))
+            self.assertEqual(self.sync_results(ui, "with-events"), [])
+            await self.ws_exchange(socket, {"type": "pull", "after": 3})
+            self.assertEqual(self.sync_results(ui, "with-events"), [])
+            await self.ws_exchange(socket, state(self.clock))
+            await task
+            self.assertTrue(self.sync_results(ui, "with-events")[0]["ok"])
+            self.assertEqual(len(self.store.read()["outbox"]), 3)
+
+    async def test_sync_with_open_events_requests_phone_opening_instead_of_success(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        self.store.event(self.clock(), "2026-11-12", "thought", text="Synthetic pending note")
+        self.bridge.sync_timeout = .05
+        task = self.bridge.ui_action({"action": "sync", "requestId": "pending-events"})
+        self.assertEqual(len((await self.ws_receive(socket))["items"]), 1)
+        await self.ws_exchange(socket, state(self.clock))
+        await task
+        result = self.sync_results(ui, "pending-events")[0]
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "pending-events")
+        self.assertIn("Öffne Anker", ui.messages[-1]["message"])
+
+    async def test_sync_expired_foreign_date_or_wrong_effective_revision_does_not_confirm(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        task = self.bridge.ui_action({"action": "sync", "requestId": "valid-plan-only"})
+        await self.ws_receive(socket)
+        await self.ws_exchange(socket, state(self.clock, generatedAt=utc(self.clock() - 10), validUntil=utc(self.clock() - 1)))
+        self.assertEqual(self.sync_results(ui, "valid-plan-only"), [])
+        await self.ws_exchange(socket, state(self.clock, date="2026-11-13"))
+        self.assertEqual(self.sync_results(ui, "valid-plan-only"), [])
+        await self.ws_exchange(socket, state(self.clock))
+        await task
+        self.assertTrue(self.sync_results(ui, "valid-plan-only")[0]["ok"])
+
+    async def test_sync_briefing_needs_a_current_entry_and_the_effective_plan_revision(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        current = state(self.clock)
+        await self.ws_exchange(socket, current)
+        briefing = {"type": "briefing", "revision": "new-revision", "generatedAt": utc(self.clock()), "validUntil": utc(self.clock() + 3600),
+                    "prefs": current["prefs"], "days": [{"date": "2026-11-13", "validUntil": utc(self.clock() + 3600), "pc": {"mode": "paused"}}]}
+        task = self.bridge.ui_action({"action": "sync", "requestId": "briefing-revision"})
+        await self.ws_receive(socket)
+        await self.ws_exchange(socket, briefing)
+        self.assertEqual(self.sync_results(ui, "briefing-revision"), [])
+        briefing["days"][0]["date"] = "2026-11-12"
+        await self.ws_exchange(socket, briefing)
+        self.assertEqual(self.sync_results(ui, "briefing-revision"), [])
+        await self.ws_exchange(socket, {**current, "revision": "new-revision"})
+        await task
+        self.assertTrue(self.sync_results(ui, "briefing-revision")[0]["ok"])
+
+    async def test_sync_can_confirm_a_current_briefing_without_a_live_state(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        task = self.bridge.ui_action({"action": "sync", "requestId": "briefing-only"})
+        await self.ws_receive(socket)
+        current = state(self.clock)
+        briefing = {"type": "briefing", "revision": "briefing-only", "generatedAt": utc(self.clock()), "validUntil": utc(self.clock() + 3600),
+                    "prefs": current["prefs"], "days": [{"date": "2026-11-12", "validUntil": utc(self.clock() + 3600), "pc": {"mode": "paused"}}]}
+        await self.ws_exchange(socket, briefing)
+        await task
+        self.assertTrue(self.sync_results(ui, "briefing-only")[0]["ok"])
+
+    async def test_sync_old_replayed_state_is_not_a_fresh_confirmation(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        current = state(self.clock)
+        await self.ws_exchange(socket, current)
+        task = self.bridge.ui_action({"action": "sync", "requestId": "old-state"})
+        await self.ws_receive(socket)
+        await socket.send_json(self.envelope({**current, "generatedAt": utc(self.clock() - 1)}))
+        self.assertEqual((await socket.receive()).type, aiohttp.WSMsgType.CLOSE)
+        await task
+        self.assertEqual(self.sync_results(ui, "old-state")[0]["status"], "offline")
+        self.assertFalse(self.sync_results(ui, "old-state")[0]["ok"])
+        self.assertEqual(self.store.read()["snapshot"], current)
+
+    async def test_sync_serializes_sequence_reservation_and_send_with_normal_replies(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        session = next(iter(self.bridge._sessions.values()))
+        original_send = session.socket.send_json
+        held, release = asyncio.Event(), asyncio.Event()
+        async def delayed_send(value, *args, **kwargs):
+            if value["seq"] == 2:
+                held.set()
+                await release.wait()
+            return await original_send(value, *args, **kwargs)
+        session.socket.send_json = delayed_send
+        task = self.bridge.ui_action({"action": "sync", "requestId": "ordered"})
+        try:
+            await asyncio.wait_for(held.wait(), 1)
+            await socket.send_json(self.envelope({"type": "pull", "after": 0}))
+            with self.assertRaises(asyncio.TimeoutError):
+                await asyncio.wait_for(socket.receive_json(), .03)
+            self.assertEqual(self.store.read()["pairs"][self.identifier]["sendSeq"], 2)
+            release.set()
+            self.assertEqual((await self.ws_receive(socket))["type"], "events")
+            self.assertEqual((await self.ws_receive(socket))["type"], "events")
+            self.assertEqual(self.receive_seq, 3)
+            await self.ws_exchange(socket, state(self.clock))
+            await task
+            self.assertTrue(self.sync_results(ui, "ordered")[0]["ok"])
+        finally:
+            release.set()
+            session.socket.send_json = original_send
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
+    async def test_sync_request_ids_do_not_cross_confirm_and_rest_is_not_wss(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        first = self.bridge.ui_action({"action": "sync", "requestId": "first"})
+        await self.ws_receive(socket)
+        await self.bridge.ui_action({"action": "sync", "requestId": "second"})
+        self.assertEqual(self.sync_results(ui, "second")[0]["status"], "busy")
+        self.assertEqual(self.sync_results(ui, "first"), [])
+        await self.ws_exchange(socket, state(self.clock))
+        await first
+        third = self.bridge.ui_action({"action": "sync", "requestId": "third"})
+        await self.ws_receive(socket)
+        await self.exchange(state(self.clock))
+        self.assertEqual(self.sync_results(ui, "third"), [])
+        await self.ws_exchange(socket, state(self.clock))
+        await third
+        self.assertEqual(len(self.sync_results(ui, "first")), 1)
+        self.assertEqual(len(self.sync_results(ui, "second")), 1)
+        self.assertEqual(len(self.sync_results(ui, "third")), 1)
+        self.assertTrue(self.sync_results(ui, "third")[0]["ok"])
+
+    async def test_sync_response_from_another_authenticated_session_does_not_confirm_click(self):
+        ui = self.sync_ui(); original = await self.sync_socket()
+        task = self.bridge.ui_action({"action": "sync", "requestId": "same-session-only"})
+        await self.ws_receive(original)
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as other:
+            await self.ws_exchange(other, state(self.clock))
+            self.assertEqual(self.sync_results(ui, "same-session-only"), [])
+            await self.ws_exchange(original, state(self.clock))
+            await task
+        self.assertTrue(self.sync_results(ui, "same-session-only")[0]["ok"])
+
+    async def test_sync_old_socket_cleanup_cannot_end_a_new_request_after_reconnect(self):
+        ui = self.sync_ui(); old = await self.sync_socket()
+        self.bridge.sync_timeout = .05
+        first = self.bridge.ui_action({"action": "sync", "requestId": "old-socket"})
+        await self.ws_receive(old)
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as new:
+            await self.ws_exchange(new, state(self.clock))
+            self.assertEqual(self.sync_results(ui, "old-socket"), [])
+            await first
+            self.assertEqual(self.sync_results(ui, "old-socket")[0]["status"], "timeout")
+            self.bridge.sync_timeout = .5
+            second = self.bridge.ui_action({"action": "sync", "requestId": "new-socket"})
+            await self.ws_receive(new)
+            await old.close()
+            self.assertEqual(self.sync_results(ui, "new-socket"), [])
+            await self.ws_exchange(new, state(self.clock))
+            await second
+        self.assertTrue(self.sync_results(ui, "new-socket")[0]["ok"])
+        self.assertEqual(len(self.sync_results(ui, "old-socket")), 1)
+
+    async def test_sync_cursor_ahead_of_durable_pc_sequence_is_not_an_acknowledgement(self):
+        ui = self.sync_ui(); await self.pair()
+        async with self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier) as socket:
+            await self.ws_exchange(socket, {"type": "pull", "after": 5})
+            self.bridge.sync_timeout = .05
+            task = self.bridge.ui_action({"action": "sync", "requestId": "future-cursor"})
+            self.assertEqual((await self.ws_receive(socket))["lastSeq"], 5)
+            await self.ws_exchange(socket, state(self.clock))
+            await task
+        result = self.sync_results(ui, "future-cursor")[0]
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "pending-events")
+
+    async def test_sync_disconnect_and_deadline_while_waiting_for_send_lock_are_honest(self):
+        ui = self.sync_ui(); socket = await self.sync_socket()
+        task = self.bridge.ui_action({"action": "sync", "requestId": "disconnect"})
+        await self.ws_receive(socket)
+        await socket.close()
+        await task
+        self.assertEqual(self.sync_results(ui, "disconnect")[0]["status"], "offline")
+        socket = await self.client.ws_connect(self.url + "/v3/ws?pair=" + self.identifier)
+        self.addAsyncCleanup(socket.close)
+        await self.ws_exchange(socket, {"type": "pull", "after": 0})
+        session = next(iter(self.bridge._sessions.values()))
+        await session.send_lock.acquire()
+        self.bridge.sync_timeout = .03
+        before = self.store.read()["pairs"][self.identifier]["sendSeq"]
+        try:
+            await self.bridge.ui_action({"action": "sync", "requestId": "lock-timeout"})
+        finally:
+            session.send_lock.release()
+        self.assertEqual(self.sync_results(ui, "lock-timeout")[0]["status"], "timeout")
+        self.assertEqual(self.store.read()["pairs"][self.identifier]["sendSeq"], before)
 
     async def test_rest_unknown_fields_tamper_and_browser_origin_never_have_effects(self):
         await self.pair()
