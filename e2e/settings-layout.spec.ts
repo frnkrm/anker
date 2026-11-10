@@ -30,11 +30,20 @@ const routes = [
   '/einstellungen/abenduebergang', '/verbindungen', '/schlaf',
 ]
 
-for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
-  test(`Einstellungen: Felder und Texte passen bei ${width}px und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
+// Each group keeps the ordinary test budget. A long route tour must not consume
+// the last page's visibility check before its normal expectation timeout starts.
+const routeGroups = [
+  { name: 'Planung und Schlaf', routes: routes.slice(0, 6) },
+  { name: 'Abend und Routinen', routes: routes.slice(6, 12) },
+  { name: 'App und weitere Seiten', routes: routes.slice(12) },
+]
+
+for (const width of [390, 320]) for (const fontScale of [1, 1.6]) for (const group of routeGroups) {
+  test(`Einstellungen – ${group.name}: Felder und Texte passen bei ${width}px und ${Math.round(fontScale * 100)}% Schrift`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await setup(page, fontScale)
-    for (const route of routes) {
+    for (const route of group.routes) {
+      await test.step(route, async () => {
       await page.goto(route)
       await expect(page.locator('.settings-page')).toBeVisible()
       for (const summary of await page.locator('details > summary').all()) if (!(await summary.evaluate((node) => (node.parentElement as HTMLDetailsElement).open))) await summary.click()
@@ -113,6 +122,7 @@ for (const width of [390, 320]) for (const fontScale of [1, 1.6]) {
         expect(value.height, route).toBeGreaterThanOrEqual(44)
       }
       if (geometry.values.length > 1) expect(Math.max(...geometry.values.map((value) => value.x)) - Math.min(...geometry.values.map((value) => value.x)), route).toBeLessThanOrEqual(1)
+      })
     }
   })
 }
