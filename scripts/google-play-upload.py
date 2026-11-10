@@ -300,16 +300,31 @@ def inspect_track(response: dict) -> tuple[list[dict], bool]:
     if not isinstance(releases, list) or len(releases) > 100:
         raise UploadError("EXISTING_RELEASE_CONFLICT")
     found = False
+    retained_code16 = False
+    draft_contains_code16 = False
     for release in releases:
-        if not isinstance(release, dict) or release.get("status") != "draft":
+        if not isinstance(release, dict):
+            raise UploadError("EXISTING_RELEASE_CONFLICT")
+        # Only the specifically observed Code16 release may accompany a future
+        # Code17 draft. Its complete dictionary is retained, without any rewrite.
+        if VERSION == 17 and release.get("status") == "completed" and release.get("versionCodes") == ["16"]:
+            if retained_code16:
+                raise UploadError("EXISTING_RELEASE_CONFLICT")
+            retained_code16 = True
+            continue
+        if release.get("status") != "draft":
             raise UploadError("EXISTING_RELEASE_CONFLICT")
         versions = release.get("versionCodes")
         if not isinstance(versions, list) or not versions or not all(isinstance(v, str) and re.fullmatch(r"[1-9][0-9]{0,9}", v) for v in versions) or len(set(versions)) != len(versions):
             raise UploadError("EXISTING_RELEASE_CONFLICT")
+        if VERSION == 17 and "16" in versions:
+            draft_contains_code16 = True
         if str(VERSION) in versions:
             if found or versions != [str(VERSION)]:
                 raise UploadError("EXISTING_RELEASE_CONFLICT")
             found = True
+    if retained_code16 and draft_contains_code16:
+        raise UploadError("EXISTING_RELEASE_CONFLICT")
     return copy.deepcopy(releases), found
 
 

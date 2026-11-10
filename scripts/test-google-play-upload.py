@@ -267,6 +267,89 @@ class TestUpload(unittest.TestCase):
         self.assertFalse(report["draftVerified"] or report["commitAttempted"] or report["commitAcknowledged"] or report["publishedByThisRun"])
         self.assertNotIn(FAKE_TOKEN,out.getvalue()+report_path.read_text())
 
+    def test_future_code17_draft_retains_the_complete_known_completed_code16(self):
+        old={"status":"completed","versionCodes":["16"],"name":PRIVATE_ERROR,"releaseNotes":[{"language":"de-DE","text":PRIVATE_ERROR}],"inAppUpdatePriority":2}
+        untouched=copy.deepcopy(old)
+        api=FakeApi(bundles=[MATCHING],releases=[old])
+        api.upload_response={"versionCode":17,"sha256":"1"*64}
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+            report=self.upload(api)
+        put=next(c for c in api.calls if c[0]=="PUT")
+        body=json.loads(put[2])
+        self.assertEqual(body["releases"][0],untouched)
+        self.assertEqual(old,untouched)
+        self.assertEqual(body["releases"][1]["versionCodes"],["17"])
+        self.assertEqual(body["releases"][1]["status"],"draft")
+        self.assertEqual(len(body["releases"]),2)
+        self.assertEqual(api.track["releases"],body["releases"])
+        self.assertEqual(report["status"],"draft-committed")
+        self.assertTrue(report["draftVerified"] and report["bundleUploadConfirmed"])
+        self.assertFalse(report["activeReleaseVerified"] or report["publishedByThisRun"])
+        self.assertNotIn(PRIVATE_ERROR,json.dumps(report))
+
+    def test_future_code17_existing_draft_is_reused_beside_unchanged_completed16(self):
+        old={"status":"completed","versionCodes":["16"],"name":PRIVATE_ERROR}
+        new={"status":"draft","versionCodes":["17"],"name":PRIVATE_ERROR}
+        api=FakeApi(bundles=[MATCHING,{"versionCode":17,"sha256":"1"*64}],releases=[old,new])
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+            report=self.upload(api)
+        self.assertEqual(report["status"],"already-draft")
+        self.assertTrue(report["draftVerified"] and report["bundleReused"])
+        self.assertFalse(report["commitAttempted"] or report["publishedByThisRun"])
+        self.assertEqual(api.track["releases"],[old,new])
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+
+    def test_future_code17_exact_active_target_still_has_its_readonly_path(self):
+        active={"status":"completed","versionCodes":["17"]}
+        api=FakeApi(bundles=[{"versionCode":17,"sha256":"1"*64}],releases=[active])
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+            report=self.upload(api)
+        self.assertEqual(report["status"],"already-active")
+        self.assertTrue(report["activeReleaseVerified"])
+        self.assertFalse(report["draftVerified"] or report["commitAttempted"] or report["publishedByThisRun"])
+        self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+
+    def test_future_code17_rejects_all_other_active_or_mixed_previous_releases(self):
+        old={"status":"completed","versionCodes":["16"]}
+        cases=[[{"status":"completed","versionCodes":["15"]}], [{"status":"completed","versionCodes":["16","15"]}],
+               [{"status":"inProgress","versionCodes":["16"]}], [{"status":"halted","versionCodes":["16"]}],
+               [old,old], [old,{"status":"draft","versionCodes":["16"]}],
+               [old,{"status":"draft","versionCodes":["16","17"]}], [old,{"status":"completed","versionCodes":["17"]}],
+               [old,{"status":"inProgress","versionCodes":["17"]}]]
+        for releases in cases:
+            with self.subTest(releases=releases):
+                api=FakeApi(releases=releases)
+                with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+                    self.assert_reason("EXISTING_RELEASE_CONFLICT",self.upload,api)
+                self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+
+    def test_previous_active_release_allowance_is_not_generic_or_enabled_for_code16(self):
+        for target,previous in [(16,"16"),(16,"15"),(18,"16"),(18,"17")]:
+            with self.subTest(target=target,previous=previous),patch.object(uploader,"VERSION",target):
+                self.assert_reason("EXISTING_RELEASE_CONFLICT",uploader.inspect_track,{"track":"internal","releases":[{"status":"completed","versionCodes":[previous]}]})
+
+    def test_code17_update_response_cannot_change_or_drop_the_retained_code16(self):
+        old={"status":"completed","versionCodes":["16"],"name":"Preserve name","releaseNotes":[{"language":"de-DE","text":"Preserve notes"}]}
+        target={**TARGET,"versionCodes":["17"]}
+        for changed in [[],[{**old,"name":"Changed"}],[{**old,"status":"draft"}],[{**old,"releaseNotes":[]}]]:
+            api=FakeApi(releases=[old]);api.upload_response={"versionCode":17,"sha256":"1"*64}
+            api.changed_response={"track":"internal","releases":[*changed,target]}
+            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+                self.assert_reason("DRAFT_RESPONSE_MISMATCH",self.upload,api)
+            self.assertFalse(any(":validate" in c[1] or ":commit" in c[1] for c in api.calls))
+
+    def test_code17_persisted_readback_must_retain_completed16_exactly(self):
+        old={"status":"completed","versionCodes":["16"],"name":"Preserve name","releaseNotes":[{"language":"de-DE","text":"Preserve notes"}]}
+        target={**TARGET,"versionCodes":["17"]}
+        for changed in [[],[{**old,"name":"Changed"}],[{**old,"status":"draft"}],[{**old,"releaseNotes":[]}]]:
+            api=FakeApi(releases=[old]);api.upload_response={"versionCode":17,"sha256":"1"*64}
+            api.readback_response={"track":"internal","releases":[*changed,target]};report=uploader.new_report()
+            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+                self.assert_reason("POST_COMMIT_UNVERIFIED",uploader.perform_upload,api,b"offline-approved-bundle",report)
+            self.assertTrue(report["commitAcknowledged"])
+            self.assertFalse(report["draftVerified"] or report["publishedByThisRun"])
+            self.assertNotIn(("DELETE",OWN),[(m,p) for m,p,_,_ in api.calls])
+
     def test_track_observation_redacts_hostile_track_status_versions_and_freetext(self):
         raw={"track":PRIVATE_ERROR,"name":PRIVATE_ERROR,"releases":[{"status":PRIVATE_ERROR,"versionCodes":["16",PRIVATE_ERROR,True,16,"2100000001","00016"],"releaseNotes":[PRIVATE_ERROR]}, {"status":{"private":PRIVATE_ERROR},"versionCodes":None}]}
         observation=uploader.track_observation(raw)
