@@ -16,6 +16,8 @@ Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden
 | Google-Kalender | Nativer READ_CALENDAR-Leseweg für synchronisierte Google-Kalender samt Konto-/ID-Wechselschutz; App-Auswahl, exklusive Lesequelle, Cache-/Backup-Grenzen und Abbruch-/Navigationsschutz integriert. Bestehende direkte Google-Anmeldung und eigener Schreibkalender bleiben erhalten |
 | PC-Updates | Signierter, fest gebundener Kanal mit optionaler automatischer Prüfung, bewusstem Download und gesonderter Installationsbestätigung integriert |
 | PC-14 Relay | Optionaler verschlüsselter Transport mit getrennten widerrufbaren Berechtigungen; SQL/Handler lokal geprüft, Android-/PC-/Einrichtungshooks integriert. Kontaktfrische und abgelaufene Bedienbefehle auch bei WLAN-Rückkehr abgesichert. Kein laufendes Supabase behauptet |
+| Stille Schlafbegleitung | Eigener ausgeschalteter Schalter, vorhandener Bettquellen-/Controllerweg, vollständig stille Folgekarte mit 5 Min später/Heute Ruhe und Zwei-Stunden-Grenze; finale gemeinsame Prüfungen und echte Samsung-Beobachtung getrennt offen |
+| Erinnerungen verschieben | Expliziter Snooze bleibt bei temporärem Ruhe-/Fokus-/Budgethindernis erhalten; acht gezielte Regressionen und SDK-Kompilierung geprüft, keine exakte Android-Zustellzeit zugesagt |
 
 Die nachfolgende finale Gesamtprüfung und Lieferung wird im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md) anhand konkreter Quellen dokumentiert. Ein bereits vorhandener Schalter allein gilt nicht als fertige Funktion.
 

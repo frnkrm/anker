@@ -1,0 +1,27 @@
+# Leise Schlafenszeit-Folgehinweise
+
+Unter **Mehr → Einstellungen → Schlaf & Anker → Leise Schlafenszeit-Folgehinweise** kannst du die zusätzliche Begleitung wählen. Sie beginnt ausgeschaltet. Die vorhandene **Einschlafzeit** bestimmt, ab wann der erste stille Hinweis möglich ist: nach deiner festen Bettzeit oder nach deiner bewussten Bettbestätigung. Ein offener Abend bekommt dadurch keine feste Bettzeit.
+
+Anker prüft anschließend ungefähr alle fünf Minuten eine stille Möglichkeit. Android darf diese NON_WAKEUP-Prüfungen verzögern. Nur bei eingeschaltetem, interaktivem und entsperrtem Bildschirm sowie weiterhin gültigem Abend kann eine einzelne Karte erscheinen. Ein bereits sichtbarer Hinweis wird nicht gestapelt. Derselbe native Zustand liefert die Hilfe auf **Jetzt**. **5 Min später** verschiebt die Möglichkeit, **Heute Ruhe** beendet die Begleitung für diese Nacht. Weder Wegwischen noch Verschieben erledigt etwas. Das Fenster endet spätestens zwei Stunden nach dem ursprünglichen Einschlafziel, gegebenenfalls früher an der Plan-Tagesgrenze. Verschieben verlängert dieses Ende nicht.
+
+Die Folgekarte bleibt ohne Ton, Vibration, Licht, Heads-up, Vollbild, Overlay oder automatische Appöffnung. Sie schaltet den Bildschirm nicht ein und beantragt dafür weder exakte Alarme noch Wake-Locks. Der echte Wecker hat Vorrang; gewöhnliche Meldungen und Folgekarte teilen sich höchstens drei sichtbare Plätze. Diese ausdrücklich gewählte stille Begleitung darf auch in allgemeinen Ruhezeiten möglich sein; **Heute Ruhe**, Abwahl, gesperrter Bildschirm und ein echter Alarm bleiben wirksam. Der bisherige einmalige **Stumme Einschlafhinweis** über anderen Apps bleibt ein eigener Schalter mit eigener Android-Freigabe. Seine früheren Einmalregeln werden nicht stillschweigend geändert.
+
+Ein eingeschalteter Bildschirm bedeutet nicht, dass du wach bist. Gerade ein laufendes Spiel kann offen bleiben, während du einschläfst. Deshalb gibt es keine akustische Eskalation, keine Schlafbehauptung und keine Umgehung von Samsungs Spiel-Touchschutz. Mikrofon, Bewegungsmessung, Nutzungszugriff und Accessibility werden für diese Hilfe nicht benötigt. Die wiederkehrende äußere Orientierung soll die Erinnerung an die Schlafenszeit erleichtern und mit zwei kleinen Entscheidungen auskommen. Das ist eine Produktentscheidung für den beschriebenen ADHS-Alltag, kein klinischer Wirksamkeitsnachweis.
+
+## Was bei „5 Min später“ korrigiert wurde
+
+Bei normalen Erinnerungen konnte eine Ruhe-/Fokusphase an der neuen Zielzeit die vorgemerkte Erinnerung löschen. Auch ein vorzeitig verbrauchter Token bei belegtem Benachrichtigungsbudget konnte einen späteren Versuch verhindern. Explizit verschobene Erinnerungen bleiben jetzt bei solchen vorübergehenden Hindernissen innerhalb ihrer bestehenden 30-Minuten-Frische erhalten. Ruhe und Fokus werden dafür nicht umgangen. Nach einer langen Nachtruhe werden keine alten Karten als neuer Weckauftrag nachgeholt. Eine minutengenaue Zustellung kann Android insbesondere im Standby nicht zusagen.
+
+## Verlauf und Testen
+
+Im selektiven Export unter **Weckerverlauf & Diagnose** lassen sich Schlafhinweise, Zeitraum und benötigte Einstellungen auswählen. `quietReady` bezeichnet eine native fällige und erlaubte Hilfe auf Jetzt. `quietVisible` wird erst nach erfolgreichem Benachrichtigungsaufruf gesetzt. Ein Postaufruf beweist weder die tatsächliche Anzeige durch den Hersteller noch, dass du die Meldung gesehen hast oder wach warst. Private Quellenkennungen und Kopplungsdaten gehören nicht in den Export.
+
+Die vorhandenen Prüfungen **G21/G67** behandeln normale Erinnerungsaktionen, **G96** die beiden getrennten Schlafhinweisoptionen und optional **G101** deren Zusammenspiel mit dem Abend. Es entstehen keine zusätzlichen Pflichtstationen. Softwareprüfungen und offene echte Galaxy-/Samsung-/Standbybeobachtungen stehen in den [Testnachweisen](ANKER_TESTNACHWEISE.md).
+
+## Technische Quellen, am 10.11.2026 tatsächlich abgerufen
+
+- [AndroidX NotificationCompat.java](https://raw.githubusercontent.com/androidx/androidx/androidx-main/core/core/src/main/java/androidx/core/app/NotificationCompat.java): `setSilent(true)` unterbindet nach der API-Dokumentation Ton/Vibration und Peeking unabhängig von den normalen Kanalvorgaben. SHA256 `511bd843227dd21b67a4c0f590116cf6db83fd99567b47c6e1a848bbc53fdbdc`.
+- [AndroidX NotificationCompatBuilder.java](https://raw.githubusercontent.com/androidx/androidx/androidx-main/core/core/src/main/java/androidx/core/app/NotificationCompatBuilder.java): zugehörige Umsetzung mit leerem Sound/Vibrationssignal und Gruppenalarmbehandlung. SHA256 `e2806580be2e98662c3687ae1408f009cb70582704d7920d91ec767de6bdf328`.
+- [AOSP AlarmManager.java](https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/master/apex/jobscheduler/framework/java/android/app/AlarmManager.java): `RTC`/`ELAPSED_REALTIME` ohne WAKEUP wecken ein schlafendes Gerät nicht; die Ausführung kann bis zum nächsten Aufwachen verzögert werden. SHA256 `9eb043a5e929fb80be290d41f298944b6c6c9434bcab3dcefeca99038638a6a0`. Der tatsächliche Morgenwecker behält seinen getrennten Weckpfad.
+
+Abrufbelege liegen im Cloudcache `quiet-sleep-research/FETCH.json` und `FETCH2.json`. Die Repositoryseite von Sleep as Android wurde gefunden; daraus wird kein konkreter geprüfter Schlaf- oder Erinnerungsalgorithmus behauptet. Nicht abrufbare DeskClock-/Sleep-API-Dateien dienen nicht als Implementierungsbeleg. Eine Hersteller-/Gerätegarantie folgt aus den Androidquellen nicht.

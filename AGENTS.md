@@ -13,3 +13,4 @@
 - Neue strenge Führungs-, Audio- und PC-Wirkungen beginnen ausgeschaltet und benötigen eine ausdrückliche Wahl.
 - Code14s abgesicherten Sheet-Verlauf, Weckeridentitäten, Datenbank-Atomarität und Notausgang erhalten.
 - Version, Signatur, Veröffentlichung und Deployments nur im ausdrücklich autorisierten Umfang ändern.
+- Stehender Nutzerauftrag vom 10.11.2026: Nach jedem fertig geprüften Release auch den bestehenden Google-Play-Uploadweg ausführen. Der autorisierte automatische Umfang bleibt ein interner Entwurf mit Readback; öffentliche/Produktionsfreigabe gesondert entscheiden. Aktive Releases erhalten, keine Review-Abbrüche, Testeränderungen oder Zugangsdaten in Logs.

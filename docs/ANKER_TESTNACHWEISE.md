@@ -1,5 +1,24 @@
 # Anker: Testnachweise
 
+
+## Stille Schlaf-Folgehinweise und Snooze – gezielte Nachweise (10.11.2026)
+
+**Implementiert bzw. in abschließender Integration:** eigener ausgeschalteter Schlaf-Schalter, vorhandener `bed`-Plantrigger und nativer Controller als einzige Besitzer; stille begrenzte Folgehinweise, getrennte `quietReady`-/`quietVisible`-Semantik, Heute Ruhe ohne Erledigung/XP und erhaltene explizite Snoozes. [Verhalten und Recherche](SCHLAF_FOLGEHINWEISE.md).
+
+| Anforderung | Konkrete automatische Prüfung | Nachweisgrenze |
+|---|---|---|
+| Explizites Verschieben nicht bei Ruhe/Fokus/Budget verlieren | `ReminderSnoozeTest.kt`: acht Regressionen u. a. `ausdruecklichesVerschiebenGehtBeiFokusAmZielNichtVerloren`, `fehlenderPlatzBeiLaufendemWeckerBehaeltSnoozeOhneTokenverbrauch`, `langeNachtruheWirdNichtZumSpaetenWeckauftrag` | Gezielter SDK-Lauf **56/56**, 196 ausgeführte Aufgaben, Kompilierung erfolgreich. Exakte fünf Minuten auf Samsung sind damit nicht bewiesen |
+| Alte fehlerhafte Zweige nachweislich getroffen | Vorherige verhaltensgleiche Extraktion: **7 rote Fälle von 85**; korrigierte reine Modelle **85/85** | Rotlogs bleiben erhalten; kein rückwirkender Beleg für das konkrete Handyereignis |
+| Stiller Start/Quelle/Default/Backup und keine Planwirkung | `src/core/reminders/bedtimeFollowUps.test.ts`, vorhandene Rules-/Policy-/Storetests | Neu integrierte Gesamtläufe am finalen Freeze folgen; keine alte grüne Suite als neuer Gesamtbeleg |
+| Monotone Zwei-Stunden-Grenze, Today Ruhe, Sperre, echter Alarm, 04:00/DST, vollständige Wochenrevision | `BedtimeQuietModelTest.kt` und `ReminderQuietBedTest.kt` | Endgültige SDK-/JUnit-Zahl wird erst nach Autorenintegration und gemeinsamem Freeze festgehalten |
+| Notify-Vorbedingungen, kein Alert trotz Kanaländerung, reserviert ≠ gepostet, kein Doze-Nachholstapel | `BedtimeQuietDeliveryTest.kt` | Native Modell-/Compileprüfung ersetzt keine echte Android-Zustellung oder Sichtbeobachtung |
+| Jetzt-Hilfe, Nachtansicht, 5 Min/Heute Ruhe ohne XP/Erledigung, schmale/große Schrift und alte Statusantworten | `e2e/bedtime-prompt.spec.ts`, bestehende v7-Führungsfälle | Produktionsbrowserlauf am neuen gesamten Stand folgt; keine physische Galaxy-Prüfung |
+| Selektiver Verlauf mit sicheren Statusfeldern, ohne private Quellenkennungen | `src/core/diagnostics/diagnostics.test.ts`, native Diagnose-Allowlist | Ein geloggter erfolgreicher Notify-Aufruf beweist keine Wahrnehmung oder Wachheit |
+
+Snoozebeleg: Cloudcache `/workspace/.cache/anker/reminder-snooze-20261110/SNOOZE-FIX-PROOF.json`, Quellcommit `08c627b089dc312c24854d6472fcee61efdbff9d`, SHA256 `e11f5af4743eda42759e068be3a7ef60b260a4e384c290060eec288aae72c384`. Die gezielten Läufe werden nicht zu einer neuen Gesamtzahl addiert. **Neuer Gesamtfreeze, frische vollständige Prüfungen, signierte Code17-Artefakte und tatsächlicher Play-Entwurfsreadback noch offen.** Der frühere F384-Browserlauf ist unvollständig (184 beobachtete bestandene Fälle, kein Gesamtergebnis).
+
+**Gerät:** G21/G67 prüfen Snooze, G96 und optional G101 dieselbe stille Bettbegleitung einschließlich Samsung-Spiel-Touchschutz. Es bleiben 103 IDs und sieben v7-Stationen. Keine alten Ergebnistexte oder Nutzerberichte geändert, keine neuen Gerätehäkchen.
+
 ## Code17 / PC0.1.1 – laufende gemeinsame Erweiterung (10.11.2026)
 
 Der vollständige Quellstand ist noch nicht eingefroren oder signiert. Die frühere grüne CI42726629352 auf `7c765c5` ist ein **Zwischenbeleg**, kein Gesamtnachweis der nachfolgend ergänzten Kalender-, PC-Komfort-, Update- und Relayfunktionen.
