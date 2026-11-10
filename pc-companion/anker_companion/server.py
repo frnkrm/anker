@@ -328,9 +328,11 @@ class BridgeServer:
                 seq = self.store.next_send(identifier)
                 reply = seal(identifier, "pc", seq, response, unb64(pair["pcToPhone"], 32), now)
                 self.store.update(lambda data: data["relay"]["pendingReplies"].append(deepcopy(reply)))
+                if payload.get("action") == "unpair":
+                    self.store.update(self._clear_pairing_data)
         if retain_relay_reply:
             if payload.get("action") == "unpair":
-                self.unpair()
+                self._unpaired_runtime_cleanup()
             return reply, envelope, payload
         # An unpair acknowledgement is encrypted before the now-unused key is erased.
         if payload.get("action") == "unpair":
@@ -487,16 +489,21 @@ class BridgeServer:
             result["emergencyUntil"] = receipt["emergencyUntil"]
         return result
 
-    def unpair(self) -> None:
-        def clear(data: dict[str, Any]) -> None:
-            data.update(pairs={}, snapshot=None, briefing=None, outbox=[], notes=[], commandIds=[], commandResults={}, runtime={})
-            data["localPrefs"].update(enforceEnabled=False, strictLock=False)
-        self.store.update(clear)
+    @staticmethod
+    def _clear_pairing_data(data: dict[str, Any]) -> None:
+        data.update(pairs={}, snapshot=None, briefing=None, outbox=[], notes=[], commandIds=[], commandResults={}, runtime={})
+        data["localPrefs"].update(enforceEnabled=False, strictLock=False)
+
+    def _unpaired_runtime_cleanup(self) -> None:
         for pending in tuple(self._pending_sync.values()):
             if not pending.future.done():
                 pending.future.set_result({"status": "offline"})
         if self.engine.audio:
             self.engine.audio.restore()
+
+    def unpair(self) -> None:
+        self.store.update(self._clear_pairing_data)
+        self._unpaired_runtime_cleanup()
 
     def _management_result(self, action: dict, ok: bool, **fields) -> None:
         if self.ui:

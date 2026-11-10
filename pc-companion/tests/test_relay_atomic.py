@@ -62,5 +62,24 @@ class AtomicRelayServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data["relay"]["pendingReplies"], [reply])
         self.assertNotIn("phoneToPc", json.dumps(data))
 
+    async def test_unpair_revocation_and_encrypted_ack_commit_once_and_rollback_together(self):
+        await self.pair(); self.enable()
+        raw = canonical(self.envelope({"type": "command", "id": "atomic-unpair", "action": "unpair"}))
+        before = self.store.read()
+        self.vault.fail = True
+        with self.assertRaises(OSError): self.bridge.relay_exchange(raw, self.identifier)
+        self.assertEqual(self.store.read(), before)
+        self.assertIn("phoneToPc", self.store.read()["pairs"][self.identifier])
+        self.vault.fail = False
+        original = self.store._write; commits = []
+        def write(data):
+            original(data); commits.append(data)
+        self.store._write = write
+        reply = self.bridge.relay_exchange(raw, self.identifier)
+        self.assertEqual(len(commits), 1)
+        self.assertEqual(commits[0]["pairs"], {})
+        self.assertEqual(commits[0]["relay"]["pendingReplies"], [reply])
+        self.assertNotIn("phoneToPc", json.dumps(commits[0]))
+
 
 if __name__ == "__main__": unittest.main()
