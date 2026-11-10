@@ -10,6 +10,7 @@ import threading
 from typing import Any, Callable, Protocol
 
 from .protocol import canonical
+from .desktop_settings import desktop_defaults, desktop_preferences
 
 
 class Vault(Protocol):
@@ -20,15 +21,17 @@ class Vault(Protocol):
 def initial_state() -> dict[str, Any]:
     return {"schemaVersion": 1, "pairs": {}, "outbox": [], "eventSeq": 0, "snapshot": None,
             "briefing": None, "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False},
+            "desktopPrefs": desktop_defaults(),
             "runtime": {}, "notes": [], "commandIds": [], "commandResults": {}, "tls": None}
 
 
 class AtomicStateStore:
-    def __init__(self, path: Path, vault: Vault):
+    def __init__(self, path: Path, vault: Vault, desktop_name: str = "Mein PC"):
         self.path = Path(path)
         self.vault = vault
         self._lock = threading.RLock()
         self._batch: dict[str, Any] | None = None
+        self._closed = False
         self.path.parent.mkdir(parents=True, exist_ok=True)
         try:
             os.chmod(self.path.parent, 0o700)
@@ -40,16 +43,20 @@ class AtomicStateStore:
                 if not isinstance(state, dict) or state.get("schemaVersion") != 1:
                     raise ValueError()
                 self._state = {**initial_state(), **state}
+                self._state["desktopPrefs"] = desktop_preferences(state, desktop_name)
             except Exception as error:
                 raise RuntimeError("state-unreadable") from error
         else:
             self._state = initial_state()
+            self._state["desktopPrefs"] = desktop_preferences({}, desktop_name)
 
     def read(self) -> dict[str, Any]:
         with self._lock:
             return deepcopy(self._batch if self._batch is not None else self._state)
 
     def _write(self, next_state: dict[str, Any]) -> None:
+        if self._closed:
+            raise RuntimeError("state-closed")
         protected = self.vault.protect(canonical(next_state))
         temp = self.path.with_suffix(".next")
         try:
@@ -69,6 +76,8 @@ class AtomicStateStore:
     def transaction(self):
         """Commit sequence receipt, local effects and generated outbox together."""
         with self._lock:
+            if self._closed:
+                raise RuntimeError("state-closed")
             if self._batch is not None:
                 raise RuntimeError("nested-transaction")
             self._batch = deepcopy(self._state)
@@ -80,6 +89,8 @@ class AtomicStateStore:
 
     def update(self, mutate: Callable[[dict[str, Any]], Any]) -> Any:
         with self._lock:
+            if self._closed:
+                raise RuntimeError("state-closed")
             next_state = deepcopy(self._batch if self._batch is not None else self._state)
             result = mutate(next_state)
             if self._batch is not None:
@@ -94,6 +105,14 @@ class AtomicStateStore:
             item["sendSeq"] = item.get("sendSeq", 0) + 1
             return item["sendSeq"]
         return self.update(change)
+
+    def close_and_forget(self) -> None:
+        """Stop all future writes after an explicit local data reset."""
+        with self._lock:
+            if self._batch is not None:
+                raise RuntimeError("transaction-active")
+            self._closed = True
+            self._state = initial_state()
 
     def accept_receive(self, pair: str, seq: int) -> None:
         from .protocol import ProtocolError

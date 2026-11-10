@@ -4,12 +4,17 @@ from __future__ import annotations
 from collections import deque
 import ctypes
 from ctypes import wintypes
+import io
 import math
 import os
 import subprocess
+import struct
 import threading
 import time
+import wave
 from typing import Callable, Protocol
+
+from .desktop_settings import DEFAULT_HOTKEYS, parse_hotkey, validate_hotkeys
 
 
 class PlatformError(RuntimeError):
@@ -92,7 +97,7 @@ class WindowsPlatform:
     TASK_NAME = "Anker PC-Stopp"
 
     def __init__(self, api: WindowsApi | None = None, runner: Callable[..., subprocess.CompletedProcess[str]] | None = None,
-                 on_system_event: Callable[[str], None] | None = None) -> None:
+                 on_system_event: Callable[[str], None] | None = None, sound_player: Callable[[bytes], None] | None = None) -> None:
         self._api = api
         self._runner = runner or subprocess.run
         self._runner_injected = runner is not None
@@ -101,6 +106,7 @@ class WindowsPlatform:
         self._on_system_event = on_system_event
         self._window_hook: WindowEvents | None = None
         self._session_locked: bool | None = None
+        self._sound_player = sound_player
 
     def _get_api(self) -> WindowsApi:
         if self._api is None:
@@ -147,6 +153,37 @@ class WindowsPlatform:
     def notification_state(self) -> int | None:
         return self._get_api().notification_state()
 
+    def quiet_reminder_sound(self) -> dict:
+        try:
+            state = self.notification_state()
+        except Exception:
+            state = None
+        if type(state) is not int or state not in range(1, 8):
+            state = None
+        if state is None:
+            return {"status": "suppressed", "reason": "notification-state-unknown"}
+        # An explicitly opted-in cue remains useful during games/presentations.
+        # Still respect no-user/quiet-time/unknown signals without changing DND.
+        if state not in {2, 3, 4, 5, 7}:
+            return {"status": "suppressed", "reason": "system-busy", "notificationState": state}
+        try:
+            player = self._sound_player
+            if player is None:
+                if os.name != "nt":
+                    raise PlatformError("windows-unavailable")
+                import winsound
+                player = lambda value: winsound.PlaySound(value, winsound.SND_MEMORY | winsound.SND_NODEFAULT)
+            output = io.BytesIO()
+            with wave.open(output, "wb") as signal:
+                signal.setnchannels(1); signal.setsampwidth(2); signal.setframerate(24000)
+                # A short low-amplitude signal; never change global/system volume.
+                samples = [int(1100 * min(1, index / 240, (1919 - index) / 240) * math.sin(2 * math.pi * 660 * index / 24000)) for index in range(1920)]
+                signal.writeframes(struct.pack("<" + "h" * len(samples), *samples))
+            player(output.getvalue())
+            return {"status": "requested", "notificationState": state}
+        except Exception:
+            return {"status": "unavailable", "reason": "sound-unavailable", "notificationState": state}
+
     def monitors(self) -> list[tuple[int, int, int, int]]:
         return self._get_api().monitors()
 
@@ -192,8 +229,23 @@ class WindowsPlatform:
             # fact; a newly attached/current session must be observed afresh.
             self._session_locked = None
 
-    def register_hotkeys(self, savepoint: Callable[[], None], thought: Callable[[], None]) -> bool:
-        return self._window_hook.register_hotkeys(savepoint, thought) if self._window_hook is not None else False
+    def register_hotkeys(self, savepoint: Callable[[], None], thought: Callable[[], None], hotkeys: dict | None = None) -> bool:
+        return self._window_hook.register_hotkeys(savepoint, thought, hotkeys) if self._window_hook is not None else False
+
+    def prepare_hotkeys(self, hotkeys: dict) -> object:
+        if self._window_hook is None:
+            raise PlatformError("hotkeys-unavailable")
+        return self._window_hook.prepare_hotkeys(hotkeys)
+
+    def commit_hotkeys(self, token: object) -> bool:
+        if self._window_hook is None:
+            raise PlatformError("hotkeys-unavailable")
+        return self._window_hook.commit_hotkeys(token)
+
+    def rollback_hotkeys(self, token: object) -> bool:
+        if self._window_hook is None:
+            raise PlatformError("hotkeys-unavailable")
+        return self._window_hook.rollback_hotkeys(token)
 
 
 class WindowEvents:
@@ -220,15 +272,94 @@ class WindowEvents:
         if not self.previous:
             raise PlatformError("session-listener-unavailable")
         self.hotkeys: dict[int, Callable[[], None]] = {}
+        self._hotkey_specs: dict[int, str] = {}
+        self._hotkey_callbacks: dict[str, Callable[[], None]] = {}
+        self._pending_hotkeys: dict | None = None
+        self._reserved_hotkeys: set[int] = set()
+        self._hotkey_next = 0xA001
+        self._hotkey_thread = threading.get_ident()
+        self._hotkey_uncertain = False
         self.wts.WTSRegisterSessionNotification(window, 0)
 
-    def register_hotkeys(self, savepoint: Callable[[], None], thought: Callable[[], None]) -> bool:
+    def _hotkey_owner(self) -> None:
+        if threading.get_ident() != self._hotkey_thread:
+            raise PlatformError("hotkey-thread-required")
+        if self._hotkey_uncertain:
+            raise PlatformError("hotkeys-restart-required")
+
+    def register_hotkeys(self, savepoint: Callable[[], None], thought: Callable[[], None], hotkeys: dict | None = None) -> bool:
+        self._hotkey_callbacks = {"savepoint": savepoint, "thought": thought}
+        try:
+            return self.commit_hotkeys(self.prepare_hotkeys(hotkeys or DEFAULT_HOTKEYS))
+        except Exception:
+            return False
+
+    def prepare_hotkeys(self, hotkeys: dict) -> object:
+        self._hotkey_owner()
+        desired = validate_hotkeys(hotkeys)
+        if self._pending_hotkeys is not None or set(self._hotkey_callbacks) != {"savepoint", "thought"}:
+            raise PlatformError("hotkey-change-pending")
+        assigned, registered = {}, {}
+        try:
+            for action, spec in desired.items():
+                existing = next((key for key, value in self._hotkey_specs.items() if value == spec), None)
+                if existing is not None:
+                    assigned[action] = existing
+                    continue
+                _, modifiers, virtual = parse_hotkey(spec)
+                if self._hotkey_next > 0xBFFF:
+                    raise PlatformError("hotkey-id-exhausted")
+                identifier = self._hotkey_next; self._hotkey_next += 1
+                if not self.user.RegisterHotKey(self.window, identifier, modifiers, virtual):
+                    raise PlatformError("hotkey-conflict")
+                self._reserved_hotkeys.add(identifier)
+                registered[identifier] = spec
+                assigned[action] = identifier
+        except Exception:
+            for identifier in registered:
+                if self.user.UnregisterHotKey(self.window, identifier):
+                    self._reserved_hotkeys.discard(identifier)
+                else:
+                    self._hotkey_uncertain = True
+            raise
+        token = object()
+        self._pending_hotkeys = {"token": token, "assigned": assigned, "registered": registered, "desired": desired}
+        return token
+
+    def commit_hotkeys(self, token: object) -> bool:
+        self._hotkey_owner()
+        pending = self._pending_hotkeys
+        if pending is None or pending["token"] is not token:
+            raise PlatformError("hotkey-change-expired")
+        keep = set(pending["assigned"].values())
+        removed = True
+        retained_callbacks, retained_specs = {}, {}
+        for identifier in set(self.hotkeys) - keep:
+            if self.user.UnregisterHotKey(self.window, identifier):
+                self._reserved_hotkeys.discard(identifier)
+            else:
+                removed = False
+                retained_callbacks[identifier] = self.hotkeys[identifier]
+                retained_specs[identifier] = self._hotkey_specs[identifier]
+        self.hotkeys = {**retained_callbacks, **{identifier: self._hotkey_callbacks[action] for action, identifier in pending["assigned"].items()}}
+        self._hotkey_specs = {**retained_specs, **{identifier: pending["desired"][action] for action, identifier in pending["assigned"].items()}}
+        self._pending_hotkeys = None
+        self._hotkey_uncertain = not removed
+        return removed
+
+    def rollback_hotkeys(self, token: object) -> bool:
+        self._hotkey_owner()
+        pending = self._pending_hotkeys
+        if pending is None or pending["token"] is not token:
+            raise PlatformError("hotkey-change-expired")
         complete = True
-        for identifier, key, callback in [(0xA001, ord("A"), savepoint), (0xA002, ord("G"), thought)]:
-            if self.user.RegisterHotKey(self.window, identifier, 0x4003, key):
-                self.hotkeys[identifier] = callback
+        for identifier in pending["registered"]:
+            if self.user.UnregisterHotKey(self.window, identifier):
+                self._reserved_hotkeys.discard(identifier)
             else:
                 complete = False
+        self._pending_hotkeys = None
+        self._hotkey_uncertain = not complete
         return complete
 
     def _message(self, window: int, message: int, word: int, long: int) -> int:
@@ -256,7 +387,7 @@ class WindowEvents:
         return int(self.user.CallWindowProcW(self.previous, window, message, word, long))
 
     def close(self) -> None:
-        for identifier in self.hotkeys:
+        for identifier in set(self.hotkeys) | self._reserved_hotkeys:
             self.user.UnregisterHotKey(self.window, identifier)
         self.wts.WTSUnRegisterSessionNotification(self.window)
         self._set_proc(self.window, -4, self.previous)

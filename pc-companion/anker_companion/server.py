@@ -27,6 +27,7 @@ from cryptography.x509.oid import NameOID
 
 from . import __version__
 from .engine import CompanionEngine
+from .desktop_settings import DesktopSettingsError, delete_managed_files, desktop_patch, desktop_preferences
 from .protocol import MAX_BYTES, ProtocolError, b64, canonical, derive_keys, integer, obj, open_envelope, pair_proof, pairing_code, plan_date, public_bytes, public_key, seal, stamp, text, unb64, utc, validate_payload, verify_emergency
 from .storage import AtomicStateStore
 
@@ -182,7 +183,7 @@ class _SyncRequest:
 
 
 class BridgeServer:
-    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0):
+    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0, on_delete_data=None):
         self.store, self.engine, self.pairing, self.ui, self.clock = store, engine, pairing, ui, clock
         self.allow_loopback = allow_loopback
         self.sockets: set[web.WebSocketResponse] = set()
@@ -190,6 +191,8 @@ class BridgeServer:
         self._pending_sync: dict[str, _SyncRequest] = {}
         self._sync_tasks: set[asyncio.Task] = set()
         self.sync_timeout = sync_timeout
+        self.on_delete_data = on_delete_data
+        self._resetting = False
         self.app = web.Application(client_max_size=MAX_BYTES, middlewares=[self._guard])
         self.app.add_routes([web.get("/health", self.hello), web.get("/v3/hello", self.hello),
                              web.post("/v3/pair", self.pair), web.get("/v3/pair/{id}", self.pair_status),
@@ -206,6 +209,8 @@ class BridgeServer:
 
     @web.middleware
     async def _guard(self, request: web.Request, handler):
+        if self._resetting:
+            return web.json_response({"error": "restart-required"}, status=503)
         if not allowed_address(request.remote or "", self.allow_loopback):
             return web.json_response({"error": "local-network-only"}, status=403)
         if request.headers.get("Origin") and request.path not in {"/health", "/v3/hello"}:
@@ -476,9 +481,91 @@ class BridgeServer:
         if self.engine.audio:
             self.engine.audio.restore()
 
+    def _management_result(self, action: dict, ok: bool, **fields) -> None:
+        if self.ui:
+            result = {"action": action.get("action"), "ok": ok, **fields}
+            if isinstance(action.get("requestId"), str):
+                result["requestId"] = action["requestId"]
+            self.ui.render({**self.engine.last_view, "desktopPrefs": desktop_preferences(self.store.read()), "actionResult": result})
+
+    def _desktop_settings(self, action: dict) -> None:
+        old = desktop_preferences(self.store.read())
+        updated = desktop_patch(old, action.get("prefs"))
+        self.store.update(lambda data: data.update(desktopPrefs=updated))
+        self.pairing.pc_name = updated["pcName"]
+        if old["pcName"] != updated["pcName"]:
+            for identifier in tuple(self.pairing.drafts):
+                self.pairing.reject(identifier)
+                if self.ui and hasattr(self.ui, "close_pairing_offer"):
+                    try: self.ui.close_pairing_offer(identifier)
+                    except Exception: pass
+            self.pairing.drafts.clear()
+        self._management_result(action, True)
+
+    async def _delete_data(self, action: dict) -> None:
+        self._resetting = True
+        try:
+            # Revoke durably where possible, but do not let a failed vault write
+            # prevent an explicitly requested unlink of the private state file.
+            try:
+                self.unpair()
+            except Exception:
+                if self.engine.audio:
+                    try: self.engine.audio.restore()
+                    except Exception: pass
+            for identifier in tuple(self.pairing.drafts):
+                self.pairing.reject(identifier)
+                if self.ui and hasattr(self.ui, "close_pairing_offer"):
+                    try: self.ui.close_pairing_offer(identifier)
+                    except Exception: pass
+            self.pairing.drafts.clear()
+            self.engine.test_started = None
+            self.engine.last_view = {}
+            self.store.close_and_forget()
+            for pending in tuple(self._pending_sync.values()):
+                if not pending.future.done():
+                    pending.future.set_result({"status": "offline"})
+            try:
+                async with asyncio.timeout(3):
+                    await asyncio.gather(*(socket_.close(code=1001, message=b"local-data-reset") for socket_ in tuple(self.sockets)), return_exceptions=True)
+            except asyncio.TimeoutError:
+                pass
+            self._sessions.clear()
+            # Production stops its loop and closes its own rotating log handler
+            # before unlinking, so neither state nor logs are recreated afterward.
+            if self.on_delete_data:
+                self.on_delete_data()
+            delete_managed_files(self.store.path)
+            self._management_result(action, True, restartRequired=True)
+        except Exception:
+            self._management_result(action, False, status="delete-incomplete", restartRequired=True)
+
     def ui_action(self, action: dict[str, Any]) -> asyncio.Task | None:
         kind = action.get("action")
         try:
+            if self._resetting:
+                self._management_result(action, False, status="restart-required", restartRequired=True)
+                return
+            if kind == "desktop-settings":
+                self._desktop_settings(action)
+                return
+            if kind == "preview-extend-until":
+                preview = self.engine.preview_extension_until(action.get("localTime"))
+                self._management_result(action, True, preview=preview)
+                return
+            if kind == "extend-until":
+                if not isinstance(action.get("expectedTargetAt"), str):
+                    raise DesktopSettingsError("preview-required")
+                self.engine.extend_until(action.get("localTime"), expected_target_at=action["expectedTargetAt"])
+                self._management_result(action, True)
+                return
+            if kind == "delete-data":
+                if action.get("userConfirmed") is not True:
+                    raise DesktopSettingsError("confirmation-required")
+                task = asyncio.get_running_loop().create_task(self._delete_data(dict(action)))
+                self._sync_tasks.add(task)
+                task.add_done_callback(self._sync_tasks.discard)
+                return task
             if kind == "sync":
                 task = asyncio.get_running_loop().create_task(self._sync(dict(action)))
                 self._sync_tasks.add(task)
@@ -526,7 +613,12 @@ class BridgeServer:
                 if isinstance(action.get("requestId"), str):
                     result["requestId"] = action["requestId"]
                 self.ui.render({**self.engine.last_view, "actionResult": result})
-        except Exception:
+        except Exception as error:
+            if kind in {"desktop-settings", "preview-extend-until", "extend-until", "delete-data"}:
+                allowed = {"pc-name-invalid", "hotkey-invalid", "hotkey-conflict", "theme-invalid", "desktop-settings-invalid", "confirmation-required", "preview-required", "preview-expired", "clock", "clock-range", "clock-nonexistent", "phone-override-required", "no-schedule"}
+                reason = str(error) if isinstance(error, (DesktopSettingsError, ProtocolError)) and str(error) in allowed else "not-saved"
+                self._management_result(action, False, reason=reason)
+                return
             self.engine._message("Noch nicht übernommen. Bitte Einstellung und Verbindung prüfen.")
             if self.ui:
                 result = {"action": kind, "ok": False}

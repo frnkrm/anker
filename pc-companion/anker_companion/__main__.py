@@ -16,9 +16,10 @@ from aiohttp import web
 from .engine import CompanionEngine
 from .server import BridgeServer, Discovery, PairingManager, local_addresses, tls_context
 from .storage import AtomicStateStore
+from .desktop_settings import desktop_preferences
 
 
-def configure_log(directory: Path) -> None:
+def configure_log(directory: Path) -> RotatingFileHandler:
     folder = directory / "logs"
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.glob("companion.log*"):
@@ -28,6 +29,7 @@ def configure_log(directory: Path) -> None:
     handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
     logging.getLogger("anker").addHandler(handler)
     logging.getLogger("anker").setLevel(logging.INFO)
+    return handler
     # No HTTP access logs, raw exception text, device names, addresses or task text.
 
 
@@ -55,13 +57,14 @@ def main() -> int:
             kernel.CloseHandle(ctypes.c_void_p(instance))
         return 0
     directory = args.data_dir or Path(os.environ["LOCALAPPDATA"]) / "AnkerPcCompanion"
-    configure_log(directory)
+    log_handler = configure_log(directory)
     handlers = {}
     platform = WindowsPlatform(on_system_event=lambda name: handlers["engine"].system_event(name) if "engine" in handlers else None)
-    store = AtomicStateStore(directory / "companion.state", DpapiVault())
+    store = AtomicStateStore(directory / "companion.state", DpapiVault(), desktop_name=args.name)
     context, pin, _ = tls_context(store, directory)
     addresses = local_addresses()
-    pairing = PairingManager(store, args.name, pin, [f"{address}:{args.port}" if ":" not in address else f"[{address}]:{args.port}" for address in addresses])
+    desktop = desktop_preferences(store.read())
+    pairing = PairingManager(store, desktop["pcName"], pin, [f"{address}:{args.port}" if ":" not in address else f"[{address}]:{args.port}" for address in addresses])
     loop = asyncio.new_event_loop()
     stopped = threading.Event()
     server: BridgeServer
@@ -74,10 +77,17 @@ def main() -> int:
             loop.call_soon_threadsafe(server.ui_action, value)
 
     ui = DesktopUI(action, platform=platform)
+    ui.snapshot["desktopPrefs"] = desktop
     audio = MasterAudioDucker()
     engine = CompanionEngine(store, platform, ui=ui, audio=audio)
     handlers["engine"] = engine
-    server = BridgeServer(store, engine, pairing, ui=ui)
+    def stop_for_reset() -> None:
+        stopped.set()
+        logger = logging.getLogger("anker")
+        logger.removeHandler(log_handler)
+        log_handler.flush(); log_handler.close()
+
+    server = BridgeServer(store, engine, pairing, ui=ui, on_delete_data=stop_for_reset)
 
     async def run() -> None:
         runner = web.AppRunner(server.app, access_log=None)
