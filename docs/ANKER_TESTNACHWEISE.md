@@ -1,5 +1,10 @@
 # Anker: Testnachweise
 
+## Code17: lokaler G2-Erfolg und zwei entfernte Auswahlfehler (10.11.2026)
+
+Auf `613e71ffea387c3e30debecad6021ed3024ae83a` sind lokal305/305 Browserfälle ohneRetries/Skips,1.183/1.183 Vitest und252/252 frische JUnit/28Suiten mit680/680 frischen Gradleaufgaben grün. Die reproduzierten unsigned APK-/AAB-Bytes stimmen vollständig mit Native3 überein. Die exakte [CI42744262870](https://github.com/frnkrm/anker/actions/runs/42744262870) ist dagegen303/305: `travel-sleep.spec.ts:76` enthält `Köln45` statt der getrennten Fahrzeit45; `v7-pc-panel.spec.ts:98` liest nach Reload eine leere Testnotiz. Beide betroffenen Fälle folgen `chooseValue`. Öffentlich gebundene Annotationen liegen unter `public-ci-613e71f-error-review/OBSERVED-RESULT.json`, lokale Exit-/Rohbelege unter `shipping4/recheck1`, Native4 separat archiviert. Keine Signierung/Playbereitstellung aus diesem roten Remoteabschluss. Der folgende Auswahlhelfer-Fix erhält alle fachlichen Datenasserts und wird an angehaltener History-Rückkehr geprüft.
+
+
 ## Code17: vollständiger Lauf vor Aufteilung des Layouttests (10.11.2026)
 
 Auf `f19064ddae63994e1bba31bec3cbdd3d5427fdc3`: 1.183/1.183 Vitest, 252/252 frische JUnit in 28 Suiten und 680/680 Gradleaufgaben, beide Androidvarianten, Release-Lint sowie unsigned APK/AAB grün. Der lokale vollständige Browserlauf endet mit **296/297, Exit1**: der gemeinsame 17-Seiten-Einstellungstest bei 390px/160% überschreitet seine 30 Sekunden; Fehleraufzeichnung zeigt den Daten-Ladebildschirm beim nächsten Seitenaufruf. Alle Geometriebedingungen bleiben für die folgende kleinere Testaufteilung erhalten. Keine neue Gesamtfreigabe, Signierung oder Playbereitstellung daraus.

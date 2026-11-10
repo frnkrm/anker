@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## Code17: Auswahlabschluss im Browserprüfhelfer (10.11.2026)
+
+Der Stand `613e71f` besteht lokal sämtliche305 Browserfälle und die unveränderten1.183 Logik-/252 Nativefälle. [CI42744262870](https://github.com/frnkrm/anker/actions/runs/42744262870) liefert303/305: eine Fahrzeit landet am vorherigen Adressfeld, eine Testnotiz bleibt leer. Beide Eingaben folgen unmittelbar einer Auswahl. Der gemeinsame Testhelfer muss die bestehende Sheet-/History-/inert-Freigabe abwarten; dafür entsteht eine gehaltene Browser-Back-Regression mit unveränderten Datenbedingungen. Keine Timeouterhöhung, keine Testskips und keine Signierung vor dem neuen grünen Gesamtstand.
+
+
 ## Code17: erneuter Gesamtabschluss nach Layout-Testbudget (10.11.2026)
 
 Die stillen Folgehinweise, Snoozekorrektur und übrigen Softwareänderungen sind integriert. Der gemeinsame Lauf auf `f19064d` besteht 1.183 Logik- und 252 Nativefälle, erreicht aber 296/297 Browserfälle: ein 17-Seiten-Test verbraucht sein gemeinsames 30-Sekunden-Budget. Die Testaufteilung wird korrigiert, ohne eine Route oder Geometrieprüfung zu entfernen und ohne Timeouterhöhung. CI42741944545 ist im App-Browserjob rot; PC-Linux/Windows sind grün. Vor Signierung und Playupload wird ein neuer finaler Gesamtstand geprüft. Details und unveränderte Rotbelege stehen in den Testnachweisen.
