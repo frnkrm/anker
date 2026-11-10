@@ -26,6 +26,7 @@ import urllib.request
 
 PACKAGE = "de.frnkrm.anker.mobile"
 VERSION = 16
+RELEASE_NAME = "Anker 1.5.0-rc.2 · Code16"
 SOURCE = "4d8eaa1cd1dc463e3ce9032779d857a215d020fc"
 FINGERPRINT = "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada"
 DOWNLOAD_COMMIT = "b2a062709f061f6b1b4470a3826dd0b48b3c0b29"
@@ -375,7 +376,7 @@ def perform_upload(api: Transport, data: bytes, report: dict) -> None:
             report["steps"].append("bundle-upload-confirmed")
         else:
             report["steps"].append("matching-bundle-reused")
-        desired = {"track": "internal", "releases": [*releases, {"name": "Anker 1.5.0-rc.2 · Code16", "versionCodes": [str(VERSION)], "status": "draft"}]}
+        desired = {"track": "internal", "releases": [*releases, {"name": RELEASE_NAME, "versionCodes": [str(VERSION)], "status": "draft"}]}
         updated = api.request("PUT", base + "/tracks/internal", json_body(desired))
         actual_releases, actual_draft = inspect_track(updated)
         if not actual_draft or actual_releases != desired["releases"]:

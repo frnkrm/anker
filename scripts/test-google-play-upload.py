@@ -22,18 +22,35 @@ uploader = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(uploader)
 FAKE_TOKEN = "FAKE_ACCESS_TOKEN_FOR_OFFLINE_TESTS_ONLY"
 PRIVATE_ERROR = "PRIVATE_RESPONSE_BODY_AND_TOKEN_" + FAKE_TOKEN
-BASE = uploader.API_PATH
+# Historical regression fixtures deliberately stay Code16 when production moves
+# to Code17. They prove their named boundaries, not the current release approval.
+LEGACY16 = {
+    "PACKAGE": "de.frnkrm.anker.mobile", "VERSION": 16,
+    "RELEASE_NAME": "Anker 1.5.0-rc.2 · Code16",
+    "SOURCE": "4d8eaa1cd1dc463e3ce9032779d857a215d020fc",
+    "FINGERPRINT": "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada",
+    "DOWNLOAD_COMMIT": "b2a062709f061f6b1b4470a3826dd0b48b3c0b29",
+    "BUNDLE_SHA256": "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e",
+    "BUNDLE_BYTES": 22655691,
+    "CERTIFICATE": "b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a",
+    "CI_RUN": 42619085381,
+    "API_PATH": "/androidpublisher/v3/applications/de.frnkrm.anker.mobile/edits",
+    "ARTIFACT_URL": "https://raw.githubusercontent.com/frnkrm/anker/b2a062709f061f6b1b4470a3826dd0b48b3c0b29/Anker.aab",
+}
+CODE17_RELEASE_NAME = "Anker 1.5.0-rc.3 · Code17"
+BASE = LEGACY16["API_PATH"]
 OWN = BASE + "/own-edit"
 VERIFY = BASE + "/verify-edit"
-MATCHING = {"versionCode": 16, "sha256": uploader.BUNDLE_SHA256}
-TARGET = {"name": "Anker 1.5.0-rc.2 · Code16", "versionCodes": ["16"], "status": "draft"}
+MATCHING = {"versionCode": 16, "sha256": LEGACY16["BUNDLE_SHA256"]}
+TARGET = {"name": LEGACY16["RELEASE_NAME"], "versionCodes": ["16"], "status": "draft"}
+PRODUCTION_PINS_AT_IMPORT = {name: getattr(uploader, name) for name in LEGACY16}
 
 
-def approval():
-    return {"schemaVersion": 1, "packageName": uploader.PACKAGE, "versionCode": 16,
-            "sourceCommit": uploader.SOURCE, "sourceFingerprint": uploader.FINGERPRINT,
-            "artifact": {"repository": "frnkrm/anker", "gitCommit": uploader.DOWNLOAD_COMMIT, "path": "Anker.aab", "sha256": uploader.BUNDLE_SHA256, "bytes": uploader.BUNDLE_BYTES},
-            "signingCertificateSha256": uploader.CERTIFICATE, "ci": {"repository": "frnkrm/anker", "runId": uploader.CI_RUN, "sourceCommit": uploader.SOURCE},
+def legacy16_approval():
+    return {"schemaVersion": 1, "packageName": LEGACY16["PACKAGE"], "versionCode": 16,
+            "sourceCommit": LEGACY16["SOURCE"], "sourceFingerprint": LEGACY16["FINGERPRINT"],
+            "artifact": {"repository": "frnkrm/anker", "gitCommit": LEGACY16["DOWNLOAD_COMMIT"], "path": "Anker.aab", "sha256": LEGACY16["BUNDLE_SHA256"], "bytes": LEGACY16["BUNDLE_BYTES"]},
+            "signingCertificateSha256": LEGACY16["CERTIFICATE"], "ci": {"repository": "frnkrm/anker", "runId": LEGACY16["CI_RUN"], "sourceCommit": LEGACY16["SOURCE"]},
             "track": "internal", "releaseStatus": "draft", "changesNotSentForReview": True, "changesInReviewBehavior": "ERROR_IF_IN_REVIEW"}
 
 
@@ -101,8 +118,11 @@ class FakeResponse:
         return False
 
 
-class TestUpload(unittest.TestCase):
+class LegacyCode16UploadTests(unittest.TestCase):
     def setUp(self):
+        self.legacy_pins = patch.multiple(uploader, **LEGACY16)
+        self.legacy_pins.start()
+        self.addCleanup(self.legacy_pins.stop)
         self.network = patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Real network forbidden in tests"))
         self.network.start()
         self.addCleanup(self.network.stop)
@@ -110,7 +130,7 @@ class TestUpload(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.manifest = self.root / "approval.json"
-        self.manifest.write_text(json.dumps(approval()))
+        self.manifest.write_text(json.dumps(legacy16_approval()))
 
     def assert_reason(self, code, function, *args):
         with self.assertRaises(uploader.UploadError) as raised:
@@ -125,8 +145,8 @@ class TestUpload(unittest.TestCase):
         return report
 
     def test_valid_pinned_approval_and_public_certificate_format(self):
-        self.assertEqual(uploader.read_manifest(self.manifest), approval())
-        value = approval()
+        self.assertEqual(uploader.read_manifest(self.manifest), legacy16_approval())
+        value = legacy16_approval()
         value["signingCertificateSha256"] = ":".join(uploader.CERTIFICATE[i:i+2].upper() for i in range(0, 64, 2))
         self.manifest.write_text(json.dumps(value))
         self.assertEqual(uploader.read_manifest(self.manifest)["versionCode"], 16)
@@ -136,16 +156,16 @@ class TestUpload(unittest.TestCase):
                    ("sourceCommit", "0" * 40), ("sourceFingerprint", "0" * 64), ("changesNotSentForReview", False), ("changesInReviewBehavior", "CANCEL_IN_REVIEW_AND_SUBMIT"), ("signingCertificateSha256", "00" * 32)]
         for key, value in changes:
             with self.subTest(key=key, value=value):
-                data = approval(); data[key] = value
+                data = legacy16_approval(); data[key] = value
                 self.manifest.write_text(json.dumps(data))
                 self.assert_reason("MANIFEST_INVALID", uploader.read_manifest, self.manifest)
         for group, key, value in [("artifact", "sha256", "0" * 64), ("artifact", "gitCommit", "0" * 40), ("artifact", "path", "other.aab"), ("artifact", "bytes", 22), ("ci", "runId", 1), ("ci", "sourceCommit", "0" * 40)]:
             with self.subTest(group=group, key=key):
-                data=approval(); data[group][key]=value; self.manifest.write_text(json.dumps(data))
+                data=legacy16_approval(); data[group][key]=value; self.manifest.write_text(json.dumps(data))
                 self.assert_reason("MANIFEST_INVALID", uploader.read_manifest, self.manifest)
 
     def test_missing_extra_oversized_and_corrupt_manifest_fail_closed(self):
-        for data in [{}, {**approval(), "apiBase": "https://attacker.invalid"}, {**approval(), "changesInReviewBehavior": None}]:
+        for data in [{}, {**legacy16_approval(), "apiBase": "https://attacker.invalid"}, {**legacy16_approval(), "changesInReviewBehavior": None}]:
             self.manifest.write_text(json.dumps(data))
             self.assert_reason("MANIFEST_INVALID", uploader.read_manifest, self.manifest)
         for text in [PRIVATE_ERROR, " " * 16385, "[]", "null"]:
@@ -272,7 +292,7 @@ class TestUpload(unittest.TestCase):
         untouched=copy.deepcopy(old)
         api=FakeApi(bundles=[MATCHING],releases=[old])
         api.upload_response={"versionCode":17,"sha256":"1"*64}
-        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
             report=self.upload(api)
         put=next(c for c in api.calls if c[0]=="PUT")
         body=json.loads(put[2])
@@ -280,6 +300,7 @@ class TestUpload(unittest.TestCase):
         self.assertEqual(old,untouched)
         self.assertEqual(body["releases"][1]["versionCodes"],["17"])
         self.assertEqual(body["releases"][1]["status"],"draft")
+        self.assertEqual(body["releases"][1]["name"],CODE17_RELEASE_NAME)
         self.assertEqual(len(body["releases"]),2)
         self.assertEqual(api.track["releases"],body["releases"])
         self.assertEqual(report["status"],"draft-committed")
@@ -291,7 +312,7 @@ class TestUpload(unittest.TestCase):
         old={"status":"completed","versionCodes":["16"],"name":PRIVATE_ERROR}
         new={"status":"draft","versionCodes":["17"],"name":PRIVATE_ERROR}
         api=FakeApi(bundles=[MATCHING,{"versionCode":17,"sha256":"1"*64}],releases=[old,new])
-        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
             report=self.upload(api)
         self.assertEqual(report["status"],"already-draft")
         self.assertTrue(report["draftVerified"] and report["bundleReused"])
@@ -302,7 +323,7 @@ class TestUpload(unittest.TestCase):
     def test_future_code17_exact_active_target_still_has_its_readonly_path(self):
         active={"status":"completed","versionCodes":["17"]}
         api=FakeApi(bundles=[{"versionCode":17,"sha256":"1"*64}],releases=[active])
-        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+        with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
             report=self.upload(api)
         self.assertEqual(report["status"],"already-active")
         self.assertTrue(report["activeReleaseVerified"])
@@ -319,7 +340,7 @@ class TestUpload(unittest.TestCase):
         for releases in cases:
             with self.subTest(releases=releases):
                 api=FakeApi(releases=releases)
-                with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+                with patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
                     self.assert_reason("EXISTING_RELEASE_CONFLICT",self.upload,api)
                 self.assertFalse(any(c[0]=="PUT" or c[3] or ":validate" in c[1] or ":commit" in c[1] for c in api.calls))
 
@@ -330,21 +351,21 @@ class TestUpload(unittest.TestCase):
 
     def test_code17_update_response_cannot_change_or_drop_the_retained_code16(self):
         old={"status":"completed","versionCodes":["16"],"name":"Preserve name","releaseNotes":[{"language":"de-DE","text":"Preserve notes"}]}
-        target={**TARGET,"versionCodes":["17"]}
+        target={**TARGET,"name":CODE17_RELEASE_NAME,"versionCodes":["17"]}
         for changed in [[],[{**old,"name":"Changed"}],[{**old,"status":"draft"}],[{**old,"releaseNotes":[]}]]:
             api=FakeApi(releases=[old]);api.upload_response={"versionCode":17,"sha256":"1"*64}
             api.changed_response={"track":"internal","releases":[*changed,target]}
-            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
                 self.assert_reason("DRAFT_RESPONSE_MISMATCH",self.upload,api)
             self.assertFalse(any(":validate" in c[1] or ":commit" in c[1] for c in api.calls))
 
     def test_code17_persisted_readback_must_retain_completed16_exactly(self):
         old={"status":"completed","versionCodes":["16"],"name":"Preserve name","releaseNotes":[{"language":"de-DE","text":"Preserve notes"}]}
-        target={**TARGET,"versionCodes":["17"]}
+        target={**TARGET,"name":CODE17_RELEASE_NAME,"versionCodes":["17"]}
         for changed in [[],[{**old,"name":"Changed"}],[{**old,"status":"draft"}],[{**old,"releaseNotes":[]}]]:
             api=FakeApi(releases=[old]);api.upload_response={"versionCode":17,"sha256":"1"*64}
             api.readback_response={"track":"internal","releases":[*changed,target]};report=uploader.new_report()
-            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64):
+            with self.subTest(changed=changed),patch.object(uploader,"VERSION",17),patch.object(uploader,"BUNDLE_SHA256","1"*64),patch.object(uploader,"RELEASE_NAME",CODE17_RELEASE_NAME):
                 self.assert_reason("POST_COMMIT_UNVERIFIED",uploader.perform_upload,api,b"offline-approved-bundle",report)
             self.assertTrue(report["commitAcknowledged"])
             self.assertFalse(report["draftVerified"] or report["publishedByThisRun"])
@@ -565,6 +586,114 @@ class TestUpload(unittest.TestCase):
                 self.assertFalse(report["draftVerified"])
                 self.assertNotIn(FAKE_TOKEN,report_path.read_text()+out.getvalue())
                 self.assertNotIn(PRIVATE_ERROR,report_path.read_text()+out.getvalue())
+
+
+class ProductionApprovalTests(unittest.TestCase):
+    """Unpatched publisher pins plus the actual checked-in approval, not Legacy16 fixtures."""
+
+    def setUp(self):
+        # A fixture patch leaking from a legacy regression must never make these
+        # current-approval checks green against historical values.
+        self.assertEqual({name: getattr(uploader, name) for name in LEGACY16}, PRODUCTION_PINS_AT_IMPORT)
+        self.network = patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Real network forbidden in tests"))
+        self.network.start()
+        self.addCleanup(self.network.stop)
+        self.manifest = Path(__file__).resolve().parents[1] / "docs/PLAY_UPLOAD_APPROVAL.json"
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+
+    def test_actual_approval_is_bound_to_unpatched_production_target_and_provenance(self):
+        value = uploader.read_manifest(self.manifest)
+        expected = {
+            16: (LEGACY16["SOURCE"], LEGACY16["FINGERPRINT"], LEGACY16["CI_RUN"], LEGACY16["RELEASE_NAME"]),
+            17: ("7c765c52b109efb2cb03f8ea3d288eae4dba2392",
+                 "657180633146d0e7619f3e1b07a5dbcb7d8fb1ba136eeef61c13d73d7a346e2a",
+                 42726629352, CODE17_RELEASE_NAME),
+        }
+        self.assertIn(uploader.VERSION, expected)
+        source, fingerprint, ci_run, name = expected[uploader.VERSION]
+        self.assertEqual(value["packageName"], "de.frnkrm.anker.mobile")
+        self.assertEqual(value["versionCode"], uploader.VERSION)
+        self.assertEqual(value["sourceCommit"], source)
+        self.assertEqual(value["sourceFingerprint"], fingerprint)
+        self.assertEqual(value["ci"], {"repository": "frnkrm/anker", "runId": ci_run, "sourceCommit": source})
+        self.assertEqual(uploader.RELEASE_NAME, name)
+        self.assertEqual(value["signingCertificateSha256"].replace(":", "").lower(), LEGACY16["CERTIFICATE"])
+        artifact = value["artifact"]
+        self.assertEqual(artifact, {"repository": "frnkrm/anker", "gitCommit": uploader.DOWNLOAD_COMMIT,
+                                   "path": "Anker.aab", "sha256": uploader.BUNDLE_SHA256, "bytes": uploader.BUNDLE_BYTES})
+        self.assertRegex(artifact["gitCommit"], r"^[a-f0-9]{40}$")
+        self.assertRegex(artifact["sha256"], r"^[a-f0-9]{64}$")
+        self.assertIs(type(artifact["bytes"]), int)
+        self.assertGreater(artifact["bytes"], 1_000_000)
+        self.assertEqual(uploader.ARTIFACT_URL,
+                         f'https://raw.githubusercontent.com/frnkrm/anker/{artifact["gitCommit"]}/Anker.aab')
+        self.assertEqual((value["track"], value["releaseStatus"], value["changesNotSentForReview"], value["changesInReviewBehavior"]),
+                         ("internal", "draft", True, "ERROR_IF_IN_REVIEW"))
+
+    def test_actual_approval_mutations_fail_against_real_unpatched_pins(self):
+        original = json.loads(self.manifest.read_text())
+        changes = [
+            ("versionCode", uploader.VERSION + 1), ("packageName", "other.package"),
+            ("sourceCommit", "0" * 40), ("sourceFingerprint", "0" * 64),
+            ("track", "production"), ("releaseStatus", "completed"),
+            ("changesInReviewBehavior", "CANCEL_IN_REVIEW_AND_SUBMIT"),
+        ]
+        wrong = self.root / "wrong-approval.json"
+        variants = []
+        for field, changed in changes:
+            value = copy.deepcopy(original); value[field] = changed; variants.append(value)
+        for field, changed in [("runId", uploader.CI_RUN + 1), ("sourceCommit", "0" * 40)]:
+            value = copy.deepcopy(original); value["ci"][field] = changed; variants.append(value)
+        for field, changed in [("sha256", "0" * 64), ("gitCommit", "0" * 40), ("bytes", uploader.BUNDLE_BYTES + 1)]:
+            value = copy.deepcopy(original); value["artifact"][field] = changed; variants.append(value)
+        for index, value in enumerate(variants):
+            with self.subTest(mutation=index):
+                wrong.write_text(json.dumps(value))
+                with self.assertRaises(uploader.UploadError) as raised:
+                    uploader.read_manifest(wrong)
+                self.assertEqual(raised.exception.code, "MANIFEST_INVALID")
+
+    def test_actual_target_draft_cli_preserves_completed16_when_code17_is_approved(self):
+        approval = uploader.read_manifest(self.manifest)
+        self.assertIn(approval["versionCode"], [16, 17])
+        # No production constant is patched: this same test exercises the real
+        # Code17 draft/retained16 path as soon as Code17 is explicitly approved.
+        old = {"status": "completed", "versionCodes": ["16"], "name": PRIVATE_ERROR,
+               "releaseNotes": [{"language": "de-DE", "text": PRIVATE_ERROR}], "inAppUpdatePriority": 2}
+        retained = [copy.deepcopy(old)] if approval["versionCode"] == 17 else []
+        bundles = [copy.deepcopy(MATCHING)] if retained else []
+        api = FakeApi(bundles=bundles, releases=retained)
+        api.upload_response = {"versionCode": approval["versionCode"], "sha256": approval["artifact"]["sha256"]}
+        report_path = self.root / "actual-target-result.json"
+        output = io.StringIO()
+        with patch.object(uploader, "read_bundle", return_value=b"offline-approved-bundle"), \
+                patch.object(uploader, "token_from_env", return_value=FAKE_TOKEN), \
+                patch.object(uploader, "Transport", return_value=api), contextlib.redirect_stdout(output):
+            code = uploader.main(["upload", "--manifest", str(self.manifest), "--bundle", str(self.root / "Anker.aab"), "--report", str(report_path)])
+        self.assertEqual(code, 0)
+        report = json.loads(report_path.read_text())
+        target = {"name": uploader.RELEASE_NAME, "versionCodes": [str(approval["versionCode"])], "status": "draft"}
+        self.assertEqual(api.track, {"track": "internal", "releases": [*retained, target]})
+        self.assertEqual(old["status"], "completed")
+        self.assertEqual(old["versionCodes"], ["16"])
+        self.assertEqual(report["versionCode"], approval["versionCode"])
+        self.assertEqual(report["sourceCommit"], approval["sourceCommit"])
+        self.assertEqual(report["sourceFingerprint"], approval["sourceFingerprint"])
+        self.assertEqual(report["bundleSha256"], approval["artifact"]["sha256"])
+        self.assertEqual(report["ciRunId"], approval["ci"]["runId"])
+        self.assertEqual(report["status"], "draft-committed")
+        self.assertTrue(report["draftVerified"] and report["bundleUploadConfirmed"] and report["commitAcknowledged"])
+        self.assertFalse(report["activeReleaseVerified"] or report["publishedByThisRun"])
+        self.assertEqual(sum(call[3] for call in api.calls), 1)
+        self.assertEqual(sum(":validate" in call[1] for call in api.calls), 1)
+        self.assertEqual(sum(":commit" in call[1] for call in api.calls), 1)
+        put = next(call for call in api.calls if call[0] == "PUT")
+        self.assertEqual(json.loads(put[2]), api.track)
+        self.assertIn(("GET", VERIFY + "/tracks/internal"), [(m, p) for m, p, _, _ in api.calls])
+        self.assertNotIn(PRIVATE_ERROR, report_path.read_text() + output.getvalue())
+        self.assertNotIn(FAKE_TOKEN, report_path.read_text() + output.getvalue())
 
 
 if __name__ == "__main__":
