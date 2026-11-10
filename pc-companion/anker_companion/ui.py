@@ -52,6 +52,8 @@ class DesktopUI:
         self._main_pending: dict[str, str] = {}
         self._action_buttons: dict[str, object] = {}
         self._feedback_variable = None
+        self._feedback_label = None
+        self._remaining_label = None
         self._feedback_text = ""
         self._last_sync_result: dict = {}
         self._dpi_scale = 1.0
@@ -347,8 +349,10 @@ class DesktopUI:
         actions = self._scroll_body(self.root)
         self._label(actions, "Anker PC-Begleiter", size=22).pack(fill="x", padx=20, pady=(20, 8))
         self._label(actions, variable=self.status).pack(fill="x", padx=20, pady=6)
-        self._label(actions, variable=self.remaining, size=20).pack(fill="x", padx=20, pady=4)
-        self._label(actions, variable=self._feedback_variable, muted=True).pack(fill="x", padx=20, pady=(4, 12))
+        self._remaining_label = self._label(actions, variable=self.remaining, size=20)
+        self._remaining_label.pack(fill="x", padx=20, pady=4)
+        self._feedback_label = self._label(actions, variable=self._feedback_variable, muted=True)
+        self._feedback_label.pack(fill="x", padx=20, pady=(4, 12))
         for key, text, callback, primary in [
             ("sync", "Jetzt abgleichen", lambda: self._perform_action({"action": "sync"}, "Abgleich angefragt – warte auf das Handy …", "Handystand neu empfangen."), True),
             ("pair", "Mit Handy koppeln", lambda: self._perform_action({"action": "pair"}, "Kopplungs-QR wird vorbereitet …", "QR-Code bereit. Scanne ihn mit Anker am Handy."), False),
@@ -459,6 +463,11 @@ class DesktopUI:
         seconds = max(0, int(seconds)) if isinstance(seconds, (int, float)) and math.isfinite(seconds) else None
         self.remaining.set(f"Zum Speichern: {seconds // 60:02d}:{seconds % 60:02d}" if saving and seconds is not None
                            else f"Noch {math.ceil(seconds / 60)} Min" if seconds is not None and seconds > 0 else "")
+        if self._remaining_label is not None:
+            if self.remaining.get():
+                self._remaining_label.pack(fill="x", padx=20, pady=4, before=self._feedback_label)
+            else:
+                self._remaining_label.pack_forget()
         opacity = item.get("dimOpacity", 0)
         if not isinstance(opacity, (int, float)) or not math.isfinite(opacity):
             opacity = 0
