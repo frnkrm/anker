@@ -4,17 +4,21 @@ from __future__ import annotations
 from copy import deepcopy
 import ctypes
 from ctypes import wintypes
+from datetime import datetime
 import math
 import os
 import time
 from queue import Empty, SimpleQueue
 from typing import Callable
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from .windows import PlatformError, WindowsPlatform
+from .widgets import rounded_button, window_geometry
 
 
 class DesktopUI:
+    FONT = "Segoe UI" if os.name == "nt" else "Helvetica"
     BG = "#101114"
     SURFACE = "#1b1e26"
     FG = "#f1f3f5"
@@ -30,6 +34,7 @@ class DesktopUI:
         self.snapshot: dict = {}
         self.root = None
         self._tray = None
+        self._tray_ready = False
         self._tray_images: dict[int, object] = {}
         self._overlays: dict[tuple[int, int, int, int], object] = {}
         self._bar = None
@@ -44,6 +49,13 @@ class DesktopUI:
         self._offer_timer = None
         self._display_error = None
         self._pending_actions: dict[str, tuple[str, Callable[[bool], None]]] = {}
+        self._main_pending: dict[str, str] = {}
+        self._action_buttons: dict[str, object] = {}
+        self._feedback_variable = None
+        self._feedback_text = ""
+        self._last_sync_result: dict = {}
+        self._dpi_scale = 1.0
+        self._monitor_signature = None
         self.capture_exclusion_supported: bool | None = None
 
     def render(self, snapshot: dict) -> None:
@@ -93,8 +105,84 @@ class DesktopUI:
         pending = self._pending_actions.get(request_id)
         if pending is None or pending[0] != result.get("action"):
             return
+        if result.get("action") == "sync":
+            state = result.get("status")
+            self._last_sync_result = {"status": state if isinstance(state, str) and state in {"received", "offline", "pending-events", "timeout", "busy", "unpaired"} else "unknown"}
+            generated = result.get("sourceGeneratedAt")
+            if isinstance(generated, str) and len(generated) <= 40:
+                try:
+                    instant = datetime.fromisoformat(generated.replace("Z", "+00:00"))
+                    if instant.tzinfo is not None:
+                        self._last_sync_result["sourceGeneratedAt"] = instant.astimezone(ZoneInfo("Europe/Berlin")).strftime("%d.%m. %H:%M")
+                except (ValueError, OverflowError): pass
         self._pending_actions.pop(request_id, None)
         pending[1](result["ok"])
+
+    def _set_feedback(self, text: str) -> None:
+        self._feedback_text = text
+        if self._feedback_variable is not None:
+            self._feedback_variable.set(text)
+
+    def _perform_action(self, action: dict, pending: str, success: str) -> None:
+        kind = action["action"]
+        if kind in self._main_pending:
+            self._set_feedback(pending)
+            return
+        button = self._action_buttons.get(kind)
+        if button is not None:
+            button.configure(state="disabled")
+        self._set_feedback(pending)
+        if kind == "sync":
+            self._last_sync_result = {}
+        # Install the marker before emitting: a synchronous failure can finish now.
+        self._main_pending[kind] = ""
+        def complete(ok: bool) -> None:
+            self._main_pending.pop(kind, None)
+            if button is not None:
+                try: button.configure(state="normal")
+                except Exception: pass
+            if kind == "sync" and self._last_sync_result.get("status") != "received": ok = False
+            feedback = success if ok else "Noch nicht bestätigt. Prüfe die Verbindung und versuche es erneut."
+            if kind == "sync" and ok and self._last_sync_result.get("sourceGeneratedAt"):
+                feedback = "Handystand empfangen · Stand " + self._last_sync_result["sourceGeneratedAt"]
+            if kind == "pair" and ok and self._offer_window is None:
+                feedback = "QR-Code konnte noch nicht angezeigt werden. Bitte erneut versuchen."
+            if kind == "sync" and not ok:
+                feedback = {
+                    "pending-events": "Öffne Anker am Handy, damit offene PC-Rückmeldungen übernommen werden.",
+                    "offline": "Noch keine Handyverbindung. Öffne Anker am Handy und prüfe das gemeinsame WLAN.",
+                    "unpaired": "Kopple zuerst dein Handy über Mit Handy koppeln.",
+                    "timeout": "Noch keinen neuen Handystand empfangen. Öffne Anker am Handy und versuche es erneut.",
+                    "busy": "Ein Abgleich läuft bereits. Warte kurz und versuche es danach erneut.",
+                }.get(self._last_sync_result.get("status"), feedback)
+            self._set_feedback(feedback)
+        request_id = self._submit(action, complete)
+        if kind not in self._main_pending:
+            return
+        self._main_pending[kind] = request_id
+        def timeout() -> None:
+            if self._main_pending.get(kind) != request_id:
+                return
+            self._pending_actions.pop(request_id, None)
+            if kind == "sync": self._last_sync_result = {"status": "timeout"}
+            complete(False)
+        if self.root is not None:
+            self.root.after(30_000, timeout)
+
+    def _dispatch_action(self, action: dict) -> None:
+        kind = action.get("action")
+        if kind == "sync":
+            self._perform_action(action, "Abgleich angefragt – warte auf das Handy …", "Handystand neu empfangen.")
+        elif kind == "pair":
+            self._perform_action(action, "Kopplungs-QR wird vorbereitet …", "QR-Code bereit. Scanne ihn mit Anker am Handy.")
+        elif kind == "test":
+            self._perform_action(action, "Testabend wird vorbereitet …", "Testabend gestartet. Er löst keine PC-Sperre aus.")
+        elif kind == "pause":
+            self._pause()
+        elif kind == "resume":
+            self._perform_action(action, "Wiederaufnahme angefragt …", "PC-Stopp wieder aktiviert, sofern ein gültiger Plan vorliegt.")
+        else:
+            self._emit(action)
 
     @staticmethod
     def _valid_note(value: str, *, empty: bool = False) -> bool:
@@ -111,27 +199,23 @@ class DesktopUI:
         if self._strict():
             self._note("Verlängern am Handy", "Öffne Anker und bestätige die Notverlängerung mit deinem QR-Code. Der PC kann dafür kein Token erzeugen.")
         else:
-            self._emit({"action": "extend", "minutes": minutes})
+            self._perform_action({"action": "extend", "minutes": minutes}, "Verlängerung angefragt …", "Verlängerung am PC gespeichert. Die Übertragung zum Handy wird getrennt bestätigt.")
 
     def _pause(self) -> None:
         if self._strict():
             self._extend(15)
         else:
-            self._emit({"action": "pause"})
+            self._perform_action({"action": "pause"}, "Pause angefragt …", "PC-Stopp für heute am PC ausgesetzt.")
 
     def _button(self, parent, text: str, command, *, primary: bool = False):
-        return self.tk.Button(parent, text=text, command=command, font=("Segoe UI", 11),
-                              bg=self.ACCENT if primary else self.SURFACE,
-                              fg=self.BG if primary else self.FG, activebackground=self.ACCENT,
-                              activeforeground=self.BG, relief="flat", borderwidth=0,
-                              highlightthickness=2, highlightbackground=self.SURFACE,
-                              highlightcolor=self.ACCENT, padx=12, pady=10, takefocus=True,
-                              wraplength=340)
+        return rounded_button(self.tk, parent, text, command, primary=primary,
+                              scale=self._dpi_scale, background=self.BG)
 
     def _label(self, parent, text: str = "", *, size: int = 12, muted: bool = False, variable=None):
-        label = self.tk.Label(parent, text=text, textvariable=variable, font=("Segoe UI", size),
+        label = self.tk.Label(parent, text=text, textvariable=variable, font=(self.FONT, -max(10, round(size * 96 / 72 * self._dpi_scale))),
                               bg=self.BG, fg=self.MUTED if muted else self.FG,
                               justify="left", anchor="w", wraplength=400)
+        label._anker_font_points = size
         parent.bind("<Configure>", lambda event: label.configure(wraplength=max(160, event.width-40)) if event.widget == parent else None, add="+")
         return label
 
@@ -145,10 +229,98 @@ class DesktopUI:
         item = canvas.create_window((0, 0), window=content, anchor="nw")
         content.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(item, width=event.width))
+        def reveal_focus(event):
+            widget = event.widget
+            ancestor = widget
+            while ancestor is not None and ancestor is not content:
+                ancestor = getattr(ancestor, "master", None)
+            if ancestor is not content or widget is content:
+                return
+            canvas.update_idletasks()
+            top = widget.winfo_rooty() - content.winfo_rooty()
+            bottom = top + widget.winfo_height()
+            viewport = canvas.canvasy(0)
+            height = canvas.winfo_height()
+            total = max(1, content.winfo_height())
+            if top < viewport:
+                canvas.yview_moveto(max(0, top / total))
+            elif bottom > viewport + height:
+                canvas.yview_moveto(max(0, (bottom - height) / total))
+        window.bind("<FocusIn>", reveal_focus, add="+")
         window.bind("<MouseWheel>", lambda event: canvas.yview_scroll(-int(event.delta/120), "units"))
+        window.bind("<Button-4>", lambda _event: canvas.yview_scroll(-1, "units"))
+        window.bind("<Button-5>", lambda _event: canvas.yview_scroll(1, "units"))
         window.bind("<Next>", lambda _event: canvas.yview_scroll(1, "pages"))
         window.bind("<Prior>", lambda _event: canvas.yview_scroll(-1, "pages"))
         return content
+
+    def _monitor_metrics(self) -> tuple[tuple[int, int, int, int], float]:
+        if os.name == "nt":
+            try:
+                class MonitorInfo(ctypes.Structure):
+                    _fields_ = [("cbSize", wintypes.DWORD), ("rcMonitor", wintypes.RECT),
+                                ("rcWork", wintypes.RECT), ("dwFlags", wintypes.DWORD)]
+                user = ctypes.WinDLL("user32", use_last_error=True)
+                handle = self._handle(self.root)
+                user.MonitorFromWindow.argtypes = [wintypes.HWND, wintypes.DWORD]
+                user.MonitorFromWindow.restype = wintypes.HANDLE
+                user.GetMonitorInfoW.argtypes = [wintypes.HANDLE, ctypes.POINTER(MonitorInfo)]
+                user.GetMonitorInfoW.restype = wintypes.BOOL
+                monitor = user.MonitorFromWindow(handle, 2)
+                info = MonitorInfo(); info.cbSize = ctypes.sizeof(info)
+                if not monitor or not user.GetMonitorInfoW(monitor, ctypes.byref(info)):
+                    raise OSError()
+                user.GetDpiForWindow.argtypes = [wintypes.HWND]
+                user.GetDpiForWindow.restype = wintypes.UINT
+                dpi = user.GetDpiForWindow(handle)
+                scale = dpi / 96 if 72 <= dpi <= 384 else self._dpi_scale
+                work = info.rcWork
+                return (work.left, work.top, work.right, work.bottom), scale
+            except (AttributeError, OSError, ValueError):
+                pass
+        return (0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight()), 1.0
+
+    def _fit_main_window(self) -> None:
+        area, scale = self._monitor_metrics()
+        signature = (area, scale)
+        if signature == self._monitor_signature:
+            return
+        first = self._monitor_signature is None
+        current = None if first else (self.root.winfo_x(), self.root.winfo_y())
+        width, height, x, y, min_width, min_height = window_geometry(area, scale, current)
+        self._monitor_signature = signature
+        self._dpi_scale = max(0.75, min(4.0, scale))
+        self.root.minsize(min_width, min_height)
+        self.root.geometry(f"{width}x{height}")
+        if os.name == "nt":
+            try:
+                user = ctypes.WinDLL("user32", use_last_error=True)
+                user.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
+                                             ctypes.c_int, ctypes.c_int, wintypes.UINT]
+                user.SetWindowPos.restype = wintypes.BOOL
+                user.SetWindowPos(self._handle(self.root), None, x, y, 0, 0, 0x1 | 0x4 | 0x10)
+            except (AttributeError, OSError, ValueError):
+                pass
+        else:
+            self.root.geometry(f"{width}x{height}{x:+}{y:+}")
+        def scale_buttons(widget):
+            # Separate toplevels (especially the pixel-exact QR) keep their scale.
+            if widget is not self.root and isinstance(widget, self.tk.Toplevel): return
+            if hasattr(widget, "set_scale"): widget.set_scale(self._dpi_scale)
+            if hasattr(widget, "_anker_font_points"):
+                widget.configure(font=(self.FONT, -max(10, round(widget._anker_font_points * 96 / 72 * self._dpi_scale))))
+            for child in widget.winfo_children(): scale_buttons(child)
+        scale_buttons(self.root)
+
+    def _watch_monitor(self) -> None:
+        try:
+            if self.root.state() not in {"withdrawn", "iconic"}:
+                self._fit_main_window()
+        except Exception:
+            # A temporary monitor/DPI failure must not close or hide Anker.
+            pass
+        try: self.root.after(500, self._watch_monitor)
+        except Exception: pass
 
     def run(self) -> None:
         # No Tk root, tray registration or Windows hooks are created on import.
@@ -164,28 +336,34 @@ class DesktopUI:
         self.root = tk.Tk()
         self.root.title("Anker PC-Begleiter")
         self.root.configure(bg=self.BG)
-        self.root.geometry("480x630")
-        self.root.minsize(360, 460)
+        self.root.geometry("520x720")
+        self.root.minsize(340, 390)
         self.root.protocol("WM_DELETE_WINDOW", self._hide_or_close)
         self.root.bind("<Escape>", lambda _event: self._hide_or_close())
+        self.root.bind("<Unmap>", self._on_unmap)
         self.status = tk.StringVar(value="Noch nicht gekoppelt")
         self.remaining = tk.StringVar(value="")
-        self._label(self.root, "Anker PC-Begleiter", size=22).pack(fill="x", padx=20, pady=(20, 8))
-        self._label(self.root, variable=self.status).pack(fill="x", padx=20, pady=6)
-        self._label(self.root, variable=self.remaining, size=20).pack(fill="x", padx=20, pady=4)
-        self._label(self.root, "1. Privates WLAN wählen · 2. Mit Handy koppeln · 3. Testabend starten", muted=True).pack(fill="x", padx=20, pady=10)
+        self._feedback_variable = tk.StringVar(value="Wähle eine Aktion. Anker zeigt dir hier deren Rückmeldung.")
         actions = self._scroll_body(self.root)
-        for text, callback in [
-            ("Mit Handy koppeln", lambda: self._emit({"action": "pair"})),
-            ("Speicherpunkt setzen", lambda: self._form("savepoint")),
-            ("Gedanke notieren", lambda: self._form("thought")),
-            ("+15 Minuten", lambda: self._extend(15)),
-            ("Heute ohne PC-Stopp", self._pause),
-            ("Abendablauf testen", lambda: self._emit({"action": "test"})),
-            ("Einstellungen", self._settings),
-            ("Beenden", self._request_quit),
+        self._label(actions, "Anker PC-Begleiter", size=22).pack(fill="x", padx=20, pady=(20, 8))
+        self._label(actions, variable=self.status).pack(fill="x", padx=20, pady=6)
+        self._label(actions, variable=self.remaining, size=20).pack(fill="x", padx=20, pady=4)
+        self._label(actions, variable=self._feedback_variable, muted=True).pack(fill="x", padx=20, pady=(4, 12))
+        for key, text, callback, primary in [
+            ("sync", "Jetzt abgleichen", lambda: self._perform_action({"action": "sync"}, "Abgleich angefragt – warte auf das Handy …", "Handystand neu empfangen."), True),
+            ("pair", "Mit Handy koppeln", lambda: self._perform_action({"action": "pair"}, "Kopplungs-QR wird vorbereitet …", "QR-Code bereit. Scanne ihn mit Anker am Handy."), False),
+            ("savepoint", "Speicherpunkt setzen", lambda: self._form("savepoint"), False),
+            ("thought", "Gedanke notieren", lambda: self._form("thought"), False),
+            ("extend", "+15 Minuten", lambda: self._extend(15), False),
+            ("pause", "Heute ohne PC-Stopp", self._pause, False),
+            ("test", "Abendablauf testen", lambda: self._perform_action({"action": "test"}, "Testabend wird vorbereitet …", "Testabend gestartet. Er löst keine PC-Sperre aus."), False),
+            ("settings", "Einstellungen", self._settings, False),
+            ("quit", "Beenden", self._request_quit, False),
         ]:
-            self._button(actions, text, callback).pack(fill="x", pady=3)
+            button = self._button(actions, text, callback, primary=primary)
+            button.pack(fill="x", padx=16, pady=4)
+            self._action_buttons[key] = button
+        self._label(actions, "Minimieren oder ×: Anker läuft weiter. Nur Beenden schließt den Begleiter.", muted=True).pack(fill="x", padx=20, pady=(12, 20))
         self.root.update_idletasks()
         if self.platform is not None and os.name == "nt":
             try:
@@ -195,6 +373,9 @@ class DesktopUI:
             except PlatformError:
                 self.status.set("Windows-Ereignisse sind noch nicht verfügbar. Bitte Einrichtung prüfen.")
         self._start_tray()
+        try: self._fit_main_window()
+        except Exception: pass  # Keep the reachable default window on DPI-query failure.
+        self.root.after(500, self._watch_monitor)
         self.root.after(100, self._drain)
         try:
             self.root.mainloop()
@@ -204,7 +385,8 @@ class DesktopUI:
             if self.platform is not None:
                 self.platform.detach_window()
             if self._tray is not None:
-                self._tray.stop()
+                try: self._tray.stop()
+                except Exception: pass
 
     def _drain(self) -> None:
         closed = False
@@ -230,12 +412,16 @@ class DesktopUI:
                 elif kind == "form":
                     self._form(value)
                 elif kind == "main":
-                    self.root.deiconify()
-                    self.root.lift()
+                    self._show_main()
+                elif kind == "tray-ready":
+                    self._tray_ready = self._tray is not None and bool(self._tray.visible)
+                    self._minimized_to_tray()
+                elif kind == "tray-failed":
+                    self._tray_failed()
                 elif kind == "extend":
                     self._extend(int(value))
                 elif kind == "action":
-                    self._emit(value)
+                    self._dispatch_action(value)
                 elif kind == "settings":
                     self._settings()
                 elif kind == "quit":
@@ -285,6 +471,8 @@ class DesktopUI:
         if card_key and card_key != self._last_card:
             self._last_card = card_key
             self._show_card(state, text, seconds)
+            if not item.get("testMode") and state in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"}:
+                self._notify_reminder("Dein Abendübergang steht an. Öffne Anker für den aktuellen PC-Stopp.")
         elif card_key is None:
             self._last_card = None
             if self._card is not None:
@@ -293,10 +481,13 @@ class DesktopUI:
         if item.get("pairing"):
             self._pair(item["pairing"])
         if self._tray is not None:
-            self._tray.title = ("Anker · " + text)[:120]
-            bucket = min(12, max(0, math.ceil((seconds or 0) / 300)))
-            self._tray.icon = self._tray_images[bucket]
-            self._tray.update_menu()
+            try:
+                self._tray.title = ("Anker · " + text)[:120]
+                bucket = min(12, max(0, math.ceil((seconds or 0) / 300)))
+                self._tray.icon = self._tray_images[bucket]
+                self._tray.update_menu()
+            except Exception:
+                self._tray_failed()
 
     def _show_pairing_offer(self, qr: str, expires_at: float, identifier: str) -> None:
         if (not isinstance(qr, str) or not qr.startswith("anker-pc-pair:v3:") or len(qr) > 8192
@@ -340,6 +531,7 @@ class DesktopUI:
             self._cancel_offer(identifier)
             self._display_error = "Der Kopplungs-QR ist abgelaufen. Wähle erneut Mit Handy koppeln."
             self.status.set(self._display_error)
+            self._set_feedback(self._display_error)
         else:
             self._offer_timer = self.root.after(1000, lambda: self._check_offer_expiry(identifier))
 
@@ -348,6 +540,7 @@ class DesktopUI:
             return
         self._close_offer()
         self._emit({"action": "reject_pair", "id": identifier})
+        self._set_feedback("Kopplung abgebrochen. Du kannst einen neuen QR-Code öffnen.")
 
     def _handle(self, widget) -> int:
         identifier = widget.winfo_id()
@@ -543,7 +736,8 @@ class DesktopUI:
                 self._cancel_offer(identifier)
                 return
             self._close_offer()
-            self._emit({"action": "confirm_pair" if approved else "reject_pair", "id": identifier})
+            self._perform_action({"action": "confirm_pair" if approved else "reject_pair", "id": identifier},
+                                 "Kopplungsantwort wird übernommen …", "Kopplung bestätigt." if approved else "Kopplung abgebrochen.")
         self._button(dialog, "Ja, koppeln", lambda: answer(True), primary=True).pack(fill="x", padx=20, pady=8)
         self._button(dialog, "Abbrechen", lambda: answer(False)).pack(fill="x", padx=20, pady=(0, 16))
         dialog.protocol("WM_DELETE_WINDOW", lambda: answer(False))
@@ -632,9 +826,9 @@ class DesktopUI:
         window.protocol("WM_DELETE_WINDOW", dismiss)
         window.bind("<Escape>", dismiss)
         button = self._button(dialog, "Übernehmen", save, primary=True); button.pack(fill="x", padx=16, pady=8)
-        self._button(dialog, "Entkoppeln", lambda: self._emit({"action": "unpair"})).pack(fill="x", padx=16, pady=6)
+        self._button(dialog, "Entkoppeln", lambda: self._perform_action({"action": "unpair"}, "Kopplung wird aufgehoben …", "Kopplung am PC aufgehoben.")).pack(fill="x", padx=16, pady=6)
         if self.snapshot.get("legacyConflict"):
-            self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._emit({"action": "remove_legacy"})).pack(fill="x", padx=16, pady=6)
+            self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._perform_action({"action": "remove_legacy"}, "Klassische Aufgabe wird entfernt …", "Klassische PC-Stopp-Aufgabe entfernt.")).pack(fill="x", padx=16, pady=6)
 
     def _close_offer(self) -> None:
         if self._offer_timer is not None:
@@ -659,14 +853,59 @@ class DesktopUI:
             self._emit({"action": "quit"}); self.close()
 
     def _hide_or_close(self) -> None:
-        if self._tray is not None: self.root.withdraw()
-        else: self._request_quit()
+        if self._tray_available():
+            self.root.withdraw()
+        else:
+            self.root.iconify()
+            self._set_feedback("Anker läuft weiter und bleibt über die Windows-Taskleiste erreichbar.")
+
+    def _tray_available(self) -> bool:
+        try:
+            return self._tray_ready and self._tray is not None and bool(self._tray.visible) and bool(getattr(self._tray, "_running", True))
+        except Exception:
+            return False
+
+    def _on_unmap(self, event) -> None:
+        if event.widget is self.root:
+            try: self.root.after_idle(self._minimized_to_tray)
+            except Exception: pass
+
+    def _minimized_to_tray(self) -> None:
+        try:
+            if self.root.state() == "iconic" and self._tray_available():
+                self.root.withdraw()
+        except Exception:
+            pass
+
+    def _show_main(self) -> None:
+        self.root.deiconify()
+        try: self._fit_main_window()
+        except Exception: pass
+        self.root.lift()
+        try: self.root.focus_force()
+        except Exception: pass
+
+    def _tray_failed(self) -> None:
+        self._tray_ready = False
+        self._set_feedback("Der Infobereich ist gerade nicht verfügbar. Anker bleibt über die Taskleiste erreichbar.")
+        try:
+            if self.root.state() == "withdrawn":
+                self.root.deiconify()
+                self.root.iconify()
+        except Exception:
+            pass
+
+    def _notify_reminder(self, text: str) -> None:
+        if self._tray_available():
+            try: self._tray.notify(text, "Anker")
+            except Exception: self._tray_failed()
 
     def _start_tray(self) -> None:
         if os.name != "nt": return
         try:
             import pystray
             from PIL import Image, ImageDraw
+            from .tray import create_tray_icon
             for bucket in range(13):
                 image = Image.new("RGBA", (64, 64), (0, 0, 0, 0)); draw = ImageDraw.Draw(image)
                 draw.ellipse((2, 2, 62, 62), outline=self.SURFACE, width=5)
@@ -678,6 +917,7 @@ class DesktopUI:
             def queue(kind, value=None): return lambda _icon, _item: self.queue.put((kind, value))
             menu = pystray.Menu(
                 pystray.MenuItem("Anker öffnen", queue("main"), default=True),
+                pystray.MenuItem("Jetzt abgleichen", queue("action", {"action": "sync"})),
                 pystray.MenuItem("Speicherpunkt setzen", queue("form", "savepoint")),
                 pystray.MenuItem("Gedanke notieren", queue("form", "thought")),
                 pystray.MenuItem("+15 Min", lambda _i, _m: self.queue.put(("extend", 15)), enabled=lambda _m: not self._strict()),
@@ -689,10 +929,18 @@ class DesktopUI:
                 pystray.MenuItem("Einstellungen", queue("settings")),
                 pystray.MenuItem("Beenden", queue("quit")),
             )
-            self._tray = pystray.Icon("Anker PC-Begleiter", self._tray_images[0], "Anker PC-Begleiter", menu)
-            self._tray.run_detached()
-        except (ImportError, OSError, RuntimeError):
+            self._tray = create_tray_icon(pystray.Icon, "Anker PC-Begleiter", self._tray_images[0], "Anker PC-Begleiter", menu,
+                                          on_open=lambda: self.queue.put(("main", None)))
+            def ready(icon):
+                try:
+                    icon.visible = True
+                    self.queue.put(("tray-ready", None))
+                except Exception:
+                    self.queue.put(("tray-failed", None))
+            self._tray.run_detached(setup=ready)
+        except (ImportError, OSError, RuntimeError, AttributeError):
             self._tray = None
+            self._tray_ready = False
 
 
 TkDesktopUI = DesktopUI

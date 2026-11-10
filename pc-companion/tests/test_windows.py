@@ -336,7 +336,10 @@ class WindowsBoundaryTests(unittest.TestCase):
         self.assertEqual(actions, []); self.assertEqual(len(notes), 2)
         ui.snapshot = {"prefs": {"strictLock": False}}
         ui._extend(30); ui._pause()
-        self.assertEqual(actions, [{"action": "extend", "minutes": 30}, {"action": "pause"}])
+        self.assertEqual([{key: value for key, value in action.items() if key != 'requestId'} for action in actions],
+                         [{"action": "extend", "minutes": 30}, {"action": "pause"}])
+        self.assertEqual(len({action['requestId'] for action in actions}), 2)
+        self.assertTrue(all(len(action['requestId']) == 32 for action in actions))
 
 
 if __name__ == "__main__": unittest.main()

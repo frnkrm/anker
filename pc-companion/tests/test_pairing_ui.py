@@ -38,6 +38,7 @@ class Root(Window):
         self.timers.pop(identifier, None)
 
     def winfo_screenheight(self): return 1080
+    def winfo_children(self): return []
     def mainloop(self): self.mainloop_callback()
 
 
