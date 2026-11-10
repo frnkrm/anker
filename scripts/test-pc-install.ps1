@@ -54,13 +54,89 @@ function Change-Manifest([string]$Path, [scriptblock]$Change) {
 }
 try {
     $ankerValid = Assert-AnkerSourceManifest $Source
-    Assert-True ($ankerValid.protocolVersion -eq 3 -and $ankerValid.files.Count -eq 19) 'Manifest validation failed'
+    Assert-True ($ankerValid.protocolVersion -eq 3 -and $ankerValid.files.Count -eq 22) 'Manifest validation failed'
     $ankerTarget = Join-Path $env:LOCALAPPDATA 'AnkerPcCompanion/app'
     $ankerParent = Split-Path $ankerTarget -Parent
     New-Item -ItemType Directory -Force -Path $ankerParent | Out-Null
     $ankerState = Join-Path $ankerParent 'companion.state'
     [IO.File]::WriteAllBytes($ankerState, [byte[]]@(7,0,255,17,99))
     $ankerStateHash = (Get-FileHash -LiteralPath $ankerState).Hash
+
+    # Real file links exercise the production target guard before compatibility
+    # reads/Python/pip. Symlinks may need Windows Developer Mode; hard links do not.
+    $ankerLinkPassed = 0; $ankerLinkSkipped = 0
+    foreach ($ankerCase in @(
+        @{ Name = 'hardlink-payload'; Kind = 'HardLink'; Relative = 'Start.cmd'; Directory = $false },
+        @{ Name = 'hardlink-manifest'; Kind = 'HardLink'; Relative = 'package-manifest.json'; Directory = $false },
+        @{ Name = 'hardlink-python'; Kind = 'HardLink'; Relative = '.venv/Scripts/python.exe'; Directory = $false },
+        @{ Name = 'symlink-payload'; Kind = 'SymbolicLink'; Relative = 'README.md'; Directory = $false },
+        @{ Name = 'symlink-parent'; Kind = 'SymbolicLink'; Relative = 'anker_companion'; Directory = $true },
+        @{ Name = 'symlink-venv'; Kind = 'SymbolicLink'; Relative = '.venv'; Directory = $true }
+    )) {
+        $ankerLinkRoot = Join-Path $ankerRoot $ankerCase.Name
+        $ankerLinkTarget = Join-Path $ankerLinkRoot 'app'
+        $ankerOutside = Join-Path $ankerLinkRoot 'outside'
+        New-Item -ItemType Directory -Path $ankerLinkTarget -Force | Out-Null
+        if ($ankerCase.Directory) {
+            New-Item -ItemType Directory -Path $ankerOutside | Out-Null
+            $ankerOutsideFile = Join-Path $ankerOutside 'sentinel.txt'
+        } else { $ankerOutsideFile = $ankerOutside }
+        [IO.File]::WriteAllText($ankerOutsideFile, 'synthetic-outside-preserved')
+        $ankerOutsideHash = (Get-FileHash -LiteralPath $ankerOutsideFile).Hash
+        $ankerLinkPath = Join-Path $ankerLinkTarget $ankerCase.Relative
+        New-Item -ItemType Directory -Path (Split-Path $ankerLinkPath -Parent) -Force | Out-Null
+        try { New-Item -ItemType $ankerCase.Kind -Path $ankerLinkPath -Target $ankerOutside -ErrorAction Stop | Out-Null }
+        catch {
+            if ($ankerCase.Kind -eq 'SymbolicLink' -and [Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+                $ankerLinkSkipped++
+                Write-Warning ('SKIPPED real symlink fixture (Windows link creation unavailable): ' + $ankerCase.Name)
+                continue
+            }
+            throw
+        }
+        if ($ankerCase.Kind -eq 'HardLink') {
+            Assert-True ((Get-Item -LiteralPath $ankerLinkPath -Force).LinkType -eq 'HardLink') 'Hardlink fixture did not create a detected hard link'
+        }
+        $ankerCallsBeforeLink = $script:ankerCalls.Count
+        $ankerTaskBeforeLink = $script:ankerTask
+        Assert-Rejected { Install-AnkerProgram $Source $ankerLinkTarget } 'verknuepft'
+        if ($ankerCase.Name -eq 'hardlink-manifest') {
+            Assert-Rejected { Install-AnkerProgram $ankerLinkTarget $ankerLinkTarget } 'verknuepft'
+        }
+        Assert-True ($script:ankerCalls.Count -eq $ankerCallsBeforeLink) ('Unsafe target reached Python: ' + $ankerCase.Name)
+        Assert-True ($script:ankerTask -eq $ankerTaskBeforeLink) 'Unsafe target changed autostart'
+        Assert-True ((Get-FileHash -LiteralPath $ankerOutsideFile).Hash -eq $ankerOutsideHash) 'Linked external file changed'
+        Assert-True ((Get-FileHash -LiteralPath $ankerState).Hash -eq $ankerStateHash) 'Linked target changed encrypted state'
+        $ankerLinkPassed++
+    }
+    Assert-True ($ankerLinkPassed -ge 3 -and $ankerLinkPassed + $ankerLinkSkipped -eq 6) 'Mandatory hardlink fixtures did not complete'
+    Write-Host ('Real target links: ' + $ankerLinkPassed + ' passed; ' + $ankerLinkSkipped + ' explicitly skipped symlink fixtures.')
+
+    # A link introduced AFTER the batch preflight must also be rejected before
+    # that individual Copy-Item. Only the first unrelated payload may be copied.
+    $script:ankerRaceTarget = Join-Path $ankerRoot 'late-copy-link/app'
+    $script:ankerRaceOutside = Join-Path $ankerRoot 'late-copy-link/outside.txt'
+    New-Item -ItemType Directory -Path (Split-Path $script:ankerRaceOutside -Parent) -Force | Out-Null
+    [IO.File]::WriteAllText($script:ankerRaceOutside, 'synthetic-late-outside-preserved')
+    $ankerLateOutsideHash = (Get-FileHash -LiteralPath $script:ankerRaceOutside).Hash
+    $ankerTaskBeforeRace = $script:ankerTask
+    function Copy-Item {
+        param($LiteralPath, $Destination, [switch]$Force)
+        Microsoft.PowerShell.Management\Copy-Item -LiteralPath $LiteralPath -Destination $Destination -Force:$Force
+        if ((Split-Path -Path $LiteralPath -Leaf) -ceq 'Einrichten.cmd') {
+            New-Item -ItemType HardLink -Path (Join-Path $script:ankerRaceTarget 'Start.cmd') -Target $script:ankerRaceOutside | Out-Null
+        }
+    }
+    try {
+        Assert-Rejected { Install-AnkerProgram $Source $script:ankerRaceTarget } 'verknuepft'
+        Assert-True ((Get-FileHash -LiteralPath $script:ankerRaceOutside).Hash -eq $ankerLateOutsideHash) 'Late link redirected a payload write'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $script:ankerRaceTarget 'install.ps1'))) 'Installer continued after late linked target'
+        Assert-True ($script:ankerTask -eq $ankerTaskBeforeRace) 'Late linked target changed autostart'
+        Assert-True ((Get-FileHash -LiteralPath $ankerState).Hash -eq $ankerStateHash) 'Late linked target changed encrypted state'
+    } finally { Remove-Item Function:Copy-Item }
+    # The late-link fixture intentionally reached mocked Python; subsequent
+    # independent preflight fixtures start with their own empty call history.
+    $script:ankerCalls = @()
 
     $ankerBad = Fresh-Package 'tampered'
     Add-Content -LiteralPath (Join-Path $ankerBad 'anker_companion/engine.py') -Value '# tampered'
@@ -119,7 +195,7 @@ try {
     function Get-Command { param($Name,$CommandType,$ErrorAction) return [pscustomobject]@{Source=$script:ankerProbeCommand} }
     Set-Item Function:Get-AnkerPython $ankerGetPythonFunction
     Assert-True ((Get-AnkerPython) -ceq $script:ankerProbePython) 'Python discovery truncated its path'
-    Write-Host 'Installer: manifest/tamper/traversal/duplicates/types/extra/missing, running/Python/pip gates, safe copy/repair/task, schema and state preservation, single-line Python discovery passed. No system actions.'
+    Write-Host 'Installer: manifest/tamper/traversal/duplicates/types/extra/missing, running/Python/pip gates, safe copy/repair/task, schema and state preservation, single-line Python discovery, real hardlink/symlink targets and per-copy late-link guard passed. No system actions.'
 } finally {
     Remove-Variable -Name ankerTestProbePython -Scope Global -ErrorAction SilentlyContinue
     $env:LOCALAPPDATA = $ankerOldLocal

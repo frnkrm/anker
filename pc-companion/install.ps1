@@ -3,10 +3,52 @@ param([switch]$NoAutostart)
 $ErrorActionPreference = 'Stop'
 
 function Get-AnkerPayloadFiles {
-    return @('Einrichten.cmd', 'Start.cmd', 'install.ps1', 'uninstall.ps1', 'requirements.txt', 'README.md', 'PROTOCOL.md',
+    return @('Einrichten.cmd', 'Start.cmd', 'install.ps1', 'uninstall.ps1', 'update-helper.ps1', 'requirements.txt', 'README.md', 'PROTOCOL.md',
         'anker_companion/__init__.py', 'anker_companion/__main__.py', 'anker_companion/desktop_settings.py', 'anker_companion/engine.py',
-        'anker_companion/protocol.py', 'anker_companion/server.py', 'anker_companion/storage.py',
-        'anker_companion/tray.py', 'anker_companion/ui.py', 'anker_companion/vault.py', 'anker_companion/widgets.py', 'anker_companion/windows.py')
+        'anker_companion/protocol.py', 'anker_companion/relay.py', 'anker_companion/server.py', 'anker_companion/storage.py',
+        'anker_companion/tray.py', 'anker_companion/ui.py', 'anker_companion/updater.py', 'anker_companion/vault.py', 'anker_companion/widgets.py', 'anker_companion/windows.py')
+}
+
+function Assert-AnkerInstallPath([string]$Path, [switch]$Directory, [switch]$AllowMissing) {
+    $ankerCandidate = [IO.Path]::GetFullPath($Path)
+    $ankerLeaf = $true
+    while ($ankerCandidate) {
+        $ankerItem = $null
+        try { $ankerItem = Get-Item -LiteralPath $ankerCandidate -Force -ErrorAction Stop }
+        catch [Management.Automation.ItemNotFoundException] { }
+        catch { throw 'Installationsziel konnte nicht sicher geprueft werden. Nichts wird ueber verknuepfte Ziele installiert.' }
+        if ($null -eq $ankerItem) {
+            if ($ankerLeaf -and -not $AllowMissing) { throw 'Installationsziel fehlt.' }
+        } else {
+            # Windows PowerShell 5.1 exposes hard links through LinkType even
+            # though their Attributes do not contain ReparsePoint.
+            $ankerLinkProperty = $ankerItem.PSObject.Properties['LinkType']
+            if (($ankerItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+                ($null -ne $ankerLinkProperty -and -not [string]::IsNullOrEmpty([string]$ankerLinkProperty.Value))) {
+                throw 'Installationsziel ist verknuepft. Daten bleiben erhalten; zuerst den Programmordner pruefen.'
+            }
+            if (($Directory -or -not $ankerLeaf) -and -not $ankerItem.PSIsContainer) {
+                throw 'Installationsziel ist kein normaler Ordner.'
+            }
+            if ($ankerLeaf -and -not $Directory -and $ankerItem.PSIsContainer) {
+                throw 'Installationsziel ist keine normale Datei.'
+            }
+        }
+        $ankerParent = Split-Path -Path $ankerCandidate -Parent
+        if ($ankerParent -eq $ankerCandidate) { break }
+        $ankerCandidate = $ankerParent
+        $ankerLeaf = $false
+    }
+}
+
+function Assert-AnkerInstalledPaths([string]$Target) {
+    Assert-AnkerInstallPath $Target -Directory -AllowMissing
+    foreach ($ankerDirectory in @('anker_companion', 'anker_companion/__pycache__', '.venv', '.venv/Scripts')) {
+        Assert-AnkerInstallPath (Join-Path $Target $ankerDirectory) -Directory -AllowMissing
+    }
+    foreach ($ankerRelative in @((Get-AnkerPayloadFiles)) + @('package-manifest.json', '.venv/Scripts/python.exe', '.venv/Scripts/pythonw.exe')) {
+        Assert-AnkerInstallPath (Join-Path $Target $ankerRelative) -AllowMissing
+    }
 }
 
 function Assert-AnkerSourceManifest([string]$Source) {
@@ -106,6 +148,9 @@ function Invoke-AnkerPython([string]$Executable, [string[]]$AnkerArguments) {
 function Get-AnkerUserId { return [Security.Principal.WindowsIdentity]::GetCurrent().Name }
 
 function Install-AnkerProgram([string]$Source, [string]$Target, [switch]$SkipAutostart) {
+    # Repairs can use Source == Target: reject linked installed paths even
+    # before the source manifest is read, then before compatibility/Python.
+    Assert-AnkerInstalledPaths $Target
     $ankerManifest = Assert-AnkerSourceManifest $Source
     Assert-AnkerInstalledCompatibility $Target $ankerManifest
     Assert-AnkerNotRunning
@@ -114,28 +159,36 @@ function Install-AnkerProgram([string]$Source, [string]$Target, [switch]$SkipAut
     $ankerVenv = Join-Path $Target '.venv'
     $ankerPython = Join-Path $ankerVenv 'Scripts/python.exe'
     if (-not (Test-Path -LiteralPath $ankerPython -PathType Leaf)) {
+        Assert-AnkerInstalledPaths $Target
         Invoke-AnkerPython $ankerBasePython @('-I', '-m', 'venv', $ankerVenv)
     }
+    Assert-AnkerInstalledPaths $Target
     Invoke-AnkerPython $ankerPython @('-I', '-c', 'import sys, tkinter; assert sys.version_info >= (3,11)')
+    Assert-AnkerInstalledPaths $Target
     Invoke-AnkerPython $ankerPython @('-I', '-m', 'pip', 'install', '--disable-pip-version-check', '-r', (Join-Path $Source 'requirements.txt'))
+    Assert-AnkerInstalledPaths $Target
     if (-not (Test-Path -LiteralPath (Join-Path $ankerVenv 'Scripts/pythonw.exe') -PathType Leaf)) {
         throw 'Die Python-Desktoplaufzeit fehlt. Python mit Tkinter reparieren und erneut versuchen.'
     }
     if ([IO.Path]::GetFullPath($Source).TrimEnd('\', '/') -ine [IO.Path]::GetFullPath($Target).TrimEnd('\', '/')) {
         foreach ($ankerRelative in Get-AnkerPayloadFiles) {
             $ankerDestination = Join-Path $Target $ankerRelative
+            Assert-AnkerInstallPath $ankerDestination -AllowMissing
             New-Item -ItemType Directory -Force -Path (Split-Path $ankerDestination -Parent) | Out-Null
+            Assert-AnkerInstallPath $ankerDestination -AllowMissing
             Copy-Item -LiteralPath (Join-Path $Source $ankerRelative) -Destination $ankerDestination -Force
         }
         if (Test-Path -LiteralPath (Join-Path $Source 'package-manifest.json') -PathType Leaf) {
-            Copy-Item -LiteralPath (Join-Path $Source 'package-manifest.json') -Destination $Target -Force
+            $ankerManifestDestination = Join-Path $Target 'package-manifest.json'
+            Assert-AnkerInstallPath $ankerManifestDestination -AllowMissing
+            Copy-Item -LiteralPath (Join-Path $Source 'package-manifest.json') -Destination $ankerManifestDestination -Force
         }
     }
     # The daemon is stopped. Discard only generated module bytecode, never data
     # or DPAPI material in the parent directory.
     $ankerBytecode = Join-Path $Target 'anker_companion/__pycache__'
     if (Test-Path -LiteralPath $ankerBytecode) {
-        if ((Get-Item -LiteralPath $ankerBytecode).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Modulcache ist verknuepft. Programmordner pruefen; Daten bleiben erhalten.' }
+        Assert-AnkerInstallPath $ankerBytecode -Directory
         Remove-Item -LiteralPath $ankerBytecode -Recurse -Force
     }
     if (-not $SkipAutostart) {
