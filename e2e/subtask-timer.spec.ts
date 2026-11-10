@@ -4,7 +4,6 @@ import { emptyLocal } from '../src/core/defaults'
 import type { FocusSession } from '../src/core/focus'
 import type { GameState, InboxItem, LocalData, Settings, WorkTask } from '../src/core/types'
 import { seedRecords, storedRecord } from './helpers/storage'
-import { chooseValue } from './helpers/controls'
 
 test.use({ hasTouch: true })
 
@@ -68,7 +67,16 @@ async function target(page: Page, partId: string) {
     await page.getByRole('button', { name: 'Stopp', exact: true }).click()
     await page.getByRole('dialog').getByText('Anderen Schritt wählen', { exact: true }).click()
   }
-  await chooseValue(page, 'Fokus für', partId, await page.getByRole('dialog').count() ? page.getByRole('dialog').last() : page)
+  // This choice navigates and consumes the stop dialog. A saved timer can also
+  // remove the root choice, so validate its destination instead of the old radio.
+  const task = (await local(page))!.work.find((item) => item.id === 'teil-bericht')!
+  const heading = partId ? task.subtasks!.find((part) => part.id === partId)!.title : task.nextStep!
+  await visibleChoice.locator(`button[value=${JSON.stringify(partId)}]`).click()
+  await expect(page).toHaveURL((url) => url.pathname === ROUTE && url.searchParams.get('teil') === partId)
+  await sheetsClosed(page)
+  await expect.poll(() => page.locator('#root').evaluate((node) => !!node.closest('[inert]'))).toBe(false)
+  await expect(page.getByRole('heading', { name: heading, level: 1, exact: true })).toBeVisible()
+  if (await visibleChoice.isVisible()) await expect(visibleChoice.locator(`button[value=${JSON.stringify(partId)}]`)).toHaveAttribute('aria-checked', 'true')
 }
 
 async function duration(page: Page, minutes: string) {
