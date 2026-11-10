@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 function Get-AnkerPayloadFiles {
     return @('Einrichten.cmd', 'Start.cmd', 'install.ps1', 'uninstall.ps1', 'requirements.txt', 'README.md', 'PROTOCOL.md',
-        'anker_companion/__init__.py', 'anker_companion/__main__.py', 'anker_companion/engine.py',
+        'anker_companion/__init__.py', 'anker_companion/__main__.py', 'anker_companion/desktop_settings.py', 'anker_companion/engine.py',
         'anker_companion/protocol.py', 'anker_companion/server.py', 'anker_companion/storage.py',
         'anker_companion/tray.py', 'anker_companion/ui.py', 'anker_companion/vault.py', 'anker_companion/widgets.py', 'anker_companion/windows.py')
 }

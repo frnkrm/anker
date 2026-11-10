@@ -10,7 +10,7 @@ import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = ("__init__", "__main__", "engine", "protocol", "server", "storage", "tray", "ui", "vault", "widgets", "windows")
+MODULES = ("__init__", "__main__", "desktop_settings", "engine", "protocol", "server", "storage", "tray", "ui", "vault", "widgets", "windows")
 FILES = tuple(sorted(("Einrichten.cmd", "Start.cmd", "install.ps1", "uninstall.ps1", "requirements.txt", "README.md", "PROTOCOL.md",
                       *(f"anker_companion/{name}.py" for name in MODULES))))
 

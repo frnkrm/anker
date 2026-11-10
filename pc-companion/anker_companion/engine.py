@@ -379,7 +379,7 @@ class CompanionEngine:
                 "paired": bool(data["pairs"]), "testMode": test_mode, "warnings": warnings,
                 "morning": morning, "cardId": card_id, "cardKind": card_kind, "ifThen": if_then, "timePill": time_pill,
                 "desktopPrefs": deepcopy(data.get("desktopPrefs", {})),
-                "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False, "timePillEnabled": False, "quietSignalEnabled": False, "dimMax": .25, "graceSeconds": 60, "stopAction": "lock", **data["localPrefs"]}}
+                "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False, "timePillEnabled": False, "quietSignalEnabled": False, "autoUpdateChecks": False, "dimMax": .25, "graceSeconds": 60, "stopAction": "lock", **data["localPrefs"]}}
         self.last_view = view
         if self.ui:
             self.ui.render(view)
@@ -549,7 +549,7 @@ class CompanionEngine:
         self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None))
 
     def local_settings(self, prefs: dict[str, Any]) -> None:
-        bools = {"enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "timePillEnabled", "quietSignalEnabled"}
+        bools = {"enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "timePillEnabled", "quietSignalEnabled", "autoUpdateChecks"}
         if set(prefs) - bools - {"stopAction", "graceSeconds", "dimMax"} or any(not isinstance(value, bool) for key, value in prefs.items() if key in bools):
             raise ProtocolError("preference")
         if "stopAction" in prefs and prefs["stopAction"] not in {"lock", "hibernate", "shutdown"}:
