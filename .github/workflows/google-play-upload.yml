@@ -1,4 +1,5 @@
 name: Google Play – internen Entwurf hochladen
+# Bekannte Commit-Meldungsvarianten ändern weder Bundlebindung noch Freigabeumfang.
 
 on:
   workflow_dispatch:

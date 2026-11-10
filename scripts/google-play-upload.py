@@ -161,9 +161,12 @@ def commit_error_diagnostic(raw: bytes) -> str | None:
         value = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=invalid_constant)
         error = value.get("error") if isinstance(value, dict) else None
         message = error.get("message") if isinstance(error, dict) else None
-        known = "The query parameter changesNotSentForReview must not be set"
+        known = {
+            "The query parameter changesNotSentForReview must not be set",
+            "Changes are sent for review automatically. The query parameter changesNotSentForReview must not be set",
+        }
         if (isinstance(error, dict) and type(error.get("code")) is int and error["code"] == 400
-                and isinstance(message, str) and message.strip() in {known, known + "."}):
+                and isinstance(message, str) and message.strip() in {form for phrase in known for form in [phrase, phrase + "."]}):
             return COMMIT_FLAG_DIAGNOSTIC
     except (ValueError, UnicodeError, RecursionError):
         pass

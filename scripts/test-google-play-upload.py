@@ -729,6 +729,7 @@ class CommitCompatibilityApi(FakeApi):
 
 class ProductionCommitCompatibilityTests(unittest.TestCase):
     MESSAGE = "The query parameter changesNotSentForReview must not be set"
+    FULL_MESSAGE = "Changes are sent for review automatically. " + MESSAGE
     DIAGNOSTIC = "COMMIT_REVIEW_FLAG_UNSUPPORTED"
     COMPAT = OWN + ":commit?changesInReviewBehavior=ERROR_IF_IN_REVIEW"
 
@@ -752,7 +753,8 @@ class ProductionCommitCompatibilityTests(unittest.TestCase):
 
     def api(self, releases=None):
         api = CommitCompatibilityApi([self.old] if releases is None else releases)
-        api.failures[("POST", OWN + ":commit" + uploader.COMMIT_QUERY)] = self.transport_error()
+        body = json.dumps({"error": {"code": 400, "message": self.FULL_MESSAGE}}).encode()
+        api.failures[("POST", OWN + ":commit" + uploader.COMMIT_QUERY)] = self.transport_error(body)
         return api
 
     def perform(self, api, report):
@@ -768,7 +770,7 @@ class ProductionCommitCompatibilityTests(unittest.TestCase):
         self.assertEqual(getattr(error, "diagnostic_code", None), self.DIAGNOSTIC)
 
     def test_complete_known_message_allows_only_optional_final_period_and_surrounding_whitespace(self):
-        for message in [self.MESSAGE, self.MESSAGE + ".", " \n" + self.MESSAGE + ".\t"]:
+        for message in [form for phrase in [self.MESSAGE, self.FULL_MESSAGE] for form in [phrase, phrase + ".", " \n" + phrase + ".\t"]]:
             body=json.dumps({"error":{"code":400,"message":message}}).encode()
             self.assertEqual(self.transport_error(body).diagnostic_code,self.DIAGNOSTIC)
 
@@ -799,6 +801,9 @@ class ProductionCommitCompatibilityTests(unittest.TestCase):
                   json.dumps({"error":{"code":400,"message":PRIVATE_ERROR,"errors":[{"message":self.MESSAGE}]}}).encode(),
                   ('{"error":{"code":400,"message":"'+self.MESSAGE+'","message":"'+self.MESSAGE+'"}}').encode(),
                   b"x" * 65537, b"\xff", json.dumps({"error":{"code":400,"message":self.MESSAGE},"extra":float('nan')}).encode()]
+        for phrase in [self.MESSAGE, self.FULL_MESSAGE]:
+            for message in [PRIVATE_ERROR + " " + phrase, phrase + " " + PRIVATE_ERROR, phrase + ". " + PRIVATE_ERROR, phrase + ".."]:
+                bodies.append(json.dumps({"error": {"code": 400, "message": message}}).encode())
         for body in bodies:
             self.assertIsNone(getattr(self.transport_error(body), "diagnostic_code", None))
         for status in [401,403,409,429,500,503]:
