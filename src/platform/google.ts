@@ -5,6 +5,7 @@ import { addDays, zonedToUtc, type DateStr } from '../core/time'
 import type { CalendarEvent } from '../core/types'
 import { planFor, today, useApp } from '../state/store'
 import { safe } from './native'
+import { calendarSourceRevision, invalidateCalendarSource } from './calendarSource'
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string | undefined
 export const GOOGLE_READ_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly'
@@ -39,12 +40,14 @@ export async function connectGoogle(write = false, accept: () => boolean = () =>
   if (!CLIENT_ID || !accept()) return false
   const generation = ++authGeneration
   invalidateCalendarRequests()
+  const source = calendarSourceRevision()
+  const current = () => generation === authGeneration && accept() && (write || source === calendarSourceRevision())
   return safe(async () => {
     await init()
-    if (generation !== authGeneration || !accept()) return false
+    if (!current()) return false
     const requested = write ? [GOOGLE_READ_SCOPE, GOOGLE_WRITE_SCOPE] : [GOOGLE_READ_SCOPE]
     const response = await SocialLogin.login({ provider: 'google', options: { scopes: requested, prompt: 'consent' } })
-    if (generation !== authGeneration || !accept() || response.provider !== 'google' || !('accessToken' in response.result)) return false
+    if (!current() || response.provider !== 'google' || !('accessToken' in response.result)) return false
     const access = response.result.accessToken
     if (!access?.token || access.isExpired) return false
     const scopes = (access.permissions ?? requested).filter((scope) => !access.declinedPermissions?.includes(scope))
@@ -54,13 +57,20 @@ export async function connectGoogle(write = false, accept: () => boolean = () =>
     const parsedExpiry = access.expires ? Number.isFinite(numericExpiry) && numericExpiry > 0 ? numericExpiry < 1e12 ? numericExpiry * 1000 : numericExpiry : Date.parse(access.expires) : NaN
     const exp = Number.isFinite(parsedExpiry) ? parsedExpiry : Date.now() + 55 * 60_000
     if (exp <= Date.now() + 60_000) return false
+    // A read-source switch is explicit. Separate authorization for writing the
+    // app's own calendar must not disconnect the selected device calendars.
+    if (!write && useApp.getState().local.extras?.deviceCalendar?.enabled) {
+      await useApp.getState().saveLocal(local => !current() ? local : { ...local, extras: { ...local.extras,
+        deviceCalendar: { enabled: false, calendarIds: [], selectedAt: Date.now() } } })
+      if (!current()) return false
+    }
     localStorage.setItem(TOKEN_KEY, JSON.stringify({ token: access.token, exp, scopes, accountId: response.result.profile.id ?? undefined } satisfies Token))
     return true
   }, false)
 }
 export const googleConnected = (): boolean => !!storedToken()
 export const googleWriteAuthorized = (): boolean => storedToken()?.scopes?.includes(GOOGLE_WRITE_SCOPE) === true
-export function invalidateCalendarRequests(): void { readGeneration++; writeGeneration++ }
+export function invalidateCalendarRequests(): void { readGeneration++; writeGeneration++; invalidateCalendarSource() }
 export async function disconnectGoogle() {
   authGeneration++; invalidateCalendarRequests()
   localStorage.removeItem(TOKEN_KEY)
@@ -115,10 +125,13 @@ async function failedCalendar(issue: CalendarStatus['issue'], stillCurrent: () =
 export async function refreshCalendar(): Promise<boolean> {
   const st = useApp.getState()
   if (!st.settings.integrations.googleCalendar) return false
+  if (st.local.extras?.deviceCalendar?.enabled) return (await import('./deviceCalendar')).refreshDeviceCalendar()
   const request = ++readGeneration
   const auth = authGeneration
+  const source = calendarSourceRevision()
   const token = storedToken()
-  const intent = () => request === readGeneration && auth === authGeneration && useApp.getState().settings.integrations.googleCalendar
+  const intent = () => request === readGeneration && auth === authGeneration && source === calendarSourceRevision()
+    && !useApp.getState().local.extras?.deviceCalendar?.enabled && useApp.getState().settings.integrations.googleCalendar
   if (!token) { await failedCalendar('auth', intent); return false }
   const current = () => intent() && storedToken()?.token === token.token
   try {

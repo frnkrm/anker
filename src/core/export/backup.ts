@@ -29,6 +29,10 @@ function without(value: Record<string, unknown>, keys: readonly string[]): Recor
   return Object.fromEntries(Object.entries(value).filter(([key]) => !keys.includes(key)))
 }
 
+function withoutDeviceCalendar(value: Record<string, unknown>): Record<string, unknown> {
+  return object(value.extras) ? { ...value, extras: without(value.extras, ['deviceCalendar']) } : value
+}
+
 /** Weggelassene Gruppen fehlen wirklich; sie werden beim Import nicht als Löschauftrag ausgegeben. */
 export function selectBackupRecords(records: readonly Rec[], choice: Partial<BackupSelection> = {}): Rec[] {
   const selection = { ...COMPLETE_BACKUP, ...choice }
@@ -40,6 +44,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
     && (selection.places || record.collection !== 'meta' || record.id !== 'events')
     && (selection.work || record.collection !== 'inbox' || !businessIds.has(record.id))).map((record) => {
     const copy = structuredClone(record)
+    if (copy.collection === 'meta' && copy.id === 'local' && object(copy.data)) copy.data = withoutDeviceCalendar(copy.data)
     if (copy.deleted) return selection.work ? copy.collection === 'meta' && copy.id === 'local' && object(copy.data)
       ? { ...copy, data: without(copy.data, ['timeCatalog', 'pcBridge', 'healthSleepEnabled']) } : copy : { ...copy, data: null }
     if (!object(copy.data)) return copy
@@ -86,11 +91,11 @@ export function parseBackup(text: string): Rec[] {
   return validatedRecords(withoutPcConnection(value.records))
 }
 
-/** An imported file cannot transplant device pairing, ACKs or native cursors.
+/** An imported file cannot transplant device pairing, ACKs, native cursors or calendar consent.
  * The same-device connection is retained later through preserveOmitted. */
 function withoutPcConnection(records: unknown): unknown {
   return Array.isArray(records) ? records.map(record => object(record) && record.collection === 'meta' && record.id === 'local' && object(record.data)
-    ? { ...record, data: without(record.data, ['pcBridge']) } : record) : records
+    ? { ...record, data: withoutDeviceCalendar(without(record.data, ['pcBridge'])) } : record) : records
 }
 
 /** Nur fehlende Objektfelder ergänzen. Vorhandene Werte/Listen bleiben weiterhin pro Record LWW. */

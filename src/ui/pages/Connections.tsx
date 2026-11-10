@@ -5,6 +5,8 @@ import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, goo
 import { automaticSyncEnableConfirmation, cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
 import { Button, Card, MoreInfo, notifySaved, Page, Section, SettingRow, TextInput, Toggle } from '../components/ui'
+import { DeviceCalendarConnection } from '../components/DeviceCalendarConnection'
+import { calendarSourceRevision } from '../../platform/calendarSource'
 
 export default function Connections() {
   const st = useApp()
@@ -15,6 +17,7 @@ export default function Connections() {
   const [lastSync, setLastSync] = useState<number>()
   const gConnected = googleConnected()
   const calendar = st.local.extras?.calendar
+  const deviceReading = st.local.extras?.deviceCalendar?.enabled === true
   const mounted = useRef(true)
   const googleIntent = useRef(0)
   const [syncBusy, setSyncBusy] = useState(false)
@@ -45,6 +48,12 @@ export default function Connections() {
   const beginGoogleIntent = () => {
     const version = ++googleIntent.current
     return () => mounted.current && googleIntent.current === version
+  }
+  const enableGoogleReading = async (accept: () => boolean) => {
+    const source = calendarSourceRevision()
+    const current = () => accept() && source === calendarSourceRevision() && !useApp.getState().local.extras?.deviceCalendar?.enabled
+    await setInteg({ googleCalendar: true }, current)
+    if (current()) await refreshCalendar()
   }
   const syncCurrent = (intent: number) => syncMounted.current && syncIntent.current === intent
   const syncAction = async (action: () => Promise<void>) => {
@@ -139,26 +148,34 @@ export default function Connections() {
       <Section title="Google Kalender">
         <Card className="space-y-3">
           <p className="text-sm text-muted">Übernimm auf Wunsch Termine in deinen Tagesplan.</p>
-          <MoreInfo summary="Kalenderzugriff und Datenschutz"><p>Freiwillig: Google erhält deine Anmeldung und den Kalenderzugriff. Gelesene Termine werden lokal für deinen Tagesplan gespeichert. Du kannst den Zugriff hier trennen; ohne Verbindung bleibt Anker nutzbar.</p></MoreInfo>
-          {calendar && <p role="status" className="text-sm text-muted">{calendar.state === 'ready' ? 'Termine aktuell eingelesen.' : calendar.state === 'stale' ? 'Letzter Kalenderstand: gerade nicht aktualisierbar. Die gespeicherten Termine bleiben sichtbar.' : calendar.issue === 'auth' ? 'Google-Anmeldung fehlt oder ist abgelaufen. Bitte bewusst neu verbinden.' : calendar.state === 'error' ? 'Kalender gerade nicht erreichbar. Lokale Planung bleibt nutzbar.' : 'Google-Kalender derzeit getrennt.'}{calendar.fetchedAt ? ` Letzter erfolgreicher Abruf: ${new Date(calendar.fetchedAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}.` : ''}</p>}
+          <DeviceCalendarConnection />
+          <MoreInfo summary="Kalenderzugriff und Datenschutz"><p>Die Handy-Auswahl liest nur deine bereits von Android synchronisierten Google-Kalender und speichert die Termine lokal. Erst die zusätzliche Google-Anmeldung fordert direkt bei Google Lese- oder Schreibrechte an. Du kannst jede Verbindung hier trennen; ohne Verbindung bleibt Anker nutzbar.</p></MoreInfo>
+          {calendar && <p role="status" className="text-sm text-muted">{calendar.state === 'ready' ? 'Termine aktuell eingelesen.' : calendar.state === 'stale' ? 'Letzter Kalenderstand: gerade nicht aktualisierbar. Die gespeicherten Termine bleiben sichtbar.' : calendar.state === 'loading' ? 'Kalender wird eingelesen.' : deviceReading && calendar.issue === 'permission' ? 'Kalenderzugriff auf diesem Handy oder Auswahl prüfen. Eigene Planung bleibt nutzbar.' : calendar.issue === 'auth' ? 'Google-Anmeldung fehlt oder ist abgelaufen. Bitte bewusst neu verbinden.' : calendar.state === 'error' ? 'Kalender gerade nicht erreichbar. Lokale Planung bleibt nutzbar.' : 'Google-Kalender derzeit getrennt.'}{calendar.fetchedAt ? ` Letzter erfolgreicher Abruf: ${new Date(calendar.fetchedAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}.` : ''}</p>}
 
+          <MoreInfo summary="Zusätzliche Google-Anmeldung">
           {!googleConfigured ? (
-            <p className="text-muted">Die Kalenderverbindung ist hier noch nicht eingerichtet. Du kannst weiterhin selbst Termine eintragen.</p>
+            <p className="text-muted">Die zusätzliche Online-Anmeldung ist derzeit nicht verfügbar. Auf Android kannst du die bereits synchronisierten Google-Kalender oben auswählen. Eigene Termine kannst du weiterhin selbst eintragen.</p>
           ) : gConnected ? (
             <>
-              <SettingRow label={<span>Termine im Tagesplan</span>}>
+              {deviceReading ? <Button className="w-full" onClick={async () => {
+                const accept = beginGoogleIntent()
+                if (!await connectGoogle(false, accept)) { if (accept()) setMsg('Google-Anmeldung hat nicht geklappt. Deine bisherige Lesequelle bleibt erhalten.'); return }
+                await enableGoogleReading(accept)
+              }}>Google-Anmeldung als Lesequelle verwenden</Button> : <SettingRow label={<span>Termine im Tagesplan</span>}>
                 <Toggle
                   label="Termine lesen"
                   checked={integ.googleCalendar}
                   onChange={async (v) => {
-                    googleIntent.current++
+                    const accept = beginGoogleIntent()
                     invalidateCalendarRequests()
-                    await setInteg({ googleCalendar: v })
-                    if (v) await refreshCalendar()
-                    else await st.setEvents([])
+                    const source = calendarSourceRevision()
+                    const current = () => accept() && source === calendarSourceRevision() && !useApp.getState().local.extras?.deviceCalendar?.enabled
+                    await setInteg({ googleCalendar: v }, current)
+                    if (current() && v) await refreshCalendar()
+                    else if (current()) await st.applyCalendarSnapshot([], { state: 'disconnected', checkedAt: Date.now(), writtenAt: useApp.getState().local.extras?.calendar?.writtenAt }, current)
                   }}
                 />
-              </SettingRow>
+              </SettingRow>}
               <p className="text-sm text-muted">Schreiben ist eine eigene Wahl: Beim Einschalten wird ein zusätzlicher Zugriff auf von Anker erstellte Kalender angefragt. Google erhält dafür deine Routinentitel und Zeiten. Fremde Termine werden nicht geändert.</p>
               <SettingRow label={<span>Routinen in einen eigenen Kalender „Anker“ schreiben</span>}>
                 <Toggle
@@ -185,17 +202,20 @@ export default function Connections() {
                 variant="ghost"
                 onClick={async () => {
                   googleIntent.current++
-                  await disconnectGoogle()
-                  await setInteg({ googleCalendar: false, writeCalendar: false })
-                  await st.setEvents([])
-                  await st.saveLocal((local) => ({ ...local, extras: { ...local.extras, calendar: { ...local.extras?.calendar, state: 'disconnected', checkedAt: Date.now() } } }))
+                  const disconnect = disconnectGoogle(), source = calendarSourceRevision()
+                  const current = () => source === calendarSourceRevision()
+                  await disconnect
+                  await st.saveSettings(settings => !current() ? settings : { ...settings, integrations: { ...settings.integrations,
+                    ...(useApp.getState().local.extras?.deviceCalendar?.enabled ? {} : { googleCalendar: false }), writeCalendar: false } })
+                  const clear = () => current() && !useApp.getState().local.extras?.deviceCalendar?.enabled
+                  if (clear()) await st.applyCalendarSnapshot([], { state: 'disconnected', checkedAt: Date.now(), writtenAt: useApp.getState().local.extras?.calendar?.writtenAt }, clear)
                 }}
               >
                 Google trennen
               </Button>
             </>
           ) : (
-            <Button
+            <><Button
               variant={supabaseConfigured ? 'secondary' : 'primary'}
               className="w-full"
               onClick={async () => {
@@ -203,15 +223,20 @@ export default function Connections() {
                 const ok = await connectGoogle(false, accept)
                 if (!accept()) return
                 if (ok) {
-                  await setInteg({ googleCalendar: true }, accept)
-                  if (!accept()) return
-                  await refreshCalendar()
+                  await enableGoogleReading(accept)
                 } else setMsg('Google-Anmeldung hat nicht geklappt.')
               }}
             >
-              Mit Google verbinden
+              {deviceReading ? 'Statt Handykalender die Google-Anmeldung nutzen' : 'Mit Google verbinden'}
             </Button>
+            {deviceReading && <Button className="w-full" onClick={async () => {
+              const accept = beginGoogleIntent()
+              if (!await connectGoogle(true, accept)) { if (accept()) setMsg('Die zusätzliche Schreibfreigabe wurde nicht erteilt. Deine Handykalender bleiben verbunden.'); return }
+              await setInteg({ writeCalendar: true }, accept)
+              if (accept()) setMsg(await writeAnkerBlocks() ? 'Eigener Anker-Kalender aktualisiert.' : 'Schreiben hat noch nicht geklappt. Deine Handykalender bleiben verbunden.')
+            }}>Eigenen Anker-Kalender zum Schreiben verbinden</Button>}</>
           )}
+          </MoreInfo>
         </Card>
       </Section>
 
