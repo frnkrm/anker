@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## Code17: erneuter Gesamtabschluss nach Layout-Testbudget (10.11.2026)
+
+Die stillen Folgehinweise, Snoozekorrektur und übrigen Softwareänderungen sind integriert. Der gemeinsame Lauf auf `f19064d` besteht 1.183 Logik- und 252 Nativefälle, erreicht aber 296/297 Browserfälle: ein 17-Seiten-Test verbraucht sein gemeinsames 30-Sekunden-Budget. Die Testaufteilung wird korrigiert, ohne eine Route oder Geometrieprüfung zu entfernen und ohne Timeouterhöhung. CI42741944545 ist im App-Browserjob rot; PC-Linux/Windows sind grün. Vor Signierung und Playupload wird ein neuer finaler Gesamtstand geprüft. Details und unveränderte Rotbelege stehen in den Testnachweisen.
+
+
 
 ## Stille Schlaf-Folgehinweise und erhaltenes Verschieben (10.11.2026)
 
