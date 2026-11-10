@@ -270,6 +270,28 @@ class GuidanceEngineTests(unittest.TestCase):
         self.assertEqual(f.store.read()['runtime']['suspendedDate'], '2026-11-11')
         self.assertEqual(f.platform.effects, [])
 
+    def test_engine_absolute_choice_uses_second_autumn_fold_without_changing_plan_day(self):
+        f = self.make('2026-10-25T00:40:00Z')  # 02:40 CEST;02:30 CET is still ahead.
+        f.engine.accept_state(f.value, 'pair', f.clock())
+        preview = f.engine.preview_extension_until('02:30')
+        self.assertEqual(preview['pcStopAt'], '2026-10-25T01:30:00.000Z')
+        f.engine.extend_until('02:30', expected_target_at=preview['pcStopAt'])
+        event = f.store.read()['outbox'][-1]
+        self.assertEqual((event['date'], event['newStopAt']), ('2026-10-24', preview['pcStopAt']))
+        self.assertEqual(f.store.read()['snapshot']['state'], 'DAY_ACTIVE')
+        self.assertEqual(f.platform.effects, [])
+
+    def test_engine_rejects_nonexistent_spring_choice_before_any_persistence(self):
+        f = self.make('2026-03-29T00:00:00Z')
+        f.engine.accept_state(f.value, 'pair', f.clock())
+        before = f.store.read()
+        with self.assertRaisesRegex(ProtocolError, '^clock-nonexistent$'):
+            f.engine.preview_extension_until('02:30')
+        with self.assertRaisesRegex(ProtocolError, '^clock-nonexistent$'):
+            f.engine.extend_until('02:30')
+        self.assertEqual(f.store.read(), before)
+        self.assertEqual(f.platform.effects, [])
+
     def test_bedtime_sequence_does_not_add_the_buffer_twice(self):
         f = self.evening()
         f.value['prefs'].update(bedtimeSequence=True, bedAfterStopMin=20)
