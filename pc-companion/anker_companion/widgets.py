@@ -29,6 +29,14 @@ def window_geometry(work_area: tuple[int, int, int, int], scale: float = 1.0,
 _BUTTON_CLASSES: dict[type, type] = {}
 
 
+def theme_palette(mode: str, system_dark: bool = True) -> dict[str, str]:
+    dark = mode != "light" if isinstance(mode, str) and mode in {"light", "dark"} else system_dark
+    return ({"bg": "#101114", "surface": "#1b1e26", "text": "#f1f3f5", "muted": "#b5bbc7",
+             "secondary": "#232832", "secondaryHover": "#303642", "disabled": "#20242c", "focus": "#b3f4df"}
+            if dark else {"bg": "#f3f6f8", "surface": "#ffffff", "text": "#17232e", "muted": "#536270",
+                          "secondary": "#e0e8ed", "secondaryHover": "#cedce4", "disabled": "#e9edf0", "focus": "#176d58"})
+
+
 def rounded_button(tk, parent, text: str, command: Callable, *, primary: bool = False,
                    scale: float = 1.0, background: str = "#101114"):
     """A focusable, wrapping Canvas button with the usual configure/invoke API."""
@@ -42,6 +50,7 @@ def rounded_button(tk, parent, text: str, command: Callable, *, primary: bool = 
                 self._text = str(text)
                 self._command = command
                 self._primary = primary
+                self._palette = theme_palette("dark")
                 self._scale = scale
                 self._enabled = True
                 self._focused = self._hover = self._armed = False
@@ -118,6 +127,11 @@ def rounded_button(tk, parent, text: str, command: Callable, *, primary: bool = 
                 self._font.configure(size=-max(11, round(15 * self._scale)))
                 self._draw()
 
+            def set_theme(self, palette):
+                self._palette = dict(palette)
+                super().configure(background=palette["bg"])
+                self._draw()
+
             def _draw(self):
                 if not hasattr(self, "_w") or not self.winfo_exists(): return
                 scale = self._scale
@@ -131,9 +145,9 @@ def rounded_button(tk, parent, text: str, command: Callable, *, primary: bool = 
                 text_height = 0 if box is None else box[3] - box[1]
                 height = max(round(46 * scale), text_height + 2 * padding)
                 if int(super().cget("height")) != height: super().configure(height=height)
-                color = ("#99e2cc" if self._hover or self._armed else "#83d6c1") if self._primary else ("#303642" if self._hover or self._armed else "#232832")
-                foreground = "#101114" if self._primary else "#f1f3f5"
-                if not self._enabled: color, foreground = "#20242c", "#858e9b"
+                color = ("#99e2cc" if self._hover or self._armed else "#83d6c1") if self._primary else self._palette["secondaryHover" if self._hover or self._armed else "secondary"]
+                foreground = "#101114" if self._primary else self._palette["text"]
+                if not self._enabled: color, foreground = self._palette["disabled"], self._palette["muted"]
                 inset = max(2, round(2 * scale))
                 radius = min(round(14 * scale), width / 4, height / 4)
                 x0, y0, x1, y1 = inset, inset, max(inset, width - inset), max(inset, height - inset)
@@ -142,7 +156,7 @@ def rounded_button(tk, parent, text: str, command: Callable, *, primary: bool = 
                     x1, y1 - radius, x1, y1, x1 - radius, y1, x0 + radius, y1,
                     x0, y1, x0, y1 - radius, x0, y0 + radius, x0, y0,
                     smooth=True, splinesteps=24, fill=color,
-                    outline="#b3f4df" if self._focused and self._enabled else color,
+                    outline=self._palette["focus"] if self._focused and self._enabled else color,
                     width=max(2, round(2 * scale)))
                 self.tag_lower(polygon, text_id)
                 self.itemconfigure(text_id, fill=foreground)

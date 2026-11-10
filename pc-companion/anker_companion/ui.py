@@ -7,6 +7,7 @@ from ctypes import wintypes
 from datetime import datetime
 import math
 import os
+import re
 import time
 from queue import Empty, SimpleQueue
 from typing import Callable
@@ -14,7 +15,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from .windows import PlatformError, WindowsPlatform
-from .widgets import rounded_button, window_geometry
+from .widgets import rounded_button, theme_palette, window_geometry
 
 
 class DesktopUI:
@@ -56,6 +57,12 @@ class DesktopUI:
         self._remaining_label = None
         self._feedback_text = ""
         self._last_sync_result: dict = {}
+        self._last_extension_preview: dict = {}
+        self._palette = theme_palette("dark")
+        self._theme_variant = "dark"
+        self._time_pill = None
+        self._time_pill_text = None
+        self._morning_remaining = None
         self._dpi_scale = 1.0
         self._monitor_signature = None
         self.capture_exclusion_supported: bool | None = None
@@ -117,6 +124,9 @@ class DesktopUI:
                     if instant.tzinfo is not None:
                         self._last_sync_result["sourceGeneratedAt"] = instant.astimezone(ZoneInfo("Europe/Berlin")).strftime("%d.%m. %H:%M")
                 except (ValueError, OverflowError): pass
+        if result.get("action") == "preview-extend-until":
+            preview = result.get("preview")
+            self._last_extension_preview = dict(preview) if isinstance(preview, dict) else {}
         self._pending_actions.pop(request_id, None)
         pending[1](result["ok"])
 
@@ -210,14 +220,17 @@ class DesktopUI:
             self._perform_action({"action": "pause"}, "Pause angefragt …", "PC-Stopp für heute am PC ausgesetzt.")
 
     def _button(self, parent, text: str, command, *, primary: bool = False):
-        return rounded_button(self.tk, parent, text, command, primary=primary,
-                              scale=self._dpi_scale, background=self.BG)
+        button = rounded_button(self.tk, parent, text, command, primary=primary,
+                                scale=self._dpi_scale, background=self.BG)
+        button.set_theme(self._palette)
+        return button
 
     def _label(self, parent, text: str = "", *, size: int = 12, muted: bool = False, variable=None):
         label = self.tk.Label(parent, text=text, textvariable=variable, font=(self.FONT, -max(10, round(size * 96 / 72 * self._dpi_scale))),
                               bg=self.BG, fg=self.MUTED if muted else self.FG,
                               justify="left", anchor="w", wraplength=400)
         label._anker_font_points = size
+        label._anker_muted = muted
         parent.bind("<Configure>", lambda event: label.configure(wraplength=max(160, event.width-40)) if event.widget == parent else None, add="+")
         return label
 
@@ -316,6 +329,7 @@ class DesktopUI:
 
     def _watch_monitor(self) -> None:
         try:
+            self._apply_theme()
             if self.root.state() not in {"withdrawn", "iconic"}:
                 self._fit_main_window()
         except Exception:
@@ -324,12 +338,44 @@ class DesktopUI:
         try: self.root.after(500, self._watch_monitor)
         except Exception: pass
 
+    def _apply_theme(self) -> None:
+        desktop = self.snapshot.get("desktopPrefs", {})
+        mode = desktop.get("theme", "system") if isinstance(desktop, dict) else "system"
+        dark = True
+        if mode == "system" and os.name == "nt":
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as key:
+                    dark = winreg.QueryValueEx(key, "AppsUseLightTheme")[0] == 0
+            except (ImportError, OSError, TypeError): pass
+        palette = theme_palette(mode, dark)
+        variant = palette["bg"]
+        if variant == self._theme_variant:
+            return
+        self._theme_variant = variant
+        self._palette = palette
+        self.BG, self.SURFACE, self.FG, self.MUTED = (palette[key] for key in ("bg", "surface", "text", "muted"))
+        if self.root is None: return
+        def recolor(widget):
+            if hasattr(widget, "set_theme"):
+                widget.set_theme(palette)
+            else:
+                try: widget.configure(bg=self.BG)
+                except Exception: pass
+                try: widget.configure(fg=self.MUTED if getattr(widget, "_anker_muted", False) else self.FG)
+                except Exception: pass
+                try: widget.configure(selectcolor=self.SURFACE)
+                except Exception: pass
+            for child in getattr(widget, "winfo_children", lambda: [])(): recolor(child)
+        recolor(self.root)
+
     def run(self) -> None:
         # No Tk root, tray registration or Windows hooks are created on import.
         import tkinter as tk
         from tkinter import messagebox
         self.tk = tk
         self.messagebox = messagebox
+        self._apply_theme()
         if os.name == "nt":
             try:
                 ctypes.WinDLL("user32").SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
@@ -345,6 +391,7 @@ class DesktopUI:
         self.root.bind("<Unmap>", self._on_unmap)
         self.status = tk.StringVar(value="Noch nicht gekoppelt")
         self.remaining = tk.StringVar(value="")
+        self._morning_remaining = tk.StringVar(value="")
         self._feedback_variable = tk.StringVar(value="Wähle eine Aktion. Anker zeigt dir hier deren Rückmeldung.")
         actions = self._scroll_body(self.root)
         self._label(actions, "Anker PC-Begleiter", size=22).pack(fill="x", padx=20, pady=(20, 8))
@@ -359,6 +406,7 @@ class DesktopUI:
             ("savepoint", "Speicherpunkt setzen", lambda: self._form("savepoint"), False),
             ("thought", "Gedanke notieren", lambda: self._form("thought"), False),
             ("extend", "+15 Minuten", lambda: self._extend(15), False),
+            ("extend-until", "Bis zu einer Uhrzeit …", self._extend_form, False),
             ("pause", "Heute ohne PC-Stopp", self._pause, False),
             ("test", "Abendablauf testen", lambda: self._perform_action({"action": "test"}, "Testabend wird vorbereitet …", "Testabend gestartet. Er löst keine PC-Sperre aus."), False),
             ("settings", "Einstellungen", self._settings, False),
@@ -372,7 +420,9 @@ class DesktopUI:
         if self.platform is not None and os.name == "nt":
             try:
                 self.platform.attach_window(self._handle(self.root))
-                if not self.platform.register_hotkeys(lambda: self._form("savepoint"), lambda: self._form("thought")):
+                desktop = self.snapshot.get("desktopPrefs", {})
+                hotkeys = desktop.get("hotkeys") if isinstance(desktop, dict) else None
+                if not self.platform.register_hotkeys(lambda: self._form("savepoint"), lambda: self._form("thought"), hotkeys=hotkeys):
                     self.status.set("Ein Tastenkürzel ist belegt. Speicherpunkt und Gedanke bleiben hier erreichbar.")
             except PlatformError:
                 self.status.set("Windows-Ereignisse sind noch nicht verfügbar. Bitte Einrichtung prüfen.")
@@ -385,6 +435,7 @@ class DesktopUI:
             self.root.mainloop()
         finally:
             self._close_offer()
+            self._close_time_pill()
             self._hide_overlays()
             if self.platform is not None:
                 self.platform.detach_window()
@@ -428,6 +479,8 @@ class DesktopUI:
                     self._dispatch_action(value)
                 elif kind == "settings":
                     self._settings()
+                elif kind == "feedback" and isinstance(value, str):
+                    self._set_feedback(value[:200])
                 elif kind == "quit":
                     self._request_quit()
                 elif kind == "close":
@@ -454,6 +507,7 @@ class DesktopUI:
 
     def _render(self) -> None:
         item = self.snapshot
+        self._apply_theme()
         state = str(item.get("state", item.get("phase", "IDLE")))
         text = str(item.get("message") or item.get("title") or ("Gekoppelt" if item.get("paired") else "Noch nicht gekoppelt"))
         self.status.set(self._display_error or text[:500])
@@ -463,6 +517,17 @@ class DesktopUI:
         seconds = max(0, int(seconds)) if isinstance(seconds, (int, float)) and math.isfinite(seconds) else None
         self.remaining.set(f"Zum Speichern: {seconds // 60:02d}:{seconds % 60:02d}" if saving and seconds is not None
                            else f"Noch {math.ceil(seconds / 60)} Min" if seconds is not None and seconds > 0 else "")
+        morning = item.get("morning")
+        if isinstance(morning, dict) and self._morning_remaining is not None:
+            remaining = morning.get("remainingSeconds")
+            if type(remaining) in {int, float} and math.isfinite(remaining):
+                self._morning_remaining.set(f"Noch {max(0, int(remaining)) // 60:02d}:{max(0, int(remaining)) % 60:02d}")
+                target_time = self._format_instant(morning.get("targetAt"))
+                if not saving and morning.get("kind") in {"leave", "work"} and target_time:
+                    title = "Losgehen" if morning['kind'] == 'leave' else "Arbeitsbeginn"
+                    self.remaining.set(f"{title} um {target_time} · {self._morning_remaining.get()}")
+                    seconds = max(0, int(remaining))
+        self._render_time_pill(item.get("timePill"))
         if self._remaining_label is not None:
             if self.remaining.get():
                 self._remaining_label.pack(fill="x", padx=20, pady=4, before=self._feedback_label)
@@ -479,14 +544,21 @@ class DesktopUI:
         card_key = item.get("cardId") or ((state, bool(item.get("testMode"))) if state in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} else None)
         if card_key and card_key != self._last_card:
             self._last_card = card_key
-            self._show_card(state, text, seconds)
+            previous_card = self._card
+            if item.get("cardKind") == "morning" and isinstance(morning, dict):
+                self._show_morning_card(morning)
+            else:
+                self._show_card(state, text, seconds)
+            if item.get("localPrefs", {}).get("quietSignalEnabled") is True and not item.get("testMode"):
+                if self._card is not None and self._card is not previous_card:
+                    self._card.update_idletasks()
+                    if self._card.winfo_ismapped(): self._quiet_signal()
             if not item.get("testMode") and state in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"}:
                 self._notify_reminder("Dein Abendübergang steht an. Öffne Anker für den aktuellen PC-Stopp.")
         elif card_key is None:
             self._last_card = None
             if self._card is not None:
-                self._card.destroy()
-                self._card = None
+                self._close_card()
         if item.get("pairing"):
             self._pair(item["pairing"])
         if self._tray is not None:
@@ -640,32 +712,193 @@ class DesktopUI:
         caption = f"Anker · Speichern {seconds // 60:02d}:{seconds % 60:02d}" if saving else f"Anker · noch {math.ceil(seconds/60)} Min"
         self._bar_canvas.create_text(width / 2, 17, text=caption, fill=self.FG, font=("Segoe UI", 12))
 
+    @staticmethod
+    def _format_instant(value: object, *, date: bool = False) -> str | None:
+        if not isinstance(value, str) or len(value) > 40: return None
+        try:
+            moment = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if moment.tzinfo is None: return None
+            return moment.astimezone(ZoneInfo("Europe/Berlin")).strftime("%d.%m. %H:%M" if date else "%H:%M")
+        except (ValueError, OverflowError): return None
+
+    def _close_card(self) -> None:
+        card, self._card = self._card, None
+        if card is not None:
+            try: card.destroy()
+            except Exception: pass
+
+    def _close_time_pill(self) -> None:
+        window, self._time_pill = self._time_pill, None
+        self._time_pill_text = None
+        if window is not None:
+            try: window.destroy()
+            except Exception: pass
+
+    def _render_time_pill(self, value: object) -> None:
+        if (self.snapshot.get("localPrefs", {}).get("timePillEnabled") is not True
+                or not isinstance(value, dict) or type(value.get("remainingSeconds")) not in {int, float}
+                or not math.isfinite(value["remainingSeconds"]) or not 0 <= value["remainingSeconds"] <= 3600
+                or self._format_instant(value.get("targetAt")) is None):
+            self._close_time_pill()
+            return
+        if self._time_pill is None:
+            self._time_pill = self.tk.Toplevel(self.root)
+            self._time_pill.overrideredirect(True)
+            self._time_pill.attributes("-topmost", True)
+            self._time_pill.configure(bg=self.SURFACE)
+            self._time_pill_text = self.tk.StringVar(value="")
+            label = self._label(self._time_pill, variable=self._time_pill_text, size=11)
+            label.pack(fill="both", expand=True, padx=10, pady=8)
+            label.bind("<Button-1>", lambda _event: self._show_main())
+            self._time_pill.bind("<Button-1>", lambda _event: self._show_main())
+        minutes = math.ceil(value["remainingSeconds"] / 60)
+        self._time_pill_text.set(f"PC-Stopp in {minutes} Min · {self._format_instant(value['targetAt'])}")
+        area, scale = self._monitor_metrics()
+        width, height = min(round(280 * scale), max(160, area[2] - area[0] - 24)), round(50 * scale)
+        x, y = area[2] - width - 12, area[1] + (54 if self._bar is not None else 12)
+        self._time_pill.geometry(f"{width}x{height}{x:+}{y:+}")
+        self._time_pill.update_idletasks()
+        self._style_window(self._time_pill, transparent=False, rectangle=(x, y, x + width, y + height))
+
+    def _quiet_signal(self) -> None:
+        try:
+            result = self.platform.quiet_reminder_sound() if self.platform is not None else {'status': 'unavailable'}
+            status = result.get('status') if isinstance(result, dict) else 'unavailable'
+        except Exception: status = 'unavailable'
+        if status == 'suppressed':
+            self._set_feedback("Windows hält den kurzen Signalton gerade zurück. Die Anker-Karte bleibt sichtbar.")
+        elif status != 'requested':
+            self._set_feedback("Der kurze Signalton war nicht verfügbar. Die sichtbare Karte bleibt erreichbar.")
+
+    def _show_morning_card(self, morning: dict) -> None:
+        if morning.get('kind') not in {'leave', 'work'} or self._format_instant(morning.get('targetAt')) is None:
+            return
+        self._close_card()
+        self._card = self.tk.Toplevel(self.root)
+        self._card.title("Anker · Morgen")
+        self._card.configure(bg=self.BG)
+        self._card.attributes("-topmost", True)
+        self._card.geometry("420x300"); self._card.minsize(320, 240)
+        body = self._scroll_body(self._card)
+        title = "Losgehen" if morning.get("kind") == "leave" else "Arbeitsbeginn"
+        self._label(body, title, size=22).pack(fill="x", padx=16, pady=(16, 8))
+        target = self._format_instant(morning.get("targetAt"))
+        self._label(body, f"Geplant um {target}" if target else "Dein geplanter Morgen", muted=True).pack(fill="x", padx=16, pady=6)
+        self._label(body, variable=self._morning_remaining, size=24).pack(fill="x", padx=16, pady=8)
+        self._button(body, "Anker am PC öffnen", self._show_main, primary=True).pack(fill="x", padx=16, pady=4)
+        self._button(body, "Schließen", self._close_card).pack(fill="x", padx=16, pady=4)
+        self._card.protocol("WM_DELETE_WINDOW", self._close_card)
+        self._card.bind("<Escape>", lambda _event: self._close_card())
+
     def _show_card(self, state: str, message: str, seconds: int | None) -> None:
-        if self._card is not None:
-            self._card.destroy()
+        self._close_card()
         self._card = self.tk.Toplevel(self.root)
         self._card.title("Anker")
         self._card.configure(bg=self.BG)
         self._card.attributes("-topmost", True)
-        self._card.geometry("440x290")
+        self._card.geometry("440x410")
         self._card.minsize(340, 260)
-        self._card.bind("<Escape>", lambda _event: self._card.withdraw())
+        self._card.bind("<Escape>", lambda _event: self._close_card())
+        self._card.protocol("WM_DELETE_WINDOW", self._close_card)
+        body = self._scroll_body(self._card)
         title = str(self.snapshot.get("title") or {"WIND_DOWN_T30": "Zeit für deinen Übergang", "BRAIN_DUMP_T10": "Gedanken für morgen parken", "BEDTIME_HARD_CUT": "Jetzt in Ruhe speichern", "NIGHT_LOCK": "PC-Ruhe"}.get(state, "Zeit für deinen Übergang"))
         if self.snapshot.get("testMode"):
             title = "Testabend · " + title
-        self._label(self._card, title, size=18).pack(fill="x", padx=16, pady=(16, 6))
-        self._label(self._card, message[:500]).pack(fill="x", padx=16, pady=6)
-        self._label(self._card, variable=self.remaining, size=20).pack(fill="x", padx=16, pady=6)
-        buttons = self.tk.Frame(self._card, bg=self.BG); buttons.pack(fill="x", padx=16, pady=10)
+        self._label(body, title, size=18).pack(fill="x", padx=16, pady=(16, 6))
+        self._label(body, message[:500]).pack(fill="x", padx=16, pady=6)
+        self._label(body, variable=self.remaining, size=20).pack(fill="x", padx=16, pady=6)
+        sentence = self.snapshot.get("ifThen")
+        if isinstance(sentence, str) and sentence.strip():
+            self._label(body, sentence[:500], muted=True).pack(fill="x", padx=16, pady=6)
+        buttons = self.tk.Frame(body, bg=self.BG); buttons.pack(fill="x", padx=16, pady=10)
         actions = [("Speicherpunkt", lambda: self._form("savepoint"))]
         if self._strict():
             actions += [("Verlängern am Handy", lambda: self._extend(15)), ("Beenden", self._request_quit)]
         else:
-            actions += [("+15 Min", lambda: self._extend(15)), ("Heute ohne", self._pause)]
+            actions += [("+15 Min", lambda: self._extend(15)), ("Bis …", self._extend_form), ("Heute ohne", self._pause)]
         for label, callback in actions:
-            self._button(buttons, label, callback).pack(side="left", fill="x", expand=True, padx=2)
+            self._button(buttons, label, callback).pack(fill="x", pady=3)
         self._card.update_idletasks()
         self._style_window(self._card, transparent=False)
+
+    def _extend_form(self) -> None:
+        if self._strict():
+            self._extend(15)
+            return
+        window = self.tk.Toplevel(self.root)
+        window.title("Bis zu einer Uhrzeit …"); window.configure(bg=self.BG)
+        window.geometry("440x300")
+        body = self._scroll_body(window)
+        self._label(body, "Bis wann möchtest du den PC nutzen?", size=18).pack(fill="x", padx=16, pady=(16, 8))
+        self._label(body, "Uhrzeit direkt eingeben, zum Beispiel 23:30. Vor der Übernahme siehst du die tatsächlichen Zeiten.", muted=True).pack(fill="x", padx=16, pady=6)
+        entry = self.tk.Entry(body, font=(self.FONT, 16), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+        entry.pack(fill="x", padx=16, pady=8, ipady=8)
+        feedback = self._label(body, muted=True); feedback.pack(fill="x", padx=16, pady=6)
+        pending_id = None
+        waiting = False
+
+        def enable(text):
+            nonlocal waiting, pending_id
+            waiting = False; pending_id = None
+            if window.winfo_exists():
+                entry.configure(state="normal"); button.configure(state="normal"); feedback.configure(text=text)
+
+        def finished(ok):
+            if not window.winfo_exists(): return
+            if ok:
+                self._set_feedback("Die gewünschte PC-Zeit wurde übernommen. Der aktuelle Plan zeigt die bestätigten Zeiten.")
+                window.destroy()
+            else:
+                enable("Noch nicht übernommen. Prüfe die Uhrzeit und erstelle eine neue Vorschau.")
+
+        def submit(_event=None):
+            nonlocal waiting, pending_id
+            if waiting: return
+            local_time = entry.get().strip()
+            if re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", local_time) is None:
+                feedback.configure(text="Bitte eine Uhrzeit als HH:mm eingeben, zum Beispiel 23:30.")
+                return
+            if self._strict():
+                feedback.configure(text="Der strenge Modus ist aktiv. Bestätige eine Verlängerung am Handy mit deinem QR-Code.")
+                return
+            waiting = True
+            entry.configure(state="disabled"); button.configure(state="disabled")
+            feedback.configure(text="Vorschau wird geprüft …")
+            self._last_extension_preview = {}
+
+            def previewed(ok):
+                nonlocal pending_id
+                if not window.winfo_exists(): return
+                preview = self._last_extension_preview
+                target = self._format_instant(preview.get("pcStopAt"), date=True)
+                if not ok or target is None:
+                    enable("Diese Uhrzeit ist noch nicht möglich. Prüfe deinen Abendplan und versuche es erneut.")
+                    return
+                lines = ["PC-Stopp: " + target]
+                for name, label in [("bedAt", "Bettzeit"), ("wakeAt", "Weckzeit")]:
+                    formatted = self._format_instant(preview.get(name), date=True)
+                    if formatted: lines.append(label + ": " + formatted)
+                opportunity = preview.get("sleepOpportunityMinutes")
+                if type(opportunity) is int and 0 <= opportunity <= 1440:
+                    lines.append(f"Geplante Schlafgelegenheit: {opportunity // 60} h {opportunity % 60:02d} min")
+                if not self.messagebox.askokcancel("Diese Zeiten übernehmen?", "\n".join(lines), parent=window):
+                    enable("Die Vorschau wurde nicht übernommen. Du kannst die Uhrzeit ändern.")
+                    return
+                if self._strict():
+                    enable("Der strenge Modus ist inzwischen aktiv. Bitte am Handy per QR-Code bestätigen.")
+                    return
+                feedback.configure(text="Zeitänderung wird übernommen …")
+                pending_id = self._submit({'action': 'extend-until', 'localTime': local_time,
+                                           'expectedTargetAt': preview['pcStopAt']}, finished)
+            pending_id = self._submit({'action': 'preview-extend-until', 'localTime': local_time}, previewed)
+
+        def dismiss(_event=None):
+            if pending_id is not None: self._pending_actions.pop(pending_id, None)
+            window.destroy()
+        button = self._button(body, "Vorschau ansehen", submit, primary=True)
+        button.pack(fill="x", padx=16, pady=6)
+        window.protocol("WM_DELETE_WINDOW", dismiss); window.bind("<Escape>", dismiss)
+        window.bind("<Return>", submit); entry.focus_set()
 
     def _form(self, kind: str) -> None:
         window = self.tk.Toplevel(self.root)
@@ -673,11 +906,13 @@ class DesktopUI:
         window.configure(bg=self.BG); window.geometry("460x320")
         dialog = self._scroll_body(window)
         self._label(dialog, "Wo stehst du gerade?" if kind == "savepoint" else "Was möchtest du festhalten?", size=16).pack(fill="x", padx=16, pady=12)
-        text = self.tk.Entry(dialog, font=("Segoe UI", 12)); text.pack(fill="x", padx=16, ipady=8)
+        text = self.tk.Entry(dialog, font=(self.FONT, 12), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+        text.pack(fill="x", padx=16, ipady=8)
         next_step = None
         if kind == "savepoint":
             self._label(dialog, "Nächster Schritt (optional)", muted=True).pack(fill="x", padx=16, pady=(12, 4))
-            next_step = self.tk.Entry(dialog, font=("Segoe UI", 12)); next_step.pack(fill="x", padx=16, ipady=8)
+            next_step = self.tk.Entry(dialog, font=(self.FONT, 12), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+            next_step.pack(fill="x", padx=16, ipady=8)
         feedback = self._label(dialog, muted=True); feedback.pack(fill="x", padx=16, pady=6)
         pending_id = None
         waiting = False
@@ -758,7 +993,7 @@ class DesktopUI:
             self.show_note(title, text); return
         dialog = self.tk.Toplevel(self.root); dialog.title(title[:120]); dialog.configure(bg=self.BG)
         self._label(dialog, title[:120], size=18).pack(fill="x", padx=20, pady=12)
-        body = self.tk.Text(dialog, height=10, width=40, wrap="word", bg=self.SURFACE, fg=self.FG, font=("Segoe UI", 12))
+        body = self.tk.Text(dialog, height=10, width=40, wrap="word", bg=self.SURFACE, fg=self.FG, font=(self.FONT, 12))
         scroll = self.tk.Scrollbar(dialog, command=body.yview)
         body.configure(yscrollcommand=scroll.set)
         body.insert("1.0", text[:1000]); body.configure(state="disabled")
@@ -774,13 +1009,16 @@ class DesktopUI:
         values = {}
         controls = []
         for name, title in [("enforceEnabled", "PC-Aktionen ausdrücklich erlauben"), ("strictLock", "Strenger Nachtmodus"),
-                            ("dimEnabled", "Bildschirmdämmerung – Signal zum Übergang"), ("audioDuck", "Ton im Übergang langsam reduzieren")]:
+                            ("dimEnabled", "Bildschirmdämmerung – Signal zum Übergang"), ("audioDuck", "Ton im Übergang langsam reduzieren"),
+                            ("timePillEnabled", "Kleine Zeitpille in der letzten Stunde"),
+                            ("quietSignalEnabled", "Kurzer zurückhaltender Ton bei neuen Hinweiskarten")]:
             values[name] = self.tk.BooleanVar(value=bool(prefs.get(name, False)))
             control = self.tk.Checkbutton(dialog, text=title, variable=values[name], bg=self.BG, fg=self.FG,
                                           selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG,
                                           font=("Segoe UI", 11), wraplength=380, anchor="w", justify="left")
             control.pack(fill="x", padx=16, pady=7); controls.append(control)
         self._label(dialog, "Eine Freigabe startet allein noch keine Sperre. Ein gültiger Auftrag vom gekoppelten Handy bleibt erforderlich.", muted=True).pack(fill="x", padx=16, pady=10)
+        self._label(dialog, "Windows kann Benachrichtigungen bei Nicht stören, Konzentrationshilfe oder Vollbild ausblenden. Die Anker-Karte bleibt der sichtbare Weg; diese Windows-Auswahl wird nicht automatisch geändert.", muted=True).pack(fill="x", padx=16, pady=6)
         stop_action = self.tk.StringVar(value=str(prefs.get("stopAction", "lock")))
         action_row = self.tk.Frame(dialog, bg=self.BG); action_row.pack(fill="x", padx=16)
         for code, label in [("lock", "Sperren"), ("hibernate", "Ruhezustand"), ("shutdown", "Herunterfahren")]:
@@ -789,7 +1027,8 @@ class DesktopUI:
             control.pack(side="left"); controls.append(control)
         self._label(dialog, "Speicher-Countdown (mindestens 60 Sekunden)", muted=True).pack(fill="x", padx=16, pady=(8, 0))
         grace = self.tk.StringVar(value=str(prefs.get("graceSeconds", 60)))
-        control = self.tk.Spinbox(dialog, from_=60, to=600, increment=30, textvariable=grace)
+        control = self.tk.Spinbox(dialog, from_=60, to=600, increment=30, textvariable=grace,
+                                  bg=self.SURFACE, fg=self.FG, buttonbackground=self.SURFACE, insertbackground=self.FG)
         control.pack(fill="x", padx=16, pady=6); controls.append(control)
         self._label(dialog, "Dämmerung höchstens (0 bis 40 Prozent)", muted=True).pack(fill="x", padx=16)
         dim = self.tk.Scale(dialog, from_=0, to=40, orient="horizontal", bg=self.BG, fg=self.FG, troughcolor=self.SURFACE, highlightthickness=0)
@@ -835,9 +1074,139 @@ class DesktopUI:
         window.protocol("WM_DELETE_WINDOW", dismiss)
         window.bind("<Escape>", dismiss)
         button = self._button(dialog, "Übernehmen", save, primary=True); button.pack(fill="x", padx=16, pady=8)
+        self._button(dialog, "Darstellung, PC-Name & Tastenkürzel", self._desktop_settings).pack(fill="x", padx=16, pady=6)
         self._button(dialog, "Entkoppeln", lambda: self._perform_action({"action": "unpair"}, "Kopplung wird aufgehoben …", "Kopplung am PC aufgehoben.")).pack(fill="x", padx=16, pady=6)
         if self.snapshot.get("legacyConflict"):
             self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._perform_action({"action": "remove_legacy"}, "Klassische Aufgabe wird entfernt …", "Klassische PC-Stopp-Aufgabe entfernt.")).pack(fill="x", padx=16, pady=6)
+
+    def _desktop_settings(self) -> None:
+        prefs = self.snapshot.get("desktopPrefs", {})
+        if not isinstance(prefs, dict): prefs = {}
+        window = self.tk.Toplevel(self.root)
+        window.title("Darstellung & PC-Verwaltung"); window.configure(bg=self.BG)
+        window.geometry("480x650"); window.minsize(340, 360)
+        body = self._scroll_body(window)
+        controls = []
+        self._label(body, "Darstellung", size=18).pack(fill="x", padx=16, pady=(16, 8))
+        theme = self.tk.StringVar(value=prefs.get("theme", "system"))
+        for value, text in [("system", "Windows-Auswahl verwenden"), ("dark", "Dunkel"), ("light", "Hell")]:
+            control = self.tk.Radiobutton(body, text=text, value=value, variable=theme, bg=self.BG, fg=self.FG,
+                                          selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG)
+            control.pack(fill="x", padx=16, pady=4); controls.append(control)
+        self._label(body, "Name dieses PCs", size=16).pack(fill="x", padx=16, pady=(16, 4))
+        name = self.tk.StringVar(value=prefs.get("pcName", "Mein PC"))
+        control = self.tk.Entry(body, textvariable=name, font=(self.FONT, 12), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+        control.pack(fill="x", padx=16, pady=6, ipady=6); controls.append(control)
+        self._label(body, "Der Name erscheint bei der lokalen Kopplung. Eine bestehende Kopplung bleibt erhalten.", muted=True).pack(fill="x", padx=16, pady=4)
+        hotkeys = prefs.get("hotkeys", {})
+        if not isinstance(hotkeys, dict): hotkeys = {}
+        savepoint = self.tk.StringVar(value=hotkeys.get("savepoint", "CTRL+ALT+A"))
+        thought = self.tk.StringVar(value=hotkeys.get("thought", "CTRL+ALT+G"))
+        for title, variable in [("Tastenkürzel für den Speicherpunkt", savepoint), ("Tastenkürzel für einen Gedanken", thought)]:
+            self._label(body, title).pack(fill="x", padx=16, pady=(12, 4))
+            control = self.tk.Entry(body, textvariable=variable, font=(self.FONT, 12), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+            control.pack(fill="x", padx=16, pady=4, ipady=6); controls.append(control)
+        self._label(body, "Zum Beispiel CTRL+ALT+A oder CTRL+SHIFT+F8. Belegte Kombinationen werden nicht still übernommen.", muted=True).pack(fill="x", padx=16, pady=6)
+        feedback = self._label(body, muted=True); feedback.pack(fill="x", padx=16, pady=8)
+        token = None
+        pending_id = None
+        waiting = False
+
+        def rollback():
+            nonlocal token
+            restored = True
+            if token is not None:
+                try: restored = self.platform.rollback_hotkeys(token) is True
+                except Exception: restored = False
+                token = None
+            return restored
+
+        def enable(text):
+            nonlocal waiting, pending_id
+            waiting = False; pending_id = None
+            if window.winfo_exists():
+                for widget in controls: widget.configure(state="normal")
+                button.configure(state="normal"); delete.configure(state="normal")
+                feedback.configure(text=text)
+
+        def completed(ok):
+            nonlocal token
+            if not window.winfo_exists():
+                rollback(); return
+            if not ok:
+                restored = rollback()
+                enable("Noch nicht bestätigt. Deine Eingaben bleiben erhalten; prüfe die Auswahl und versuche es erneut." if restored
+                       else "Noch nicht bestätigt. Die Tastenkürzel konnten nicht vollständig wiederhergestellt werden. Starte den Begleiter neu; die Fenster-Tasten bleiben erreichbar.")
+                return
+            if token is not None:
+                try:
+                    if self.platform.commit_hotkeys(token) is not True: raise RuntimeError()
+                    token = None
+                except Exception:
+                    rollback()
+                    enable("Die Auswahl ist gespeichert, aber die neuen Tastenkürzel sind noch nicht aktiv. Starte den Begleiter neu; die Tasten im Anker-Fenster bleiben erreichbar.")
+                    return
+            self._set_feedback("Darstellung und PC-Einstellungen gespeichert.")
+            window.destroy()
+
+        def save():
+            nonlocal token, waiting, pending_id
+            if waiting: return
+            selected_name = name.get().strip()
+            selected_keys = {'savepoint': savepoint.get().strip().upper().replace(' ', ''),
+                             'thought': thought.get().strip().upper().replace(' ', '')}
+            if not selected_name or len(selected_name) > 100:
+                feedback.configure(text="Bitte einen kurzen PC-Namen mit höchstens 100 Zeichen eingeben.")
+                return
+            if any(re.fullmatch(r"(?:(?:CTRL|ALT|SHIFT)\+)+(?:[A-Z0-9]|F(?:[1-9]|1[0-9]|2[0-4]))", key) is None for key in selected_keys.values()) or selected_keys['savepoint'] == selected_keys['thought']:
+                feedback.configure(text="Bitte zwei verschiedene Tastenkürzel mit CTRL, ALT oder SHIFT und einer Taste wählen.")
+                return
+            if selected_keys != {'savepoint': hotkeys.get('savepoint', 'CTRL+ALT+A'), 'thought': hotkeys.get('thought', 'CTRL+ALT+G')}:
+                try:
+                    if self.platform is None: raise RuntimeError()
+                    token = self.platform.prepare_hotkeys(selected_keys)
+                except Exception:
+                    feedback.configure(text="Diese Tastenkürzel konnten nicht reserviert werden. Deine bisherige Auswahl bleibt aktiv.")
+                    return
+            waiting = True
+            for widget in controls: widget.configure(state="disabled")
+            button.configure(state="disabled"); delete.configure(state="disabled")
+            feedback.configure(text="PC-Einstellungen werden gespeichert …")
+            pending_id = self._submit({'action': 'desktop-settings', 'prefs': {'pcName': selected_name,
+                                      'hotkeys': selected_keys, 'theme': theme.get()}}, completed)
+            request = pending_id
+            def timeout():
+                if request in self._pending_actions:
+                    self._pending_actions.pop(request, None); completed(False)
+            self.root.after(30_000, timeout)
+
+        def delete_data():
+            nonlocal waiting, pending_id
+            if waiting: return
+            if not self.messagebox.askokcancel("Alle lokalen Anker-PC-Daten löschen?", "Kopplung, PC-Einstellungen, lokale Notizen und technische Logs dieses Begleiters werden entfernt. Deine Handy-Daten bleiben erhalten. Danach beendet sich Anker und muss über Start.cmd neu gestartet und gekoppelt werden.", parent=window):
+                return
+            waiting = True
+            button.configure(state="disabled"); delete.configure(state="disabled")
+            feedback.configure(text="Lokale Begleiterdaten werden entfernt …")
+            def deleted(ok):
+                if ok:
+                    self.messagebox.showinfo("Lokale Daten entfernt", "Anker beendet sich jetzt. Öffne anschließend Start.cmd, um den Begleiter neu einzurichten.", parent=window)
+                    self._emit({'action': 'quit'}); self.close()
+                else:
+                    enable("Die Löschung ist noch nicht vollständig bestätigt. Die Begleitung bleibt deaktiviert; prüfe den Datenordner, bevor du erneut einrichtest.")
+            pending_id = self._submit({'action': 'delete-data', 'userConfirmed': True}, deleted)
+
+        def dismiss(_event=None):
+            if waiting:
+                feedback.configure(text="Die Änderung wird noch verarbeitet. Bitte warte auf die Rückmeldung.")
+                return
+            rollback(); window.destroy()
+        button = self._button(body, "PC-Einstellungen speichern", save, primary=True)
+        button.pack(fill="x", padx=16, pady=8)
+        self._label(body, "Lokale Daten entfernen", size=16).pack(fill="x", padx=16, pady=(20, 4))
+        delete = self._button(body, "Alle Anker-Daten auf diesem PC löschen", delete_data)
+        delete.pack(fill="x", padx=16, pady=8)
+        window.protocol("WM_DELETE_WINDOW", dismiss); window.bind("<Escape>", dismiss)
 
     def _close_offer(self) -> None:
         if self._offer_timer is not None:

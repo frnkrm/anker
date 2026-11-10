@@ -41,6 +41,7 @@ class UiWidget(UiValue):
     def focus_set(self): pass
     def destroy(self): self.destroyed = True
     def winfo_exists(self): return not self.destroyed
+    def winfo_ismapped(self): return not self.destroyed
 
 
 def ui_double(on_action):
@@ -125,7 +126,8 @@ class DesktopActionBoundaryTests(unittest.TestCase):
         ui._settings()
         next(button for button in view.buttons if button.options["text"] == "Übernehmen").options["command"]()
         self.assertEqual(actions[0]["prefs"], {"enforceEnabled": True, "strictLock": True, "dimEnabled": True,
-                                              "audioDuck": True, "stopAction": "hibernate", "graceSeconds": 120, "dimMax": .3})
+                                              "audioDuck": True, "stopAction": "hibernate", "graceSeconds": 120, "dimMax": .3,
+                                              "timePillEnabled": False, "quietSignalEnabled": False})
         self.assertNotIn("morningCountdown", actions[0]["prefs"])
 
     def test_effective_phone_consent_never_becomes_new_local_consent(self):
