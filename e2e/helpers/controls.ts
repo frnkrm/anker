@@ -1,5 +1,15 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+/** The visible dialog can precede its effect's registered history entry. */
+async function openedChoiceMarker(page: Page): Promise<string> {
+  let marker = ''
+  await expect.poll(async () => {
+    marker = await page.evaluate(() => String(history.state?.ankerSheet ?? ''))
+    return marker
+  }).not.toBe('')
+  return marker
+}
+
 /** Closing a top-level Sheet also has to consume its temporary history entry. */
 async function settledChoice(opener: Locator, dialog: Locator, marker: string, nested: boolean): Promise<void> {
   await expect(dialog).toHaveCount(0)
@@ -23,9 +33,8 @@ export async function chooseValue(page: Page, label: string, value: string | num
   await expect(group).toBeVisible()
   const option = group.locator(`button[value=${JSON.stringify(String(value))}]`)
   await expect(option).toHaveCount(1)
-  const marker = isSheet ? await page.evaluate(() => String(history.state?.ankerSheet ?? '')) : ''
+  const marker = isSheet ? await openedChoiceMarker(page) : ''
   const selectedLabel = isSheet ? await option.locator('span').last().innerText() : ''
-  if (isSheet) expect(marker).not.toBe('')
   await option.click()
   if (isSheet) {
     await expect(opener.locator('span').first()).toHaveText(selectedLabel)
@@ -46,8 +55,7 @@ export async function choiceValues(page: Page, label: string): Promise<string[]>
   await expect(group).toBeVisible()
   const values = await group.getByRole('radio').evaluateAll((buttons) => buttons.map((button) => (button as HTMLButtonElement).value))
   if (isSheet) {
-    const marker = await page.evaluate(() => String(history.state?.ankerSheet ?? ''))
-    expect(marker).not.toBe('')
+    const marker = await openedChoiceMarker(page)
     await page.keyboard.press('Escape')
     await settledChoice(opener, dialog, marker, nested)
   }
