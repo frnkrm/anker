@@ -24,14 +24,17 @@ data class ReminderEntry(
     val critical: Boolean = false,
     val ruleId: String = "",
     val deferredFrom: Long = 0,
+    val quietFollowUps: Boolean = false,
 )
 
 data class SlotEntry(val slot: Int, val key: String, val date: String, val rank: Int, val expiresAt: Long, val revision: String = "", val token: String = "")
 data class ReminderQuietRange(val from: Long, val to: Long)
-data class ReminderPolicy(val quietStart: Int = 0, val quietEnd: Int = 0, val ranges: List<ReminderQuietRange> = emptyList())
+data class ReminderPolicy(val quietStart: Int = 0, val quietEnd: Int = 0, val ranges: List<ReminderQuietRange> = emptyList(),
+    val bedtimeFollowUpsEnabled: Boolean = false, val bedtimeFollowUpsDelayMinutes: Int = 0)
 
 data class Placement(val slots: List<SlotEntry>, val slot: Int?, val replaced: SlotEntry?)
 data class DueResult(val due: List<ReminderEntry>, val remaining: List<ReminderEntry>)
+data class ReminderTickTargets(val exact: ReminderEntry?, val inexact: ReminderEntry?, val quiet: ReminderEntry?)
 
 object ReminderLogic {
     const val SLOT_FOCUS = 0
@@ -44,12 +47,42 @@ object ReminderLogic {
 
     /** Älter als das wird nicht mehr zugestellt: kein Stau nach Tagen ohne Strom oder im Tiefschlaf. */
     const val STALE_MS = 30 * 60_000L
+    const val QUIET_BED_FRESH_MS = 2 * 3600_000L
 
     /** So lange bleibt eine Meldung sichtbar, danach räumt Android sie weg. */
     const val VISIBLE_MS = 90 * 60_000L
     const val MAX_CONSUMED_TOKENS = 2048
 
     fun notificationId(slot: Int) = FIRST_NOTIFICATION_ID + slot
+
+    fun quietBed(entry: ReminderEntry): Boolean = entry.key == "bed" && entry.quietFollowUps
+    fun freshness(entry: ReminderEntry): Long = if (quietBed(entry)) QUIET_BED_FRESH_MS else STALE_MS
+    fun quietPath(entry: ReminderEntry, policy: ReminderPolicy): Boolean = entry.quietFollowUps || entry.key == "bed" && policy.bedtimeFollowUpsEnabled
+    fun canStartQuietBed(entry: ReminderEntry, policy: ReminderPolicy, revisions: Map<String, String>): Boolean =
+        quietBed(entry) && policy.bedtimeFollowUpsEnabled && entry.revision.isNotEmpty() && entry.token.isNotEmpty() && revisions["${entry.date}|${entry.key}"] == entry.revision
+
+    /** protectedDisplays already includes the quiet notification when it exists. */
+    fun quietDisplayFits(normalDisplays: Int, protectedDisplays: Int, alreadyShown: Boolean, alarmRinging: Boolean): Boolean =
+        !alarmRinging && normalDisplays >= 0 && protectedDisplays >= 0 && normalDisplays + protectedDisplays + (if (alreadyShown) 0 else 1) <= 3
+
+    fun retryQuietSource(entry: ReminderEntry, now: Long): ReminderEntry? {
+        val original = PcReminderGate.originalAt(entry)
+        if (!quietBed(entry) || now < original || now - original >= QUIET_BED_FRESH_MS) return null
+        return entry.copy(at = minOf(now + SNOOZE_RETRY_MS, original + QUIET_BED_FRESH_MS + 1), deferredFrom = original)
+    }
+
+    fun completeQuietSource(queue: List<ReminderEntry>, consumed: Map<String, Long>, source: ReminderEntry, accepted: Boolean, now: Long): Pair<List<ReminderEntry>, Map<String, Long>> =
+        if (accepted) queue.filterNot { it.token == source.token && it.revision == source.revision } to consumeTokens(consumed, listOf(source))
+        else queue.mapNotNull { entry ->
+            if (entry.token == source.token && entry.revision == source.revision) retryQuietSource(entry, now) else entry
+        } to consumed
+
+    /** The explicitly silent source never shares a WAKEUP alarm with ordinary delivery. */
+    fun nextTicks(queue: List<ReminderEntry>): ReminderTickTargets = ReminderTickTargets(
+        queue.filter { !it.quietFollowUps && it.exact }.minByOrNull { it.at },
+        queue.filter { !it.quietFollowUps && !it.exact }.minByOrNull { it.at },
+        queue.filter { it.quietFollowUps }.minByOrNull { it.at },
+    )
 
     /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
     fun tapDestination(key: String): String? = when {
@@ -64,8 +97,8 @@ object ReminderLogic {
     fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null, consumed: Set<String> = emptySet()): List<ReminderEntry> {
         val current = old.filter { "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
         // Ein noch unterwegs befindlicher Receiver darf seinen frischen Termin nicht durch Appöffnung verlieren.
-        val due = current.filter { it.at <= now && now - PcReminderGate.originalAt(it) <= STALE_MS }
-        val snoozed = current.filter { (it.snoozes > 0 || it.deferredFrom > 0) && it.at > now && now - PcReminderGate.originalAt(it) <= STALE_MS }
+        val due = current.filter { it.at <= now && now - PcReminderGate.originalAt(it) <= freshness(it) }
+        val snoozed = current.filter { (it.snoozes > 0 || it.deferredFrom > 0) && it.at > now && now - PcReminderGate.originalAt(it) <= freshness(it) }
         // Auch ein frisch fälliger Snooze ersetzt die alten Stufen, bis sein Receiver ihn verarbeitet.
         val snoozedKeys = (snoozed + due.filter { it.snoozes > 0 }).map { it.date to it.key }.toSet()
         return (due + snoozed + incoming.filter { it.token !in consumed && it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
@@ -74,7 +107,7 @@ object ReminderLogic {
     /** Teilt in Fälliges und Restliches. Veraltetes fällt weg, je Schlüssel kommt nur die neueste Stufe. */
     fun takeDue(queue: List<ReminderEntry>, now: Long): DueResult {
         val (reached, remaining) = queue.partition { it.at <= now }
-        val fresh = reached.filter { now - PcReminderGate.originalAt(it) <= STALE_MS }
+        val fresh = reached.filter { now - PcReminderGate.originalAt(it) <= freshness(it) }
         val latest = fresh.groupBy { it.date to it.key }.map { (_, v) -> v.maxBy { it.at } }.sortedBy { it.at }
         return DueResult(latest, remaining)
     }

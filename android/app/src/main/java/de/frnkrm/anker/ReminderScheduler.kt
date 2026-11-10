@@ -20,6 +20,7 @@ import org.json.JSONObject
 object ReminderScheduler {
     private const val REQUEST_TICK_EXACT = 4800
     private const val REQUEST_TICK_INEXACT = 4801
+    private const val REQUEST_TICK_QUIET = 4802
     const val ACTION_TICK = "de.frnkrm.anker.REMINDER_TICK"
     const val ACTION_DONE = "de.frnkrm.anker.REMINDER_DONE"
     const val ACTION_SNOOZE = "de.frnkrm.anker.REMINDER_SNOOZE"
@@ -31,6 +32,11 @@ object ReminderScheduler {
     private const val EXTRA_SNOOZES = "snoozes"
     private const val EXTRA_REVISION = "revision"
     private const val EXTRA_TOKEN = "token"
+    private val quietHandoffs = mutableSetOf<String>()
+
+    private fun diagnostic(ctx: Context, code: String, values: Map<String, Any> = emptyMap()) {
+        try { NativeDiagnosticJournal.record(ctx, "reminder", code, values) } catch (_: Exception) { }
+    }
 
     // ---------- Speicher ----------
     fun entryFromJson(o: JSONObject) = ReminderEntry(
@@ -50,6 +56,7 @@ object ReminderScheduler {
         critical = o.optBoolean("critical", false),
         ruleId = o.optString("ruleId"),
         deferredFrom = o.optLong("deferredFrom"),
+        quietFollowUps = o.opt("quietFollowUps") == true,
     )
 
     private fun entryToJson(e: ReminderEntry) = JSONObject()
@@ -57,6 +64,7 @@ object ReminderScheduler {
         .put("title", e.title).put("body", e.body).put("actions", e.actions)
         .put("slot", e.slot).put("rank", e.rank).put("exact", e.exact).put("snoozes", e.snoozes)
         .put("revision", e.revision).put("token", e.token).put("critical", e.critical).put("ruleId", e.ruleId).put("deferredFrom", e.deferredFrom)
+        .put("quietFollowUps", e.quietFollowUps)
 
     private fun loadQueue(ctx: Context): List<ReminderEntry> = try {
         val a = JSONArray(AnkerPrefs.reminderQueue(ctx))
@@ -106,6 +114,7 @@ object ReminderScheduler {
         saveSlots(ctx, slots - gone.toSet())
         val pc = pcSnapshot(ctx, now)
         reconcileProtectedDisplays(ctx, pc)
+        reconcileQuietBedtime(ctx, now)
         armNext(ctx, loadQueue(ctx))
         AnkerPrefs.setReminderLastSyncAt(ctx, now)
         if (loadQueue(ctx).any { it.deferredFrom > 0 && !pc.suppress(it) }) tick(ctx)
@@ -133,7 +142,8 @@ object ReminderScheduler {
     private fun policy(ctx: Context): ReminderPolicy = try {
         val o = JSONObject(AnkerPrefs.reminderPolicy(ctx))
         val ranges = o.optJSONArray("ranges") ?: JSONArray()
-        ReminderPolicy(o.optInt("quietStart"), o.optInt("quietEnd"), (0 until ranges.length()).map { val r = ranges.getJSONObject(it); ReminderQuietRange(r.getLong("from"), r.getLong("to")) })
+        ReminderPolicy(o.optInt("quietStart"), o.optInt("quietEnd"), (0 until ranges.length()).map { val r = ranges.getJSONObject(it); ReminderQuietRange(r.getLong("from"), r.getLong("to")) },
+            o.opt("bedtimeFollowUpsEnabled") == true, o.optInt("bedtimeFollowUpsDelayMinutes", 0).coerceIn(0, 60))
     } catch (_: Exception) { ReminderPolicy() }
 
     private fun pcExpectation(ctx: Context): PcReminderExpectation? = try {
@@ -153,7 +163,54 @@ object ReminderScheduler {
 
     private fun protectedDisplays(ctx: Context): Int = (if (AnkerPrefs.isRinging(ctx)) 1 else 0) +
         (if (SmartWakeService.hasForeground()) 1 else 0) + (if (RoutinePaceKeeperService.hasForeground()) 1 else 0) +
-        (if (SleepAudioService.hasForeground()) 1 else 0) + (if (PcBridgeService.hasForeground()) 1 else 0)
+        (if (SleepAudioService.hasForeground()) 1 else 0) + (if (PcBridgeService.hasForeground()) 1 else 0) +
+        (if (BedtimePromptController.hasQuietNotification(ctx)) 1 else 0)
+
+    /** One existing budget owns ordinary cards and the optional single silent bedtime card. */
+    @Synchronized
+    fun tryPostQuietBedtime(ctx: Context, post: () -> Boolean): Boolean {
+        if (AnkerPrefs.isRinging(ctx)) return false
+        val now = System.currentTimeMillis()
+        val alreadyShown = BedtimePromptController.hasQuietNotification(ctx)
+        if (!ReminderLogic.quietDisplayFits(loadSlots(ctx).count { it.expiresAt > now }, protectedDisplays(ctx), alreadyShown, AnkerPrefs.isRinging(ctx))) return false
+        return try { post() } catch (_: Exception) { false }
+    }
+
+    private fun reconcileQuietBedtime(ctx: Context, now: Long): Map<String, String> {
+        val currentPolicy = policy(ctx)
+        val enabled = currentPolicy.bedtimeFollowUpsEnabled
+        val current = mutableMapOf<String, String>()
+        if (enabled) {
+            ruleSnapshot(ctx)?.let { current.putAll(ReminderRules.quietBedRevisions(it, now, currentPolicy.bedtimeFollowUpsDelayMinutes)) }
+            try {
+                val revisions = JSONObject(AnkerPrefs.reminderRevisions(ctx))
+                revisions.keys().forEach { key -> if (key.endsWith("|bed")) current[key] = revisions.getString(key) }
+            } catch (_: Exception) { }
+        }
+        BedtimePromptController.configureQuietFollowUps(ctx, enabled)
+        BedtimePromptController.reconcileQuietSource(ctx, current)
+        return current
+    }
+
+    @Synchronized
+    private fun completeQuietHandoff(ctx: Context, source: ReminderEntry, accepted: Boolean) {
+        quietHandoffs.remove(source.token)
+        val queue = loadQueue(ctx)
+        val completed = ReminderLogic.completeQuietSource(queue, consumedTokens(ctx), source, accepted, System.currentTimeMillis())
+        if (accepted) {
+            val (next, tokens) = completed
+            val saved = AnkerPrefs.commitReminderAction(ctx, slotsJson(loadSlots(ctx)), queueJson(next),
+                AnkerPrefs.reminderActions(ctx), JSONObject(tokens).toString())
+            if (!saved) diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to "storage-failed"))
+            armNext(ctx, if (saved) next else queue)
+        } else {
+            // Do not reinsert a source removed by a newer plan while Main was working.
+            val next = completed.first
+            saveQueue(ctx, next)
+            diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to "schedule-failed"))
+            armNext(ctx, next)
+        }
+    }
 
     private fun ruleSnapshot(ctx: Context): NativeReminderRuleSnapshot? = try {
         val o = JSONObject(AnkerPrefs.reminderRules(ctx))
@@ -161,7 +218,7 @@ object ReminderScheduler {
         val dates = o.optJSONArray("excludedDates") ?: JSONArray()
         NativeReminderRuleSnapshot(o.getLong("validFrom"), (0 until dates.length()).map { dates.getString(it) }.toSet(), (0 until arr.length()).map {
             val r = arr.getJSONObject(it)
-            NativeReminderRule(r.getString("ruleId"), r.getString("key"), r.getInt("weekday"), r.getInt("minute"), r.getString("channel"), r.getString("title"), r.getString("body"), r.getInt("slot"), r.getInt("rank"), r.getBoolean("exact"), r.getString("revision"))
+            NativeReminderRule(r.getString("ruleId"), r.getString("key"), r.getInt("weekday"), r.getInt("minute"), r.getString("channel"), r.getString("title"), r.getString("body"), r.getInt("slot"), r.getInt("rank"), r.getBoolean("exact"), r.getString("revision"), r.opt("quietFollowUps") == true)
         })
     } catch (_: Exception) { null }
 
@@ -174,7 +231,7 @@ object ReminderScheduler {
             if (out.any { it.ruleId == rule.ruleId && it.at > now }) continue
             val occurrence = ReminderRules.nextOccurrence(rule, snapshot, now, consumed.optLong(rule.ruleId)) ?: continue
             out.add(ReminderEntry(rule.key, occurrence.date, occurrence.at, rule.channel, rule.title, rule.body, false, rule.slot, rule.rank, rule.exact,
-                revision = rule.revision + "|" + occurrence.date, token = java.util.UUID.randomUUID().toString(), critical = ReminderRules.critical(rule.key), ruleId = rule.ruleId))
+                revision = rule.revision + "|" + occurrence.date, token = java.util.UUID.randomUUID().toString(), critical = ReminderRules.critical(rule.key), ruleId = rule.ruleId, quietFollowUps = rule.quietFollowUps))
         }
         return out.sortedBy { it.at }
     }
@@ -253,6 +310,7 @@ object ReminderScheduler {
         val next = continueRules(ctx, batch.remaining, now)
         val reserved = protectedDisplays(ctx)
         val policy = policy(ctx)
+        val quietBedRevisions = reconcileQuietBedtime(ctx, now)
         val focusUntil = AnkerPrefs.reminderFocusUntil(ctx)
         val retries = mutableListOf<ReminderEntry>()
         fun retainSnooze(entry: ReminderEntry) {
@@ -262,14 +320,37 @@ object ReminderScheduler {
         val consumed = consumedTokens(ctx)
         for (e in batch.deliveries) {
             if (e.token in consumed) continue
+            if (ReminderLogic.quietPath(e, policy)) {
+                if (ReminderLogic.canStartQuietBed(e, policy, quietBedRevisions)) {
+                    // Persist the same source for a non-WAKEUP recovery even if
+                    // this process dies before Main finishes the durable handoff.
+                    val retry = ReminderLogic.retryQuietSource(e, now)
+                    if (retry != null) retries.add(retry)
+                    if (retry != null && quietHandoffs.add(e.token)) {
+                        try {
+                            BedtimePromptController.startQuietFromReminder(ctx, e.date, e.key, e.revision, e.token, PcReminderGate.originalAt(e), policy.bedtimeFollowUpsDelayMinutes) { accepted ->
+                                completeQuietHandoff(ctx, e, accepted)
+                            }
+                        } catch (_: Exception) {
+                            quietHandoffs.remove(e.token)
+                            diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to "schedule-failed"))
+                        }
+                    }
+                }
+                // Only completion after durable session storage/arming consumes
+                // this token. The session owns every later silent follow-up.
+                continue
+            }
             if (!ReminderLogic.allowed(e, now, policy, focusUntil)) {
                 retainSnooze(e)
+                diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to if (now < focusUntil && !e.critical) "focus" else "quiet-hours"))
                 continue
             }
             val p = ReminderLogic.place(slots, e, now, reserved)
             // Bekannte App-/Kanalsperren verändern keine vorhandene Karte.
             if (p.slot != null && !canPost(ctx, e.channel)) {
                 retainSnooze(e)
+                diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to "channel-blocked"))
                 continue
             }
             val beforePost = ReminderLogic.reserveBeforePost(slots, p)
@@ -278,8 +359,13 @@ object ReminderScheduler {
             }
             val accepted = p.slot?.let { post(ctx, e, it) } ?: false
             slots = ReminderLogic.afterPostRequest(beforePost, p, accepted)
-            if (accepted) AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString(), slots, now)
-            else retainSnooze(e)
+            if (accepted) {
+                AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString(), slots, now)
+                diagnostic(ctx, "delivered", mapOf("targetAt" to e.at))
+            } else {
+                retainSnooze(e)
+                diagnostic(ctx, "delivery_rejected", mapOf("reasonCode" to if (p.slot != null) "channel-blocked" else if (reserved >= 3) "budget" else "priority"))
+            }
         }
         val retryTokens = retries.map { it.token }.toSet()
         consumeTokens(ctx, batch.consumed.filter { it.token !in retryTokens })
@@ -287,6 +373,9 @@ object ReminderScheduler {
         saveQueue(ctx, pending)
         saveSlots(ctx, slots)
         armNext(ctx, pending)
+        retries.filter { it.snoozes > 0 }.forEach {
+            diagnostic(ctx, "scheduled", mapOf("kind" to "snooze", "targetAt" to it.at))
+        }
     }
 
     /** Der laufende Wecker ist die eine Meldung, die nie weichen darf. Also weicht die unwichtigste normale. */
@@ -303,6 +392,11 @@ object ReminderScheduler {
     private fun reconcileProtectedDisplays(ctx: Context, pc: PcReminderSnapshot) {
         val nm = ctx.getSystemService(NotificationManager::class.java)
         val now = pc.now
+        // The quiet card is optional: a newly ringing alarm or mandatory
+        // foreground displays must not leave it outside the shared budget.
+        if (BedtimePromptController.hasQuietNotification(ctx) && (AnkerPrefs.isRinging(ctx) || protectedDisplays(ctx) > 3)) {
+            nm.cancel(BedtimePromptController.QUIET_NOTIFICATION_ID)
+        }
         val old = loadSlots(ctx)
         val hidden = old.mapNotNull { slot ->
             val source = AnkerPrefs.reminderLastShown(ctx, slot.date, slot.key)?.let { try { entryFromJson(JSONObject(it)) } catch (_: Exception) { null } }
@@ -335,8 +429,12 @@ object ReminderScheduler {
         val am = ctx.getSystemService(AlarmManager::class.java) ?: return
         val exactPi = tickIntent(ctx, REQUEST_TICK_EXACT)
         val inexactPi = tickIntent(ctx, REQUEST_TICK_INEXACT)
-        val exact = q.firstOrNull { it.exact }
-        val inexact = q.firstOrNull { !it.exact }
+        val quietPi = tickIntent(ctx, REQUEST_TICK_QUIET)
+        val targets = ReminderLogic.nextTicks(q)
+        val exact = targets.exact
+        val inexact = targets.inexact
+        // A quiet source must not wake a sleeping device or gain idle exemption.
+        if (targets.quiet != null) am.set(AlarmManager.RTC, targets.quiet.at, quietPi) else am.cancel(quietPi)
         if (inexact != null) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, inexact.at, inexactPi) else am.cancel(inexactPi)
         if (exact == null) {
             am.cancel(exactPi)
@@ -452,9 +550,18 @@ object ReminderScheduler {
                 ReminderLogic.withoutKey(queue, date, key)
             }
         }
-        if (!AnkerPrefs.commitReminderAction(ctx, slotsJson(slots - occupant), queueJson(next), actions.toString(), nextConsumed)) return
+        if (!AnkerPrefs.commitReminderAction(ctx, slotsJson(slots - occupant), queueJson(next), actions.toString(), nextConsumed)) {
+            diagnostic(ctx, "action_rejected", mapOf("reasonCode" to "storage-failed"))
+            return
+        }
+        if (action == ACTION_SNOOZE) {
+            diagnostic(ctx, "action_accepted", mapOf("reasonCode" to "snoozed"))
+        }
         nm.cancel(ReminderLogic.notificationId(occupant.slot))
         armNext(ctx, next)
+        if (action == ACTION_SNOOZE) next.firstOrNull { it.date == date && it.key == key }?.let {
+            diagnostic(ctx, "scheduled", mapOf("kind" to "snooze", "targetAt" to it.at))
+        }
         if (action != ACTION_SNOOZE) AnkerNativePlugin.notifyReminderAction()
     }
 }

@@ -17,6 +17,7 @@ data class NativeReminderRule(
     val rank: Int,
     val exact: Boolean,
     val revision: String,
+    val quietFollowUps: Boolean = false,
 )
 
 data class NativeReminderRuleSnapshot(
@@ -37,9 +38,20 @@ object ReminderRules {
         (rule.key in CRITICAL_BASE_KEYS || rule.key in SOFT_GUIDANCE_KEYS) && rule.weekday in 0..6 && rule.minute in 0..2879 &&
             rule.ruleId == "basis:${rule.weekday}:${rule.key}" && rule.revision.isNotBlank() &&
             rule.channel in setOf("wecker", "uebergang", "sanft") && rule.slot in 0..2 && rule.rank >= 0 &&
+            (!rule.quietFollowUps || rule.key == "bed" && rule.channel == "sanft" && !rule.exact) &&
             (rule.key !in SOFT_GUIDANCE_KEYS || (rule.channel == "sanft" && !rule.exact))
 
     fun critical(key: String): Boolean = key in CRITICAL_BASE_KEYS
+
+    /** Current source identities from the same weekly baseline, including an active two-hour window. */
+    fun quietBedRevisions(snapshot: NativeReminderRuleSnapshot, now: Long, delayMinutes: Int = 0): Map<String, String> =
+        snapshot.rules.filter { it.quietFollowUps && it.key == "bed" }.mapNotNull { rule ->
+            // Identity validation covers the session's existing delay plus its
+            // two-hour quiet window. Initial source-delivery TTL stays at 2h.
+            val lookback = ReminderLogic.QUIET_BED_FRESH_MS + delayMinutes.coerceIn(0, 60) * 60_000L
+            val occurrence = nextOccurrence(rule, snapshot, (now - lookback - 1).coerceAtLeast(0)) ?: return@mapNotNull null
+            "${occurrence.date}|bed" to "${rule.revision}|${occurrence.date}"
+        }.toMap()
 
     /**
      * One strictly future occurrence only. Missed days are never replayed. The caller persists
