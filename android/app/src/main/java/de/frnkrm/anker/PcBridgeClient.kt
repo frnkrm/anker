@@ -22,6 +22,7 @@ import java.security.cert.X509Certificate
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
@@ -34,6 +35,15 @@ object PcBridgeClient {
     private val monitor = Any()
     private var socket: WebSocket? = null
     private var connected = false
+    private var relayMode = "off"
+    private var lastRelayPollAt = 0L
+    private var lastRelayPullAt = 0L
+    private var lastRelayReceivedAt = 0L
+    private var relayAwaitingEvents = true
+    private var receivingRelay = false
+    private var relayGeneration = 0L
+    private var relayWorkerBusy = false
+    private val relayWorker = Executors.newSingleThreadExecutor { action -> Thread(action, "AnkerPcRelay").apply { isDaemon = true } }
     @Volatile private var reminderProof: PcReminderProof? = null
     @Volatile private var reminderContext: Context? = null
     internal fun currentReminderProof(): PcReminderProof? = reminderProof
@@ -135,6 +145,82 @@ object PcBridgeClient {
         catch (error: Exception) { JSONObject().put("state", "unreachable").put("connected", false).put("active", false).put("error", errorCode(error)) }
     }
 
+    /** Explicit owner operations only; the SDK access token is never persisted. */
+    fun relaySetup(ctx: Context, project: String, accessToken: String): JSONObject = synchronized(monitor) {
+        val vault = PcBridgeVault(ctx); val data = vault.read()
+        requireRelayPair(data)
+        val prepared = PcRelayTransport.ownerOperation(project, data.getString("pairId"), accessToken, "provision")
+        data.put("relay", prepared.getJSONObject("configuration")); data.remove("relayPendingFrames"); vault.write(data)
+        invalidateRelay()
+        relayMode = "waiting"; lastRelayPollAt = 0; lastRelayPullAt = 0; lastRelayReceivedAt = 0; relayAwaitingEvents = true
+        if (data.optBoolean("active")) startService(ctx)
+        JSONObject().put("desktopSetup", prepared.getString("desktopSetup")).put("state", relayState(data))
+    }
+
+    fun relayRenew(ctx: Context, accessToken: String): JSONObject = synchronized(monitor) {
+        val vault = PcBridgeVault(ctx); val data = vault.read(); requireRelayPair(data)
+        val old = data.getJSONObject("relay")
+        val prepared = PcRelayTransport.ownerOperation(old.getString("project"), data.getString("pairId"), accessToken, "renew-phone")
+        data.put("relay", prepared.getJSONObject("configuration")); vault.write(data)
+        invalidateRelay()
+        relayMode = "waiting"; lastRelayPollAt = 0; lastRelayPullAt = 0; lastRelayReceivedAt = 0; relayAwaitingEvents = true
+        if (data.optBoolean("active")) startService(ctx)
+        JSONObject().put("state", relayState(data))
+    }
+
+    fun relayRevoke(ctx: Context, accessToken: String): JSONObject = synchronized(monitor) {
+        val vault = PcBridgeVault(ctx); val data = vault.read()
+        val config = data.getJSONObject("relay")
+        config.put("enabled", false); data.remove("relayPendingFrames"); vault.write(data) // Local stop is independent of cloud availability.
+        invalidateRelay()
+        relayMode = "off"; lastRelayReceivedAt = 0
+        var revoked = false
+        try {
+            PcRelayTransport.ownerOperation(config.getString("project"), config.getString("pair"), accessToken, "revoke")
+            data.remove("relay"); vault.write(data); revoked = true
+        } catch (_: Exception) { /* No successful remote revocation is invented. */ }
+        JSONObject().put("state", relayState(data)).put("cloudRevoked", revoked)
+    }
+
+    fun relayDisable(ctx: Context): JSONObject = synchronized(monitor) {
+        val vault = PcBridgeVault(ctx); val data = vault.read()
+        data.optJSONObject("relay")?.put("enabled", false); data.remove("relayPendingFrames"); vault.write(data)
+        invalidateRelay()
+        relayMode = "off"; lastRelayReceivedAt = 0; relayAwaitingEvents = true
+        JSONObject().put("state", relayState(data))
+    }
+
+    fun relayClear(ctx: Context): JSONObject = synchronized(monitor) {
+        val vault = PcBridgeVault(ctx); val data = vault.read(); data.remove("relay"); data.remove("relayPendingFrames"); vault.write(data)
+        invalidateRelay()
+        relayMode = "off"; lastRelayReceivedAt = 0; relayAwaitingEvents = true
+        JSONObject().put("state", relayState(data))
+    }
+
+    fun relayStatus(ctx: Context): JSONObject = synchronized(monitor) { relayState(PcBridgeVault(ctx).read()) }
+
+    private fun requireRelayPair(data: JSONObject) {
+        check(data.optString("pairStatus") == "paired") { "PC_NOT_PAIRED" }
+        val companion = data.optJSONObject("ack")?.optJSONObject("companion")
+        check(companion != null && PcLinkModel.compatibleCompanion(companion.opt("protocol"), companion.opt("version"))) { "PC_PROTOCOL_UNSUPPORTED" }
+    }
+
+    private fun relayReady(data: JSONObject): Boolean = try {
+        data.optBoolean("active") && data.optString("pairStatus") == "paired" && lastError != "PC_PROTOCOL_UNSUPPORTED" &&
+            PcRelayTransport.configuration(data.getJSONObject("relay"), data.getString("pairId")).optBoolean("enabled")
+    } catch (_: Exception) { false }
+
+    private fun relayState(data: JSONObject): JSONObject {
+        val config = data.optJSONObject("relay")
+        val enabled = config?.opt("enabled") == true && config.optString("pair") == data.optString("pairId")
+        val paired = data.optString("pairStatus") == "paired"
+        return JSONObject().put("enabled", enabled).put("paired", paired)
+            .put("status", PcRelayModel.publicStatus(enabled, config?.optLong("phoneExpiresAt") ?: 0, System.currentTimeMillis(), connected, relayMode)).apply {
+                if (config?.has("phoneExpiresAt") == true) put("phoneExpiresAt", config.optLong("phoneExpiresAt"))
+                if (lastRelayReceivedAt > 0) put("lastExchangeAt", lastRelayReceivedAt)
+            }
+    }
+
     fun start(ctx: Context): JSONObject = synchronized(monitor) {
         val vault = PcBridgeVault(ctx); val data = vault.read()
         check(data.optString("pairStatus") in setOf("pending", "paired")) { "PC_NOT_PAIRED" }
@@ -146,6 +232,7 @@ object PcBridgeClient {
     }
 
     fun stop(ctx: Context): JSONObject = synchronized(monitor) {
+        invalidateRelay()
         try {
             val vault = PcBridgeVault(ctx); val data = vault.read()
             data.put("active", false).put("autoReconnect", false)
@@ -170,8 +257,8 @@ object PcBridgeClient {
         }
         refreshReminderProof(ctx, data)
         val pending = data.optJSONArray("events") ?: JSONArray()
-        val blocked = pending.length() > 0 || awaitingEvents
-        val sent = connected && !blocked && transmit(ctx, data, payload)
+        val blocked = pending.length() > 0 || awaitingEvents || (!connected && relayAwaitingEvents)
+        val sent = (connected || relayReady(data)) && !blocked && transmit(ctx, data, payload)
         JSONObject().put("sent", sent).put("queued", !sent && type in setOf("state", "briefing"))
     }
 
@@ -204,6 +291,7 @@ object PcBridgeClient {
     }
 
     fun unpair(ctx: Context): JSONObject = synchronized(monitor) {
+        invalidateRelay()
         val vault = PcBridgeVault(ctx)
         // Explicit revocation also works if a previous Android key became invalid.
         val data = try { vault.read() } catch (_: Exception) { JSONObject() }
@@ -290,10 +378,104 @@ object PcBridgeClient {
             lastPullAt = now; awaitingEvents = true
             transmit(ctx, data, JSONObject().put("type", "pull").put("after", data.optLong("lastEventSeq")))
         }
+        if (!connected && lastError != "PC_PROTOCOL_UNSUPPORTED") relayTick(ctx)
     }
 
-    internal fun serviceDestroyed() = synchronized(monitor) { closeSocket() }
+    private fun relayTick(ctx: Context) {
+        val data = PcBridgeVault(ctx).read()
+        if (!relayReady(data) || relayWorkerBusy) return
+        val now = System.currentTimeMillis()
+        if (now - lastRelayPollAt < 5_000) return
+        lastRelayPollAt = now; relayMode = "waiting"
+        val pair = data.getString("pairId")
+        val selectedGeneration = relayGeneration
+        val configuration = copy(data.getJSONObject("relay"))
+        relayWorkerBusy = true
+        relayWorker.execute {
+            try {
+                // At most ONE ciphertext post and ONE small inbox page per cycle;
+                // all network I/O happens outside the connection/key monitor.
+                val pending = synchronized(monitor) {
+                    val vault = PcBridgeVault(ctx); val current = vault.read()
+                    if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                    val queue = current.optJSONArray("relayPendingFrames") ?: JSONArray()
+                    require(queue.length() <= 8) { "PC_RELAY_RESPONSE_INVALID" }
+                    val retained = JSONArray()
+                    for (index in 0 until queue.length()) {
+                        val frame = queue.getJSONObject(index)
+                        if (!PcRelayModel.expiredCiphertext(PcLinkModel.timestamp(frame.getString("sentAt")), System.currentTimeMillis())) retained.put(frame)
+                    }
+                    if (retained.length() != queue.length()) {
+                        // Prune transport ciphertext only; common counters and
+                        // durable incoming PC events/receipts remain untouched.
+                        current.put("relayPendingFrames", retained); vault.write(current)
+                    }
+                    retained.optJSONObject(0)?.toString()
+                }
+                if (pending != null) {
+                    PcRelayTransport.put(configuration, pair, pending)
+                    synchronized(monitor) {
+                        val vault = PcBridgeVault(ctx); val current = vault.read()
+                        if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                        val queue = current.optJSONArray("relayPendingFrames") ?: JSONArray()
+                        if (queue.optJSONObject(0)?.toString() == pending) queue.remove(0)
+                        current.put("relayPendingFrames", queue); vault.write(current)
+                    }
+                }
+                val after = synchronized(monitor) {
+                    val current = PcBridgeVault(ctx).read()
+                    if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                    current.optLong("seqIn")
+                }
+                val frames = PcRelayTransport.get(configuration, pair, after)
+                synchronized(monitor) {
+                    var current = PcBridgeVault(ctx).read()
+                    if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                    for (raw in frames) {
+                        current = PcBridgeVault(ctx).read()
+                        if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                        // LAN may have already consumed this frame while GET was pending.
+                        if (whole(JSONObject(raw), "seq") <= current.optLong("seqIn")) continue
+                        receivingRelay = true
+                        try { receive(ctx, raw) } finally { receivingRelay = false }
+                        val receivedAt = System.currentTimeMillis()
+                        if (PcRelayModel.freshPeerFrame(PcLinkModel.timestamp(JSONObject(raw).getString("sentAt")), receivedAt)) lastRelayReceivedAt = receivedAt
+                        relayMode = "received" // Old queued content alone never proves live PC contact.
+                    }
+                    current = PcBridgeVault(ctx).read()
+                    if (!relayWorkCurrent(current, pair, configuration, selectedGeneration)) return@execute
+                    if (lastRelayPullAt == 0L || now - lastRelayPullAt >= 15_000) {
+                        relayAwaitingEvents = true
+                        if (transmit(ctx, current, JSONObject().put("type", "pull").put("after", current.optLong("lastEventSeq")))) lastRelayPullAt = now
+                    }
+                }
+            } catch (error: Exception) {
+                synchronized(monitor) {
+                    if (selectedGeneration == relayGeneration) relayMode = when (error.message) {
+                        "PC_RELAY_UNAUTHORIZED" -> "unauthorized"
+                        "PC_RELAY_AUTH_EXPIRED" -> "expired"
+                        "PC_PROTOCOL_UNSUPPORTED", "PC_REPLAY_REJECTED", "PC_RELAY_RESPONSE_INVALID" -> "rejected"
+                        else -> "unavailable"
+                    }
+                }
+            } finally {
+                synchronized(monitor) { relayWorkerBusy = false }
+            }
+        }
+    }
+
+    private fun relayWorkCurrent(data: JSONObject, pair: String, config: JSONObject, selectedGeneration: Long): Boolean =
+        selectedGeneration == relayGeneration && data.optBoolean("active") && !connected && relayReady(data) &&
+            data.optString("pairId") == pair && data.optJSONObject("relay")?.toString() == config.toString()
+
+    private fun invalidateRelay() {
+        relayGeneration++; lastRelayReceivedAt = 0; relayAwaitingEvents = true; lastRelayPullAt = 0
+        PcRelayTransport.cancelRequests()
+    }
+
+    internal fun serviceDestroyed() = synchronized(monitor) { invalidateRelay(); closeSocket() }
     internal fun serviceFailed(ctx: Context, code: String) = synchronized(monitor) {
+        invalidateRelay()
         lastError = code
         try { val vault = PcBridgeVault(ctx); val data = vault.read(); data.put("active", false); vault.write(data) } catch (_: Exception) { /* unavailable storage never becomes success */ }
         closeSocket()
@@ -337,6 +519,12 @@ object PcBridgeClient {
                     if (selectedGeneration != generation) { webSocket.close(1000, "superseded"); return@synchronized }
                     connecting = false; connected = true; attempts = 0; lastError = ""; lastPullAt = System.currentTimeMillis(); awaitingEvents = true
                     val current = PcBridgeVault(ctx).read()
+                    val queued = current.optJSONArray("relayPendingFrames") ?: JSONArray()
+                    // Older reserved frames go over LAN before any newer sequence.
+                    for (index in 0 until queued.length()) if (!webSocket.send(queued.getJSONObject(index).toString())) {
+                        webSocket.close(1000, "send-unavailable"); return@synchronized
+                    }
+                    if (queued.length() > 0) { current.remove("relayPendingFrames"); PcBridgeVault(ctx).write(current) }
                     transmit(ctx, current, JSONObject().put("type", "pull").put("after", current.optLong("lastEventSeq")))
                 }
                 override fun onMessage(webSocket: WebSocket, text: String) = synchronized(monitor) {
@@ -376,24 +564,35 @@ object PcBridgeClient {
     private fun disconnected(selectedGeneration: Long, error: Throwable?) = synchronized(monitor) {
         if (selectedGeneration != generation) return@synchronized
         connected = false; connecting = false; socket = null; awaitingEvents = false
+        relayAwaitingEvents = true; lastRelayPullAt = 0
         reminderContext?.let { refreshReminderProof(it, null) }
         if (error != null) lastError = errorCode(error)
         reconnectAt = System.currentTimeMillis() + PcLinkModel.retryDelayMs(attempts++)
     }
 
     private fun transmit(ctx: Context, data: JSONObject, payload: JSONObject): Boolean {
-        val currentSocket = socket ?: return false
+        val currentSocket = socket?.takeIf { connected }
+        if (currentSocket == null && !relayReady(data)) return false
+        val relayQueue = data.optJSONArray("relayPendingFrames") ?: JSONArray()
+        if (currentSocket == null && relayQueue.length() >= 8) return false
         val seq = data.optLong("seqOut") + 1
         check(PcLinkModel.validSequence(seq)) { "PC_SEQUENCE_EXHAUSTED" }
-        data.put("seqOut", seq)
-        PcBridgeVault(ctx).write(data) // Reserve before encrypt/send; gaps survive crashes safely.
+        if (currentSocket != null) {
+            data.put("seqOut", seq)
+            PcBridgeVault(ctx).write(data) // Reserve before LAN send; gaps survive crashes safely.
+        }
         val header = PcBridgeCrypto.Header(data.getString("pairId"), "phone", seq, Instant.now().toString())
         val nonce = PcBridgeCrypto.random(12)
         val encrypted = PcBridgeCrypto.seal(PcLinkModel.decoded(data.getString("phoneKey"), 32), nonce, header, payload.toString().toByteArray(Charsets.UTF_8))
         val envelope = JSONObject().put("v", 3).put("kind", "anker-link").put("pair", header.pair).put("from", "phone")
             .put("seq", seq).put("sentAt", header.sentAt).put("nonce", PcLinkModel.encoded(nonce)).put("ct", PcLinkModel.encoded(encrypted)).toString()
         require(envelope.toByteArray(Charsets.UTF_8).size <= PcLinkModel.MAX_MESSAGE_BYTES) { "PC_MESSAGE_TOO_LARGE" }
-        return currentSocket.send(envelope)
+        if (currentSocket != null) return currentSocket.send(envelope)
+        // One encrypted durable commit reserves the common seqOut and retains its
+        // ciphertext. Queueing, like WebSocket.send, is never a PC plan ACK.
+        relayQueue.put(JSONObject(envelope)); data.put("seqOut", seq).put("relayPendingFrames", relayQueue)
+        PcBridgeVault(ctx).write(data)
+        return true
     }
 
     private fun receive(ctx: Context, raw: String) {
@@ -416,7 +615,7 @@ object PcBridgeClient {
                 LocalDate.parse(effective.getString("date")); require(effective.getString("mode") in modes) { "PC_PAYLOAD_INVALID" }
                 optionalTimestamp(effective, "stopAt")
                 val companion = payload.getJSONObject("companion"); exact(companion, setOf("version", "protocol"))
-                if (whole(companion, "protocol") != 3L) { lastError = "PC_PROTOCOL_UNSUPPORTED"; throw IllegalArgumentException("PC_PROTOCOL_UNSUPPORTED") }
+                if (!PcLinkModel.compatibleCompanion(companion.opt("protocol"), companion.opt("version"))) { lastError = "PC_PROTOCOL_UNSUPPORTED"; throw IllegalArgumentException("PC_PROTOCOL_UNSUPPORTED") }
                 val warnings = payload.getJSONArray("warnings"); require(warnings.length() <= 20) { "PC_PAYLOAD_INVALID" }
                 for (i in 0 until warnings.length()) require(warnings.getString(i).matches(Regex("[a-z0-9-]{1,80}"))) { "PC_PAYLOAD_INVALID" }
                 data.put("ack", copy(payload)).put("lastReceivedAt", System.currentTimeMillis())
@@ -450,6 +649,7 @@ object PcBridgeClient {
                 require(pending.length() <= 1_000) { "PC_EVENT_QUEUE_FULL" }
                 data.put("events", pending).put("lastReceivedAt", System.currentTimeMillis())
                 awaitingEvents = false
+                if (receivingRelay) relayAwaitingEvents = false
             }
             else -> throw IllegalArgumentException("PC_PAYLOAD_INVALID")
         }
@@ -459,7 +659,8 @@ object PcBridgeClient {
         if ((data.optJSONArray("events") ?: JSONArray()).let { events -> (0 until events.length()).any { events.getJSONObject(it).optString("kind") == "unpaired" } }) {
             // Keep the durable receipt available to JS, but revoke native capabilities now.
             vault.deleteEmergencyKey(data.getString("pairId"))
-            for (key in setOf("phoneKey", "pcKey", "latestState", "latestBriefing", "pendingEmergency", "emergencyAck", "pin", "addresses", "endpoint")) data.remove(key)
+            for (key in setOf("phoneKey", "pcKey", "latestState", "latestBriefing", "pendingEmergency", "emergencyAck", "pin", "addresses", "endpoint", "relay", "relayPendingFrames")) data.remove(key)
+            invalidateRelay()
             data.put("pairStatus", "revoked").put("active", false).put("autoReconnect", false)
             vault.write(data)
             closeSocket()
@@ -610,16 +811,19 @@ object PcBridgeClient {
 
     private fun stateLocked(data: JSONObject): JSONObject {
         val paired = data.optString("pairStatus")
+        val relay = data.optJSONObject("relay")
+        val live = connected || (paired == "paired" && PcRelayModel.liveContact(relay?.opt("enabled") == true,
+            relay?.optLong("phoneExpiresAt") ?: 0, System.currentTimeMillis(), lastRelayReceivedAt))
         val state = when {
             paired.isEmpty() || paired == "revoked" -> "unpaired"
             paired == "pending" -> "pairing"
             paired in setOf("expired", "rejected") -> "rejected"
             lastError == "PC_PROTOCOL_UNSUPPORTED" -> "companion-outdated"
-            connected -> "connected"
+            live -> "connected"
             lastError.isNotEmpty() -> "unreachable"
             else -> "paired-never-reached"
         }
-        return JSONObject().put("state", state).put("connected", connected).put("active", PcBridgeService.hasForeground())
+        return JSONObject().put("state", state).put("connected", live).put("active", PcBridgeService.hasForeground())
             .put("requestedActive", data.optBoolean("active")).put("autoReconnect", data.optBoolean("autoReconnect"))
             .put("lastReceivedAt", data.optLong("lastReceivedAt")).apply {
                 for (key in setOf("pairId", "pcName", "code")) if (data.has(key)) put(key, data.getString(key))
