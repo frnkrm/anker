@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { buildIcs } from '../../core/export/ics'
 import { saveFile } from '../../platform/files'
-import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
+import { connectGoogle, disconnectGoogle, googleConfigured, googleConnected, googleWriteAuthorized, invalidateCalendarRequests, invalidateCalendarWrites, refreshCalendar, writeAnkerBlocks } from '../../platform/google'
 import { automaticSyncEnableConfirmation, cancelSyncRequests, currentUser, sendMagicLink, signOut, supabaseConfigured, syncNow, syncStatus } from '../../platform/supabase'
 import { today, useApp } from '../../state/store'
 import { Button, Card, MoreInfo, notifySaved, Page, Section, SettingRow, TextInput, Toggle } from '../components/ui'
@@ -183,7 +183,7 @@ export default function Connections() {
                   checked={integ.writeCalendar}
                   onChange={async (v) => {
                     const accept = beginGoogleIntent()
-                    invalidateCalendarRequests()
+                    invalidateCalendarWrites()
                     if (v && !googleWriteAuthorized() && !await connectGoogle(true, accept)) { if (accept()) setMsg('Zusätzliche Schreibfreigabe wurde nicht erteilt. Es wurde nichts eingeschaltet.'); return }
                     if (v && !accept()) return
                     await setInteg({ writeCalendar: v }, v ? accept : () => true)
@@ -201,9 +201,9 @@ export default function Connections() {
               <Button
                 variant="ghost"
                 onClick={async () => {
-                  googleIntent.current++
+                  const generation = ++googleIntent.current
                   const disconnect = disconnectGoogle(), source = calendarSourceRevision()
-                  const current = () => source === calendarSourceRevision()
+                  const current = () => generation === googleIntent.current && source === calendarSourceRevision()
                   await disconnect
                   await st.saveSettings(settings => !current() ? settings : { ...settings, integrations: { ...settings.integrations,
                     ...(useApp.getState().local.extras?.deviceCalendar?.enabled ? {} : { googleCalendar: false }), writeCalendar: false } })

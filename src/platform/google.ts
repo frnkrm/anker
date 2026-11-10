@@ -39,7 +39,8 @@ async function init() {
 export async function connectGoogle(write = false, accept: () => boolean = () => true): Promise<boolean> {
   if (!CLIENT_ID || !accept()) return false
   const generation = ++authGeneration
-  invalidateCalendarRequests()
+  if (write) invalidateGoogleRequests()
+  else invalidateCalendarRequests()
   const source = calendarSourceRevision()
   const current = () => generation === authGeneration && accept() && (write || source === calendarSourceRevision())
   return safe(async () => {
@@ -70,9 +71,13 @@ export async function connectGoogle(write = false, accept: () => boolean = () =>
 }
 export const googleConnected = (): boolean => !!storedToken()
 export const googleWriteAuthorized = (): boolean => storedToken()?.scopes?.includes(GOOGLE_WRITE_SCOPE) === true
-export function invalidateCalendarRequests(): void { readGeneration++; writeGeneration++; invalidateCalendarSource() }
+function invalidateGoogleRequests(): void { readGeneration++; writeGeneration++ }
+export function invalidateCalendarWrites(): void { writeGeneration++ }
+export function invalidateCalendarRequests(): void { invalidateGoogleRequests(); invalidateCalendarSource() }
 export async function disconnectGoogle() {
-  authGeneration++; invalidateCalendarRequests()
+  authGeneration++
+  if (useApp.getState().local.extras?.deviceCalendar?.enabled) invalidateGoogleRequests()
+  else invalidateCalendarRequests()
   localStorage.removeItem(TOKEN_KEY)
   await safe(async () => { await init(); await SocialLogin.logout({ provider: 'google' }) }, undefined)
 }

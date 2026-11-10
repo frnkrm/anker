@@ -161,4 +161,32 @@ describe('Explizite Android-Google-Kalenderauswahl mit bestehendem atomarem Cach
     expect(await oauth).toBe(false); expect(google.googleConnected()).toBe(false)
     expect(ctx.state!.local.extras?.deviceCalendar?.calendarIds).toEqual([otherId])
   })
+  it.each(['write', 'logout'] as const)('lässt zusätzliche Google-Aktion %s eine gerade gespeicherte Handywahl fertigstellen', async action => {
+    ctx.state!.settings.integrations.googleCalendar = false
+    const entered = defer<void>(), release = defer<void>(), original = ctx.state!.saveSettings
+    ctx.state!.saveSettings = async edit => { entered.resolve(); await release.promise; return original(edit) }
+    const device = await import('./deviceCalendar'), google = await import('./google')
+    const pending = device.connectDeviceCalendars([otherId])
+    await entered.promise
+    expect(ctx.state!.local.extras?.deviceCalendar?.enabled).toBe(true)
+    expect(ctx.state!.settings.integrations.googleCalendar).toBe(false)
+    if (action === 'write') {
+      google.invalidateCalendarWrites()
+      expect(await google.connectGoogle(true)).toBe(true)
+    } else await google.disconnectGoogle()
+    release.resolve()
+    expect(await pending).toBe(true)
+    expect(ctx.state!.settings.integrations.googleCalendar).toBe(true)
+    expect(ctx.state!.local.extras?.deviceCalendar?.calendarIds).toEqual([otherId])
+    expect(ctx.state!.local.extras?.calendar?.state).toBe('ready')
+  })
+  it('lässt einen laufenden Handy-Refresh bei zusätzlicher Schreibfreigabe weiterlaufen', async () => {
+    const delayed = defer<{ events: typeof row[]; readAt: number }>(); ctx.read.mockReturnValueOnce(delayed.promise)
+    const device = await import('./deviceCalendar'), google = await import('./google')
+    const pending = device.refreshDeviceCalendar()
+    await vi.waitFor(() => expect(ctx.read).toHaveBeenCalledTimes(1))
+    google.invalidateCalendarWrites(); expect(await google.connectGoogle(true)).toBe(true)
+    delayed.resolve({ events: [row], readAt: Date.now() })
+    expect(await pending).toBe(true); expect(ctx.state!.events).toEqual([row])
+  })
 })
