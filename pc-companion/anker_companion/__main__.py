@@ -17,6 +17,19 @@ from .engine import CompanionEngine
 from .server import BridgeServer, Discovery, PairingManager, local_addresses, tls_context
 from .storage import AtomicStateStore
 from .desktop_settings import desktop_preferences
+from .relay import RelayPump
+
+
+class DesktopStatusUI:
+    """Enrich local renders only with explicitly public runtime metadata."""
+    def __init__(self, target, status):
+        self.target, self.status = target, status
+
+    def render(self, snapshot):
+        self.target.render({**snapshot, **self.status()})
+
+    def __getattr__(self, name):
+        return getattr(self.target, name)
 
 
 def configure_log(directory: Path) -> RotatingFileHandler:
@@ -78,8 +91,9 @@ def main() -> int:
 
     ui = DesktopUI(action, platform=platform)
     ui.snapshot["desktopPrefs"] = desktop
+    status_ui = DesktopStatusUI(ui, lambda: server.public_status())
     audio = MasterAudioDucker()
-    engine = CompanionEngine(store, platform, ui=ui, audio=audio)
+    engine = CompanionEngine(store, platform, ui=status_ui, audio=audio)
     handlers["engine"] = engine
     def stop_for_reset() -> None:
         stopped.set()
@@ -87,7 +101,9 @@ def main() -> int:
         logger.removeHandler(log_handler)
         log_handler.flush(); log_handler.close()
 
-    server = BridgeServer(store, engine, pairing, ui=ui, on_delete_data=stop_for_reset)
+    server = BridgeServer(store, engine, pairing, ui=status_ui, on_delete_data=stop_for_reset)
+    relay = RelayPump(store, server.relay_exchange, server.local_session_fresh)
+    server.relay_pump = relay
 
     async def run() -> None:
         runner = web.AppRunner(server.app, access_log=None)
@@ -95,6 +111,7 @@ def main() -> int:
         await runner.setup()
         try:
             await web.TCPSite(runner, "0.0.0.0", args.port, ssl_context=context).start()
+            server.relay_task = asyncio.create_task(relay.run(stopped.is_set))
             try:
                 await asyncio.to_thread(discovery.start)
             except Exception:
@@ -114,6 +131,7 @@ def main() -> int:
             logging.getLogger("anker").error("server-start-failed")
             ui.show_note("Verbindung noch nicht gestartet", "Port oder Firewall prüfen. Es wurde kein PC-Auftrag ausgeführt.")
         finally:
+            await server.stop_relay()
             audio.restore()
             await asyncio.to_thread(discovery.close)
             await runner.cleanup()

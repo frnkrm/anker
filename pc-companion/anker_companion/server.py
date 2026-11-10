@@ -28,6 +28,7 @@ from cryptography.x509.oid import NameOID
 from . import __version__
 from .engine import CompanionEngine
 from .desktop_settings import DesktopSettingsError, delete_managed_files, desktop_patch, desktop_preferences
+from .relay import RelayError, clear_relay, configure_relay, disable_relay
 from .protocol import MAX_BYTES, ProtocolError, b64, canonical, derive_keys, integer, obj, open_envelope, pair_proof, pairing_code, plan_date, public_bytes, public_key, seal, stamp, text, unb64, utc, validate_payload, verify_emergency
 from .storage import AtomicStateStore
 
@@ -172,6 +173,7 @@ class _WssSession:
     send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     receive_seq: int = 0
     after: int = 0
+    last_contact: float | None = None
 
 
 @dataclass(eq=False)
@@ -183,7 +185,7 @@ class _SyncRequest:
 
 
 class BridgeServer:
-    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0, on_delete_data=None):
+    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0, on_delete_data=None, monotonic=time.monotonic, relay_pump=None):
         self.store, self.engine, self.pairing, self.ui, self.clock = store, engine, pairing, ui, clock
         self.allow_loopback = allow_loopback
         self.sockets: set[web.WebSocketResponse] = set()
@@ -193,6 +195,9 @@ class BridgeServer:
         self.sync_timeout = sync_timeout
         self.on_delete_data = on_delete_data
         self._resetting = False
+        self.monotonic = monotonic
+        self.relay_pump = relay_pump
+        self.relay_task: asyncio.Task | None = None
         self.app = web.Application(client_max_size=MAX_BYTES, middlewares=[self._guard])
         self.app.add_routes([web.get("/health", self.hello), web.get("/v3/hello", self.hello),
                              web.post("/v3/pair", self.pair), web.get("/v3/pair/{id}", self.pair_status),
@@ -200,12 +205,42 @@ class BridgeServer:
         self.app.on_shutdown.append(self._shutdown)
 
     async def _shutdown(self, _app) -> None:
+        await self.stop_relay()
         for pending in tuple(self._pending_sync.values()):
             if not pending.future.done():
                 pending.future.set_result({"status": "offline"})
         await asyncio.gather(*(socket_.close(code=1001, message=b"server-stopped") for socket_ in tuple(self.sockets)), return_exceptions=True)
         if self._sync_tasks:
             await asyncio.gather(*tuple(self._sync_tasks), return_exceptions=True)
+
+    async def stop_relay(self) -> None:
+        task = self.relay_task
+        if task is not None and task is not asyncio.current_task():
+            if not task.done(): task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        self.relay_task = None
+
+    def local_session_fresh(self, pair: str, max_age: float = 90) -> bool:
+        if self._resetting or pair not in self.store.read()["pairs"]:
+            return False
+        now = self.monotonic()
+        return any(item.pair == pair and not item.socket.closed and item.last_contact is not None and 0 <= now - item.last_contact <= max_age for item in self._sessions.values())
+
+    def public_status(self) -> dict:
+        if self._resetting or self.relay_pump is None:
+            return {"relay": {"enabled": False, "status": "off"}}
+        try:
+            value = self.relay_pump.public_status()
+        except Exception:
+            return {"relay": {"enabled": False, "status": "unavailable"}}
+        if not isinstance(value, dict):
+            return {"relay": {"enabled": False, "status": "unavailable"}}
+        allowed = {"off", "lan", "waiting", "received", "unavailable", "unauthorized", "rejected"}
+        result = {"enabled": value.get("enabled") is True, "status": value.get("status") if isinstance(value.get("status"), str) and value["status"] in allowed else "unavailable"}
+        if isinstance(value.get("lastExchangeAt"), str):
+            try: result["lastExchangeAt"] = utc(stamp(value["lastExchangeAt"]))
+            except ProtocolError: pass
+        return {"relay": result}
 
     @web.middleware
     async def _guard(self, request: web.Request, handler):
@@ -266,6 +301,7 @@ class BridgeServer:
                             await socket_.send_json(reply)
                             if identifier in self.store.read()["pairs"]:
                                 session.receive_seq = envelope["seq"]
+                                session.last_contact = self.monotonic()
                                 if payload["type"] == "pull":
                                     session.after = payload["after"]
                                 self._sessions[socket_] = session
@@ -280,6 +316,7 @@ class BridgeServer:
                     if message.type == WSMsgType.PING:
                         await socket_.pong(message.data)
                     if self._sessions.get(socket_) is session and identifier in self.store.read()["pairs"]:
+                        session.last_contact = self.monotonic()
                         self.engine.link_contact()
                 elif message.type in {WSMsgType.BINARY, WSMsgType.ERROR}:
                     await socket_.close(code=1008, message=b"message-rejected")
@@ -510,7 +547,7 @@ class BridgeServer:
             result = {"action": action.get("action"), "ok": ok, **fields}
             if isinstance(action.get("requestId"), str):
                 result["requestId"] = action["requestId"]
-            self.ui.render({**self.engine.last_view, "desktopPrefs": desktop_preferences(self.store.read()), "actionResult": result})
+            self.ui.render({**self.engine.last_view, "desktopPrefs": desktop_preferences(self.store.read()), **self.public_status(), "actionResult": result})
 
     def _desktop_settings(self, action: dict) -> None:
         old = desktop_preferences(self.store.read())
@@ -529,6 +566,7 @@ class BridgeServer:
     async def _delete_data(self, action: dict) -> None:
         self._resetting = True
         try:
+            await self.stop_relay()
             # Revoke durably where possible, but do not let a failed vault write
             # prevent an explicitly requested unlink of the private state file.
             try:
@@ -572,6 +610,22 @@ class BridgeServer:
                 return
             if kind == "desktop-settings":
                 self._desktop_settings(action)
+                return
+            if kind in {"relay_configure", "relay_disable", "relay_clear"}:
+                if self.relay_pump is None:
+                    raise RelayError("unavailable")
+                if kind == "relay_configure":
+                    configure_relay(self.store, action.get("setupCode"))
+                    self.relay_pump.status = "waiting"
+                    self.relay_pump.last_exchange_at = None
+                elif kind == "relay_disable":
+                    disable_relay(self.store)
+                    self.relay_pump.status = "off"
+                else:
+                    clear_relay(self.store)
+                    self.relay_pump.status = "off"
+                    self.relay_pump.last_exchange_at = None
+                self._management_result(action, True)
                 return
             if kind == "preview-extend-until":
                 preview = self.engine.preview_extension_until(action.get("localTime"))
@@ -638,9 +692,9 @@ class BridgeServer:
                     result["requestId"] = action["requestId"]
                 self.ui.render({**self.engine.last_view, "actionResult": result})
         except Exception as error:
-            if kind in {"desktop-settings", "preview-extend-until", "extend-until", "delete-data"}:
+            if kind in {"desktop-settings", "preview-extend-until", "extend-until", "delete-data", "relay_configure", "relay_disable", "relay_clear"}:
                 allowed = {"pc-name-invalid", "hotkey-invalid", "hotkey-conflict", "theme-invalid", "desktop-settings-invalid", "confirmation-required", "preview-required", "preview-expired", "clock", "clock-range", "clock-nonexistent", "phone-override-required", "no-schedule"}
-                reason = str(error) if isinstance(error, (DesktopSettingsError, ProtocolError)) and str(error) in allowed else "not-saved"
+                reason = ("relay-" + error.code) if isinstance(error, RelayError) else str(error) if isinstance(error, (DesktopSettingsError, ProtocolError)) and str(error) in allowed else "not-saved"
                 self._management_result(action, False, reason=reason)
                 return
             self.engine._message("Noch nicht übernommen. Bitte Einstellung und Verbindung prüfen.")
