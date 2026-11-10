@@ -102,6 +102,8 @@ export interface NativeReminder {
   token: string
   critical: boolean
   ruleId?: string
+  /** Uses the same dated bedtime source, with strictly silent native follow-ups. */
+  quietFollowUps?: boolean
 }
 
 export type ReminderActionInfo = ReminderAction

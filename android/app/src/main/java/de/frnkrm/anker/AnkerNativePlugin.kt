@@ -181,7 +181,13 @@ class AnkerNativePlugin : Plugin() {
     @PluginMethod fun startBedtimePrompt(call: PluginCall) = bedtime(call) {
         val raw = call.data.opt("delayMinutes")
         require(raw is Number && raw.toDouble().isFinite() && raw.toDouble() == raw.toInt().toDouble()) { "Die Einschlafzeit ist ungültig." }
-        BedtimePromptController.start(context, raw.toInt())
+        fun flag(name: String): Boolean {
+            if (!call.data.has(name)) return false
+            val value = call.data.opt(name)
+            require(value is Boolean) { "Die Auswahl für den Schlafhinweis ist ungültig." }
+            return value
+        }
+        BedtimePromptController.start(context, raw.toInt(), flag("followUps"), flag("quietOnly"))
     }
     @PluginMethod fun stopBedtimePrompt(call: PluginCall) = bedtime(call) { BedtimePromptController.stop(context, call.getString("sessionId")) }
     @PluginMethod fun ackBedtimePrompt(call: PluginCall) = bedtime(call) { BedtimePromptController.ack(context, call.getString("sessionId") ?: "") }
