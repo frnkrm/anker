@@ -322,6 +322,14 @@ object PcBridgeClient {
         val selectedGeneration = ++generation
         connecting = true
         try {
+            // The old 0.1.0 companion strictly rejects the new optional preferences.
+            // Check through the existing certificate pin before opening any data channel,
+            // including autonomous replays of a previously queued state/briefing.
+            val hello = request(endpoint, data.getString("pin"), "/v3/hello")
+            check(PcLinkModel.compatibleCompanion(hello.opt("protocol"), hello.opt("version"))) { "PC_PROTOCOL_UNSUPPORTED" }
+            exact(hello, setOf("version", "protocol", "name", "pairingOpen"))
+            boundedText(hello.getString("name"), 100)
+            require(hello.get("pairingOpen") is Boolean) { "PC_PAYLOAD_INVALID" }
             val client = httpClient(data.getString("pin")).newBuilder().readTimeout(0, TimeUnit.MILLISECONDS).pingInterval(25, TimeUnit.SECONDS).build()
             val request = Request.Builder().url(endpoint.wss("/v3/ws?pair=$pair")).build()
             socket = client.newWebSocket(request, object : WebSocketListener() {
@@ -523,8 +531,10 @@ object PcBridgeClient {
     }
 
     private fun validatePreferences(value: JSONObject) {
-        exact(value, setOf("enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"), setOf("ifThen", "bedtimeSequence"))
+        exact(value, setOf("enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"), setOf("ifThen", "bedtimeSequence", "singleTransition", "bedAfterStopMin"))
         if (value.has("bedtimeSequence")) require(value.get("bedtimeSequence") is Boolean) { "PC_PAYLOAD_INVALID" }
+        val extensions = setOf("singleTransition", "bedAfterStopMin").filter(value::has).associateWith(value::get)
+        require(PcLinkModel.validCompanionPreferenceExtensions(extensions)) { "PC_PAYLOAD_INVALID" }
         for (key in setOf("enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "shareBrainDump", "morningCountdown")) require(value.get(key) is Boolean) { "PC_PAYLOAD_INVALID" }
         require(value.get("dimMax") is Number && value.getDouble("dimMax") in 0.0..0.4 && whole(value, "graceSeconds") in 60..600
             && value.getString("offlinePolicy") in setOf("pause", "fixed-time") && value.getString("stopAction") in setOf("lock", "hibernate", "shutdown")) { "PC_PAYLOAD_INVALID" }

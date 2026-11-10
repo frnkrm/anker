@@ -14,6 +14,7 @@ object PcLinkModel {
     const val MAX_ACK_AGE_MS = 120_000L
     private val identifier = Regex("[A-Za-z0-9._:-]{1,160}")
     private val base64 = Regex("[A-Za-z0-9_-]+")
+    private val stableVersion = Regex("(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?")
 
     data class Endpoint(val host: String, val port: Int) {
         fun authority(): String = if (host.contains(':')) "[$host]:$port" else "$host:$port"
@@ -27,6 +28,23 @@ object PcLinkModel {
         is Int -> value.toLong()
         is Long -> value
         else -> null
+    }
+
+    /** The two new optional fields require the stable 0.1.1 PC validator, not a protocol bump. */
+    fun compatibleCompanion(protocol: Any?, version: Any?): Boolean {
+        if (wireInteger(protocol) != 3L || version !is String || version.length !in 5..128) return false
+        val matched = stableVersion.matchEntire(version) ?: return false
+        val parts = (1..3).map { matched.groupValues[it].toLongOrNull() ?: return false }
+        return parts[0] > 0L || parts[1] > 1L || (parts[1] == 1L && parts[2] >= 1L)
+    }
+
+    /** Presence is explicit: null, coerced numbers and unknown/local-only keys are never optional. */
+    fun validCompanionPreferenceExtensions(values: Map<String, Any?>): Boolean = values.all { (key, value) ->
+        when (key) {
+            "singleTransition" -> value is Boolean
+            "bedAfterStopMin" -> wireInteger(value)?.let { it in 0..30 } == true
+            else -> false
+        }
     }
     fun validSequence(value: Long): Boolean = value in 1..MAX_SAFE_SEQUENCE
     fun acceptSequence(previous: Long, incoming: Long): Boolean = validSequence(incoming) && incoming > previous

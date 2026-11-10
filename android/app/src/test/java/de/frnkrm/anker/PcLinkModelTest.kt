@@ -17,6 +17,45 @@ class PcLinkModelTest {
         localReceivedAt = nightNow - 5, stopAt = nightNow - 30 * 60_000L,
     )
 
+    @Test fun companionMinimumUsesStableSemanticVersionComponentsWithoutProtocolBump() {
+        for (version in listOf("0.1.1", "0.1.2", "0.1.10", "0.2.0", "1.0.0", "10.0.0", "0.1.1+build.42", "0.1.1+build-42.01")) {
+            assertTrue(version, PcLinkModel.compatibleCompanion(3, version))
+            assertTrue(version, PcLinkModel.compatibleCompanion(3L, version))
+        }
+        for (version in listOf("0.0.999", "0.1.0", "0.0.0", "0.1.1-rc.1", "0.2.0-alpha", "1.0.0-dev+build.1")) {
+            assertFalse(version, PcLinkModel.compatibleCompanion(3, version))
+        }
+    }
+
+    @Test fun companionHelloCannotInventMissingMalformedOrCoercedVersionSupport() {
+        for (version in listOf(null, true, 1, "", "0.1", "v0.1.1", "0.01.1", "00.1.1", "0.1.01", "0.1.1.0",
+            "0.1.1+", "0.1.1+bad..build", "0.1.1+bad_build", " 0.1.1", "0.1.1\n", "9".repeat(129), "9223372036854775808.1.1")) {
+            assertFalse(version.toString(), PcLinkModel.compatibleCompanion(3, version))
+        }
+        for (protocol in listOf(null, true, "3", 3.0, 3.1, 2, 4)) {
+            assertFalse(protocol.toString(), PcLinkModel.compatibleCompanion(protocol, "0.1.1"))
+        }
+    }
+
+    @Test fun companionPreferenceExtensionsRemainOptionalAndHaveExactNativeTypesAndBounds() {
+        assertTrue(PcLinkModel.validCompanionPreferenceExtensions(emptyMap()))
+        for (enabled in listOf(false, true)) {
+            for (minutes in listOf(0, 1, 30, 0L, 30L)) {
+                assertTrue(PcLinkModel.validCompanionPreferenceExtensions(mapOf("singleTransition" to enabled, "bedAfterStopMin" to minutes)))
+            }
+            assertTrue(PcLinkModel.validCompanionPreferenceExtensions(mapOf("singleTransition" to enabled)))
+        }
+        assertTrue(PcLinkModel.validCompanionPreferenceExtensions(mapOf("bedAfterStopMin" to 15)))
+        for (invalid in listOf(null, 0, 1, "true", Any())) {
+            assertFalse(PcLinkModel.validCompanionPreferenceExtensions(mapOf("singleTransition" to invalid)))
+        }
+        for (invalid in listOf(null, true, "15", 0.0, 1.5, -1, 31, Long.MAX_VALUE)) {
+            assertFalse(PcLinkModel.validCompanionPreferenceExtensions(mapOf("bedAfterStopMin" to invalid)))
+        }
+        assertFalse(PcLinkModel.validCompanionPreferenceExtensions(mapOf("followGentleEvening" to true)))
+        assertFalse(PcLinkModel.validCompanionPreferenceExtensions(mapOf("singleTransition" to true, "unknown" to false)))
+    }
+
     @Test fun privateLanAndLoopbackAreAllowedButInternetAndUnspecifiedAreNot() {
         for (host in listOf("10.2.3.4", "172.16.2.3", "192.168.10.2", "169.254.1.1", "127.0.0.1", "::1", "fd12::1", "fe80::1")) {
             assertTrue(host, PcLinkModel.privateAddress(InetAddress.getByName(host)))
