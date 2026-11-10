@@ -23,6 +23,7 @@ const WARNING_TEXT: Record<PcAck['warnings'][number] | 'link-stale', string> = {
   'morning-deadline-reached': 'Das vorbereitete Morgenfenster ist zu Ende. Die weitere Freigabe richtet sich nach deiner PC-Einstellung.',
   'pairing-required': 'Die Kopplung muss am Handy erneut bestätigt werden.',
   'link-stale': 'Handy gerade nicht erreichbar. Der PC folgt deiner gewählten Offline-Regel.',
+  'command-expired': 'Diese ältere Anfrage wurde nicht mehr übernommen. Stelle sie bei Bedarf erneut.',
 }
 const PHASE_TEXT: Record<PcPhase, string> = {
   IDLE: 'Ruhig', DAY_ACTIVE: 'Alltag', MORNING_PENDING: 'Morgenbeginn bereit', MORNING_ACTIVE: 'Morgenroutine läuft', MORNING_COMPLETED: 'Morgenroutine tatsächlich abgeschlossen',
