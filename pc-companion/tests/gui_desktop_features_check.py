@@ -65,8 +65,8 @@ def check(output: Path) -> dict:
         result['timePillAndCountdownBarNeverOverlapOnFirstFrame'] = True
         result['eveningIfThenVisible'] = True
         save('evening-if-then-and-time-pill.png')
-        button(ui._card, 'Bis …').invoke()
-        window = next(widget for widget in ui.root.winfo_children() if isinstance(widget, tk.Toplevel) and widget.title() == 'Bis zu einer Uhrzeit …')
+        button(ui._card, 'Bis Uhrzeit').invoke()
+        window = next(widget for widget in ui.root.winfo_children() if isinstance(widget, tk.Toplevel) and widget.title() == 'Bis zu einer Uhrzeit')
         entry = next(widget for widget in widgets(window) if isinstance(widget, tk.Entry))
         entry.insert(0, '23:30')
         button(window, 'Vorschau ansehen').invoke()

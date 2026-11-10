@@ -170,11 +170,13 @@ class DesktopUI:
             if kind == "sync" and not ok:
                 feedback = {
                     "pending-events": "Öffne Anker am Handy, damit offene PC-Rückmeldungen übernommen werden.",
-                    "offline": "Noch keine Handyverbindung. Öffne Anker am Handy und prüfe das gemeinsame WLAN.",
+                    "offline": "Für diesen Sofortabgleich fehlt die WLAN-Verbindung. Öffne Anker am Handy und prüfe das gemeinsame WLAN.",
                     "unpaired": "Kopple zuerst dein Handy über Mit Handy koppeln.",
                     "timeout": "Noch keinen neuen Handystand empfangen. Öffne Anker am Handy und versuche es erneut.",
                     "busy": "Ein Abgleich läuft bereits. Warte kurz und versuche es danach erneut.",
                 }.get(self._last_sync_result.get("status"), feedback)
+                if self._last_sync_result.get('status') == 'offline' and self.snapshot.get('relay', {}).get('enabled') is True:
+                    feedback += ' Relay versucht den Abgleich unabhängig im Hintergrund.'
             self._set_feedback(feedback)
         request_id = self._submit(action, complete)
         if kind not in self._main_pending:
@@ -192,15 +194,15 @@ class DesktopUI:
     def _dispatch_action(self, action: dict) -> None:
         kind = action.get("action")
         if kind == "sync":
-            self._perform_action(action, "Abgleich angefragt – warte auf das Handy …", "Handystand neu empfangen.")
+            self._perform_action(action, "Abgleich angefragt – warte auf das Handy", "Handystand neu empfangen.")
         elif kind == "pair":
-            self._perform_action(action, "Kopplungs-QR wird vorbereitet …", "QR-Code bereit. Scanne ihn mit Anker am Handy.")
+            self._perform_action(action, "Kopplungs-QR wird vorbereitet", "QR-Code bereit. Scanne ihn mit Anker am Handy.")
         elif kind == "test":
-            self._perform_action(action, "Testabend wird vorbereitet …", "Testabend gestartet. Er löst keine PC-Sperre aus.")
+            self._perform_action(action, "Testabend wird vorbereitet", "Testabend gestartet. Er löst keine PC-Sperre aus.")
         elif kind == "pause":
             self._pause()
         elif kind == "resume":
-            self._perform_action(action, "Wiederaufnahme angefragt …", "PC-Stopp wieder aktiviert, sofern ein gültiger Plan vorliegt.")
+            self._perform_action(action, "Wiederaufnahme angefragt", "PC-Stopp wieder aktiviert, sofern ein gültiger Plan vorliegt.")
         else:
             self._emit(action)
 
@@ -219,13 +221,13 @@ class DesktopUI:
         if self._strict():
             self._note("Verlängern am Handy", "Öffne Anker und bestätige die Notverlängerung mit deinem QR-Code. Der PC kann dafür kein Token erzeugen.")
         else:
-            self._perform_action({"action": "extend", "minutes": minutes}, "Verlängerung angefragt …", "Verlängerung am PC gespeichert. Die Übertragung zum Handy wird getrennt bestätigt.")
+            self._perform_action({"action": "extend", "minutes": minutes}, "Verlängerung angefragt", "Verlängerung am PC gespeichert. Die Übertragung zum Handy wird getrennt bestätigt.")
 
     def _pause(self) -> None:
         if self._strict():
             self._extend(15)
         else:
-            self._perform_action({"action": "pause"}, "Pause angefragt …", "PC-Stopp für heute am PC ausgesetzt.")
+            self._perform_action({"action": "pause"}, "Pause angefragt", "PC-Stopp für heute am PC ausgesetzt.")
 
     def _button(self, parent, text: str, command, *, primary: bool = False):
         button = rounded_button(self.tk, parent, text, command, primary=primary,
@@ -409,14 +411,14 @@ class DesktopUI:
         self._feedback_label = self._label(actions, variable=self._feedback_variable, muted=True)
         self._feedback_label.pack(fill="x", padx=20, pady=(4, 12))
         for key, text, callback, primary in [
-            ("sync", "Jetzt abgleichen", lambda: self._perform_action({"action": "sync"}, "Abgleich angefragt – warte auf das Handy …", "Handystand neu empfangen."), True),
-            ("pair", "Mit Handy koppeln", lambda: self._perform_action({"action": "pair"}, "Kopplungs-QR wird vorbereitet …", "QR-Code bereit. Scanne ihn mit Anker am Handy."), False),
+            ("sync", "Jetzt im WLAN abgleichen", lambda: self._perform_action({"action": "sync"}, "Abgleich angefragt – warte auf das Handy", "Handystand neu empfangen."), True),
+            ("pair", "Mit Handy koppeln", lambda: self._perform_action({"action": "pair"}, "Kopplungs-QR wird vorbereitet", "QR-Code bereit. Scanne ihn mit Anker am Handy."), False),
             ("savepoint", "Speicherpunkt setzen", lambda: self._form("savepoint"), False),
             ("thought", "Gedanke notieren", lambda: self._form("thought"), False),
             ("extend", "+15 Minuten", lambda: self._extend(15), False),
-            ("extend-until", "Bis zu einer Uhrzeit …", self._extend_form, False),
+            ("extend-until", "Bis zu einer Uhrzeit", self._extend_form, False),
             ("pause", "Heute ohne PC-Stopp", self._pause, False),
-            ("test", "Abendablauf testen", lambda: self._perform_action({"action": "test"}, "Testabend wird vorbereitet …", "Testabend gestartet. Er löst keine PC-Sperre aus."), False),
+            ("test", "Abendablauf testen", lambda: self._perform_action({"action": "test"}, "Testabend wird vorbereitet", "Testabend gestartet. Er löst keine PC-Sperre aus."), False),
             ("settings", "Einstellungen", self._settings, False),
             ("quit", "Beenden", self._request_quit, False),
         ]:
@@ -827,7 +829,7 @@ class DesktopUI:
         if self._strict():
             actions += [("Verlängern am Handy", lambda: self._extend(15)), ("Beenden", self._request_quit)]
         else:
-            actions += [("+15 Min", lambda: self._extend(15)), ("Bis …", self._extend_form), ("Heute ohne", self._pause)]
+            actions += [("+15 Min", lambda: self._extend(15)), ("Bis Uhrzeit", self._extend_form), ("Heute ohne", self._pause)]
         for label, callback in actions:
             self._button(buttons, label, callback).pack(fill="x", pady=3)
         self._card.update_idletasks()
@@ -838,7 +840,7 @@ class DesktopUI:
             self._extend(15)
             return
         window = self.tk.Toplevel(self.root)
-        window.title("Bis zu einer Uhrzeit …"); window.configure(bg=self.BG)
+        window.title("Bis zu einer Uhrzeit"); window.configure(bg=self.BG)
         window.geometry("440x300")
         body = self._scroll_body(window)
         self._label(body, "Bis wann möchtest du den PC nutzen?", size=18).pack(fill="x", padx=16, pady=(16, 8))
@@ -875,7 +877,7 @@ class DesktopUI:
                 return
             waiting = True
             entry.configure(state="disabled"); button.configure(state="disabled")
-            feedback.configure(text="Vorschau wird geprüft …")
+            feedback.configure(text="Vorschau wird geprüft")
             self._last_extension_preview = {}
 
             def previewed(ok):
@@ -899,7 +901,7 @@ class DesktopUI:
                 if self._strict():
                     enable("Der strenge Modus ist inzwischen aktiv. Bitte am Handy per QR-Code bestätigen.")
                     return
-                feedback.configure(text="Zeitänderung wird übernommen …")
+                feedback.configure(text="Zeitänderung wird übernommen")
                 pending_id = self._submit({'action': 'extend-until', 'localTime': local_time,
                                            'expectedTargetAt': preview['pcStopAt']}, finished)
             pending_id = self._submit({'action': 'preview-extend-until', 'localTime': local_time}, previewed)
@@ -993,7 +995,7 @@ class DesktopUI:
                 return
             self._close_offer()
             self._perform_action({"action": "confirm_pair" if approved else "reject_pair", "id": identifier},
-                                 "Kopplungsantwort wird übernommen …", "Kopplung bestätigt." if approved else "Kopplung abgebrochen.")
+                                 "Kopplungsantwort wird übernommen", "Kopplung bestätigt." if approved else "Kopplung abgebrochen.")
         self._button(dialog, "Ja, koppeln", lambda: answer(True), primary=True).pack(fill="x", padx=20, pady=8)
         self._button(dialog, "Abbrechen", lambda: answer(False)).pack(fill="x", padx=20, pady=(0, 16))
         dialog.protocol("WM_DELETE_WINDOW", lambda: answer(False))
@@ -1091,9 +1093,9 @@ class DesktopUI:
         self._button(dialog, "Darstellung, PC-Name & Tastenkürzel", self._desktop_settings).pack(fill="x", padx=16, pady=6)
         self._button(dialog, "PC-Updates", self._update_settings).pack(fill="x", padx=16, pady=6)
         self._button(dialog, "Online-Verbindung über Relay · optional", self._relay_settings).pack(fill="x", padx=16, pady=6)
-        self._button(dialog, "Entkoppeln", lambda: self._perform_action({"action": "unpair"}, "Kopplung wird aufgehoben …", "Kopplung am PC aufgehoben.")).pack(fill="x", padx=16, pady=6)
+        self._button(dialog, "Entkoppeln", lambda: self._perform_action({"action": "unpair"}, "Kopplung wird aufgehoben", "Kopplung am PC aufgehoben.")).pack(fill="x", padx=16, pady=6)
         if self.snapshot.get("legacyConflict"):
-            self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._perform_action({"action": "remove_legacy"}, "Klassische Aufgabe wird entfernt …", "Klassische PC-Stopp-Aufgabe entfernt.")).pack(fill="x", padx=16, pady=6)
+            self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._perform_action({"action": "remove_legacy"}, "Klassische Aufgabe wird entfernt", "Klassische PC-Stopp-Aufgabe entfernt.")).pack(fill="x", padx=16, pady=6)
 
     def _desktop_settings(self) -> None:
         prefs = self.snapshot.get("desktopPrefs", {})
@@ -1187,7 +1189,7 @@ class DesktopUI:
             waiting = True
             for widget in controls: widget.configure(state="disabled")
             button.configure(state="disabled"); delete.configure(state="disabled")
-            feedback.configure(text="PC-Einstellungen werden gespeichert …")
+            feedback.configure(text="PC-Einstellungen werden gespeichert")
             pending_id = self._submit({'action': 'desktop-settings', 'prefs': {'pcName': selected_name,
                                       'hotkeys': selected_keys, 'theme': theme.get()}}, completed)
             request = pending_id
@@ -1203,7 +1205,7 @@ class DesktopUI:
                 return
             waiting = True
             button.configure(state="disabled"); delete.configure(state="disabled")
-            feedback.configure(text="Lokale Begleiterdaten werden entfernt …")
+            feedback.configure(text="Lokale Begleiterdaten werden entfernt")
             def deleted(ok):
                 if ok:
                     self.messagebox.showinfo("Lokale Daten entfernt", "Anker beendet sich jetzt. Öffne anschließend Start.cmd, um den Begleiter neu einzurichten.", parent=window)
@@ -1278,7 +1280,7 @@ class DesktopUI:
                 return
             waiting = True
             for control in buttons: control.configure(state='disabled')
-            feedback.configure(text='Relay-Auswahl wird übernommen …')
+            feedback.configure(text='Relay-Auswahl wird übernommen')
             try: pending_id = self._submit(value, completed)
             finally:
                 entry.delete(0, 'end'); entry.configure(state='disabled' if waiting else 'normal')
@@ -1354,7 +1356,7 @@ class DesktopUI:
             if action == 'update-download' and not available: return
             waiting = action
             for control in (check, download, install): control.configure(state='disabled')
-            feedback.configure(text={'update-check': 'Versionsinfo wird geprüft …', 'update-download': 'Updatepaket wird heruntergeladen und geprüft …', 'update-install': 'Installationshelfer wird vorbereitet …'}[action])
+            feedback.configure(text={'update-check': 'Versionsinfo wird geprüft', 'update-download': 'Updatepaket wird heruntergeladen und geprüft', 'update-install': 'Installationshelfer wird vorbereitet'}[action])
             self._last_update_result = {}
             pending_id = self._submit(value, completed)
             request = pending_id
@@ -1479,7 +1481,7 @@ class DesktopUI:
             def queue(kind, value=None): return lambda _icon, _item: self.queue.put((kind, value))
             menu = pystray.Menu(
                 pystray.MenuItem("Anker öffnen", queue("main"), default=True),
-                pystray.MenuItem("Jetzt abgleichen", queue("action", {"action": "sync"})),
+                pystray.MenuItem("Jetzt im WLAN abgleichen", queue("action", {"action": "sync"})),
                 pystray.MenuItem("Speicherpunkt setzen", queue("form", "savepoint")),
                 pystray.MenuItem("Gedanke notieren", queue("form", "thought")),
                 pystray.MenuItem("+15 Min", lambda _i, _m: self.queue.put(("extend", 15)), enabled=lambda _m: not self._strict()),

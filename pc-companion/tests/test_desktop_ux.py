@@ -76,7 +76,7 @@ class DesktopUxTests(unittest.TestCase):
         self.assertEqual(ui._action_buttons['sync'].options['state'], 'normal')
 
     def test_sync_failure_reason_is_readable_and_never_echoes_remote_text(self):
-        for status, expected in [('offline', 'Handyverbindung'), ('pending-events', 'PC-Rückmeldungen'),
+        for status, expected in [('offline', 'WLAN-Verbindung'), ('pending-events', 'PC-Rückmeldungen'),
                                  ('unpaired', 'Kopple zuerst'), ('timeout', 'Noch keinen neuen'), ('busy', 'läuft bereits')]:
             ui, sent = self.ui(); ui._dispatch_action({'action': 'sync'})
             ui._resolve_action_result({'action': 'sync', 'requestId': sent[0]['requestId'], 'ok': False,
