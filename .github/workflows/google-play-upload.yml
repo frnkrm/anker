@@ -205,6 +205,20 @@ jobs:
               result = json.loads(report.read_text())
           except Exception:
               result = {}
+          phase = result.get('commitPhase')
+          if isinstance(phase, str) and phase in ['not-started', 'preferred-commit', 'compatibility-revalidation', 'compatible-commit', 'persisted-readback']:
+              safe_commit = {'phase': phase}
+              preferred = result.get('changesNotSentForReviewPreferred')
+              if type(preferred) is bool:
+                  safe_commit['changesNotSentForReviewPreferred'] = preferred
+              effective = result.get('changesNotSentForReviewEffective')
+              safe_commit['changesNotSentForReviewEffective'] = effective if isinstance(effective, str) and effective in ['not-attempted', 'true', 'omitted'] else 'unknown'
+              attempts = result.get('commitCompatibilityAttempts')
+              if type(attempts) is int and attempts in [0, 1]:
+                  safe_commit['commitCompatibilityAttempts'] = attempts
+              if result.get('googleDiagnosticCode') == 'COMMIT_REVIEW_FLAG_UNSUPPORTED':
+                  safe_commit['googleDiagnosticCode'] = 'COMMIT_REVIEW_FLAG_UNSUPPORTED'
+              print('::notice title=Anker Play Commitprüfung::' + json.dumps(safe_commit, separators=(',', ':')))
           observation = result.get('trackObservation')
           if isinstance(observation, dict):
               rows = observation.get('releases')

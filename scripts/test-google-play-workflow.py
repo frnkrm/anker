@@ -461,6 +461,27 @@ class UploadResultTests(unittest.TestCase):
         self.assertNotIn(PRIVATE_BODY, output)
         self.assertNotIn(SYNTHETIC_TOKEN, output)
 
+    def test_commit_compatibility_notice_distinguishes_preferred_and_effective_flags(self):
+        code,output=self.execute({'status':'failed','reason':'HTTP_INVALID_REQUEST','httpStatus':400,
+            'commitPhase':'compatible-commit','changesNotSentForReviewPreferred':True,
+            'changesNotSentForReviewEffective':'omitted','commitCompatibilityAttempts':1,
+            'googleDiagnosticCode':'COMMIT_REVIEW_FLAG_UNSUPPORTED','instructions':PRIVATE_BODY,'token':SYNTHETIC_TOKEN},2)
+        self.assertEqual(code,2)
+        notice=next(line for line in output.splitlines() if line.startswith('::notice title=Anker Play Commitprüfung::'))
+        value=json.loads(notice.split('::',2)[2])
+        self.assertEqual(value,{'phase':'compatible-commit','changesNotSentForReviewPreferred':True,
+            'changesNotSentForReviewEffective':'omitted','commitCompatibilityAttempts':1,
+            'googleDiagnosticCode':'COMMIT_REVIEW_FLAG_UNSUPPORTED'})
+        self.assertNotIn(PRIVATE_BODY,output);self.assertNotIn(SYNTHETIC_TOKEN,output)
+
+    def test_commit_notice_rejects_free_text_enums_and_noninteger_attempts(self):
+        _,output=self.execute({'status':'failed','commitPhase':'preferred-commit',
+            'changesNotSentForReviewPreferred':SYNTHETIC_TOKEN,'changesNotSentForReviewEffective':PRIVATE_BODY,
+            'commitCompatibilityAttempts':True,'googleDiagnosticCode':SYNTHETIC_TOKEN},2)
+        self.assertNotIn(PRIVATE_BODY,output);self.assertNotIn(SYNTHETIC_TOKEN,output)
+        notice=next(line for line in output.splitlines() if line.startswith('::notice title=Anker Play Commitprüfung::'))
+        self.assertEqual(json.loads(notice.split('::',2)[2]),{'phase':'preferred-commit','changesNotSentForReviewEffective':'unknown'})
+
     def test_ambiguous_commit_is_reported_as_inconclusive_without_success_notice(self):
         code, output = self.execute({'status': 'inconclusive', 'reason': 'COMMIT_RESULT_UNKNOWN'}, 3)
         self.assertEqual(code, 3)

@@ -696,5 +696,225 @@ class ProductionApprovalTests(unittest.TestCase):
         self.assertNotIn(FAKE_TOKEN, report_path.read_text() + output.getvalue())
 
 
+class CommitCompatibilityApi(FakeApi):
+    def __init__(self, releases):
+        super().__init__(releases=releases)
+        self.upload_response = {"versionCode": 17, "sha256": uploader.BUNDLE_SHA256}
+        self.compat_track = None
+        self.compat_validation = None
+        self.track_reads = 0
+        self.validations = 0
+
+    def request(self, method, path, payload=None, *, bundle=False):
+        if method == "GET" and path == OWN + "/tracks/internal":
+            self.track_reads += 1
+            if self.track_reads > 1 and self.compat_track is not None:
+                self.calls.append((method, path, payload, bundle))
+                if isinstance(self.compat_track, Exception):
+                    raise self.compat_track
+                return copy.deepcopy(self.compat_track)
+        if method == "POST" and path == OWN + ":validate":
+            self.validations += 1
+            if self.validations > 1 and self.compat_validation is not None:
+                self.calls.append((method, path, payload, bundle))
+                return copy.deepcopy(self.compat_validation)
+        if method == "POST" and path == OWN + ":commit?changesInReviewBehavior=ERROR_IF_IN_REVIEW":
+            self.calls.append((method, path, payload, bundle))
+            failure = self.failures.get((method, path))
+            if failure:
+                raise failure
+            return copy.deepcopy(self.commit_response)
+        return super().request(method, path, payload, bundle=bundle)
+
+
+class ProductionCommitCompatibilityTests(unittest.TestCase):
+    MESSAGE = "The query parameter changesNotSentForReview must not be set"
+    DIAGNOSTIC = "COMMIT_REVIEW_FLAG_UNSUPPORTED"
+    COMPAT = OWN + ":commit?changesInReviewBehavior=ERROR_IF_IN_REVIEW"
+
+    def setUp(self):
+        self.assertEqual(uploader.VERSION, 17)
+        network = patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Real network forbidden"))
+        network.start(); self.addCleanup(network.stop)
+        self.old = {"status": "completed", "versionCodes": ["16"], "name": PRIVATE_ERROR,
+                    "releaseNotes": [{"language": "de-DE", "text": PRIVATE_ERROR}], "inAppUpdatePriority": 2}
+
+    def transport_error(self, body=None, status=400, path=None):
+        body = json.dumps({"error": {"code": status, "message": self.MESSAGE}, "private": PRIVATE_ERROR}).encode() if body is None else body
+        api = uploader.Transport(FAKE_TOKEN); api._opener = Mock()
+        stream = io.BytesIO(body)
+        api._opener.open.side_effect = urllib.error.HTTPError("https://androidpublisher.googleapis.com", status, PRIVATE_ERROR, {}, stream)
+        with self.assertRaises(uploader.UploadError) as raised:
+            api.request("POST", OWN + ":commit" + uploader.COMMIT_QUERY if path is None else path)
+        self.assertTrue(stream.closed)
+        self.assertNotIn(PRIVATE_ERROR, str(raised.exception))
+        return raised.exception
+
+    def api(self, releases=None):
+        api = CommitCompatibilityApi([self.old] if releases is None else releases)
+        api.failures[("POST", OWN + ":commit" + uploader.COMMIT_QUERY)] = self.transport_error()
+        return api
+
+    def perform(self, api, report):
+        try:
+            uploader.perform_upload(api, b"offline-approved-bundle", report)
+        finally:
+            self.assertNotIn(PRIVATE_ERROR, json.dumps(report))
+            self.assertNotIn(FAKE_TOKEN, json.dumps(report))
+
+    def test_exact_google_commit_message_becomes_fixed_code_without_private_body(self):
+        error = self.transport_error()
+        self.assertEqual(error.code, "HTTP_INVALID_REQUEST")
+        self.assertEqual(getattr(error, "diagnostic_code", None), self.DIAGNOSTIC)
+
+    def test_complete_known_message_allows_only_optional_final_period_and_surrounding_whitespace(self):
+        for message in [self.MESSAGE, self.MESSAGE + ".", " \n" + self.MESSAGE + ".\t"]:
+            body=json.dumps({"error":{"code":400,"message":message}}).encode()
+            self.assertEqual(self.transport_error(body).diagnostic_code,self.DIAGNOSTIC)
+
+    def test_exact_refusal_retries_only_same_validated_edit_and_preserves_full_release16(self):
+        api = self.api(); report = uploader.new_report(); self.perform(api, report)
+        self.assertEqual(report["status"], "draft-committed")
+        self.assertTrue(report["draftVerified"] and report["commitAcknowledged"])
+        self.assertFalse(report["publishedByThisRun"])
+        self.assertTrue(report["changesNotSentForReviewPreferred"])
+        self.assertEqual(report["changesNotSentForReviewEffective"], "omitted")
+        self.assertEqual(report["commitCompatibilityAttempts"], 1)
+        self.assertEqual(report["googleDiagnosticCode"], self.DIAGNOSTIC)
+        self.assertEqual(api.track['releases'][0], self.old)
+        self.assertEqual(api.track['releases'][1], {"name": uploader.RELEASE_NAME, "versionCodes": ["17"], "status": "draft"})
+        commits = [(m,p) for m,p,_,_ in api.calls if ":commit" in p]
+        self.assertEqual(commits, [("POST", OWN + ":commit" + uploader.COMMIT_QUERY), ("POST", self.COMPAT)])
+        self.assertEqual(sum(c[3] for c in api.calls), 1)
+        self.assertEqual(sum(c[0] == "PUT" for c in api.calls), 1)
+        self.assertEqual(api.validations, 2)
+        first = next(i for i,c in enumerate(api.calls) if c[1] == commits[0][1])
+        second = next(i for i,c in enumerate(api.calls) if c[1] == self.COMPAT)
+        self.assertEqual([(m,p) for m,p,_,_ in api.calls[first+1:second]], [("GET", OWN + "/tracks/internal"), ("POST", OWN + ":validate")])
+        self.assertIn(("GET", VERIFY + "/tracks/internal"), [(m,p) for m,p,_,_ in api.calls])
+
+    def test_unknown_malformed_private_or_different_http_errors_never_authorize_retry(self):
+        bodies = [b"not JSON " + PRIVATE_ERROR.encode(), json.dumps({"error":{"code":400,"message":self.MESSAGE+". " + PRIVATE_ERROR}}).encode(),
+                  json.dumps({"error":{"code":"400","message":self.MESSAGE}}).encode(),
+                  json.dumps({"error":{"code":400,"message":PRIVATE_ERROR,"errors":[{"message":self.MESSAGE}]}}).encode(),
+                  ('{"error":{"code":400,"message":"'+self.MESSAGE+'","message":"'+self.MESSAGE+'"}}').encode(),
+                  b"x" * 65537, b"\xff", json.dumps({"error":{"code":400,"message":self.MESSAGE},"extra":float('nan')}).encode()]
+        for body in bodies:
+            self.assertIsNone(getattr(self.transport_error(body), "diagnostic_code", None))
+        for status in [401,403,409,429,500,503]:
+            self.assertIsNone(getattr(self.transport_error(status=status), "diagnostic_code", None))
+        self.assertIsNone(getattr(self.transport_error(path=OWN+":validate"), "diagnostic_code", None))
+        self.assertIsNone(getattr(self.transport_error(path=self.COMPAT), "diagnostic_code", None))
+
+    def test_error_body_read_is_bounded_closed_and_does_not_escape_as_exception_text(self):
+        limits=[]
+        class Body(io.BytesIO):
+            def read(self, limit):
+                limits.append(limit); return super().read(limit)
+        body=Body(b"x"*100000);api=uploader.Transport(FAKE_TOKEN);api._opener=Mock()
+        api._opener.open.side_effect=urllib.error.HTTPError("https://androidpublisher.googleapis.com",400,PRIVATE_ERROR,{},body)
+        with self.assertRaises(uploader.UploadError) as raised:api.request("POST",OWN+":commit"+uploader.COMMIT_QUERY)
+        self.assertEqual(limits,[65536]);self.assertTrue(body.closed);self.assertNotIn(PRIVATE_ERROR,str(raised.exception))
+
+    def test_normal_success_has_no_compatibility_attempt(self):
+        api=self.api();api.failures.clear();report=uploader.new_report();self.perform(api,report)
+        self.assertEqual(report["changesNotSentForReviewEffective"],"true");self.assertEqual(report["commitCompatibilityAttempts"],0)
+        self.assertEqual(sum(":commit" in c[1] for c in api.calls),1)
+
+    def test_failed_body_read_remains_generic_400_without_private_exception(self):
+        class Body(io.BytesIO):
+            def read(self, maximum):
+                raise RuntimeError(PRIVATE_ERROR)
+        body=Body();api=uploader.Transport(FAKE_TOKEN);api._opener=Mock()
+        api._opener.open.side_effect=urllib.error.HTTPError("https://androidpublisher.googleapis.com",400,PRIVATE_ERROR,{},body)
+        with self.assertRaises(uploader.UploadError) as raised:api.request("POST",OWN+":commit"+uploader.COMMIT_QUERY)
+        self.assertEqual(raised.exception.code,"HTTP_INVALID_REQUEST");self.assertIsNone(raised.exception.diagnostic_code)
+        self.assertTrue(body.closed);self.assertNotIn(PRIVATE_ERROR,str(raised.exception))
+
+    def test_foreign_or_missing_retained_release_never_uses_compatibility(self):
+        for releases in [[],[{"status":"draft","versionCodes":["19"]}],[self.old,{"status":"draft","versionCodes":["19"]}]]:
+            api=self.api(releases);report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):self.perform(api,report)
+            self.assertEqual(sum(":commit" in c[1] for c in api.calls),1);self.assertEqual(report["commitCompatibilityAttempts"],0)
+            self.assertEqual(api.calls[-1][:2],("DELETE",OWN))
+
+    def test_other_initial_commit_errors_never_enter_compatibility(self):
+        for status in [400,401,403,408,409,503]:
+            api=self.api();body=json.dumps({"error":{"code":status,"message":PRIVATE_ERROR}}).encode()
+            api.failures[("POST",OWN+":commit"+uploader.COMMIT_QUERY)]=self.transport_error(body,status=status)
+            report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):self.perform(api,report)
+            self.assertEqual(report["commitCompatibilityAttempts"],0);self.assertEqual(api.validations,1)
+            self.assertEqual(sum(":commit" in c[1] for c in api.calls),1)
+            self.assertEqual(any(c[0]=="DELETE" for c in api.calls),status not in [408,503])
+
+    def test_legacy16_never_uses_compatibility_even_with_recognized_refusal(self):
+        error=self.transport_error()
+        with patch.multiple(uploader,**LEGACY16):
+            api=FakeApi();api.failures[("POST",OWN+":commit"+uploader.COMMIT_QUERY)]=error;report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):self.perform(api,report)
+            self.assertEqual(sum(":commit" in c[1] for c in api.calls),1)
+
+    def test_changed_full_retained_dictionary_or_foreign_fresh_draft_aborts_before_second_commit(self):
+        for change in ["metadata16","draft17","foreign"]:
+            api=self.api();target={"name":uploader.RELEASE_NAME,"versionCodes":["17"],"status":"draft"};old=copy.deepcopy(self.old)
+            rows=[old,target]
+            if change=="metadata16":old["inAppUpdatePriority"]=3
+            elif change=="draft17":target["status"]="completed"
+            else:rows.append({"status":"draft","versionCodes":["19"]})
+            api.compat_track={"track":"internal","releases":rows};report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):self.perform(api,report)
+            self.assertEqual(report["commitCompatibilityAttempts"],0);self.assertEqual(sum(":commit" in c[1] for c in api.calls),1)
+            self.assertEqual(api.calls[-1][:2],("DELETE",OWN))
+
+    def test_fresh_read_network_or_validation_identity_failure_is_not_an_ambiguous_second_commit(self):
+        for failure in ["network","identity","unexpected"]:
+            api=self.api()
+            if failure=="network":api.compat_track=uploader.UploadError("NETWORK_ERROR")
+            elif failure=="identity":api.compat_validation={"id":"another-edit"}
+            else:api.compat_track=RuntimeError(PRIVATE_ERROR)
+            report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError) as raised:self.perform(api,report)
+            self.assertEqual(raised.exception.code,{"network":"NETWORK_ERROR","identity":"RESPONSE_INVALID","unexpected":"UNEXPECTED_ERROR"}[failure])
+            self.assertEqual(report["commitCompatibilityAttempts"],0);self.assertEqual(sum(":commit" in c[1] for c in api.calls),1)
+            self.assertEqual(api.calls[-1][:2],("DELETE",OWN))
+
+    def test_compatibility_refusal_stops_after_two_commits_and_cleans_only_own_edit(self):
+        for status in [400,401,403,409]:
+            api=self.api();api.failures[("POST",self.COMPAT)]=self.transport_error(status=status);report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):self.perform(api,report)
+            self.assertEqual(report["commitCompatibilityAttempts"],1);self.assertEqual(sum(":commit" in c[1] for c in api.calls),2)
+            self.assertEqual(api.calls[-1][:2],("DELETE",OWN));self.assertFalse(report["commitAcknowledged"])
+
+    def test_compatibility_timeout_server_error_or_malformed_ack_is_inconclusive_without_cleanup(self):
+        for failure in [uploader.UploadError("NETWORK_ERROR"),uploader.UploadError("HTTP_SERVER_ERROR",503),"wrong-id","malformed"]:
+            api=self.api();report=uploader.new_report()
+            if failure=="wrong-id":api.commit_response={"id":"another-edit"}
+            elif failure=="malformed":api.commit_response={}
+            else:api.failures[("POST",self.COMPAT)]=failure
+            with self.assertRaises(uploader.UploadError) as raised:self.perform(api,report)
+            self.assertEqual(raised.exception.code,"COMMIT_RESULT_UNKNOWN");self.assertEqual(report["commitCompatibilityAttempts"],1)
+            self.assertEqual(sum(":commit" in c[1] for c in api.calls),2);self.assertFalse(any(c[0]=="DELETE" for c in api.calls))
+            self.assertEqual(report["editCleanup"],"not-attempted-after-ambiguous-commit")
+
+    def test_full_persisted_readback_still_required_after_compatibility_commit(self):
+        api=self.api();api.readback_response={"track":"internal","releases":[{"status":"draft","versionCodes":["17"]}]};report=uploader.new_report()
+        with self.assertRaises(uploader.UploadError) as raised:self.perform(api,report)
+        self.assertEqual(raised.exception.code,"POST_COMMIT_UNVERIFIED");self.assertTrue(report["commitAcknowledged"]);self.assertFalse(report["draftVerified"] or report["publishedByThisRun"])
+        self.assertEqual([(m,p) for m,p,_,_ in api.calls if m=="DELETE"],[("DELETE",VERIFY)])
+
+    def test_actual_approval_cli_reports_effective_flag_without_private_body_or_release_metadata(self):
+        api=self.api();output=io.StringIO()
+        with tempfile.TemporaryDirectory() as folder:
+            report_path=Path(folder)/"result.json";manifest=Path(__file__).resolve().parents[1]/"docs/PLAY_UPLOAD_APPROVAL.json"
+            with patch.object(uploader,"read_bundle",return_value=b"offline-approved-bundle"),patch.object(uploader,"token_from_env",return_value=FAKE_TOKEN),patch.object(uploader,"Transport",return_value=api),contextlib.redirect_stdout(output):
+                code=uploader.main(["upload","--manifest",str(manifest),"--bundle",str(Path(folder)/"Anker.aab"),"--report",str(report_path)])
+            self.assertEqual(code,0);visible=report_path.read_text()+output.getvalue()
+            self.assertNotIn(PRIVATE_ERROR,visible);self.assertNotIn(FAKE_TOKEN,visible)
+            report=json.loads(report_path.read_text());self.assertEqual(report["changesNotSentForReviewEffective"],"omitted")
+            self.assertEqual(report["changesNotSentForReviewMeaning"],"approved-preference")
+            self.assertEqual(report["commitCompatibilityAttempts"],1);self.assertFalse(report["publishedByThisRun"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

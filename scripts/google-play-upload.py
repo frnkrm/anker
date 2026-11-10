@@ -3,7 +3,8 @@
 
 No signing keys or service-account JSON are read. Google credentials come only
 from GOOGLE_PLAY_ACCESS_TOKEN, supplied by the workflow's authentication step.
-There are no automatic network retries, including after an ambiguous commit.
+There are no automatic network retries after an ambiguous commit. Code17 alone
+permits one same-edit compatibility commit after an exact, explicit flag refusal.
 """
 from __future__ import annotations
 
@@ -39,6 +40,9 @@ HOST = "androidpublisher.googleapis.com"
 API_PATH = f"/androidpublisher/v3/applications/{PACKAGE}/edits"
 TOKEN_ENV = "GOOGLE_PLAY_ACCESS_TOKEN"
 COMMIT_QUERY = "?changesNotSentForReview=true&changesInReviewBehavior=ERROR_IF_IN_REVIEW"
+COMMIT_COMPAT_QUERY = "?changesInReviewBehavior=ERROR_IF_IN_REVIEW"
+COMMIT_FLAG_DIAGNOSTIC = "COMMIT_REVIEW_FLAG_UNSUPPORTED"
+MAX_GOOGLE_ERROR_BYTES = 64 * 1024
 MAX_JSON_BYTES = 1024 * 1024
 TIMEOUT_SECONDS = 120
 
@@ -71,9 +75,10 @@ MESSAGES = {
 
 
 class UploadError(Exception):
-    def __init__(self, code: str, http_status: int | None = None):
+    def __init__(self, code: str, http_status: int | None = None, *, diagnostic_code: str | None = None):
         self.code = code if code in MESSAGES else "UNEXPECTED_ERROR"
         self.http_status = http_status if type(http_status) is int and 100 <= http_status <= 599 else None
+        self.diagnostic_code = COMMIT_FLAG_DIAGNOSTIC if diagnostic_code == COMMIT_FLAG_DIAGNOSTIC else None
         super().__init__(self.code)
 
 
@@ -139,6 +144,32 @@ def http_code(status: int) -> str:
     return {400: "HTTP_INVALID_REQUEST", 401: "HTTP_UNAUTHORIZED", 403: "HTTP_FORBIDDEN", 404: "HTTP_NOT_FOUND", 409: "HTTP_CONFLICT", 429: "HTTP_RATE_LIMIT"}.get(status, "HTTP_SERVER_ERROR" if status >= 500 else "HTTP_ERROR")
 
 
+def commit_error_diagnostic(raw: bytes) -> str | None:
+    """Recognize one Google refusal; never retain or return remote text."""
+    try:
+        if len(raw) >= MAX_GOOGLE_ERROR_BYTES:
+            return None
+        def unique(pairs):
+            result = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValueError()
+                result[key] = value
+            return result
+        def invalid_constant(_):
+            raise ValueError()
+        value = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=invalid_constant)
+        error = value.get("error") if isinstance(value, dict) else None
+        message = error.get("message") if isinstance(error, dict) else None
+        known = "The query parameter changesNotSentForReview must not be set"
+        if (isinstance(error, dict) and type(error.get("code")) is int and error["code"] == 400
+                and isinstance(message, str) and message.strip() in {known, known + "."}):
+            return COMMIT_FLAG_DIAGNOSTIC
+    except (ValueError, UnicodeError, RecursionError):
+        pass
+    return None
+
+
 class Transport:
     """One bounded request; redirects and caller-supplied URLs are forbidden."""
     def __init__(self, token: str | None = None):
@@ -155,7 +186,8 @@ class Transport:
                      or method == "GET" and re.fullmatch(re.escape(API_PATH) + identifier + r"/(?:bundles|tracks/internal)", path)
                      or method == "PUT" and re.fullmatch(re.escape(API_PATH) + identifier + r"/tracks/internal", path)
                      or method == "POST" and re.fullmatch(re.escape(API_PATH) + identifier + ":validate", path)
-                     or method == "POST" and re.fullmatch(re.escape(API_PATH) + identifier + re.escape(":commit" + COMMIT_QUERY), path))
+                     or method == "POST" and re.fullmatch(re.escape(API_PATH) + identifier + re.escape(":commit" + COMMIT_QUERY), path)
+                     or method == "POST" and VERSION == 17 and re.fullmatch(re.escape(API_PATH) + identifier + re.escape(":commit" + COMMIT_COMPAT_QUERY), path))
         if not valid:
             raise UploadError("RESPONSE_INVALID")
         if self._token is None:
@@ -185,8 +217,19 @@ class Transport:
         except urllib.error.HTTPError as error:
             # Never log, print or propagate Google's response body, URL or headers.
             status = error.code
-            error.close()
-            raise UploadError(http_code(status), status) from None
+            diagnostic = None
+            try:
+                if (status == 400 and request.method == "POST" and re.fullmatch(
+                        "https://" + re.escape(HOST + API_PATH) + r"/[A-Za-z0-9_-]{1,200}" + re.escape(":commit" + COMMIT_QUERY), request.full_url)):
+                    diagnostic = commit_error_diagnostic(error.read(MAX_GOOGLE_ERROR_BYTES))
+            except Exception:
+                pass
+            finally:
+                try:
+                    error.close()
+                except Exception:
+                    pass
+            raise UploadError(http_code(status), status, diagnostic_code=diagnostic) from None
         except (urllib.error.URLError, TimeoutError, socket.timeout, ssl.SSLError, ConnectionError, OSError, http.client.HTTPException):
             raise UploadError("NETWORK_ERROR") from None
         except (ValueError, UnicodeError):
@@ -219,9 +262,13 @@ def token_from_env() -> str:
 
 
 def new_report() -> dict:
+    """Keep the approved preference distinct from the flag of the actual request."""
     return {"schemaVersion": 1, "recordedAt": datetime.now(timezone.utc).isoformat(), "packageName": PACKAGE, "versionCode": VERSION,
             "sourceCommit": SOURCE, "sourceFingerprint": FINGERPRINT, "bundleSha256": BUNDLE_SHA256, "ciRunId": CI_RUN,
             "track": "internal", "requestedReleaseStatus": "draft", "changesNotSentForReview": True,
+            "changesNotSentForReviewMeaning": "approved-preference",
+            "changesNotSentForReviewPreferred": True, "changesNotSentForReviewEffective": "not-attempted",
+            "commitCompatibilityAttempts": 0, "commitPhase": "not-started",
             "changesInReviewBehavior": "ERROR_IF_IN_REVIEW",
             "status": "failed", "bundleUploadConfirmed": False, "bundleUploadState": "not-attempted", "versionReservationUnknown": False,
             "bundleReused": False, "draftVerified": False, "activeReleaseVerified": False,
@@ -387,19 +434,54 @@ def perform_upload(api: Transport, data: bytes, report: dict) -> None:
         report["steps"].append("edit-validated")
         commit_started = True
         report["commitAttempted"] = True
+        report["changesNotSentForReviewEffective"] = "true"
+        report["commitPhase"] = "preferred-commit"
         try:
-            committed = api.request("POST", base + ":commit" + COMMIT_QUERY)
+            try:
+                committed = api.request("POST", base + ":commit" + COMMIT_QUERY)
+            except UploadError as refused:
+                if refused.diagnostic_code is not None:
+                    report["googleDiagnosticCode"] = refused.diagnostic_code
+                compatible = (VERSION == 17 and len(releases) == 1 and releases[0].get("status") == "completed"
+                              and releases[0].get("versionCodes") == ["16"]
+                              and actual_releases == [releases[0], {"name": RELEASE_NAME, "versionCodes": ["17"], "status": "draft"}])
+                if refused.http_status != 400 or refused.diagnostic_code != COMMIT_FLAG_DIAGNOSTIC or not compatible:
+                    raise
+                # Google explicitly refused the first commit. During these read/
+                # validation calls there is no possibly effective commit in flight.
+                commit_started = False
+                report["commitPhase"] = "compatibility-revalidation"
+                fresh = api.request("GET", base + "/tracks/internal")
+                fresh_releases, fresh_draft = inspect_track(fresh)
+                if not fresh_draft or fresh_releases != desired["releases"]:
+                    raise UploadError("DRAFT_RESPONSE_MISMATCH")
+                if edit_id(api.request("POST", base + ":validate")) != own_edit:
+                    raise UploadError("RESPONSE_INVALID")
+                report["steps"].append("commit-flag-compatibility-requested")
+                report["commitCompatibilityAttempts"] = 1
+                report["changesNotSentForReviewEffective"] = "omitted"
+                report["commitPhase"] = "compatible-commit"
+                commit_started = True
+                # Same edit, no upload/track rewrite. ERROR_IF_IN_REVIEW prevents
+                # cancelling a review; retained16/draft17 and full readback bind
+                # the release effect, not a claim about Google's review process.
+                committed = api.request("POST", base + ":commit" + COMMIT_COMPAT_QUERY)
             if edit_id(committed) != own_edit:
                 raise UploadError("COMMIT_RESULT_UNKNOWN")
         except UploadError as error:
+            if not commit_started:
+                raise
             if error.http_status is not None and 400 <= error.http_status < 500 and error.http_status != 408:
                 # Explicit refusal is not a successful commit; cleanup the still-own edit.
                 commit_started = False
                 raise
             raise UploadError("COMMIT_RESULT_UNKNOWN", error.http_status) from None
         except Exception:
+            if not commit_started:
+                raise UploadError("UNEXPECTED_ERROR") from None
             raise UploadError("COMMIT_RESULT_UNKNOWN") from None
         report["commitAcknowledged"] = True
+        report["commitPhase"] = "persisted-readback"
         report["steps"].append("commit-acknowledged")
         report["editCleanup"] = "not-applicable-after-commit"
         # A commit response is only AppEdit metadata. Read the persisted draft in a new edit.
@@ -470,6 +552,8 @@ def main(argv: list[str] | None = None) -> int:
     except UploadError as error:
         report["status"] = "inconclusive" if error.code in {"COMMIT_RESULT_UNKNOWN", "POST_COMMIT_UNVERIFIED"} else "failed"
         report.update(reason=error.code, instructions=MESSAGES[error.code])
+        if error.diagnostic_code is not None:
+            report["googleDiagnosticCode"] = error.diagnostic_code
         if error.http_status is not None:
             report["httpStatus"] = error.http_status
         result = 3 if report["status"] == "inconclusive" else 2
