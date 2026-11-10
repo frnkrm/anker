@@ -95,7 +95,7 @@ jobs:
           comparison = get('/compare/' + source + '...' + os.environ['GITHUB_SHA'])
           if comparison.get('status') not in ['ahead', 'identical']:
               raise SystemExit('Der freigegebene App-Stand ist kein Vorfahr dieses Workflows.')
-          print('Unabhängig bestätigt: Code16-Appstand und alle drei grünen CI-Jobs.')
+          print('Unabhängig bestätigt: Code17-Appstand und alle drei grünen CI-Jobs.')
           PY
       - name: Festes signiertes Bundle herunterladen und prüfen
         run: |
@@ -172,7 +172,7 @@ jobs:
           expected = manifest['artifact']
           bundle = root / 'Anker.aab'
           if bundle.stat().st_size != expected['bytes'] or digest(bundle) != expected['sha256']:
-              raise SystemExit('Es ist nicht das geprüfte signierte Code16-Bundle.')
+              raise SystemExit('Es ist nicht das geprüfte signierte Code17-Bundle.')
           print('Werkzeuge und vollständiges Bundle sind vor der Authentifizierung geprüft.')
           PY
       - name: Verfügbarkeit des Google-Secrets prüfen
@@ -227,14 +227,14 @@ jobs:
               print('::notice title=Anker Play Bestandsprüfung::' + json.dumps(safe_observation, separators=(',', ':')))
           status = result.get('status')
           if process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
-              print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 16; Status ' + status)
+              print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 17; Status ' + status)
               sys.exit(0)
           if (process.returncode == 0 and status == 'already-active'
               and result.get('activeReleaseVerified') is True and result.get('bundleReused') is True
               and result.get('existingReleaseStatus') == 'completed'
               and result.get('commitAttempted') is False and result.get('bundleUploadConfirmed') is False
               and result.get('publishedByThisRun') is False):
-              print('::notice title=Anker Play Upload::Bereits vorhanden bestätigt; Kanal internal; Version 16; Status completed; identisches geprüftes Bundle; kein neuer Upload oder Release')
+              print('::notice title=Anker Play Upload::Bereits vorhanden bestätigt; Kanal internal; Version 17; Status completed; identisches geprüftes Bundle; kein neuer Upload oder Release')
               sys.exit(0)
           reason = result.get('reason', 'NO_CONFIRMED_RESULT')
           if not isinstance(reason, str) or re.fullmatch('[A-Z_]{1,80}', reason) is None:

@@ -1,0 +1,16 @@
+{
+  "manifest": {
+    "bytes": 101757,
+    "createdAt": "2026-11-10T03:26:52Z",
+    "downloadCommit": "f8275544b1192d069e23b49d79529f9e805d3945",
+    "expiresAt": "2026-11-17T03:26:52Z",
+    "protocolVersion": 3,
+    "schemaVersion": 1,
+    "sha256": "5ff9081dc3feef75bc193d8c50f7ab483b6904a8bc526df005c61e94ff2c7ddf",
+    "sourceCommit": "f38417dbaf2bfdac3d73080f534b7aa7505e8f08",
+    "stateSchemaVersion": 1,
+    "url": "https://codeload.github.com/frnkrm/anker/zip/f8275544b1192d069e23b49d79529f9e805d3945",
+    "version": "0.1.1"
+  },
+  "signature": "A0Gm_py2J_0GuxEswWguTorsI_oTsOeri7Phe1jkzoR_GCOf69StewyQHGH6VWLmjBYykkMt3oqyf5SWi4v5jvQ5SDTw4OUhBIz8U2iW0D0yAgb29Bf-ITZ3wt55Nc0VrUUZvsCmMgrYMYKhOPT0ar1Cf6HNEXtaavMsLJP3yZKxra_IB4292hDr-xp1hX3nABHBt7E5HU4MQOao7F4oHRb5CfzwGGCq_VR9jp547oANhe0i4QVGa2OFfhwIg4-C3NkCAHPkfNmrYigxU_5NKLwGg-THdn58xBPyULDNTuua58UOAUZ3TwunTf9fe2NHqX1Ma3_KIhYzqu0nqPGA3MMsfcfsKudRJTHPOeid1S9dTPw9vvKdwtbh5ZkeQGeGiNPA3nGRbhP6pzoS-MEdHgHC9yFnfWLgAgGg6bch-b1hZura7Ye9sIdp8rbTZ1EIcTrFwrjj9g6GPq_5n168qDBjZqMx345_v2O5zIOvs9o1mTM0xXqV3H0AKPELCu-T"
+}

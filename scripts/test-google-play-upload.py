@@ -607,9 +607,9 @@ class ProductionApprovalTests(unittest.TestCase):
         value = uploader.read_manifest(self.manifest)
         expected = {
             16: (LEGACY16["SOURCE"], LEGACY16["FINGERPRINT"], LEGACY16["CI_RUN"], LEGACY16["RELEASE_NAME"]),
-            17: ("7c765c52b109efb2cb03f8ea3d288eae4dba2392",
-                 "657180633146d0e7619f3e1b07a5dbcb7d8fb1ba136eeef61c13d73d7a346e2a",
-                 42726629352, CODE17_RELEASE_NAME),
+            17: ('80f6a692b005ab08edacf9e6ad9e9669e4c383f7',
+                 '10c21f4f5bb07215244a1cc53dc21f8423a020f24aa7c1cfb4df38b9c3e441c7',
+                 42748341550, CODE17_RELEASE_NAME),
         }
         self.assertIn(uploader.VERSION, expected)
         source, fingerprint, ci_run, name = expected[uploader.VERSION]

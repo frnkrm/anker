@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Upload the approved, immutable Code16 bundle as an internal Play draft only.
+"""Upload the approved, immutable Code17 bundle as an internal Play draft only.
 
 No signing keys or service-account JSON are read. Google credentials come only
 from GOOGLE_PLAY_ACCESS_TOKEN, supplied by the workflow's authentication step.
@@ -25,15 +25,15 @@ import urllib.request
 
 
 PACKAGE = "de.frnkrm.anker.mobile"
-VERSION = 16
-RELEASE_NAME = "Anker 1.5.0-rc.2 · Code16"
-SOURCE = "4d8eaa1cd1dc463e3ce9032779d857a215d020fc"
-FINGERPRINT = "9786f18293f2eb5d9c3e61098cb03c07ad8e3e5cebcaca0c1c583e0bd9ea5ada"
-DOWNLOAD_COMMIT = "b2a062709f061f6b1b4470a3826dd0b48b3c0b29"
-BUNDLE_SHA256 = "522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e"
-BUNDLE_BYTES = 22655691
+VERSION = 17
+RELEASE_NAME = 'Anker 1.5.0-rc.3 · Code17'
+SOURCE = '80f6a692b005ab08edacf9e6ad9e9669e4c383f7'
+FINGERPRINT = '10c21f4f5bb07215244a1cc53dc21f8423a020f24aa7c1cfb4df38b9c3e441c7'
+DOWNLOAD_COMMIT = 'e448f35c88a4483a6451a1b65b78b2101f8485bd'
+BUNDLE_SHA256 = '2e53d046d32ec4fc53f083a0a9a59e688f1224615af7946330642e97b8c84098'
+BUNDLE_BYTES = 22705124
 CERTIFICATE = "b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a"
-CI_RUN = 42619085381
+CI_RUN = 42748341550
 ARTIFACT_URL = f"https://raw.githubusercontent.com/frnkrm/anker/{DOWNLOAD_COMMIT}/Anker.aab"
 HOST = "androidpublisher.googleapis.com"
 API_PATH = f"/androidpublisher/v3/applications/{PACKAGE}/edits"
@@ -43,14 +43,14 @@ MAX_JSON_BYTES = 1024 * 1024
 TIMEOUT_SECONDS = 120
 
 MESSAGES = {
-    "MANIFEST_INVALID": "Die Freigabedatei passt nicht zum ausdrücklich freigegebenen Code16-Bundle. Nichts wurde hochgeladen.",
-    "BUNDLE_INVALID": "Die Datei stimmt nicht mit dem geprüften Code16-Bundle überein. Das freigegebene Paket erneut vorbereiten.",
+    "MANIFEST_INVALID": "Die Freigabedatei passt nicht zum ausdrücklich freigegebenen Code17-Bundle. Nichts wurde hochgeladen.",
+    "BUNDLE_INVALID": "Die Datei stimmt nicht mit dem geprüften Code17-Bundle überein. Das freigegebene Paket erneut vorbereiten.",
     "ARTIFACT_DOWNLOAD_FAILED": "Das fest freigegebene öffentliche Bundle konnte nicht geladen werden. Downloadzugang prüfen; es gab keinen Google-Upload.",
     "TOKEN_MISSING": "Der Workflow hat kein gültiges kurzlebiges Google-Zugriffstoken bereitgestellt. Den Authentifizierungsschritt prüfen.",
     "HTTP_UNAUTHORIZED": "Google hat die Anmeldung abgelehnt. Ein frisches Token und den Authentifizierungsschritt prüfen.",
     "HTTP_FORBIDDEN": "Google hat den Zugriff verweigert. Play-Console-Apprechte des Dienstkontos und Android-Publisher-API-Aktivierung prüfen.",
     "HTTP_NOT_FOUND": "Google findet die App oder den Zugriffspfad nicht. Paketkennung und Appzugriff in der Console prüfen; möglicherweise ist ein erster manueller Console-Upload erforderlich. Das ist noch nicht nachgewiesen.",
-    "HTTP_CONFLICT": "Google meldet einen Konflikt. Version16 und bestehende Entwürfe in der Console prüfen; nicht blind erneut hochladen.",
+    "HTTP_CONFLICT": "Google meldet einen Konflikt. Version17 und bestehende Entwürfe in der Console prüfen; nicht blind erneut hochladen.",
     "HTTP_INVALID_REQUEST": "Google hat den Entwurf abgelehnt. Console-Einrichtung, App-Signierung und mögliche Erstupload-Voraussetzungen prüfen; nichts öffentlich freigeben.",
     "HTTP_RATE_LIMIT": "Google begrenzt die Anfragen. Den tatsächlichen Console-Stand prüfen; dieser Lauf wiederholt keine Mutation automatisch.",
     "HTTP_SERVER_ERROR": "Google hat die Anfrage nicht bestätigt. Den tatsächlichen Console-Stand prüfen, bevor ein neuer Lauf gestartet wird.",
@@ -59,9 +59,9 @@ MESSAGES = {
     "NETWORK_ERROR": "Die Verbindung wurde nicht bestätigt. Den Console-Stand prüfen; dieser Lauf wiederholt keine Mutation automatisch.",
     "RESPONSE_INVALID": "Die Antwort hatte ein unerwartetes Format. Der Lauf stoppt, ohne eine Veröffentlichung zu behaupten.",
     "RESPONSE_TOO_LARGE": "Die Antwort überschreitet die feste Größenbegrenzung. Der Lauf stoppt.",
-    "ARTIFACT_CONFLICT": "Version16 ist bei Google mit einer anderen Bundle-Prüfsumme vorhanden. Nicht ersetzen; den Console-Stand klären.",
+    "ARTIFACT_CONFLICT": "Version17 ist bei Google mit einer anderen Bundle-Prüfsumme vorhanden. Nicht ersetzen; den Console-Stand klären.",
     "EXISTING_RELEASE_CONFLICT": "Im internen Track liegt ein unerwarteter oder bereits aktiver Release. Der Lauf verändert diesen Bestand nicht.",
-    "UPLOAD_RESPONSE_MISMATCH": "Google hat nicht genau Version16 mit der freigegebenen Bundle-Prüfsumme bestätigt. Den Console-Stand prüfen.",
+    "UPLOAD_RESPONSE_MISMATCH": "Google hat nicht genau Version17 mit der freigegebenen Bundle-Prüfsumme bestätigt. Den Console-Stand prüfen.",
     "DRAFT_RESPONSE_MISMATCH": "Google hat den gewünschten Entwurfsbestand nicht eindeutig bestätigt. Keine erfolgreiche Freigabe behaupten.",
     "COMMIT_RESULT_UNKNOWN": "Die Commit-Antwort ist unklar. Der Entwurf könnte gespeichert sein. Vor einem neuen Lauf den tatsächlichen Console-Stand prüfen; es wird nicht automatisch wiederholt.",
     "POST_COMMIT_UNVERIFIED": "Google hat den Commit bestätigt, der gespeicherte Entwurfsstatus konnte danach aber nicht sicher gelesen werden. In der Console prüfen.",
@@ -160,7 +160,7 @@ class Transport:
             raise UploadError("RESPONSE_INVALID")
         if self._token is None:
             raise UploadError("TOKEN_MISSING")
-        headers = {"Authorization": "Bearer " + self._token, "Accept": "application/json", "User-Agent": "Anker-Code16-Draft-Uploader/1"}
+        headers = {"Authorization": "Bearer " + self._token, "Accept": "application/json", "User-Agent": "Anker-Code17-Draft-Uploader/1"}
         if payload is not None:
             headers["Content-Type"] = "application/octet-stream" if bundle else "application/json; charset=utf-8"
         request = urllib.request.Request("https://" + HOST + path, data=payload, headers=headers, method=method)
@@ -194,7 +194,7 @@ class Transport:
 
     def download(self) -> bytes:
         # Public immutable artifact only. No Google/GitHub token is used here.
-        request = urllib.request.Request(ARTIFACT_URL, headers={"User-Agent": "Anker-Code16-Draft-Uploader/1"}, method="GET")
+        request = urllib.request.Request(ARTIFACT_URL, headers={"User-Agent": "Anker-Code17-Draft-Uploader/1"}, method="GET")
         try:
             with self._opener.open(request, timeout=TIMEOUT_SECONDS) as response:
                 if response.status != 200:
