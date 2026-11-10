@@ -24,14 +24,15 @@ export function PcRelaySetup() {
   const statusGeneration = useRef(0)
   const privateGeneration = useRef(0)
   const hideCode = useCallback(() => { privateGeneration.current++; setSetup('') }, [])
+  const invalidateGenerations = useCallback(() => { privateGeneration.current++; statusGeneration.current++ }, [])
   useEffect(() => {
     alive.current = true
     const generation = statusGeneration.current
     void readPcRelayStatus().then(value => { if (alive.current && generation === statusGeneration.current) setCurrent(value) }).catch(() => { if (alive.current && generation === statusGeneration.current) setError('Der lokale Relaystatus konnte noch nicht gelesen werden.') })
     const hide = () => { if (document.visibilityState !== 'visible') hideCode() }
     document.addEventListener('visibilitychange', hide)
-    return () => { alive.current = false; privateGeneration.current++; statusGeneration.current++; document.removeEventListener('visibilitychange', hide) }
-  }, [hideCode])
+    return () => { alive.current = false; invalidateGenerations(); document.removeEventListener('visibilitychange', hide) }
+  }, [hideCode, invalidateGenerations])
   const run = async (action: () => Promise<void>) => {
     if (pending.current) return
     pending.current = true; statusGeneration.current++
@@ -42,7 +43,7 @@ export function PcRelaySetup() {
   }
   return <MoreInfo summary="Optional außerhalb des Heimnetzes verbinden">
     <div className="min-w-0 space-y-3" aria-label="Optionales PC-Relay">
-      <p className="text-sm text-muted">Der direkte Heimnetzweg bleibt zuerst dran. Dieses freiwillige Relay benötigt ein von dir eingerichtetes Supabase-Projekt und eine Anmeldung. Es überträgt dieselben verschlüsselten Nachrichten. Der Betreiber sieht Paar-, Richtungs- und Zeitmetadaten; Inhalte und Schlüssel bleiben bei deinen Geräten. Nachrichten werden höchstens 14 Tage aufbewahrt.</p>
+      <p className="text-sm text-muted">Der direkte Heimnetzweg bleibt zuerst dran. Dieses freiwillige Relay benötigt ein von dir eingerichtetes Supabase-Projekt und eine Anmeldung. Es überträgt dieselben verschlüsselten Nachrichten. Der Betreiber sieht Paar-, Richtungs- und Zeitmetadaten; Inhalte und Schlüssel bleiben bei deinen Geräten. Nachrichten laufen spätestens nach 14 Tagen ab. Für die regelmäßige Löschung muss die Bereinigung im eigenen Projekt eingerichtet sein.</p>
       <p className="text-sm" role="status">{current ? labels[current.status] : 'Lokaler Status wird gelesen.'}</p>
       {!native && <p className="text-sm text-muted">Die Einrichtung und der sichere Gerätespeicher sind in der Android-App verfügbar.</p>}
       {!supabaseConfigured && <p className="text-sm text-muted">In diesem App-Build ist kein Supabase-Zugang eingerichtet. Die lokale PC-Kopplung funktioniert unabhängig davon. Eine bereitgestellte Anleitung oder ein grüner Softwaretest aktiviert keinen Dienst.</p>}
