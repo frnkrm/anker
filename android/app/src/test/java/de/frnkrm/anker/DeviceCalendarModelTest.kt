@@ -41,9 +41,37 @@ class DeviceCalendarModelTest {
     }
 
     @Test fun recurringInstancesHaveDifferentIdsAndNoPrivateTitles() {
-        assertNotEquals(DeviceCalendarModel.eventId(1, 2, 1000), DeviceCalendarModel.eventId(1, 2, 2000))
-        assertNotEquals(DeviceCalendarModel.eventId(1, 2, 1000), DeviceCalendarModel.eventId(2, 2, 1000))
-        assertThrows(IllegalArgumentException::class.java) { DeviceCalendarModel.eventId(0, 2, 1000) }
+        val first = DeviceCalendarModel.selectionKey(1, "synthetic@example.invalid")
+        val second = DeviceCalendarModel.selectionKey(2, "synthetic@example.invalid")
+        assertNotEquals(DeviceCalendarModel.eventId(first, 2, 1000), DeviceCalendarModel.eventId(first, 2, 2000))
+        assertNotEquals(DeviceCalendarModel.eventId(first, 2, 1000), DeviceCalendarModel.eventId(second, 2, 1000))
+        assertThrows(IllegalArgumentException::class.java) { DeviceCalendarModel.eventId("0:invalid", 2, 1000) }
+    }
+
+    @Test fun eachInstanceRequiresTheSameSelectedGoogleAccountEvenAfterProviderIdReuse() {
+        val selected = DeviceCalendarModel.selectionKey(42, "synthetic@example.invalid")
+        assertEquals(selected, DeviceCalendarModel.selectedKeyForRow(42, "com.google", "SYNTHETIC@example.invalid", setOf(selected)))
+        for ((type, account) in listOf("com.google" to "other@example.invalid", "local" to "synthetic@example.invalid",
+            null to "synthetic@example.invalid", "com.google" to null, "com.google" to "")) {
+            assertThrows(IllegalStateException::class.java) { DeviceCalendarModel.selectedKeyForRow(42, type, account, setOf(selected)) }
+        }
+        assertThrows(IllegalStateException::class.java) { DeviceCalendarModel.selectedKeyForRow(43, "com.google", "synthetic@example.invalid", setOf(selected)) }
+        assertThrows(IllegalStateException::class.java) { DeviceCalendarModel.selectedKeyForRow(42, "com.google", "synthetic@example.invalid", emptySet()) }
+    }
+
+    @Test fun recycledEventAndCalendarNumbersOnAnotherAccountCannotAliasAnEarlierEvent() {
+        val first = DeviceCalendarModel.selectionKey(42, "synthetic@example.invalid")
+        val other = DeviceCalendarModel.selectionKey(42, "other@example.invalid")
+        val firstId = DeviceCalendarModel.eventId(first, 7, 1000)
+        val otherId = DeviceCalendarModel.eventId(other, 7, 1000)
+        assertNotEquals(firstId, otherId)
+        assertFalse(firstId.contains("synthetic"))
+        assertFalse(otherId.contains("other@example"))
+    }
+
+    @Test fun unsetStatusRemainsVisibleWhileOnlyCancelledEventsAreExcluded() {
+        for (status in listOf(null, 0, 1, 3)) assertTrue(DeviceCalendarModel.includeEventStatus(status, 2))
+        assertFalse(DeviceCalendarModel.includeEventStatus(2, 2))
     }
 
     @Test fun allDayDatesStayDatesAtBothBerlinDstBoundaries() {

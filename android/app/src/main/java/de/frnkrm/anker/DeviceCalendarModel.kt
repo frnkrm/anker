@@ -36,9 +36,21 @@ object DeviceCalendarModel {
         try { Instant.ofEpochMilli(from); Instant.ofEpochMilli(to) } catch (_: Exception) { throw IllegalArgumentException("DEVICE_CALENDAR_WINDOW_INVALID") }
     }
 
-    fun eventId(calendarId: Long, eventId: Long, begin: Long): String {
-        require(calendarId > 0 && eventId > 0 && begin >= 0) { "DEVICE_CALENDAR_EVENT_INVALID" }
-        return "device-google:$calendarId:$eventId:$begin"
+    /** The account identity comes from the same joined Instances row as the event. */
+    fun selectedKeyForRow(calendarId: Long, accountType: String?, accountName: String?, selected: Set<String>): String {
+        check(calendarId > 0 && accountType == "com.google" && !accountName.isNullOrBlank()) { "DEVICE_CALENDAR_SELECTION_CHANGED" }
+        val key = selectionKey(calendarId, accountName)
+        check(key in selected) { "DEVICE_CALENDAR_SELECTION_CHANGED" }
+        return key
+    }
+
+    /** A provider's unset status is not cancellation. The caller supplies the SDK cancellation code. */
+    fun includeEventStatus(status: Int?, cancelledStatus: Int): Boolean = status != cancelledStatus
+
+    fun eventId(selectionId: String, eventId: Long, begin: Long): String {
+        selection(selectionId)
+        require(eventId > 0 && begin >= 0) { "DEVICE_CALENDAR_EVENT_INVALID" }
+        return "device-google:$selectionId:$eventId:$begin"
     }
 
     /** Android all-day provider times represent UTC dates, not a local clock time. */
