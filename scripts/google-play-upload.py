@@ -69,6 +69,7 @@ MESSAGES = {
     "DRAFT_RESPONSE_MISMATCH": "Google hat den gewünschten Entwurfsbestand nicht eindeutig bestätigt. Keine erfolgreiche Freigabe behaupten.",
     "COMMIT_RESULT_UNKNOWN": "Die Commit-Antwort ist unklar. Der Entwurf könnte gespeichert sein. Vor einem neuen Lauf den tatsächlichen Console-Stand prüfen; es wird nicht automatisch wiederholt.",
     "POST_COMMIT_UNVERIFIED": "Google hat den Commit bestätigt, der gespeicherte Entwurfsstatus konnte danach aber nicht sicher gelesen werden. In der Console prüfen.",
+    "INSPECTION_UNCONFIRMED": "Der aktuelle interne Bestand ist nicht als genau Code16 aktiv und Code17-Entwurf bestätigt. Es wurde nur gelesen; keine Reparatur oder erneuter Upload wurde gestartet.",
     "LOCAL_IO_ERROR": "Eine lokale Datei konnte nicht gelesen oder geschrieben werden. Keine Zugangsdaten oder Fehlermeldungsinhalte werden ausgegeben.",
     "UNEXPECTED_ERROR": "Der Lauf wurde ohne bestätigtes Ergebnis beendet. Den Console-Stand und den bereinigten Bericht prüfen.",
 }
@@ -387,6 +388,32 @@ def delete_own_edit(api: Transport, own_edit: str, report: dict, field: str = "e
         report[field] = "unconfirmed"
 
 
+def inspect_current_state(api: Transport, report: dict) -> None:
+    """Read the current pinned bundle/draft, then delete only this empty edit."""
+    report["inspectionOnly"] = True
+    own_edit = None
+    try:
+        own_edit = edit_id(api.request("POST", API_PATH, json_body({})))
+        report["steps"].append("inspection-edit-created")
+        base = API_PATH + "/" + own_edit
+        matching = known_bundle(api.request("GET", base + "/bundles"))
+        report["bundleReused"] = matching
+        report["steps"].append("inspection-bundles-read")
+        track = api.request("GET", base + "/tracks/internal")
+        report["trackObservation"] = track_observation(track)
+        report["steps"].append("inspection-track-read")
+        releases, draft = inspect_track(track)
+        identities = [(row.get("status"), row.get("versionCodes")) for row in releases]
+        if (VERSION != 17 or not matching or not draft or len(identities) != 2
+                or identities.count(("completed", ["16"])) != 1 or identities.count(("draft", ["17"])) != 1):
+            raise UploadError("INSPECTION_UNCONFIRMED")
+        report.update(status="already-draft", draftVerified=True)
+        report["steps"].append("inspection-draft-verified")
+    finally:
+        if own_edit is not None:
+            delete_own_edit(api, own_edit, report)
+
+
 def perform_upload(api: Transport, data: bytes, report: dict) -> None:
     own_edit = None
     commit_started = False
@@ -525,16 +552,18 @@ def write_report(path: Path, report: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = SafeArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ["prepare", "upload"]:
+    for name in ["prepare", "upload", "inspect"]:
         command = commands.add_parser(name)
         command.add_argument("--manifest", type=Path, required=True)
         command.add_argument("--report", type=Path, required=True)
         if name == "prepare":
             command.add_argument("--output-dir", type=Path, required=True)
-        else:
+        elif name == "upload":
             command.add_argument("--bundle", type=Path, required=True)
     args = parser.parse_args(argv)
     report = new_report()
+    if args.command == "inspect":
+        report["inspectionOnly"] = True
     result = 0
     try:
         read_manifest(args.manifest)
@@ -548,6 +577,8 @@ def main(argv: list[str] | None = None) -> int:
             temporary.write_bytes(data)
             temporary.replace(target)
             report.update(status="prepared", bundleBytes=len(data), googleRequestsMade=False)
+        elif args.command == "inspect":
+            inspect_current_state(Transport(token_from_env()), report)
         else:
             data = read_bundle(args.bundle)
             api = Transport(token_from_env())

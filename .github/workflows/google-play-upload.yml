@@ -19,18 +19,35 @@ jobs:
     if: >-
       github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-draft]')))
+       (github.event_name == 'push' && (contains(github.event.head_commit.message, '[anker-play-draft]') ||
+                                      contains(github.event.head_commit.message, '[anker-play-inspect]'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
       actions: read
     outputs:
+      mode: ${{ steps.mode.outputs.mode }}
       artifact_id: ${{ steps.input.outputs.artifact-id }}
       publisher_sha256: ${{ steps.bind.outputs.publisher_sha256 }}
       auth_sha256: ${{ steps.bind.outputs.auth_sha256 }}
       manifest_sha256: ${{ steps.bind.outputs.manifest_sha256 }}
     steps:
+      - name: Ausführung eindeutig festlegen
+        id: mode
+        env:
+          INSPECTION_REQUESTED: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-inspect]') }}
+        run: |
+          python3 - <<'PY'
+          import os
+          requested = os.environ.get('INSPECTION_REQUESTED')
+          if requested not in ['true', 'false']:
+              raise SystemExit('Der Ausführungsmodus ist nicht eindeutig bestätigt.')
+          # Inspection always wins, including a commit carrying both markers.
+          mode = 'inspect' if requested == 'true' else 'upload'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('mode=' + mode + '\n')
+          PY
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
@@ -193,15 +210,23 @@ jobs:
         run: python3 scripts/google-play-auth.py --run
       - name: Ausschließlich internen Entwurf speichern
         env:
+          ANKER_PLAY_MODE: ${{ needs.preflight.outputs.mode }}
           GOOGLE_PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: |
           python3 - <<'PY'
           import json, os, pathlib, re, subprocess, sys
           root = pathlib.Path(os.environ['RUNNER_TEMP'])
           report = root / 'anker-play-result.json'
-          process = subprocess.run([sys.executable, 'scripts/google-play-upload.py', 'upload',
-              '--manifest', str(root / 'anker-play-input/PLAY_UPLOAD_APPROVAL.json'),
-              '--bundle', str(root / 'anker-play-input/Anker.aab'), '--report', str(report)])
+          mode = os.environ.get('ANKER_PLAY_MODE')
+          if mode not in ['inspect', 'upload']:
+              print('::error title=Anker Play Modus::Kein bestätigter Ausführungsmodus; kein Google-Aufruf.')
+              sys.exit(2)
+          arguments = [sys.executable, 'scripts/google-play-upload.py', mode,
+              '--manifest', str(root / 'anker-play-input/PLAY_UPLOAD_APPROVAL.json')]
+          if mode == 'upload':
+              arguments.extend(['--bundle', str(root / 'anker-play-input/Anker.aab')])
+          arguments.extend(['--report', str(report)])
+          process = subprocess.run(arguments)
           try:
               result = json.loads(report.read_text())
           except Exception:
@@ -241,10 +266,18 @@ jobs:
               }
               print('::notice title=Anker Play Bestandsprüfung::' + json.dumps(safe_observation, separators=(',', ':')))
           status = result.get('status')
-          if process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
+          if (mode == 'inspect' and process.returncode == 0 and status == 'already-draft'
+              and result.get('inspectionOnly') is True and result.get('draftVerified') is True
+              and result.get('commitAttempted') is False and result.get('commitAcknowledged') is False
+              and result.get('bundleUploadConfirmed') is False and result.get('publishedByThisRun') is False
+              and result.get('bundleUploadState') == 'not-attempted'
+              and type(result.get('commitCompatibilityAttempts')) is int and result.get('commitCompatibilityAttempts') == 0):
+              print('::notice title=Anker Play Inspektion::Vorhandener Entwurf nur lesend bestätigt; Kanal internal; Version 17; keine Veröffentlichung oder Reparatur')
+              sys.exit(0)
+          if mode == 'upload' and process.returncode == 0 and status in ['already-draft', 'draft-committed'] and result.get('draftVerified') is True:
               print('::notice title=Anker Play Upload::Entwurf bestätigt; Kanal internal; Version 17; Status ' + status)
               sys.exit(0)
-          if (process.returncode == 0 and status == 'already-active'
+          if (mode == 'upload' and process.returncode == 0 and status == 'already-active'
               and result.get('activeReleaseVerified') is True and result.get('bundleReused') is True
               and result.get('existingReleaseStatus') == 'completed'
               and result.get('commitAttempted') is False and result.get('bundleUploadConfirmed') is False

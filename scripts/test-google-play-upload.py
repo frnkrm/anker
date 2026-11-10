@@ -921,5 +921,120 @@ class ProductionCommitCompatibilityTests(unittest.TestCase):
             self.assertEqual(report["commitCompatibilityAttempts"],1);self.assertFalse(report["publishedByThisRun"])
 
 
+class ReadOnlyInspectionApi:
+    def __init__(self, bundles, releases, own_id="inspection-edit"):
+        self.own_id=own_id;self.base=BASE+"/"+own_id
+        self.bundles=copy.deepcopy(bundles);self.track={"track":"internal","releases":copy.deepcopy(releases)}
+        self.calls=[];self.failures={}
+
+    def request(self,method,path,payload=None,*,bundle=False):
+        self.calls.append((method,path,payload,bundle))
+        allowed={("POST",BASE),("GET",self.base+"/bundles"),("GET",self.base+"/tracks/internal"),("DELETE",self.base)}
+        if (method,path) not in allowed or bundle:
+            raise AssertionError("Inspection must never write bundle/track/commit")
+        failure=self.failures.get((method,path))
+        if failure:raise failure
+        if method=="POST":return {"id":self.own_id}
+        if path.endswith("/bundles"):return {"bundles":copy.deepcopy(self.bundles)}
+        if path.endswith("/tracks/internal"):return copy.deepcopy(self.track)
+        return {}
+
+
+class ReadOnlyInspectionTests(unittest.TestCase):
+    def setUp(self):
+        self.assertEqual(uploader.VERSION,17)
+        network=patch("urllib.request.OpenerDirector.open",side_effect=AssertionError("Real network forbidden"));network.start();self.addCleanup(network.stop)
+        self.bundle={"versionCode":17,"sha256":uploader.BUNDLE_SHA256}
+        self.old={"status":"completed","versionCodes":["16"],"name":PRIVATE_ERROR}
+        self.draft={"status":"draft","versionCodes":["17"],"name":PRIVATE_ERROR,"releaseNotes":[{"text":PRIVATE_ERROR}]}
+
+    def api(self,releases=None,bundles=None,own_id="inspection-edit"):
+        return ReadOnlyInspectionApi([self.bundle] if bundles is None else bundles,[self.old,self.draft] if releases is None else releases,own_id)
+
+    def assert_readonly(self,api,report):
+        self.assertFalse(report["commitAttempted"] or report["commitAcknowledged"] or report["bundleUploadConfirmed"] or report["publishedByThisRun"])
+        self.assertEqual(report["commitCompatibilityAttempts"],0);self.assertTrue(report["inspectionOnly"])
+        self.assertNotIn(PRIVATE_ERROR,json.dumps(report));self.assertNotIn(FAKE_TOKEN,json.dumps(report))
+        self.assertTrue(all(not bundle and method!="PUT" and ":commit" not in path and ":validate" not in path for method,path,_,bundle in api.calls))
+
+    def test_pinned_draft_and_completed16_are_confirmed_in_either_order_without_writes(self):
+        for rows in [[self.old,self.draft],[self.draft,self.old]]:
+            api=self.api(rows);report=uploader.new_report();uploader.inspect_current_state(api,report)
+            self.assertEqual(report["status"],"already-draft");self.assertTrue(report["draftVerified"]);self.assertEqual(report["editCleanup"],"deleted")
+            self.assertEqual([(m,p) for m,p,_,_ in api.calls],[("POST",BASE),("GET",api.base+"/bundles"),("GET",api.base+"/tracks/internal"),("DELETE",api.base)])
+            self.assertEqual({tuple(row['versionCodes']) for row in report['trackObservation']['releases']},{(16,),(17,)})
+            self.assert_readonly(api,report)
+
+    def test_fresh_valid_opaque_inspection_id_is_not_compared_with_previous_commit(self):
+        for identity in ["own-edit","fresh-123","earlier-opaque-id"]:
+            api=self.api(own_id=identity);report=uploader.new_report();uploader.inspect_current_state(api,report)
+            self.assertEqual(api.calls[-1][:2],("DELETE",api.base));self.assert_readonly(api,report)
+
+    def test_missing_or_conflicting_bundle_never_falls_back_to_upload(self):
+        for bundles in [[],[{"versionCode":17,"sha256":"0"*64}],[self.bundle,self.bundle]]:
+            api=self.api(bundles=bundles);report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+            self.assertFalse(report['draftVerified']);self.assertEqual(api.calls[-1][:2],("DELETE",api.base));self.assert_readonly(api,report)
+
+    def test_missing16_extra_release_mixed_or_active17_are_not_repaired(self):
+        variants=[[self.draft],[self.old],[self.old,self.draft,{"status":"draft","versionCodes":["19"]}],
+                  [self.old,{"status":"draft","versionCodes":["16","17"]}],
+                  [self.old,{"status":"completed","versionCodes":["17"]}]]
+        for rows in variants:
+            api=self.api(rows);report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+            self.assertFalse(report['draftVerified']);self.assertEqual(api.calls[-1][:2],("DELETE",api.base));self.assert_readonly(api,report)
+
+    def test_foreign_track_and_malformed_edit_id_stop_without_mutation_or_unsafe_cleanup(self):
+        api=self.api();api.track['track']='production';report=uploader.new_report()
+        with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+        self.assertEqual(api.calls[-1][:2],('DELETE',api.base));self.assert_readonly(api,report)
+        api=self.api(own_id='../PRIVATE');report=uploader.new_report()
+        with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+        self.assertEqual([(m,p) for m,p,_,_ in api.calls],[('POST',BASE)]);self.assert_readonly(api,report)
+
+    def test_read_errors_always_cleanup_only_own_known_edit_and_never_retry(self):
+        for endpoint in [BASE,BASE+"/inspection-edit/bundles",BASE+"/inspection-edit/tracks/internal"]:
+            api=self.api();api.failures[("POST" if endpoint==BASE else "GET",endpoint)]=uploader.UploadError("NETWORK_ERROR");report=uploader.new_report()
+            with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+            if endpoint==BASE:self.assertEqual(len(api.calls),1)
+            else:self.assertEqual(api.calls[-1][:2],("DELETE",api.base))
+            self.assert_readonly(api,report)
+
+    def test_recognized_commit_flag_error_in_readmode_never_reaches_compatibility(self):
+        api=self.api();api.failures[("GET",api.base+"/tracks/internal")]=uploader.UploadError("HTTP_INVALID_REQUEST",400,diagnostic_code=uploader.COMMIT_FLAG_DIAGNOSTIC);report=uploader.new_report()
+        with self.assertRaises(uploader.UploadError):uploader.inspect_current_state(api,report)
+        self.assertEqual(api.calls[-1][:2],("DELETE",api.base));self.assert_readonly(api,report)
+
+    def test_cleanup_failure_is_reported_without_claiming_a_commit_or_rollback(self):
+        api=self.api();api.failures[("DELETE",api.base)]=RuntimeError(PRIVATE_ERROR);report=uploader.new_report();uploader.inspect_current_state(api,report)
+        self.assertEqual(report['editCleanup'],'unconfirmed');self.assertTrue(report['draftVerified']);self.assert_readonly(api,report)
+
+    def test_cli_inspect_reads_no_bundle_and_never_enters_upload_path(self):
+        for failing in [False,True]:
+            api=self.api()
+            if failing:api.failures[("GET",api.base+"/bundles")]=uploader.UploadError("NETWORK_ERROR")
+            with tempfile.TemporaryDirectory() as directory:
+                report_path=Path(directory)/'result.json';manifest=Path(__file__).resolve().parents[1]/'docs/PLAY_UPLOAD_APPROVAL.json';output=io.StringIO()
+                with patch.object(uploader,'read_bundle',side_effect=AssertionError('No bundle read in inspect')),patch.object(uploader,'perform_upload',side_effect=AssertionError('No upload path in inspect')),patch.object(uploader,'Transport',return_value=api),patch.object(uploader,'token_from_env',return_value=FAKE_TOKEN),contextlib.redirect_stdout(output):
+                    code=uploader.main(['inspect','--manifest',str(manifest),'--report',str(report_path)])
+                report=json.loads(report_path.read_text());self.assertEqual(code,2 if failing else 0)
+                self.assertEqual(report['status'],'failed' if failing else 'already-draft');self.assert_readonly(api,report)
+                self.assertNotIn(PRIVATE_ERROR,output.getvalue());self.assertNotIn(FAKE_TOKEN,output.getvalue())
+
+    def test_cli_inspect_invalid_manifest_stops_before_token_and_api(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manifest=Path(directory)/'invalid.json';manifest.write_text('{}');report_path=Path(directory)/'result.json'
+            with patch.object(uploader,'Transport',side_effect=AssertionError('No API')),patch.object(uploader,'token_from_env',side_effect=AssertionError('No token')),contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(uploader.main(['inspect','--manifest',str(manifest),'--report',str(report_path)]),2)
+            report=json.loads(report_path.read_text());self.assertTrue(report['inspectionOnly']);self.assertFalse(report['commitAttempted'])
+
+    def test_cli_inspect_rejects_bundle_argument_before_auth_or_any_api(self):
+        output=io.StringIO()
+        with patch.object(uploader,'Transport',side_effect=AssertionError('No API')),patch.object(uploader,'token_from_env',side_effect=AssertionError('No token')),contextlib.redirect_stderr(output),self.assertRaises(SystemExit) as stopped:
+            uploader.main(['inspect','--manifest','approval.json','--report','result.json','--bundle',PRIVATE_ERROR])
+        self.assertEqual(stopped.exception.code,2);self.assertNotIn(PRIVATE_ERROR,output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -47,6 +47,7 @@ CI = inline_python('Freigegebenen App-Stand und grüne CI prüfen')
 BIND = inline_python('Getestete Werkzeuge und Manifest binden')
 HANDOFF = inline_python('Werkzeugidentität und Bundledaten vor Authentifizierung prüfen')
 SECRET_PRESENT = inline_python('Verfügbarkeit des Google-Secrets prüfen')
+MODE = inline_python('Ausführung eindeutig festlegen')
 UPLOAD_RESULT = inline_python('Ausschließlich internen Entwurf speichern')
 
 
@@ -346,6 +347,18 @@ class HandoffTests(unittest.TestCase):
 
 
 class WorkflowShapeTests(unittest.TestCase):
+    def test_inspection_marker_wins_and_mode_output_contains_only_fixed_enum(self):
+        section=step('Ausführung eindeutig festlegen')
+        self.assertIn("INSPECTION_REQUESTED: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-inspect]') }}",section)
+        self.assertNotIn('${{ github.event.head_commit.message }}',WORKFLOW)
+        self.assertIn('ANKER_PLAY_MODE: ${{ needs.preflight.outputs.mode }}',WORKFLOW)
+        for flag,expected in [('true','inspect'),('false','upload')]:
+            with tempfile.TemporaryDirectory() as directory:
+                output=Path(directory)/'output'
+                with patch.dict(os.environ,{'INSPECTION_REQUESTED':flag,'GITHUB_OUTPUT':str(output)},clear=True):exec(MODE,{})
+                self.assertEqual(output.read_text(),'mode='+expected+'\n')
+        with patch.dict(os.environ,{'INSPECTION_REQUESTED':PRIVATE_BODY},clear=True),self.assertRaises(SystemExit):exec(MODE,{})
+
     def test_manual_main_gate_and_single_marked_push_are_explicit(self):
         header = WORKFLOW.split('\njobs:', 1)[0]
         triggers = header.split('\non:\n', 1)[1].split('\npermissions:', 1)[0]
@@ -417,24 +430,43 @@ class WorkflowShapeTests(unittest.TestCase):
 
 
 class UploadResultTests(unittest.TestCase):
-    def execute(self, result, returncode):
+    def execute(self, result, returncode, mode='upload'):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             captured = io.StringIO()
 
             def invoke(arguments):
-                self.assertEqual(arguments[1:3], ['scripts/google-play-upload.py', 'upload'])
-                self.assertEqual(arguments[3:], ['--manifest', str(root / 'anker-play-input/PLAY_UPLOAD_APPROVAL.json'),
-                    '--bundle', str(root / 'anker-play-input/Anker.aab'), '--report', str(root / 'anker-play-result.json')])
+                self.assertIn(mode,['upload','inspect'])
+                self.assertEqual(arguments[1:3], ['scripts/google-play-upload.py', mode])
+                expected=['--manifest',str(root/'anker-play-input/PLAY_UPLOAD_APPROVAL.json')]
+                if mode=='upload':expected+=['--bundle',str(root/'anker-play-input/Anker.aab')]
+                self.assertEqual(arguments[3:], expected+['--report',str(root/'anker-play-result.json')])
                 if result is not None:
                     (root / 'anker-play-result.json').write_text(json.dumps(result))
                 return SimpleNamespace(returncode=returncode)
 
-            with patch.dict(os.environ, {'RUNNER_TEMP': directory}, clear=True), \
+            with patch.dict(os.environ, {'RUNNER_TEMP': directory,'ANKER_PLAY_MODE':mode}, clear=True), \
                  patch('subprocess.run', side_effect=invoke), contextlib.redirect_stdout(captured), \
                  self.assertRaises(SystemExit) as outcome:
                 exec(UPLOAD_RESULT, {})
             return outcome.exception.code, captured.getvalue()
+
+    def test_inspection_success_needs_readonly_flags_and_never_uses_bundle_argument(self):
+        result={'status':'already-draft','inspectionOnly':True,'draftVerified':True,'commitAttempted':False,
+            'commitAcknowledged':False,'bundleUploadConfirmed':False,'publishedByThisRun':False,
+            'bundleUploadState':'not-attempted','commitCompatibilityAttempts':0}
+        code,output=self.execute(result,0,mode='inspect');self.assertEqual(code,0)
+        self.assertIn('::notice title=Anker Play Inspektion::',output);self.assertNotIn('::notice title=Anker Play Upload::',output)
+        for key in ['inspectionOnly','draftVerified','commitAttempted','commitAcknowledged','bundleUploadConfirmed','publishedByThisRun']:
+            changed=copy.deepcopy(result);changed[key]=not changed[key]
+            self.assertEqual(self.execute(changed,0,mode='inspect')[0],2)
+        changed=copy.deepcopy(result);changed['status']='draft-committed';self.assertEqual(self.execute(changed,0,mode='inspect')[0],2)
+        for key,value in [('bundleUploadState','confirmed'),('commitCompatibilityAttempts',1),('commitCompatibilityAttempts',False)]:
+            changed=copy.deepcopy(result);changed[key]=value;self.assertEqual(self.execute(changed,0,mode='inspect')[0],2)
+
+    def test_invalid_mode_stops_without_subprocess_or_echoing_value(self):
+        code,output=self.execute(None,0,mode=PRIVATE_BODY)
+        self.assertEqual(code,2);self.assertNotIn(PRIVATE_BODY,output)
 
     def test_only_a_successful_process_and_verified_persisted_draft_emit_success(self):
         for status in ['already-draft', 'draft-committed']:
