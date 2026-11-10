@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import base64
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import json
@@ -82,6 +82,41 @@ def plan_date(at: float) -> str:
     return (local - timedelta(hours=4)).strftime("%Y-%m-%d")
 
 
+def next_local_time(local_time: Any, now: float) -> float:
+    """Next real Berlin wall-clock occurrence, at most 24 elapsed hours away.
+
+    During the repeated autumn hour choose the earliest still-future occurrence.
+    A spring-gap time on the otherwise next chosen local date is rejected.
+    """
+    if not isinstance(local_time, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", local_time):
+        raise ProtocolError("clock")
+    if isinstance(now, bool) or not isinstance(now, (int, float)) or not math.isfinite(now):
+        raise ProtocolError("clock-range")
+    zone = ZoneInfo("Europe/Berlin")
+    try:
+        current = datetime.fromtimestamp(now, zone)
+    except (OverflowError, OSError, ValueError):
+        raise ProtocolError("clock-range") from None
+    hour, minute = (int(part) for part in local_time.split(":"))
+    for offset in (0, 1):
+        try:
+            date = current.date() + timedelta(days=offset)
+        except (OverflowError, ValueError):
+            raise ProtocolError("clock-range") from None
+        wall = datetime(date.year, date.month, date.day, hour, minute)
+        candidates = set()
+        for fold in (0, 1):
+            at = wall.replace(tzinfo=zone, fold=fold).timestamp()
+            if datetime.fromtimestamp(at, zone).replace(tzinfo=None) == wall:
+                candidates.add(at)
+        if not candidates and (offset or wall > current.replace(tzinfo=None)):
+            raise ProtocolError("clock-nonexistent")
+        future = sorted(at for at in candidates if now < at <= now + 24 * 3600)
+        if future:
+            return future[0]
+    raise ProtocolError("clock-range")
+
+
 def obj(value: Any, required: set[str], optional: set[str] = frozenset()) -> dict[str, Any]:
     if not isinstance(value, dict) or not required <= value.keys() or value.keys() - required - optional:
         raise ProtocolError("schema")
@@ -113,11 +148,15 @@ def boolean(value: Any) -> bool:
 
 
 def prefs(value: Any) -> dict[str, Any]:
-    result = obj(value, PREF_KEYS, {"ifThen", "bedtimeSequence"})
+    result = obj(value, PREF_KEYS, {"ifThen", "bedtimeSequence", "singleTransition", "bedAfterStopMin"})
     for name in ("enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "shareBrainDump", "morningCountdown"):
         boolean(result[name])
     if "bedtimeSequence" in result:
         boolean(result["bedtimeSequence"])
+    if "singleTransition" in result:
+        boolean(result["singleTransition"])
+    if "bedAfterStopMin" in result:
+        integer(result["bedAfterStopMin"], 0, 30)
     if isinstance(result["dimMax"], bool) or not isinstance(result["dimMax"], (int, float)) or not math.isfinite(result["dimMax"]) or not 0 <= result["dimMax"] <= 0.4:
         raise ProtocolError("dim")
     if not isinstance(result["offlinePolicy"], str) or not isinstance(result["stopAction"], str) or result["offlinePolicy"] not in ("pause", "fixed-time") or result["stopAction"] not in ("lock", "hibernate", "shutdown"):

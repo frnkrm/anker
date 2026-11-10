@@ -8,7 +8,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from . import __version__
-from .protocol import ProtocolError, plan_date, stamp, text, utc, validate_briefing, validate_state
+from .protocol import ProtocolError, next_local_time, plan_date, stamp, text, utc, validate_briefing, validate_state
 from .storage import AtomicStateStore
 
 NIGHT = {"BEDTIME_HARD_CUT", "NIGHT_LOCK", "MORNING_PENDING", "MORNING_ACTIVE", "ALARM_RINGING", "ZOMBIE_MODE"}
@@ -22,6 +22,8 @@ class CompanionEngine:
         self.last_view: dict[str, Any] = {}
         self._legacy_checked = float("-inf")
         self._legacy_result = True
+        self._morning_card_id: str | None = None
+        self._transition_card_id: str | None = None
         # Login/restart never inherits an almost-finished save grace.
         self.store.update(lambda data: data["runtime"].update(graceStartedAt=None, lastLockAt=0, bootAt=self.last_now))
 
@@ -230,11 +232,20 @@ class CompanionEngine:
             if now < stamp(latch["validUntil"]) and (deadline is None or now < deadline):
                 wake = stamp(latch["wakeAt"], True)
                 return "MORNING_PENDING" if wake is not None and now >= wake else "NIGHT_LOCK"
-        if target is None:
-            return phase
-        if now >= target:
+        if target is not None and now >= target:
             return "BEDTIME_HARD_CUT"
         schedule = state["schedule"]
+        if state["prefs"].get("singleTransition", False):
+            # This is the chosen phone reminder, not a synthetic T30 offset.
+            # Moving the PC stop does not move or replay this independent choice.
+            if phase in {"MORNING_PENDING", "MORNING_ACTIVE", "ALARM_RINGING", "ZOMBIE_MODE", "NIGHT_LOCK"}:
+                return phase
+            wind = stamp(schedule["windDownAt"], True)
+            if wind is not None and now >= wind:
+                return "EVENING_WIND_DOWN"
+            return phase if phase not in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "EVENING_WIND_DOWN", "BEDTIME_HARD_CUT"} else "DAY_ACTIVE"
+        if target is None:
+            return phase
         # The phone supplies its T30/T10 offsets relative to bedAt. Preserve the
         # chosen PC stop by shifting the whole sequence, not only the final cut.
         base = stamp(schedule["bedAt"], True)
@@ -270,6 +281,11 @@ class CompanionEngine:
         target = None
         grace_remaining = None
         dim = 0.0
+        morning = None
+        card_id = None
+        card_kind = None
+        time_pill = None
+        if_then = None
         message = "Mit deinem Handy koppeln" if not data["pairs"] else "Warte auf einen aktuellen Abendplan"
         test_mode = self.test_started is not None
         if test_mode:
@@ -299,7 +315,12 @@ class CompanionEngine:
             else:
                 message = "Dein nächster Schritt wartet auf dem Handy"
             if valid and pref["dimEnabled"] and target is not None and phase not in {"MORNING_COMPLETED", "MORNING_PENDING"} and sample.get("locked") is not True:
-                dim = max(0.0, min(pref["dimMax"], pref["dimMax"] * (1 - (target - now) / 1800)))
+                if pref.get("singleTransition", False):
+                    wind = stamp(state["schedule"]["windDownAt"], True)
+                    fraction = (now - wind) / (target - wind) if wind is not None and wind < target else float(now >= target)
+                    dim = max(0.0, min(pref["dimMax"], pref["dimMax"] * fraction)) if phase in {"EVENING_WIND_DOWN", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} else 0.0
+                else:
+                    dim = max(0.0, min(pref["dimMax"], pref["dimMax"] * (1 - (target - now) / 1800)))
             if phase in {"BEDTIME_HARD_CUT", "NIGHT_LOCK", "MORNING_PENDING"} and target is not None and now >= target and enabled:
                 runtime = data["runtime"]
                 grace = runtime.get("graceStartedAt")
@@ -318,7 +339,30 @@ class CompanionEngine:
             elif data["runtime"].get("graceStartedAt") is not None:
                 self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None))
             if self.audio:
-                self.audio.tick(now, valid and pref["audioDuck"] and phase in {"BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} and sample.get("locked") is not True)
+                self.audio.tick(now, valid and pref["audioDuck"] and not pref.get("singleTransition", False) and phase in {"BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} and sample.get("locked") is not True)
+            morning = self._morning_countdown(data, state, now, phase, valid)
+            if morning is not None and 0 < morning["remainingSeconds"] <= 600:
+                receipt = f"morning:{state['date']}:{morning['kind']}:{morning['targetAt']}"
+                if self._morning_card_id == receipt or self._claim_hint(receipt):
+                    self._morning_card_id = receipt
+                    card_id, card_kind = receipt, "morning"
+            else:
+                self._morning_card_id = None
+            if valid and pref.get("singleTransition", False) and phase == "EVENING_WIND_DOWN":
+                receipt = "transition:" + state["date"]
+                # No late catch-up after a restart or a long offline gap.
+                wind = stamp(state["schedule"]["windDownAt"], True)
+                if self._transition_card_id == receipt or wind is not None and 0 <= now - wind <= 300 and self._claim_hint(receipt):
+                    self._transition_card_id = receipt
+                    card_id, card_kind = receipt, "transition"
+            else:
+                self._transition_card_id = None
+            if valid and phase in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"}:
+                if_then = pref.get("ifThen")
+            if (valid and data["localPrefs"].get("timePillEnabled", False) and target is not None and 0 < target - now <= 3600
+                    and morning is None and state["state"] not in NIGHT and not state["lockEnforced"]
+                    and phase in {"IDLE", "DAY_ACTIVE", "EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10"}):
+                time_pill = {"targetAt": utc(target), "remainingSeconds": max(0, int(target - now))}
             if phase == "MORNING_COMPLETED" and state.get("brainDump") and data["runtime"].get("shownBrainDump") != state["sessionId"]:
                 note = state["brainDump"]
                 if self.ui:
@@ -326,16 +370,47 @@ class CompanionEngine:
                 self.store.update(lambda item: item["runtime"].update(shownBrainDump=state["sessionId"]))
         if self.audio and (not state or test_mode):
             self.audio.restore()
+        if not state or test_mode:
+            self._morning_card_id = self._transition_card_id = None
         remaining = max(0, int(target - now)) if target is not None else 0
-        view = {"state": phase, "phase": phase, "title": {"WIND_DOWN_T30": "Zeit für deinen Übergang", "BRAIN_DUMP_T10": "Gedanken für morgen parken", "BEDTIME_HARD_CUT": "Jetzt in Ruhe speichern", "NIGHT_LOCK": "PC-Ruhe", "MORNING_PENDING": "Dein Morgen wartet", "MORNING_COMPLETED": "Morgenroutine abgeschlossen"}.get(phase, "Anker PC-Begleiter"),
+        view = {"state": phase, "phase": phase, "title": {"EVENING_WIND_DOWN": "Dein sanfter Abendübergang", "WIND_DOWN_T30": "Zeit für deinen Übergang", "BRAIN_DUMP_T10": "Gedanken für morgen parken", "BEDTIME_HARD_CUT": "Jetzt in Ruhe speichern", "NIGHT_LOCK": "PC-Ruhe", "MORNING_PENDING": "Dein Morgen wartet", "MORNING_COMPLETED": "Morgenroutine abgeschlossen"}.get(phase, "Anker PC-Begleiter"),
                 "message": message, "remainingSeconds": remaining, "graceRemaining": grace_remaining,
                 "dimOpacity": dim, "prefs": pref, "legacyConflict": "legacy-conflict" in warnings,
                 "paired": bool(data["pairs"]), "testMode": test_mode, "warnings": warnings,
-                "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False, "dimMax": .25, "graceSeconds": 60, "stopAction": "lock", **data["localPrefs"]}}
+                "morning": morning, "cardId": card_id, "cardKind": card_kind, "ifThen": if_then, "timePill": time_pill,
+                "desktopPrefs": deepcopy(data.get("desktopPrefs", {})),
+                "localPrefs": {"enforceEnabled": False, "strictLock": False, "dimEnabled": False, "audioDuck": False, "timePillEnabled": False, "quietSignalEnabled": False, "dimMax": .25, "graceSeconds": 60, "stopAction": "lock", **data["localPrefs"]}}
         self.last_view = view
         if self.ui:
             self.ui.render(view)
         return view
+
+    def _claim_hint(self, receipt: str) -> bool:
+        claimed = self.store.read()["runtime"].get("shownHintIds", [])
+        if receipt in claimed:
+            return False
+        self.store.update(lambda item: item["runtime"].update(shownHintIds=(item["runtime"].get("shownHintIds", []) + [receipt])[-30:]))
+        return True
+
+    def _morning_countdown(self, data: dict[str, Any], state: dict[str, Any], now: float, phase: str, valid: bool) -> dict[str, Any] | None:
+        if (not valid or not state["prefs"]["morningCountdown"] or self.active_latch(data, now)
+                or state["lockEnforced"] or phase in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK", "ALARM_RINGING"}):
+            return None
+        schedule = state["schedule"]
+        home = schedule.get("homeOffice")
+        if not isinstance(home, bool):
+            return None
+        target = stamp(schedule.get("workStartAt" if home else "leaveAt"), True)
+        if target is None or not now < target <= stamp(state["validUntil"]):
+            return None
+        wake = stamp(schedule.get("wakeAt"), True)
+        if wake is not None:
+            if now < wake:
+                return None
+        elif target - now > 3 * 3600:
+            return None
+        return {"kind": "work" if home else "leave", "title": "Arbeitsbeginn" if home else "Losgehen",
+                "targetAt": utc(target), "remainingSeconds": max(0, int(target - now))}
 
     def _light_hint(self, data: dict[str, Any], state: dict[str, Any], now: float, phase: str, valid: bool) -> None:
         """Phone-owned, opt-in visual reminder only; no late catch-up or effects."""
@@ -409,6 +484,43 @@ class CompanionEngine:
         anchor = {"anchor": "bed"} if state["prefs"].get("bedtimeSequence", False) else {}
         self.store.event(now, state["date"], "extended", newStopAt=utc(target), **anchor)
 
+    def _extension_context(self, now: float) -> tuple[dict[str, Any], dict[str, Any]]:
+        state, warnings, pref = self._effective(self.store.read(), now)
+        if not state or any(warning in warnings for warning in {"source-expired", "clock-skew", "link-stale"}):
+            raise ProtocolError("no-schedule")
+        if pref["strictLock"]:
+            raise ProtocolError("phone-override-required")
+        return state, pref
+
+    def preview_extension_until(self, local_time: str, now: float | None = None) -> dict[str, Any]:
+        """Preview only explicit bounds; no stored change, work fact or wake adjustment."""
+        now = self.clock() if now is None else now
+        state, pref = self._extension_context(now)
+        target = next_local_time(local_time, now)
+        result: dict[str, Any] = {"pcStopAt": utc(target)}
+        bed = target if pref.get("bedtimeSequence", False) else target + pref["bedAfterStopMin"] * 60 if "bedAfterStopMin" in pref else None
+        wake = stamp(state["schedule"]["wakeAt"], True)
+        if bed is not None:
+            result["bedAt"] = utc(bed)
+        if wake is not None:
+            result["wakeAt"] = utc(wake)
+        if bed is not None and wake is not None:
+            result["sleepOpportunityMinutes"] = max(0, int((wake - bed) // 60))
+        return result
+
+    def extend_until(self, local_time: str, now: float | None = None, *, expected_target_at: str | None = None) -> None:
+        now = self.clock() if now is None else now
+        state, _ = self._extension_context(now)
+        target = next_local_time(local_time, now)
+        if expected_target_at is not None and stamp(expected_target_at) != target:
+            raise ProtocolError("preview-expired")
+        # Keep the same existing revision/extension and outbox path as +15/+30.
+        # A paused day stays paused; selecting a time never resumes it implicitly.
+        with self.store.transaction():
+            self.store.update(lambda item: item["runtime"].update(extensionAt=target, extensionRevision=state["revision"], graceStartedAt=None, actedTarget=None, nightLatch=None))
+            anchor = {"anchor": "bed"} if state["prefs"].get("bedtimeSequence", False) else {}
+            self.store.event(now, state["date"], "extended", newStopAt=utc(target), **anchor)
+
     def pause(self, now: float | None = None) -> None:
         now = self.clock() if now is None else now
         data = self.store.read(); _, _, pref = self._effective(data, now)
@@ -436,7 +548,7 @@ class CompanionEngine:
         self.store.update(lambda item: item["runtime"].update(graceStartedAt=None, actedTarget=None))
 
     def local_settings(self, prefs: dict[str, Any]) -> None:
-        bools = {"enforceEnabled", "strictLock", "dimEnabled", "audioDuck"}
+        bools = {"enforceEnabled", "strictLock", "dimEnabled", "audioDuck", "timePillEnabled", "quietSignalEnabled"}
         if set(prefs) - bools - {"stopAction", "graceSeconds", "dimMax"} or any(not isinstance(value, bool) for key, value in prefs.items() if key in bools):
             raise ProtocolError("preference")
         if "stopAction" in prefs and prefs["stopAction"] not in {"lock", "hibernate", "shutdown"}:
