@@ -104,16 +104,24 @@ export async function connectDeviceCalendars(calendarIds: string[], accept = () 
   if (!current() || permission.granted !== true) return false
   const before = structuredClone(choice()), selectedAt = Date.now()
   const selected = { enabled: true, calendarIds: [...calendarIds].sort(), selectedAt }
-  await useApp.getState().saveLocal(local => !current() ? local : { ...local, extras: { ...local.extras, deviceCalendar: selected,
-    calendar: { ...local.extras?.calendar, state: useApp.getState().events.length ? 'stale' : 'loading', checkedAt: Date.now(), issue: undefined } } })
-  if (!current()) return false
+  let committed = false
+  await useApp.getState().saveLocal(local => {
+    if (!current()) return local
+    committed = true
+    return { ...local, extras: { ...local.extras, deviceCalendar: selected,
+      calendar: { ...local.extras?.calendar, state: useApp.getState().events.length ? 'stale' : 'loading', checkedAt: Date.now(), issue: undefined } } }
+  })
+  // The explicitly selected source has now been stored. Finish its read flag
+  // even if the user leaves this page; newer source choices still take priority.
+  const chosen = () => committed && source === calendarSourceRevision() && sameChoice(selected)
+  if (!chosen()) return false
   try {
-    await useApp.getState().saveSettings(settings => !current() || !sameChoice(selected) ? settings : { ...settings, integrations: { ...settings.integrations, googleCalendar: true } })
+    await useApp.getState().saveSettings(settings => !chosen() ? settings : { ...settings, integrations: { ...settings.integrations, googleCalendar: true } })
   } catch (error) {
-    await useApp.getState().saveLocal(local => !current() || !sameChoice(selected) ? local : { ...local, extras: { ...local.extras, deviceCalendar: before } })
+    await useApp.getState().saveLocal(local => !chosen() ? local : { ...local, extras: { ...local.extras, deviceCalendar: before } })
     throw error
   }
-  if (!current() || !sameChoice(selected)) return false
+  if (!chosen()) return false
   return refreshDeviceCalendar()
 }
 

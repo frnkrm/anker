@@ -39,8 +39,9 @@ async function init() {
 export async function connectGoogle(write = false, accept: () => boolean = () => true): Promise<boolean> {
   if (!CLIENT_ID || !accept()) return false
   const generation = ++authGeneration
-  if (write) invalidateGoogleRequests()
-  else invalidateCalendarRequests()
+  // Starting or cancelling Google consent must not cancel an in-flight device
+  // selection. Only a successfully accepted read-source switch owns that epoch.
+  invalidateGoogleRequests()
   const source = calendarSourceRevision()
   const current = () => generation === authGeneration && accept() && (write || source === calendarSourceRevision())
   return safe(async () => {
@@ -65,6 +66,7 @@ export async function connectGoogle(write = false, accept: () => boolean = () =>
         deviceCalendar: { enabled: false, calendarIds: [], selectedAt: Date.now() } } })
       if (!current()) return false
     }
+    if (!write) invalidateCalendarSource()
     localStorage.setItem(TOKEN_KEY, JSON.stringify({ token: access.token, exp, scopes, accountId: response.result.profile.id ?? undefined } satisfies Token))
     return true
   }, false)

@@ -189,4 +189,38 @@ describe('Explizite Android-Google-Kalenderauswahl mit bestehendem atomarem Cach
     delayed.resolve({ events: [row], readAt: Date.now() })
     expect(await pending).toBe(true); expect(ctx.state!.events).toEqual([row])
   })
+  it('stellt eine schon gespeicherte bewusste Auswahl auch nach Verlassen der Seite vollständig fertig', async () => {
+    ctx.state!.settings.integrations.googleCalendar = false
+    let mounted = true
+    const entered = defer<void>(), release = defer<void>(), original = ctx.state!.saveSettings
+    ctx.state!.saveSettings = async edit => { entered.resolve(); await release.promise; return original(edit) }
+    const pending = (await import('./deviceCalendar')).connectDeviceCalendars([otherId], () => mounted)
+    await entered.promise
+    expect(ctx.state!.local.extras?.deviceCalendar?.enabled).toBe(true)
+    mounted = false; release.resolve()
+    expect(await pending).toBe(true)
+    expect(ctx.state!.settings.integrations.googleCalendar).toBe(true)
+    expect(ctx.state!.events).toEqual([row])
+  })
+  it('speichert vor der tatsächlichen Auswahlpersistenz keine nach Navigation veraltete Zustimmung', async () => {
+    let mounted = true
+    const original = ctx.state!.saveLocal
+    ctx.state!.saveLocal = async edit => { mounted = false; return original(edit) }
+    expect(await (await import('./deviceCalendar')).connectDeviceCalendars([otherId], () => mounted)).toBe(false)
+    expect(ctx.state!.local.extras?.deviceCalendar?.calendarIds).toEqual([id]); expect(ctx.read).not.toHaveBeenCalled()
+  })
+  it('lässt eine gescheiterte Google-Leseanmeldung die schon begonnene Handywahl vollständig fertigstellen', async () => {
+    ctx.state!.settings.integrations.googleCalendar = false
+    const entered = defer<void>(), release = defer<void>(), original = ctx.state!.saveSettings
+    ctx.state!.saveSettings = async edit => { entered.resolve(); await release.promise; return original(edit) }
+    const device = await import('./deviceCalendar'), google = await import('./google')
+    const pending = device.connectDeviceCalendars([otherId])
+    await entered.promise
+    ctx.login.mockRejectedValueOnce(new Error('cancelled'))
+    expect(await google.connectGoogle(false)).toBe(false)
+    release.resolve()
+    expect(await pending).toBe(true)
+    expect(ctx.state!.settings.integrations.googleCalendar).toBe(true)
+    expect(ctx.state!.local.extras?.deviceCalendar?.calendarIds).toEqual([otherId])
+  })
 })
