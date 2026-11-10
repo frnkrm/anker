@@ -295,7 +295,11 @@ class BridgeServer:
     def exchange(self, raw: bytes | str, expected_pair: str | None = None) -> dict[str, Any]:
         return self._exchange(raw, expected_pair)[0]
 
-    def _exchange(self, raw: bytes | str, expected_pair: str | None = None) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    def relay_exchange(self, raw: bytes | str, expected_pair: str) -> dict[str, Any]:
+        """One existing receive transaction also owns its encrypted relay reply."""
+        return self._exchange(raw, expected_pair, retain_relay_reply=True)[0]
+
+    def _exchange(self, raw: bytes | str, expected_pair: str | None = None, *, retain_relay_reply=False) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         if len(raw.encode() if isinstance(raw, str) else raw) > MAX_BYTES:
             raise ProtocolError("too-large")
         try:
@@ -312,9 +316,22 @@ class BridgeServer:
         validate_payload(payload)
         now = self.clock()
         with self.store.transaction():
+            if retain_relay_reply:
+                config = self.store.read().get("relay")
+                if (not isinstance(config, dict) or config.get("enabled") is not True or config.get("pair") != identifier
+                        or not isinstance(config.get("pendingReplies"), list) or len(config["pendingReplies"]) >= 64):
+                    raise ProtocolError("relay-unconfigured")
             self.store.accept_receive(identifier, envelope["seq"])
             self.engine.link_contact(now, force=True)
             response = self._apply(payload, identifier, stamp(envelope["sentAt"]), now)
+            if retain_relay_reply:
+                seq = self.store.next_send(identifier)
+                reply = seal(identifier, "pc", seq, response, unb64(pair["pcToPhone"], 32), now)
+                self.store.update(lambda data: data["relay"]["pendingReplies"].append(deepcopy(reply)))
+        if retain_relay_reply:
+            if payload.get("action") == "unpair":
+                self.unpair()
+            return reply, envelope, payload
         # An unpair acknowledgement is encrypted before the now-unused key is erased.
         if payload.get("action") == "unpair":
             seq = self.store.next_send(identifier)
