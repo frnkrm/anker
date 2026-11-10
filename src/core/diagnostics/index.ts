@@ -35,7 +35,7 @@ const REASONS = ['boot', 'locked-boot', 'package-replaced', 'time-changed', 'tim
   'exact-fallback', 'restart', 'screen-off', 'permission-revoked', 'alarm-active', 'acknowledged', 'cancelled',
   'user', 'permission-denied', 'overlay-failed', 'launch-failed', 'display-off', 'display-doze', 'display-unknown',
   'updated', 'storage-failed', 'schedule-failed', 'interrupted', 'overlay-not-drawn', 'foreground-unconfirmed',
-  'foreground-requested', 'foreground-confirmed', 'activity-start-failed', 'inexact-schedule', 'stale-session', 'not-due'] as const
+  'foreground-requested', 'foreground-confirmed', 'activity-start-failed', 'inexact-schedule', 'stale-session', 'not-due', 'focus', 'quiet-hours', 'budget', 'channel-blocked', 'quiet-finished', 'quiet-disabled'] as const
 const ERROR_CLASSES = new Set(['Exception', 'Error', 'RuntimeException', 'SecurityException', 'IllegalStateException',
   'IllegalArgumentException', 'IOException', 'FileNotFoundException', 'UnsupportedOperationException',
   'ForegroundServiceStartNotAllowedException', 'MissingForegroundServiceTypeException', 'RemoteServiceException',
@@ -48,7 +48,7 @@ const EVENT_CODES: Readonly<Record<DiagnosticCategory, ReadonlySet<string>>> = {
     'audio_focus_result', 'audio_focus_change', 'audio_focus_error', 'player_started', 'player_error', 'player_route_changed', 'tone_started', 'tone_error', 'audio_stopped',
     'service_destroyed', 'stop_requested', 'stop_error', 'snooze_accepted', 'snooze_rejected', 'timeout', 'smart_fired_accepted', 'smart_fired_rejected', 'test_confirmed', 'fallback_posted', 'fallback_error']),
   bedtime: new Set(['scheduled', 'schedule_failed', 'due_received', 'due_rejected', 'due_accepted', 'overlay_requested', 'overlay_attached',
-    'foreground_requested', 'foreground_confirmed', 'foreground_unconfirmed', 'foreground_failed', 'stopped', 'acknowledged', 'session_skipped', 'session_error', 'app_paused']),
+    'foreground_requested', 'foreground_confirmed', 'foreground_unconfirmed', 'foreground_failed', 'stopped', 'acknowledged', 'session_skipped', 'session_error', 'app_paused', 'quiet_scheduled', 'quiet_posted', 'quiet_deferred', 'quiet_snoozed', 'quiet_stopped', 'quiet_expired', 'quiet_source_rejected']),
   system: new Set(['reconcile', 'journal_dropped']),
   reminder: new Set(['scheduled', 'delivered', 'delivery_rejected', 'action_accepted', 'action_rejected']),
   pc: new Set(['connected', 'disconnected', 'ack_accepted', 'ack_rejected']),
@@ -105,7 +105,7 @@ function selectSettings(settings: Settings, groups: readonly DiagnosticSettingsG
           smartWake: project(settings.alarm?.smartWake, { enabled: 'boolean', windowMinutes: 'integer' }) }
         break
       case 'sleep':
-        out.sleep = { ...project(settings.sleep, { ...fields('needMin fallAsleepMin screenOffMin', 'integer'), bedtimePromptEnabled: 'boolean' }),
+        out.sleep = { ...project(settings.sleep, { ...fields('needMin fallAsleepMin screenOffMin', 'integer'), bedtimePromptEnabled: 'boolean', bedtimeFollowUpsEnabled: 'boolean' }),
           ...project(settings, fields('bed pcStop', 'integer')),
           manualAnchors: project(settings.anchor?.manual, fields('wake pcStop bed', 'boolean')),
           guidance: project(settings.guidance, { ...fields(GUIDANCE_BOOLEANS.join(' '), 'boolean'), ...fields(GUIDANCE_NUMBERS.join(' '), 'integer') }),
@@ -146,9 +146,10 @@ const ALARM_STATUS_RULES: Projection = {
   kind: KINDS, testResult: ['', 'scheduled', 'rang', 'heard', 'not-heard', 'failed'], lastStopMethod: REASONS, lastReconcileReason: REASONS,
 }
 const BEDTIME_STATUS_RULES: Projection = {
-  ...fields('active overlayAllowed overlayPermission exact overlayVisible navigationAcknowledged screenInteractive overlayAttached wakeup allowWhileIdle', 'boolean'),
+  ...fields('active overlayAllowed overlayPermission exact overlayVisible navigationAcknowledged screenInteractive overlayAttached wakeup allowWhileIdle quietReady quietVisible', 'boolean'),
   ...fields('dueAt startedAt lastShownAt lastFiredAt lastAttemptAt remainingMs deliveryGraceMs displayState foregroundAttempts', 'integer'),
-  phase: ['idle', 'waiting', 'shown', 'skipped', 'error'], reason: REASONS,
+  phase: ['idle', 'waiting', 'shown', 'quiet', 'skipped', 'error'], reason: REASONS,
+  ...fields('quietDueAt quietUntilAt', 'integer'),
   foregroundStatus: ['not-requested', 'requested', 'confirmed', 'unconfirmed', 'failed'],
 }
 function currentRuntime(input: DiagnosticExportInput, categories: readonly DiagnosticCategory[]): NonNullable<DiagnosticExport['runtime']> {
@@ -179,6 +180,7 @@ function currentRuntime(input: DiagnosticExportInput, categories: readonly Diagn
 const WARNINGS = [
   'Eine Planung ist kein Nachweis, dass Android den Wecker ausgelöst hat.',
   'Ein gestarteter Audioplayer belegt weder Hörbarkeit noch Aufwachen.',
+  'Ein bereitstehender oder still zugestellter Schlafhinweis belegt weder Wachsein noch Schlaf.',
   'Aktuelle Einstellungen und Gerätestatus zeigen nur den Exportzeitpunkt, nicht rückwirkend die damalige Konfiguration.',
   'Fehlende Ereignisse beweisen keinen stummen Wecker: ältere App-Versionen, Aufbewahrungsgrenzen oder ein abgebrochener Prozess können Lücken hinterlassen.',
   'Die Zeitfilter verwenden die damalige Geräteuhr. Bei einer Uhrkorrektur können Zeitstempel außerhalb des gewählten Bereichs liegen; die native Sequenz bleibt erhalten.',

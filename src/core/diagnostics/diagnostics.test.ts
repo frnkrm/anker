@@ -20,6 +20,21 @@ const input = (events: unknown[] = []): DiagnosticExportInput => ({ app: { versi
 const all = (): DiagnosticExportSelection => ({ ...defaultDiagnosticSelection(NOW), categories: [...DIAGNOSTIC_CATEGORIES], settingsGroups: [...DIAGNOSTIC_SETTINGS_GROUPS] })
 
 describe('Selektiver Diagnoseexport', () => {
+  it('erklärt stille Folgehinweise und Snooze-Sperren ohne deren private Sitzungs- oder Quellenkennungen', () => {
+    const data = input([
+      { ...row(1, 'bedtime', 'quiet_deferred'), details: { reasonCode: 'budget', targetAt: NOW, token: 'PRIVATE_TOKEN', sourceRevision: 'PRIVATE_REVISION' } },
+      { ...row(2, 'reminder', 'delivery_rejected'), details: { kind: 'snooze', reasonCode: 'quiet-hours', targetAt: NOW, title: 'PRIVATE_TASK' } },
+    ])
+    data.bedtimeStatus = { phase: 'quiet', quietDueAt: NOW, quietUntilAt: NOW + HOUR, quietReady: true, quietVisible: false,
+      sessionId: 'PRIVATE_SESSION', sourceDate: 'PRIVATE_DATE', sourceRevision: 'PRIVATE_REVISION' }
+    const result = makeDiagnosticExport(data, all(), NOW)
+    expect(result.logs.map(event => event.details.reasonCode)).toEqual(['budget', 'quiet-hours'])
+    expect(result.runtime?.bedtime).toEqual({ phase: 'quiet', quietDueAt: NOW, quietUntilAt: NOW + HOUR, quietReady: true, quietVisible: false })
+    expect(JSON.stringify(result)).not.toContain('PRIVATE')
+    const excluded = makeDiagnosticExport(data, { ...all(), categories: ['alarm'] }, NOW)
+    expect(excluded.runtime?.bedtime).toBeUndefined()
+    expect(excluded.logs).toEqual([])
+  })
   it('beginnt mit Wecker, Schlafhinweis und System, aber ohne Einstellungsfreigabe', () => {
     const selection = defaultDiagnosticSelection(NOW)
     expect(selection).toEqual({ from: NOW - 24 * HOUR, to: NOW, categories: ['alarm', 'bedtime', 'system'], settingsGroups: [], includeCurrentStatus: true })
