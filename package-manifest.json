@@ -1,0 +1,121 @@
+{
+  "artifact": "anker-pc-companion-source",
+  "files": [
+    {
+      "bytes": 329,
+      "path": "Einrichten.cmd",
+      "sha256": "28d6145a14ee8077ba0d235dec0eaef186855c02a1c0e6f1fef4c4cf865a266c"
+    },
+    {
+      "bytes": 12477,
+      "path": "PROTOCOL.md",
+      "sha256": "46fbb39cbf21d87840f6a5f617f124b8a5d93ac03acde82a4c72dccf8c20af26"
+    },
+    {
+      "bytes": 13194,
+      "path": "README.md",
+      "sha256": "e0d7d1f735a91aa0d82c1c098f4ff0ac62cc6e30fb59bf41c8a883d39af33259"
+    },
+    {
+      "bytes": 390,
+      "path": "Start.cmd",
+      "sha256": "06ad4cdc9eb4051e5a5bc92fc858ebe00ba51bb115e36b7fd3ed25acf1c79728"
+    },
+    {
+      "bytes": 104,
+      "path": "anker_companion/__init__.py",
+      "sha256": "e6d4092b88d6cebd58462d5ceb4014b73b09329d52f0fa50ce417bf3941c9274"
+    },
+    {
+      "bytes": 7097,
+      "path": "anker_companion/__main__.py",
+      "sha256": "c32ab03c92a95b1aeee5309a7906f4f3836bebc8a5659afe172c96da8cbd243f"
+    },
+    {
+      "bytes": 5862,
+      "path": "anker_companion/desktop_settings.py",
+      "sha256": "e199e964f983576c0f3c8b934ec84e67f97d2248ede2029a9e6c0092d9f037bc"
+    },
+    {
+      "bytes": 36532,
+      "path": "anker_companion/engine.py",
+      "sha256": "f18be28e7b391bc003c23a51cc397248f587bef16f26466f895ec9604780387d"
+    },
+    {
+      "bytes": 17571,
+      "path": "anker_companion/protocol.py",
+      "sha256": "982ee6096968bb5b749e2f7fc56ffcd83121965d6d0cb39cf7243a6f73901530"
+    },
+    {
+      "bytes": 12128,
+      "path": "anker_companion/relay.py",
+      "sha256": "d862a2f850ebba33d9c22aa1810fd2ffea1731665ea3282c2ec32e41cb8b9957"
+    },
+    {
+      "bytes": 47654,
+      "path": "anker_companion/server.py",
+      "sha256": "2434b847dc7b33a2fdc0de02be4f705e4aea51487d1dc158d32b112a771eecfa"
+    },
+    {
+      "bytes": 5431,
+      "path": "anker_companion/storage.py",
+      "sha256": "c826caffe1c8f9bb498c5e815c2466e6d36a31665e18250f68b5efbb29d0e593"
+    },
+    {
+      "bytes": 1224,
+      "path": "anker_companion/tray.py",
+      "sha256": "2fbb7c8b57533c96117fd0825f1152088a7fc7f144c3df8015a5e027783ed5cd"
+    },
+    {
+      "bytes": 87272,
+      "path": "anker_companion/ui.py",
+      "sha256": "674bb30bc33e626eda95a7c37a25637523a78d55cd65284b4cb0c992ffc83690"
+    },
+    {
+      "bytes": 28942,
+      "path": "anker_companion/updater.py",
+      "sha256": "6d5880a1f11731ae6ecd858d68da2c51d8f6ad6d0503e46f63e8fac40d00817f"
+    },
+    {
+      "bytes": 3464,
+      "path": "anker_companion/vault.py",
+      "sha256": "be38c725710308d8c03c18d37f54bb7f6269e39eff5caaf8a3e8e1a394cb8d32"
+    },
+    {
+      "bytes": 8779,
+      "path": "anker_companion/widgets.py",
+      "sha256": "4c0b18d63cd63e9195948f7828a727b86fff5ac44859388b4a5b334a3afe9b1f"
+    },
+    {
+      "bytes": 21600,
+      "path": "anker_companion/windows.py",
+      "sha256": "79933ea78e25a633a440772511d857ed6187818191a3b97605888b51cd1dd63e"
+    },
+    {
+      "bytes": 13691,
+      "path": "install.ps1",
+      "sha256": "6540b1b48aa7ffd2d9f4e7c579c47b8e60c6fed83f20fa94125035a5ef4cccb7"
+    },
+    {
+      "bytes": 286,
+      "path": "requirements.txt",
+      "sha256": "f41182042c5d63815916d20a2a8ad85234f8743648be51c15cbb9c8432891d2a"
+    },
+    {
+      "bytes": 731,
+      "path": "uninstall.ps1",
+      "sha256": "6962f2d68f64c62744a50b637588f6c238f892d5186632f6fadbe714bbc43e75"
+    },
+    {
+      "bytes": 8697,
+      "path": "update-helper.ps1",
+      "sha256": "e88b08d4d9764da722a8e5e9b16bbb72a261e92edab86d44049de212e139003f"
+    }
+  ],
+  "protocolVersion": 3,
+  "pythonMinimum": "3.11",
+  "schemaVersion": 1,
+  "sourceCommit": "f38417dbaf2bfdac3d73080f534b7aa7505e8f08",
+  "stateSchemaVersion": 1,
+  "version": "0.1.1"
+}
