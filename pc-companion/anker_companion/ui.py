@@ -6,6 +6,7 @@ import ctypes
 from ctypes import wintypes
 import math
 import os
+import time
 from queue import Empty, SimpleQueue
 from typing import Callable
 from uuid import uuid4
@@ -21,9 +22,10 @@ class DesktopUI:
     ACCENT = "#83d6c1"
     WARM = "#cf9659"
 
-    def __init__(self, on_action: Callable[[dict], None], platform: WindowsPlatform | None = None) -> None:
+    def __init__(self, on_action: Callable[[dict], None], platform: WindowsPlatform | None = None, clock=time.time) -> None:
         self.on_action = on_action
         self.platform = platform
+        self.clock = clock
         self.queue: SimpleQueue[tuple[str, object]] = SimpleQueue()
         self.snapshot: dict = {}
         self.root = None
@@ -37,6 +39,10 @@ class DesktopUI:
         self._offer_window = None
         self._qr = None
         self._qr_image = None
+        self._offer_identifier = None
+        self._offer_expires_at = None
+        self._offer_timer = None
+        self._display_error = None
         self._pending_actions: dict[str, tuple[str, Callable[[bool], None]]] = {}
         self.capture_exclusion_supported: bool | None = None
 
@@ -46,6 +52,13 @@ class DesktopUI:
     def ask_pair(self, pairing: dict) -> None:
         self.queue.put(("pair", deepcopy(pairing)))
 
+    def show_pairing_offer(self, qr: str, expires_at: float, identifier: str) -> None:
+        # Short-lived pairing material is an event, never part of engine snapshots.
+        self.queue.put(("pairing-offer", (qr, expires_at, identifier)))
+
+    def close_pairing_offer(self, identifier: str) -> None:
+        self.queue.put(("close-pairing-offer", identifier))
+
     def show_note(self, title: str, text: str) -> None:
         self.queue.put(("note", (str(title), str(text))))
 
@@ -54,6 +67,8 @@ class DesktopUI:
 
     def _emit(self, action: dict) -> bool:
         try:
+            if action.get("action") == "pair":
+                self._display_error = None
             self.on_action(action)
             return True
         except Exception:
@@ -184,6 +199,7 @@ class DesktopUI:
         try:
             self.root.mainloop()
         finally:
+            self._close_offer()
             self._hide_overlays()
             if self.platform is not None:
                 self.platform.detach_window()
@@ -191,15 +207,24 @@ class DesktopUI:
                 self._tray.stop()
 
     def _drain(self) -> None:
-        try:
-            while True:
+        closed = False
+        while True:
+            try:
                 kind, value = self.queue.get_nowait()
+            except Empty:
+                break
+            try:
                 if kind == "render":
                     self._resolve_action_result(value.get("actionResult"))
                     self.snapshot = value
                     self._render()
                 elif kind == "pair":
                     self._pair(value)
+                elif kind == "pairing-offer":
+                    self._show_pairing_offer(*value)
+                elif kind == "close-pairing-offer":
+                    if value == self._offer_identifier:
+                        self._close_offer()
                 elif kind == "note":
                     self._note(*value)
                 elif kind == "form":
@@ -216,17 +241,32 @@ class DesktopUI:
                 elif kind == "quit":
                     self._request_quit()
                 elif kind == "close":
+                    self._close_offer()
                     self.root.destroy()
-                    return
-        except Empty:
-            pass
-        self.root.after(100, self._drain)
+                    closed = True
+                    break
+            except Exception:
+                # A bad Tk/QR render must not stop future actions or leak its data.
+                if kind == "pairing-offer" and isinstance(value, tuple) and len(value) == 3:
+                    self._cancel_offer(value[2])
+                elif kind == "pair" and isinstance(value, dict):
+                    self._cancel_offer(value.get("id"))
+                self._display_error = "Die Anzeige konnte noch nicht geöffnet werden. Bitte erneut versuchen."
+                try:
+                    self.status.set(self._display_error)
+                except Exception:
+                    pass
+        if not closed:
+            try:
+                self.root.after(100, self._drain)
+            except Exception:
+                pass  # The window may already have been closed by the user.
 
     def _render(self) -> None:
         item = self.snapshot
         state = str(item.get("state", item.get("phase", "IDLE")))
         text = str(item.get("message") or item.get("title") or ("Gekoppelt" if item.get("paired") else "Noch nicht gekoppelt"))
-        self.status.set(text[:500])
+        self.status.set(self._display_error or text[:500])
         grace = item.get("graceRemaining")
         saving = isinstance(grace, (int, float)) and not isinstance(grace, bool) and math.isfinite(grace)
         seconds = grace if saving else item.get("remainingSeconds")
@@ -250,29 +290,6 @@ class DesktopUI:
             if self._card is not None:
                 self._card.destroy()
                 self._card = None
-        pairing_qr = item.get("pairingQr")
-        if pairing_qr and pairing_qr != getattr(self, "_last_qr", None):
-            try:
-                import qrcode
-                from PIL import ImageTk
-                self._close_offer()
-                self._offer_window = self.tk.Toplevel(self.root)
-                self._offer_window.title("Mit Handy koppeln")
-                self._offer_window.configure(bg=self.BG)
-                self._offer_window.geometry("420x420")
-                self._label(self._offer_window, "In Anker am Handy: PC-Begleiter → Mit PC koppeln", size=14).pack(fill="x", padx=16, pady=12)
-                self._qr = self._label(self._offer_window)
-                self._qr.pack(padx=16, pady=6)
-                self._qr_image = ImageTk.PhotoImage(qrcode.make(str(pairing_qr)).resize((240, 240)))
-                self._qr.configure(image=self._qr_image, text="")
-                self._button(self._offer_window, "Schließen", self._close_offer).pack(fill="x", padx=16, pady=12)
-                self._offer_window.protocol("WM_DELETE_WINDOW", self._close_offer)
-                self._last_qr = pairing_qr
-            except ImportError:
-                self.status.set("QR-Anzeige fehlt. Bitte das vollständige Windows-Paket installieren.")
-        elif not pairing_qr:
-            self._close_offer()
-            self._last_qr = None
         if item.get("pairing"):
             self._pair(item["pairing"])
         if self._tray is not None:
@@ -280,6 +297,57 @@ class DesktopUI:
             bucket = min(12, max(0, math.ceil((seconds or 0) / 300)))
             self._tray.icon = self._tray_images[bucket]
             self._tray.update_menu()
+
+    def _show_pairing_offer(self, qr: str, expires_at: float, identifier: str) -> None:
+        if (not isinstance(qr, str) or not qr.startswith("anker-pc-pair:v3:") or len(qr) > 8192
+                or not isinstance(identifier, str) or not identifier or len(identifier) > 128
+                or isinstance(expires_at, bool) or not isinstance(expires_at, (int, float))
+                or not math.isfinite(expires_at) or expires_at <= self.clock()):
+            raise ValueError("Invalid pairing display event")
+        self._close_offer()
+        self._offer_identifier = identifier
+        self._offer_expires_at = expires_at
+        import qrcode
+        from PIL import ImageTk
+        code = qrcode.QRCode(box_size=1, border=4)
+        code.add_data(qr)
+        code.make(fit=True)
+        modules = len(code.get_matrix())
+        available = max(160, min(640, self.root.winfo_screenwidth() - 64, self.root.winfo_screenheight() - 260))
+        code.box_size = max(1, min(6, available // modules))
+        image = code.make_image(fill_color="black", back_color="white").get_image()
+        self._offer_window = self.tk.Toplevel(self.root)
+        self._offer_window.title("Mit Handy koppeln")
+        self._offer_window.configure(bg=self.BG)
+        self._offer_window.geometry(f"{max(360, image.width + 48)}x{image.height + 190}")
+        self._label(self._offer_window, "Am Handy: Mehr → Abend & Alltag → PC-Stopp → PC erstmals koppeln → Kopplungs-QR am PC scannen", size=12).pack(fill="x", padx=16, pady=12)
+        self._qr = self._label(self._offer_window)
+        self._qr.pack(padx=16, pady=6)
+        self._qr_image = ImageTk.PhotoImage(image, master=self._offer_window)
+        self._qr.configure(image=self._qr_image, text="")
+        cancel = lambda: self._cancel_offer(identifier)
+        self._button(self._offer_window, "Schließen", cancel).pack(fill="x", padx=16, pady=12)
+        self._offer_window.protocol("WM_DELETE_WINDOW", cancel)
+        self._offer_window.bind("<Escape>", lambda _event: cancel())
+        self._offer_window.lift()
+        self._check_offer_expiry(identifier)
+
+    def _check_offer_expiry(self, identifier: str) -> None:
+        if identifier != self._offer_identifier:
+            return
+        self._offer_timer = None
+        if self._offer_expires_at is None or self.clock() >= self._offer_expires_at:
+            self._cancel_offer(identifier)
+            self._display_error = "Der Kopplungs-QR ist abgelaufen. Wähle erneut Mit Handy koppeln."
+            self.status.set(self._display_error)
+        else:
+            self._offer_timer = self.root.after(1000, lambda: self._check_offer_expiry(identifier))
+
+    def _cancel_offer(self, identifier: str | None) -> None:
+        if identifier is None or identifier != self._offer_identifier:
+            return
+        self._close_offer()
+        self._emit({"action": "reject_pair", "id": identifier})
 
     def _handle(self, widget) -> int:
         identifier = widget.winfo_id()
@@ -452,21 +520,35 @@ class DesktopUI:
 
     def _pair(self, pairing: dict) -> None:
         identifier = str(pairing.get("id", ""))
-        if not identifier or identifier == getattr(self, "_last_pair", None): return
-        self._last_pair = identifier
+        if not identifier or identifier != self._offer_identifier:
+            return
+        if self._offer_expires_at is None or self.clock() >= self._offer_expires_at:
+            self._cancel_offer(identifier)
+            return
+        if identifier == getattr(self, "_last_pair", None):
+            return
+        if self._offer_window is not None:
+            self._offer_window.destroy()
+            self._offer_window = self._qr = self._qr_image = None
         dialog = self.tk.Toplevel(self.root)
+        self._pair_window = dialog
         dialog.title("Handy koppeln"); dialog.configure(bg=self.BG)
         self._label(dialog, "Stimmt dieser Code auf deinem Handy?", size=16).pack(padx=20, pady=12)
         self._label(dialog, str(pairing.get("code", ""))[:4], size=32).pack(padx=20, pady=8)
         self._label(dialog, str(pairing.get("n", "Handy"))[:100], muted=True).pack(padx=20)
         def answer(approved: bool):
+            if identifier != self._offer_identifier:
+                return
+            if self._offer_expires_at is None or self.clock() >= self._offer_expires_at:
+                self._cancel_offer(identifier)
+                return
+            self._close_offer()
             self._emit({"action": "confirm_pair" if approved else "reject_pair", "id": identifier})
-            dialog.destroy()
         self._button(dialog, "Ja, koppeln", lambda: answer(True), primary=True).pack(fill="x", padx=20, pady=8)
         self._button(dialog, "Abbrechen", lambda: answer(False)).pack(fill="x", padx=20, pady=(0, 16))
         dialog.protocol("WM_DELETE_WINDOW", lambda: answer(False))
         dialog.bind("<Escape>", lambda _event: answer(False))
-        self._pair_window = dialog
+        self._last_pair = identifier
 
     def _note(self, title: str, text: str) -> None:
         if self.root is None:
@@ -555,11 +637,22 @@ class DesktopUI:
             self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._emit({"action": "remove_legacy"})).pack(fill="x", padx=16, pady=6)
 
     def _close_offer(self) -> None:
-        if self._offer_window is not None:
-            self._offer_window.destroy()
-            self._offer_window = None
-            self._qr = None
-            self._qr_image = None
+        if self._offer_timer is not None:
+            try:
+                self.root.after_cancel(self._offer_timer)
+            except Exception:
+                pass
+        self._offer_timer = None
+        self._offer_identifier = self._offer_expires_at = None
+        self._last_pair = None
+        windows = [self._offer_window, self._pair_window]
+        self._offer_window = self._pair_window = self._qr = self._qr_image = None
+        for window in windows:
+            if window is not None:
+                try:
+                    window.destroy()
+                except Exception:
+                    pass  # Cleanup must also work after an external window close.
 
     def _request_quit(self) -> None:
         if self.messagebox.askokcancel("Anker beenden?", "Dann läuft kein PC-Stopp durch diesen Begleiter.", parent=self.root):

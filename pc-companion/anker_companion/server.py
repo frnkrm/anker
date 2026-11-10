@@ -24,6 +24,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 
+from . import __version__
 from .engine import CompanionEngine
 from .protocol import MAX_BYTES, ProtocolError, b64, canonical, derive_keys, integer, obj, open_envelope, pair_proof, pairing_code, public_bytes, public_key, seal, stamp, text, unb64, utc, validate_payload, verify_emergency
 from .storage import AtomicStateStore
@@ -104,7 +105,10 @@ class PairingManager:
         if self.store.read()["pairs"]:
             raise ProtocolError("already-paired")
         now = self.clock()
-        self.drafts = {key: item for key, item in self.drafts.items() if item["expires"] > now}
+        # Reopening pairing replaces, rather than silently retaining, old offers.
+        for identifier in self.drafts:
+            self.reject(identifier)
+        self.drafts.clear()
         private = ec.generate_private_key(ec.SECP256R1())
         identifier, secret = str(uuid.uuid4()), os.urandom(32)
         public = b64(public_bytes(private.public_key()))
@@ -190,7 +194,7 @@ class BridgeServer:
         return response
 
     async def hello(self, request: web.Request) -> web.Response:
-        return web.json_response({"version": "0.1.0", "protocol": 3, "name": self.pairing.pc_name,
+        return web.json_response({"version": __version__, "protocol": 3, "name": self.pairing.pc_name,
                                   "pairingOpen": any(item["expires"] > self.clock() and item["status"] == "open" for item in self.pairing.drafts.values())})
 
     async def pair(self, request: web.Request) -> web.Response:
@@ -350,11 +354,19 @@ class BridgeServer:
             if kind == "pair":
                 value = self.pairing.create()
                 if self.ui:
-                    self.ui.render({**self.engine.last_view, "pairingQr": value["qr"]})
+                    self.ui.show_pairing_offer(value["qr"], stamp(value["data"]["e"]), value["data"]["id"])
             elif kind == "confirm_pair":
-                self.pairing.approve(action["id"])
+                try:
+                    self.pairing.approve(action["id"])
+                finally:
+                    if self.ui:
+                        self.ui.close_pairing_offer(action["id"])
             elif kind == "reject_pair":
-                self.pairing.reject(action["id"])
+                try:
+                    self.pairing.reject(action["id"])
+                finally:
+                    if self.ui:
+                        self.ui.close_pairing_offer(action["id"])
             elif kind == "unpair":
                 self.unpair()
             elif kind == "extend":
