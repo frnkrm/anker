@@ -107,6 +107,8 @@ export interface NativeReminder {
 export type ReminderActionInfo = ReminderAction
 
 export interface VoiceCapabilities { dictationSupported: boolean; speechSupported: boolean | null; localOnly: boolean }
+export interface DeviceCalendarOption { id: string; name: string; account: string }
+export interface DeviceCalendarEvent { id: string; title: string; start: number; end: number; allDay: boolean; startDate?: string; endDate?: string }
 export interface VoiceResult { status: 'text' | 'cancelled' | 'unavailable' | 'permission-denied' | 'busy' | 'empty' | 'timeout' | 'spoken'; text?: string }
 
 export interface MorningHandoff {
@@ -206,6 +208,9 @@ export interface AnkerNativePlugin {
   pcBridgeUnpair(): Promise<NativePcBridgeState>
   pcBridgeEmergency(o: { qr: string; minutes: number }): Promise<{ until: number; tokenId: string; sent: boolean }>
   pcBridgeWakeOnLan(o: { mac: string; broadcast?: string }): Promise<{ sent: boolean }>
+  deviceCalendarPermission(o?: { request?: boolean }): Promise<{ granted: boolean }>
+  listDeviceCalendars(): Promise<{ calendars: DeviceCalendarOption[] }>
+  readDeviceCalendarEvents(o: { calendarIds: string[]; from: number; to: number }): Promise<{ events: DeviceCalendarEvent[]; readAt: number }>
   syncGeofences(o: GeofenceSnapshot): Promise<GeofenceStatus>
   getGeofenceState(): Promise<GeofenceState>
   ackGeofenceSuggestions(o: { ids: string[] }): Promise<void>

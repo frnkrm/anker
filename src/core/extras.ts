@@ -27,6 +27,8 @@ export interface ExtraLocal {
   pcStopSetupDone?: boolean
   calendar?: CalendarStatus
   ownCalendar?: { id: string; accountId: string }
+  /** Device-local selection; opaque ids bind provider ids to the chosen Google account. No OAuth/service key. */
+  deviceCalendar?: { enabled: boolean; calendarIds: string[]; selectedAt: number }
   geofences?: { enabled: boolean; visits: Record<string, GeofenceChoice> }
 }
 
@@ -37,6 +39,10 @@ export const extraSettings = (value?: Partial<ExtraSettings>): ExtraSettings => 
 
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const timestamp = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && Number.isFinite(new Date(value).getTime())
+export function deviceCalendarSelectionId(value: unknown): value is string {
+  return typeof value === 'string' && /^[1-9][0-9]{0,18}:[a-f0-9]{64}$/.test(value)
+    && BigInt(value.slice(0, value.indexOf(':'))) <= 9223372036854775807n
+}
 export function validExtrasSettings(value: unknown): value is ExtraSettings | undefined {
   return value === undefined || (object(value) && typeof value.dictation === 'boolean' && typeof value.spokenCues === 'boolean')
 }
@@ -50,6 +56,14 @@ export function validExtrasLocal(value: unknown): value is ExtraLocal | undefine
   if (!object(value) || (value.calendar !== undefined && !validCalendarStatus(value.calendar))
     || value.pcStopSetupDone !== undefined && typeof value.pcStopSetupDone !== 'boolean') return false
   if (value.ownCalendar !== undefined && (!object(value.ownCalendar) || typeof value.ownCalendar.id !== 'string' || !value.ownCalendar.id || typeof value.ownCalendar.accountId !== 'string' || !value.ownCalendar.accountId)) return false
+  if (value.deviceCalendar !== undefined) {
+    const choice = value.deviceCalendar
+    if (!object(choice) || typeof choice.enabled !== 'boolean' || !timestamp(choice.selectedAt)
+      || !Array.isArray(choice.calendarIds) || choice.calendarIds.length > 20 || (choice.enabled && choice.calendarIds.length === 0)
+      || !choice.calendarIds.every(deviceCalendarSelectionId)
+      || new Set(choice.calendarIds).size !== choice.calendarIds.length
+      || new Set(choice.calendarIds.map((id) => (id as string).split(':')[0])).size !== choice.calendarIds.length) return false
+  }
   if (value.geofences === undefined) return true
   const geo = value.geofences
   return object(geo) && typeof geo.enabled === 'boolean' && object(geo.visits) && Object.entries(geo.visits).length <= 20

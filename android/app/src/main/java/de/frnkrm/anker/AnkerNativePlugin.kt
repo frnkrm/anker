@@ -37,8 +37,31 @@ import java.lang.ref.WeakReference
     // Android 12+: genaue und ungefähre Freigabe gemeinsam anfragen. Nur Fine genügt für Geofences.
     Permission(alias = "geofenceForeground", strings = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION]),
     Permission(alias = "geofenceBackground", strings = [Manifest.permission.ACCESS_BACKGROUND_LOCATION]),
+    Permission(alias = "deviceCalendarRead", strings = [Manifest.permission.READ_CALENDAR]),
 ])
 class AnkerNativePlugin : Plugin() {
+    @PluginMethod fun deviceCalendarPermission(call: PluginCall) {
+        if (call.getBoolean("request") == true && getPermissionState("deviceCalendarRead") != PermissionState.GRANTED) {
+            if (!voiceForeground || activity?.isFinishing != false) { call.reject("DEVICE_CALENDAR_FOREGROUND_REQUIRED"); return }
+            requestPermissionForAlias("deviceCalendarRead", call, "deviceCalendarPermitted")
+        } else deviceCalendarPermitted(call)
+    }
+    @PermissionCallback private fun deviceCalendarPermitted(call: PluginCall) {
+        val result = JSObject()
+        result.put("granted", DeviceCalendarClient.granted(context))
+        call.resolve(result)
+    }
+    private fun deviceCalendar(call: PluginCall, action: () -> JSONObject) { execute {
+        try { call.resolve(JSObject(action().toString())) }
+        catch (_: Exception) { call.reject(if (DeviceCalendarClient.granted(context)) "DEVICE_CALENDAR_READ_FAILED" else "DEVICE_CALENDAR_PERMISSION_REQUIRED") }
+    } }
+    @PluginMethod fun listDeviceCalendars(call: PluginCall) = deviceCalendar(call) { DeviceCalendarClient.calendars(context) }
+    @PluginMethod fun readDeviceCalendarEvents(call: PluginCall) = deviceCalendar(call) {
+        val ids = call.getArray("calendarIds") ?: throw IllegalArgumentException("DEVICE_CALENDAR_SELECTION_INVALID")
+        require(ids.length() in 1..DeviceCalendarModel.MAX_CALENDARS) { "DEVICE_CALENDAR_SELECTION_INVALID" }
+        DeviceCalendarClient.events(context, (0 until ids.length()).map { ids.getString(it) },
+            call.getLong("from") ?: -1L, call.getLong("to") ?: -1L)
+    }
     private val dictationLease = VoiceRequestLease()
     private val speechLease = VoiceRequestLease()
     @Volatile private var voiceForeground = true
