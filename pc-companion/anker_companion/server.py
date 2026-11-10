@@ -11,6 +11,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import socket
 import ssl
@@ -29,6 +30,7 @@ from . import __version__
 from .engine import CompanionEngine
 from .desktop_settings import DesktopSettingsError, delete_managed_files, desktop_patch, desktop_preferences
 from .relay import RelayError, clear_relay, configure_relay, disable_relay
+from .updater import MAX_ARCHIVE, UpdateError
 from .protocol import MAX_BYTES, ProtocolError, b64, canonical, derive_keys, integer, obj, open_envelope, pair_proof, pairing_code, plan_date, public_bytes, public_key, seal, stamp, text, unb64, utc, validate_payload, verify_emergency
 from .storage import AtomicStateStore
 
@@ -185,7 +187,7 @@ class _SyncRequest:
 
 
 class BridgeServer:
-    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0, on_delete_data=None, monotonic=time.monotonic, relay_pump=None):
+    def __init__(self, store: AtomicStateStore, engine: CompanionEngine, pairing: PairingManager, ui: Any = None, clock=time.time, allow_loopback=False, sync_timeout=25.0, on_delete_data=None, monotonic=time.monotonic, relay_pump=None, updater=None, on_install_handoff=None):
         self.store, self.engine, self.pairing, self.ui, self.clock = store, engine, pairing, ui, clock
         self.allow_loopback = allow_loopback
         self.sockets: set[web.WebSocketResponse] = set()
@@ -198,6 +200,12 @@ class BridgeServer:
         self.monotonic = monotonic
         self.relay_pump = relay_pump
         self.relay_task: asyncio.Task | None = None
+        self.updater, self.on_install_handoff = updater, on_install_handoff
+        self._update_lock = asyncio.Lock()
+        self._update_tasks: set[asyncio.Task] = set()
+        self.auto_update_task: asyncio.Task | None = None
+        self._update_status: dict | None = None
+        self._install_handoff = False
         self.app = web.Application(client_max_size=MAX_BYTES, middlewares=[self._guard])
         self.app.add_routes([web.get("/health", self.hello), web.get("/v3/hello", self.hello),
                              web.post("/v3/pair", self.pair), web.get("/v3/pair/{id}", self.pair_status),
@@ -206,6 +214,8 @@ class BridgeServer:
 
     async def _shutdown(self, _app) -> None:
         await self.stop_relay()
+        try: await self.stop_updates()
+        except Exception: pass  # Still close authenticated sockets and pending UI work.
         for pending in tuple(self._pending_sync.values()):
             if not pending.future.done():
                 pending.future.set_result({"status": "offline"})
@@ -227,20 +237,100 @@ class BridgeServer:
         return any(item.pair == pair and not item.socket.closed and item.last_contact is not None and 0 <= now - item.last_contact <= max_age for item in self._sessions.values())
 
     def public_status(self) -> dict:
+        update = {"update": dict(self._update_status)} if self._update_status is not None and not self._resetting else {}
         if self._resetting or self.relay_pump is None:
-            return {"relay": {"enabled": False, "status": "off"}}
+            return {"relay": {"enabled": False, "status": "off"}, **update}
         try:
             value = self.relay_pump.public_status()
         except Exception:
-            return {"relay": {"enabled": False, "status": "unavailable"}}
+            return {"relay": {"enabled": False, "status": "unavailable"}, **update}
         if not isinstance(value, dict):
-            return {"relay": {"enabled": False, "status": "unavailable"}}
+            return {"relay": {"enabled": False, "status": "unavailable"}, **update}
         allowed = {"off", "lan", "waiting", "received", "unavailable", "unauthorized", "rejected"}
         result = {"enabled": value.get("enabled") is True, "status": value.get("status") if isinstance(value.get("status"), str) and value["status"] in allowed else "unavailable"}
         if isinstance(value.get("lastExchangeAt"), str):
             try: result["lastExchangeAt"] = utc(stamp(value["lastExchangeAt"]))
             except ProtocolError: pass
-        return {"relay": result}
+        return {"relay": result, **update}
+
+    @staticmethod
+    def _public_update(value: dict) -> dict:
+        statuses = {"disabled", "not-due", "current", "available", "staged", "handoff-ready", "unavailable", "busy"}
+        if not isinstance(value, dict) or not isinstance(value.get("status"), str) or value["status"] not in statuses:
+            return {"status": "unavailable", "reason": "stage-invalid"}
+        result = {"status": value["status"]}
+        if isinstance(value.get("version"), str) and re.fullmatch(r"[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}(?:[-+][A-Za-z0-9.-]{1,24})?", value["version"]):
+            result["version"] = value["version"]
+        if type(value.get("bytes")) is int and 0 <= value["bytes"] <= MAX_ARCHIVE:
+            result["bytes"] = value["bytes"]
+        if isinstance(value.get("stageId"), str) and re.fullmatch(r"stage-[a-f0-9]{32}", value["stageId"]):
+            result["stageId"] = value["stageId"]
+        if isinstance(value.get("reason"), str):
+            reason = UpdateError(value["reason"]).code
+            result["reason"] = reason
+        if result["status"] in {"staged", "handoff-ready"} and ("stageId" not in result or "version" not in result):
+            return {"status": "unavailable", "reason": "stage-invalid"}
+        return result
+
+    async def _update(self, action: dict, *, automatic=False) -> None:
+        if self.updater is None or self._resetting or self._install_handoff:
+            if not automatic: self._management_result(action, False, update={"status": "unavailable", "reason": "updater-closed"})
+            return
+        if self._update_lock.locked():
+            if not automatic: self._management_result(action, False, update={"status": "busy", "reason": "busy"})
+            return
+        async with self._update_lock:
+            try:
+                kind = action["action"]
+                if kind == "update-check":
+                    enabled = self.store.read()["localPrefs"].get("autoUpdateChecks") is True
+                    value = await asyncio.to_thread(self.updater.check, automatic=automatic, auto_checks_enabled=enabled)
+                    if automatic and (not self.store.read()["localPrefs"].get("autoUpdateChecks") or value.get("status") in {"disabled", "not-due"}):
+                        return
+                elif kind == "update-download":
+                    value = await asyncio.to_thread(self.updater.download)
+                else:
+                    if action.get("userConfirmed") is not True:
+                        raise UpdateError("confirmation-required")
+                    if self._update_status is None or self._update_status.get("status") != "staged" or self._update_status.get("stageId") != action.get("stageId"):
+                        raise UpdateError("stage-invalid")
+                    value = await asyncio.to_thread(self.updater.prepare_install, action.get("stageId"), confirmed=True)
+                result = self._public_update(value)
+                if kind == "update-install" and result["status"] == "handoff-ready" and result.get("stageId") != action.get("stageId"):
+                    result = {"status": "unavailable", "reason": "stage-invalid"}
+            except UpdateError as error:
+                result = {"status": "unavailable", "reason": error.code}
+            except Exception:
+                result = {"status": "unavailable", "reason": "stage-invalid"}
+            if self._resetting:
+                return
+            self._update_status = result
+            if automatic:
+                if self.ui: self.ui.render({**self.engine.last_view, **self.public_status()})
+                return
+            ok = result["status"] in {"current", "available", "staged", "handoff-ready"}
+            self._management_result(action, ok, update=result)
+            if action["action"] == "update-install" and result["status"] == "handoff-ready":
+                self._install_handoff = True
+                if self.on_install_handoff: self.on_install_handoff()
+
+    async def automatic_updates(self, stopped, interval=60) -> None:
+        while not stopped() and not self._resetting and not self._install_handoff:
+            if (self.updater is not None and self.store.read()["localPrefs"].get("autoUpdateChecks") is True
+                    and (self._update_status or {}).get("status") not in {"staged", "handoff-ready"}):
+                await self._update({"action": "update-check"}, automatic=True)
+            await asyncio.sleep(interval)
+
+    async def stop_updates(self, cancel_handoff=None) -> None:
+        task = self.auto_update_task
+        if task is not None and task is not asyncio.current_task():
+            if not task.done(): task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        self.auto_update_task = None
+        if self.updater is not None:
+            await asyncio.to_thread(self.updater.dispose, cancel_handoff=not self._install_handoff if cancel_handoff is None else cancel_handoff)
+        pending = tuple(task for task in self._update_tasks if task is not asyncio.current_task())
+        if pending: await asyncio.gather(*pending, return_exceptions=True)
 
     @web.middleware
     async def _guard(self, request: web.Request, handler):
@@ -406,7 +496,7 @@ class BridgeServer:
         pending.future.set_result({"status": "received", "receivedAt": utc(now), "sourceGeneratedAt": utc(stamp(payload["generatedAt"]))})
 
     def _sync_result(self, action: dict, result: dict) -> None:
-        messages = {"received": "Handystand neu empfangen.", "offline": "Handy nicht verbunden. Öffne Anker und die PC-Verbindung.",
+        messages = {"received": "Handystand neu empfangen.", "offline": "Für diesen Sofortabgleich fehlt eine bestätigte WLAN-Verbindung. Öffne Anker im gleichen Netz; Relay läuft unabhängig im Hintergrund.",
                     "unpaired": "Kopple zuerst dein Handy mit diesem PC.", "busy": "Ein Abgleich läuft bereits.",
                     "pending-events": "Öffne Anker am Handy, damit offene PC-Rückmeldungen übernommen werden.",
                     "timeout": "Noch kein neuer gültiger Handystand empfangen. Öffne Anker und versuche es erneut."}
@@ -593,6 +683,10 @@ class BridgeServer:
             except asyncio.TimeoutError:
                 pass
             self._sessions.clear()
+            await self.stop_updates(cancel_handoff=True)
+            self._install_handoff = False
+            if self.updater is not None:
+                await asyncio.to_thread(self.updater.clear_staging)
             # Production stops its loop and closes its own rotating log handler
             # before unlinking, so neither state nor logs are recreated afterward.
             if self.on_delete_data:
@@ -611,6 +705,11 @@ class BridgeServer:
             if kind == "desktop-settings":
                 self._desktop_settings(action)
                 return
+            if kind in {"update-check", "update-download", "update-install"}:
+                task = asyncio.get_running_loop().create_task(self._update(dict(action)))
+                self._update_tasks.add(task)
+                task.add_done_callback(self._update_tasks.discard)
+                return task
             if kind in {"relay_configure", "relay_disable", "relay_clear"}:
                 if self.relay_pump is None:
                     raise RelayError("unavailable")

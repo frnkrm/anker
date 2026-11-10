@@ -18,6 +18,7 @@ from .server import BridgeServer, Discovery, PairingManager, local_addresses, tl
 from .storage import AtomicStateStore
 from .desktop_settings import desktop_preferences
 from .relay import RelayPump
+from .updater import UpdateManager
 
 
 class DesktopStatusUI:
@@ -101,7 +102,12 @@ def main() -> int:
         logger.removeHandler(log_handler)
         log_handler.flush(); log_handler.close()
 
-    server = BridgeServer(store, engine, pairing, ui=status_ui, on_delete_data=stop_for_reset)
+    def stop_for_install() -> None:
+        stopped.set()
+        ui.close()
+
+    updater = UpdateManager(base_dir=directory)
+    server = BridgeServer(store, engine, pairing, ui=status_ui, on_delete_data=stop_for_reset, updater=updater, on_install_handoff=stop_for_install)
     relay = RelayPump(store, server.relay_exchange, server.local_session_fresh)
     server.relay_pump = relay
 
@@ -112,6 +118,7 @@ def main() -> int:
         try:
             await web.TCPSite(runner, "0.0.0.0", args.port, ssl_context=context).start()
             server.relay_task = asyncio.create_task(relay.run(stopped.is_set))
+            server.auto_update_task = asyncio.create_task(server.automatic_updates(stopped.is_set))
             try:
                 await asyncio.to_thread(discovery.start)
             except Exception:
@@ -132,6 +139,10 @@ def main() -> int:
             ui.show_note("Verbindung noch nicht gestartet", "Port oder Firewall prüfen. Es wurde kein PC-Auftrag ausgeführt.")
         finally:
             await server.stop_relay()
+            try:
+                await server.stop_updates()
+            except Exception:
+                logging.getLogger("anker").warning("updater-stop-incomplete")
             audio.restore()
             await asyncio.to_thread(discovery.close)
             await runner.cleanup()
@@ -143,7 +154,9 @@ def main() -> int:
         ui.run()
     finally:
         stopped.set()
-        thread.join(timeout=5)
+        # Updater cleanup waits for its bounded worker/helper before process exit.
+        # A daemon-thread timeout would silently skip that shutdown barrier.
+        thread.join()
         audio.restore()
         kernel.CloseHandle(ctypes.c_void_p(instance))
     return 0
