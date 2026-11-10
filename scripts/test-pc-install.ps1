@@ -54,7 +54,7 @@ function Change-Manifest([string]$Path, [scriptblock]$Change) {
 }
 try {
     $ankerValid = Assert-AnkerSourceManifest $Source
-    Assert-True ($ankerValid.protocolVersion -eq 3 -and $ankerValid.files.Count -eq 16) 'Manifest validation failed'
+    Assert-True ($ankerValid.protocolVersion -eq 3 -and $ankerValid.files.Count -eq 18) 'Manifest validation failed'
     $ankerTarget = Join-Path $env:LOCALAPPDATA 'AnkerPcCompanion/app'
     $ankerParent = Split-Path $ankerTarget -Parent
     New-Item -ItemType Directory -Force -Path $ankerParent | Out-Null
