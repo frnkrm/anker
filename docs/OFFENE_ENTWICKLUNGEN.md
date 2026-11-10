@@ -23,6 +23,7 @@ Die nachfolgende finale Gesamtprüfung und Lieferung wird im [Implementierungspl
 
 - Kalenderfreigabe und Auswahl müssen auf dem Handy erfolgen. Das vorhandene Play-Dienstkonto berechtigt nicht zum persönlichen Google-Kalender. Der neue Gerätekalenderweg benötigt keinen weiteren API-Schlüssel.
 - Relaybetrieb benötigt ein tatsächlich eingerichtetes Supabase-Projekt und bewusst gewählte Aktivierung. Ohne Projektzugang gibt es nur geprüften optionalen Code und den lokalen LAN-Weg.
+- Die schon früher beauftragte dauerhafte GitHub-Secret-Sicherung des B4-Schlüssels ist ohne freigegebenen Secret-Schreibzugang weiterhin nicht bestätigt. Vorhandenen Schlüssel erhalten; kein neues Zertifikat oder öffentlicher Schlüsselupload daraus abgeleitet.
 - Ein vertrauenswürdiger signierter Windows-EXE-Installer erfordert ein passendes externes Codesignierungszertifikat. Kein kostenpflichtiges Zertifikat gekauft oder eine Signatur vorgetäuscht; Quellpaket und signierter Updatekanal sind getrennt beschrieben.
 - MO-05 ist eine Machbarkeitsnotiz für einen Lichtwecker, keine Hardwareintegration. Zusätzliche Geräte werden nicht gekauft/angesteuert.
 - Galaxy S26 Ultra, tatsächlicher Weckerton/Standby/Spiel-Touchschutz, reale Windows-Installation, mehrere Monitore mit verschiedener DPI, Tray-/Windows-Erinnerungsklick, LAN-Unterbrechung und bewusst gewählte Sperr-/Audio-/WoL-Wirkungen bleiben echte Geräteversuche. Dieselben sieben Stationen/103 IDs weiterverwenden, keine automatischen Geräte-Häkchen.

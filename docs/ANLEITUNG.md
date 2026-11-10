@@ -214,7 +214,7 @@ Die vollständigen [Windows-Befehle, Netzwerkhinweise und sieben gemeinsamen Pr�
 
 ## Google-Kalender auf dem Handy lesen
 
-Unter **Mehr → Kalender & Sync → Google-Kalender auf diesem Handy auswählen** erlaubst du zuerst den Android-Kalenderzugriff. Wähle danach die gewünschten Google-Kalender und **Ausgewählte Kalender lesen**. Fehlen sie, aktiviere in den Android-Kontoeinstellungen die Kalendersynchronisierung für dein Google-Konto und öffne zunächst deine Kalender-App. Ein Play-Dienstkonto oder ein API-Schlüssel ist hierfür nicht nötig.
+Unter **Mehr → Einstellungen → Kalender & Sync → Google-Kalender auf diesem Handy auswählen** erlaubst du zuerst den Android-Kalenderzugriff. Wähle danach die gewünschten Google-Kalender und **Ausgewählte Kalender lesen**. Fehlen sie, aktiviere in den Android-Kontoeinstellungen die Kalendersynchronisierung für dein Google-Konto und öffne zunächst deine Kalender-App. Ein Play-Dienstkonto oder ein API-Schlüssel ist hierfür nicht nötig.
 
 Anker liest die nächsten drei Tage in denselben Tagesplan; der Geräteabruf bestätigt den Android-Kalenderstand, keine aktuelle Cloud-Synchronisierung. Eigene Aufgaben und Termine bleiben erhalten. Mit **Jetzt Kalender aktualisieren** liest du erneut, **Handykalender trennen** entfernt den Anker-Kalendercache und keine Google-Termine. Entzug der Android-Berechtigung wird als fehlender Zugriff angezeigt; der letzte Stand kann als älterer Cache sichtbar bleiben.
 
