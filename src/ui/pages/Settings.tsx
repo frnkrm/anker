@@ -189,7 +189,10 @@ function Sleep({ s, save }: { s: S; save: Save }) {
       <p className="px-1 text-sm text-muted">Deine Zeiten bleiben anpassbar. Zahlen und Uhrzeiten kannst du direkt eingeben.</p>
 
       <SettingRow label="Stummen Einschlafhinweis beim Zubettgehen starten"><Toggle label="Stummen Einschlafhinweis beim Zubettgehen starten" checked={!!s.sleep.bedtimePromptEnabled} onChange={(value) => setSleep({ bedtimePromptEnabled: value })} /></SettingRow>
-      <p className="text-sm text-muted">Nach „Ich liege im Bett“ erinnert dich Anker zur geschätzten Einschlafzeit, solange der Bildschirm an ist. Freigaben und Start bleiben deine Wahl.</p>
+      <p className="text-sm text-muted">Einmaliger Hinweis nach „Ich liege im Bett“ über anderen Apps. Dafür gibst du das Einblenden in Android gesondert frei. Die Freigabe allein startet nichts.</p>
+      <SettingRow label="Leise Schlafenszeit-Folgehinweise"><Toggle label="Leise Schlafenszeit-Folgehinweise" checked={s.sleep.bedtimeFollowUpsEnabled === true} onChange={(value) => setSleep({ bedtimeFollowUpsEnabled: value })} /></SettingRow>
+      <p className="text-sm text-muted">Eigene Wahl: Zur festen Bettzeit oder nach deiner Bettbestätigung kann Anker nach der geschätzten Einschlafdauer still weiter erinnern. Ohne Ton, Vibration, Bildschirmwecken oder automatischen Appwechsel. Auf Jetzt kannst du „5 Min später“ oder „Heute Ruhe“ wählen.</p>
+      <p className="text-sm text-muted">Keine Schlaferkennung: Ein eingeschalteter Bildschirm beweist nicht, dass du wach bist. Ausgeschalteter oder gesperrter Bildschirm wird für Folgehinweise nicht geweckt. Offene Abende bleiben ohne festen Bettzeit-Start.</p>
       <HealthSleepSettings />
       <Card className="space-y-4">
         <SettingRow label={<span>Schlafbedarf</span>}>

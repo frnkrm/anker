@@ -54,6 +54,17 @@ function bedAction(): ReminderActionInfo {
 }
 
 describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen', () => {
+  it('übermittelt die eigene stille Bettwahl und den vorhandenen Delay, ohne andere Keys umzuetikettieren', async () => {
+    await useApp.getState().saveSettings(settings => ({ ...settings, onboarded: true, sleep: { ...settings.sleep, bedtimeFollowUpsEnabled: true, fallAsleepMin: 45 }, support: { ...settings.support, windDown: { ...settings.support.windDown, enabled: true } } }))
+    await rescheduleAll()
+    const request = mocks.sync.mock.calls.at(-1)![0]
+    expect(request.policy).toMatchObject({ bedtimeFollowUpsEnabled: true, bedtimeFollowUpsDelayMinutes: 45 })
+    const bed = request.reminders.filter(entry => entry.key === 'bed' && entry.date === date)
+    expect(bed).toHaveLength(1)
+    expect(bed[0]).toMatchObject({ quietFollowUps: true, actions: false, exact: false, channel: 'sanft' })
+    expect(request.reminders.filter(entry => entry.key !== 'bed').every(entry => entry.quietFollowUps === undefined)).toBe(true)
+    expect(request.ruleSnapshot?.rules.filter(rule => rule.key === 'bed').every(rule => rule.quietFollowUps === true)).toBe(true)
+  })
   it('hält alle PC-/Bettregeln und liefert nur nach eigener Wahl die exakte aktuelle PC-Revision als Bedingung', async () => {
     await useApp.getState().saveSettings(s => ({ ...s, onboarded: true, guidance: { ...guidancePreferences(), enabled: true, suppressPhonePcWhenConfirmed: true } }))
     await useApp.getState().saveLocal(local => ({ ...local, pcBridge: { ...defaultPcBridgeLocal(), enabled: true } }))

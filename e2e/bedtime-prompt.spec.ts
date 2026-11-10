@@ -2,6 +2,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { defaultSettings, emptyLocal } from '../src/core/defaults'
 import { initialGame, XP } from '../src/core/game'
+import { guidancePreferences } from '../src/core/guidance'
 import type { BedtimePromptState } from '../src/platform/bedtimePrompt'
 import type { Settings } from '../src/core/types'
 import type { DiagnosticExport } from '../src/core/diagnostics'
@@ -26,10 +27,12 @@ interface BedtimeProbe {
 }
 
 /** Kontrollierte Capacitor-/SQLite-Brücke. Dies prüft weder Android-Overlays noch Entsperrung am Gerät. */
-async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean; diagnostics?: boolean } = {}) {
+async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean; diagnostics?: boolean; followUps?: boolean; overlayEnabled?: boolean; quiet?: boolean; strict?: boolean } = {}) {
   const settings = { ...defaultSettings('2026-11-06'), onboarded: true }
   settings.sleep.fallAsleepMin = options.delay ?? 15
-  settings.sleep.bedtimePromptEnabled = true
+  settings.sleep.bedtimePromptEnabled = options.overlayEnabled ?? true
+  settings.sleep.bedtimeFollowUpsEnabled = options.followUps ?? false
+  if (options.strict) settings.guidance = { ...guidancePreferences(), enabled: true, pcLock: true, eveningEscalation: true }
   if (options.diagnostics) { settings.alarm.qrSecret = 'PRIVATE_QR'; settings.routines.morning[0]!.title = 'PRIVATE_STEP'; settings.support.windDown.activity = 'PRIVATE_THOUGHT' }
   const now = options.daytime ? Date.parse('2026-11-06T10:00:00+01:00') : START
   await page.clock.setFixedTime(new Date(now))
@@ -37,7 +40,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
     const listeners = new Map<string, { event: string; callback: (value: unknown) => void }>()
     let listenerId = 0
     let session = 0
-    const initial: BedtimePromptState = { phase: options.waiting ? 'waiting' : 'idle', overlayPermission: options.granted ?? false, exact: true, ...(options.waiting ? { sessionId: 'existing-session', dueAt: now + 900_000 } : {}) }
+    const initial: BedtimePromptState = { phase: options.quiet ? 'quiet' : options.waiting ? 'waiting' : 'idle', overlayPermission: options.granted ?? false, exact: true, ...(options.quiet ? { sessionId: 'quiet-session', quietDueAt: now, quietUntilAt: now + 7200_000, quietVisible: true, quietReady: true } : options.waiting ? { sessionId: 'existing-session', dueAt: now + 900_000 } : {}) }
     const cachedState = localStorage.getItem('bedtime-native-fixture')
     const alarm = { ringing: false, snoozed: 0, exact: true, mainConfirmed: true, preWakeConfirmed: true, scheduledAt: Date.parse('2026-11-07T06:30:00+01:00') }
     const savedRecords = localStorage.getItem('bedtime-sqlite-fixture')
@@ -95,13 +98,16 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
             return value
           }
           if (method === 'startBedtimePrompt') {
-            if (!probe.state.overlayPermission) throw new Error('overlay-permission-required')
+            if (!probe.state.overlayPermission && raw.quietOnly !== true) throw new Error('overlay-permission-required')
             if (!Number.isInteger(raw.delayMinutes) || Number(raw.delayMinutes) < 0 || Number(raw.delayMinutes) > 60) throw new Error('invalid-delay')
-            probe.state = { phase: raw.delayMinutes === 0 ? 'shown' : 'waiting', sessionId: `fixture-session-${++session}`, dueAt: Date.now() + Number(raw.delayMinutes) * 60_000, overlayPermission: true, exact: true }
+            probe.state = { phase: raw.quietOnly === true ? 'quiet' : raw.delayMinutes === 0 ? 'shown' : 'waiting', sessionId: `fixture-session-${++session}`, dueAt: Date.now() + Number(raw.delayMinutes) * 60_000, overlayPermission: probe.state.overlayPermission, exact: true, ...(raw.quietOnly === true ? { quietDueAt: Date.now() + Number(raw.delayMinutes) * 60_000, quietUntilAt: Date.now() + 7200_000, quietVisible: false, quietReady: false } : {}) }
             changed(); return {}
           }
           if (method === 'stopBedtimePrompt' && (!raw.sessionId || raw.sessionId === probe.state.sessionId)) {
             probe.state = { phase: 'idle', overlayPermission: probe.state.overlayPermission, exact: true, reason: 'stopped' }; changed(); return {}
+          }
+          if (method === 'ackBedtimePrompt' && raw.sessionId === probe.state.sessionId && probe.state.phase === 'quiet') {
+            probe.state = { ...probe.state, quietVisible: false, quietReady: false, quietDueAt: Date.now() + 300_000 }; changed(); return {}
           }
           if (method === 'ackBedtimePrompt' && raw.sessionId === probe.state.sessionId && probe.state.phase === 'shown') {
             probe.state = { phase: 'idle', overlayPermission: probe.state.overlayPermission, exact: true, reason: 'acknowledged' }; changed(); return {}
@@ -139,7 +145,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
     } })
   }, { settings, local: emptyLocal(), game: initialGame('2026-11-06'), options, now })
   await page.goto('/')
-  if (!options.daytime) await expect(page.getByRole('heading', { name: 'Ab ins Bett', exact: true })).toBeVisible()
+  if (!options.daytime && !options.strict) await expect(page.getByRole('heading', { name: 'Ab ins Bett', exact: true })).toBeVisible()
   if (options.waiting) await openControls(page)
   if (!options.daytime || options.waiting) await expect.poll(async () => (await probe(page)).calls.filter((call) => call.method === 'getBedtimePromptState').length).toBeGreaterThan(0)
 }
@@ -291,6 +297,100 @@ test('Im Tageskontext ohne Sitzung erscheint kein Schlafhinweis-Start', async ({
   await nativeBedtime(page, { granted: true, daytime: true })
   await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toHaveCount(0)
   expect(await starts(page)).toEqual([])
+})
+
+test('Eigene leise Bettwahl startet ohne Overlayfreigabe und fordert keinen App-/Ton-/Messweg an', async ({ page }) => {
+  await nativeBedtime(page, { granted: false, overlayEnabled: false, followUps: true })
+  expect(await starts(page)).toEqual([])
+  await page.getByRole('button', { name: 'Ich liege im Bett', exact: true }).click()
+  await expect.poll(async () => (await starts(page)).length).toBe(1)
+  expect((await starts(page))[0]?.options).toEqual({ delayMinutes: 15, followUps: true, quietOnly: true })
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await expect(card).toContainText('Anker erkennt nicht, ob du schläfst.')
+  await expect(card).toContainText('Frühestens wieder ab 23:45')
+  const forbidden = new Set(['openOverlayPermissionSettings', 'startSmartWake', 'startSleepAudio', 'playTestTone', 'testAlarm', 'syncRoutinePaceKeeper', 'pcBridgeStart'])
+  expect((await probe(page)).calls.filter(call => forbidden.has(call.method))).toEqual([])
+})
+
+test('Leise Now-Karte bleibt außerhalb des Bettkontexts erreichbar und verschiebt oder beendet ohne Erledigung und Punkte', async ({ page }) => {
+  await nativeBedtime(page, { daytime: true, granted: false, overlayEnabled: false, followUps: true, quiet: true })
+  await startupEffectsReady(page)
+  const before = await stored(page)
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await expect(card).toBeVisible()
+  await card.getByRole('button', { name: '5 Min später', exact: true }).click()
+  await expect(card).toContainText('Frühestens wieder ab 10:05')
+  expect((await probe(page)).state).toMatchObject({ phase: 'quiet', quietVisible: false, quietDueAt: Date.parse('2026-11-06T10:05:00+01:00') })
+  expect(await stored(page)).toEqual(before)
+  await card.getByRole('button', { name: 'Heute Ruhe', exact: true }).click()
+  await expect(card).toHaveCount(0)
+  expect(await stored(page)).toEqual(before)
+  expect(await starts(page)).toEqual([])
+  expect((await probe(page)).calls.filter(call => ['ackBedtimePrompt', 'stopBedtimePrompt'].includes(call.method)).map(call => call.method)).toEqual(['ackBedtimePrompt', 'stopBedtimePrompt'])
+})
+
+test('Strenge Nacht zeigt dieselbe leise Karte und lässt Heute Ruhe ohne Bett-/Morgenbuchung zu', async ({ page }) => {
+  await nativeBedtime(page, { granted: false, overlayEnabled: false, followUps: true, quiet: true, strict: true })
+  await expect(page.getByTestId('guidance-night-page')).toBeVisible()
+  await startupEffectsReady(page)
+  const before = await stored(page)
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await expect(card).toBeVisible()
+  await card.getByRole('button', { name: 'Heute Ruhe', exact: true }).click()
+  await expect(card).toHaveCount(0)
+  expect(await stored(page)).toEqual(before)
+  expect(await starts(page)).toEqual([])
+})
+
+test('Verspäteter Quiet-Snapshot überschreibt weder die neue Pause noch Ruhe für heute', async ({ page }) => {
+  await nativeBedtime(page, { daytime: true, followUps: true, quiet: true })
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await expect(card).toBeVisible()
+  await page.evaluate(() => { (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.holdNextRead = true; document.dispatchEvent(new Event('visibilitychange')) })
+  await expect.poll(async () => (await probe(page)).pendingReads).toBe(1)
+  await card.getByRole('button', { name: 'Heute Ruhe', exact: true }).click()
+  await expect(card).toHaveCount(0)
+  await page.evaluate(() => { for (const release of (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe.release.splice(0)) release() })
+  await expect(card).toHaveCount(0)
+  expect((await probe(page)).state.phase).toBe('idle')
+})
+
+test('Inlinehilfe folgt allein nativer Bereitschaft, nicht Notificationerfolg oder einer JS-Uhrgrenze', async ({ page }) => {
+  await nativeBedtime(page, { daytime: true, overlayEnabled: false, followUps: true, quiet: true })
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await page.evaluate(() => {
+    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
+    Object.assign(value.state, { quietReady: true, quietVisible: false }); value.phase('quiet')
+  })
+  await expect(card.getByRole('button', { name: '5 Min später', exact: true })).toBeVisible()
+  await page.evaluate(() => {
+    const value = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
+    Object.assign(value.state, { quietReady: false, quietVisible: true, quietDueAt: Date.now() - 60_000 }); value.phase('quiet')
+  })
+  await expect(card.getByRole('button', { name: '5 Min später', exact: true })).toHaveCount(0)
+  await expect(card).toContainText('Die leise Abendrunde ruht.')
+  await expect(card.getByRole('button', { name: 'Heute Ruhe', exact: true })).toBeVisible()
+  expect(await starts(page)).toEqual([])
+})
+
+test('Leise Folgekarte und unabhängiger Einstellschalter passen bei 320 Pixeln und großer Schrift', async ({ page }) => {
+  await nativeBedtime(page, { daytime: true, followUps: true, overlayEnabled: false, quiet: true })
+  await page.setViewportSize({ width: 320, height: 844 }); await page.evaluate(() => { document.documentElement.style.fontSize = '160%' })
+  const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  await expect(card).toBeVisible()
+  const buttons = await card.getByRole('button').all()
+  const first = await buttons[0]!.boundingBox(), second = await buttons[1]!.boundingBox()
+  expect(first!.height).toBeGreaterThanOrEqual(44); expect(second!.y).toBeGreaterThanOrEqual(first!.y + first!.height)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await page.getByRole('link', { name: /Einstellungen/ }).click()
+  await page.getByRole('link', { name: /Schlaf & Anker/ }).click()
+  const quiet = page.getByRole('switch', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
+  const overlay = page.getByRole('switch', { name: 'Stummen Einschlafhinweis beim Zubettgehen starten', exact: true })
+  await expect(quiet).toBeChecked(); await expect(overlay).not.toBeChecked()
+  await quiet.click(); await expect(quiet).not.toBeChecked(); await expect(overlay).not.toBeChecked()
+  await expect(page.getByText(/Keine Schlaferkennung:/)).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 })
 
 test('Web startet keine native Messung und beschreibt die Grenze nur bei aktivierter Option', async ({ page }) => {

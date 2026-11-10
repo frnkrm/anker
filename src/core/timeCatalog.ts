@@ -68,7 +68,7 @@ export interface TimeCatalogState {
 /** Nur wirklich gelesene Momentaufnahmen. Der Katalog startet oder plant nichts nativ. */
 export interface TimeCatalogRuntime {
   alarm?: { observedAt: number; state: { scheduledAt?: number | null; mainConfirmed?: boolean; preWakeAt?: number | null; preWakeConfirmed?: boolean; preWakePausedForTargetAt?: number; snoozeAt?: number | null; wakeCheckAt?: number | null; testAt?: number | null } }
-  bedtimePrompt?: { observedAt: number; state: { phase: 'idle' | 'waiting' | 'shown' | 'skipped' | 'error'; sessionId?: string; dueAt?: number; reason?: string } }
+  bedtimePrompt?: { observedAt: number; state: { phase: 'idle' | 'waiting' | 'shown' | 'quiet' | 'skipped' | 'error'; sessionId?: string; dueAt?: number; reason?: string; quietDueAt?: number; quietUntilAt?: number; quietVisible?: boolean; quietReady?: boolean } }
   tidy?: { date: string; startedAt: number }
 }
 export interface TimeCatalogInput extends TimeCatalogState { nowMs: number; plans: DayPlan[]; runtime?: TimeCatalogRuntime }
@@ -326,7 +326,15 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
     for (const entry of entries) if (entry.functionId === 'alarm.prewake' && entry.source.date && zonedToUtc(entry.source.date, config.wakeOverrides[entry.source.date] ?? config.wakeMinutes) === observed.state.preWakePausedForTargetAt) { entry.status = 'inactive'; entry.reason = 'Für dieses tatsächlich gelesene Aktivitäts-Weckfenster pausiert.' }
   }
   const bedtime = runtime?.bedtimePrompt
-  if (bedtime && timestamp(bedtime.observedAt) && bedtime.observedAt <= now && now - bedtime.observedAt < 2 * MINUTE) add('sleep.native-prompt', 'sleep', 'Stummer Einschlafhinweis', { kind: 'native', refId: bedtime.state.sessionId, route: '/' }, { ...(bedtime.state.phase !== 'idle' && timestamp(bedtime.state.dueAt) ? { at: bedtime.state.dueAt } : {}), status: bedtime.state.phase === 'waiting' ? 'planned' : 'inactive', effect: 'display', evidence: 'native-snapshot', observedAt: bedtime.observedAt, reason: bedtime.state.phase === 'waiting' ? 'Nur die gelesene native Einmalsitzung. Anzeige bei ausgeschaltetem/gesperrtem Bildschirm wird nicht zugesagt.' : `Gelesener Zustand: ${bedtime.state.phase}. Keine neue Sitzung aus dieser Übersicht.` })
+  if (bedtime && timestamp(bedtime.observedAt) && bedtime.observedAt <= now && now - bedtime.observedAt < 2 * MINUTE) {
+    const quiet = bedtime.state.phase === 'quiet'
+    const at = quiet ? bedtime.state.quietDueAt : bedtime.state.phase !== 'idle' ? bedtime.state.dueAt : undefined
+    add('sleep.native-prompt', 'sleep', quiet ? 'Leiser Schlafenszeit-Folgehinweis' : 'Stummer Einschlafhinweis', { kind: 'native', refId: bedtime.state.sessionId, route: '/' }, {
+      ...(timestamp(at) ? { at } : {}), status: quiet ? 'conditional' : bedtime.state.phase === 'waiting' ? 'planned' : 'inactive',
+      effect: 'display', evidence: 'native-snapshot', observedAt: bedtime.observedAt,
+      reason: quiet ? 'Früheste native Möglichkeit, kein zugesagter Anzeigetermin. Vollkommen still und ohne Bildschirmwecken; keine Schlaf- oder Wachmessung. Diese Übersicht startet nichts.' : bedtime.state.phase === 'waiting' ? 'Nur die gelesene native Einmalsitzung. Anzeige bei ausgeschaltetem/gesperrtem Bildschirm wird nicht zugesagt.' : `Gelesener Zustand: ${bedtime.state.phase}. Keine neue Sitzung aus dieser Übersicht.`,
+    })
+  }
   else add('sleep.native-prompt', 'sleep', 'Stummer Einschlafhinweis', { kind: 'optional', route: '/' }, { status: 'conditional', reason: 'Bewusst gestartete native Einmalsitzung. Ohne aktuellen Status wird keine Uhrzeit angenommen.' })
   if (s.alarm.medicationEnabled && s.alarm.medicationReminderAt === null) suggest('missing', 'Eine private Erinnerungszeit fehlt', 'Die Funktion ist gewählt, eine eigene Uhrzeit ist noch offen.', [], '/wecker')
 

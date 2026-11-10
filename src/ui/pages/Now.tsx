@@ -27,12 +27,16 @@ import { GeofenceSuggestions } from '../components/GeofenceVisit'
 import { HomeOfficeContact } from '../components/HomeOfficeContact'
 import { InboxSheet } from '../components/Shell'
 import { BedtimePrompt } from '../components/BedtimePrompt'
+import { BedtimeSessionProvider } from '../components/BedtimeSession'
+import { BedtimeFollowUpCard } from '../components/BedtimeFollowUpCard'
 import './now.css'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
 
 /** Eine Handlung im Vordergrund. Die vorhandenen Planaktionen bleiben im gemeinsamen Sheet. */
-export default function Now() {
+export default function Now() { return <BedtimeSessionProvider><NowContent /></BedtimeSessionProvider> }
+
+function NowContent() {
   const { date, plan, log, m, now } = useToday()
   const st = useApp()
   const guidance = useGuidanceView()
@@ -92,7 +96,7 @@ export default function Now() {
       <h1 className="now-title">{nowActionTitle(a, plan, m)}</h1>
       {!bedtime && reason && <p className="now-reason">{reason}</p>}
       <div className="now-buttons">
-        {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
+        {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
           : bedtime ? null : <ActionButtons action={a} date={date} m={m} mode={mode} estimatedMin={primaryLabelMinutes} onLate={() => setLate(true)} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />}
       </div>
       {!bedtime && after && <p className="now-after" aria-label="Danach">Danach: {after}</p>}
@@ -103,6 +107,7 @@ export default function Now() {
     {!bedtime && !conflict.active.length && conflict.upcomingCount > 0 && <Link to="/tag" className="flex min-h-11 items-center text-sm text-muted">{plural(conflict.upcomingCount, 'Hinweis', 'Hinweise')} für heute ›</Link>}
     {!adjust && !dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
     <GuidanceHomeExtras />
+    <BedtimeFollowUpCard />
     <button type="button" className="now-adjust" onClick={() => setAdjust(true)}>Heute anpassen</button>
 
     <Sheet open={adjust} onClose={() => setAdjust(false)} title="Heute anpassen">
@@ -136,7 +141,7 @@ export default function Now() {
             {behind && <Button onClick={() => openPanel(() => setRescue(true))}>Tag neu sortieren</Button>}
             {!sportInRoutine(st.settings) && !sportDone(plan, log, st.settings) && <SportToggle plan={plan} />}
             <GeofenceSuggestions />
-            {adjust && <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} enabled={st.settings.sleep.bedtimePromptEnabled ?? false} settingsOnly />}
+            {adjust && <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} settingsOnly />}
             {v.reason && <p className="text-sm text-muted">{v.reason}</p>}
             {plan.notes.map((note) => <p key={note} className="text-sm text-muted">{note}</p>)}
             <Extras date={date} />

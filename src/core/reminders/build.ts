@@ -10,13 +10,19 @@ export interface ReminderPolicy {
   quietEnd: number
   ranges: { from: number; to: number }[]
   pcConfirmation?: { revision: string; date: string; validUntil: number }
+  bedtimeFollowUpsEnabled?: boolean
+  bedtimeFollowUpsDelayMinutes?: number
 }
 
 export function reminderPolicy(plans: DayPlan[], s: Settings): ReminderPolicy {
+  const delay = s.sleep.fallAsleepMin
+  const validDelay = Number.isInteger(delay) && delay >= 0 && delay <= 60
   return {
     quietStart: s.reminders.quietStart,
     quietEnd: s.reminders.quietEnd,
     ranges: plans.flatMap((plan) => (plan.quiet ?? []).map(([from, to]) => ({ from: zonedToUtc(plan.date, from), to: zonedToUtc(plan.date, to) }))),
+    bedtimeFollowUpsEnabled: s.sleep.bedtimeFollowUpsEnabled === true && validDelay,
+    bedtimeFollowUpsDelayMinutes: validDelay ? delay : 0,
   }
 }
 
@@ -45,6 +51,8 @@ export interface ReminderSpec {
   token: string
   /** Explicit time-critical anchors may interrupt focus and quiet hours. */
   critical: boolean
+  /** Only the opted-in bed trigger enters the separate native silent session. */
+  quietFollowUps?: boolean
 }
 
 /** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
@@ -99,6 +107,7 @@ interface Base {
   body: string
   escalate: boolean
   hard?: boolean
+  quietFollowUps?: boolean
 }
 
 /** Opaque deterministic version; no private text crosses the native boundary through it. */
@@ -201,9 +210,14 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
     // These replace the old transition series; no second PC/bed schedule is created.
     out.push({ key: 'guidance-wind-down', at: plan.bed - 30, channel: 'sanft', title: 'Noch 30 Minuten bis zu deinem Abendanker', body: 'Du kannst langsam aussteigen. Dein nächster Abendschritt steht in Anker bereit.', escalate: false })
     out.push({ key: 'guidance-brain-dump', at: plan.bed - 10, channel: 'sanft', title: 'Noch 10 Minuten bis zu deinem Abendanker', body: 'Ein Gedanke ist noch offen? Du kannst ihn in Anker für morgen parken.', escalate: false })
-    out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: 'Dein Abendanker ist da', body: 'Öffne Anker für deinen nächsten Abendschritt. Dein Plan bleibt anpassbar.', escalate: false, hard: true })
-  } else if (!guidanceEveningEnabled && !s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
+    if (s.sleep.bedtimeFollowUpsEnabled !== true) out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: 'Dein Abendanker ist da', body: 'Öffne Anker für deinen nächsten Abendschritt. Dein Plan bleibt anpassbar.', escalate: false, hard: true })
+  } else if (s.sleep.bedtimeFollowUpsEnabled !== true && !guidanceEveningEnabled && !s.support.windDown.enabled && !log?.bedAt && !plan.openEnd) {
     out.push({ key: 'bed', at: plan.bed, channel: 'uebergang', title: `${t(plan.bed)} – Ab ins Bett`, body: 'Handy weg, Licht aus. Morgen früh klingelt der Anker.', escalate: true, hard: true })
+  }
+  if (s.sleep.bedtimeFollowUpsEnabled === true && !plan.openEnd && !log?.dismissed?.includes('bed')) {
+    // One existing bed anchor, also during a chosen gentle transition. Native
+    // owns all follow-ups; a real bed confirmation is no proof of sleep.
+    out.push({ key: 'bed', at: plan.bed, channel: 'sanft', title: 'Deine gewählte Schlafenszeit', body: 'Anker kann dich nach deiner Einschlafdauer still an deinen Plan erinnern. Du entscheidest, wie es weitergeht.', escalate: false, hard: true, quietFollowUps: true })
   }
   if (weekday(plan.date) === 6 && !sick) {
     out.push({ key: 'review', at: 19 * 60, channel: 'sanft', title: 'Wochenrückblick', body: '3 kurze Fragen, ohne Bewertung. 2 Minuten.', escalate: false })
@@ -224,6 +238,9 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
 
 /** Evaluate each actual delivery, including repetitions, against the current context. */
 export function reminderAllowed(plan: DayPlan | undefined, log: DayLog | undefined, s: Settings, at: number, critical: boolean, key: string, extras: ReminderExtras = {}, policy?: ReminderPolicy): boolean {
+  // This is only the chosen native silent-session trigger, never permission for
+  // a loud notification. Native applies its own display/lock/quiet-session gates.
+  if (key === 'bed' && s.sleep.bedtimeFollowUpsEnabled === true) return !!plan && !plan.openEnd && !log?.dismissed?.includes('bed')
   const local = utcToZoned(at)
   const m = plan ? minutesOnPlanDay(plan.date, at) : local.minutes
   // Leisure/film windows still keep explicitly selected routes and private reminders, never household nudges.
@@ -238,7 +255,8 @@ export function reminderAllowed(plan: DayPlan | undefined, log: DayLog | undefin
 }
 
 function baseRevision(plan: DayPlan, log: DayLog | undefined, s: Settings, b: Base): string {
-  return reminderRevision([plan.date, b, plan.quiet, log?.override.mode, s.reminders, s.routines, s.alarm.medicationReminderAt])
+  return reminderRevision([plan.date, b, plan.quiet, log?.override.mode, s.reminders, s.routines, s.alarm.medicationReminderAt,
+    ...(b.quietFollowUps ? [['bedtime-followups', s.sleep.fallAsleepMin]] : [])])
 }
 
 /** Authoritative logical versions, including already delivered reminders and snoozed entries. */
@@ -371,6 +389,7 @@ export function buildReminders(
           revision,
           token: reminderDeliveryToken(revision, at, e),
           critical: !!b.hard,
+          ...(b.quietFollowUps === true ? { quietFollowUps: true } : {}),
         })
       }
     }

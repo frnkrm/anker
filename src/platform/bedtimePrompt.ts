@@ -3,7 +3,7 @@ import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor
 import './native'
 
 export interface BedtimePromptState {
-  phase: 'idle' | 'waiting' | 'shown' | 'skipped' | 'error'
+  phase: 'idle' | 'waiting' | 'shown' | 'quiet' | 'skipped' | 'error'
   sessionId?: string
   dueAt?: number
   overlayPermission: boolean
@@ -18,11 +18,17 @@ export interface BedtimePromptState {
   allowWhileIdle?: boolean
   foregroundStatus?: 'not-requested' | 'requested' | 'confirmed' | 'unconfirmed' | 'failed'
   foregroundAttempts?: number
+  /** Native earliest follow-up time, not a sleep/wake measurement or delivery promise. */
+  quietDueAt?: number
+  quietUntilAt?: number
+  quietVisible?: boolean
+  /** Native eligibility for inline help, independent of notification rights/budget. */
+  quietReady?: boolean
 }
 
 export interface BedtimeApi {
   getBedtimePromptState(): Promise<BedtimePromptState>
-  startBedtimePrompt(options: { delayMinutes: number }): Promise<void>
+  startBedtimePrompt(options: { delayMinutes: number; followUps?: boolean; quietOnly?: boolean }): Promise<void>
   stopBedtimePrompt(options: { sessionId?: string }): Promise<void>
   ackBedtimePrompt(options: { sessionId: string }): Promise<void>
   openOverlayPermissionSettings(): Promise<void>

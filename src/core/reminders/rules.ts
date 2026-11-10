@@ -18,6 +18,7 @@ export interface NativeReminderRule {
   rank: number
   exact: boolean
   revision: string
+  quietFollowUps?: boolean
 }
 
 export interface NativeReminderRuleSnapshot {
@@ -62,9 +63,10 @@ export function buildReminderRuleSnapshot(settings: Settings, knownExcludedDates
         slot: entry.slot,
         rank: entry.rank,
         exact: entry.exact,
+        ...(entry.quietFollowUps === true ? { quietFollowUps: true } : {}),
       }
       // Complete canonical content avoids collision-prone short hashes for stale-rule checks.
-      rules.push({ ...rule, revision: JSON.stringify(rule) })
+      rules.push({ ...rule, revision: JSON.stringify(entry.quietFollowUps ? [rule, { delayMinutes: settings.sleep.fallAsleepMin }] : rule) })
     }
   }
   return { validFrom, excludedDates: [...new Set(knownExcludedDates.filter(validDate))].sort(), rules }

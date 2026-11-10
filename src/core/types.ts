@@ -85,7 +85,7 @@ export interface Settings {
   /** Index 0 = Montag */
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
-  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number; bedtimePromptEnabled?: boolean }
+  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number; bedtimePromptEnabled?: boolean; bedtimeFollowUpsEnabled?: boolean }
   anchor: {
     wake: number
     wakeToleranceMin: number

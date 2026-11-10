@@ -215,6 +215,16 @@ describe('Abgeleitete Zeitübersicht', () => {
     }
   })
 
+  it('zeigt stille Folgehinweise nur als frische bedingte native Möglichkeit und niemals mit alter Einmalfälligkeit', () => {
+    const result = build(state(), now, { bedtimePrompt: { observedAt: now, state: { phase: 'quiet', sessionId: 'quiet-source', dueAt: now - 900_000, quietDueAt: now + 300_000, quietUntilAt: now + 3600_000, quietVisible: false } } })
+    const entry = result.entries.find(item => item.functionId === 'sleep.native-prompt')!
+    expect(entry).toMatchObject({ status: 'conditional', evidence: 'native-snapshot', at: now + 300_000 })
+    expect(entry.reason).toContain('kein zugesagter Anzeigetermin')
+    expect(entry.reason).toContain('keine Schlaf- oder Wachmessung')
+    const missing = build(state(), now, { bedtimePrompt: { observedAt: now, state: { phase: 'quiet', dueAt: now - 900_000 } } })
+    expect(missing.entries.find(item => item.functionId === 'sleep.native-prompt')?.at).toBeUndefined()
+  })
+
   it('projiziert Pausen ohne erfundene Endzeit und zeigt Aufräumen nur aus einem tatsächlichen lokalen Start', () => {
     const st = state()
     st.local.focus = { id: 'focus', target: { kind: 'work', id: 'w', partId: 'p' }, timer: pauseCountdown(createCountdown(600, now - 60_000), now) }

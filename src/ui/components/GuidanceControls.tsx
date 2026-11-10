@@ -9,6 +9,8 @@ import { useApp } from '../../state/store'
 import { useGuidanceView } from '../../state/useGuidanceView'
 import { CaptureDictation } from './ExtraControls'
 import { Button, Sheet, TextInput } from './ui'
+import { BedtimePrompt } from './BedtimePrompt'
+import { BedtimeFollowUpCard } from './BedtimeFollowUpCard'
 
 const promptedBrainDumps = new Set<string>()
 
@@ -113,9 +115,10 @@ export function GuidanceNightPage({ view }: { view: GuidanceView }) {
       <Button variant="primary" size="xl" disabled={busy} className="w-full" onClick={() => void run(confirmBedtimeByQr, 'Abendübergang bestätigt.')}>Anker-QR scannen</Button>
     </> : view.phase === 'BEDTIME_HARD_CUT' && openSteps(plan, log, 'evening').length > 0 ? <Link to="/fokus/evening" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-5 py-4 text-center text-2xl font-semibold text-accent-ink">Abendroutine beginnen</Link>
       : isMorning ? <Link to="/fokus/morning" className="flex min-h-20 items-center justify-center rounded-3xl bg-accent px-5 py-4 text-center text-2xl font-semibold text-accent-ink">Morgenroutine beginnen</Link>
-      : !log.bedAt ? <Button variant="primary" size="xl" disabled={busy} className="w-full" onClick={() => void run(() => st.mark(date, 'bedAt'), 'Deine Bettbestätigung ist gespeichert.')}>Ich liege im Bett</Button>
+      : !log.bedAt ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={Date.now()} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
         : <p role="status" className="text-muted">Für jetzt ist hier alles bereit.</p>}
     {message && <p role="status" className="text-sm text-muted">{message}</p>}
+    <BedtimeFollowUpCard />
     <Button variant="ghost" className="w-full" onClick={() => setOptions(true)}>Optionen öffnen</Button>
     <Sheet open={options} onClose={() => setOptions(false)} title="Deine Nacht">
       <div className="space-y-3">
