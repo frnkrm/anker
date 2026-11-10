@@ -16,4 +16,20 @@ object BedtimePromptDelivery {
             backend.inexactIdleCpuCheck(atElapsed)
         }
     }
+
+    /** One non-wakeup check; there is deliberately no exact/idle/foreground fallback. */
+    fun nextQuietCheck(s: BedtimePromptState, elapsed: Long): Long? {
+        if (s.phase != BedtimePromptPhase.QUIET || elapsed >= s.quietUntilElapsed) return null
+        return if (elapsed < s.quietDueElapsed) minOf(s.quietDueElapsed, s.quietUntilElapsed)
+            else elapsed + minOf(BedtimePromptModel.QUIET_SNOOZE_MS, s.quietUntilElapsed - elapsed)
+    }
+
+    /** Rechecked immediately before posting, independently of a former display observation. */
+    fun canPostQuiet(s: BedtimePromptState, id: String, token: String, elapsed: Long, boot: Int, wall: Long,
+                     interactive: Boolean, displayState: Int?, unlocked: Boolean, alarmActive: Boolean,
+                     notificationsEnabled: Boolean, channelImportance: Int, channelSound: Boolean,
+                     channelVibration: Boolean, channelLights: Boolean): Boolean =
+        s.sessionId == id && token.isNotBlank() && s.quietToken == token &&
+            BedtimePromptModel.quietReady(s, elapsed, boot, wall, interactive, displayState, unlocked, alarmActive) && notificationsEnabled &&
+            channelImportance in 1..2 && !channelSound && !channelVibration && !channelLights
 }
