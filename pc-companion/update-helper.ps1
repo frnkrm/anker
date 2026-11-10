@@ -63,7 +63,7 @@ try:
     result = verify_staged_install(sys.argv[2])
     print(json.dumps(result, separators=(',', ':')))
 except Exception:
-    print('{"status":"unavailable"}')
+    print(json.dumps({'status': 'unavailable'}))
     sys.exit(2)
 '@
     $ankerOutput = @(& $ankerPython -I -c $ankerVerifier $App $Stage 2>$null)
