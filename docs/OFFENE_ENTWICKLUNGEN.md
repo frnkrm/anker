@@ -1,6 +1,6 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
-Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden Softwareentwicklungen beauftragt. Die folgende Liste ersetzt die frühere reine Vorschlagsliste und trennt integrierten Code, noch laufende Integration und echte Einrichtung/Beobachtung.
+Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden Softwareentwicklungen beauftragt. Die folgende Liste ersetzt die frühere reine Vorschlagsliste und trennt integrierten Code, gemeinsame Abschlussprüfung und echte Einrichtung/Beobachtung.
 
 | Bereich | Aktueller Softwarestand |
 |---|---|
@@ -13,9 +13,9 @@ Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden
 | AB-03/PC-09 | Bis… mit Vorschau, exakter Zielzeitbindung und Berliner Sommer-/Winterzeit; strenge Notverlängerung bleibt am Handy |
 | PC-Verwaltung | Name, eigene Tastenkürzel mit atomarem Speichern und Registrierungs-Rollback, bestätigte lokale Datenlöschung/Neustart |
 | Darstellung | Hell/Dunkel/System, optionale S−60-Pille, optionaler kurzer Kartenton unter Beachtung des Windows-Benachrichtigungszustands |
-| Google-Kalender | Nativer READ_CALENDAR-Leseweg für synchronisierte Google-Kalender samt Konto-/ID-Wechselschutz; App-Auswahl-/Cache-/Backup-Integration in Arbeit. Bestehende direkte Google-Anmeldung und eigener Schreibkalender bleiben erhalten |
-| PC-Updates | Signierter, fest gebundener Kanal mit optionaler automatischer Prüfung, bewusstem Download und gesonderter Installationsbestätigung in Integration |
-| PC-14 Relay | Optionaler verschlüsselter Transport mit getrennten widerrufbaren Berechtigungen; SQL/Handler lokal geprüft, Android-/PC-/Einrichtungshooks in Integration. Kein laufendes Supabase behauptet |
+| Google-Kalender | Nativer READ_CALENDAR-Leseweg für synchronisierte Google-Kalender samt Konto-/ID-Wechselschutz; App-Auswahl, exklusive Lesequelle, Cache-/Backup-Grenzen und Abbruch-/Navigationsschutz integriert. Bestehende direkte Google-Anmeldung und eigener Schreibkalender bleiben erhalten |
+| PC-Updates | Signierter, fest gebundener Kanal mit optionaler automatischer Prüfung, bewusstem Download und gesonderter Installationsbestätigung integriert |
+| PC-14 Relay | Optionaler verschlüsselter Transport mit getrennten widerrufbaren Berechtigungen; SQL/Handler lokal geprüft, Android-/PC-/Einrichtungshooks integriert. Kontaktfrische und abgelaufene Bedienbefehle auch bei WLAN-Rückkehr abgesichert. Kein laufendes Supabase behauptet |
 
 Die nachfolgende finale Gesamtprüfung und Lieferung wird im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md) anhand konkreter Quellen dokumentiert. Ein bereits vorhandener Schalter allein gilt nicht als fertige Funktion.
 
