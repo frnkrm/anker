@@ -51,7 +51,7 @@ export async function clearPcRelay(): Promise<PcRelayState> { android(); return 
 
 /** Foreground-only renewal; no new refresh-token owner or background JWT copy. */
 export async function refreshPcRelayAuthorizationIfNeeded(): Promise<void> {
-  if (!isNative()) return
+  if (!isNative() || !sb()) return
   const current = await readPcRelayStatus()
   if (current.enabled && current.paired && (current.phoneExpiresAt ?? 0) <= Date.now() + 86_400_000 && sb()) await renewPcRelay()
 }

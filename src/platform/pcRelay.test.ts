@@ -32,6 +32,13 @@ describe('Native Relay-Einrichtung außerhalb von Store/Sync/Backup', () => {
     await expect(setupPcRelay()).rejects.toThrow('PC_RELAY_ANDROID_REQUIRED')
     expect(fake.status).not.toHaveBeenCalled(); expect(fake.session).not.toHaveBeenCalled()
   })
+  it('fragt ohne konfigurierten Dienst auch beim Vordergrundabgleich keinen nativen Status oder Zugang ab', async () => {
+    fake.configured = false
+    await refreshPcRelayAuthorizationIfNeeded()
+    expect(fake.status).not.toHaveBeenCalled()
+    expect(fake.session).not.toHaveBeenCalled()
+    expect(fake.renew).not.toHaveBeenCalled()
+  })
   it('akzeptiert ausschließlich die feste eigene Supabase-Projektkennung', () => {
     expect(pcRelayProject(`https://${'a'.repeat(20)}.supabase.co/`)).toBe('a'.repeat(20))
     for (const url of ['https://attacker.invalid', 'http://' + 'a'.repeat(20) + '.supabase.co', 'https://user:pass@' + 'a'.repeat(20) + '.supabase.co', 'https://' + 'a'.repeat(20) + '.supabase.co/functions/evil', 'https://' + 'a'.repeat(20) + '.supabase.co?redirect=evil', 'https://' + 'a'.repeat(20) + '.supabase.co:444', null]) expect(pcRelayProject(url)).toBeNull()

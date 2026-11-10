@@ -10,6 +10,7 @@ import { syncWorkout } from './health'
 import { AnkerNative, isNative, safe } from './native'
 import { drainActions, rescheduleAll, setupNotifications } from './notifications'
 import { refreshRouteEstimates } from './traffic'
+import { refreshPcRelayAuthorizationIfNeeded } from './pcRelay'
 
 const reconcileWidget = coalesceAsync(async () => {
   if (!isNative()) return
@@ -109,6 +110,11 @@ export function reconcileEffects(): Promise<void> {
 export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
   if (started) return
   started = true
+  const foregroundRelay = coalesceAsync(async () => {
+    if (!isNative() || !useApp.getState().settings.onboarded
+      || (typeof document !== 'undefined' && document.visibilityState !== 'visible')) return
+    await attempt('PC-Relay-Freigabe', refreshPcRelayAuthorizationIfNeeded)
+  })
   // Optionale Dienste dürfen eine neue lokale Weckerplanung nicht auf ihre Netzantwort warten lassen.
   const optionalEffects = coalesceAsync(async () => {
     if (!useApp.getState().settings.onboarded) return
@@ -125,14 +131,18 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
     console.warn('[Anker] Erinnerungen konnten noch nicht eingerichtet werden.')
   })
   onPlanChange(request)
-  void notificationSetup.then(request)
+  void notificationSetup.then(() => { request(); void foregroundRelay() })
 
   // Beim Zurückkehren in die App: Training prüfen, alles neu planen
   if (isNative()) {
     void App.addListener('appStateChange', ({ isActive }) => {
       if (!isActive) return
       request()
+      void foregroundRelay()
     }).catch(() => { console.warn('[Anker] Rückkehr in die App konnte noch nicht beobachtet werden.') })
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void foregroundRelay()
+    })
   }
   // Gleiche Queue auch für den Widget-Takt; ohne neue Planänderung ist kein voller Abgleich nötig.
   setInterval(() => {
