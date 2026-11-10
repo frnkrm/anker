@@ -1,5 +1,10 @@
 # Anker: Testnachweise
 
+## Code17: G3 identische lokale und entfernte Timer-Prüffehler (10.11.2026)
+
+Auf `1e68b06fe855b06886a69926a5ad562580648084` bleiben 1.183 Logik- und 252 frische Nativefälle samt unsigned APK/AAB grün. Lokal und in [CI42746477364](https://github.com/frnkrm/anker/actions/runs/42746477364) enden die Browserprüfungen mit **305/308, drei Fehlern, ohne Retries/Skips**. Alle drei Fehler stammen aus `subtask-timer.spec.ts:141/224` und der nachträglichen `aria-checked`-Prüfung in `helpers/controls.ts:42`: Der gewählte Fokus wird korrekt angezeigt, während die ausgewählte Radioansicht nach `TaskFocus`-Navigation absichtlich entfällt. Die beiden vorherigen Eingabe-Fehler sind behoben. Rohbelege: `shipping4/recheck2`, `public-ci-1e68b06-error-review/OBSERVED-RESULT.json` und Native5; tatsächliche Prozess-Exitcodes sind gespeichert. Der folgende Timer-Prüfablauf erhält alle bisherigen Restzeit-, Persistenz-, XP- und Nicht-Erledigt-Bedingungen. Kein Signieren oder Playupload aus diesem roten Stand.
+
+
 ## Code17: lokaler G2-Erfolg und zwei entfernte Auswahlfehler (10.11.2026)
 
 Auf `613e71ffea387c3e30debecad6021ed3024ae83a` sind lokal305/305 Browserfälle ohneRetries/Skips,1.183/1.183 Vitest und252/252 frische JUnit/28Suiten mit680/680 frischen Gradleaufgaben grün. Die reproduzierten unsigned APK-/AAB-Bytes stimmen vollständig mit Native3 überein. Die exakte [CI42744262870](https://github.com/frnkrm/anker/actions/runs/42744262870) ist dagegen303/305: `travel-sleep.spec.ts:76` enthält `Köln45` statt der getrennten Fahrzeit45; `v7-pc-panel.spec.ts:98` liest nach Reload eine leere Testnotiz. Beide betroffenen Fälle folgen `chooseValue`. Öffentlich gebundene Annotationen liegen unter `public-ci-613e71f-error-review/OBSERVED-RESULT.json`, lokale Exit-/Rohbelege unter `shipping4/recheck1`, Native4 separat archiviert. Keine Signierung/Playbereitstellung aus diesem roten Remoteabschluss. Der folgende Auswahlhelfer-Fix erhält alle fachlichen Datenasserts und wird an angehaltener History-Rückkehr geprüft.

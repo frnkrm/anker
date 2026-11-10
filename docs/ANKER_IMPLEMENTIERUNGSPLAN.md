@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## Code17: navigierende Fokusauswahl getrennt prüfen (10.11.2026)
+
+Die Eingabe-Rennen nach normaler Auswahl sind mit gehaltenen Browserverläufen geschlossen. Der vollständige Stand `1e68b06` erreicht lokal und in CI jeweils 305/308: Die drei übrigen Fehler betreffen ausschließlich eine neue Prüfnachbedingung für eine Fokusauswahl, die ihre Ansicht bestimmungsgemäß schließt. Der betroffene Timer-Testablauf wird anhand der neuen Ziel-URL, Überschrift und abgeschlossenen Modalnavigation geprüft. Sämtliche fachlichen Timer-/Datenbedingungen bleiben erhalten. Produkt- und Nativequellen bleiben unverändert; Signierung und Playupload warten auf den gemeinsamen grünen Abschluss.
+
+
 ## Code17: Auswahlabschluss im Browserprüfhelfer (10.11.2026)
 
 Der Stand `613e71f` besteht lokal sämtliche305 Browserfälle und die unveränderten1.183 Logik-/252 Nativefälle. [CI42744262870](https://github.com/frnkrm/anker/actions/runs/42744262870) liefert303/305: eine Fahrzeit landet am vorherigen Adressfeld, eine Testnotiz bleibt leer. Beide Eingaben folgen unmittelbar einer Auswahl. Der gemeinsame Testhelfer muss die bestehende Sheet-/History-/inert-Freigabe abwarten; dafür entsteht eine gehaltene Browser-Back-Regression mit unveränderten Datenbedingungen. Keine Timeouterhöhung, keine Testskips und keine Signierung vor dem neuen grünen Gesamtstand.
