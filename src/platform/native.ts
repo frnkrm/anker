@@ -177,6 +177,14 @@ export interface NativePcBridgeState {
 
 export interface NativePcDevice { name: string; host: string; port: number; version: number }
 
+export interface NativePcRelayState {
+  enabled: boolean
+  paired: boolean
+  status: 'off' | 'lan' | 'waiting' | 'received' | 'expired' | 'unavailable' | 'unauthorized' | 'rejected'
+  phoneExpiresAt?: number
+  lastExchangeAt?: number
+}
+
 export type NativeGeofenceVisit = GeofenceVisit
 export interface GeofenceState extends GeofenceStatus { suggestions: GeofenceSuggestion[] }
 
@@ -208,6 +216,12 @@ export interface AnkerNativePlugin {
   pcBridgeUnpair(): Promise<NativePcBridgeState>
   pcBridgeEmergency(o: { qr: string; minutes: number }): Promise<{ until: number; tokenId: string; sent: boolean }>
   pcBridgeWakeOnLan(o: { mac: string; broadcast?: string }): Promise<{ sent: boolean }>
+  pcRelaySetup(o: { project: string; accessToken: string }): Promise<{ desktopSetup: string; state: NativePcRelayState }>
+  pcRelayRenew(o: { accessToken: string }): Promise<{ state: NativePcRelayState }>
+  pcRelayRevoke(o: { accessToken: string }): Promise<{ state: NativePcRelayState; cloudRevoked: boolean }>
+  pcRelayDisable(): Promise<{ state: NativePcRelayState }>
+  pcRelayClear(): Promise<{ state: NativePcRelayState }>
+  pcRelayStatus(): Promise<NativePcRelayState>
   deviceCalendarPermission(o?: { request?: boolean }): Promise<{ granted: boolean }>
   listDeviceCalendars(): Promise<{ calendars: DeviceCalendarOption[] }>
   readDeviceCalendarEvents(o: { calendarIds: string[]; from: number; to: number }): Promise<{ events: DeviceCalendarEvent[]; readAt: number }>
@@ -287,6 +301,12 @@ const web: Partial<AnkerNativePlugin> = {
   async pcBridgeUnpair() { return { state: 'unpaired', connected: false, active: false } },
   async pcBridgeEmergency() { return { until: 0, tokenId: '', sent: false } },
   async pcBridgeWakeOnLan() { return { sent: false } },
+  async pcRelaySetup() { throw new Error('PC_RELAY_NATIVE_REQUIRED') },
+  async pcRelayRenew() { throw new Error('PC_RELAY_NATIVE_REQUIRED') },
+  async pcRelayRevoke() { return { state: { enabled: false, paired: false, status: 'off' }, cloudRevoked: false } },
+  async pcRelayDisable() { return { state: { enabled: false, paired: false, status: 'off' } } },
+  async pcRelayClear() { return { state: { enabled: false, paired: false, status: 'off' } } },
+  async pcRelayStatus() { return { enabled: false, paired: false, status: 'off' } },
   async syncGeofences() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable' } },
   async getGeofenceState() { return { registered: 0, fineGranted: false, backgroundGranted: false, error: 'unavailable', suggestions: [] } },
   async ackGeofenceSuggestions() {},

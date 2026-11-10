@@ -154,6 +154,18 @@ class AnkerNativePlugin : Plugin() {
     @PluginMethod fun pcBridgeWakeOnLan(call: PluginCall) = pcBridge(call) {
         PcBridgeClient.wakeOnLan(call.getString("mac") ?: "", call.getString("broadcast") ?: "255.255.255.255")
     }
+    @PluginMethod fun pcRelaySetup(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.relaySetup(context, call.getString("project") ?: "", call.getString("accessToken") ?: "")
+    }
+    @PluginMethod fun pcRelayRenew(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.relayRenew(context, call.getString("accessToken") ?: "")
+    }
+    @PluginMethod fun pcRelayRevoke(call: PluginCall) = pcBridge(call) {
+        PcBridgeClient.relayRevoke(context, call.getString("accessToken") ?: "")
+    }
+    @PluginMethod fun pcRelayDisable(call: PluginCall) = pcBridge(call) { PcBridgeClient.relayDisable(context) }
+    @PluginMethod fun pcRelayClear(call: PluginCall) = pcBridge(call) { PcBridgeClient.relayClear(context) }
+    @PluginMethod fun pcRelayStatus(call: PluginCall) = pcBridge(call) { PcBridgeClient.relayStatus(context) }
 
     // ---------- Einmaliger, stummer Schlafhinweis; eigener nativer Zustandsbesitzer ----------
     private fun bedtime(call: PluginCall, action: () -> JSObject) { activity.runOnUiThread {
