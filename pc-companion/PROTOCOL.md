@@ -128,6 +128,14 @@ den noch gültigen heutigen Zustandsauftrag. Eine bereits aktivierte strikte Nac
 läuft bei Verbindungsverlust nur bis zu ihrer ursprünglichen endlichen Grenze.
 Ein Tagesbriefing ohne echte Nacht-Session startet keinen neuen Nacht-Watchdog.
 
+Beim optionalen Relay erneuert nur ein höchstens 90 Sekunden alter authentifizierter
+Umschlag den Kontakt. Ältere gültige Zustände/Briefings und dauerhafte Ereignisse
+können weiter transportiert werden, erzeugen aber keinen neuen Nachtbeleg.
+Ein verspäteter gewöhnlicher Bedienbefehl wird auch nach einer Rückkehr ins WLAN ohne Wirkung mit dauerhaftem
+negativem Receipt verarbeitet: `ack`, Warnung `command-expired`, **keine
+`commandId`**. Das ist keine Bestätigung des Bedienbefehls. Entkoppeln bleibt ein
+Widerruf; Hardware-Notverlängerungen behalten ihre eigenen Signatur-/Zeitregeln.
+
 `command`: `{type:"command",id,action,minutes?,token?}`. Aktionen `ping`, `unpair`,
 `test-evening`, `resume-today`, `suspend-today`, `extend`, `EMERGENCY_EXTENSION`.
 Im strengen Modus keine Verlängerung am PC; Notverlängerung nur mit folgendem Token:

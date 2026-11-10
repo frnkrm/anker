@@ -39,6 +39,12 @@ describe('PC-Protokoll v3: deterministische sprachübergreifende Kryptofikstur',
 })
 
 describe('PC-Datengrenze', () => {
+  it('erhält die feste Warnung für einen abgelaufenen Bedienbefehl ohne Wirkungsbestätigung', () => {
+    const ack = { type: 'ack', revision: 'existing-plan', receivedAt: fixture.envelope.sentAt,
+      effective: { date: '2026-11-12', mode: 'paused' }, companion: { version: '0.1.1', protocol: 3 }, warnings: ['command-expired'] }
+    expect(parsePcPayload(ack)).toEqual(ack)
+    expect(() => parsePcPayload({ ...ack, warnings: ['unknown-private-error'] })).toThrow('PC_LINK_INVALID')
+  })
   it('bewahrt alte Verlängerungen und bindet die neue Bettzeit nur an ausdrückliche Erweiterungsereignisse', () => {
     const event = { id: 'extension', seq: 1, at: fixture.envelope.sentAt, date: '2026-11-12', kind: 'extended', newStopAt: '2026-11-12T23:15:00Z' }
     const message = (value: unknown) => ({ type: 'events', lastSeq: 1, items: [value] })

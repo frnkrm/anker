@@ -43,6 +43,16 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
 
 describe('PC-Plattformgrenzen und wahrheitsgemäße Bestätigungen', () => {
+  it('bestätigt einen vom Relay verworfenen alten Bedienbefehl ohne passende commandId nicht', async () => {
+    mocks.view.ack = { type: 'ack', revision: 'existing-plan', receivedAt: new Date(at).toISOString(),
+      effective: { date: '2026-11-09', mode: 'paused' }, companion: { version: '0.1.1', protocol: 3 }, warnings: ['command-expired'] }
+    const { sendPcBridgeCommand } = await import('./pcLink')
+    const result = sendPcBridgeCommand('suspend-today')
+    await vi.advanceTimersByTimeAsync(4100)
+    expect(await result).toEqual({ confirmed: false })
+    expect(mocks.api.pcBridgeSend).toHaveBeenCalledTimes(1)
+    expect(mocks.state.applyPcEvents).not.toHaveBeenCalled()
+  })
   it('startet im Web keine native Verbindung und behauptet dort keinen Empfang', async () => {
     mocks.native = false
     const { syncPcBridge, getPcBridgeView } = await import('./pcLink')
