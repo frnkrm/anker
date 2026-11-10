@@ -20,6 +20,10 @@ flowchart TD
   State --> Guidance["core/guidance – Projektion desselben Plans"]
   Platform --> Bridge["PcBridgeClient – gepinntes TLS/WSS, optional"]
   Bridge --> PC["pc-companion – Python, lokale PC-Ausführung"]
+  Bridge --> Relay["optional: pc-link – nur verschlüsselte Umschläge"]
+  Relay --> PC
+  Platform --> DeviceCalendar["DeviceCalendarClient – gewählte Google-Kalender in Android"]
+  DeviceCalendar --> State
   PC --> Receipts["Store: Wirkung + Receipt atomar"]
   Receipts --> State
 ```
@@ -38,7 +42,7 @@ flowchart TD
 |---|---|
 | `src/` | Der App-Code (Web und Android teilen ihn sich) |
 | `android/` | Android-Projekt von Capacitor plus eigener Kotlin-Code |
-| `supabase/` | RLS-/Budgetmigrationen sowie getrennte Functions `pc-stop` und `assistant` |
+| `supabase/` | RLS-/Budgetmigrationen sowie getrennte Functions `pc-stop`, `assistant` und optional `pc-link` |
 | `pc-companion/` | Lokaler Python-Windows-Begleiter: TLS/WSS, mDNS, verschlüsselter Zustand, Tk/Tray und getrennte Windows-Adapter |
 | `e2e/` | Playwright-Prüfungen gegen Produktionsbuilds; kontrollierte Backendantworten ausschließlich in Testhelfern |
 | `scripts/` | `icons.mjs` (Icons erzeugen), `gradle.mjs` (Gradle unter Windows und Linux starten) |
@@ -49,6 +53,16 @@ flowchart TD
 | `CLAUDE.md` | Architektur und Regeln für spätere Claude-Sessions |
 
 Konfiguration: `app.config.ts` (Paketname), `capacitor.config.ts`, `vite.config.ts`, `netlify.toml`, `.env.example` (alle Variablen, alle optional).
+
+### Ergänzungen in Code17 / PC0.1.1
+
+`platform/deviceCalendar.ts` und `DeviceCalendarConnection` verwenden `DeviceCalendarClient/Model` nach Android-Lesefreigabe. Konto-gebundene Auswahl liegt nur in lokalen Extras; Kalendercache und Termine verwenden die vorhandene Storequeue und denselben Planer. `calendarSource.ts` verhindert, dass verspätete OAuth-/Geräteantworten die neu gewählte Quelle überschreiben. Auswahl wird weder synchronisiert noch auf andere Geräte wiederhergestellt; READ_CALENDAR wird angefordert, WRITE_CALENDAR nicht.
+
+Im PC-Begleiter trennen `widgets.py` und `tray.py` gerundete Tk-Elemente und Windows-Erinnerungsklicks. `desktop_settings.py` validiert Namen, Darstellung und reservierbare Kürzel. Der vorhandene DPAPI-Store bleibt alleiniger Besitzer der Daten. Ein manueller Abgleich wartet auf eine neue authentifizierte Handyantwort; Kontakt oder Senden erzeugt keine Planbestätigung.
+
+Der optionale `relay.py`-Transport verwendet dieselben v3-Schlüssel, Sequenzen, Payloads und die bestehende Empfangstransaktion. Wirkung, Empfangssequenz und verschlüsselte Antwort werden gemeinsam dauerhaft gespeichert, bevor eine Antwort hochgeladen wird. Die Edge-Function kennt nur Umschläge; SQL bindet Owner, Richtung, Token, Sequenz und Ablauf. LAN hat Vorrang. Kein zweiter Tagesplaner und keine zweite unverschlüsselte Befehlswarteschlange.
+
+`updater.py` und der installierte `update-helper.ps1` bilden einen gesonderten signierten Updateweg. Eine feste Kanaladresse liefert zeitlich begrenzte, mit dem bestehenden B4-Zertifikat prüfbare Metadaten; Download ist an einen unveränderlichen Git-Commit und alle Paketbytes gebunden. Bereits installierter Verifier prüft den Stage vor Übergabe und nach dem normalen Prozessende nochmals. DPAPI-Zustand liegt außerhalb von `app`; automatische Prüfungen beginnen aus, Download und Installation bleiben eigene Entscheidungen. Kein Windows-Dienst, kein gekaufter EXE-Signierschlüssel.
 
 Nicht im Repo, weil von `.gitignore` ausgeschlossen: `node_modules/`, `dist/`, `.env`, `android/app/build/`, Keystore und `keystore.properties`.
 

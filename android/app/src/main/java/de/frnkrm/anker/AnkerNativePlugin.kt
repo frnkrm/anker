@@ -53,7 +53,13 @@ class AnkerNativePlugin : Plugin() {
     }
     private fun deviceCalendar(call: PluginCall, action: () -> JSONObject) { execute {
         try { call.resolve(JSObject(action().toString())) }
-        catch (_: Exception) { call.reject(if (DeviceCalendarClient.granted(context)) "DEVICE_CALENDAR_READ_FAILED" else "DEVICE_CALENDAR_PERMISSION_REQUIRED") }
+        catch (error: Exception) {
+            call.reject(when {
+                !DeviceCalendarClient.granted(context) -> "DEVICE_CALENDAR_PERMISSION_REQUIRED"
+                error.message == "DEVICE_CALENDAR_SELECTION_CHANGED" -> "DEVICE_CALENDAR_SELECTION_CHANGED"
+                else -> "DEVICE_CALENDAR_READ_FAILED"
+            })
+        }
     } }
     @PluginMethod fun listDeviceCalendars(call: PluginCall) = deviceCalendar(call) { DeviceCalendarClient.calendars(context) }
     @PluginMethod fun readDeviceCalendarEvents(call: PluginCall) = deviceCalendar(call) {

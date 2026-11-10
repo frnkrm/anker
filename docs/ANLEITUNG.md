@@ -210,6 +210,16 @@ PC-Hilfen und Eingriffe haben eigene Freigaben auf beiden Seiten. Vor einer gew�
 
 Die vollständigen [Windows-Befehle, Netzwerkhinweise und sieben gemeinsamen Prüfungen](PC_BEGLEITER.md) stehen in der Begleiter-Anleitung. Das klassische Paket bleibt ein zweiter Weg; seine alte Aufgabe wird vor neuen Eingriffen als Konflikt angezeigt und nicht heimlich entfernt.
 
+**Im neuen PC-Fenster:** „Jetzt abgleichen“ wartet auf einen echten neuen Handystand und zeigt dessen Zeitpunkt. „Heute ohne PC-Stopp“ bleibt als Status sichtbar und lässt sich zurücknehmen. „Bis …“ zeigt vor der Übernahme die neue Zielzeit, Bettzeit und Schlafgelegenheit. Minimieren und X lassen den Begleiter im Infobereich weiterlaufen; Symbol oder Erinnerung öffnen ihn wieder, nur „Beenden“ stoppt ihn. Darstellung, PC-Name und eigene Tastenkürzel findest du in den PC-Einstellungen. Dort gibt es auch die gesondert bestätigte lokale Datenlöschung und freiwillige Update-/Relaywege.
+
+## Google-Kalender auf dem Handy lesen
+
+Unter **Mehr → Kalender & Sync → Google-Kalender auf diesem Handy auswählen** erlaubst du zuerst den Android-Kalenderzugriff. Wähle danach die gewünschten Google-Kalender und **Ausgewählte Kalender lesen**. Fehlen sie, aktiviere in den Android-Kontoeinstellungen die Kalendersynchronisierung für dein Google-Konto und öffne zunächst deine Kalender-App. Ein Play-Dienstkonto oder ein API-Schlüssel ist hierfür nicht nötig.
+
+Anker liest die nächsten drei Tage in denselben Tagesplan; der Geräteabruf bestätigt den Android-Kalenderstand, keine aktuelle Cloud-Synchronisierung. Eigene Aufgaben und Termine bleiben erhalten. Mit **Jetzt Kalender aktualisieren** liest du erneut, **Handykalender trennen** entfernt den Anker-Kalendercache und keine Google-Termine. Entzug der Android-Berechtigung wird als fehlender Zugriff angezeigt; der letzte Stand kann als älterer Cache sichtbar bleiben.
+
+Die zusätzliche direkte Google-Anmeldung und das Schreiben in einen eigenen Anker-Kalender bleiben getrennte Optionen. Es gibt jeweils eine aktive Lesequelle; der neue Handyweg erzeugt keinen zweiten Terminimport. Kalenderauswahl und Gerätefreigabe gehören nicht in Sync oder auf ein anderes Gerät übertragenes Backup.
+
 ## Klassischer PC-Stopp
 
 Unter *Mehr → Abend & Alltag → PC-Stopp* lädst du das klassische Windows-Paket. Entpacken, dann Rechtsklick auf `install.ps1` → **„Mit PowerShell ausführen“**.
