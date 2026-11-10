@@ -37,7 +37,7 @@ class RelayTests(unittest.IsolatedAsyncioTestCase):
         self.engine = CompanionEngine(self.store, self.platform, self.clock)
         self.bridge = BridgeServer(self.store, self.engine, PairingManager(self.store, "Synthetic PC", "a" * 64, [], self.clock), clock=self.clock)
         self.lan = False
-        self.pump = RelayPump(self.store, lambda raw, pair: self.bridge.exchange(raw, expected_pair=pair), lambda _pair: self.lan, self.clock)
+        self.pump = RelayPump(self.store, lambda raw, pair: self.bridge.relay_exchange(raw, expected_pair=pair), lambda _pair: self.lan, self.clock)
         self.requests, self.inbox, self.replies = [], [], []
         self.http_status = 200
         self.bad_response = None
@@ -152,6 +152,41 @@ class RelayTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.store.read()['snapshot'])
         self.assertEqual(self.store.read()['pairs'][PAIR]['receiveSeq'], 0)
         self.assertEqual(self.replies, [])
+
+    async def test_commit_failure_leaves_same_request_retryable_without_losing_its_reply(self):
+        self.enable(); self.add()
+        before = self.store.read()
+        self.store.vault.fail = True
+        await self.pump.tick(self.routed)
+        self.assertEqual(self.store.read(), before)
+        self.assertEqual(self.replies, [])
+        self.store.vault.fail = False
+        await self.pump.tick(self.routed)
+        self.assertEqual(self.store.read()['pairs'][PAIR]['receiveSeq'], 1)
+        self.assertEqual(len(self.replies), 1)
+
+    async def test_unpair_flushes_only_already_sealed_final_reply_then_erases_relay_capability(self):
+        self.enable(); self.add({'type': 'command', 'id': 'relay-final-unpair', 'action': 'unpair'})
+        await self.pump.tick(self.routed)
+        self.assertEqual([row['operation'] for row in self.requests], ['get', 'put'])
+        self.assertEqual(len(self.replies), 1)
+        self.assertEqual(open_envelope(self.replies[0], PAIR, 'pc', 0, self.pc_key)[1]['commandId'], 'relay-final-unpair')
+        self.assertEqual(self.store.read()['pairs'], {})
+        self.assertNotIn('relay', self.store.read())
+        await self.pump.tick(self.routed)
+        self.assertEqual(len(self.requests), 2)
+
+    async def test_final_unpair_reply_cannot_flush_after_local_disable_or_clear(self):
+        for deactivate in [disable_relay, clear_relay]:
+            with self.subTest(deactivate=deactivate.__name__):
+                self.store.update(lambda data: data['pairs'].update({PAIR: {'phoneToPc': b64(self.phone_key), 'pcToPhone': b64(self.pc_key), 'sendSeq': 0, 'receiveSeq': 0}}))
+                self.enable()
+                raw = seal(PAIR, 'phone', 1, {'type': 'command', 'id': 'local-stop', 'action': 'unpair'}, self.phone_key, self.clock())
+                self.bridge.relay_exchange(canonical(raw).decode(), PAIR)
+                deactivate(self.store)
+                count = len(self.requests)
+                await self.pump.tick(self.routed)
+                self.assertEqual(len(self.requests), count)
 
     async def test_expired_private_reply_is_removed_without_deleting_durable_pc_events(self):
         self.enable()

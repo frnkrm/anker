@@ -81,13 +81,17 @@ def clear_relay(store: AtomicStateStore) -> None:
     store.update(lambda data: data.pop("relay", None))
 
 
-def relay_configuration(store: AtomicStateStore) -> RelayConfiguration | None:
+def relay_configuration(store: AtomicStateStore, *, pending_only: bool = False) -> RelayConfiguration | None:
     value = store.read()
     config = value.get("relay")
     if not isinstance(config, dict) or config.get("enabled") is not True:
         return None
     parsed = _configuration_values({key: config.get(key) for key in ("project", "pair", "deviceToken")})
-    return parsed if len(value["pairs"]) == 1 and parsed.pair in value["pairs"] else None
+    if len(value["pairs"]) == 1 and parsed.pair in value["pairs"]:
+        return parsed
+    # After an authenticated unpair, only its already sealed final reply may be
+    # flushed. No key, incoming poll or new exchange is available on this path.
+    return parsed if pending_only and not value["pairs"] and isinstance(config.get("pendingReplies"), list) and config["pendingReplies"] else None
 
 
 def _envelope(value: Any, pair: str, direction: str, now: float) -> dict:
@@ -176,7 +180,7 @@ class RelayPump:
                 **({"lastExchangeAt": self.last_exchange_at} if self.last_exchange_at else {})}
 
     def _current(self, config: RelayConfiguration) -> bool:
-        return relay_configuration(self.store) == config
+        return relay_configuration(self.store, pending_only=True) == config
 
     def _pending(self, config: RelayConfiguration) -> list[dict]:
         raw = self.store.read().get("relay", {}).get("pendingReplies", [])
@@ -208,7 +212,7 @@ class RelayPump:
         if self._lock.locked(): return
         async with self._lock:
             try:
-                config = relay_configuration(self.store)
+                config = relay_configuration(self.store, pending_only=True)
                 if config is None:
                     self.status = "off"; return
                 if self.lan_fresh(config.pair):
@@ -216,6 +220,9 @@ class RelayPump:
                 self.status = "waiting"
                 client = RelayHttpClient(config, session, self.clock)
                 if not await self._flush(config, client): return
+                if not self.store.read()["pairs"]:
+                    clear_relay(self.store)
+                    self.status = "off"; return
                 after = self.store.read()["pairs"][config.pair].get("receiveSeq", 0)
                 rows = await client.get(after)
                 for frame in rows:
@@ -226,14 +233,16 @@ class RelayPump:
                     # One existing exchange owns AEAD, durable seqIn/seqOut and effects.
                     reply = self.exchange(canonical(frame).decode(), config.pair)
                     reply = _envelope(reply, config.pair, "pc", self.clock())
-                    def retain(data):
-                        if len(data["relay"]["pendingReplies"]) >= 64:
-                            raise RelayError()
-                        data["relay"]["pendingReplies"].append(reply)
-                    self.store.update(retain)
+                    # relay_exchange must durably retain its reply in the SAME
+                    # transaction as receiveSeq/effects/seqOut, before returning.
+                    if not any(item == reply for item in self.store.read().get("relay", {}).get("pendingReplies", [])):
+                        raise RelayError()
                     self.last_exchange_at = utc(self.clock())
                     self.status = "received"
                     if not await self._flush(config, client): return
+                    if not self.store.read()["pairs"]:
+                        clear_relay(self.store)
+                        self.status = "off"; return
             except RelayError as error:
                 self.status = error.code
             except ProtocolError:
