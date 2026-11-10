@@ -48,8 +48,14 @@ export function PcCompanionPanel() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const pending = useRef(false)
+  const viewRequest = useRef(0)
   const [wol, setWol] = useState(() => local.wakeOnLan ?? { enabled: false, mac: '', broadcast: '255.255.255.255' })
-  const refresh = async () => { if (native) setView(await getPcBridgeView()) }
+  const refresh = async () => {
+    if (!native) return
+    const request = ++viewRequest.current
+    const next = await getPcBridgeView()
+    if (request === viewRequest.current) setView(next)
+  }
 
   useEffect(() => {
     if (!native) return
@@ -58,8 +64,9 @@ export function PcCompanionPanel() {
     const load = async () => {
       if (running) return
       running = true
-      try { const next = await getPcBridgeView(); if (alive) setView(next) }
-      catch { if (alive) setError('Der PC-Status konnte gerade nicht gelesen werden. Es wird kein Empfang bestätigt.') }
+      const request = ++viewRequest.current
+      try { const next = await getPcBridgeView(); if (alive && request === viewRequest.current) setView(next) }
+      catch { if (alive && request === viewRequest.current) setError('Der PC-Status konnte gerade nicht gelesen werden. Es wird kein Empfang bestätigt.') }
       finally { running = false }
     }
     const visible = () => { if (document.visibilityState === 'visible') void load() }
@@ -91,6 +98,7 @@ export function PcCompanionPanel() {
   const ack = isPcAck(view?.ack) ? view.ack : isPcAck(local.ack) ? local.ack : undefined
   const paired = view ? !['unpaired', 'pairing', 'rejected'].includes(view.state) : local.status !== 'unpaired'
   const connected = native && view?.connected === true
+  const pairingCode = native && view?.state === 'pairing' && typeof view.code === 'string' && view.code.length === 4 && /^[0-9]{4}$/.test(view.code) ? view.code : undefined
   const confirmation = native && view ? view.confirmationText : native
     ? local.ack ? 'Eine gespeicherte PC-Antwort liegt vor. Der aktuelle Empfang wird geprüft.' : 'Für den aktuellen Plan liegt hier noch keine PC-Bestätigung vor.'
     : 'Die Web-Vorschau bestätigt weder eine Verbindung noch den Empfang am PC.'
@@ -115,11 +123,20 @@ export function PcCompanionPanel() {
       {native && view?.active && <p className="text-sm text-muted">Der Verbindungsdienst am Handy ist aktiv. Das allein bestätigt keinen Empfang.</p>}
       <Button className="w-full" disabled={!native || !local.enabled || busy} onClick={() => void run(async () => {
         await syncPcBridge()
+        const request = ++viewRequest.current
         const next = await getPcBridgeView()
-        setView(next)
+        if (request === viewRequest.current) setView(next)
         setMessage(next.currentConfirmation ? 'Der PC bestätigt den aktuellen Plan.' : 'Abgleich angefragt. Der aktuelle Plan ist vom PC noch nicht bestätigt.')
       })}>Jetzt abgleichen</Button>
     </Card>
+
+    {native && view?.state === 'pairing' && <section aria-label="PC-Kopplung bestätigen" role="status" className="min-w-0 space-y-3 rounded-2xl border border-accent bg-surface p-4">
+      <h3 className="break-words text-lg font-semibold">Prüfcode vergleichen</h3>
+      {pairingCode ? <>
+        <p aria-label="Prüfcode zur PC-Kopplung" className="text-center text-4xl font-semibold tabular-nums tracking-widest">{pairingCode}</p>
+        <p className="break-words text-sm text-muted">Vergleiche diese vier Ziffern mit dem Code am PC. Nur wenn beide gleich sind, wähle dort „Ja, koppeln“. Danach wird die Verbindung geprüft.</p>
+      </> : <p className="break-words text-sm text-muted">Der Prüfcode ist noch nicht verfügbar. Bestätige am PC erst, wenn du auf beiden Geräten dieselben vier Ziffern siehst.</p>}
+    </section>}
 
     <MoreInfo summary="Was weiß dein PC?"><div className="space-y-3">
       <p className="text-sm text-muted">Diese lokale Vorschau verwendet genau den vorbereiteten Übertragungsplan. Sie sendet nichts und bestätigt keinen Empfang. Aufgaben- und Routinenschritttitel gehören nicht zu diesem Plan.</p>
