@@ -1,5 +1,13 @@
 # Anker: Testnachweise
 
+## Code17 / PC0.1.1 – laufende gemeinsame Erweiterung (10.11.2026)
+
+Der vollständige Quellstand ist noch nicht eingefroren oder signiert. Die frühere grüne CI42726629352 auf `7c765c5` ist ein **Zwischenbeleg**, kein Gesamtnachweis der nachfolgend ergänzten Kalender-, PC-Komfort-, Update- und Relayfunktionen.
+
+Bereits tatsächlich ausgeführt: integrierte PC-Gesamtsuite **201/201**, Node↔Python-TLS-Schleife mit verschlüsseltem tatsächlichem Austausch und ohne Systemwirkungen, echter Tk/Xvfb-Oberflächenversuch unter Linux sowie gezielte Android-Kompilierung und **9/9 Kalender-JUnit**. Die optionalen Relaytabellen und RPCs wurden mit echtem lokalem PostgreSQL (PGlite0.5.16) geprüft: **16/16** einschließlich Owner-RLS, Rollenverboten, Richtungsbindung, Replay, begrenzter Aufbewahrung, Ablauf und Widerruf. Das ist keine laufende Supabase-Instanz. Ein anfänglicher SQL-Regexfehler wurde im echten SQL-Lauf gefunden und korrigiert; Rotlogs bleiben erhalten.
+
+Rohbelege: Cloudcache `pc-pairing-20261110/pc-all-features-integration.log`, `interop-features.log`, `relay-sql-integration.log`, `device-calendar-native/NATIVE-CALENDAR-RESULT.json` sowie `gui/ux-features-final/`. Gezielte Autorenprüfungen werden nicht zu einer erfundenen Gesamtzahl addiert. Frische gemeinsame Abschlussprüfungen und eindeutige Artefakt-/CI-Bindung folgen nach Integration aller Quellen. **Keine neuen Android-/Windows-Geräteergebnisse**, keine automatischen Häkchen; G94/G97–G103 verwenden dieselben 103 IDs und erhalten alle Ergebniszellen.
+
 ## Google-Play-Uploadworkflow – lokale Vorbereitung (10.11.2026)
 
 **Tatsächlicher Abschluss:** [GitHub-Lauf42721896696](https://github.com/frnkrm/anker/actions/runs/42721896696), Workflowquelle `d1ff7b90035786e4d0411431dbac4d3a216c1041`, main/push, beide Jobs erfolgreich. Öffentliche Ergebnisannotation bestätigt **identisches geprüftes Bundle**, `internal`, Version16, `completed`. Der ausschließlich lesende `already-active`-Pfad verlangt passende Google-Bundle-SHA und genau diesen einzelnen Release; kein Bundleupload, Trackänderung, Validate oder Commit. Anmeldung und bestehende interne Bereitstellung sind damit tatsächlich belegt, eine neue Veröffentlichung oder erfolgreiche Handyinstallation nicht. Auch die [normale CI42720560357](https://github.com/frnkrm/anker/actions/runs/42720560357) des ersten Automationscommits `55a383f` ist mit allen drei Jobs, **1.095 Vitest-/271 Playwrightfällen** grün. Spätere Automationsrevisionen sind davon getrennt durch die 92 Prüfungen im erfolgreichen Play-Preflight belegt; die bestehende App-CI42619085381 bleibt der Freigabebeleg für das unveränderte Bundle. [Maschinenbeleg](PLAY_CODE16_KONTO_NACHWEIS.json).

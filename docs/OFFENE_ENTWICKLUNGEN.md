@@ -1,39 +1,30 @@
-# Offene Entwicklungen nach aktuellem Codeabgleich
+# Entwicklungsstand nach dem aktuellen Codeabgleich
 
-Stand 10.11.2026. Diese Liste trennt fehlenden Code von noch ausstehenden Geräteversuchen. Frühere Abschlussangaben und ältere offene Baselinepunkte werden nicht ungeprüft als aktueller Stand übernommen.
+Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden Softwareentwicklungen beauftragt. Die folgende Liste ersetzt die frühere reine Vorschlagsliste und trennt integrierten Code, noch laufende Integration und echte Einrichtung/Beobachtung.
 
-## Laufendes Update
+| Bereich | Aktueller Softwarestand |
+|---|---|
+| Kopplung | QR-Lebenszyklus unabhängig von Statusrenders, Widerruf/Ablauf, vierstelliger Handyvergleichscode und Schutz vor veralteten Statusantworten integriert |
+| PC-Oberfläche/Tray | Abgerundete tastaturbedienbare Buttons, monitorangepasstes Fenster, Scrollzugang, dauerhafte Aktionsrückmeldung, Minimieren/X im Tray, Symbol-/Erinnerungsklick und ausdrücklich getrenntes Beenden integriert |
+| Abgleich | Manueller PC-Abgleich über vorhandenen authentifizierten Kanal; echter Empfangszeitpunkt und Quellstand statt Erfolg aus bloßer Kopplung |
+| AB-07 | Tatsächlicher sanfter Handy-Abendzeitpunkt als einzelne PC-Folge; keine doppelte T30/T10-/Dimm-/Audioserie |
+| MO-04 | Gewählte Morgenanzeige mit tatsächlichem Losgeh-/Arbeitsziel und begrenztem einmaligem Hinweis |
+| AB-04 | Freiwillig freigegebener Wenn-dann-Satz auf der PC-Karte, kein Text ohne Freigabe |
+| AB-03/PC-09 | Bis… mit Vorschau, exakter Zielzeitbindung und Berliner Sommer-/Winterzeit; strenge Notverlängerung bleibt am Handy |
+| PC-Verwaltung | Name, eigene Tastenkürzel mit atomarem Speichern und Registrierungs-Rollback, bestätigte lokale Datenlöschung/Neustart |
+| Darstellung | Hell/Dunkel/System, optionale S−60-Pille, optionaler kurzer Kartenton unter Beachtung des Windows-Benachrichtigungszustands |
+| Google-Kalender | Nativer READ_CALENDAR-Leseweg für synchronisierte Google-Kalender samt Konto-/ID-Wechselschutz; App-Auswahl-/Cache-/Backup-Integration in Arbeit. Bestehende direkte Google-Anmeldung und eigener Schreibkalender bleiben erhalten |
+| PC-Updates | Signierter, fest gebundener Kanal mit optionaler automatischer Prüfung, bewusstem Download und gesonderter Installationsbestätigung in Integration |
+| PC-14 Relay | Optionaler verschlüsselter Transport mit getrennten widerrufbaren Berechtigungen; SQL/Handler lokal geprüft, Android-/PC-/Einrichtungshooks in Integration. Kein laufendes Supabase behauptet |
 
-- PC-Kopplung: QR-Fenster bleibt unabhängig von Statusmeldungen geöffnet; kurzlebiger, widerrufbarer Code und sichtbare Fehlererholung.
-- Handy: vierstelliger Prüfcode während der offenen Kopplung, Schutz vor verspäteten Statusantworten.
-- PC-Oberfläche: abgerundete, tastaturbedienbare Buttons, monitorangepasstes Fenster, verlässliche Aktionsrückmeldungen.
-- Manueller LAN-Abgleich mit tatsächlichem Handystand und Zeitpunkt; keine Erfolgsanzeige aus bloßer Kopplung.
-- Minimieren/X in den Infobereich, erreichbarer Rückweg über Symbol und Erinnerung, ausdrücklich getrenntes Beenden.
+Die nachfolgende finale Gesamtprüfung und Lieferung wird im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md) anhand konkreter Quellen dokumentiert. Ein bereits vorhandener Schalter allein gilt nicht als fertige Funktion.
 
-Implementierung, Prüfungen und Auslieferungsstand stehen im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md). Diese laufenden Punkte sind vor ihrem Abschluss nicht als bereits ausgeliefert zu lesen.
+## Externe Voraussetzungen und Beobachtungen
 
-## Konkrete noch offene v7-Umsetzungen
+- Kalenderfreigabe und Auswahl müssen auf dem Handy erfolgen. Das vorhandene Play-Dienstkonto berechtigt nicht zum persönlichen Google-Kalender. Der neue Gerätekalenderweg benötigt keinen weiteren API-Schlüssel.
+- Relaybetrieb benötigt ein tatsächlich eingerichtetes Supabase-Projekt und bewusst gewählte Aktivierung. Ohne Projektzugang gibt es nur geprüften optionalen Code und den lokalen LAN-Weg.
+- Ein vertrauenswürdiger signierter Windows-EXE-Installer erfordert ein passendes externes Codesignierungszertifikat. Kein kostenpflichtiges Zertifikat gekauft oder eine Signatur vorgetäuscht; Quellpaket und signierter Updatekanal sind getrennt beschrieben.
+- MO-05 ist eine Machbarkeitsnotiz für einen Lichtwecker, keine Hardwareintegration. Zusätzliche Geräte werden nicht gekauft/angesteuert.
+- Galaxy S26 Ultra, tatsächlicher Weckerton/Standby/Spiel-Touchschutz, reale Windows-Installation, mehrere Monitore mit verschiedener DPI, Tray-/Windows-Erinnerungsklick, LAN-Unterbrechung und bewusst gewählte Sperr-/Audio-/WoL-Wirkungen bleiben echte Geräteversuche. Dieselben sieben Stationen/103 IDs weiterverwenden, keine automatischen Geräte-Häkchen.
 
-| Priorität | Punkt | Tatsächlicher Codebefund |
-|---|---|---|
-| Hoch | **AB-07: sanften Abendübergang auch am PC berücksichtigen** | Der gemeinsame PC-Zeitplan verwendet weiterhin feste Bett−30-/Bett−10-Zeiten und trägt die eigene `support.windDown.at`-Auswahl nicht vollständig als vereinfachte Folge weiter. Eine eigene `EVENING_WIND_DOWN`-Karte fehlt im bisherigen PC-Ablauf. Die Vermeidung überlappender Abendserien braucht hier noch eine gemeinsame Umsetzung. |
-| Hoch | **MO-04: Morgen-Countdown am PC** | `morningCountdown` und `leaveAt`/`workStartAt` sind im gemeinsamen Vertrag vorhanden. `pc-companion/anker_companion/engine.py` verwendet für die sichtbare Restzeit bislang den Abendzielpunkt; die gewählte Morgenanzeige und deren Vorwarnung werden nicht vollständig umgesetzt. Ein übertragener Schalter allein erfüllt die Funktion nicht. |
-| Mittel | **AB-04: Wenn-dann-Hinweis auf der PC-Karte** | Der freiwillig freigegebene Satz kommt über `prefs.ifThen` an; die PC-Karte in `ui.py` zeigt ihn bislang nicht an. |
-| Mittel | **AB-03/PC-09: freie Zielzeit und Verlängerungsvorschau** | +15/+30 und freier Abend sind vorhanden. Eine eigene Zeitwahl „Bis …“ und eine klare Vorschau der neuen PC-/Bettzeit bzw. Restzeit bis zum Wecker fehlen. |
-| Niedrig | **PC-09: Tastenkürzel selbst wählen** | `windows.py` registriert bisher feste Tastenkürzel. |
-| Niedrig | **PC-12/PC-13: lokale Verwaltungsfelder** | PC-Name ist per `--name`, vollständiges Löschen über `uninstall.ps1 -DeleteData` möglich. Entsprechende Einrichtungs-/Einstellungsfelder fehlen. |
-| Niedrig | **VI-03/VI-04/PC-07: weitere Darstellungsoptionen** | Eigene ausblendbare S−60-Pille, Windows-Hellmodus und optionaler Signalton mit Berücksichtigung des Windows-Benachrichtigungszustands sind nicht vollständig umgesetzt. Vorhandene T30-Anzeige und dunkle Oberfläche nicht mit diesen Optionen verwechseln. |
-
-Diese Befunde korrigieren die zu breite frühere Aussage, sämtlicher v7-Umfang sei softwareseitig abgeschlossen. Die Punkte sind keine durch Timer oder Tests automatisch erfüllten Nutzeraufgaben und keine lediglich offenen Geräte-Häkchen. Sie werden nicht zusätzlich zur laufenden Fehlerkorrektur still implementiert.
-
-## Bedingte, optionale Erweiterungen
-
-- **PC-14: Verbindung außerhalb des Heimnetzes über einen Relay.** Kein laufender Supabase-Relay für den lokalen Begleiter eingerichtet. Er verlangt eine eigene Architektur-/Datenschutz-/Betriebsentscheidung; die lokale Kopplung benötigt ihn nicht.
-- **Automatischer Windows-Updatekanal und signierter EXE-Installer.** Das vorhandene Quellpaket hat einen manuellen Installations-/Updateweg. Automatische Fremdcodeausführung und kostenpflichtige Codesignierung sind daraus nicht aktiviert.
-- **Neue Licht-Hardware.** Der vorhandene Lichthinweis ist keine eingerichtete Smart-Home-Anbindung. Zusätzliche Hardware bleibt eine eigene Wahl.
-
-## Keine neue Entwicklung, aber noch echte Beobachtung nötig
-
-Galaxy S26 Ultra, tatsächlicher Weckerton/Standby/Spiel-Touchschutz, Windows-Installation und mehrere echte Monitore mit unterschiedlicher DPI, Tray-/Windows-Erinnerungsklick, LAN/WLAN-Unterbrechung sowie gewählte Sperr-/Audio-/WoL-Wirkungen. Bestehende sieben v7-Stationen und 103 Test-IDs weiterverwenden; keine bestandenen Häkchen aus Softwaretests erzeugen.
-
-Die E00–E09-Entwicklung ist im aktuellen Plan softwareseitig abgeschlossen. Historische Baselineangaben wie „E05 danach“ und alte Providerblocker sowie die inzwischen erledigten AB-05/AB-06/MO-03 werden nicht erneut als offener aktueller Auftrag aufgeführt.
+Die E00–E09-Basissoftware ist bereits umgesetzt. Historische Baselineblocker sowie erledigte AB-05/AB-06/MO-03 werden nicht erneut als fehlender aktueller Code aufgeführt. Claude Code ist hier nicht als Werkzeug oder CLI angeschlossen; die parallelen Prüfungen erfolgen durch Codex-Agenten in getrennten Arbeitsbäumen.

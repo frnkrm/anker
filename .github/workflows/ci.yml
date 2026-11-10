@@ -27,6 +27,10 @@ jobs:
               raise SystemExit('Die vollständige Logikprüfung ist nicht grün.')
           print(f'::notice title=Anker Vitest::{passed} passed; {failed} failed; {skipped} skipped')
           PY
+      - name: Relaymigration und Zugriffsrechte mit lokalem PostgreSQL prüfen
+        run: |
+          npm install --prefix "$RUNNER_TEMP/anker-relay-sql" --no-save --ignore-scripts --package-lock=false @electric-sql/pglite@0.5.16
+          node scripts/test-pc-relay-sql.mjs --module "$RUNNER_TEMP/anker-relay-sql/node_modules/@electric-sql/pglite/dist/index.js"
       - name: PC-Stopp mit PowerShell prüfen
         run: npm run test:pc
       - name: Android-Updateprüfung ohne echte Schlüssel testen
