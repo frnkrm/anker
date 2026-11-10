@@ -32,7 +32,7 @@ Das Paket ist Quellcode mit Start-/Einrichtungsskripten, kein signierter
 Windows-Installer. SmartScreen oder Smart App Control können unbekannte Programme
 blockieren. Eine kostenpflichtige Signierung wurde nicht eingerichtet.
 Für die Installation der festgelegten Python-Abhängigkeiten wird einmal Internet
-benötigt. Die eigentliche Kopplung und Benutzung bleiben im eigenen Heimnetz.
+benötigt. Die normale Kopplung und Benutzung bleiben im eigenen Heimnetz. Eine freiwillige Relay-Erweiterung wird weiter unten getrennt beschrieben.
 
 ## Aktualisieren
 
@@ -50,19 +50,21 @@ benötigt. Die eigentliche Kopplung und Benutzung bleiben im eigenen Heimnetz.
 
 Schlüssel, Kopplung, eigene Notizen und Einstellungen bleiben verschlüsselt im
 übergeordneten Datenordner erhalten. Unter demselben Windows-Benutzer aktualisieren;
-DPAPI-Schlüssel werden weder exportiert noch ersetzt. Das Update installiert keine
-zweite Planung, keinen automatischen Internet-Updater und keinen Windows-Dienst.
+DPAPI-Schlüssel werden weder exportiert noch ersetzt. Es bleibt derselbe Planer. Automatische Updateprüfungen beginnen ausgeschaltet;
+Downloads und Installation sind getrennte Entscheidungen. Kein Windows-Dienst wird eingerichtet.
 Im installierten Ordner liegen auch Anleitung und `uninstall.ps1` für später.
 
 ## Im Alltag
 
-- 30 Minuten vor der gelieferten Bettzeit zeigt der Begleiter den Übergang.
-  Zehn Minuten vorher weist er auf den Gedankenparkplatz hin. Ein eigenes
-  Overlay und die Zeitpille ergänzen Windows-Benachrichtigungen.
+- Ohne einzelne sanfte Abendfolge zeigt der Begleiter den Übergang 30 Minuten
+  und den Gedankenparkplatz 10 Minuten vor der gewählten Grenze. Mit dem sanften
+  Übergang verwendet er den tatsächlichen Handyzeitpunkt als einzelne Folge.
+  Morgenanzeige, Zeitpille und kurzer Kartenton sind gesonderte Wahlen.
 - **Speicherpunkt** merkt in zwei kurzen Feldern den aktuellen Stand und den
   nächsten Schritt. **Gedanke** speichert eine eigene Notiz. Beide werden über
   die verschlüsselte Outbox beim nächsten Kontakt ans Handy übergeben.
-- Im normalen Modus lassen sich **+15/+30 Minuten** beliebig erneut wählen oder
+- Im normalen Modus lassen sich **+15/+30 Minuten** beliebig erneut wählen, mit **Bis zu einer Uhrzeit**
+  zuerst eine konkrete Zeitvorschau ansehen oder
   **Heute ohne PC-Stopp** setzen. Ein unveränderter Handyauftrag hebt eine lokale
   Verlängerung nicht auf.
 - Im ausdrücklich eingeschalteten strengen Modus kommt eine Notverlängerung nur
@@ -95,6 +97,57 @@ Eine Tagesvorschau ohne echte Nacht-Session startet keinen neuen Nacht-Watchdog.
 Anmeldung, Aufwachen und eine zurückgestellte
 Uhr beginnen eine neue volle Speicherfrist. Der Nutzer behält seine Windows-Rechte;
 dies ist kein manipulationssicherer Administrator- oder Überwachungsdienst.
+
+## Fenster, Rückmeldungen und Einstellungen
+
+Das Hauptfenster passt sich an Arbeitsbereich und Skalierung des aktuellen
+Monitors an. Bei wenig Platz bleiben alle Aktionen per Scrollen/Tastatur
+erreichbar. Rückmeldungen bleiben nach dem Klick im Fenster sichtbar.
+**Jetzt im WLAN abgleichen** verlangt einen neuen authentifizierten Handystand
+und zeigt Quellzeit und Empfang; Kopplung allein ist kein Sync-Erfolg. Der
+Relaykontakt ist ein davon getrennter Transportstatus.
+
+Minimieren und X lassen Anker im Infobereich weiterlaufen. Symbol oder
+Windows-Erinnerungsklick öffnen das Hauptfenster. Fehlt das Tray, bleibt das
+Taskleistenfenster erreichbar. **Beenden** beendet ausdrücklich. Windows kann
+Hinweise bei Nicht stören/Vollbild ausblenden; Anker ändert diese Auswahl nicht.
+
+**Einstellungen → Darstellung, PC-Name & Tastenkürzel** bietet Hell/Dunkel/System,
+einen eigenen PC-Namen und selbst gewählte Kürzel. Eine belegte Kombination
+wird nicht still übernommen. Die gesondert bestätigte lokale Datenlöschung
+entfernt Kopplung, Notizen, Einstellungen und Begleiterlogs; danach neu starten.
+Handy-Daten bleiben erhalten.
+
+## PC-Updates
+
+Unter **Einstellungen → PC-Updates** kannst du manuell prüfen oder automatische
+Prüfungen selbst einschalten. Das lädt noch kein Programm herunter. Ein neuer
+Stand erfordert **Download** und danach eine gesonderte Installationsbestätigung.
+Der feste GitHub-Kanal ist mit dem bestehenden öffentlichen B4-Zertifikat
+prüfbar. Quellencommit, unveränderlicher Downloadcommit, Protokoll, Dateihashes,
+Pfade, Größe und Ablauf werden geprüft. Beschädigte oder unpassende Pakete stoppen.
+
+Erst wenn der installierte Updatehelfer die Übergabe bestätigt, beendet sich
+der Begleiter normal. Der Helfer wartet auf genau diesen Prozess, prüft den
+Stage nochmals, installiert ohne Änderung deiner Autostartwahl und startet neu.
+Eine Übergabebestätigung ist keine Bestätigung einer fertigen Installation.
+Bei Fehlern bleibt der manuelle ZIP-/Einrichten.cmd-Weg verfügbar. Benutzergebundene
+DPAPI-Daten bleiben außerhalb von app erhalten.
+
+## Online-Verbindung über Relay · optional
+
+Die LAN-Kopplung benötigt weiterhin kein Konto. Für den zusätzlichen Relay sind
+ein bewusst eingerichtetes Supabase-Projekt, die pc-link-Function und eine
+Anmeldung am Handy nötig. Die Einrichtungsanleitung liegt im Repository unter
+`docs/PC_RELAY.md`. Ohne diese Einrichtung ist kein Cloudbetrieb aktiv.
+
+Nach aktiver LAN-Kopplung kann das Handy einen einmaligen privaten Setupcode
+liefern. Nur im PC-Feld **Online-Verbindung über Relay · optional** einfügen;
+nicht in Screenshots, Testberichte oder Sicherungen kopieren. Der PC speichert
+seine getrennte Berechtigung im vorhandenen DPAPI-Speicher. Der Relay sieht nur
+bereits verschlüsselte v3-Umschläge und technische Metadaten, keine Schlüssel.
+LAN hat Vorrang, Nachrichten laufen nach spätestens 14 Tagen ab. Ausschalten,
+lokales Entfernen und bestätigter serverseitiger Widerruf sind getrennt.
 
 ## Daten und Sicherheit
 

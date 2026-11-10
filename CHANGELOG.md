@@ -1,5 +1,18 @@
 # Patch Notes
 
+## 1.5.0-rc.3 / Code17 und PC0.1.1 – laufende Fertigstellung (2026-11-10)
+
+Die gemeinsame Abschlussprüfung und die neuen Download-/Playbelege werden vor Auslieferung ergänzt. Die Code16-Belege darunter bleiben historisch; neue Gerätebeobachtungen sind nicht daraus abgeleitet.
+
+- PC-Kopplungs-QR bleibt trotz Statusupdates sichtbar, läuft begrenzt ab und ist widerrufbar; vierstelliger Vergleichscode am Handy sichtbar, verspätete Statusantworten abgesichert.
+- Gerundete PC-Buttons, Monitor-/DPI-Anpassung, Scroll-/Tastaturzugang und dauerhafte Aktionsrückmeldungen. Minimieren/X bleibt im Tray, Symbol-/Erinnerungsklick öffnet das Fenster; Beenden bleibt ausdrücklich möglich.
+- Manueller WLAN-Abgleich bestätigt echten neu empfangenen Handystand und Zeitpunkt. Bis Uhrzeit bietet bestätigte Zielzeitvorschau mit Berliner Zeitumstellungen. Sanfte einzelne Abendfolge, freigegebener Wenn-dann-Satz und gewählte Morgenanzeige verwenden denselben vorhandenen Plan.
+- Hell/Dunkel/System, eigener PC-Name, reservierte eigene Tastenkürzel, freiwillige Zeitpille/Kartenton und bestätigte lokale Datenlöschung. Installer und Reset verweigern verknüpfte Ziele; Handy-Daten und DPAPI-Bestand bleiben beim normalen Update erhalten.
+- Android-Leseweg für ausdrücklich gewählte, bereits synchronisierte Google-Kalender. READ_CALENDAR nach eigener Wahl, kein WRITE_CALENDAR oder Dienstkontoschlüssel. Konto-/ID-Wechsel, verspätete Antworten und Sicherungen abgesichert; direkter Google-OAuth-/Schreibweg bleibt separat.
+- Optionaler signierter PC-Updatekanal mit getrennten Entscheidungen für Prüfung, Download und Installation. Optionaler verschlüsselter Relay mit getrennten widerrufbaren Berechtigungen, LAN-Vorrang und gemeinsamer atomarer Empfangs-/Antwortpersistenz. Kein Cloudbetrieb oder kostenpflichtiger Windows-Signierschlüssel allein durch diesen Code aktiviert.
+- Dieselben 103 Gerätetest-IDs und sieben v7-Stationen ergänzt, historische Ergebniszellen unverändert. Keine Erledigt-Haken oder XP aus Zeitablauf, Transportkontakt oder Softwaretests.
+
+
 ## 1.5.0-rc.2 / Code16 – Weckerverlauf & Diagnose (2026-11-09)
 
 Ausgang ist der veröffentlichte Code15-Stand `53aca22`. [Signiertes Handyupdate](docs/UPDATE_CODE16.md) mit gleichem Appnamen, Paket und B4-Schlüssel bereitgestellt; vollständiger Browserdownload und Dateivergleich bestätigt. **1.095 Logik-/271 Browser-/197 frische Android-JUnit-/89 PC-Pythonfälle**, 5 Paket-/Installer-, 19 klassische PC-/36 Updatefälle grün; TypeScript und Build erfolgreich, Lint 0 Fehler/1 bestehende Warnung. [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42619085381) bestätigt den exakten main/push-Stand mit allen drei Jobs. [Quell-/Artefaktnachweis](docs/ANKER_CODE16_NACHWEIS.json). Echte Galaxy-Hörbarkeit und Spiel-/Standbywirkung bleiben offen; die Code15-Nachweise darunter behalten ihren Stand.
