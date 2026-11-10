@@ -1,0 +1,173 @@
+name: Google Play – vorhandenen Uploadbericht lesen
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/play-upload-diagnose.yml']
+
+permissions: {}
+
+jobs:
+  diagnose:
+    name: Gespeicherten Fehlerbericht ohne Google-Zugriff lesen
+    if: >-
+      github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-report]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    steps:
+      - name: Identität des vorhandenen fehlgeschlagenen Laufs prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+
+          def verify_run(value):
+              expected = {
+                  'id': 42750349642, 'head_sha': 'db457d769c83d46037a640bebde5d55444949437',
+                  'head_branch': 'main', 'event': 'push', 'status': 'completed', 'conclusion': 'failure',
+                  'path': '.github/workflows/google-play-upload.yml',
+                  'html_url': 'https://github.com/frnkrm/anker/actions/runs/42750349642',
+              }
+              if (not isinstance(value, dict) or any(value.get(key) != item for key, item in expected.items())
+                      or value.get('repository', {}).get('full_name') != 'frnkrm/anker'):
+                  raise ValueError('run identity')
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+          def main():
+              try:
+                  if os.environ.get('GITHUB_REPOSITORY') != 'frnkrm/anker':
+                      raise ValueError('repository')
+                  request = urllib.request.Request(
+                      'https://api.github.com/repos/frnkrm/anker/actions/runs/42750349642',
+                      headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                               'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'},
+                      method='GET')
+                  with urllib.request.build_opener(NoRedirect()).open(request, timeout=30) as response:
+                      data = response.read(1_048_577)
+                      if response.status != 200 or len(data) > 1_048_576:
+                          raise ValueError('metadata')
+                  verify_run(json.loads(data))
+              except Exception:
+                  raise SystemExit('Der festgelegte fehlgeschlagene GitHub-Lauf ist nicht bestätigt.') from None
+              print('Der vorhandene main/push-Fehlerlauf und sein exakter Quellstand sind bestätigt.')
+
+          if __name__ == '__main__':
+              main()
+          PY
+      - name: Ausschließlich den vorhandenen Ergebnisbericht übernehmen
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: Anker-Play-Uploadstatus-42750349642
+          run-id: 42750349642
+          repository: frnkrm/anker
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/anker-play-report/
+      - name: Gebundenen Bericht auf öffentliche Diagnosefelder beschränken
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, stat
+
+          def sanitize(value):
+              pins = {
+                  'schemaVersion': 1, 'packageName': 'de.frnkrm.anker.mobile', 'versionCode': 17,
+                  'sourceCommit': '80f6a692b005ab08edacf9e6ad9e9669e4c383f7',
+                  'sourceFingerprint': '10c21f4f5bb07215244a1cc53dc21f8423a020f24aa7c1cfb4df38b9c3e441c7',
+                  'bundleSha256': '2e53d046d32ec4fc53f083a0a9a59e688f1224615af7946330642e97b8c84098',
+                  'ciRunId': 42748341550,
+              }
+              if not isinstance(value, dict) or any(type(value.get(key)) is not type(item) or value[key] != item for key, item in pins.items()):
+                  raise ValueError('report identity')
+              statuses = {'failed', 'inconclusive', 'prepared', 'already-active', 'already-draft', 'draft-committed'}
+              reasons = {
+                  'MANIFEST_INVALID', 'BUNDLE_INVALID', 'ARTIFACT_DOWNLOAD_FAILED', 'TOKEN_MISSING',
+                  'HTTP_UNAUTHORIZED', 'HTTP_FORBIDDEN', 'HTTP_NOT_FOUND', 'HTTP_CONFLICT', 'HTTP_INVALID_REQUEST',
+                  'HTTP_RATE_LIMIT', 'HTTP_SERVER_ERROR', 'HTTP_ERROR', 'REDIRECT_BLOCKED', 'NETWORK_ERROR',
+                  'RESPONSE_INVALID', 'RESPONSE_TOO_LARGE', 'ARTIFACT_CONFLICT', 'EXISTING_RELEASE_CONFLICT',
+                  'UPLOAD_RESPONSE_MISMATCH', 'DRAFT_RESPONSE_MISMATCH', 'COMMIT_RESULT_UNKNOWN',
+                  'POST_COMMIT_UNVERIFIED', 'LOCAL_IO_ERROR', 'UNEXPECTED_ERROR',
+              }
+              known_steps = {
+                  'edit-created', 'existing-exact-active-release-read', 'existing-exact-draft-read',
+                  'bundle-upload-requested', 'bundle-upload-confirmed', 'matching-bundle-reused',
+                  'draft-confirmed-in-edit', 'edit-validated', 'commit-acknowledged', 'persisted-draft-verified',
+              }
+              allowed = lambda raw, choices: raw if isinstance(raw, str) and raw in choices else 'unknown'
+              result = {'status': allowed(value.get('status'), statuses)}
+              if 'reason' in value:
+                  result['reason'] = allowed(value['reason'], reasons)
+              if type(value.get('httpStatus')) is int and 100 <= value['httpStatus'] <= 599:
+                  result['httpStatus'] = value['httpStatus']
+              steps = value.get('steps')
+              result['steps'] = [step for step in steps[:32] if isinstance(step, str) and step in known_steps] if isinstance(steps, list) else []
+              for key in ['bundleUploadConfirmed', 'bundleReused', 'versionReservationUnknown', 'draftVerified',
+                          'commitAttempted', 'commitAcknowledged', 'publishedByThisRun']:
+                  if type(value.get(key)) is bool:
+                      result[key] = value[key]
+              if 'bundleUploadState' in value:
+                  result['bundleUploadState'] = allowed(value['bundleUploadState'], {'not-attempted', 'unknown', 'confirmed'})
+              for key in ['editCleanup', 'verificationEditCleanup']:
+                  if key in value:
+                      choices = {'deleted', 'unconfirmed'} if key == 'verificationEditCleanup' else {
+                          'not-needed', 'deleted', 'unconfirmed', 'not-applicable-after-commit',
+                          'not-attempted-after-ambiguous-commit'}
+                      result[key] = allowed(value[key], choices)
+              observation = value.get('trackObservation')
+              if isinstance(observation, dict):
+                  rows = observation.get('releases')
+                  truncated = observation.get('truncated') is not False or not isinstance(rows, list)
+                  safe_rows = []
+                  for row in rows[:6] if isinstance(rows, list) else []:
+                      if not isinstance(row, dict):
+                          truncated = True
+                          continue
+                      state = allowed(row.get('status'), {'draft', 'completed', 'inProgress', 'halted'})
+                      versions = row.get('versionCodes')
+                      safe_versions = [v for v in versions[:6] if type(v) is int and 1 <= v <= 2_100_000_000] if isinstance(versions, list) else []
+                      truncated = truncated or state == 'unknown' or not isinstance(versions, list) or len(versions) != len(safe_versions)
+                      safe_rows.append({'status': state, 'versionCodes': safe_versions})
+                  result['trackObservation'] = {
+                      'trackMatches': observation.get('trackMatches') is True,
+                      'releasesShape': 'list' if observation.get('releasesShape') == 'list' else 'invalid',
+                      'releases': safe_rows, 'truncated': truncated or isinstance(rows, list) and len(rows) > 6,
+                  }
+              return result
+
+          def read_report(root):
+              if root.is_symlink() or {path.name for path in root.iterdir()} != {'anker-play-result.json'}:
+                  raise ValueError('file whitelist')
+              path = root / 'anker-play-result.json'
+              with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW), 'rb') as stream:
+                  info = os.fstat(stream.fileno())
+                  if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= 1_048_576:
+                      raise ValueError('file size or type')
+                  data = stream.read(1_048_577)
+              if len(data) > 1_048_576:
+                  raise ValueError('report size')
+              def unique(pairs):
+                  result = {}
+                  for key, item in pairs:
+                      if key in result:
+                          raise ValueError('duplicate JSON key')
+                      result[key] = item
+                  return result
+              def invalid_constant(_):
+                  raise ValueError('invalid JSON constant')
+              return sanitize(json.loads(data, object_pairs_hook=unique, parse_constant=invalid_constant))
+
+          def main():
+              try:
+                  result = read_report(pathlib.Path(os.environ['RUNNER_TEMP']) / 'anker-play-report')
+              except Exception:
+                  raise SystemExit('Der gespeicherte Ergebnisbericht ist nicht als begrenzter Code17-Bericht bestätigt.') from None
+              print('::notice title=Anker Play Diagnose::' + json.dumps(result, separators=(',', ':'), ensure_ascii=True))
+
+          if __name__ == '__main__':
+              main()
+          PY
