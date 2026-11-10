@@ -40,6 +40,7 @@ object ReminderLogic {
     const val FIRST_NOTIFICATION_ID = 1001
     const val MAX_SNOOZE = 2
     const val SNOOZE_MS = 5 * 60_000L
+    const val SNOOZE_RETRY_MS = 60_000L
 
     /** Älter als das wird nicht mehr zugestellt: kein Stau nach Tagen ohne Strom oder im Tiefschlaf. */
     const val STALE_MS = 30 * 60_000L
@@ -113,6 +114,36 @@ object ReminderLogic {
         // Der Scheduler blendet nur „5 Min später“ am Limit aus; Erledigt/Heute nicht bleiben erhalten.
         val next = source.copy(at = now + SNOOZE_MS, snoozes = n, token = java.util.UUID.randomUUID().toString(), deferredFrom = 0)
         return (withoutKey(queue, source.date, source.key) + next).sortedBy { it.at }
+    }
+
+    /** An explicit choice is kept even when focus/quiet starts before its five-minute target. */
+    fun requestSnooze(queue: List<ReminderEntry>, source: ReminderEntry, now: Long, policy: ReminderPolicy, focusUntil: Long): List<ReminderEntry>? {
+        val next = snooze(queue, source, now) ?: return null
+        return next.map { entry ->
+            if (entry.date == source.date && entry.key == source.key && !allowed(entry, entry.at, policy, focusUntil))
+                retrySnooze(entry, entry.at, policy, focusUntil) ?: entry
+            else entry
+        }.sortedBy { it.at }
+    }
+
+    /** Retry only an explicitly requested snooze, never a backlog of ordinary hints. */
+    fun retrySnooze(entry: ReminderEntry, now: Long, policy: ReminderPolicy, focusUntil: Long): ReminderEntry? {
+        val original = PcReminderGate.originalAt(entry)
+        if (entry.snoozes <= 0 || original > now || now - original >= STALE_MS) return null
+        val expiresAt = original + STALE_MS
+        var nextAt = minOf(now + SNOOZE_RETRY_MS, expiresAt + 1)
+        // Jump to known quiet/focus ends instead of waking Android every minute
+        // throughout a blocked period. Overlapping ranges can extend that end.
+        for (ignored in 0..policy.ranges.size + 2) {
+            if (nextAt > expiresAt) break
+            val rangeEnd = if (entry.key.startsWith("go:") || entry.key.startsWith("prep:")) 0L
+                else policy.ranges.filter { nextAt >= it.from && nextAt < it.to }.maxOfOrNull { it.to } ?: 0L
+            val next = minOf(expiresAt + 1, maxOf(nextAt, rangeEnd,
+                if (entry.critical) 0L else focusUntil, if (entry.critical) 0L else quietUntil(nextAt, policy)))
+            if (next == nextAt) break
+            nextAt = next
+        }
+        return entry.copy(at = nextAt, deferredFrom = original)
     }
 
     /** Das bestehende begrenzte Ledger verhindert spätere Wiederaufnahme bereits verbrauchter Zustellungen. */

@@ -251,17 +251,27 @@ object ReminderScheduler {
         val batch = pc.prepare(loadQueue(ctx))
         consumeRules(ctx, batch.restoredQueue, now)
         val next = continueRules(ctx, batch.remaining, now)
-        saveQueue(ctx, next)
         val reserved = protectedDisplays(ctx)
         val policy = policy(ctx)
+        val focusUntil = AnkerPrefs.reminderFocusUntil(ctx)
+        val retries = mutableListOf<ReminderEntry>()
+        fun retainSnooze(entry: ReminderEntry) {
+            ReminderLogic.retrySnooze(entry, now, policy, focusUntil)?.let(retries::add)
+        }
         var slots = loadSlots(ctx)
         val consumed = consumedTokens(ctx)
         for (e in batch.deliveries) {
             if (e.token in consumed) continue
-            if (!ReminderLogic.allowed(e, now, policy, AnkerPrefs.reminderFocusUntil(ctx))) continue
+            if (!ReminderLogic.allowed(e, now, policy, focusUntil)) {
+                retainSnooze(e)
+                continue
+            }
             val p = ReminderLogic.place(slots, e, now, reserved)
             // Bekannte App-/Kanalsperren verändern keine vorhandene Karte.
-            if (p.slot != null && !canPost(ctx, e.channel)) continue
+            if (p.slot != null && !canPost(ctx, e.channel)) {
+                retainSnooze(e)
+                continue
+            }
             val beforePost = ReminderLogic.reserveBeforePost(slots, p)
             (slots - beforePost.toSet()).forEach {
                 ctx.getSystemService(NotificationManager::class.java).cancel(ReminderLogic.notificationId(it.slot))
@@ -269,10 +279,14 @@ object ReminderScheduler {
             val accepted = p.slot?.let { post(ctx, e, it) } ?: false
             slots = ReminderLogic.afterPostRequest(beforePost, p, accepted)
             if (accepted) AnkerPrefs.setReminderLastShown(ctx, e.date, e.key, entryToJson(e).toString(), slots, now)
+            else retainSnooze(e)
         }
-        consumeTokens(ctx, batch.consumed)
+        val retryTokens = retries.map { it.token }.toSet()
+        consumeTokens(ctx, batch.consumed.filter { it.token !in retryTokens })
+        val pending = (next + retries).sortedBy { it.at }
+        saveQueue(ctx, pending)
         saveSlots(ctx, slots)
-        armNext(ctx, next)
+        armNext(ctx, pending)
     }
 
     /** Der laufende Wecker ist die eine Meldung, die nie weichen darf. Also weicht die unwichtigste normale. */
@@ -429,11 +443,9 @@ object ReminderScheduler {
         var nextConsumed: String? = null
         val next = when (action) {
             ACTION_SNOOZE -> {
-                if (ReminderLogic.allowed(source, now + ReminderLogic.SNOOZE_MS, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx))) {
-                    val snoozed = ReminderLogic.snooze(queue, source, now) ?: return
-                    nextConsumed = JSONObject(ReminderLogic.consumeSnoozeTokens(consumedTokens(ctx), queue, source)).toString()
-                    snoozed
-                } else ReminderLogic.withoutKey(queue, date, key)
+                val snoozed = ReminderLogic.requestSnooze(queue, source, now, policy(ctx), AnkerPrefs.reminderFocusUntil(ctx)) ?: return
+                nextConsumed = JSONObject(ReminderLogic.consumeSnoozeTokens(consumedTokens(ctx), queue, source)).toString()
+                snoozed
             }
             else -> {
                 actions.put(JSONObject().put("id", "$token:$action").put("revision", revision).put("token", token).put("action", if (action == ACTION_DONE) "done" else "skip").put("key", key).put("date", date).put("at", now))
