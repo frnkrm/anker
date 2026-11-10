@@ -74,7 +74,7 @@ object ReminderLogic {
     fun completeQuietSource(queue: List<ReminderEntry>, consumed: Map<String, Long>, source: ReminderEntry, accepted: Boolean, now: Long): Pair<List<ReminderEntry>, Map<String, Long>> =
         if (accepted) queue.filterNot { it.token == source.token && it.revision == source.revision } to consumeTokens(consumed, listOf(source))
         else queue.mapNotNull { entry ->
-            if (entry.token == source.token && entry.revision == source.revision) retryQuietSource(entry, now) else entry
+            if (entry.token == source.token && entry.revision == source.revision && now >= PcReminderGate.originalAt(entry)) retryQuietSource(entry, now) else entry
         } to consumed
 
     /** The explicitly silent source never shares a WAKEUP alarm with ordinary delivery. */
