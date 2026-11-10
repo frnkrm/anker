@@ -116,6 +116,7 @@ test('Nur der aktuelle Pending-Zustand zeigt den Code, nie verbundene, abgelaufe
     await view(page, { state, connected: state === 'connected', active: false, code: CHECK_CODE, error: 'PC_PAIR_EXPIRED' })
     await expect(code).toHaveCount(0)
     await expect(panel.getByRole('status', { name: 'PC-Kopplung bestätigen', exact: true })).toHaveCount(0)
+    if (state === 'companion-outdated') await expect(panel).toContainText('Deine bestehende Kopplung bleibt erhalten')
   }
 })
 

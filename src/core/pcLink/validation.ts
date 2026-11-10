@@ -41,11 +41,12 @@ export function base64UrlBytes(value: string): Uint8Array {
 export function bytesBase64Url(value: Uint8Array): string { return btoa(Array.from(value, (v) => String.fromCharCode(v)).join('')).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '') }
 
 function preferences(v: unknown): boolean {
-  return record(v) && keys(v, ['enforceEnabled', 'strictLock', 'dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['ifThen', 'bedtimeSequence'])
+  return record(v) && keys(v, ['enforceEnabled', 'strictLock', 'dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['ifThen', 'bedtimeSequence', 'singleTransition', 'bedAfterStopMin'])
     && ['enforceEnabled', 'strictLock', 'dimEnabled', 'audioDuck', 'shareBrainDump', 'morningCountdown'].every((k) => bool(v[k]))
     && typeof v.dimMax === 'number' && Number.isFinite(v.dimMax) && v.dimMax >= 0 && v.dimMax <= 0.4
     && one(v.offlinePolicy, ['pause', 'fixed-time']) && one(v.stopAction, ['lock', 'hibernate', 'shutdown']) && integer(v.graceSeconds, 60, 600)
     && optional(v, 'ifThen', (s) => text(s)) && optional(v, 'bedtimeSequence', bool)
+    && optional(v, 'singleTransition', bool) && optional(v, 'bedAfterStopMin', n => integer(n, 0, 30))
 }
 export function isPcAck(v: unknown): v is PcAck {
   return record(v) && keys(v, ['type', 'revision', 'receivedAt', 'effective', 'companion', 'warnings'], ['commandId', 'emergencyUntil']) && v.type === 'ack' && id(v.revision) && pcInstant(v.receivedAt)
@@ -65,8 +66,11 @@ export function validPcBridgeLocal(v: unknown): v is PcBridgeLocal {
   if (!record(v) || !keys(v, ['enabled', 'preferences', 'automaticRestEvents', 'status', 'events', 'receipts', 'cursor'], ['pcName', 'wantedRevision', 'ack', 'lastAttemptAt', 'wakeOnLan'])
     || !bool(v.enabled) || !bool(v.automaticRestEvents) || !one(v.status, ['unpaired', 'paired-never-reached', 'confirmed', 'unreachable', 'rejected', 'companion-outdated']) || !integer(v.cursor)) return false
   const p = v.preferences
-  if (!record(p) || !preferences({ enforceEnabled: false, ...p, strictLock: false })) return false
-  if (!keys(p, ['dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['enforceEnabled'])) return false
+  if (!record(p)) return false
+  const wire = { ...p }
+  delete wire.followGentleEvening
+  if (!preferences({ enforceEnabled: false, ...wire, strictLock: false }) || !optional(p, 'followGentleEvening', bool)) return false
+  if (!keys(p, ['dimEnabled', 'dimMax', 'audioDuck', 'shareBrainDump', 'morningCountdown', 'offlinePolicy', 'stopAction', 'graceSeconds'], ['enforceEnabled', 'followGentleEvening'])) return false
   return optional(v, 'pcName', name => text(name, 100)) && optional(v, 'wantedRevision', id) && optional(v, 'ack', isPcAck)
     && optional(v, 'lastAttemptAt', n => integer(n, 0, 8.64e15)) && Array.isArray(v.events) && v.events.length <= 256 && v.events.every(isPcLinkEvent)
     && Array.isArray(v.receipts) && v.receipts.length <= 512 && v.receipts.every(id) && new Set(v.receipts).size === v.receipts.length

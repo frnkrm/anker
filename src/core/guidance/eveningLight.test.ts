@@ -12,6 +12,10 @@ import { guidancePreferences, validGuidancePreferences } from './settings'
 
 const date = '2026-11-12'
 const now = zonedToUtc(date, 300)
+const pcPrefs = () => {
+  const { followGentleEvening, ...wire } = defaultPcBridgeLocal().preferences
+  return { ...wire, strictLock: false, singleTransition: followGentleEvening !== false }
+}
 const setup = () => {
   const s = defaultSettings(date)
   s.support.windDown.enabled = false
@@ -46,7 +50,7 @@ describe('Freiwilliges Abendlicht ohne zweite Abendplanung', () => {
       const plan = buildDayPlan({ date, settings: s })
       expect(eveningLightMinute(plan, s)).toBeUndefined()
       expect(buildReminders([plan], {}, s, now).some(r => r.key === 'guidance-evening-light')).toBe(false)
-      const prefs = { ...defaultPcBridgeLocal().preferences, strictLock: false }
+      const prefs = pcPrefs()
       expect(buildPcBriefing([plan], s, prefs, now).days[0]?.lightHintAt).toBeUndefined()
       expect(buildPcState({ plan, settings: s, prefs, local: emptyLocal(), nowMs: now }).schedule.lightHintAt).toBeUndefined()
     }
@@ -61,7 +65,7 @@ describe('Freiwilliges Abendlicht ohne zweite Abendplanung', () => {
   })
   it('nutzt datierte Bettverschiebungen und denselben optionalen Wire-Wert', () => {
     const s = setup(), plan = buildDayPlan({ date, settings: s, override: { lateUntil: 1470 } })
-    const at = zonedToUtc(date, plan.bed - 120), prefs = { ...defaultPcBridgeLocal().preferences, strictLock: false }
+    const at = zonedToUtc(date, plan.bed - 120), prefs = pcPrefs()
     const state = buildPcState({ plan, settings: s, prefs, local: emptyLocal(), nowMs: now })
     expect(state.schedule.lightHintAt).toBe(new Date(at).toISOString())
     expect(buildPcBriefing([plan], s, prefs, now).days[0]?.lightHintAt).toBe(state.schedule.lightHintAt)

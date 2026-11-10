@@ -14,8 +14,24 @@ export function pcRevision(value: unknown): string {
 }
 const iso = (value: number): string => new Date(value).toISOString()
 
+/** These are projections of existing choices, never a second set of PC schedules. */
+function wirePreferences(settings: Settings, prefs: PcLinkPreferences): PcLinkPreferences {
+  return { ...prefs, singleTransition: settings.support.windDown.enabled && prefs.singleTransition === true,
+    bedAfterStopMin: Math.min(settings.sleep.screenOffMin, 30) }
+}
+
+function eveningTimes(plan: DayPlan, settings: Settings, prefs: PcLinkPreferences) {
+  if (plan.openEnd) return { windDownAt: null, brainDumpAt: null }
+  const bed = zonedToUtc(plan.date, plan.bed)
+  // Match the existing reminder's 04:00 plan-day boundary, including DST.
+  const chosen = settings.support.windDown.at
+  return { windDownAt: prefs.singleTransition ? iso(zonedToUtc(plan.date, chosen < 240 ? chosen + 1440 : chosen)) : iso(bed - 30 * 60000),
+    brainDumpAt: prefs.singleTransition ? null : iso(bed - 10 * 60000) }
+}
+
 /** Uses exactly the existing phone planner and v2 dated PC commands, with no desktop replanning. */
 export function buildPcBriefing(plans: readonly DayPlan[], settings: Settings, prefs: PcLinkPreferences, nowMs: number): PcBriefingPayload {
+  prefs = wirePreferences(settings, prefs)
   const selected = plans.slice(0, 14)
   const commands = buildPcStopCommands(selected)
   const days = selected.map((plan, index) => {
@@ -23,11 +39,12 @@ export function buildPcBriefing(plans: readonly DayPlan[], settings: Settings, p
     const bedAt = zonedToUtc(plan.date, plan.bed)
     const morningPlan = plans.find((candidate) => candidate.date === addDays(plan.date, 1))
     const wakeAt = zonedToUtc(addDays(plan.date, 1), morningPlan?.wake ?? settings.anchor.wake)
+    const times = eveningTimes(plan, settings, prefs)
     const day: PcBriefingPayload['days'][number] = {
       date: plan.date, validUntil: pc.validUntil,
       ...(eveningLightMinute(plan, settings) === undefined ? {} : { lightHintAt: iso(zonedToUtc(plan.date, eveningLightMinute(plan, settings)!)) }),
       pc: pc.mode === 'paused' ? { mode: 'paused' } : { mode: 'scheduled', stopAt: pc.stopAt, localTime: pc.localTime },
-      ...(!plan.openEnd ? { bedAt: iso(bedAt), wakeAt: iso(wakeAt), windDownAt: iso(bedAt - 30 * 60000), brainDumpAt: iso(bedAt - 10 * 60000), morningDeadlineAt: iso(wakeAt + 3 * 3600000) } : {}),
+      ...(!plan.openEnd ? { bedAt: iso(bedAt), wakeAt: iso(wakeAt), windDownAt: times.windDownAt!, ...(times.brainDumpAt === null ? {} : { brainDumpAt: times.brainDumpAt }), morningDeadlineAt: iso(wakeAt + 3 * 3600000) } : {}),
     }
     if (prefs.morningCountdown && morningPlan) day.morning = { homeOffice: morningPlan.homeOffice, ...(morningPlan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(morningPlan.date, morningPlan.leave)) }), ...(morningPlan.workInfo ? { workStartAt: iso(zonedToUtc(morningPlan.date, morningPlan.workInfo.plannedStart)) } : {}) }
     return day
@@ -39,7 +56,8 @@ export function buildPcBriefing(plans: readonly DayPlan[], settings: Settings, p
 
 /** Session/phase facts extend the current schedule; no routine/task titles enter the transport. */
 export function buildPcState(input: { plan: DayPlan; log?: DayLog; local: LocalData; settings: Settings; prefs: PcLinkPreferences; nowMs: number; nextPlan?: DayPlan; alarm?: { ringing: boolean; kind?: string | null } }): PcStatePayload {
-  const { plan, local, settings, prefs, nowMs } = input
+  const { plan, local, settings, nowMs } = input
+  const prefs = wirePreferences(settings, input.prefs)
   const view = deriveGuidance(input)
   const nights = Object.entries(local.guidance?.days ?? {}).filter(([, d]) => d.nightLockedAt !== undefined && d.nightLockedAt <= nowMs && nowMs - d.nightLockedAt < 18 * 3600000).sort((a, b) => b[1].nightLockedAt! - a[1].nightLockedAt!)
   const night = nights[0]
@@ -61,7 +79,7 @@ export function buildPcState(input: { plan: DayPlan; log?: DayLog; local: LocalD
   const validUntil = night ? night[1].nightLockedAt! + 18 * 3600000 : Math.min(nowMs + 18 * 3600000, Math.max(nowMs + 60000, deadline))
   const schedule: PcStatePayload['schedule'] = {
     ...(eveningLightMinute(plan, settings, input.log) === undefined ? {} : { lightHintAt: iso(zonedToUtc(plan.date, eveningLightMinute(plan, settings, input.log)!)) }),
-    windDownAt: bedAt === null ? null : iso(bedAt - 30 * 60000), brainDumpAt: bedAt === null ? null : iso(bedAt - 10 * 60000), bedAt: bedAt === null ? null : iso(bedAt), wakeAt: iso(wakeAt), morningDeadlineAt: iso(deadline),
+    ...eveningTimes(plan, settings, prefs), bedAt: bedAt === null ? null : iso(bedAt), wakeAt: iso(wakeAt), morningDeadlineAt: iso(deadline),
     pcStopAt: evening ? iso(zonedToUtc(plan.date, plan.pcStop)) : null,
     ...(prefs.morningCountdown && morningPlan ? { homeOffice: morningPlan.homeOffice, ...(morningPlan.workInfo ? { workStartAt: iso(zonedToUtc(morningPlan.date, morningPlan.workInfo.plannedStart)) } : {}), ...(morningPlan.leave === undefined ? {} : { leaveAt: iso(zonedToUtc(morningPlan.date, morningPlan.leave)) }) } : {}),
   }

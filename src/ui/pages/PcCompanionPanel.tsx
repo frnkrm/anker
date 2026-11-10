@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { defaultPcBridgeLocal, isPcAck, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcLinkPreferences, type PcPhase } from '../../core/pcLink'
+import { defaultPcBridgeLocal, isPcAck, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcPhase } from '../../core/pcLink'
 import { guidancePreferences } from '../../core/guidance'
 import { requestEmergencyExtensionByQr } from '../../platform/guidance'
 import { isNative } from '../../platform/native'
@@ -86,7 +86,7 @@ export function PcCompanionPanel() {
       pending.current = false; setBusy(false)
     }
   }
-  const preferences = (patch: Partial<PcLinkPreferences>) => void run(() => updatePcBridgePreferences(patch), 'Auswahl gespeichert. Der Empfang am PC wird getrennt bestätigt.')
+  const preferences = (patch: Partial<PcBridgeLocal['preferences']>) => void run(() => updatePcBridgePreferences(patch), 'Auswahl gespeichert. Der Empfang am PC wird getrennt bestätigt.')
   const saveLocal = (patch: Partial<PcBridgeLocal>) => st.saveLocal(current => ({ ...current, pcBridge: { ...(current.pcBridge ?? defaultPcBridgeLocal()), ...patch } }))
   const command = (action: PcCommandPayload['action'], minutes?: number) => void run(async () => {
     const result = await sendPcBridgeCommand(action, minutes)
@@ -130,6 +130,8 @@ export function PcCompanionPanel() {
       })}>Jetzt abgleichen</Button>
     </Card>
 
+    {native && view?.state === 'companion-outdated' && <p role="status" className="rounded-xl bg-surface-2 p-3 text-sm text-muted">Aktualisiere den PC-Begleiter auf deinem Windows-PC. Deine bestehende Kopplung bleibt erhalten; danach kannst du erneut abgleichen.</p>}
+
     {native && view?.state === 'pairing' && <section aria-label="PC-Kopplung bestätigen" role="status" className="min-w-0 space-y-3 rounded-2xl border border-accent bg-surface p-4">
       <h3 className="break-words text-lg font-semibold">Prüfcode vergleichen</h3>
       {pairingCode ? <>
@@ -144,7 +146,7 @@ export function PcCompanionPanel() {
       {preview && <>
         <p className="text-sm text-muted">Vorbereitet am {time(preview.state.generatedAt)} · {PHASE_TEXT[preview.state.state]}{preview.state.routineStep ? ` · Schritt ${preview.state.routineStep.index + 1} von ${preview.state.routineStep.total}` : ''}.</p>
         <p className="text-sm text-muted">PC-Eingriffe {preview.state.prefs.enforceEnabled ? 'freigegeben' : 'aus'} · Abdunklung {preview.state.prefs.dimEnabled ? 'freigegeben' : 'aus'} · Audio {preview.state.prefs.audioDuck ? 'freigegeben' : 'aus'} · Abendnotiz {preview.state.prefs.shareBrainDump ? 'zur Übertragung freigegeben' : 'bleibt auf dem Handy'}.</p>
-        <p className="text-sm text-muted">{preview.state.prefs.bedtimeSequence ? 'Die Drei-Phasen-Begleitung folgt deiner Bettzeit: 30 und 10 Minuten vorher, danach deine Speicherfrist. Deine normale PC-Stoppzeit bleibt für den klassischen Weg erhalten.' : 'Der PC-Begleiter folgt deiner PC-Stoppzeit mit Vorhinweisen und anschließender Speicherfrist.'}</p>
+        <p className="text-sm text-muted">{preview.state.prefs.singleTransition ? 'Am PC gilt dein sanfter Abendübergang zur gewählten Uhrzeit. Die getrennten 30- und 10-Minuten-Karten entfallen; Stoppkarte und Speicherfenster bleiben.' : preview.state.prefs.bedtimeSequence ? 'Die Drei-Phasen-Begleitung folgt deiner Bettzeit: 30 und 10 Minuten vorher, danach deine Speicherfrist. Deine normale PC-Stoppzeit bleibt für den klassischen Weg erhalten.' : 'Der PC-Begleiter folgt deiner PC-Stoppzeit mit Vorhinweisen und anschließender Speicherfrist.'}</p>
         {preview.state.prefs.ifThen && <blockquote className="break-words border-l-2 border-line pl-3 text-sm">Dein freigegebener Wenn-dann-Satz: {preview.state.prefs.ifThen}</blockquote>}
         {preview.state.brainDump && <blockquote className="space-y-1 break-words border-l-2 border-line pl-3 text-sm"><p>Freigegebene Abendnotiz: {preview.state.brainDump.text}</p>{preview.state.brainDump.nextStep && <p>Nächster Schritt: {preview.state.brainDump.nextStep}</p>}</blockquote>}
         <ol className="space-y-3" aria-label="Vorbereitete PC-Tage">{preview.briefing.days.map(day => <li key={day.date} className="min-w-0 rounded-xl border border-line p-3">
@@ -153,6 +155,7 @@ export function PcCompanionPanel() {
             ['PC-Stopp', day.pc.mode === 'paused' ? 'ohne festen Stopp' : day.pc.stopAt ? time(day.pc.stopAt) : 'noch ohne Zeit'],
             ['Speicherfrist am PC ab', day.pc.mode === 'paused' ? 'ohne festen Stopp' : preview.state.prefs.bedtimeSequence ? day.bedAt ? time(day.bedAt) : 'offen' : day.pc.stopAt ? time(day.pc.stopAt) : 'noch ohne Zeit'],
             ['Bett', day.bedAt ? time(day.bedAt) : 'offen'], ['Aufstehen', day.wakeAt ? time(day.wakeAt) : 'ohne festen Wert'],
+            ['Abendübergang', day.windDownAt ? time(day.windDownAt) : 'ohne festen Hinweis'],
             ['Plan gültig bis', time(day.validUntil)],
           ].map(([label, value]) => <div key={label} className="space-y-1"><dt className="font-medium">{label}</dt><dd className="break-words text-muted">{value}</dd></div>)}
             {day.morning && <div className="space-y-1"><dt className="font-medium">Freigegebene Morgenzeiten</dt><dd className="break-words text-muted">{day.morning.homeOffice ? 'Homeoffice' : 'Kein Homeoffice'}{day.morning.leaveAt ? ` · Losgehen ${time(day.morning.leaveAt)}` : ''}{day.morning.workStartAt ? ` · Arbeitsbeginn ${time(day.morning.workStartAt)}` : ''}</dd></div>}
@@ -182,7 +185,8 @@ export function PcCompanionPanel() {
 
     <MoreInfo summary="Hilfen und Freigaben für diesen PC">
       <div className="space-y-4">
-        <p className="text-sm text-muted">Alle Hilfen beginnen ausgeschaltet. Deine Auswahl muss der PC übernehmen und dort für die Ausführung freigegeben sein.</p>
+        <p className="text-sm text-muted">PC-Eingriffe, Ton und Abdunklung brauchen deine eigene Freigabe. Deine Auswahl muss der PC übernehmen und dort für die Ausführung freigegeben sein.</p>
+        <SettingRow label={<><span>Meinen sanften Abendübergang am PC nutzen</span><p className="text-sm text-muted">Wenn dein sanfter Abendübergang eingeschaltet ist, ersetzt seine gewählte Uhrzeit die getrennten 30- und 10-Minuten-Karten am PC. Die Stoppkarte und dein Speicherfenster bleiben erhalten.</p>{!st.settings.support.windDown.enabled && <p className="text-sm text-muted">Der sanfte Abendübergang ist derzeit ausgeschaltet. Bis du ihn einschaltest, bleibt die bisherige PC-Abendfolge.</p>}</>}><Toggle label="Meinen sanften Abendübergang am PC nutzen" checked={local.preferences.followGentleEvening !== false} onChange={followGentleEvening => preferences({ followGentleEvening })} /></SettingRow>
         <SettingRow label={<><span>PC-Eingriffe erlauben</span><p className="text-sm text-muted">Zusätzlich zur Verbindung: Erst diese Wahl und die lokale Freigabe am PC erlauben Abendaktionen. Die letzte PC-Antwort zeigt offene Freigaben.</p></>}><Toggle label="PC-Eingriffe erlauben" checked={local.preferences.enforceEnabled} onChange={enforceEnabled => preferences({ enforceEnabled })} /></SettingRow>
         <SettingRow label="PC-Lautstärke im Abendübergang senken"><Toggle label="PC-Audio schrittweise senken" checked={local.preferences.audioDuck} onChange={audioDuck => preferences({ audioDuck })} /></SettingRow>
         <SettingRow label="Bildschirm behutsam abdunkeln"><Toggle label="PC-Abdunklung erlauben" checked={local.preferences.dimEnabled} onChange={dimEnabled => preferences({ dimEnabled })} /></SettingRow>

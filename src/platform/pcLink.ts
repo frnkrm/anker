@@ -1,6 +1,6 @@
 import { coalesceAsync } from '../core/coalesced'
 import { guidancePlanDate, guidancePreferences } from '../core/guidance'
-import { buildPcBriefing, buildPcState, defaultPcBridgeLocal, isPcAck, isPcLinkEvent, matchingPcAck, parsePairingCode, parsePcPayload, pcConnectionStatus, pcConnectionText, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcEventsPayload, type PcLinkPreferences, type PcStatePayload } from '../core/pcLink'
+import { buildPcBriefing, buildPcState, defaultPcBridgeLocal, isPcAck, isPcLinkEvent, matchingPcAck, parsePairingCode, parsePcPayload, pcConnectionStatus, pcConnectionText, validPcBridgeLocal, type PcAck, type PcBridgeLocal, type PcCommandPayload, type PcEventsPayload, type PcLinkPreferences, type PcStatePayload } from '../core/pcLink'
 import { addDays } from '../core/time'
 import { planFor, today, useApp } from '../state/store'
 import { AnkerNative, isNative } from './native'
@@ -26,7 +26,10 @@ function preferences(local = localBridge()): PcLinkPreferences {
   const state = useApp.getState()
   const guidance = guidancePreferences(state.settings.guidance)
   const ifThen = state.local.guidance?.ifThen
-  const result: PcLinkPreferences = { ...local.preferences, enforceEnabled: local.enabled && local.preferences.enforceEnabled, strictLock: guidance.enabled && guidance.pcLock, ...(ifThen?.showOnPc && ifThen.sentence.trim() ? { ifThen: ifThen.sentence } : {}) }
+  const { followGentleEvening, ...wire } = local.preferences
+  const result: PcLinkPreferences = { ...wire, enforceEnabled: local.enabled && local.preferences.enforceEnabled, strictLock: guidance.enabled && guidance.pcLock,
+    singleTransition: state.settings.support.windDown.enabled && followGentleEvening !== false,
+    ...(ifThen?.showOnPc && ifThen.sentence.trim() ? { ifThen: ifThen.sentence } : {}) }
   if (guidance.enabled && guidance.eveningEscalation) result.bedtimeSequence = true
   else delete result.bedtimeSequence
   return result
@@ -123,13 +126,14 @@ export async function unpairPcCompanion(): Promise<void> {
   } finally { pairingOperations-- }
 }
 
-export async function updatePcBridgePreferences(patch: Partial<PcLinkPreferences>): Promise<void> {
-  const { strictLock, ifThen, bedtimeSequence, ...localPatch } = patch
-  if (strictLock !== undefined || ifThen !== undefined || bedtimeSequence !== undefined) throw new Error('Abendfolge und Nachtschutz werden in Abend & Morgen gewählt.')
+export async function updatePcBridgePreferences(patch: Partial<PcLinkPreferences> & { followGentleEvening?: boolean }): Promise<void> {
+  const { strictLock, ifThen, bedtimeSequence, singleTransition, bedAfterStopMin, ...localPatch } = patch
+  if (strictLock !== undefined || ifThen !== undefined || bedtimeSequence !== undefined || singleTransition !== undefined || bedAfterStopMin !== undefined) throw new Error('Abendfolge, Puffer und Nachtschutz werden aus deinen vorhandenen Einstellungen übernommen.')
   await useApp.getState().saveLocal(local => {
     const bridge = local.pcBridge ?? defaultPcBridgeLocal()
     const candidate = { ...bridge, preferences: { ...bridge.preferences, ...localPatch } }
     // Validate and merge inside the Store queue so simultaneous independent choices survive.
+    if (!validPcBridgeLocal(candidate)) throw new Error('Die lokale PC-Auswahl ist ungültig.')
     parsePcPayload({ ...pcBridgeSnapshot(), prefs: { ...preferences(candidate), enforceEnabled: candidate.preferences.enforceEnabled } })
     return { ...local, pcBridge: candidate }
   })

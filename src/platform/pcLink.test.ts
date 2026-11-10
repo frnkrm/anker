@@ -62,6 +62,33 @@ describe('PC-Plattformgrenzen und wahrheitsgemäße Bestätigungen', () => {
     expect(mocks.api.pcBridgeStart).not.toHaveBeenCalled()
   })
 
+  it('projiziert die lokale Sanftwahl ohne ihre Speicherung oder private Tätigkeit auf den Wire', async () => {
+    const settings = mocks.state.settings as Settings
+    settings.support.windDown = { enabled: true, at: 30, activity: 'PRIVATE_GENTLE_ACTIVITY' }
+    settings.sleep.screenOffMin = 45
+    const { getPcBridgePreview, updatePcBridgePreferences } = await import('./pcLink')
+    const before = await getPcBridgePreview()
+    expect(before.state.prefs).toMatchObject({ singleTransition: true, bedAfterStopMin: 30 })
+    expect(before.state.schedule.windDownAt).toBe('2026-11-09T23:30:00.000Z')
+    expect(before.state.schedule.brainDumpAt).toBeNull()
+    expect(JSON.stringify(before)).not.toContain('PRIVATE_GENTLE_ACTIVITY')
+    expect(JSON.stringify(before)).not.toContain('followGentleEvening')
+    await updatePcBridgePreferences({ followGentleEvening: false })
+    expect(local().pcBridge?.preferences.followGentleEvening).toBe(false)
+    expect((await getPcBridgePreview()).state.prefs.singleTransition).toBe(false)
+    expect(settings.support.windDown.enabled).toBe(true)
+    expect(settings.support.windDown.at).toBe(30)
+  })
+
+  it('speichert weder fremde Sanfttypen noch direkte Änderungen der abgeleiteten Wire-Auswahl', async () => {
+    const { updatePcBridgePreferences } = await import('./pcLink')
+    const before = structuredClone(local().pcBridge)
+    await expect(updatePcBridgePreferences({ followGentleEvening: 'ja' } as unknown as Parameters<typeof updatePcBridgePreferences>[0])).rejects.toThrow()
+    await expect(updatePcBridgePreferences({ singleTransition: true })).rejects.toThrow()
+    await expect(updatePcBridgePreferences({ bedAfterStopMin: 20 })).rejects.toThrow()
+    expect(local().pcBridge).toEqual(before)
+  })
+
   it('bestätigt native Ereignisse erst nach erfolgreicher atomarer Anwendung', async () => {
     const order: string[] = []
     mocks.api.pcBridgeDrainEvents.mockResolvedValue({ events: [{ id: 'event-1', seq: 1, at: new Date(at).toISOString(), date: '2026-11-09', kind: 'pc-rest', basis: 'lock' }], lastSeq: 0 })

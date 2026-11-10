@@ -18,6 +18,10 @@ export interface PcLinkPreferences {
   ifThen?: string
   /** The explicitly chosen v7 evening sequence ends at bedtime; absent keeps the PC-stop flow. */
   bedtimeSequence?: boolean
+  /** Use the already chosen gentle evening cue instead of separate T30/T10 cards. */
+  singleTransition?: boolean
+  /** Display-only bedtime estimate after a PC stop, derived from the existing planner buffer. */
+  bedAfterStopMin?: number
 }
 export interface PcSchedule {
   lightHintAt?: string
@@ -93,7 +97,10 @@ export interface PcPairingCode { t: 'anker-pc-pair'; v: 3; id: string; n: string
 /** Non-secret local control data. All actual pairing keys/pins stay in native CE Keystore storage. */
 export interface PcBridgeLocal {
   enabled: boolean
-  preferences: Omit<PcLinkPreferences, 'strictLock' | 'ifThen' | 'bedtimeSequence'>
+  preferences: Omit<PcLinkPreferences, 'strictLock' | 'ifThen' | 'bedtimeSequence' | 'singleTransition' | 'bedAfterStopMin'> & {
+    /** Local choice only. The wire receives the derived singleTransition, never this field. */
+    followGentleEvening?: boolean
+  }
   automaticRestEvents: boolean
   status: PcLinkStatus
   pcName?: string
@@ -107,5 +114,5 @@ export interface PcBridgeLocal {
 }
 
 export function defaultPcBridgeLocal(): PcBridgeLocal {
-  return { enabled: false, preferences: { enforceEnabled: false, dimEnabled: false, dimMax: 0.25, audioDuck: false, shareBrainDump: false, morningCountdown: false, offlinePolicy: 'pause', stopAction: 'lock', graceSeconds: 60 }, automaticRestEvents: false, status: 'unpaired', events: [], receipts: [], cursor: 0 }
+  return { enabled: false, preferences: { enforceEnabled: false, dimEnabled: false, dimMax: 0.25, audioDuck: false, shareBrainDump: false, morningCountdown: false, followGentleEvening: true, offlinePolicy: 'pause', stopAction: 'lock', graceSeconds: 60 }, automaticRestEvents: false, status: 'unpaired', events: [], receipts: [], cursor: 0 }
 }

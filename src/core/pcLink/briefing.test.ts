@@ -10,7 +10,10 @@ import type { PcAck, PcLinkPreferences } from './types'
 const date = '2026-11-12'
 const next = addDays(date, 1)
 const at = (minute: number, day = date) => zonedToUtc(day, minute)
-const prefs = (): PcLinkPreferences => ({ ...defaultPcBridgeLocal().preferences, strictLock: true, enforceEnabled: true })
+const prefs = (): PcLinkPreferences => {
+  const { followGentleEvening, ...wire } = defaultPcBridgeLocal().preferences
+  return { ...wire, strictLock: true, enforceEnabled: true, singleTransition: followGentleEvening !== false }
+}
 const settings = () => {
   const s = defaultSettings(date)
   s.anchor = { ...s.anchor, wake: 420, manual: { wake: true, pcStop: true, bed: true } }

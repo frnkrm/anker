@@ -97,3 +97,57 @@ test('Die v7-Kurzrunde nutzt sieben vorhandene Berichtplätze und bewahrt die St
   expect(await choiceValues(page, 'Test auswählen')).toEqual(['97', '98', '99', '100', '101', '102', '103'])
   await expect(page.getByRole('textbox', { name: 'Testbeobachtung', exact: true })).toHaveValue('PC-Empfang noch offen; Web-Vorschau gelesen.')
 })
+
+test('Der PC übernimmt den gewählten sanften Abendübergang; seine Abwahl erhält die Handyzeit und alle Routinen', async ({ page }) => {
+  await onboard(page)
+  const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  settings.support.windDown = { enabled: true, at: 30, activity: 'PRIVATE_GENTLE_ACTIVITY' }
+  settings.anchor.manual = { ...settings.anchor.manual, pcStop: true, bed: true }
+  settings.pcStop = 60; settings.bed = 90
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
+  await page.goto('/pc-stopp')
+  const panel = page.getByRole('region', { name: 'Lokaler PC-Begleiter', exact: true })
+  await panel.getByText('Hilfen und Freigaben für diesen PC', { exact: true }).click()
+  const follow = panel.getByRole('switch', { name: 'Meinen sanften Abendübergang am PC nutzen', exact: true })
+  await expect(follow).toHaveAttribute('aria-checked', 'true')
+  await panel.getByText('Was weiß dein PC?', { exact: true }).click()
+  await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
+  await expect(panel).toContainText('Am PC gilt dein sanfter Abendübergang zur gewählten Uhrzeit.')
+  const day = panel.getByRole('list', { name: 'Vorbereitete PC-Tage', exact: true }).getByRole('listitem').first()
+  await expect(day.getByText('Abendübergang', { exact: true }).locator('..').locator('dd')).toContainText('00:30')
+  await expect(panel).not.toContainText('PRIVATE_GENTLE_ACTIVITY')
+  await follow.click()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.pcBridge?.preferences.followGentleEvening).toBe(false)
+  await panel.getByRole('button', { name: 'Lokale Vorschau aktualisieren', exact: true }).click()
+  await expect(panel).toContainText('Der PC-Begleiter folgt deiner PC-Stoppzeit mit Vorhinweisen und anschließender Speicherfrist.')
+  const saved = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  expect(saved.support.windDown).toEqual(settings.support.windDown)
+  expect(saved.routines).toEqual(settings.routines)
+  await page.reload()
+  await panel.getByText('Hilfen und Freigaben für diesen PC', { exact: true }).click()
+  await expect(panel.getByRole('switch', { name: 'Meinen sanften Abendübergang am PC nutzen', exact: true })).toHaveAttribute('aria-checked', 'false')
+})
+
+test('Die lokale Sanftwahl aktiviert keinen ausgeschalteten Handyübergang und bleibt bei großer Schrift lesbar', async ({ page }) => {
+  await onboard(page)
+  const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  settings.support.windDown.enabled = false
+  settings.appearance.fontScale = 1.6
+  await seedRecords(page, [{ collection: 'settings', id: 'main', data: settings }])
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/pc-stopp')
+  const panel = page.getByRole('region', { name: 'Lokaler PC-Begleiter', exact: true })
+  await panel.getByText('Hilfen und Freigaben für diesen PC', { exact: true }).click()
+  await expect(panel).toContainText('Der sanfte Abendübergang ist derzeit ausgeschaltet.')
+  const follow = panel.getByRole('switch', { name: 'Meinen sanften Abendübergang am PC nutzen', exact: true })
+  await follow.click()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.pcBridge?.preferences.followGentleEvening).toBe(false)
+  await follow.click()
+  await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.pcBridge?.preferences.followGentleEvening).toBe(true)
+  expect((await storedRecord<Settings>(page, 'settings', 'main'))?.support.windDown.enabled).toBe(false)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+  await panel.getByText('Was weiß dein PC?', { exact: true }).click()
+  await panel.getByRole('button', { name: 'Lokale Vorschau anzeigen', exact: true }).click()
+  await expect(panel).not.toContainText('Am PC gilt dein sanfter Abendübergang zur gewählten Uhrzeit.')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+})
