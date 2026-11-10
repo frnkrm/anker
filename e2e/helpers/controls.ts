@@ -1,18 +1,36 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+/** Closing a top-level Sheet also has to consume its temporary history entry. */
+async function settledChoice(opener: Locator, dialog: Locator, marker: string, nested: boolean): Promise<void> {
+  await expect(dialog).toHaveCount(0)
+  await expect(opener).toHaveAttribute('aria-expanded', 'false')
+  await expect.poll(() => opener.evaluate((element, previous) =>
+    !element.closest('[inert], [aria-hidden="true"]') && (previous.nested || history.state?.ankerSheet !== previous.marker),
+  { marker, nested })).toBe(true)
+}
+
 /** Selects the visible custom control by its actual form value, using real clicks. */
 export async function chooseValue(page: Page, label: string, value: string | number, scope: Page | Locator = page): Promise<void> {
   const opener = scope.getByRole('combobox', { name: label, exact: true })
   const inline = scope.getByRole('radiogroup', { name: label, exact: true })
   await expect.poll(async () => await opener.isVisible() || await inline.isVisible()).toBe(true)
   const isSheet = await opener.count() > 0 && await opener.isVisible()
+  const nested = isSheet && await opener.evaluate((element) => !!element.closest('[role="dialog"]'))
   if (isSheet) await opener.click()
-  const area = isSheet ? page.getByRole('dialog').last() : scope
+  const dialog = page.getByRole('dialog', { name: label, exact: true })
+  const area = isSheet ? dialog : scope
   const group = area.getByRole('radiogroup', { name: label, exact: true })
   await expect(group).toBeVisible()
   const option = group.locator(`button[value=${JSON.stringify(String(value))}]`)
   await expect(option).toHaveCount(1)
+  const marker = isSheet ? await page.evaluate(() => String(history.state?.ankerSheet ?? '')) : ''
+  const selectedLabel = isSheet ? await option.locator('span').last().innerText() : ''
+  if (isSheet) expect(marker).not.toBe('')
   await option.click()
+  if (isSheet) {
+    await expect(opener.locator('span').first()).toHaveText(selectedLabel)
+    await settledChoice(opener, dialog, marker, nested)
+  } else await expect(option).toHaveAttribute('aria-checked', 'true')
 }
 
 /** Inspect the actual selectable list, then close it through the user-facing escape action. */
@@ -20,11 +38,19 @@ export async function choiceValues(page: Page, label: string): Promise<string[]>
   const opener = page.getByRole('combobox', { name: label, exact: true })
   const inline = page.getByRole('radiogroup', { name: label, exact: true })
   await expect.poll(async () => await opener.isVisible() || await inline.isVisible()).toBe(true)
-  if (await opener.count()) await opener.click()
-  const group = page.getByRole('radiogroup', { name: label, exact: true })
+  const isSheet = await opener.count() > 0 && await opener.isVisible()
+  const nested = isSheet && await opener.evaluate((element) => !!element.closest('[role="dialog"]'))
+  if (isSheet) await opener.click()
+  const dialog = page.getByRole('dialog', { name: label, exact: true })
+  const group = (isSheet ? dialog : page).getByRole('radiogroup', { name: label, exact: true })
   await expect(group).toBeVisible()
   const values = await group.getByRole('radio').evaluateAll((buttons) => buttons.map((button) => (button as HTMLButtonElement).value))
-  if (await opener.count()) { await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0) }
+  if (isSheet) {
+    const marker = await page.evaluate(() => String(history.state?.ankerSheet ?? ''))
+    expect(marker).not.toBe('')
+    await page.keyboard.press('Escape')
+    await settledChoice(opener, dialog, marker, nested)
+  }
   return values
 }
 

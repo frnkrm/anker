@@ -2,11 +2,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { Settings } from '../src/core/types'
 import { storedRecord } from './helpers/storage'
+import { choiceValues, chooseValue } from './helpers/controls'
 
 interface SheetRaceProbe {
   holdCleanup: boolean
   holdBack: boolean
   backCalls: number
+  pendingCleanups: () => number
   flushCleanup: () => void
   releaseBack: () => void
 }
@@ -22,6 +24,7 @@ async function prepare(page: Page) {
     let timerId = -1
     const probe: SheetRaceProbe = {
       holdCleanup: false, holdBack: false, backCalls: 0,
+      pendingCleanups: () => cleanup.size,
       flushCleanup() { const batch = [...cleanup.values()]; cleanup.clear(); for (const run of batch) run() },
       releaseBack() { probe.holdBack = false; for (const run of backs.splice(0)) run() },
     }
@@ -100,4 +103,54 @@ test('Ein ausstehendes Zurück verwirft keine bereits eingeplante neue Sheetöff
   await expect(page.getByRole('dialog', { name: 'Heute anpassen', exact: true })).toBeVisible()
   await expect(page).toHaveURL(/\/$/)
   expect((await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
+})
+
+for (const operation of ['auswählen', 'ansehen'] as const) test(`Auswahl ${operation} wartet auf aufgeschobene Bereinigung und echtes Browser-Zurück`, async ({ page }) => {
+  await prepare(page)
+  await page.goto('/orte')
+  await page.getByRole('button', { name: 'Ort hinzufügen', exact: true }).click()
+  await page.getByText('Adresse und weitere Angaben', { exact: true }).click()
+  const address = page.getByRole('textbox', { name: 'Adresse des Orts', exact: true })
+  await address.fill('Musterstraße 1, Köln')
+  await hold(page)
+  let settled = false
+  const selecting = (operation === 'auswählen' ? chooseValue(page, 'Art des Orts', 'customer') : choiceValues(page, 'Art des Orts')).then(() => { settled = true })
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __sheetRace: SheetRaceProbe }).__sheetRace.pendingCleanups())).toBeGreaterThan(0)
+  await expect(page.getByRole('combobox', { name: 'Art des Orts', exact: true })).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('dialog', { name: 'Art des Orts', exact: true })).toHaveCount(0)
+  // The final Sheet has gone, but its 0ms cleanup has not requested Back yet.
+  await expect(page.locator('#root')).not.toHaveAttribute('inert', '')
+  expect(await page.evaluate(() => history.state?.ankerSheet)).toMatch(/^anker-sheet-/)
+  try {
+    expect(settled, 'Der Helfer darf das kurze interaktive Zwischenfenster nicht als Abschluss werten.').toBe(false)
+    expect(await flushCleanup(page)).toBe(1)
+    await expect(page.locator('#root')).toHaveAttribute('inert', '')
+    expect(settled, 'Vor echtem popstate bleibt der Helfer ausstehend.').toBe(false)
+  } finally {
+    // Release even on the negative baseline, leaving no abandoned async action.
+    await flushCleanup(page)
+    await releaseBack(page)
+    await selecting
+  }
+  expect(settled).toBe(true)
+  await page.getByRole('spinbutton', { name: 'Weg von Zuhause', exact: true }).fill('45')
+  await expect(address).toHaveValue('Musterstraße 1, Köln')
+  await expect(page.getByRole('spinbutton', { name: 'Weg von Zuhause', exact: true })).toHaveValue('45')
+})
+
+test('Auswahlhelfer lassen den Elterndialog und seinen Historymarker offen und bedienbar', async ({ page }) => {
+  await prepare(page)
+  await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
+  const parent = page.getByRole('dialog', { name: 'Heute anpassen', exact: true })
+  const marker = await page.evaluate(() => history.state?.ankerSheet)
+  await chooseValue(page, 'Unterstützung', 'wenig-energie', parent)
+  await expect(parent).toBeVisible()
+  await expect(parent.getByRole('combobox', { name: 'Unterstützung', exact: true })).toContainText('Wenig Energie')
+  expect(await choiceValues(page, 'Unterstützung')).toEqual(['normal', 'startschwierigkeit', 'wenig-energie', 'ueberlastet', 'auf-kurs'])
+  expect(await page.evaluate(() => history.state?.ankerSheet)).toBe(marker)
+  await expect(page.locator('#root')).toHaveAttribute('inert', '')
+  expect(await parent.evaluate((node) => !!node.closest('[inert]'))).toBe(false)
+  expect(await page.evaluate(() => (window as unknown as { __sheetRace: SheetRaceProbe }).__sheetRace.backCalls)).toBe(0)
+  await parent.getByRole('radiogroup', { name: 'Tagesart', exact: true }).getByRole('radio', { name: 'Frei', exact: true }).click()
+  await expect(parent.getByRole('radio', { name: 'Frei', exact: true })).toHaveAttribute('aria-checked', 'true')
 })
