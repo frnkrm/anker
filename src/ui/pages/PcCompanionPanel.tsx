@@ -8,6 +8,7 @@ import { discoverPcCompanions, getPcBridgePreview, getPcBridgeView, pairPcCompan
 import { scanQr } from '../../platform/qr'
 import { useApp } from '../../state/store'
 import { Button, Card, Choice, MoreInfo, Section, SettingRow, Stepper, TextInput, Toggle } from '../components/ui'
+import { PcRelaySetup } from '../components/PcRelaySetup'
 
 type BridgeView = Awaited<ReturnType<typeof getPcBridgeView>>
 type Discovery = Awaited<ReturnType<typeof discoverPcCompanions>>
@@ -182,6 +183,8 @@ export function PcCompanionPanel() {
         {paired && <MoreInfo summary="Kopplung aufheben"><div className="space-y-3"><p className="text-sm text-muted">Die Schlüssel am Handy werden entfernt. Der zuvor bestätigte Plan kann am PC weiter gelten; dort kannst du die Kopplung ebenfalls aufheben.</p><Button className="w-full" disabled={!native || busy} onClick={() => void run(unpairPcCompanion, 'Kopplung am Handy aufgehoben. Prüfe einen zuvor übernommenen Plan am PC.')}>Kopplung am Handy entfernen</Button></div></MoreInfo>}
       </div>
     </MoreInfo>
+
+    <PcRelaySetup />
 
     <MoreInfo summary="Hilfen und Freigaben für diesen PC">
       <div className="space-y-4">
