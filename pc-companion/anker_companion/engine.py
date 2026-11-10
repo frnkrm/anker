@@ -31,7 +31,7 @@ class CompanionEngine:
         if self.ui:
             self.ui.render({**self.last_view, "message": message})
 
-    def accept_state(self, state: dict[str, Any], pair: str, sent_at: float, now: float | None = None) -> dict[str, Any]:
+    def accept_state(self, state: dict[str, Any], pair: str, sent_at: float, now: float | None = None, *, live_contact=True) -> dict[str, Any]:
         now = self.clock() if now is None else now
         state = deepcopy(validate_state(state))
         def change(data: dict[str, Any]) -> None:
@@ -42,7 +42,7 @@ class CompanionEngine:
             latch = self.active_latch(data, now)
             if latch is None:
                 runtime["nightLatch"] = None
-            elif latch.get("scheduledNight") and pair == latch.get("pair") and state["lockEnforced"] and state["state"] in NIGHT and state["sessionId"].startswith("night:" + latch["date"] + ":") and abs(sent_at - now) <= 120 and stamp(state["validUntil"]) > now:
+            elif live_contact and latch.get("scheduledNight") and pair == latch.get("pair") and state["lockEnforced"] and state["state"] in NIGHT and state["sessionId"].startswith("night:" + latch["date"] + ":") and abs(sent_at - now) <= 120 and stamp(state["validUntil"]) > now:
                 # A later real phone bedtime override replaces only the identity
                 # of our schedule-only latch, never its consent or finite bounds.
                 latch = deepcopy(latch)
@@ -53,21 +53,23 @@ class CompanionEngine:
                 if runtime.get("emergencySessionId") == original_session:
                     runtime["emergencySessionId"] = state["sessionId"]
             if state["state"] == "MORNING_COMPLETED" and latch:
-                if not self.matches_night_session(data, latch, state, pair, now) or abs(sent_at - now) > 120 or stamp(state["validUntil"]) <= now or stamp(state["generatedAt"]) > now + 120:
+                if not live_contact or not self.matches_night_session(data, latch, state, pair, now) or abs(sent_at - now) > 120 or stamp(state["validUntil"]) <= now or stamp(state["generatedAt"]) > now + 120:
                     raise ProtocolError("morning-session")
             same_pc = bool(old and old["sessionId"] == state["sessionId"] and old["schedule"].get("bedAt") == state["schedule"].get("bedAt") and old["revision"] == state["revision"])
             if not same_pc and not latch:
                 runtime.update(graceStartedAt=None, actedTarget=None, extensionAt=None, extensionRevision=None)
-            runtime.update(sourcePair=pair, sourceSkew=abs(sent_at - now) > 120, receivedAt=now, linkSeenAt=now)
+            runtime.update(sourcePair=pair, sourceSkew=not live_contact or abs(sent_at - now) > 120, receivedAt=now)
+            if live_contact:
+                runtime["linkSeenAt"] = now
             data["snapshot"] = state
             if state["state"] == "MORNING_COMPLETED":
                 runtime.update(nightLatch=None, graceStartedAt=None, emergencyUntil=None, actedTarget=None)
-            elif state["lockEnforced"] and state["state"] in NIGHT and not latch and all((state["prefs"]["enforceEnabled"], state["prefs"]["strictLock"], data["localPrefs"].get("enforceEnabled"), data["localPrefs"].get("strictLock"))):
+            elif live_contact and state["lockEnforced"] and state["state"] in NIGHT and not latch and all((state["prefs"]["enforceEnabled"], state["prefs"]["strictLock"], data["localPrefs"].get("enforceEnabled"), data["localPrefs"].get("strictLock"))):
                 runtime["nightLatch"] = {"pair": pair, "sessionId": state["sessionId"], "date": state["date"], "validUntil": state["validUntil"], "morningDeadlineAt": state["schedule"]["morningDeadlineAt"], "wakeAt": state["schedule"]["wakeAt"], "state": deepcopy(state)}
         self.store.update(change)
         return self.ack(state["revision"], now)
 
-    def accept_briefing(self, briefing: dict[str, Any], now: float | None = None, sent_at: float | None = None) -> dict[str, Any]:
+    def accept_briefing(self, briefing: dict[str, Any], now: float | None = None, sent_at: float | None = None, *, live_contact=True) -> dict[str, Any]:
         now = self.clock() if now is None else now
         briefing = deepcopy(validate_briefing(briefing))
         def change(data):
@@ -75,7 +77,9 @@ class CompanionEngine:
             if old and stamp(briefing["generatedAt"]) < stamp(old["generatedAt"]):
                 raise ProtocolError("stale-briefing")
             data["briefing"] = briefing
-            data["runtime"].update(briefingSkew=abs((now if sent_at is None else sent_at) - now) > 120, linkSeenAt=now)
+            data["runtime"].update(briefingSkew=not live_contact or abs((now if sent_at is None else sent_at) - now) > 120)
+            if live_contact:
+                data["runtime"]["linkSeenAt"] = now
         self.store.update(change)
         return self.ack(briefing["revision"], now)
 
@@ -123,7 +127,7 @@ class CompanionEngine:
                 state["date"] = current["date"]
         warnings: list[str] = []
         snapshot_current = state is not None and stamp(state["validUntil"]) > now and state["date"] == plan_date(now)
-        link_fresh = now - data["runtime"].get("linkSeenAt", float("-inf")) <= 90
+        link_fresh = 0 <= now - data["runtime"].get("linkSeenAt", float("-inf")) <= 90
         briefing = self._briefing_state(data, now)
         # Connected live snapshots take precedence. On rollover/expired leases use
         # only today's explicit cached entry. Fixed-time also permits this offline.

@@ -442,6 +442,11 @@ class BridgeServer:
         envelope, payload = open_envelope(raw, identifier, "phone", pair["receiveSeq"], unb64(pair["phoneToPc"], 32))
         validate_payload(payload)
         now = self.clock()
+        sent_at = stamp(envelope["sentAt"])
+        command_live = abs(sent_at - now) <= 90
+        # A valid mailbox item proves delivery/authorship, not current presence.
+        # Direct LAN transports retain their existing live-contact semantics.
+        live_contact = not retain_relay_reply or command_live
         with self.store.transaction():
             if retain_relay_reply:
                 config = self.store.read().get("relay")
@@ -449,8 +454,9 @@ class BridgeServer:
                         or not isinstance(config.get("pendingReplies"), list) or len(config["pendingReplies"]) >= 64):
                     raise ProtocolError("relay-unconfigured")
             self.store.accept_receive(identifier, envelope["seq"])
-            self.engine.link_contact(now, force=True)
-            response = self._apply(payload, identifier, stamp(envelope["sentAt"]), now)
+            if live_contact:
+                self.engine.link_contact(now, force=True)
+            response = self._apply(payload, identifier, sent_at, now, live_contact=live_contact, command_live=command_live)
             if retain_relay_reply:
                 seq = self.store.next_send(identifier)
                 reply = seal(identifier, "pc", seq, response, unb64(pair["pcToPhone"], 32), now)
@@ -549,12 +555,21 @@ class BridgeServer:
             if pending and self._pending_sync.get(pending.session.pair) is pending:
                 self._pending_sync.pop(pending.session.pair, None)
 
-    def _apply(self, payload: dict[str, Any], identifier: str, sent_at: float, now: float) -> dict[str, Any]:
+    def _apply(self, payload: dict[str, Any], identifier: str, sent_at: float, now: float, *, live_contact=True, command_live=True) -> dict[str, Any]:
         kind = payload["type"]
         if kind == "state":
-            return self.engine.accept_state(payload, identifier, sent_at, now)
+            data = self.store.read()
+            if not live_contact and payload["state"] == "MORNING_COMPLETED" and self.engine.active_latch(data, now):
+                # Consume the authenticated obsolete transport item so a newer
+                # morning frame can follow. It neither changes the current state
+                # nor confirms the old incoming revision or releases the latch.
+                current = data.get("snapshot")
+                result = self.engine.ack(current["revision"] if current else "none", now)
+                result["warnings"] = list(dict.fromkeys([*result["warnings"], "source-expired", "link-stale"]))
+                return result
+            return self.engine.accept_state(payload, identifier, sent_at, now, live_contact=live_contact)
         if kind == "briefing":
-            return self.engine.accept_briefing(payload, now, sent_at)
+            return self.engine.accept_briefing(payload, now, sent_at, live_contact=live_contact)
         if kind == "pull":
             data = self.store.read()
             items = []
@@ -571,7 +586,18 @@ class BridgeServer:
         if previous and previous["hash"] != command_hash:
             raise ProtocolError("command-id-reused")
         receipt = dict(previous or {"hash": command_hash})
-        if payload["id"] not in data["commandIds"]:
+        expired = receipt.get("expired") is True or (not command_live and payload["action"] in {"extend", "suspend-today", "resume-today", "test-evening", "ping"})
+        def remember(item):
+            if payload["id"] not in item["commandIds"]:
+                item["commandIds"] = [*item["commandIds"], payload["id"]][-5000:]
+            item.setdefault("commandResults", {})[payload["id"]] = receipt
+            item["commandResults"] = {key: value for key, value in item["commandResults"].items() if key in item["commandIds"]}
+        if expired:
+            # Keep the negative receipt in the same bounded durable history as
+            # successful commands. A later fresh envelope cannot revive this ID.
+            receipt["expired"] = True
+            self.store.update(remember)
+        elif payload["id"] not in data["commandIds"]:
             action = payload["action"]
             if action == "extend":
                 self.engine.extend(payload["minutes"], now)
@@ -604,14 +630,13 @@ class BridgeServer:
                 nonces.add(payload["token"]["nonce"])
                 self.store.update(lambda item: item["runtime"].update(emergencyUntil=until, emergencySessionId=grant_session, emergencyNonces=sorted(nonces)[-1000:], graceStartedAt=None, actedTarget=None))
                 receipt["emergencyUntil"] = utc(until)
-            def remember(item):
-                item["commandIds"] = [*item["commandIds"], payload["id"]][-5000:]
-                item.setdefault("commandResults", {})[payload["id"]] = receipt
-                item["commandResults"] = {key: value for key, value in item["commandResults"].items() if key in item["commandIds"]}
             self.store.update(remember)
         revision = data["snapshot"]["revision"] if data.get("snapshot") else "none"
         result = self.engine.ack(revision, now)
-        result["commandId"] = payload["id"]
+        if expired:
+            result["warnings"] = [*result["warnings"], "command-expired"]
+        else:
+            result["commandId"] = payload["id"]
         if "emergencyUntil" in receipt:
             result["emergencyUntil"] = receipt["emergencyUntil"]
         return result
