@@ -27,7 +27,8 @@ begin
     and jsonb_typeof(e->'sentAt') = 'string'
     and (e->>'sentAt') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?(Z|[+-][0-9]{2}:[0-9]{2})$'
     and jsonb_typeof(e->'nonce') = 'string' and (e->>'nonce') ~ '^[A-Za-z0-9_-]{16}$'
-    and jsonb_typeof(e->'ct') = 'string' and (e->>'ct') ~ '^[A-Za-z0-9_-]{22,87382}$'
+    and jsonb_typeof(e->'ct') = 'string' and (e->>'ct') ~ '^[A-Za-z0-9_-]+$'
+    and length(e->>'ct') between 22 and 87382
     and length(e->>'ct') % 4 <> 1 and octet_length(e::text) <= 65536;
 exception when others then return false;
 end $$;
