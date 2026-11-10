@@ -133,6 +133,16 @@ class GuidanceEngineTests(unittest.TestCase):
         self.assertEqual(f.platform.effects, ['lock'])
         self.assertEqual(f.store.read()['snapshot']['state'], 'NIGHT_LOCK')
 
+    def test_phone_alarm_ringing_never_opens_a_competing_morning_card(self):
+        f = self.morning()
+        f.value['state'] = 'ALARM_RINGING'
+        f.engine.accept_state(f.value, 'pair', f.clock())
+        f.clock.now += 300
+        view = f.engine.tick()
+        self.assertIsNone(view['morning'])
+        self.assertIsNone(view['cardId'])
+        self.assertEqual(f.store.read()['snapshot']['state'], 'ALARM_RINGING')
+
     def test_single_transition_keeps_the_chosen_phone_time_and_only_final_stop(self):
         f = self.evening()
         f.clock.now += 899

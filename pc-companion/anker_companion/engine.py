@@ -394,7 +394,8 @@ class CompanionEngine:
 
     def _morning_countdown(self, data: dict[str, Any], state: dict[str, Any], now: float, phase: str, valid: bool) -> dict[str, Any] | None:
         if (not valid or not state["prefs"]["morningCountdown"] or self.active_latch(data, now)
-                or state["lockEnforced"] or phase in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK", "ALARM_RINGING"}):
+                or state["lockEnforced"] or state["state"] in {"ALARM_RINGING", "NIGHT_LOCK"}
+                or phase in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK", "ALARM_RINGING"}):
             return None
         schedule = state["schedule"]
         home = schedule.get("homeOffice")
