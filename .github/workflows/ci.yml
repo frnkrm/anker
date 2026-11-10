@@ -99,14 +99,14 @@ jobs:
         # uses pwsh. Neither path installs/registers tasks or invokes OS effects.
         run: |
           python scripts/test-pc-package.py
-          python scripts/package-pc-companion.py --output dist-pc/Anker-PC-Begleiter-0.1.0.zip
+          python scripts/package-pc-companion.py --output dist-pc/Anker-PC-Begleiter-0.1.1.zip
       - name: Windows-Quellpaket speichern
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: Anker-PC-Begleiter-Quellpaket
           path: |
-            dist-pc/Anker-PC-Begleiter-0.1.0.zip
-            dist-pc/Anker-PC-Begleiter-0.1.0.zip.sha256
+            dist-pc/Anker-PC-Begleiter-0.1.1.zip
+            dist-pc/Anker-PC-Begleiter-0.1.1.zip.sha256
           if-no-files-found: error
           retention-days: 14

@@ -7,6 +7,7 @@ import time
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import __version__
 from .protocol import ProtocolError, plan_date, stamp, text, utc, validate_briefing, validate_state
 from .storage import AtomicStateStore
 
@@ -204,7 +205,7 @@ class CompanionEngine:
         if target is not None and mode in {"scheduled", "locked"}:
             effective["stopAt"] = utc(target)
         return {"type": "ack", "revision": revision, "receivedAt": utc(now), "effective": effective,
-                "companion": {"version": "0.1.0", "protocol": 3}, "warnings": warnings}
+                "companion": {"version": __version__, "protocol": 3}, "warnings": warnings}
 
     def _target(self, data: dict[str, Any], state: dict[str, Any], now: float) -> float | None:
         runtime = data["runtime"]

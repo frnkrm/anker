@@ -40,7 +40,7 @@ benötigt. Die eigentliche Kopplung und Benutzung bleiben im eigenen Heimnetz.
    keinen laufenden Prozess und verweigert den Austausch, solange er noch läuft.
 2. Das neue ZIP aus dem bereitgestellten Anker-Download in einen **neuen leeren
    Ordner** entpacken. Falls die `.sha256`-Datei vorliegt, lässt sich der ZIP-Hash
-   mit `Get-FileHash .\Anker-PC-Begleiter-0.1.0.zip -Algorithm SHA256` vergleichen.
+   mit `Get-FileHash .\Anker-PC-Begleiter-0.1.1.zip -Algorithm SHA256` vergleichen.
    `package-manifest.json` enthält Quellcommit, Version, Protokoll/Datenformat und
    die Hashes aller Programmdateien. Diese Integritätsprüfung ersetzt keine
    Herausgebersignatur: nur ein Paket aus dem bekannten Anker-Download verwenden.
@@ -130,7 +130,7 @@ node tests/node_phone_simulator.mjs
 ```
 
 Aus dem Repository-Hauptordner baut `python scripts/package-pc-companion.py
---output dist-pc/Anker-PC-Begleiter-0.1.0.zip` ein reproduzierbares Quellpaket.
+--output dist-pc/Anker-PC-Begleiter-0.1.1.zip` ein reproduzierbares Quellpaket.
 `python scripts/test-pc-package.py` prüft Paket und Installer mit injizierten
 Prozess-/Python-/Autostart-Grenzen, unter Windows mit Windows PowerShell 5.1.
 Die CI stellt das geprüfte ZIP und seinen SHA-256-Wert als Artefakt

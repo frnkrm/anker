@@ -45,7 +45,7 @@ class PackageTests(unittest.TestCase):
         with zipfile.ZipFile(first) as archive:
             self.assertEqual(archive.namelist(), sorted((*builder.FILES, 'package-manifest.json')))
             manifest = json.loads(archive.read('package-manifest.json'))
-            self.assertEqual((manifest['version'], manifest['protocolVersion'], manifest['stateSchemaVersion'], manifest['sourceCommit']), ('0.1.0', 3, 1, self.commit))
+            self.assertEqual((manifest['version'], manifest['protocolVersion'], manifest['stateSchemaVersion'], manifest['sourceCommit']), ('0.1.1', 3, 1, self.commit))
             for entry in manifest['files']:
                 content = archive.read(entry['path'])
                 self.assertEqual(content, (self.source / entry['path']).read_bytes())

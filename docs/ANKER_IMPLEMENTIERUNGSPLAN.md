@@ -1,5 +1,13 @@
 # Anker 2.0: Implementierungsplan
 
+## Kopplung: QR-Fenster verschwindet sofort (10.11.2026)
+
+**Nutzerbefund und tatsächliche Ursache:** Im installierten PC-Begleiter erscheint nach **Mit Handy koppeln** kein QR. `BridgeServer.ui_action(pair)` stellt einen QR-Render und unmittelbar danach zwei normale Statusrenders in dieselbe Tk-Queue. `DesktopUI._render` schließt das Fenster bei jedem Render ohne `pairingQr`; so verschwindet es noch im selben Queue-Durchlauf, spätestens beim regulären Engine-Tick. Zusätzlich liefert Android den vierstelligen Vergleichscode bereits, aber `PcCompanionPanel` zeigt ihn nicht an.
+
+**Laufende Korrektur:** Eigener flüchtiger, zeitlich begrenzter UI-Lebenszyklus für das Kopplungsangebot, unabhängig von Plansnapshots; Ablauf/Schließen/Bestätigung/Ablehnung räumen es ab. Ein einzelner UI-Fehler darf die Queue nicht dauerhaft stoppen. Am Handy ausschließlich gültigen vierstelligen Code während der nativen offenen Kopplung anzeigen; nie speichern/exportieren oder veralteten Code im verbundenen Zustand zeigen. Paket **PC0.1.1**, Handy **1.5.0-rc.3 / Code17** für diese Fehlerkorrektur; bestehende Appkennung, B4, Protokoll3, Datenformat1, Wecker und Nutzerentscheidungen erhalten. Neue öffentliche Veröffentlichung nicht abgeleitet; Playupdate zunächst interner Entwurf, bestehender aktiver Code16 bleibt erhalten.
+
+**Nachweise vorgesehen:** Reproduktion Button→Server→Queue, UI-Lebenszyklus und Fehlerfortsetzung; unabhängiger echter Tk/Xvfb-Versuch unter Linux mit ausschließlich synthetischen Kopplungsdaten, getrennt von echtem Windows. Produktionsbrowserprüfung der Handy-Kopplung und Paket-/Installerregression. Gerätehäkchen und alte Berichte bleiben unverändert. Root integriert nacheinander aus getrennten Arbeitsbäumen; kein parallel schreibender Claude.
+
 ## Google Play – Uploadworkflow nach Secret-Einrichtung (10.11.2026)
 
 **Abgeschlossen – Kontoanbindung und identischen Bestand tatsächlich bestätigt:** [Lauf42721896696](https://github.com/frnkrm/anker/actions/runs/42721896696) auf `d1ff7b90035786e4d0411431dbac4d3a216c1041` ist mit beiden Jobs grün. `already-active`: Google bestätigt im internen Track genau den bereits aktiven `completed`-Release16 mit passender freigegebener Bundle-SHA. Kein neuer Upload, Trackwechsel oder Commit; keine öffentliche oder neue Testveröffentlichung durch diesen Auftrag. Die vorherigen roten Läufe waren Bestandsschutz vor dem damals noch unbekannten aktiven Release, kein Produkt-CI-Fehler. [Nachweis](PLAY_CODE16_KONTO_NACHWEIS.json). Testerlisten, Play-App-Signieridentität und konkrete Handyinstallation bleiben gesondert und unverändert. Die folgenden Versuchsbeschreibungen bleiben als Verlauf erhalten.

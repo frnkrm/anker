@@ -15,7 +15,7 @@ function Assert-AnkerSourceManifest([string]$Source) {
         if (-not (Test-Path -LiteralPath (Join-Path (Split-Path $Source -Parent) '.git'))) {
             throw 'Paketmanifest fehlt. Das offizielle ZIP erneut herunterladen und vollstaendig entpacken.'
         }
-        return [pscustomobject]@{ protocolVersion = 3; stateSchemaVersion = 1; version = '0.1.0'; sourceCheckout = $true }
+        return [pscustomobject]@{ protocolVersion = 3; stateSchemaVersion = 1; version = '0.1.1'; sourceCheckout = $true }
     }
     $ankerManifest = Get-Content -LiteralPath $ankerManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if (-not ($ankerManifest.schemaVersion -is [int] -or $ankerManifest.schemaVersion -is [long]) -or

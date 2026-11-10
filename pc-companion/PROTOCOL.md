@@ -106,7 +106,7 @@ Tage erzeugen keinen Ersatztermin. `pcStopAt` bzw. `pc.stopAt` ist die genaue
 PC-Stopp-Zeit; `bedAt` bleibt die davon unabhängige Schlafenszeit.
 
 `ack`: `{type:"ack",revision,receivedAt,effective:{date,mode,stopAt?},
-companion:{version:"0.1.0",protocol:3},warnings}`.
+companion:{version:"0.1.1",protocol:3},warnings}`.
 Bei Befehlsantworten zusätzlich `commandId`; bei einer tatsächlich angenommenen
 Hardware-Notverlängerung zusätzlich `emergencyUntil` (ISO). Erst die passende
 ID und bestätigte Zielzeit belegen die Annahme; ein gesendeter WebSocket-Frame
