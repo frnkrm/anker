@@ -58,6 +58,11 @@ class DesktopUI:
         self._feedback_text = ""
         self._last_sync_result: dict = {}
         self._last_extension_preview: dict = {}
+        self._last_update_result: dict = {}
+        self._updates_window = None
+        self._update_view_handler = None
+        self._relay_window = None
+        self._relay_status_variable = None
         self._palette = theme_palette("dark")
         self._theme_variant = "dark"
         self._time_pill = None
@@ -127,6 +132,9 @@ class DesktopUI:
         if result.get("action") == "preview-extend-until":
             preview = result.get("preview")
             self._last_extension_preview = dict(preview) if isinstance(preview, dict) else {}
+        if result.get("action") in {"update-check", "update-download", "update-install"}:
+            update = result.get("update")
+            self._last_update_result = dict(update) if isinstance(update, dict) else {}
         self._pending_actions.pop(request_id, None)
         pending[1](result["ok"])
 
@@ -508,6 +516,10 @@ class DesktopUI:
     def _render(self) -> None:
         item = self.snapshot
         self._apply_theme()
+        if self._relay_status_variable is not None:
+            self._relay_status_variable.set(self._relay_status_text(item.get('relay')))
+        if self._update_view_handler is not None and isinstance(item.get('update'), dict):
+            self._update_view_handler(item['update'])
         state = str(item.get("state", item.get("phase", "IDLE")))
         text = str(item.get("message") or item.get("title") or ("Gekoppelt" if item.get("paired") else "Noch nicht gekoppelt"))
         self.status.set(self._display_error or text[:500])
@@ -527,7 +539,6 @@ class DesktopUI:
                     title = "Losgehen" if morning['kind'] == 'leave' else "Arbeitsbeginn"
                     self.remaining.set(f"{title} um {target_time} · {self._morning_remaining.get()}")
                     seconds = max(0, int(remaining))
-        self._render_time_pill(item.get("timePill"))
         if self._remaining_label is not None:
             if self.remaining.get():
                 self._remaining_label.pack(fill="x", padx=20, pady=4, before=self._feedback_label)
@@ -541,6 +552,7 @@ class DesktopUI:
         else:
             self._hide_overlays()
         self._progress_bar(seconds if saving or state in {"EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT"} else None)
+        self._render_time_pill(item.get("timePill"))
         card_key = item.get("cardId") or ((state, bool(item.get("testMode"))) if state in {"WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK"} else None)
         if card_key and card_key != self._last_card:
             self._last_card = card_key
@@ -1011,7 +1023,8 @@ class DesktopUI:
         for name, title in [("enforceEnabled", "PC-Aktionen ausdrücklich erlauben"), ("strictLock", "Strenger Nachtmodus"),
                             ("dimEnabled", "Bildschirmdämmerung – Signal zum Übergang"), ("audioDuck", "Ton im Übergang langsam reduzieren"),
                             ("timePillEnabled", "Kleine Zeitpille in der letzten Stunde"),
-                            ("quietSignalEnabled", "Kurzer zurückhaltender Ton bei neuen Hinweiskarten")]:
+                            ("quietSignalEnabled", "Kurzer zurückhaltender Ton bei neuen Hinweiskarten"),
+                            ("autoUpdateChecks", "Automatisch auf PC-Updates prüfen")]:
             values[name] = self.tk.BooleanVar(value=bool(prefs.get(name, False)))
             control = self.tk.Checkbutton(dialog, text=title, variable=values[name], bg=self.BG, fg=self.FG,
                                           selectcolor=self.SURFACE, activebackground=self.BG, activeforeground=self.FG,
@@ -1019,6 +1032,7 @@ class DesktopUI:
             control.pack(fill="x", padx=16, pady=7); controls.append(control)
         self._label(dialog, "Eine Freigabe startet allein noch keine Sperre. Ein gültiger Auftrag vom gekoppelten Handy bleibt erforderlich.", muted=True).pack(fill="x", padx=16, pady=10)
         self._label(dialog, "Windows kann Benachrichtigungen bei Nicht stören, Konzentrationshilfe oder Vollbild ausblenden. Die Anker-Karte bleibt der sichtbare Weg; diese Windows-Auswahl wird nicht automatisch geändert.", muted=True).pack(fill="x", padx=16, pady=6)
+        self._label(dialog, "Die automatische Updatesuche prüft nur die Versionsinfo. Herunterladen und Installieren startest du selbst.", muted=True).pack(fill="x", padx=16, pady=6)
         stop_action = self.tk.StringVar(value=str(prefs.get("stopAction", "lock")))
         action_row = self.tk.Frame(dialog, bg=self.BG); action_row.pack(fill="x", padx=16)
         for code, label in [("lock", "Sperren"), ("hibernate", "Ruhezustand"), ("shutdown", "Herunterfahren")]:
@@ -1075,6 +1089,8 @@ class DesktopUI:
         window.bind("<Escape>", dismiss)
         button = self._button(dialog, "Übernehmen", save, primary=True); button.pack(fill="x", padx=16, pady=8)
         self._button(dialog, "Darstellung, PC-Name & Tastenkürzel", self._desktop_settings).pack(fill="x", padx=16, pady=6)
+        self._button(dialog, "PC-Updates", self._update_settings).pack(fill="x", padx=16, pady=6)
+        self._button(dialog, "Online-Verbindung über Relay · optional", self._relay_settings).pack(fill="x", padx=16, pady=6)
         self._button(dialog, "Entkoppeln", lambda: self._perform_action({"action": "unpair"}, "Kopplung wird aufgehoben …", "Kopplung am PC aufgehoben.")).pack(fill="x", padx=16, pady=6)
         if self.snapshot.get("legacyConflict"):
             self._button(dialog, "Klassische Aufgabe entfernen", lambda: self._perform_action({"action": "remove_legacy"}, "Klassische Aufgabe wird entfernt …", "Klassische PC-Stopp-Aufgabe entfernt.")).pack(fill="x", padx=16, pady=6)
@@ -1207,6 +1223,174 @@ class DesktopUI:
         delete = self._button(body, "Alle Anker-Daten auf diesem PC löschen", delete_data)
         delete.pack(fill="x", padx=16, pady=8)
         window.protocol("WM_DELETE_WINDOW", dismiss); window.bind("<Escape>", dismiss)
+
+    @staticmethod
+    def _relay_status_text(value: object) -> str:
+        relay = value if isinstance(value, dict) else {}
+        status = relay.get('status')
+        text = {'off': 'Relay ist ausgeschaltet.', 'lan': 'Die lokale LAN-Verbindung hat Vorrang.',
+                'waiting': 'Relay ist eingerichtet. Warte auf einen Transportkontakt.',
+                'received': 'Verschlüsselter Transportkontakt bestätigt.',
+                'unavailable': 'Der Relay ist gerade nicht erreichbar.',
+                'unauthorized': 'Die Relay-Freigabe ist noch nicht bestätigt. Prüfe die Einrichtung am Handy.',
+                'rejected': 'Die Relay-Antwort wurde nicht übernommen. Prüfe die Einrichtung.'}.get(status if isinstance(status, str) else '', 'Noch kein Relay-Kontakt bestätigt.')
+        instant = DesktopUI._format_instant(relay.get('lastExchangeAt'), date=True)
+        return text + (' Letzter Transportkontakt: ' + instant if instant else '')
+
+    def _relay_settings(self) -> None:
+        if self._relay_window is not None and self._relay_window.winfo_exists():
+            self._relay_window.lift(); return
+        window = self.tk.Toplevel(self.root); self._relay_window = window
+        window.title('Optionale Online-Verbindung'); window.configure(bg=self.BG)
+        window.geometry('470x540'); window.minsize(340, 330)
+        body = self._scroll_body(window)
+        self._label(body, 'Relay-Verbindung', size=20).pack(fill='x', padx=16, pady=(16, 8))
+        self._label(body, 'Für eine eingerichtete Verbindung außerhalb deines Heimnetzes. Die lokale WLAN-Verbindung hat Vorrang.', muted=True).pack(fill='x', padx=16, pady=6)
+        self._relay_status_variable = self.tk.StringVar(value=self._relay_status_text(self.snapshot.get('relay')))
+        self._label(body, variable=self._relay_status_variable).pack(fill='x', padx=16, pady=8)
+        self._label(body, 'Ein Transportkontakt bestätigt noch keinen aktuellen Plan oder eine ausgeführte PC-Aktion.', muted=True).pack(fill='x', padx=16, pady=6)
+        self._label(body, 'Geschützter Einrichtungscode').pack(fill='x', padx=16, pady=(12, 4))
+        entry = self.tk.Entry(body, show='•', font=(self.FONT, 12), bg=self.SURFACE, fg=self.FG, insertbackground=self.FG)
+        entry.pack(fill='x', padx=16, pady=6, ipady=6)
+        feedback = self._label(body, muted=True); feedback.pack(fill='x', padx=16, pady=6)
+        waiting = False
+        pending_id = None
+        buttons = []
+        def completed(ok):
+            nonlocal waiting, pending_id
+            waiting = False; pending_id = None
+            if not window.winfo_exists(): return
+            for control in buttons: control.configure(state='normal')
+            entry.configure(state='normal')
+            feedback.configure(text='Auswahl am PC übernommen. Den Transportkontakt prüfst du im Status.' if ok else 'Noch nicht bestätigt. Prüfe die Relay-Einrichtung am Handy und versuche es erneut.')
+        def submit(action):
+            nonlocal waiting, pending_id
+            if waiting: return
+            value = {'action': action}
+            if action == 'relay_configure':
+                code = entry.get().strip()
+                if not code.startswith('anker-pc-relay:v1:') or len(code) > 8192:
+                    entry.delete(0, 'end')
+                    feedback.configure(text='Bitte den gültigen Einrichtungscode aus deiner Relay-Einrichtung einfügen.')
+                    return
+                value['setupCode'] = code
+            if action == 'relay_clear' and not self.messagebox.askokcancel('Relay-Einrichtung auf diesem PC entfernen?', 'Die geschützte Relay-Einrichtung wird auf diesem PC entfernt. Die Freigabe im Relay verwaltest du am Handy.', parent=window):
+                return
+            waiting = True
+            for control in buttons: control.configure(state='disabled')
+            feedback.configure(text='Relay-Auswahl wird übernommen …')
+            try: pending_id = self._submit(value, completed)
+            finally:
+                entry.delete(0, 'end'); entry.configure(state='disabled' if waiting else 'normal')
+                value.pop('setupCode', None)
+            request = pending_id
+            def timeout():
+                if request in self._pending_actions:
+                    self._pending_actions.pop(request, None); completed(False)
+            self.root.after(30_000, timeout)
+        for title, action in [('Relay einrichten', 'relay_configure'), ('Relay deaktivieren', 'relay_disable'), ('Relay-Einrichtung entfernen', 'relay_clear')]:
+            control = self._button(body, title, lambda action=action: submit(action), primary=action == 'relay_configure')
+            control.pack(fill='x', padx=16, pady=5); buttons.append(control)
+        def dismiss(_event=None):
+            if pending_id is not None: self._pending_actions.pop(pending_id, None)
+            entry.delete(0, 'end'); self._relay_status_variable = None; self._relay_window = None
+            window.destroy()
+        window.protocol('WM_DELETE_WINDOW', dismiss); window.bind('<Escape>', dismiss)
+
+    def _update_settings(self) -> None:
+        if self._updates_window is not None and self._updates_window.winfo_exists():
+            self._updates_window.lift(); return
+        window = self.tk.Toplevel(self.root); self._updates_window = window
+        window.title('Anker-PC-Updates'); window.configure(bg=self.BG)
+        window.geometry('470x440'); window.minsize(340, 320)
+        body = self._scroll_body(window)
+        self._label(body, 'PC-Begleiter aktualisieren', size=20).pack(fill='x', padx=16, pady=(16, 8))
+        from . import __version__
+        self._label(body, 'Installierte Version: ' + __version__, muted=True).pack(fill='x', padx=16, pady=4)
+        self._label(body, 'Prüfe die verfügbare Version. Download und Installation brauchen jeweils deine eigene Auswahl.', muted=True).pack(fill='x', padx=16, pady=6)
+        feedback = self._label(body, 'Noch kein Update-Abgleich gestartet.'); feedback.pack(fill='x', padx=16, pady=12)
+        stage_id = None
+        available = False
+        waiting = None
+        pending_id = None
+        def enable():
+            check.configure(state='normal')
+            download.configure(state='normal' if available else 'disabled')
+            install.configure(state='normal' if stage_id is not None else 'disabled')
+        def completed(ok):
+            nonlocal waiting, pending_id, stage_id, available
+            action, waiting, pending_id = waiting, None, None
+            if not window.winfo_exists(): return
+            update = self._last_update_result
+            state = update.get('status')
+            version = update.get('version')
+            version = version if isinstance(version, str) and len(version) <= 64 and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?', version) else None
+            if ok and state == 'available':
+                available = True
+                feedback.configure(text=('Version ' + version + ' ist verfügbar.') if version else 'Ein PC-Update ist verfügbar.')
+            elif ok and state == 'current':
+                available = False
+                feedback.configure(text='Dein PC-Begleiter ist auf dem aktuellen Stand.')
+            elif ok and state == 'staged' and isinstance(update.get('stageId'), str) and 0 < len(update['stageId']) <= 200:
+                stage_id = update['stageId']; available = False
+                feedback.configure(text='Das Paket wurde heruntergeladen und geprüft. Du kannst die Installation jetzt starten.')
+            elif ok and state == 'handoff-ready' and action == 'update-install':
+                self.messagebox.showinfo('Installationshelfer gestartet', 'Anker beendet sich jetzt für das Update. Der gestartete Helfer übernimmt danach die Installation; sie ist damit noch nicht als abgeschlossen bestätigt.', parent=window)
+                self._emit({'action': 'quit'}); self.close()
+                return
+            elif state in {'disabled', 'not-due'}:
+                feedback.configure(text='Die automatische Prüfung ist derzeit aus oder noch nicht fällig. Du kannst selbst erneut prüfen.')
+            else:
+                feedback.configure(text='Das Update ist noch nicht bestätigt. Prüfe die Internetverbindung und versuche es erneut.')
+            enable()
+        def submit(action):
+            nonlocal waiting, pending_id
+            if waiting is not None: return
+            value = {'action': action}
+            if action == 'update-install':
+                if stage_id is None: return
+                if not self.messagebox.askokcancel('PC-Update jetzt installieren?', 'Anker wird dafür beendet. Die Installation übernimmt anschließend der geprüfte Helfer. Deine lokalen Begleiterdaten bleiben erhalten.', parent=window): return
+                value.update(stageId=stage_id, userConfirmed=True)
+            if action == 'update-download' and not available: return
+            waiting = action
+            for control in (check, download, install): control.configure(state='disabled')
+            feedback.configure(text={'update-check': 'Versionsinfo wird geprüft …', 'update-download': 'Updatepaket wird heruntergeladen und geprüft …', 'update-install': 'Installationshelfer wird vorbereitet …'}[action])
+            self._last_update_result = {}
+            pending_id = self._submit(value, completed)
+            request = pending_id
+            def timeout():
+                if request in self._pending_actions:
+                    self._pending_actions.pop(request, None); completed(False)
+            self.root.after(180_000, timeout)
+        check = self._button(body, 'Jetzt auf PC-Updates prüfen', lambda: submit('update-check'), primary=True)
+        download = self._button(body, 'Update herunterladen', lambda: submit('update-download'))
+        install = self._button(body, 'Heruntergeladenes Update installieren', lambda: submit('update-install'))
+        for control in (check, download, install): control.pack(fill='x', padx=16, pady=5)
+        enable()
+        def refresh(update):
+            nonlocal available, stage_id
+            if waiting is not None: return
+            state = update.get('status')
+            if state == 'available':
+                available = True
+                version = update.get('version')
+                version = version if isinstance(version, str) and len(version) <= 64 and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?', version) else None
+                feedback.configure(text='Version ' + version + ' ist verfügbar.' if version else 'Ein PC-Update ist verfügbar.')
+            elif state == 'current':
+                available = False; feedback.configure(text='Dein PC-Begleiter ist auf dem aktuellen Stand.')
+            elif state == 'staged' and isinstance(update.get('stageId'), str) and 0 < len(update['stageId']) <= 200:
+                stage_id = update['stageId']; available = False
+                feedback.configure(text='Das Paket ist heruntergeladen und geprüft. Du kannst die Installation starten.')
+            enable()
+        self._update_view_handler = refresh
+        if isinstance(self.snapshot.get('update'), dict): refresh(self.snapshot['update'])
+        def dismiss(_event=None):
+            if waiting == 'update-install':
+                feedback.configure(text='Die Übergabe an den Installationshelfer wird noch geprüft. Bitte warte auf die Rückmeldung.')
+                return
+            if pending_id is not None: self._pending_actions.pop(pending_id, None)
+            self._updates_window = None; self._update_view_handler = None; window.destroy()
+        window.protocol('WM_DELETE_WINDOW', dismiss); window.bind('<Escape>', dismiss)
 
     def _close_offer(self) -> None:
         if self._offer_timer is not None:

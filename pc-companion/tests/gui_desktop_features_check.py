@@ -58,9 +58,11 @@ def check(output: Path) -> dict:
         assert ui.root.cget('bg') == '#101114'
         assert ui._time_pill is not None and ui._time_pill.winfo_ismapped()
         assert ui._card is not None and ui._card.winfo_ismapped()
+        assert ui._bar.winfo_rooty() + ui._bar.winfo_height() <= ui._time_pill.winfo_rooty()
         labels = [widget.cget('text') for widget in widgets(ui._card) if isinstance(widget, tk.Label)]
         assert any('speichere ich' in text for text in labels)
         result['lightDarkAndTimePillRendered'] = True
+        result['timePillAndCountdownBarNeverOverlapOnFirstFrame'] = True
         result['eveningIfThenVisible'] = True
         save('evening-if-then-and-time-pill.png')
         button(ui._card, 'Bis …').invoke()

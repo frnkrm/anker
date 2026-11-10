@@ -33,7 +33,9 @@ class UiWidget(UiValue):
     def update_idletasks(self): pass
     def winfo_screenwidth(self): return 1920
     def winfo_width(self): return 600
-    def delete(self, _value): self.draws = []
+    def delete(self, *_values):
+        self.draws = []
+        if len(_values) > 1: self.value = ''
     def create_rectangle(self, *values, **options): self.draws.append(("rectangle", values, options))
     def create_text(self, *values, **options): self.draws.append(("text", values, options))
     def bind(self, name, callback): self.events[name] = callback
@@ -127,7 +129,7 @@ class DesktopActionBoundaryTests(unittest.TestCase):
         next(button for button in view.buttons if button.options["text"] == "Übernehmen").options["command"]()
         self.assertEqual(actions[0]["prefs"], {"enforceEnabled": True, "strictLock": True, "dimEnabled": True,
                                               "audioDuck": True, "stopAction": "hibernate", "graceSeconds": 120, "dimMax": .3,
-                                              "timePillEnabled": False, "quietSignalEnabled": False})
+                                              "timePillEnabled": False, "quietSignalEnabled": False, "autoUpdateChecks": False})
         self.assertNotIn("morningCountdown", actions[0]["prefs"])
 
     def test_effective_phone_consent_never_becomes_new_local_consent(self):
