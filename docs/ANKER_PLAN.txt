@@ -1,0 +1,766 @@
+ANKER – VOLLSTÄNDIGER ENTWICKLUNGSPLAN UND CODEX-PROMPTS
+========================================================
+
+Hinweis zur Textfassung:
+Überarbeiteter Entwicklungsplan auf Grundlage der vorherigen Textfassung. Die interaktiven Elemente sind als Text wiedergegeben. Der Plan ist kein bytegenauer Chat-Export.
+WICHTIG: Die nachfolgende Kurzfassung und Prompt B setzen voraus, dass diese vollständige Datei VOR Prompt B unverändert als docs/ANKER_PLAN.txt auf dem für Codex erreichbaren GitHub-Branch liegt. Wenn das nicht der Fall ist, muss Codex zuerst die Verfügbarkeit klären und darf nicht mit einem unvollständigen Inventar beginnen.
+
+1. WAS DU WANN WOHIN KOPIERST
+============================
+
+Ab Donnerstag, 12.11.2026, nach 22:42 Uhr (Europe/Berlin) zuerst prüfen, ob das Codex-Nutzungslimit tatsächlich zurückgesetzt wurde.
+
+Schritt 1: Den bisherigen, unterbrochenen Codex-Task öffnen und PROMPT A aus Abschnitt 3 hineinkopieren. Ausschließlich die begonnene Arbeit abschließen und sichern lassen.
+
+Schritt 2: Die abschließende „STARTÜBERGABE FÜR PROMPT B“ kopieren. Insbesondere prüfen, ob der Code tatsächlich auf GitHub verfügbar oder noch auf einem nicht übernommenen Branch liegt.
+
+Schritt 3: Diese vollständige überarbeitete Datei über die GitHub-Weboberfläche unter docs/ANKER_PLAN.txt auf einem für den neuen Task erreichbaren Branch hochladen. Vorher prüfen, ob dadurch Workflows ausgelöst werden. Vorhandene Datei nicht ungefragt überschreiben.
+Schritt 4: Einen neuen Codex-Task in der bestehenden Anker-Cloud-Umgebung öffnen. PROMPT B aus Abschnitt 5 und darunter die Startübergabe einfügen.
+
+Schritt 5: Codex richtet die Roadmap ein, prüft die Umgebung und gibt genau einen nächsten kopierfertigen Prompt aus. Erst danach beginnt die erste neue Produktaufgabe.
+
+Repository: https://github.com/frnkrm/anker
+
+Der zuletzt bei der Analyse gefundene GitHub-Commit war e48d289 vom 10.11.2026. Das beweist nicht den Stand des unterbrochenen Tasks.
+
+2. AUFGABENINVENTAR
+===================
+
+2.1 Vorschlag → Aufgabe
+
+V-001 Wiedereinstiegs-Assistent → F-005
+V-002 Übergangshelfer → F-006
+V-003 Vereinfachung bei Blockaden → F-007
+V-004 Physische NFC-Ankerpunkte → F-008
+V-005 Zeitgefühl und realistische Zeitschätzungen → F-004
+V-006 Freiwilliges Body Doubling → F-009
+V-007 Wochenrückblick über Hindernisse → F-010
+V-008 Abfahrts-Countdown mit Pufferbewertung → F-001
+V-009 Rechtzeitiger Kurzmodus → F-002
+V-010 Dynamischer Vorbereitungsimpuls → F-003
+V-011 Tatsächliche Weckerzuverlässigkeit prüfen → T-004, E-002
+V-012 Windows-Begleiter im Gerätebetrieb prüfen → T-004, E-003
+V-013 Kalenderintegration tatsächlich prüfen → T-004, E-004
+V-014 Gesamttests und sichere Releasevorbereitung → T-006
+V-015 Diagnose und Datenschutz überprüfen → T-005
+
+2.2 Technische Voraussetzungen
+
+T-001 – Unterbrochene Entwicklung retten
+Typ: technische Voraussetzung; mittel; vor allen neuen Aufgaben.
+Nutzen: Keine begonnene Arbeit verlieren.
+Umfang: Task-, Branch-, Änderungs- und Prüfstand feststellen; bestehende Aufgabe abschließen oder gesichert pausieren.
+Nicht enthalten: neue Funktionen, Merge, Deployment.
+Abnahme: Ausgangsstand eindeutig; ungesicherte Änderungen bewahrt; Tests bewertet; GitHub-Verfügbarkeit geklärt; Startübergabe vorhanden.
+Risiken: unbekannter Arbeitsbaum, unvollständige Vorarbeiten, fehlende Berechtigungen.
+
+T-002 – Umgebung und Entwicklungsbefehle prüfen
+Zusätzlich: Vorhandenes Setup-Skript der Codex-Cloud-Umgebung prüfen; wiederkehrende Installationen wie npm ci nach Möglichkeit dort konfigurieren lassen. Bei nötiger Änderung den exakten Setup-Skript-Inhalt als manuelle Browserhandlung vorschlagen, nicht eigenmächtig Cloud-Einstellungen ändern.
+Typ: technische Voraussetzung; klein–mittel; nach T-001.
+Nutzen: unnötige Installationen und Konfigurationsfehler vermeiden.
+Umfang: Cloud-Umgebung, Abhängigkeiten, Befehle und Zugriffe prüfen; nur belegte Probleme korrigieren.
+Nicht enthalten: Technologiewechsel.
+Abnahme: Umgebung identifiziert; Befehle dokumentiert; Zugriffe geklärt; Änderungen geprüft.
+Risiken: fehlende Secrets oder Cloud-Zugriff.
+
+T-003 – Roadmap und Übergabedokumentation einrichten
+Typ: technische Voraussetzung; mittel; nach T-002.
+Nutzen: Aufgaben ohne wiederholte Grundsatzprompts bearbeiten.
+Umfang: IDs, Abhängigkeiten, Tests, Status, Promptvorlagen dokumentieren.
+Nicht enthalten: Produktfunktionen.
+Abnahme: vollständiges Inventar; keine Parallelpläne; Statusdatei; Promptbibliothek; eindeutiger nächster Task.
+Risiko: Dokumentationsduplikate.
+
+T-004 – Plattform- und Geräteprüfungen vorbereiten
+Typ: Qualitätssicherung; mittel; nach T-003.
+Nutzen: echte Sicherheit statt nur Modultests.
+Umfang: Android-, Windows- und Kalendernachweise abgleichen.
+Abnahme: offene Prüffälle; keine Testduplikate; Software/Hardware getrennt; manuelle Schritte klar.
+Risiko: fehlende Zielgeräte.
+
+T-005 – Datenschutz und Datengrenzen absichern
+Typ: Sicherheitsprüfung; mittel; vor Funktionen mit neuen Daten.
+Nutzen: Offline- und Datenschutzkonzept erhalten.
+Umfang: Diagnosejournal, lokale Speicherung, optionale Synchronisation, neue Datenflüsse.
+Abnahme: sensible Datenflüsse; keine automatische Weitergabe; Freigaben/Löschregeln; Regressionstests.
+Nicht enthalten: produktive Datenlöschung.
+Risiko: neue Aktivitätsdaten.
+
+T-006 – Integration und Gesamtabschluss
+Typ: Qualitätssicherung; groß; nach umgesetzten Funktionen.
+Nutzen: stabiler gemeinsamer Stand.
+Umfang: Gesamttests, Kompatibilität, Geräteprüfungen, Releasebereitschaft.
+Abnahme: Aufgabenstatus; Tests; Daten-/Wecker-/Plattformgrenzen; Releasehindernisse; keine unfreigegebene Veröffentlichung.
+Risiko: vorhandene automatische Play-Workflows.
+
+2.3 Produktfunktionen
+
+F-001 – Abfahrtsbereitschaft sichtbar machen
+V-008; klein; nach T-003; Voraussetzung für F-002/F-003.
+Nutzen: Restzeit, offene Vorbereitung und Puffer verstehen.
+Umfang: bestehende Plan-/Log-Daten und Jetzt-Ansicht; keine zweite Planung.
+Abnahme: korrekte Restzeit; erledigte Schritte nicht eingerechnet; fehlende Zeiten ehrlich; Homeoffice/Planwechsel; kleine Bildschirme.
+Prüfung: Rechen- und UI-Tests.
+Risiko: ungenaue Schätzungen.
+
+F-002 – Kurzmodus bei Zeitmangel anbieten
+V-009; klein–mittel; nach T-003 und F-001.
+Nutzen: auch bei Zeitdruck handlungsfähig bleiben.
+Umfang: vorhandene Minimalvarianten; bestätigungspflichtiges Angebot.
+Abnahme: sinnvoller Auslöser; offene Schritte korrekt; ausdrückliche Annahme; erledigte Schritte bleiben; keine Doppelaktionen.
+Prüfung: Logik-, Store- und UI-Tests.
+Risiko: Kernschritte dürfen nicht still entfallen.
+
+F-003 – Dynamischen Vorbereitungsimpuls ergänzen
+V-010; mittel; nach T-003 und F-001; F-002 ist keine harte technische Voraussetzung.
+Nutzen: rechtzeitig anfangen statt erst 10 Minuten vor Abfahrt.
+Umfang: einen Impuls aus offenen Schritten und Puffer ableiten; vorhandene leave-10-/leave-Meldungen beachten.
+Abnahme: rechtzeitig; keine Duplikate; keine alte Meldung nach Abfahrt; Planänderungen; Notification-Prioritäten.
+Prüfung: Reminder-Regeln, Android-Modell, Gerätebeobachtung.
+Risiko: Android-Zustellung nicht garantiert.
+
+F-004 – Zeitgefühl und Dauerabschätzung verbessern
+V-005; mittel; nach T-003 und F-001; T-005 vor neuen personenbezogenen Messdaten.
+Nutzen: Zeitverbrauch bei Tätigkeiten besser einschätzen.
+Umfang: Countdown/Zeitbogen; geschätzte und tatsächliche Dauer; optionale vorsichtige Vorschläge.
+Abnahme: Zeit sichtbar; Schätzung/Messung getrennt; kleine Stichproben ehrlich; Pausen korrekt; freiwillig.
+Prüfung: Zeitrechnung und UI.
+Risiko: zusätzlicher Messdruck.
+
+F-005 – Wiedereinstiegs-Assistent
+V-001; mittel; nach T-003.
+Nutzen: nach Ablenkung ohne neue Planung weitermachen.
+Umfang: vorhandene Unterbrechungs-/Wiederaufnahmepunkte; eine kurze Karte.
+Abnahme: richtiger Stand; kleiner Schritt; erledigte Aufgaben ausgeschlossen; private Daten geschützt.
+Prüfung: Recovery-, Aufgaben-, UI-Tests.
+Risiko: veraltete Kontexte.
+
+F-006 – Übergangshelfer
+V-002; mittel; nach T-003.
+Nutzen: zwischen Tätigkeiten wechseln.
+Umfang: Morgen-, Abend-, Freizeit- und PC-Stopp-Führung; eine nächste Handlung.
+Abnahme: ein Handgriff; korrekte Reihenfolge; Pause/Verlängerung; keine widersprüchlichen Hinweise.
+Prüfung: Guidance-/PC-Link-Tests, gegebenenfalls Geräteprüfung.
+Risiko: parallele Controller.
+
+F-007 – Blockaden sanft erkennen und Vereinfachung anbieten
+V-003; mittel; nach T-003.
+Nutzen: wiederholtes Verschieben in hilfreiches Angebot übersetzen.
+Umfang: bestehende Unterstützungsmodi; keine psychische Diagnose.
+Abnahme: nachvollziehbarer Auslöser; keine Dauerschleife; Abwahl respektiert; Plan bleibt.
+Prüfung: Support und UI.
+Risiko: Nichtnutzung falsch interpretieren.
+
+F-008 – NFC-Ankerpunkte
+V-004; mittel–groß; nach T-005 und Machbarkeitsprüfung.
+Nutzen: physische Orte mit Checklisten/Routinen verknüpfen.
+Umfang: freiwillige NFC-Tags an Haustür, Schreibtisch, Bad; QR bleibt.
+Abnahme: Android-Eignung; bewusste Einrichtung; ungültige Tags; manueller Rückweg; keine Standortverfolgung.
+Prüfung: Plattform- und Gerätetests.
+Risiko: Hardware und Berechtigungen.
+
+F-009 – Freiwilliges Body Doubling
+V-006; mittel–groß; nach T-005.
+Nutzen: Einstieg in unangenehme Aufgaben.
+Umfang: zuerst lokale stille Fokusbegleitung; soziale Variante nur gesondert freigeben.
+Abnahme: Start/Stopp; keine automatische Erledigung; Offline-Grundfunktion; Datenschutz; soziale Variante deaktivierbar.
+Prüfung: Fokus- und Datenschutztests.
+Risiko: externe Kommunikation.
+
+F-010 – Wochenrückblick über Hindernisse
+V-007; mittel; nach T-005, gegebenenfalls F-004/F-007.
+Nutzen: hilfreiche Unterstützung erkennen ohne Leistungsdruck.
+Umfang: freiwillige lokale Zusammenfassung.
+Abnahme: datenbasierte Aussagen; fehlende Daten; Datenschutz; abwählbar; keine XP-Strafen.
+Prüfung: Aggregation und UI.
+Risiko: irreführende Schlussfolgerungen.
+
+2.4 Einrichtungs- und Geräteaufgaben
+
+E-001 Cloud-Zugriffe prüfen; klein; Repository, Modell, Cloud, Rechte; keine Konten ohne Freigabe.
+E-002 Android-Wecker real prüfen; mittel; Hörbarkeit, Sperrbildschirm, Spiel/Touchschutz, Buildzuordnung; unabhängigen Wecker verwenden.
+E-003 Windows-Begleiter prüfen; mittel; QR, Tray, DPI, LAN, bestätigte Systemwirkungen.
+E-004 Kalenderzugriff prüfen; klein–mittel; Berechtigung, Auswahl, Datenquelle, Widerruf.
+E-005 Optionalen NFC-Betrieb einrichten; klein–mittel; nur bei geeigneter Hardware und F-008.
+
+2.5 Bewusste Ausschlüsse
+
+Keine zweite Aufgabenverwaltung, kein weiterer allgemeiner KI-Chat, kein größeres XP-System, keine Pflicht-Check-ins, keine aggressiveren Erinnerungen, kein dauerhaftes GPS, keine psychische Klassifikation und keine automatische Erledigung aus Timerende.
+
+
+3. PROMPT A – UNTERBROCHENE ENTWICKLUNG ABSCHLIESSEN
+===================================================
+
+# PROMPT A – Unterbrochene Anker-Entwicklung abschließen und sichern
+
+PROJEKT: `frnkrm/anker` auf GitHub.
+
+## Auftrag
+
+Setze ausschließlich die bereits begonnene, durch das Nutzungslimit unterbrochene Entwicklung in diesem bisherigen Codex-Task fort.
+
+Es gibt einen späteren Entwicklungsplan mit neuen Produktideen. Diese gehören ausdrücklich NICHT zu diesem Auftrag. Zuerst müssen die bisherige Arbeit, ihre Prüfungen und ihre tatsächliche Verfügbarkeit gesichert werden.
+
+## 1. Tatsächlichen Arbeitsstand feststellen
+
+Bevor du fortsetzt, empfehle mir knapp das passende tatsächlich verfügbare Codex-Modell und die Denkstufe. Wenn du die verfügbaren Optionen nicht sehen kannst, frage einmal nach ihnen statt Namen zu erfinden. Warte auf mein „OK“, bevor du die Bearbeitung beginnst. Einen anderen Task vorab nur dann als ausführbar anbieten, wenn er nachweislich unabhängig ist und keinen gemeinsamen Arbeitsbaum verändert; andernfalls ausdrücklich vor parallelem Start warnen.
+
+Prüfe zunächst gezielt:
+- Welches Repository und welcher Arbeitsbaum tatsächlich geöffnet sind.
+- Auf welchem Branch und Commit du arbeitest.
+- Welche Aufgabe in diesem Task zuletzt ausdrücklich beauftragt wurde.
+- Welche Dateien geändert, neu angelegt oder gelöscht wurden.
+- Welche Änderungen bereits committet, gepusht, in einem PR enthalten, übernommen oder nur lokal vorhanden sind.
+- Welche Tests tatsächlich ausgeführt wurden und welche Ergebnisse davon noch zum aktuellen Code passen.
+- Welche geltenden Repository-Anweisungen bestehen, insbesondere `AGENTS.md`, `CLAUDE.md` und die relevanten Implementierungs-/Testdokumente.
+
+Nutze die bestehende Aufgabenhistorie dieses Tasks, soweit sie zugänglich ist. Falls die ursprüngliche Aufgabe nicht mehr eindeutig erkennbar ist, stelle genau eine gezielte Frage und wähle nicht eigenmächtig eine andere Aufgabe.
+
+## 2. Vorhandene Arbeit schützen
+
+Bewahre alle vorhandenen Änderungen.
+
+Keine destruktiven Git-Befehle, kein Hard-Reset, kein unaufgefordertes Verwerfen, Überschreiben oder Bereinigen fremder Arbeit.
+
+Keine neue Roadmap-Funktion hinzufügen und keine sachfremden Refactorings durchführen.
+
+Ein lokaler Commit ist nicht automatisch auf GitHub verfügbar. Ein Push ist nicht automatisch ein Merge. Ein bestandener Build ist keine reale Android- oder Windows-Geräteprüfung.
+
+## 3. Angefangene Aufgabe abschließen
+
+Vervollständige nur die bereits begonnene Aufgabe, soweit sie eindeutig erkennbar und sicher fortsetzbar ist.
+
+Berücksichtige ihre ursprünglichen Anforderungen und Abnahmekriterien.
+
+Führe die passenden Zwischen- und Abschlussprüfungen durch. Unterscheide:
+- Bereits zuvor bestehende Fehler.
+- Durch die aktuellen Änderungen eingeführte Fehler.
+- Nicht ausgeführte oder nicht verfügbare Prüfungen.
+- Softwaretests und reale Gerätebeobachtungen.
+
+Korrigiere Fehler innerhalb der begonnenen Aufgabe. Wiederhole bereits erfolgreich ausgeführte Prüfungen nur bei verändertem Code, veränderter Umgebung oder begründetem Zweifel.
+
+Falls eine wesentliche Voraussetzung fehlt, sichere den erreichten Stand und benenne die kleinste erforderliche Entscheidung.
+
+## 4. Abschluss und Sicherung
+
+Sichere die zu dieser Aufgabe gehörenden Änderungen nachvollziehbar, soweit die vorhandene Umgebung und Berechtigungen es erlauben.
+
+Ein Commit kann erfolgen, wenn der Zustand dafür geeignet ist. Ein Push darf nur erfolgen, wenn er vom bisherigen Auftrag und den aktuellen Berechtigungen gedeckt ist und seine möglichen automatischen Nebenwirkungen geprüft wurden.
+
+Kein automatischer Merge, kein Force-Push, keine Veröffentlichung, kein Deployment, keine produktive Migration und keine Datenlöschung aufgrund dieses Prompts. Bereits bestehende automatische Workflows dürfen nicht stillschweigend als neue Freigabe interpretiert werden.
+
+Falls ein geplanter Sicherungsschritt eine Freigabe benötigt, halte davor an und nenne die konkrete Aktion.
+
+Aktualisiere vorhandene Status- und Testdokumentation nur dort, wo die Ergebnisse dieser Aufgabe dies erfordern.
+
+## 5. Übergabe für einen neuen Codex-Task
+
+Am Ende benötige ich folgende Ausgabe:
+
+### STATUS
+- Fertig, teilweise fertig oder blockiert?
+- Was wurde implementiert?
+- Was wurde tatsächlich geprüft?
+- Was wurde lokal committet?
+- Was ist auf GitHub verfügbar?
+- Gibt es einen PR und wurde etwas tatsächlich integriert?
+
+### ERGEBNIS
+Kurze verständliche Zusammenfassung, relevante Prüfungen und verbleibende Fehler.
+
+### DEINE NÄCHSTE AKTION
+Genau die nächste notwendige Browserhandlung. Sage ausdrücklich, ob „PR erstellen“ in Codex und/oder eine spätere Übernahme per Merge nötig ist, damit der neue Task den Stand sehen kann. Vor jedem Merge mögliche GitHub-Workflows und insbesondere Play-Uploads prüfen. Falls keine Handlung nötig ist, sage das ausdrücklich.
+
+### STARTÜBERGABE FÜR PROMPT B
+
+Erstelle einen separat kopierbaren Übergabeblock mit:
+1. Repository.
+2. Tatsächlichem Ausgangsbranch und Arbeitsbranch.
+3. Tatsächlichen Commit-IDs und gegebenenfalls PR-Referenzen.
+4. Ursprünglicher Aufgabe und ihrem Abschlussstatus.
+5. Geänderten Dateien beziehungsweise relevanten Bereichen.
+6. Ausgeführten Prüfungen und Ergebnissen.
+7. Noch offenen Punkten.
+8. Gegebenenfalls nötiger Übernahme- oder Freigabehandlung.
+9. Eindeutiger Aussage, von welchem auf GitHub beziehungsweise in der Cloud zugänglichen Stand der neue Task starten darf.
+10. Warnung vor noch nicht verfügbaren lokalen Änderungen.
+
+Erfinde keine fehlenden Angaben. Kennzeichne Unbekanntes.
+
+Keine neuen Produktfunktionen in diesem Lauf beginnen.
+
+Beende diesen Task nach der Übergabe.
+
+
+4. BROWSER-CHECKLISTE
+====================
+
+[ ] Limit ab 12.11.2026, 22:42 Uhr Europe/Berlin tatsächlich prüfen.
+[ ] Bisherigen Codex-Task öffnen und Prompt A abschließen.
+[ ] Startübergabe aus dem alten Task kopieren.
+[ ] Vollständige überarbeitete TXT über GitHub als docs/ANKER_PLAN.txt auf dem richtigen, für Codex erreichbaren Branch hochladen; Workflow-Nebenwirkungen vorher prüfen.
+[ ] Im neuen Task frnkrm/anker als Repository wählen.
+[ ] Vorhandene Anker-Cloud-Umgebung auswählen, sofern angeboten.
+[ ] Verfügbaren Branch mit der Startübergabe und docs/ANKER_PLAN.txt abgleichen.
+[ ] Codex-Empfehlung für tatsächlich verfügbare Modell-/Denkstufenoptionen abwarten, einstellen und mit „OK“ bestätigen.
+[ ] GitHub-Zugriff und erforderliche Cloud-Berechtigungen prüfen.
+[ ] Prompt B plus Startübergabe einfügen.
+
+NACH JEDEM CODEX-TASK – MINI-CHECKLISTE (maximal vier Schritte):
+[ ] Ergebnis, Prüfungen, Änderungen und GitHub-Verfügbarkeit kontrollieren.
+[ ] Falls sinnvoll und in der Oberfläche möglich: „PR erstellen“; PR-Inhalt und CI prüfen. Nicht jeder Task benötigt zwingend einen eigenen PR.
+[ ] Vor dem ERSTEN Merge und bei späteren relevanten Workflow-Änderungen durch Codex prüfen lassen, ob der Merge/Push Workflows auslöst (besonders Google-Play-Upload). Ohne geklärte Auswirkungen und erforderliche Freigabe nicht mergen.
+[ ] Erst nach Prüfung und Freigabe mergen ODER für den Folgetask ausdrücklich einen bereits erreichbaren passenden Branch auswählen; Übernahme verifizieren.
+
+Browserhandlungen: Task öffnen, Repository/Umgebung auswählen, Zugriffe freigeben, Datei hochladen und Prompts einfügen.
+Codex-Aufgaben: Codeprüfung, Skriptprüfung, Dokumentation, Tests, Commits und Übergabe.
+
+Zunächst die verfügbare Modell-Standardeinstellung verwenden. Höhere Denkintensität nur bei konkretem Bedarf empfehlen. Ein neuer Task darf nicht auf einem alten Branch starten und ungesicherte Änderungen als vorhanden annehmen.
+
+5. PROMPT B – ANKER EINRICHTEN UND ENTWICKLUNGSPLAN SPEICHERN
+============================================================
+
+# PROMPT B – Anker einrichten, vollständige Roadmap speichern und nächsten Einzelauftrag vorbereiten
+
+PROJEKT: GitHub `frnkrm/anker`.
+ARBEITSUMGEBUNG: Bestehende, wiederverwendbare Anker-Cloud-Umgebung in Codex, soweit tatsächlich verfügbar.
+AUFTRAG: Ausschließlich Vorbereitung, Umgebungsprüfung und vollständige Entwicklungsplanung. KEINE neue Produktfunktion implementieren.
+
+## 0. Ziel und Benutzerkontext
+
+Anker ist eine persönliche ADHS-Alltags-App mit Android-, Web- und Windows-Begleiter-Komponenten.
+
+Der Nutzer ist Entwickler, möchte die Umsetzung in diesem Projekt aber an Codex abgeben. Erkläre technische Zusammenhänge knapp und sachlich statt anfängerhaft. Er hat ADHS: Antworten kurz halten, genau eine nächste Aktion nennen, keine unnötigen Auswahlmöglichkeiten. Er möchte die bestehenden Funktionen erhalten und alle im beigefügten Plan erfassten Verbesserungsvorschläge nach und nach umsetzen.
+
+Sein besonders wichtiges Alltagsproblem ist, das Zeitgefühl zu verlieren und zu spät zu kommen. Deshalb werden die Verbesserungen zur Abfahrtsbereitschaft, zum rechtzeitigen Kurzmodus und zum Startimpuls zuerst vorgesehen.
+
+Der Nutzer möchte möglichst wenig selbst formulieren, keine technischen Angaben erraten und nicht ständig zwischen Möglichkeiten wählen.
+
+Effizient arbeiten bedeutet, notwendige Arbeit zuverlässig auszuführen und unnötige Wiederholungen zu vermeiden. Tests, Codeverständnis, Sicherheitsgrenzen und notwendige Dokumentation dürfen nicht aus Spargründen entfallen.
+
+Das vollständige Anforderungsinventar ist in docs/ANKER_PLAN.txt auf dem tatsächlich zugänglichen Branch gespeichert. Prüfe die Existenz, Vollständigkeit und Lesbarkeit dieser Datei vor der Planung. Falls sie fehlt oder unvollständig ist, stoppe und benenne genau die erforderliche Upload-/Branchhandlung. Es gibt keinen zusätzlich sichtbaren Planungschat, auf den du dich berufen darfst.
+
+Der Nutzer wird unter diesem Prompt gegebenenfalls eine „STARTÜBERGABE FÜR PROMPT B“ aus dem vorherigen Codex-Task einfügen. Deren Angaben müssen mit dem tatsächlich erreichbaren Repository-Zustand abgeglichen werden.
+
+## 1. Ausgangsstand und Vorarbeiten prüfen
+
+Prüfe gezielt:
+- Das tatsächlich geöffnete Repository `frnkrm/anker`.
+- Den Ausgangsbranch, Arbeitsbranch, Commit und Arbeitsbaum.
+- Die mitgelieferte Startübergabe aus dem bisherigen Task.
+- Ob die dort beschriebenen Änderungen tatsächlich auf dem verfügbaren Branch enthalten sind.
+- Vorhandene uncommittete Änderungen, Commits und PRs.
+- Die geltenden Repository-Anweisungen, insbesondere vorhandenes `AGENTS.md`.
+- Die für den aktuellen Stand relevanten Architektur-, Implementierungs-, Test- und Releaseunterlagen.
+
+Ermittle den tatsächlichen Basisbranch. Unterstelle nicht automatisch `main`.
+
+Wenn die Vorarbeit aus dem vorherigen Task nicht verfügbar oder noch nicht integriert ist, beginne keine davon abhängige Planung auf einer vermeintlich vollständigen Codebasis. Identifiziere den erforderlichen Branch oder die notwendige Übernahmehandlung.
+
+Schütze fremde und ungesicherte Änderungen.
+
+Bekannte Repository-Hinweise aus einem vorangegangenen lesenden Abgleich:
+- `AGENTS.md` existiert bereits.
+- `CLAUDE.md` existiert.
+- `docs/ANKER_IMPLEMENTIERUNGSPLAN.md` und `docs/ANKER_TESTNACHWEISE.md` existieren.
+- `docs/OFFENE_ENTWICKLUNGEN.md`, `docs/ANLEITUNG.md` und `docs/STRUKTUR.md` existieren.
+- Es gibt eine gemeinsame Tagesplanung, Store-Schreibqueue, Android-Bestandteile und einen lokalen Windows-PC-Begleiter.
+- Die vorhandenen Repository-Anweisungen schützen unter anderem Weckeridentitäten, gespeicherte Daten, Sicherheitsgrenzen und freiwillige Systemwirkungen.
+- Eine vorhandene Repository-Anweisung beschreibt einen Google-Play-Uploadablauf nach geprüften Releases. Dieser neue Einrichtungsauftrag erteilt jedoch keine Freigabe für einen neuen Upload, eine Veröffentlichung oder einen produktiven Eingriff.
+
+Diese Hinweise sind Orientierung, kein Ersatz für die tatsächliche aktuelle Prüfung.
+
+## 2. Bestehenden Anker-Funktionsbestand erhalten
+
+Anker enthält bereits unter anderem:
+- Eine „Jetzt“-Ansicht mit einer nächsten Handlung.
+- Tages- und Terminplanung mit Abfahrt, Fahrzeit und Puffern.
+- Morgen- und Abendroutinen.
+- Minimalvarianten von Routinen.
+- Eine „Ich hänge fest“-Hilfe.
+- Unterbrechungs- und Wiedereinstiegsinformationen.
+- Einen „Ich bin abgedriftet“-Einstieg.
+- Unterstützung bei wenig Energie und Überlastung.
+- Zeitbalken beziehungsweise optionale Zeitbogen-Darstellung.
+- Erinnerungen vor und zum Abfahrtszeitpunkt.
+- Eine späteste Abfahrt bei entsprechenden Arbeitszeitmodellen.
+- QR-Wecker und Android-Benachrichtigungen.
+- Lokalen Windows-Begleiter und PC-Stopp.
+- Fokusfunktionen, Spielsystem und Gedanken.
+- Optionale Kalender-, Gesundheits-, Verkehrs-, KI- und Synchronisationsdienste.
+- Datenschutz-, Diagnose- und Testmechanismen.
+
+Dieser Bestand ist durch einen früheren lesenden Abgleich bekannt. Prüfe tatsächliche Details, Versionsstand und vorhandene Implementierungen, bevor du eine Aufgabe als neu, teilweise vorhanden oder abgeschlossen einstufst.
+
+Vorhandene Funktionen dürfen nicht still als fehlend behandelt und nicht parallel neu gebaut werden.
+
+Insbesondere dürfen keine zweite Tagesplanung, zweite Reminder-Engine, zweite Store-Schreiblogik oder unnötige konkurrierende Zustandsmodelle entstehen.
+
+## 3. Umgebung gezielt prüfen und optimieren
+
+Ermittle die tatsächlich vorhandenen:
+- Entwicklungs- und Testwerkzeuge.
+- Paket- und Laufzeitversionen.
+- Abhängigkeiten und Installationen.
+- Start-, Build-, Lint-, Test- und Releasebefehle.
+- CI-Workflows.
+- Cloud-Einstellungen, soweit für dich sichtbar.
+- Erforderlichen Zugriffe und optionalen Dienste.
+
+Bekannte mögliche Befehle aus früherer Dokumentation sind beispielsweise `npm ci`, `npm test`, `npm run build`, `npm run lint` und `npm run test:e2e`. Verifiziere ihre aktuelle Existenz und Bedeutung, bevor du sie ausführst.
+
+Wiederverwende eine funktionierende Umgebung. Prüfe, ob wiederkehrende Installationen (z. B. npm ci) bereits im Setup-Skript der Codex-Cloud-Umgebung stehen. Falls nicht und sinnvoll, nenne dem Nutzer den exakt vorgeschlagenen Setup-Skript-Inhalt und die nötige Browserhandlung; ändere Cloud-Einstellungen nicht eigenmächtig.
+
+Keine unbegründete Neuinstallation, kein pauschales Dependency-Update, kein Paketmanagerwechsel, kein neuer Infrastrukturstack und kein kosmetischer Komplettumbau.
+
+Korrigiere nur nachgewiesene Einrichtungsprobleme. Wenn dafür Anwendungslogik geändert werden müsste, dokumentiere das als separate Voraussetzung und hole die notwendige Freigabe ein.
+
+Starte nur wirklich erforderliche Dienste.
+
+Keine Zugangsdaten erfinden, ausgeben, in Git speichern oder für optionale Dienste ohne Freigabe verwenden.
+
+Unterscheide strikt zwischen:
+1. Repository-Dateien.
+2. Cloud-Umgebung und ihren Einstellungen.
+3. Browser-/Kontoeinstellungen des Nutzers.
+4. Optionalen externen Diensten.
+5. Tatsächlicher Android-/Windows-Hardware.
+
+Eine Repository-Änderung ist keine nachgewiesene Cloud-Einstellungsänderung.
+
+Wenn eine manuelle Browserhandlung nötig ist, nenne die konkrete nächste Handlung und pausiere dort. Setze anschließend nach der Handlung im selben Task fort, soweit die Umgebung das ermöglicht.
+
+## 4. Verbindliches Aufgabeninventar
+
+Die vollständigen, verbindlichen Vorschläge, Aufgabenbeschreibungen, Abnahmen, Grenzen und Prüfstrategien stehen in `docs/ANKER_PLAN.txt`, Abschnitte 2 und 5. Dieses Dokument ist die einmalig vom Nutzer über GitHub hochgeladene vollständige Plan-Datei; NICHT das Inventar aus diesem Prompt rekonstruieren oder erfinden.
+
+Prüfe, dass die Datei tatsächlich im erreichbaren Ausgangsstand liegt und die stabilen IDs V-001 bis V-015, F-001 bis F-010, T-001 bis T-006 und E-001 bis E-005 vollständig enthält. Behalte die Inhalte und IDs unverändert. Bestehende Funktionen anhand des tatsächlichen Codes abgleichen.
+
+Erstelle keine umfangreiche zweite Kopie des Plans. Die Roadmap wird eine kompakte Tabelle mit:
+`ID | Titel | Status | Abhängigkeit | Verweis auf Abschnitt in docs/ANKER_PLAN.txt`.
+Ausführliche Abweichungen, Ergebnisse und belegte Statusänderungen nur ergänzen, wo erforderlich.
+
+Spezielle verbindliche Abhängigkeitsklarstellung: F-003 hängt technisch von F-001 und T-003 ab, NICHT von F-002. Die bevorzugte Bearbeitungsreihenfolge F-001 → F-002 → F-003 bleibt bestehen. F-004 benötigt T-005 vor neuen personenbezogenen Messdaten.
+
+## 5. Reihenfolge und Statusmodell
+
+Beginne mit dem tatsächlich geklärten T-001-Ausgangsstand.
+
+Bearbeite in diesem Einrichtungstask T-002, E-001 soweit erforderlich und T-003.
+
+T-004 und T-005 sind später bedarfsgerecht vorzubereiten beziehungsweise vor ihren abhängigen Aufgaben auszuführen. T-006 steht am Ende der gemeinsamen Entwicklung beziehungsweise vor einer ausdrücklich freigegebenen Releaseentscheidung.
+
+Bevorzugte Reihenfolge der neuen Produktaufgaben:
+1. F-001 – Abfahrtsbereitschaft sichtbar machen.
+2. F-002 – Kurzmodus bei Zeitmangel.
+3. F-003 – Dynamischer Vorbereitungsimpuls.
+4. F-004 – Zeitgefühl und Dauerschätzung.
+5. F-005 – Wiedereinstieg.
+6. F-006 – Übergänge.
+7. F-007 – Vereinfachung bei Blockaden.
+8. F-008 – NFC, abhängig von Machbarkeit und Freigabe.
+9. F-009 – Body Doubling, soziale Variante separat freigeben.
+10. F-010 – Wochenrückblick.
+
+Die Reihenfolge kann aus belegten technischen Abhängigkeiten angepasst werden, ohne IDs zu ändern oder Anforderungen zu verlieren. Am Übergabepunkt darf Codex ein Bündeln kleiner direkt abhängiger Aufgaben (z. B. F-001 + F-002) vorschlagen, um wiederholte Kontexteinlesung zu vermeiden. Bündelung nur nach ausdrücklicher Freigabe; jede ID bleibt separat prüfbar.
+
+Vorhandene passende Funktionen zunächst prüfen. Bei bereits vollständiger, nachgewiesener Umsetzung keine zweite Implementierung anlegen. Status und Nachweis dokumentieren und zur nächsten tatsächlich offenen Einheit übergehen.
+
+Eine größere Aufgabe darf nachvollziehbare Unteraufgaben erhalten, beispielsweise F-009a/F-009b. Die Stamm-ID bleibt erhalten.
+
+Stabile Statuswerte:
+- OFFEN
+- IN_ARBEIT
+- BLOCKIERT
+- BEREIT_ZUR_PRÜFUNG
+- ERLEDIGT
+
+Zusätzlich kompakt erfassen:
+- Integriert: ja / nein (mit Branch-/PR-Beleg).
+- Gerätetest: offen / belegt / nicht nötig.
+- Veröffentlicht: ja / nein.
+
+Die vollständigen Prüf-, Commit-, Push- und Übergabenachweise dürfen dabei nicht verloren gehen: in vorhandenen Test-/Statusbelegen und im Abschlussbericht festhalten, nicht als sieben zusätzliche Roadmap-Spalten.
+
+Ein Commit ist kein Push, ein Push kein Merge, ein Merge keine Veröffentlichung und ein bestandener Test kein Hardware-Nachweis.
+
+Abhängige Aufgaben erst starten, wenn ihre erforderlichen Änderungen im tatsächlich verwendeten Ausgangsstand enthalten sind.
+
+## 6. Projektdokumentation
+
+Verbindliche Standardzuordnung, sofern Codex den Inhalt bestätigt:
+- Roadmap: `docs/OFFENE_ENTWICKLUNGEN.md` (kompakte ID-Tabelle mit Verweisen auf `docs/ANKER_PLAN.txt`).
+- Architektur: `docs/STRUKTUR.md` (nachgewiesener Ist-Zustand, geplante Architektur getrennt).
+- Testnachweise: `docs/ANKER_TESTNACHWEISE.md` (vorhandene Belege erhalten, gezielt ergänzen).
+- Neu nur bei fehlendem gleichwertigem Bestand: `docs/PROJECT_STATUS.md` (kurzer Übergabestand) und `docs/PROMPT_TEMPLATES.md` (drei Vorlagen).
+- `AGENTS.md`: bestehende Regeln erhalten, nur knapp und notwendig ergänzen.
+- `README.md`: nur bei Bedarf kurze Verweise ergänzen.
+- `docs/IDEAS.md`: erst bei späteren neuen Ideen und fehlender gleichwertiger Datei.
+
+Wenn die genannte Standarddatei inhaltlich nicht geeignet ist, dies konkret begründen und erst dann einen alternativen Speicherort wählen. `docs/ARCHITECTURE.md`, `docs/ROADMAP.md` und `docs/TESTING.md` nur bei begründetem Scheitern der Zuordnung neu anlegen. Keine widersprüchlichen Parallelwahrheiten.
+
+Der Status enthält aktuelle Aufgabe, belegte Ergebnisse, tatsächlichen Integrationsstand, Blocker und nächsten Schritt; keine vollständige Chronik. Testnachweise unterscheiden automatisierte Prüfungen von echten Gerätebeobachtungen. Den Abschluss-Commit in der Antwort nennen, nicht in einer endlosen Commit-Schleife in dieselbe Datei schreiben.
+
+## 7. Verbindliche Arbeitsweise für spätere Codex-Tasks
+
+Nach diesem Einrichtungstask soll pro neuem Task grundsätzlich genau eine Funktions- oder Technikaufgabe bearbeitet werden.
+
+Keine unbegrenzte automatische Abarbeitung der Roadmap.
+
+Eine zusammenhängende Einheit darf gezielt mehrere IDs umfassen, wenn der Nutzer sie ausdrücklich zusammen freigibt. Standard bleibt eine Aufgabe pro Task.
+
+Jeder Task:
+1. Prüft seinen realen Ausgangsstand und die benötigten Vorarbeiten.
+2. Liest geltende AGENTS-Anweisungen und den knappen Status.
+3. Liest die konkrete Aufgabe und relevante technische Dateien.
+4. Verwendet vorhandene Komponenten statt Parallelarchitektur.
+5. Implementiert nur den freigegebenen Umfang.
+6. Führt sinnvolle Zwischenchecks und passende Abschlussprüfungen aus.
+7. Korrigiert eigene relevante Fehler.
+8. Dokumentiert Ergebnis, Grenzen und Integrationslage.
+9. Sichert den Stand, soweit zulässig.
+10. Gibt genau einen nächsten kopierfertigen Prompt aus.
+
+Nicht automatisch sämtliche Markdown-Dateien oder den gesamten Quellbaum immer erneut einlesen.
+
+Gezielte aktuelle Codeprüfung ist ausdrücklich erlaubt und erforderlich.
+
+Unveränderte, bereits ausreichend im Task-Kontext bekannte Dateien nicht mechanisch erneut lesen.
+
+Standardmäßig ein Bearbeitungsversuch, keine parallelen Agenten oder Lösungsvarianten ohne begründeten Nutzen und Freigabe.
+
+Wenn parallele Prüfungen wirklich nötig werden, nur unter Beachtung der vorhandenen Worktree- und Schreibschutzregeln.
+
+Keine erfundenen Sparprozente, Kosten, Verbrauchswerte oder Restlimits.
+
+Bei jedem neuen Ausführungstask zuerst das Startprotokoll aus Abschnitt 7a verwenden. Die Empfehlung muss zu den tatsächlich verfügbaren Modellen und Denkstufen passen; ohne sichtbare Optionen einmal kurz nachfragen. Keine selbst vorgenommene Browser-Einstellungsänderung behaupten.
+
+Kleine Zwischenprüfungen sind sinnvoll. Umfangreiche Tests nach Risiko und Umfang bündeln. Betroffene Tests nach wesentlichen Korrekturen erneut durchführen.
+
+Notwendige CI-, Sicherheits- und Regressionstests nicht deaktivieren, um Verbrauch zu reduzieren.
+
+Nach wiederholtem Scheitern derselben Strategie Ursache neu bewerten statt blind weiterprobieren.
+
+Kurze Ergebnisberichte; vollständige Logs nur bei wirklichem Bedarf.
+
+## 7a. Verbindliches Startprotokoll für jeden neuen Codex-Ausführungstask
+
+Bevor Codex die eigentliche Bearbeitung beginnt, muss es in seiner ERSTEN Antwort kurz ausgeben:
+
+- EMPFOHLENES MODELL: konkreter Name aus den nachweislich in der aktuellen Codex-Browseroberfläche verfügbaren Modellen.
+- EMPFOHLENE DENKSTUFE: konkrete verfügbare Stufe.
+- GRUND: ein kurzer Satz bezogen auf die Schwierigkeit dieser Aufgabe.
+- NÄCHSTE AKTION: „Modell und Denkstufe auswählen und OK schreiben.“
+
+Codex darf nicht behaupten, Browser-Einstellungen selbst geändert zu haben. Wenn es die verfügbaren Optionen nicht sehen kann, darf es keine erfinden: zuerst den Nutzer einmal kurz nach den angezeigten Optionen fragen; danach eine konkrete Wahl empfehlen.
+
+Nach „OK“:
+1. Prüfen, ob der nächste Task technisch unabhängig, mit eigenem zugänglichem Branch/Worktree und ohne gemeinsame Schreibzugriffe parallel beginnen darf. Vorzeitige Folgeprompts nur dann erstellen, wenn Ausgangsstand und Aufgabenabgrenzung bereits belegbar sind.
+2. Falls sicher parallelisierbar: einen als VORLÄUFIG gekennzeichneten vollständigen Prompt für den anderen Chat ausgeben. Dieser enthält seinerseits das Startprotokoll für Modell/Denkstufe. Codex darf nicht behaupten, den zweiten Chat automatisch geöffnet zu haben.
+3. Falls nicht sicher: ausdrücklich sagen „Keinen zweiten Task starten – zuerst diesen abschließen.“ Keinen verfrühten abhängigen Folgeprompt als ausführbar ausgeben.
+4. Anschließend die aktuelle Aufgabe bearbeiten, mit den vereinbarten Prüfungen und Sicherungen abschließen und den tatsächlich gültigen Folgeprompt aus dem geprüften Endstand ausgeben.
+
+Das vorläufige Parallelangebot ersetzt nie die Abschlussübergabe. Es darf keine unfertigen lokalen Änderungen als in einem zweiten Task verfügbar voraussetzen. Die Empfehlung von Modell/Denkstufe ist eine Empfehlung, keine technische Voraussetzung oder Garantie; nach Auswahl und OK darf Codex innerhalb des freigegebenen Umfangs arbeiten.
+
+## 8. Grenzen und Freigaben
+
+Keine destruktiven Git-Befehle.
+Keine fremden Änderungen überschreiben.
+Kein automatischer Merge in den Hauptbranch.
+Kein Force-Push.
+Keine produktive Datenmigration.
+Keine produktive Datenlöschung.
+Keine öffentliche Veröffentlichung.
+Keine kostenpflichtigen Dienste ohne ausdrückliche Freigabe.
+Keine automatische Übertragung sensibler Daten.
+Keine selbstständige Erteilung von Android-, Google-, Cloud- oder Kontoberechtigungen.
+Keine erzwungene PC-Sperre oder andere aktive Systemwirkung ohne vorhandene Freigaben.
+
+Prüfe vor Push oder Merge, ob bestehende Workflows automatische Deployments oder andere relevante Wirkungen auslösen. Nenne erforderliche Freigaben.
+
+Auch wenn ältere Repository-Anweisungen einen Release-/Play-Ablauf vorsehen, autorisiert dieser Prompt nur Einrichtung und Dokumentation.
+
+Neue Ideen des Nutzers zunächst als Vorschlag erfassen, Doppelungen prüfen und passende stabile neue IDs vergeben. Keine bestehende Aufgabe still erweitern.
+
+Eine ausdrückliche Prioritätsänderung darf die Reihenfolge ändern. Vor dem Wechsel die aktuelle Arbeit sichern und den Status aktualisieren.
+
+Bei notwendiger manueller Entscheidung genau die kleinste relevante Frage stellen.
+
+## 9. Standardstruktur für zukünftige Ausführungsprompts
+
+Jeder konkret ausgegebene Aufgabenprompt muss folgende Felder enthalten:
+
+PROJEKT: `frnkrm/anker`.
+AUFGABE: konkrete stabile Aufgaben-ID und Titel.
+AUSGANGSSTAND: tatsächlich erforderlicher Branch/Commit beziehungsweise verfügbare Integrationsgrundlage.
+ZIEL: konkretes gewünschtes Ergebnis.
+KONTEXT: relevante Planstellen, Quellbereiche, Vorgeschichte oder Fehlerdaten.
+UMFANG: zu erledigende Arbeit und ausdrücklich nicht enthaltene Arbeiten.
+ABNAHME: prüfbare Kriterien.
+PRÜFUNG: passende Zwischen- und Abschlussprüfungen.
+GRENZEN: Sicherheits-, Datenschutz-, Veröffentlichungs- und Freigaberegeln.
+ABSCHLUSS: tatsächlichen Stand sichern, zutreffende Dokumente aktualisieren und genau einen nächsten kopierfertigen Prompt liefern.
+
+Bekannte Parameter aus Roadmap und Repository ausfüllen. Fehlende technische Fakten nicht vom Nutzer erraten lassen, sondern als Prüfauftrag formulieren.
+
+Normale Folgeprompts sollen ungefähr 200–400 Wörter umfassen, falls das für die Aufgabe ausreicht. Keine alten vollständigen Inventare und Regeln erneut anhängen.
+
+## 10. Drei Fallvorlagen für docs/PROMPT_TEMPLATES.md
+
+Speichere ausschließlich diese drei wiederverwendbaren Fallvorlagen. Für alle anderen Aufgaben genügt die Standardstruktur aus Abschnitt 9 und die konkrete Roadmap-Aufgabe.
+
+### 1. Fehlerbehebung
+„Untersuche [FEHLER]. Erwartet: [SOLL]. Tatsächlich: [IST]. Reproduktion oder Hinweise: [ANGABEN]. Ermittle die Ursache gezielt, behebe sie begrenzt und ergänze soweit sinnvoll einen Regressionstest. Keine unabhängigen Refactorings. Keine unbewiesene Reproduktion behaupten.“
+
+### 2. Unterbrechung und Wiederaufnahme
+„Setze [AUFGABE] vom nachgewiesenen Stand [REFERENZ] fort. Prüfe vorhandene Änderungen und Prüfungen. Bereits erledigte Schritte nur bei geänderter Grundlage oder begründetem Zweifel wiederholen. Bei Blocker Stand sichern und Wiederaufnahmeprompt erstellen.“
+
+### 3. Neue Idee aufnehmen
+„Nimm folgende Idee auf: [GEDANKE DES NUTZERS]. Formuliere daraus einen Vorschlag, prüfe Doppelungen, Nutzen und offene Fragen. Nicht sofort implementieren. Prioritätsentscheidungen am nächsten Übergabepunkt vorlegen.“
+
+## 11. Verbindliches Abschlussformat jeder Aufgabe
+
+Jede abgeschlossene Codex-Antwort enthält:
+
+### STATUS
+Was ist implementiert, geprüft, lokal gesichert, auf GitHub verfügbar, zur Übernahme bereit, integriert beziehungsweise noch blockiert?
+
+### ERGEBNIS
+Kurze verständliche Zusammenfassung und relevante Testergebnisse.
+
+### DEINE NÄCHSTE AKTION
+Genau eine unmittelbar nötige Handlung; bei technisch unvermeidbaren mehreren Schritten eine kurze geordnete Folge. Sage ausdrücklich, ob dieselbe Unterhaltung fortgesetzt oder ein neuer Task geöffnet werden soll.
+
+### NÄCHSTER PROMPT
+Ein eigenständiger, vollständig kopierbarer Block für die tatsächlich nächste zulässige Aufgabe.
+
+Falls ein PR nötig und in der Browseroberfläche verfügbar ist, sage ausdrücklich, ob „PR erstellen“ geklickt werden soll. Vor dem ersten Merge sowie nach relevanten Workflowänderungen mögliche automatische GitHub-/Google-Play-Aktionen prüfen; ohne Klärung und Freigabe nicht mergen. Wenn noch eine Übernahme oder Freigabe fehlt, muss der nächste Prompt die Fortsetzung beziehungsweise Reparatur dieser Bedingung betreffen. Nicht trotz Blocker abhängige Funktionen beginnen.
+
+Ein Prompt transportiert keinen ungesicherten Code. Erkläre, wie die Änderungen beim Taskwechsel tatsächlich verfügbar werden.
+
+## 12. Jetzt auszuführende Schritte – nur Phase 1 bis 3
+
+Auch für diesen Einrichtungstask gilt: zuerst konkrete Modell-/Denkstufenempfehlung und „OK“ abwarten. Einen parallelen Folgeprompt nur anbieten, wenn dessen unabhängige Voraussetzungen bereits sicher geprüft sind; während der Einrichtung normalerweise noch nicht, da der gemeinsame Plan erst entsteht.
+
+
+Führe in diesem neuen Codex-Task ausschließlich Folgendes aus:
+
+PHASE 1 – Vorbereitung:
+1. Ausgangsstand, Übergabe und geltende Anweisungen prüfen.
+2. Vorhandenen Branch-/Commit-/PR-Zustand verifizieren.
+3. Bestehende Projektdokumentation und relevante Architektur erkennen.
+4. Fehlende Übernahmebedingungen vor weiterer Arbeit klären.
+
+PHASE 2 – Umgebung:
+1. Bestehende Cloud-Umgebung und Skripte prüfen.
+2. Vorhandene funktionierende Einrichtung wiederverwenden.
+3. Nur nachgewiesene Einrichtungsprobleme beheben, soweit ausdrücklich zulässig.
+4. Manuelle Browser-/Kontoschritte klar ausweisen.
+
+PHASE 3 – Planung:
+1. Vollständiges Inventar in docs/ANKER_PLAN.txt prüfen; nur eine kompakte ID-/Status-/Abhängigkeits-/Verweistabelle in docs/OFFENE_ENTWICKLUNGEN.md ergänzen, soweit die Datei inhaltlich geeignet ist.
+2. Status und nachgewiesene bestehende Funktionen erfassen.
+3. Abhängigkeiten, Abnahme und Prüfstrategien aus docs/ANKER_PLAN.txt verlinken; nur Abweichungen und Ergebnisse ergänzen.
+4. docs/STRUKTUR.md, docs/ANKER_TESTNACHWEISE.md und kurze Übergabedokumentation gezielt ergänzen.
+5. Die drei Prompt-Fallvorlagen speichern.
+6. Bei Bedarf README kurz verlinken.
+7. Dokumente auf Vollständigkeit und Widersprüche prüfen.
+8. Änderungen nachvollziehbar sichern, soweit zulässig.
+9. Genau einen nächsten ausführbaren Prompt erzeugen.
+
+Die erste neue Produktaufgabe soll grundsätzlich F-001 sein, falls die Voraussetzungen im realen Ausgangsstand erfüllt sind. Andernfalls die kleinste tatsächlich erforderliche technische Voraussetzung als nächsten Task wählen.
+
+In diesem Einrichtungstask F-001 NICHT implementieren.
+
+Keine weiteren Funktionen bei Gelegenheit einbauen.
+
+Beende den Task nach der vollständigen Planung, Sicherung und Übergabe.
+
+## 13. Spezielle Prüfung vor dem Abschluss
+
+Kontrolliere ausdrücklich:
+- Sind V-001 bis V-015 vollständig und richtig zugeordnet?
+- Sind F-001 bis F-010, T-001 bis T-006 und E-001 bis E-005 erfasst?
+- Wurden bereits vorhandene Funktionen nicht fälschlich als fehlend bezeichnet?
+- Sind alle Abhängigkeiten und erforderlichen Freigaben dokumentiert?
+- Sind die bisherigen Sicherheits- und Datenbestandsregeln erhalten?
+- Gibt es nur eine eindeutige maßgebliche Roadmap und einen knappen Übergabestand?
+- Sind alle drei Fallvorlagen in der Bibliothek?
+- Wurde keine neue Produktfunktion in diesem Einrichtungstask umgesetzt?
+- Ist der tatsächliche Git-/Integrationsstand klar?
+- Ist genau ein nächster ausführbarer Prompt vorhanden?
+
+Bei unvollständigem Befund nicht „alles fertig“ behaupten.
+
+Liefere abschließend STATUS, ERGEBNIS, DEINE NÄCHSTE AKTION und NÄCHSTER PROMPT.
+
+Beende dann den Einrichtungstask.
+
+---
+
+STARTÜBERGABE AUS DEM BISHERIGEN CODEX-TASK:
+
+Die vom Nutzer direkt unter diesem Prompt eingefügte Übergabe ist hier einzuordnen. Wenn keine Übergabe folgt, verifiziere den verfügbaren Ausgangsstand und kläre fehlende Integrationsvoraussetzungen, bevor abhängige Arbeit beginnt.
+
+
+6. BEISPIEL-FOLGEPROMPT
+=======================
+
+Dieser Prompt ist nur ein Beispiel. Der tatsächlich gültige Folgeprompt wird später von Codex aus dem geprüften Stand erstellt.
+
+# BEISPIEL – F-001: Abfahrtsbereitschaft sichtbar machen
+
+PROJEKT: `frnkrm/anker`
+
+AUFGABE: F-001 – Abfahrtsbereitschaft sichtbar machen
+
+AUSGANGSSTAND:
+Verwende ausschließlich den nach Abschluss des Einrichtungstasks nachgewiesenen, tatsächlich verfügbaren Projektstand. Prüfe, ob T-001 bis T-003 und die notwendigen Übernahmen abgeschlossen sind.
+
+ZIEL:
+Die Jetzt-Ansicht soll die verbleibende Zeit bis zur nächsten relevanten Abfahrt mit der benötigten Dauer offener Vorbereitungsschritte vergleichen und den verbleibenden Puffer verständlich darstellen.
+
+KONTEXT:
+Maßgeblich sind die im Repository gespeicherte Roadmap, der aktuelle Projektstatus und die vorhandene Tagesplanungs- und Jetzt-Logik.
+
+UMFANG:
+1. Tatsächliche Implementierung prüfen.
+2. Bestehende Plan- und Routinedaten wiederverwenden.
+3. Eine reine, testbare Berechnung für Restzeit, notwendige offene Schritte und Puffer ergänzen.
+4. Die vorhandene Jetzt-Ansicht um eine kompakte Darstellung erweitern.
+5. Planänderung, Homeoffice, fehlende Dauern und überschrittene Abfahrtszeiten berücksichtigen.
+
+NICHT ENTHALTEN:
+F-002, F-003 oder andere Roadmap-Funktionen; zweite Planungsengine; zusätzliche Notifications; automatische Erledigung; GPS.
+
+ABNAHME:
+- Restzeit und Puffer sind rechnerisch korrekt.
+- Erledigte Schritte werden nicht nochmals eingerechnet.
+- Unbekannte Dauer führt nicht zu einer unbegründeten Pünktlichkeitszusage.
+- Planänderungen aktualisieren die Anzeige korrekt.
+- Die Oberfläche bleibt verständlich und bedienbar.
+
+PRÜFUNG:
+Passende Logik- und UI-Tests, relevante bestehende Zeit-/Planungsregressionen sowie notwendige Buildprüfung. Tests nur als bestanden melden, wenn ausgeführt.
+
+GRENZEN:
+Bestehende Nutzerdaten, Signatur, Wecker- und Reminder-Architektur erhalten. Kein Deployment, Merge oder produktiver Eingriff ohne Freigabe.
+
+ABSCHLUSS:
+Änderungen nachvollziehbar sichern, Roadmap und Projektstatus aktualisieren, tatsächlichen Branch-/Commit-/PR-Stand melden und genau einen nächsten kopierfertigen Prompt erzeugen. Nach F-001 stoppen.
+
+
+ABSCHLIESSENDER VORSCHLAG
+=========================
+
+Codex soll zuerst die unterbrochene Arbeit retten, anschließend die Projektstruktur einrichten und danach jede Verbesserung einzeln umsetzen.
+
+Die drei wichtigsten Funktionen gegen Zuspätkommen stehen an erster Stelle:
+1. Abfahrtsbereitschaft
+2. Rechtzeitiger Kurzmodus
+3. Dynamischer Startimpuls
+
+Alle anderen Ideen bleiben über ihre stabilen IDs erhalten.
+
+Der nächste Schritt ist PROMPT A im bisherigen Codex-Task, sobald das Limit wieder verfügbar ist. Danach folgen die geprüfte Übergabe und PROMPT B.
