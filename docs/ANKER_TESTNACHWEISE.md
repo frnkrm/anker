@@ -1,5 +1,14 @@
 # Anker: Testnachweise
 
+## Einrichtung und Bestandsprüfung (13.11.2026)
+
+Ausgangscommit `6dfa632c94422d61d6a71c6a4a72c15fefd4a407`, Branch `entwicklung/anker-neu`, nur Dokumentationsänderungen. `ANKER_PLAN.txt`: 766 Zeilen und vollständige 36 IDs (15 V, 10 F, 6 T, 5 E); Datei unverändert. Dokumentationsprüfung vergleicht IDs, V-Zuordnungen, lokale Links und Abhängigkeiten; `git diff --check` als Abschlussprüfung. Keine neue Produkt-/Geräteprüfung daraus ableiten.
+
+`git bundle verify` der bisherigen Sicherung erfolgreich; SHA256 der drei vorhandenen Testlogs stimmen mit `checks.json` überein; vorhandene ZIP-Kopie CRC-fehlerfrei. Diese erhaltenen Logs belegen 75 Upload-/24 Auth-/35 Workflowtests auf `e48d289` (134 insgesamt, früher in dieser Unterhaltung ausgeführt), keinen neuen Lauf hier. Die historischen 136 sind ohne `835235b` nicht reproduziert. 1.183 Logik-/308 Browser-/252 Android-Fälle bleiben historische Übergabe, nicht erneut ausgeführt. Keine Abhängigkeiten für einen reinen Dokumentationsabschluss installiert. Keine neuen Galaxy-/Windows-Ergebnisse.
+
+Remote-Refs erneut gelesen: main `e48d289`, Arbeitsbranch/PR2-Head `6dfa632`. PR-/Actions-API `Forbidden`, Fetch `835235b` `not our ref`; aktueller Play-Bestand unbestätigt. Fehlende Originaldateien bleiben möglicherweise in der Supportumgebung erhalten. [Konkrete Grenzen und Wiederaufnahme](PROJECT_STATUS.md).
+
+
 ## Code17: G3 identische lokale und entfernte Timer-Prüffehler (10.11.2026)
 
 Auf `1e68b06fe855b06886a69926a5ad562580648084` bleiben 1.183 Logik- und 252 frische Nativefälle samt unsigned APK/AAB grün. Lokal und in [CI42746477364](https://github.com/frnkrm/anker/actions/runs/42746477364) enden die Browserprüfungen mit **305/308, drei Fehlern, ohne Retries/Skips**. Alle drei Fehler stammen aus `subtask-timer.spec.ts:141/224` und der nachträglichen `aria-checked`-Prüfung in `helpers/controls.ts:42`: Der gewählte Fokus wird korrekt angezeigt, während die ausgewählte Radioansicht nach `TaskFocus`-Navigation absichtlich entfällt. Die beiden vorherigen Eingabe-Fehler sind behoben. Rohbelege: `shipping4/recheck2`, `public-ci-1e68b06-error-review/OBSERVED-RESULT.json` und Native5; tatsächliche Prozess-Exitcodes sind gespeichert. Der folgende Timer-Prüfablauf erhält alle bisherigen Restzeit-, Persistenz-, XP- und Nicht-Erledigt-Bedingungen. Kein Signieren oder Playupload aus diesem roten Stand.

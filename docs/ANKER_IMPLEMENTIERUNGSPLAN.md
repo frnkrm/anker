@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## Einrichtung auf entwicklung/anker-neu (13.11.2026)
+
+Aktueller Auftrag erlaubt ausschließlich Bestandsprüfung/Einrichtung/Dokumentation. Historische umfassende Entwicklungs- und Play-Aufträge sind dafür keine neue Uploadfreigabe. T-001 bleibt wegen Originalumgebung/Nachfolgecommit und externer Nachweise blockiert. Keine erneute Anwendung früherer lokaler Dokumentationsänderungen. [Verifizierter Übergabestand](PROJECT_STATUS.md) und [einzige neue ID-Roadmap](OFFENE_ENTWICKLUNGEN.md); keine neue Produktfunktion oder Wiederherstellung begonnen.
+
+
 ## Code17: navigierende Fokusauswahl getrennt prüfen (10.11.2026)
 
 Die Eingabe-Rennen nach normaler Auswahl sind mit gehaltenen Browserverläufen geschlossen. Der vollständige Stand `1e68b06` erreicht lokal und in CI jeweils 305/308: Die drei übrigen Fehler betreffen ausschließlich eine neue Prüfnachbedingung für eine Fokusauswahl, die ihre Ansicht bestimmungsgemäß schließt. Der betroffene Timer-Testablauf wird anhand der neuen Ziel-URL, Überschrift und abgeschlossenen Modalnavigation geprüft. Sämtliche fachlichen Timer-/Datenbedingungen bleiben erhalten. Produkt- und Nativequellen bleiben unverändert; Signierung und Playupload warten auf den gemeinsamen grünen Abschluss.

@@ -1,5 +1,66 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## Verbindliche Roadmap – vorläufiger Stand 13.11.2026
+
+Maßgebliches Anforderungsinventar: [ANKER_PLAN.txt](ANKER_PLAN.txt), insbesondere Abschnitt 2; Arbeitsregeln in Abschnitt 5. Die Datei bleibt unverändert. Diese Tabelle ist die einzige aktuelle ID-Roadmap; die unten erhaltene Bestandsliste vom 10.11. ist historischer Kontext, keine zusätzliche Freigabe.
+
+**T-001 ist BLOCKIERT.** Die ursprüngliche Nachfolgearbeit ist nicht verfügbar. Daher keine abhängige Detailplanung auf angeblich vollständiger Basis und kein Start von F-001. Die Tabelle erfasst ausschließlich das vollständige Inventar und dessen vorgegebene Abhängigkeiten. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
+
+Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert nein (nur lokal auf `entwicklung/anker-neu`, PR-Zustand unbekannt); Gerätetest nicht nötig; veröffentlicht nein. Für sämtliche neuen F-IDs: integriert nein als nachgewiesener Abschluss dieser ID, Gerätetest offen, veröffentlicht nein; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
+
+| ID | Titel | Status | Abhängigkeit | Planverweis |
+|---|---|---|---|---|
+| T-001 | Unterbrochene Entwicklung retten | BLOCKIERT | Originalumgebung/Support und unabhängige GitHub-Nachweise | [§ 2.2, T-001](ANKER_PLAN.txt) |
+| T-002 | Umgebung und Entwicklungsbefehle prüfen | BLOCKIERT | T-001 | [§ 2.2, T-002](ANKER_PLAN.txt) |
+| T-003 | Roadmap und Übergabedokumentation einrichten | BLOCKIERT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
+| T-004 | Plattform- und Geräteprüfungen vorbereiten | OFFEN | T-003 | [§ 2.2, T-004](ANKER_PLAN.txt) |
+| T-005 | Datenschutz und Datengrenzen absichern | OFFEN | vor neuen Datenflüssen | [§ 2.2, T-005](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | OFFEN | umgesetzte Funktionen, Integration und Gerätebelege | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| F-001 | Abfahrtsbereitschaft sichtbar machen | BLOCKIERT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
+| F-002 | Kurzmodus bei Zeitmangel anbieten | BLOCKIERT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
+| F-003 | Dynamischen Vorbereitungsimpuls ergänzen | BLOCKIERT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
+| F-004 | Zeitgefühl und Dauerabschätzung verbessern | BLOCKIERT | T-003, F-001; T-005 vor neuen Messdaten | [§ 2.3, F-004](ANKER_PLAN.txt) |
+| F-005 | Wiedereinstiegs-Assistent | BLOCKIERT | T-003 | [§ 2.3, F-005](ANKER_PLAN.txt) |
+| F-006 | Übergangshelfer | BLOCKIERT | T-003 | [§ 2.3, F-006](ANKER_PLAN.txt) |
+| F-007 | Blockaden sanft erkennen und Vereinfachung anbieten | BLOCKIERT | T-003 | [§ 2.3, F-007](ANKER_PLAN.txt) |
+| F-008 | NFC-Ankerpunkte | BLOCKIERT | T-005, Android-Machbarkeit und Freigabe | [§ 2.3, F-008](ANKER_PLAN.txt) |
+| F-009 | Freiwilliges Body Doubling | BLOCKIERT | T-005; soziale Variante gesonderte Freigabe | [§ 2.3, F-009](ANKER_PLAN.txt) |
+| F-010 | Wochenrückblick über Hindernisse | BLOCKIERT | T-005; ggf. F-004/F-007 | [§ 2.3, F-010](ANKER_PLAN.txt) |
+| E-001 | Cloud-Zugriffe prüfen | BLOCKIERT | T-001, Kontozugriff | [§ 2.4, E-001](ANKER_PLAN.txt) |
+| E-002 | Android-Wecker real prüfen | OFFEN | T-004, Android-Gerät und Buildzuordnung | [§ 2.4, E-002](ANKER_PLAN.txt) |
+| E-003 | Windows-Begleiter prüfen | OFFEN | T-004, Windows-Gerät | [§ 2.4, E-003](ANKER_PLAN.txt) |
+| E-004 | Kalenderzugriff prüfen | OFFEN | T-004, Kalenderfreigabe am Gerät | [§ 2.4, E-004](ANKER_PLAN.txt) |
+| E-005 | Optionalen NFC-Betrieb einrichten | OFFEN | F-008, geeignete Hardware | [§ 2.4, E-005](ANKER_PLAN.txt) |
+| V-001 | Wiedereinstiegs-Assistent | OFFEN | F-005 | [§ 2.1, V-001](ANKER_PLAN.txt) |
+| V-002 | Übergangshelfer | OFFEN | F-006 | [§ 2.1, V-002](ANKER_PLAN.txt) |
+| V-003 | Vereinfachung bei Blockaden | OFFEN | F-007 | [§ 2.1, V-003](ANKER_PLAN.txt) |
+| V-004 | Physische NFC-Ankerpunkte | OFFEN | F-008 | [§ 2.1, V-004](ANKER_PLAN.txt) |
+| V-005 | Zeitgefühl und realistische Zeitschätzungen | OFFEN | F-004 | [§ 2.1, V-005](ANKER_PLAN.txt) |
+| V-006 | Freiwilliges Body Doubling | OFFEN | F-009 | [§ 2.1, V-006](ANKER_PLAN.txt) |
+| V-007 | Wochenrückblick über Hindernisse | OFFEN | F-010 | [§ 2.1, V-007](ANKER_PLAN.txt) |
+| V-008 | Abfahrts-Countdown mit Pufferbewertung | OFFEN | F-001 | [§ 2.1, V-008](ANKER_PLAN.txt) |
+| V-009 | Rechtzeitiger Kurzmodus | OFFEN | F-002 | [§ 2.1, V-009](ANKER_PLAN.txt) |
+| V-010 | Dynamischer Vorbereitungsimpuls | OFFEN | F-003 | [§ 2.1, V-010](ANKER_PLAN.txt) |
+| V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
+| V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
+| V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | OFFEN | T-006 | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-015 | Diagnose und Datenschutz überprüfen | OFFEN | T-005 | [§ 2.1, V-015](ANKER_PLAN.txt) |
+
+Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
+
+### Belegte vorhandene Grundlagen, keine vollständige neue Abnahme
+
+- F-001/F-002: `src/core/planner/`, `src/core/now.ts` und `src/ui/pages/Now.tsx` verwenden Planblöcke und Minimalvarianten; `src/core/reminders/build.ts` enthält `leave-10`, `leave` und `latest-leave`. Die geforderte gemeinsame Pufferbewertung/Angebotsabnahme ist damit nicht nachgewiesen.
+- F-003: vorhandene Reminder-Engine und Android-`ReminderScheduler` weiterverwenden. Vorhandene feste Zehn-Minuten-Meldung ist kein belegter dynamischer Impuls.
+- F-004/F-009: vorhandene Fokus-/Zeitfunktionen in `src/core/focus.ts`, `support.ts` und Store; neue Messdaten oder soziale Kommunikation erst nach T-005 bzw. eigener Freigabe.
+- F-005: `src/core/recovery.ts`, `support.ts` und `Now.tsx` besitzen bereits Resume-Punkte und Wiedereinstieg. Keine zweite Aufgabenverwaltung.
+- F-006/F-007: `src/core/guidance/` und `support.ts` sind vorhandene Besitzer von Führung/Unterstützungsmodi; neue Abnahmekriterien erst nach geklärter Basis gezielt vergleichen.
+- F-008/F-010: noch kein vollständiger gezielter Implementierungsabgleich; kein Fehlens- oder Erledigungsnachweis. Hardware-, Datenschutz- und Aggregationsabnahmen bleiben offen.
+
+---
+
+
 Stand 10.11.2026. Der Nutzer hat nach dem Audit ausdrücklich alle verbleibenden Softwareentwicklungen beauftragt. Die folgende Liste ersetzt die frühere reine Vorschlagsliste und trennt integrierten Code, gemeinsame Abschlussprüfung und echte Einrichtung/Beobachtung.
 
 | Bereich | Aktueller Softwarestand |

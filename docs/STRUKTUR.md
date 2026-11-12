@@ -1,5 +1,10 @@
 # Struktur des Repositorys
 
+## Planung ab 13.11.2026
+
+Ist-Code bleibt in den unten beschriebenen bestehenden Besitzern. Die aktuelle ID-Roadmap steht ausschließlich in [OFFENE_ENTWICKLUNGEN.md](OFFENE_ENTWICKLUNGEN.md), der knappe Übergabestand mit Umgebungsbefund in [PROJECT_STATUS.md](PROJECT_STATUS.md), drei Fallvorlagen in [PROMPT_TEMPLATES.md](PROMPT_TEMPLATES.md). Anforderungen und Abnahmen bleiben unverändert in `ANKER_PLAN.txt`. Neue Architektur ist nicht implementiert oder freigegeben; keine zweite Planungs-/Reminder-/Store-Engine.
+
+
 Wo liegt was, und wo änderst du was? Die Bedienung der App steht in [ANLEITUNG.md](ANLEITUNG.md), die Einrichtung der Dienste im [README](../README.md).
 
 **v7: Abend, Morgen und PC-Begleiter.** Es gibt weiterhin einen Tagesplaner, eine Store-Schreibqueue und den bestehenden Android-Weckerbesitzer. Die neue Zustandsprojektion und PC-Ausführung werden daran angeschlossen. Implementierung, automatische Tests und echte Android-/Windows-Beobachtungen stehen getrennt im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md).
