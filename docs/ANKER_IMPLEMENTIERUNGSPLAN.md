@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## F-007 / V-003: belegtes freiwilliges Vereinfachungsangebot (13.11.2026)
+
+Basis `7a2b227`, tatsächlicher sauberer Branch `entwicklung/anker-neu`, gesonderter Einzelauftrag. Bestandsmodi, suggestedMode und Starthilfe geprüft. Keine belastbare Historie mehrfachen Verschiebens vorhanden; Nichtnutzung/letztes deferredUntil nicht als Blockade deuten. Stattdessen nur ausdrückliche Verkleinerung einer noch aktuellen Starthilfe als belegter Auslöser. Angebot im bereits geöffneten Hilfefenster, kein neuer Hauptscreen, keine automatische Öffnung. Annahme wählt bestehenden Tagesmodus Einfach anfangen; keine Routine-/Kernschritte entfernen, keine Zeitmessung oder automatische Timerfortsetzung.
+
+Vorabentscheid zu genau einem allgemeinen Tages-Abwahlschlüssel in DATENSCHUTZ_DATENGRENZEN.md umgesetzt; keine privaten Kontextkopien oder Zähler. Bestehender Tagesrecord/Storequeue, Revalidierung von Plan/Modus/Inhalt/Tag vor Annahme, allgemeine heutige Abwahl über Reload/Kontexte erhalten. Keine Awards/Erledigungen/Timeränderungen durch die Wahl. F-006-Leseeingabe und Hilfeschlüssel für denselben Core-/Storeweg wiederverwendbar gemacht, keine parallele Engine. Verkleinerte Hilfe auf Jetzt ohne falsches2Minuten-Versprechen.
+
+114verschiedene gezielte TS-/Store-/Datenschutzfälle in9Dateien gestuft grün,19neu;23Browserfälle in zwei erfolgreichen Auswahlen18/18und5/5. Typecheck/Build und Lint0Fehler/1bekannte Warnung. Originalplan/36IDs/103Gerätezeilen erhalten, Native/Reminder/Transport/Pakete/Workflows unverändert, Hardware offen. Lokaler Commit, Bundle/Wiederherstellung/SHA256; kein Push/Merge/Release/Cloud-/Playeingriff. Aktuelle Nutzergrenzen gehen historischen Uploadaufträgen vor. Nach F-007 stoppen. Vor F-008 gesonderte T-004-NFC-Machbarkeits-/Prüfpfadvorbereitung; keine neue Produktaufgabe durch diesen Abschluss.
+
+
 ## F-006 / V-002: aktuelle Übergänge ohne zweiten Controller (13.11.2026)
 
 Basis `769ea77`, sauberer lokaler Branch `entwicklung/anker-neu`, gesonderter Einzelauftrag. Vorhandene Pause/Weiter, Abendverlängerung/offenes Ende, PC-Rückmeldung, Guidance-Phasen und Storequeue wiederverwendet. Ergänzt nur fehlende Folgeprojektion und kurze Texte. Derselbe `nextNow`/`nextAction`-Weg für Jetzt, Abschluss und bestehende Capture-/Shortcutleser; aktivierter früher Morgen und überholte Merker korrekt. `nowView` lässt geschlossene Routineblöcke nicht als neue Tätigkeit stehen. Keine Häkchen/Punkte aus Uhrzeit oder Zustellung, F-005s bewusste Timerfortsetzung erhalten.

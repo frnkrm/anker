@@ -15,6 +15,7 @@ import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, t
 import { activePlanDate, openSteps, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
 import { morningShortOffer } from '../core/morningShort'
+import { simplificationOffer, SUPPORT_OFFER_DISMISSED, type NextInput } from '../core/support'
 import { planConflicts, validConflictAcknowledgements } from '../core/planConflicts'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
@@ -157,6 +158,7 @@ interface AppState {
   adjustDay(date: DateStr, label: string, fn: (log: DayLog) => DayLog): Promise<void>
   /** Aktuelles Kurzmodusangebot in derselben Tagesplantransaktion bewusst übernehmen. */
   acceptMorningShort(date: DateStr, revision: string): Promise<boolean>
+  respondSupportOffer(date: DateStr, revision: string, choice: 'accept' | 'dismiss'): Promise<boolean>
   /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
   restoreDay(date: DateStr): Promise<void>
   saveCommitment(c: Commitment): Promise<void>
@@ -468,6 +470,14 @@ function eventsFor(date: DateStr, events: CalendarEvent[]): CalendarEvent[] {
     const end = minutesOnPlanDay(date, e.end)
     return end > 0 && s < 1440 + 360
   })
+}
+
+/** Eine Eingabe für denselben bestehenden Planer und alle aktuellen Unterstützungsleser. */
+export function supportInput(st = useApp.getState(), nowMs = Date.now()): NextInput {
+  const date = guidancePlanDate(st.local, activePlanDate(nowMs, todayBerlin), nowMs)
+  return { plan: planFor(date, st), log: st.days[date], m: minutesOnPlanDay(date, nowMs), nowMs,
+    settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume,
+    sessions: st.local.workSessions, context: st.local.taskContext }
 }
 
 export function statusOf(date: DateStr, st = useApp.getState()): DayStatus {
@@ -1398,6 +1408,24 @@ export const useApp = create<AppState>()((set, get) => ({
       return offer !== undefined && offer.revision === revision
     }, { obsolete: 'ignore', evaluateProgress: false })
     return applied
+  },
+
+  respondSupportOffer(date, revision, choice) {
+    return atomic(async () => {
+      const st = get()
+      const input = supportInput(st)
+      if (!revision || date !== input.plan.date || (choice !== 'accept' && choice !== 'dismiss')
+        || input.log?.dismissed?.includes(SUPPORT_OFFER_DISMISSED)) return false
+      if (choice === 'accept' && simplificationOffer(input, st.local)?.revision !== revision) return false
+      const log = structuredClone(input.log ?? emptyLog(date))
+      log.dismissed = [...(log.dismissed ?? []), SUPPORT_OFFER_DISMISSED]
+      if (choice === 'accept') log.override = { ...log.override, mode: 'startschwierigkeit' }
+      // Eine Wahl ist kein Fortschritt: keine Awards, Timeränderung oder Erledigung.
+      await repo.putMany([{ collection: 'days', id: date, data: log }])
+      set({ days: { ...st.days, [date]: log } })
+      changed()
+      return true
+    })
   },
 
   restoreDay(date) {

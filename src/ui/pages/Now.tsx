@@ -7,7 +7,7 @@ import { guidancePlanDate } from '../../core/guidance/model'
 import { activePlanDate } from '../../core/now'
 import { taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
-import { currentMode, isBehind, MODE_HINT, MODE_LABEL, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
+import { currentMode, isBehind, MODE_HINT, MODE_LABEL, rescueItems, suggestedMode, supportContextKey, workTasksQuiet, type NextAction } from '../../core/support'
 import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
 import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, todayBerlin, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
@@ -238,6 +238,7 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
 
 function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; estimatedMin?: number; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
   const st = useApp()
+  const smallerHelp = st.local.stuck?.contextKey === supportContextKey(a, date, st.local.focus?.target) && st.local.stuck.level > 0
   const nav = useNavigate()
   const partFor = (kind: 'task' | 'work', id: string) => {
     const target = st.local.focus?.target
@@ -272,7 +273,7 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
         <>
           {mode === 'startschwierigkeit' ? (
             <Button variant="primary" size="xl" className="w-full" onClick={onStuck}>
-              2 Minuten anfangen
+              {smallerHelp ? 'Klein anfangen' : '2 Minuten anfangen'}
             </Button>
           ) : (
             <Button variant="primary" size="xl" className="w-full" onClick={() => st.setStep(date, a.routine, a.step.id, a.step.useMinimal ? 'minimal' : 'done')}>

@@ -1,37 +1,20 @@
 import { useRef, useState } from 'react'
-import { createCountdown, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
-import { stuckLadder, type NextAction } from '../../core/support'
-import { today, useApp } from '../../state/store'
+import { createCountdown, pauseCountdown, remainingMs, resumeCountdown } from '../../core/focus'
+import { simplificationOffer, stuckLadder, supportContextKey, type NextAction } from '../../core/support'
+import { supportInput, useApp } from '../../state/store'
+import { useNow } from '../../state/hooks'
 import { useFocusClock } from '../../state/useFocusClock'
 import { Button, RingTimer, Sheet } from './ui'
-
-function contextKey(action: NextAction, date: string, focus?: FocusTarget): string {
-  // Alte Elternmerker bleiben lesbar; nur ein konkreter Teil bekommt einen eigenen Schlüssel.
-  const taskKey = (kind: 'task' | 'work', id: string, partId?: string) => partId ? focusTargetKey({ kind, id, partId }) : `${kind}:${id}`
-  if (action.type === 'step') return `${date}:step:${action.routine}:${action.step.id}`
-  if (action.type === 'task') return taskKey('task', action.task.id, focus?.kind === 'task' && focus.id === action.task.id ? focus.partId : undefined)
-  if (action.type === 'worktask') return taskKey('work', action.task.id, focus?.kind === 'work' && focus.id === action.task.id ? focus.partId : undefined)
-  if (action.type === 'resume') {
-    const resume = action.resume
-    if (resume.refId && (resume.kind === 'task' || resume.kind === 'work')) return taskKey(resume.kind, resume.refId, resume.partId)
-    const routine = resume.kind === 'step' && resume.refId ? /^(\d{4}-\d{2}-\d{2}):(morning|evening):(.+)$/.exec(resume.refId) : undefined
-    if (routine) return `${routine[1]}:step:${routine[2]}:${routine[3]}`
-    return `resume:${resume.kind}:${resume.at}`
-  }
-  if (action.type === 'einsatz-running') return `session:${action.session.id}`
-  if (['prep', 'go', 'underway', 'away', 'einsatz-start'].includes(action.type) && 'leg' in action) return `leg:${action.leg.commitment.id}`
-  return `${date}:${action.type}`
-}
 
 /** Eigener Hilfetimer. Öffnen, Pause und Fertig verändern weder Fokus noch Aufgabenstatus. */
 export function StuckSheet({ open, onClose, action }: { open: boolean; onClose: () => void; action: NextAction }) {
   const st = useApp()
-  const [captured, setCaptured] = useState({ shown: open, action, date: today(), focus: st.local.focus?.target })
+  const [captured, setCaptured] = useState({ shown: open, action, date: supportInput(st).plan.date, focus: st.local.focus?.target })
   // Während einer offenen Hilfe bleibt die gewählte Aufgabe stabil, auch wenn Jetzt neu plant.
-  if (captured.shown !== open) setCaptured({ shown: open, action: open ? action : captured.action, date: open ? today() : captured.date, focus: open ? st.local.focus?.target : captured.focus })
+  if (captured.shown !== open) setCaptured({ shown: open, action: open ? action : captured.action, date: open ? supportInput(st).plan.date : captured.date, focus: open ? st.local.focus?.target : captured.focus })
   const source = captured.action
   const ladder = stuckLadder(source)
-  const key = contextKey(source, captured.date, captured.focus)
+  const key = supportContextKey(source, captured.date, captured.focus)
   const saved = st.local.stuck?.contextKey === key ? st.local.stuck : undefined
   const level = Math.min(saved?.level ?? 0, ladder.length - 1)
   const step = ladder[level]!
@@ -92,7 +75,39 @@ export function StuckSheet({ open, onClose, action }: { open: boolean; onClose: 
           {level < ladder.length - 1 && <Button size="lg" className="w-full" disabled={busy} onClick={() => void smaller()}>Etwas kleiner</Button>}
         </div>
       )}
+      {open && <StuckModeOffer contextKey={key} onAccepted={onClose} />}
       {step.text !== source.title && <p className="mt-3 text-center text-sm text-muted">Deine Aufgabe bleibt: {source.title}</p>}
     </Sheet>
   )
+}
+
+
+/** Angebot nur innerhalb der bewusst geöffneten Hilfe, nie als neue Jetzt-Hauptaktion. */
+function StuckModeOffer({ contextKey, onAccepted }: { contextKey: string; onAccepted: () => void }) {
+  const st = useApp()
+  const now = useNow(1000)
+  const offer = simplificationOffer(supportInput(st, now), st.local)
+  const pending = useRef(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  if (!offer || offer.contextKey !== contextKey) return null
+  const respond = async (choice: 'accept' | 'dismiss') => {
+    if (pending.current) return
+    pending.current = true; setBusy(true); setError('')
+    try {
+      const applied = await st.respondSupportOffer(offer.date, offer.revision, choice)
+      if (!applied) { st.showToast('Das Angebot ist nicht mehr aktuell. Deine bisherige Wahl bleibt erhalten.'); return }
+      if (choice === 'accept') onAccepted()
+    } catch { setError('Die Wahl konnte noch nicht gespeichert werden. Versuche es erneut.') }
+    finally { pending.current = false; setBusy(false) }
+  }
+  return <section aria-label="Freiwillige Vereinfachung" className="mt-4 min-w-0 space-y-2 rounded-xl border border-line p-3 text-sm break-words">
+    <p>Du hast für diesen Schritt „Etwas kleiner“ gewählt.</p>
+    <p className="font-semibold">Soll „Einfach anfangen“ heute helfen?</p>
+    <p>Bei Routinen steht dann die Starthilfe vorn. Alle Schritte und deine vorhandenen Timer bleiben erhalten.</p>
+    <Button disabled={busy} className="w-full" onClick={() => void respond('accept')}>Für heute Einfach anfangen</Button>
+    <Button disabled={busy} variant="ghost" className="w-full" onClick={() => void respond('dismiss')}>Heute ohne Angebot</Button>
+    <p className="text-muted">Dieses Angebot bleibt danach heute aus. Es startet keinen Timer.</p>
+    {error && <p role="alert">{error}</p>}
+  </section>
 }

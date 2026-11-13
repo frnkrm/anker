@@ -1,11 +1,13 @@
 // Reine Entscheidungslogik für die Alltagshilfe: Modi, flexible Aufgaben, nächste Aktion, Wiedereinstieg.
 // Alles regelbasiert, erklärbar und offline. Keine Annahmen über Medikamente oder deren Wirkung.
 
-import { nowView, type NowAction, type NowView } from './now'
-import { fmtTime, minutesOnPlanDay, type DateStr } from './time'
-import type { DayLog, DayPlan, InboxItem, Leg, Meal, ResumePoint, Settings, SupportMode, WorkSession, WorkSessionKind, WorkTask } from './types'
+import { activePlanDate, nowView, type NowAction, type NowView } from './now'
+import { guidancePlanDate } from './guidance/model'
+import { focusTargetKey, isStuckSession, type FocusTarget } from './focus'
+import { fmtTime, minutesOnPlanDay, todayBerlin, type DateStr } from './time'
+import type { DayLog, DayPlan, InboxItem, Leg, LocalData, Meal, ResumePoint, Settings, SupportMode, WorkSession, WorkSessionKind, WorkTask } from './types'
 import { currentWorkActual, staleSession } from './worktime'
-import { usableResume } from './recovery'
+import { recoveryPreview, usableResume } from './recovery'
 import { taskIsActionable, taskIsOpen, taskNextStep, taskPriority } from './tasks'
 import { minuteText } from './uiText'
 
@@ -156,6 +158,53 @@ export interface NextInput {
   sessions?: WorkSession[]
   /** Freiwillige explizite Auswahl; keine automatische Ortsbestimmung. */
   context?: 'any' | 'home' | 'work' | 'errand'
+}
+
+/** Gemeinsame F-006-Projektion: vorhandenen Merker validieren, dann dieselbe Handlungsauswahl. */
+export function currentSupportView(input: NextInput, local: Pick<LocalData, 'resume' | 'focusHistory' | 'guidance'>): NextView {
+  const resume = local.resume ? recoveryPreview({ ...input,
+    local: { resume: local.resume, focusHistory: local.focusHistory, guidance: local.guidance }, workQuiet: workTasksQuiet(input) })?.point : undefined
+  return nextAction({ ...input, resume })
+}
+
+/** Derselbe vorhandene Starthilfe-Schlüssel, keine zusätzliche Kontextspeicherung. */
+export function supportContextKey(action: NextAction, date: string, focus?: FocusTarget): string {
+  const taskKey = (kind: 'task' | 'work', id: string, partId?: string) => partId ? focusTargetKey({ kind, id, partId }) : `${kind}:${id}`
+  if (action.type === 'step') return `${date}:step:${action.routine}:${action.step.id}`
+  if (action.type === 'task') return taskKey('task', action.task.id, focus?.kind === 'task' && focus.id === action.task.id ? focus.partId : undefined)
+  if (action.type === 'worktask') return taskKey('work', action.task.id, focus?.kind === 'work' && focus.id === action.task.id ? focus.partId : undefined)
+  if (action.type === 'resume') {
+    const r = action.resume
+    if (r.refId && (r.kind === 'task' || r.kind === 'work')) return taskKey(r.kind, r.refId, r.partId)
+    const routine = r.kind === 'step' && r.refId ? /^(\d{4}-\d{2}-\d{2}):(morning|evening):(.+)$/.exec(r.refId) : undefined
+    if (routine) return `${routine[1]}:step:${routine[2]}:${routine[3]}`
+    return `resume:${r.kind}:${r.at}`
+  }
+  if (action.type === 'einsatz-running') return `session:${action.session.id}`
+  if (['prep', 'go', 'underway', 'away', 'einsatz-start'].includes(action.type) && 'leg' in action) return `leg:${action.leg.commitment.id}`
+  return `${date}:${action.type}`
+}
+
+export const SUPPORT_OFFER_DISMISSED = 'offer:start-small'
+export interface SimplificationOffer { date: string; contextKey: string; revision: string }
+
+/** Beleg ist die bewusste Verkleinerung derselben Hilfe, niemals Nichtnutzung oder vermutetes Verschieben. */
+export function simplificationOffer(input: NextInput, local: Pick<LocalData, 'stuck' | 'focus' | 'resume' | 'focusHistory' | 'guidance'>): SimplificationOffer | undefined {
+  const { plan, log, nowMs } = input
+  if (!Number.isFinite(nowMs) || plan.date !== guidancePlanDate(local, activePlanDate(nowMs, todayBerlin), nowMs)
+    || log && log.date !== plan.date || currentMode(log) !== 'normal' || log?.dismissed?.includes(SUPPORT_OFFER_DISMISSED)
+    || !local.stuck || !isStuckSession(local.stuck) || local.stuck.level !== 1) return undefined
+  const action = currentSupportView(input, local).action
+  if (action.type !== 'step' && action.type !== 'task' && action.type !== 'worktask'
+    && !(action.type === 'resume' && action.resume.refId && ['task', 'work'].includes(action.resume.kind))) return undefined
+  const target = local.focus?.target
+  if ((action.type === 'task' || action.type === 'worktask') && target && target.kind !== 'routine'
+    && target.id === action.task.id && target.kind === (action.type === 'task' ? 'task' : 'work')
+    && target.partId !== undefined && !action.task.subtasks?.some(part => part.id === target.partId && part.doneAt === undefined)) return undefined
+  const contextKey = supportContextKey(action, plan.date, target)
+  if (contextKey !== local.stuck.contextKey) return undefined
+  return { date: plan.date, contextKey,
+    revision: JSON.stringify([plan, log ?? null, action, contextKey, local.stuck.level, target ?? null]) }
 }
 
 export const SESSION_LABEL: Record<WorkSessionKind, string> = {

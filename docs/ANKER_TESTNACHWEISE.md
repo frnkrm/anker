@@ -1,5 +1,23 @@
 # Anker: Testnachweise
 
+## F-007 / V-003: freiwilliger Modus und respektierte Tagesabwahl (13.11.2026)
+
+Basis `7a2b227d080e111bc74075b8673a623507546b43`, sauberer Branch `entwicklung/anker-neu`. Unveränderte erfolgreiche Prüfungen erhalten, keine vollständige App-/Native-/CI-Neusuite.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielte TS-/Store-/Datenschutzfälle | **114verschiedene Fälle in9Dateien abgedeckt**,19neu. Bestand62/62; weitere Auswahl50/51, korrigierte neue Pakete18/18; ein neuer Reminder-Isolationsfall1/1 per Namensfilter (10vorher geprüfte Fälle nicht nochmals ausgewählt). Letzter Ergebnisstand aller114Fälle grün in logic-coverage.json |
+| Abnahmen | explizite Verkleinerung statt Nichtnutzungs-/Verschiebevermutung; vorhandener Modus/Tagesabwahl; alte/erledigte/entfernte/abgesagte/verschobene Ziele und veraltete Teilreferenz; flüchtige Plan-/Inhaltsrevision, Tageswechsel; Doppeltippen/Queuewartezeit/Moduswechsel, Speicherfehler mit Wiederholung; Timer/Kernschritte/Game unverändert |
+| Datenschutz | nur allgemeiner Tagesschlüssel statt Arbeits-/Aufgaben-/Notizkopien, Backup/Import/optional gewählter Tages-Sync; bestehende T-005-/Widget-/PC-Briefingprivatheit; Reminderprojektion vor/nach allgemeiner Abwahl identisch. Keine neue Feld-/Mess-/Transportfreigabe |
+| Browser | **23/23in zwei Auswahlen**:18/18 (5neue F-007-,7F-006-,6F-005-Fälle), danach5/5 bestehende Routine-/Starthilfepause, Teilkontext, Hauptaktionsbudget und Quick-Recovery. Kein fehlgeschlagener Browserlauf dieses Tasks |
+| UI | System-Chromium156,320px/160Prozent Schrift; vorhandenes Hilfefenster scrollt, Annahme/Abwahl erreichbar ohne horizontalen Überlauf. Schließen übernimmt keinen Modus, Tagesabwahl bleibt über Reload/anderen Schritt; Annahme startet keinen Fokus-/Hilfetimer. Bild mit freiwilligen Spieleinblendungen aus |
+| Lint / Typecheck / Build | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Produktionsbuild im lokalen Chromiumweg, keine Paket-/CI-/Timeout-/Retryänderung |
+
+Frühe Tests korrigiert: eine neue Assertion verwendete toContain direkt auf optionalem undefined statt leerer Liste; zu breite neue Test-Objektliterale für enge Lesetypen und fehlende Non-null-Nachweise im geladenen Tagesfixture korrigiert. Produktregeln/Assertionsinhalt nicht gelockert. Rohlogs/Selektionsgrenzen unter `/workspace/anker-f007-20261113/`, einschließlich logic-coverage.json, Bilder, RESULT.json, Vorher-/Nachher-Bundles/RESTORE.md/SHA256SUMS. Nur Cloud-lokal gesichert.
+
+114gezielte Softwarefälle ersetzen keine Hardwareprüfung. Native-/Wecker-/Reminder-/PC-/Synctransport, Wrapper-/Plugin-/Paketbindungen, Berechtigungen und Workflows unverändert.260Android-JUnit aus F-003 historisch erhalten; kein neuer Native-/CI-/Galaxy-/Windows-/Kalender-/NFC-Lauf oder externe Dienstwirkung. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten. Keine produktive Löschung, kein Push/Merge/Release/Cloud-/Playeingriff. Eine automatische Auswertung wiederholten Verschiebens ist mangels belastbarer Verlaufsdaten ausdrücklich nicht zugesagt.
+
+
 ## F-006 / V-002: Übergang mit einer aktuellen Handlung (13.11.2026)
 
 Basis `769ea77f8af56bda2cd703e4bdd4988b0d41afbb`, sauberer Branch `entwicklung/anker-neu`. Vorhandene erfolgreiche Nachweise erhalten, keine vollständige App-/CI-/Native-Suite wiederholt.
