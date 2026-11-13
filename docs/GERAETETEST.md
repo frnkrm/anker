@@ -1,5 +1,13 @@
 # Geräteprüfung
 
+## T-002-Nachbereitung: native Softwareprüfung verfügbar (13.11.2026)
+
+Nach dem unten erhaltenen T-004-Befund ausdrücklich eingerichtet: vollständiges lokales JDK21.0.13, Android-Commandline-Tools23.0, Plattform android-36 Revision2 und Build-Tools35.0.0 (AGP8.13-Default aus offiziellem Artefakt geprüft). Wrapper8.14.3 unverändert. Der frühere Compiler-/SDKblocker ist behoben; er beschreibt im T-004-Abschnitt den Zustand vor dieser Nachbereitung.
+
+Aktivierung: `source /workspace/anker-toolchains/env.sh`; dann im Repository `node scripts/gradle.mjs :app:testDebugUnitTest --no-daemon --console=plain --max-workers=2`. Frischer Lauf: **252/252 JUnit in28Suiten,0Fehler/Skips,196Tasks ausgeführt**, Exit0, einschließlich App-/Testkompilierung. Erst nach belegtem Fehler `npx cap sync android` für fehlende generierte Cordova-Datei ausgeführt; alle getrackten Produkt-/Projektdateien bleiben unverändert. Reproduktionsdaten, Tool-/SDKpfade, offizielle Paketprüfsummen und rohe Berichte im [Kurzstatus](PROJECT_STATUS.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md).
+
+Dies ist ausschließlich eine native **Softwareprüfung**, kein App-Installations-, Weckerton-, Zustellungs-, Windows- oder Kalenderkontonachweis. Alle103 historischen Gerätezeilen samt Ergebniszellen bleiben unverändert; G21/G38/G66–G71 und die unten beschriebenen weiteren Stationen behalten ihre offenen aktuellen Geräteanteile. F-003 ist weiterhin nicht implementiert. Kein Signieren, Release, Gerätinstallieren oder Play-Aufruf durch diese Einrichtung. Bei neuer Umgebung das lokale Aktivierungsskript und Proxyselektoren erneut prüfen; keine globale Toolverfügbarkeit aus dem Git-Bundle ableiten.
+
 ## T-004: Prüfvorbereitung für F-003 (13.11.2026)
 
 Dies ist eine Zuordnung künftiger Prüfungen, **kein neuer Gerätebericht**. Ausgangscode `b669856` enthält F-001/F-002 nur lokal. Die folgenden historischen Tabellen und ihre Ergebniszellen bleiben bytegleich; dieselben 103 IDs weiterverwenden. Ein alter Code17-Installationsstand belegt nicht die neuen lokalen Funktionen. Für spätere Beobachtungen App-/PC-Version, vollständigen Quellcommit bzw. Quellfingerprint, genaue Android-/One-UI-/Windows-Version, Einstellungen, Zeitpunkt/Zeitzone und tatsächliche Beobachtung getrennt notieren. Ohne passende Buildzuordnung nur Teilbefund, keine neue Abnahme.

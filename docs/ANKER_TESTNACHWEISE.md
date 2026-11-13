@@ -1,5 +1,26 @@
 # Anker: Testnachweise
 
+## T-002: native Werkzeuge und frische Android-JUnit (13.11.2026)
+
+Basis `a820115284cf22938e96dd1e4ea115764158575e`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine getrackte Produkt-/Test-/Paket-/Plugin-/Wrapperänderung. Keine Übernahme historischer Ergebnisse als neue Ausführung: folgende252JUnit wurden tatsächlich frisch ausgeführt; bisherige Web-/Browserprüfungen nicht wiederholt.
+
+| Befehl / Prüfung | Beobachtetes Ergebnis |
+|---|---|
+| Vollständiges lokales JDK, `javac -version` | Exit0,21.0.13; offizielles Debian-Sicherheits-JDK-Paket21.0.13+9-1~deb13u2 SHA256-verifiziert, identische Version zur vorhandenen JRE; keine System-Java-Aktualisierung |
+| Wrapper `node scripts/gradle.mjs --version` | Exit0,8.14.3, JVM21.0.13; kein globales Gradle installiert |
+| Offizielle AGP8.13-Artefakte per `javap` | CommonExtensionImpl nutzt ToolsRevisionUtils.DEFAULT_BUILD_TOOLS_REVISION; Initialisierung setzt diesen Wert auf MIN_BUILD_TOOLS_REV=35.0.0. Keine Version geraten oder im Projekt geändert |
+| `sdkmanager --sdk_root="$ANDROID_HOME" --list_installed` | Exit0 mit Plattform android-36 Revision2, Build-Tools35.0.0, Commandline-Tools23.0. Offizielle Repositorymetadaten, Commandline-Archivgröße/SHA1/CRC geprüft, zusätzliche lokale SHA256 in TOOLCHAIN.json |
+| Erster `:app:testDebugUnitTest` | Exit1 vor Tests: fehlende `android/capacitor-cordova-android-plugins/cordova.variables.gradle`; Fehlerlog erhalten |
+| `npx cap sync android` nur nach diesem Befund | Exit0, nötige ignorierte Datei erzeugt; kein getrackter Git-Diff |
+| Zweiter `node scripts/gradle.mjs :app:testDebugUnitTest --no-daemon --console=plain --max-workers=2` | **BUILD SUCCESSFUL**, Exit0,2m2s, **196Tasks ausgeführt**; **252Tests/28Suiten,0Failures/Errors/Skips**, aus rohen JUnit-XML summiert, App-/Test-Kotlin-/Javakompilierung enthalten |
+
+Aktivierung nur für den jeweiligen Aufruf: `source /workspace/anker-toolchains/env.sh`. Leerer Gradlecache erforderte den ersten Wrapper-/Abhängigkeitsdownload; Cache und Proxykonfiguration nur in lokalen Toolpfaden. Commandline-Tools23 delegieren sdkmanager an Android CLI; erste Bestandsabfrage scheiterte mit `Failed to create bin dir / Read-only file system`, durch ANDROID_USER_HOME/XDG im Workspace behoben. Ein lokaler Wrapper nutzt bei weiteren CLI-Aufrufen `--no-metrics`; sdkmanager-Versionstext allein ist `unknown (Android CLI)`, tatsächliche Pkg.Revision23.0 aus offizieller source.properties bestätigt. Keine Projekt-/Cloud-/Kontokonfiguration geändert.
+
+Warnungen aus unveränderten Quellen bleiben sichtbar: Deprecated-/Unchecked-APIhinweise, Kotlinhinweis zum künftig mindestens benötigten Gradle8.14.4 in Kotlin2.5. Aktueller gebundener Stand8.14.3/2.4.21 besteht; kein Upgrade oder Suppressionsschalter. Keine APK-/Releaseerzeugung, Signierung, Geräteinstallation, neue Berechtigung, Push/Merge oder Google-Play-Aktion. Native Softwareprüfung beweist keine echte Zustellung/Hörbarkeit oder Galaxy-/Windows-/Kalenderbeobachtung.
+
+Belege unter `/workspace/anker-native-setup-20261113/`: `RESULT.json`, `TOOLCHAIN.json`, `JUNIT-RESULT.json`, `junit-xml/`, `junit-html/`, Aktivierungs-/Toolkonfigurationskopien, offizielle AGP-Bytecodeauszüge, Gradle-/SDK-/Compiler-Ausgaben, `android-unit-first.log`, `cap-sync.log`, `android-unit-second.log`, Vorher-/Nachher-Git-Bundles und SHA256-Verzeichnis. Werkzeuge/Downloads selbst unter `/workspace/anker-toolchains`; Bundle sichert Git-Historie, nicht alle SDK-/JDK-Binärdateien. Keine externe Sicherung oder automatische Wiederherstellung in anderen Umgebungen behauptet. F-003 kann nun als separater Produktauftrag beginnen; Geräteteile bleiben offen.
+
+
 ## T-004: lesende Plattform-/Prüfpfadprüfung (13.11.2026)
 
 Basis `b6698562a98c0945e7f12d814ca9ba702b0ee060`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine neuen Produkt-/Gerätetests;1224 Logik-/17 Browsererfolge aus F-002 bleiben deren vorhandene Nachweise. Keine Übertragung historischer252 Androidfälle auf eine neue Toolchainprüfung.

@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## T-002-Nachbereitung: native Prüfumgebung abgenommen (13.11.2026)
+
+Auf `a820115` nur lokale Werkzeuge und Dokumentation eingerichtet: vollständiges JDK21.0.13 zur vorhandenen passenden JRE, SDK/API36 Revision2 und offizielle Commandline-Tools23.0, Build-Tools35.0.0 aus unverändertem AGP8.13-Artefakt ermittelt. Wrapper8.14.3/AGP8.13/Kotlin2.4.21/Paketbindungen unverändert. Der erste JUnit-Aufruf belegte fehlende generierte Cordova-Variablen; nur deswegen cap sync, ohne getrackten Diff. Danach252/252 Android-JUnit in28Suiten und196ausgeführte Gradleaufgaben grün. Alte Native-Blockeraussagen darunter gelten für ihren jeweiligen Zwischenstand; aktuelle Aktivierung und Nachweise in [PROJECT_STATUS.md](PROJECT_STATUS.md). F-003s Toolchainblocker aufgehoben, Produktauftrag noch offen; kein APK-/Release-/Geräte-/Playeingriff.
+
+
 ## T-004: Plattformprüfungen vorbereitet, Native-Toolchain offen (13.11.2026)
 
 Auf `b669856` ausschließlich lesende Werkzeug-/Prüfpfadprüfung und Dokumentation. Alle bestehenden Geräte-IDs/Ergebniszellen erhalten. Konkrete F-003-Pfade und Android-/Windows-/Kalenderzuordnung in [GERAETETEST.md](GERAETETEST.md); keine neue Produktfunktion oder Testduplikate. T-004s Vorbereitung ist abgeschlossen, keine Geräteabnahme. Korrektur bisheriger Umgebungsbeschreibung: Java21-Runtime vorhanden, aber kein javac; vollständiges JDK21 und SDK/API36 fehlen als native Voraussetzungen. Wrapper8.14.3 ist vorhanden und lesbar, globale Gradleinstallation unnötig; AGP/Kotlin unverändert. Normale CI führt keine Android-JUnit-Suite aus. Kleinster Folgeauftrag: T-002 gezielt um native Prüfumgebung nachbereiten, bis dahin F-003s native Abnahme blockiert. Keine Installation/Lizenzannahme oder Änderung an Cloud, CI oder Play.
