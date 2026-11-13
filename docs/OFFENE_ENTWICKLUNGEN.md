@@ -4,21 +4,21 @@
 
 Maßgebliches Anforderungsinventar: [ANKER_PLAN.txt](ANKER_PLAN.txt), insbesondere Abschnitt 2; Arbeitsregeln in Abschnitt 5. Die Datei bleibt unverändert. Diese Tabelle ist die einzige aktuelle ID-Roadmap; die unten erhaltene Bestandsliste vom 10.11. ist historischer Kontext, keine zusätzliche Freigabe.
 
-**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. Vor der nativen Prüfung von F-003 als Nächstes T-004 vorbereiten; keine automatische Umsetzung von F-003. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
+**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. T-004 ist als Prüfvorbereitung abgeschlossen. F-003s native Abnahme ist wegen fehlendem JDK-Compiler/SDK blockiert; als nächster Einzelauftrag T-002 gezielt um die native Prüfumgebung nachbereiten. Keine F-003-Implementierung durch T-004. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
 
 Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. F-001/V-008 und F-002/V-009: Softwareabnahme ERLEDIGT, integriert ja im lokalen Arbeitsbranch, nein auf main; Gerätetest offen, veröffentlicht nein. Für übrige F-IDs kein nachgewiesener vollständiger Abschluss; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
 
 | ID | Titel | Status | Abhängigkeit | Planverweis |
 |---|---|---|---|---|
 | T-001 | Unterbrochene Entwicklung retten | ERLEDIGT | gesichert pausiert; bekannte Basis ausdrücklich freigegeben, spätere Wiederherstellung separat | [§ 2.2, T-001](ANKER_PLAN.txt) |
-| T-002 | Umgebung und Entwicklungsbefehle prüfen | ERLEDIGT | T-001 | [§ 2.2, T-002](ANKER_PLAN.txt) |
+| T-002 | Umgebung und Entwicklungsbefehle prüfen | ERLEDIGT | T-001; Web-Abnahme erhalten, native Nachbereitung für F-003 offen | [§ 2.2, T-002](ANKER_PLAN.txt) |
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
-| T-004 | Plattform- und Geräteprüfungen vorbereiten | OFFEN | T-003 | [§ 2.2, T-004](ANKER_PLAN.txt) |
+| T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | OFFEN | vor neuen Datenflüssen | [§ 2.2, T-005](ANKER_PLAN.txt) |
 | T-006 | Integration und Gesamtabschluss | OFFEN | umgesetzte Funktionen, Integration und Gerätebelege | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
-| F-003 | Dynamischen Vorbereitungsimpuls ergänzen | OFFEN | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
+| F-003 | Dynamischen Vorbereitungsimpuls ergänzen | BLOCKIERT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
 | F-004 | Zeitgefühl und Dauerabschätzung verbessern | OFFEN | T-003, F-001; T-005 vor neuen Messdaten | [§ 2.3, F-004](ANKER_PLAN.txt) |
 | F-005 | Wiedereinstiegs-Assistent | OFFEN | T-003 | [§ 2.3, F-005](ANKER_PLAN.txt) |
 | F-006 | Übergangshelfer | OFFEN | T-003 | [§ 2.3, F-006](ANKER_PLAN.txt) |
@@ -47,7 +47,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-014 | Gesamttests und sichere Releasevorbereitung | OFFEN | T-006 | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | OFFEN | T-005 | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
-Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
+Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Aktueller Blocker betrifft seinen nativen Prüfpfad, nicht eine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
 
 ### Belegte vorhandene Grundlagen, keine vollständige neue Abnahme
 

@@ -1,5 +1,24 @@
 # Anker: Testnachweise
 
+## T-004: lesende Plattform-/Prüfpfadprüfung (13.11.2026)
+
+Basis `b6698562a98c0945e7f12d814ca9ba702b0ee060`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine neuen Produkt-/Gerätetests;1224 Logik-/17 Browsererfolge aus F-002 bleiben deren vorhandene Nachweise. Keine Übertragung historischer252 Androidfälle auf eine neue Toolchainprüfung.
+
+| Geprüft | Tatsächlicher Befund |
+|---|---|
+| Plattform/Java | Linux x86_64, `java -version` Exit0:21.0.13; kein javac im PATH und keiner in den vorgefundenen JVM-Verzeichnissen; frühere JDK-Angabe daher korrigiert |
+| Android | ANDROID_HOME/ANDROID_SDK_ROOT/JAVA_HOME nicht gesetzt, keine SDK-Commandline-/adb-/Emulatorwerkzeuge im PATH und kein SDK an den geprüften üblichen Pfaden; lokale SDK-Konfiguration fehlt |
+| Wrapper/Projektbindung | gradlew ausführbar, Wrapper-JAR CRC-fehlerfrei/Mainklasse vorhanden;8.14.3-all, AGP8.13.0, Kotlin2.4.21, min26/compile36/target36; keine explizite Build-Tools-Version |
+| Native Vorbedingungen | Capacitor-Referenzen, Node-Module und dist vorhanden; keine Aussage über Kompilierbarkeit. Kein Wrapperaufruf, Download, Lizenzannahme oder Installation |
+| Windows/Python | Linux, PowerShell nicht im PATH; zeroconf/qrcode und Windows-spezifische Bibliotheken nicht bereit. Kein echter Windows-/Systemwirkungstest |
+| Kalender | Bestehende TS-/Kotlin-/Browserprüfpfade vorhanden; Manifest READ_CALENDAR ohne WRITE_CALENDAR. Keine tatsächliche Zustimmung, Kontoabfrage oder Gerätebeobachtung |
+| CI | ci.yml gelesen: Web-/Toolprüfungen und PC-Linux/Windows, kein Android-JUnit-/App-Buildjob; Python-Android-Updateprüfung ersetzt keinen Native-Lauf |
+
+`TOOLS.json` und `java-version.log` unter `/workspace/anker-t004-20261113/` binden diese lesenden Befunde an Basiscommit/Umgebung. Abwesenheit bezieht sich auf konfigurierte Selektoren, PATH und benannte geprüfte Pfade, nicht auf alle denkbaren Maschinen. Wrapper-JAR-Verifikation ist kein Gradle-/JUnit-Lauf. [Konkrete F-003-Prüfkette, bestehende Stationen und kleinster Toolchainumfang](GERAETETEST.md).
+
+Dokumentationsabschluss prüft unveränderten Produkt-/Test-/Workflow-/Paketbestand, bytegleichen Plan und unveränderte Geräteergebniszeilen, alle36 Roadmap-IDs/Abhängigkeiten, lokale Links und `git diff --check`; lokaler Commit mit verifiziertem Bundle. T-004 vorbereitet ERLEDIGT, E-002/E-003/E-004 und reale Geräte offen; F-003 bis nativer T-002-Nachbereitung blockiert. Keine Wiederholung unveränderter Tests, kein Push/Merge/Cloud-/Playeingriff.
+
+
 ## F-002 / V-009: ausdrückliche Kurzmoduswahl (13.11.2026)
 
 Basis `8149ecea34bf3a5f72a4b9fe1913ccccd602ba7c`, Branch `entwicklung/anker-neu`. Reine Vorschau aus F-001 plus bestehende Tagesplantransaktion und Planer; optionaler boolescher Tages-Override samt Importvalidierung. Kein neuer Writer/Planer, keine neuen Reminder-/Native-/Paket-/Cloudänderungen. Integriert lokal ja, main nein, Gerätetest offen, veröffentlicht nein.

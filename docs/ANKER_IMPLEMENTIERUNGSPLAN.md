@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## T-004: Plattformprüfungen vorbereitet, Native-Toolchain offen (13.11.2026)
+
+Auf `b669856` ausschließlich lesende Werkzeug-/Prüfpfadprüfung und Dokumentation. Alle bestehenden Geräte-IDs/Ergebniszellen erhalten. Konkrete F-003-Pfade und Android-/Windows-/Kalenderzuordnung in [GERAETETEST.md](GERAETETEST.md); keine neue Produktfunktion oder Testduplikate. T-004s Vorbereitung ist abgeschlossen, keine Geräteabnahme. Korrektur bisheriger Umgebungsbeschreibung: Java21-Runtime vorhanden, aber kein javac; vollständiges JDK21 und SDK/API36 fehlen als native Voraussetzungen. Wrapper8.14.3 ist vorhanden und lesbar, globale Gradleinstallation unnötig; AGP/Kotlin unverändert. Normale CI führt keine Android-JUnit-Suite aus. Kleinster Folgeauftrag: T-002 gezielt um native Prüfumgebung nachbereiten, bis dahin F-003s native Abnahme blockiert. Keine Installation/Lizenzannahme oder Änderung an Cloud, CI oder Play.
+
+
 ## F-002 / V-009: bestätigtes Kurzmodusangebot (13.11.2026)
 
 Einzeln freigegeben auf `8149ece`: F-001-Zeitdefizit und offene kürzbare Schritte liefern eine Vorschau, keine automatische Änderung. `shortMorning` ergänzt den bestehenden Tages-Override, weil `light` den ganzen Tag und `zombie` die Schrittmenge verändern würden. Der vorhandene Planer wählt nur echte kürzere Varianten, erhält alle Schrittidentitäten und verändert den Abend nicht. Annahme läuft über den vorhandenen Tagesplan-Transaktionshelfer samt Undo-Basis, atomarer Aktualitäts-/Doppelprüfung und für diesen neuen Pfad ohne Awardauswertung. Ablehnung schreibt nichts. Sicherungsvalidator kennt den optionalen booleschen Wert, alte Logs bleiben gültig.
