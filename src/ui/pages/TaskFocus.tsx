@@ -7,6 +7,7 @@ import type { FocusPulseMode, InboxItem, ResumePoint, TaskRef, WorkTask } from '
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
+import { FocusCompanion } from '../components/FocusCompanion'
 import { TaskPurpose } from '../components/TaskPurpose'
 import { FocusTiming } from '../components/FocusTiming'
 import { countdownLabel } from '../components/fieldValues'
@@ -118,6 +119,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const finish = () => partId ? completePart() : complete()
   return <>
     <FocusFrame back={back} context={<>{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</>} capture={open && !unavailablePart ? context : undefined}
+      companion={open && !unavailablePart ? <FocusCompanion target={target} now={now} /> : undefined}
       footer={open && !unavailablePart ? <>
         {(!timer || expired) ? <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void start()}>{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'} · {String(duration).replace('.', ',')} min</Button>
           : <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void (paused ? continueFocus() : run(() => st.pauseTaskFocus(reference, undefined, undefined, partId)))}>{paused ? 'Weiter' : 'Pause'}</Button>}

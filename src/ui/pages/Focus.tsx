@@ -17,6 +17,7 @@ import { FocusTiming } from '../components/FocusTiming'
 import { countdownLabel } from '../components/fieldValues'
 import { emptyLog, useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
+import { FocusCompanion } from '../components/FocusCompanion'
 import { TodayDifferent } from '../components/TodayDifferent'
 import { Button, Choice, RingTimer, Sheet, TextInput } from '../components/ui'
 
@@ -129,6 +130,7 @@ export default function Focus() {
   const pauseOrContinue = () => session && run(async () => { if (guidance.enabled) await st.recordGuidanceInteraction(date); await st.updateFocus(session.id, current => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })) })
   return <>
     <FocusFrame back="/" context={<>Schritt {index + 1} von {steps.length}{log.override.zombie && <span className="block">Zombie-Modus · deine Kernschritte</span>}{mode && mode !== 'normal' && <span className="block">{MODE_LABEL[mode]}</span>}</>} capture={captureContext} progress={index / steps.length}
+      companion={target ? <FocusCompanion target={target} now={now} /> : undefined}
       footer={<>
         <Button variant="primary" size="xl" className="w-full" disabled={busy} onClick={() => { if (session) void done(minimalMode ? 'minimal' : 'done'); else setError('Die Fokuszeit wird noch vorbereitet. Versuche es gleich noch einmal.') }}>Erledigt</Button>
         <div className="grid grid-cols-2 gap-2">

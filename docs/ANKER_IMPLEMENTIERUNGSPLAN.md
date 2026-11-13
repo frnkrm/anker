@@ -1,5 +1,17 @@
 # Anker 2.0: Implementierungsplan
 
+## F-009 / V-006: ausschließlich lokale stille Fokusbegleitung (13.11.2026)
+
+Saubere verfügbare Basis `5668aec4c44cf81c3523af1f1b69cdcbb7b8d60c`, Branch `entwicklung/anker-neu`. Bestandsabgleich: Fokus-/Starthilfezeit, Pause, Stopp, Wiedereinstieg, Storequeue und aktuelle Recoveryprüfung bereits vorhanden; keine lokale freiwillige Begleitwahl. Nur diese Lücke ergänzt, keine soziale Variante oder zweite Engine.
+
+Reine Projektion `core/focusCompanion.ts` nutzt bestehende recoveryPreview-/Fokusprüfung ohne Merker-/Archivfallback. Nur aktueller sichtbarer Fokus und aktuell offene Aufgabe/Teil-/Routinenvariante, Berliner Plantag und freiwillige Arbeitsruhe. Gemeinsame Komponente im bestehenden FocusFrame unter den Hauptaktionen von Routine und Aufgabe. Eigener bewusster Start/Stopp für einen generischen ruhigen Satz; keine Person oder Verbindung behaupten. Kein weiterer Countdown, keine Animation, Audio, Native-/PC-Wirkung oder Persistenz.
+
+Flüchtige Wahl an Fokus-/Timerphase und vorhandene Planreferenz binden. Vor Start frischen Store-/Planstand und Zeit erneut lesen. Pause, Zeitablauf, neuer Fokus, ungültige Referenz, Planwechsel, Blur/Verbergen/Verlassen/Reload verwerfen; Weiter im vorhandenen Fokus übernimmt keine Begleitwahl. Begleitstopp verändert keine Timer-/Lern-/Tages-/Spiel-/Arbeitszeitdaten. Datenrahmen vor Implementierung in DATENSCHUTZ_DATENGRENZEN.md festgelegt.
+
+139gezielte TS-/Store-/Datenschutzfälle in7Dateien (12neu),21unterschiedliche Browserfälle zuletzt grün (10neu). Erster Browserlauf14/15, neuer Test suchte fälschlich combobox statt vorhandener Radiobuttons; nur Testzugriff korrigiert. Danach7/7 einschließlich neuem Planreferenzfall und5bestehenden Regressionen; erfolgreiche unveränderte Fälle nicht wiederholt. Lint0Fehler/1bekannte fremde Warnung, Typecheck samt e2e und Produktionsbuild grün. Chromium156,320px/160Prozent Schrift visuell geprüft. Native Quellen unverändert,274JUnit aus F-008 historisch erhalten, nicht erneut ausgeführt. Keine Geräteabnahme daraus ableiten.
+
+Originalplan/36IDs/103Gerätezeilen erhalten. Lokal committen und Bundle/Wiederherstellung/fsck/SHA256 sichern. Kein Push/Merge/Release/Cloud-/Playeingriff; aktuelle Nutzergrenzen überstimmen historische Uploadaufträge. Danach stoppen. Ein nächster zulässiger Auftrag ist F-010 aus vorhandenen Daten; F-009 legt ausdrücklich keinen Begleit-/Nutzungsverlauf als mögliche Rückblickquelle an.
+
 ## F-008 / V-004: freiwilliger lesender NFC-Einstieg (13.11.2026)
 
 Saubere Basis `e5f0030`, Branch `entwicklung/anker-neu`. Ausdrückliche Nutzerfreigabe ausschließlich für NFC-Manifestrecht und optionale NFC-Hardware. Eine flüchtige Reader-Instanz im vorhandenen Plugin, kein zusätzlicher Dienst/Intentfilter/Planer/Store. Parser/Sitzungsregeln in NfcAnchorModel.kt, Adapter/Lebenszyklus in NfcAnchorReader.kt. TS-Vertrag core/nfc.ts, Adapter platform/nfc.ts; Seite /anker unter Mehr, vorhandene Ziele /, /vorbereitung, /wiedereinstieg.

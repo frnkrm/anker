@@ -1,5 +1,15 @@
 # Datenschutz und Datengrenzen – T-005
 
+## F-009: Datenentscheidung vor der Ergänzung und geprüfter Abschluss (13.11.2026)
+
+Zweck: freiwillige lokale stille Fokusbegleitung innerhalb einer bereits bewusst geöffneten gültigen Fokusansicht. Keine echte andere Person, soziale Kommunikation, KI, Audio/Video oder Anwesenheitsbehauptung. Die vorhandenen Plan-/Recovery-/Fokusbesitzer liefern die Gültigkeit; keine neue Zeitmessung oder Messstichprobe.
+
+Es werden keine zusätzlichen Daten gespeichert. Die Wahl ist ausschließlich ein flüchtiger boolescher UI-Zustand mit Bindung an dieselbe Fokus-/Timerphase und eine Referenz auf den vorhandenen Plan. Keine neue Aufgaben-/Notizkopie, Dauer, Scan-/Kontaktliste oder Nutzungsstatistik. Pause, Zeitablauf, Planwechsel, ungültiger Kontext, Verlassen/Reload und Ausblenden der Ansicht verwerfen die Wahl; Wiederaufnahme erfordert einen neuen bewussten Start. Stopp der Begleitung verändert keinen Timer, Fokus, Lernwert, Tages- oder Spielstand. Es gibt keinen neuen Repository-/Store-Schreibweg, Aufbewahrungsverlauf oder produktiven Löschauftrag.
+
+Keine Änderung an Backup/Import/Sync/Diagnose/Widget/PC/Native oder persistenter Freigabe; aus einer Sicherung kann keine Begleitwahl übernommen werden. Generische Begleittexte enthalten keine privaten Arbeits-/Notiztexte. Vorhandene Kontext-/Arbeitsruhegrenzen bleiben maßgeblich. Für spätere soziale Kommunikation oder gespeicherte Begleitdaten wäre ein eigener Auftrag samt konkretem Datenrahmen erforderlich. Gerätebeobachtungen und reale E-005-NFC-Prüfung bleiben getrennt offen.
+
+Dieser Rahmen wurde eingehalten: core/focusCompanion.ts projiziert nur Gültigkeit/Timerphase und flüchtigen Fokusbindeschlüssel, ohne private Titel/Notizen. FocusCompanion hält nur UI-Wahl/Planreferenz, verwendet keine neue Uhr und ruft keinen Storewriter oder Netzwerk-/Nativeadapter auf. Bestehende bewusst gewählte Fokus-Pulse/Audiofunktionen bleiben unabhängig; die Begleitung aktiviert sie nicht.139TS-/Store-/Datenschutzfälle und21verschiedene Browserfälle zuletzt grün, inklusive Offline und Datenvergleichen vor/nach Start/Stopp. Kein Begleit-/Nutzungsverlauf für F-010 vorhanden. Keine Aussage über echte Geräte-/OS-Speicherbeobachtung oder externe physische Löschung.
+
 ## F-008: konkreter flüchtiger Datenrahmen und Abschluss (13.11.2026)
 
 Aktuelle Nutzerfreigabe ausschließlich `android.permission.NFC` und `android.hardware.nfc` required=false. Keine Laufzeitfreigabe, Intentfilter, Dienste, Hintergrundscans oder Writer. Ältere T-005-/T-004-Abschnitte bleiben historisch; aktueller [NFC-Vertrag](NFC_MACHBARKEIT.md).

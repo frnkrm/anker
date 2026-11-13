@@ -1,5 +1,23 @@
 # Anker: Testnachweise
 
+## F-009 / V-006: lokale stille Fokusbegleitung (13.11.2026)
+
+Basis `5668aec4c44cf81c3523af1f1b69cdcbb7b8d60c`, tatsächlich verfügbarer sauberer Branch `entwicklung/anker-neu`. Keine soziale Kommunikation, externe Nutzdaten oder echte Geräteaktionen.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS-/Store-/Datenschutz |139/139 in7Dateien: core/focusCompanion (12neu), focus, recoveryPreview, support; state/tasks und subtaskFocus; core/export/privacyBoundaries. Bestehende Start-/Pause-/Archiv-/Teilschritt-/Queue-/Importgrenzen erhalten. Kein neuer Storewriter |
+| Neue reine Abnahmen |Nur aktueller sichtbarer Fokus, kein alter Merker-/Archivfallback; erledigt/entfernt/abgesagt/verschoben, falscher Teil, künftige private Aufgabe und Berliner Routinen-/Variantenwechsel ausgeschlossen. Pausen-/Resume-/Ablauf-/neues Zeitfenster getrennt; Ausgabe ohne private Titel/Notizen, Eingaben unverändert |
+| Browser |21verschiedene Fälle im letzten Ergebnisstand grün,10neu. Erster Lauf14grün/1roter neuer Test (selectOption/combobox statt tatsächlicher Radiobuttons); Nachlauf7/7: korrigierter neuer Fall, zusätzlicher Planreferenzfall,5bestehende Fälle. Nur den roten Fall wiederholt; Altartefakte erhalten. browser-coverage.json ordnet die Läufe zu |
+| Interaktion / Datenschutz |Offline explizit starten/beenden ohne neue gespeicherte Werte; bestehende Fokus-/Puls-/Audiofreigaben unverändert. Keine privaten Texte in Begleitkarte, keine externen HTTP(S)-Anfragen im geprüften Start-/Stopppfad. Fokus zuerst über eigenen bisherigen Start. Pause/Weiter, Blur/Verbergen/Resume, Reload, Ablauf und neues Zeitfenster übernehmen keine Begleitwahl |
+| Regressionen / UI |Teilwechsel/Teilabschluss ohne Ersatztimer, Routineplanwechsel/Recovery, neue Planreferenz in derselben Ansicht, Arbeitsruhe. Bestehende6Recoveryvorschau-,2Routine-/Starthilfe-,2Teilschritt-/Shortcut- und1Quick-Recovery-Fälle. System-Chromium156,320px/160Prozent Schrift, Hauptaktion und Begleitstopp scrollend erreichbar ohne horizontalen Überlauf; Bild visuell kontrolliert |
+| Werkzeuge |Lint0Fehler/1bestehende TaskAssistance-Warnung, Typecheck einschließlich e2e und Produktionsbuild durch Playwright-Webserver grün. Nach letzter reiner Testkorrektur gezieltes ESLint/e2e-Typecheck grün. Keine vollständige Web-/Remote-CI-Neusuite behauptet |
+| Native / Geräte |Keine native/Manifest-/Brücken-/Reminder-/Paketänderung.274Android-JUnit aus F-008 bleiben historische Belege und wurden nicht wiederholt. Keine neue Android-/Windows-/Kalender-/NFC-Hardwarebeobachtung |
+
+Rohbelege `/workspace/anker-f009-20261113/`: logic-first.log, browser-first.log/browser-regressions.log, erster Fehlertrace/-bild/-kontext, unveränderte lokale Chromium-Konfiguration, focus-companion-320.png, Lint-/Typecheck-Logs, browser-coverage.json, Integrität und RESULT.json. Vorher-/Nachher-Bundles, unabhängige Wiederherstellung/fsck, RESTORE.md und SHA256SUMS im selben Ordner, nur Cloud-lokal.
+
+F-009 nur im lokalen stillen Umfang abgeschlossen; soziale Variante nicht implementiert/freigegeben. Keine Persistenz, Messung, produktive Löschung oder Übernahme einer Freigabe aus Backup/Import. Kein Push/Merge/Release/Signieren/Installieren/Cloud-/Playeingriff. E-002–E-005 und103historische Gerätezeilen unverändert offen/erhalten. Kein Begleitverlauf für spätere Rückblickaussagen vorhanden.
+
 ## F-008 / V-004: lesende NFC-Softwareabnahme (13.11.2026)
 
 Basis `e5f0030bdb8ccac00938aa82fcccbada36d94cd8`, anfangs sauberer Branch `entwicklung/anker-neu`. Keine realen Geräte-/Tagaktionen.
