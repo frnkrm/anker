@@ -1,5 +1,18 @@
 # Anker: Testnachweise
 
+## Lokaler CI-Tastaturtest: kontrollierter Rot-/Grünnachweis (13.11.2026)
+
+Ausgangscommit `f7fa4e3`, Branch `entwicklung/anker-neu`. Nutzerscreenshot von Lauf43331316553/Job131576438067 belegt 307/308 Browserfälle mit `Expected675000 / Received undefined` nach Enter, Exit1. Kein API-Nachweis. Im lokalen normalen Einzellauf besteht der ursprüngliche Test (1/1); das allein widerlegt kein Eingabe-Rennen.
+
+Kontrollierter Versuch hält nur den echten `history.back()` des Minuten-Sheets an. Originale Folge `focus(); keyboard.press('Enter')` produziert auch nach anschließender Freigabe **denselben Fehler**, 1/1 fehlgeschlagen, erwartete Dauer675000/tatsächlichundefined. Timer, Store und Persistenz werden nicht gemockt. Danach wartet der Test auf Dialogende, verbrauchten Historymarker und aufgehobenes `inert`; er prüft echten Fokus vor Enter. Regression hält den Zurücklauf weiter kontrolliert an und bestätigt nach Freigabe die gespeicherten675000ms. Keine Timeouterhöhung, kein Retry/Skip, keine abgeschwächte Datenassertion.
+
+**Grün:** `CI=true npx playwright test --config=/tmp/anker-playwright.config.ts e2e/subtask-timer.spec.ts e2e/redesign-controls-extra.spec.ts --workers=2`: **15/15**, Exit0, 1,0min, einschließlich neuem Regressionstest, vollständiger Timerdatei und vorhandenen gehaltenen Sheet-/Auswahlfällen. Webserverbefehl führt vorher `npm run build` aus: erfolgreich. `npm run lint`: Exit0, 0Fehler/1bestehende Warnung (`generation.current`, react-hooks/exhaustive-deps). Keine vollständige neue Browser-/Logik-/Android-/Windows-Suite; GitHub-CI weiterhin historisch rot bis zu einem gesondert freigegebenen späteren Push und Runnerlauf.
+
+Umgebung: Node24.22.1, npm11.9.0, vorhandenes System-Chromium156.0.8078.79. Playwright-Chromiumdownload scheiterte mit `403 Domain forbidden`; temporäre Konfiguration setzt nur absoluten Test-/Ausgabe-/Webserverpfad, Reporter und Browserpfad. Repository-Playwright-Konfiguration und Workflows unverändert. `npm ci --cache /tmp/anker-npm-cache --no-audit --no-fund` erfolgreich; Standardcache zuvor `ENOENT`. Paket-/Lockdateien unverändert.
+
+Rohbelege außerhalb Git unter `/workspace/anker-ci-fix-20261113/`: `baseline.log`, `held-back-red.log`, `red-results/` mit Screenshot/Trace, `targeted-green.log`, `lint.log`, vor/nachher Git-Bundles und temporäre Laufkonfiguration. Nur Test- und Dokumentationsänderungen; kein Produkt-, Versions-, Signatur- oder Playeingriff. T-001 nun durch Nutzerentscheid gesichert pausiert, kein Entwicklungsblocker.
+
+
 ## Einrichtung und Bestandsprüfung (13.11.2026)
 
 Ausgangscommit `6dfa632c94422d61d6a71c6a4a72c15fefd4a407`, Branch `entwicklung/anker-neu`, nur Dokumentationsänderungen. `ANKER_PLAN.txt`: 766 Zeilen und vollständige 36 IDs (15 V, 10 F, 6 T, 5 E); Datei unverändert. Dokumentationsprüfung vergleicht IDs, V-Zuordnungen, lokale Links und Abhängigkeiten; `git diff --check` als Abschlussprüfung. Keine neue Produkt-/Geräteprüfung daraus ableiten.

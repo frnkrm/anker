@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## Freigegebene Weiterarbeit und lokaler CI-Testfix (13.11.2026)
+
+Direkter Nutzerentscheid: Originalumgebung und `835235b` zurückstellen; bekannte Basis `entwicklung/anker-neu` verwenden. T-001 gesichert pausiert, kein Wiederherstellungsnachweis. Zunächst CI-Testfehler lokal korrigieren und Status aktualisieren; kein Push/Merge/Play. Fehlende historische Arbeit bleibt gesichert bzw. unbekannt und wird nicht neu erfunden. Der Tastaturtest wartet jetzt auf das vorhandene Sheet-/History-Ende und echten Fokus; Produktquellen bleiben unverändert. Einrichtung als nächster Einzelauftrag fortsetzen, keine neue Produktfunktion automatisch beginnen. [Aktueller Stand](PROJECT_STATUS.md).
+
+
 ## Einrichtung auf entwicklung/anker-neu (13.11.2026)
 
 Aktueller Auftrag erlaubt ausschließlich Bestandsprüfung/Einrichtung/Dokumentation. Historische umfassende Entwicklungs- und Play-Aufträge sind dafür keine neue Uploadfreigabe. T-001 bleibt wegen Originalumgebung/Nachfolgecommit und externer Nachweise blockiert. Keine erneute Anwendung früherer lokaler Dokumentationsänderungen. [Verifizierter Übergabestand](PROJECT_STATUS.md) und [einzige neue ID-Roadmap](OFFENE_ENTWICKLUNGEN.md); keine neue Produktfunktion oder Wiederherstellung begonnen.
