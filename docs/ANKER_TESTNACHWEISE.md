@@ -1,5 +1,11 @@
 # Anker: Testnachweise
 
+## T-006: öffentliche Signier-/Gerätebuild-Voraussetzungen, keine neuen Tests (13.11.2026)
+
+Sauberer verfügbarer Ausgangscommit `b816e1a4145a079fa35241194facb5f3f811cc1c`. [Prüfmatrix mit Codebelegen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Vier öffentliche Code15-/Code16-/Code17-Zertifikatsangaben B4 konsistent; bisheriges unsigniertes APK vorhanden, Größe38.608.942/SHA25694f240a18f2047a57dcf5e13075504f02889a3281de00a40e4bcd8836baf7a0f bestätigt. Historische Signatur-/CI-Angaben nicht als frisch verifiziert ausgegeben. Keine historische signierte APK frisch kryptografisch geprüft und keine installierte Identität ausgelesen.
+
+Nur Skriptquellen/öffentliche Manifeste geprüft: alter lokaler Helfer hat feste Debugalias-/Passwortannahmen; neuere Gradle-/Workflowwege unterstützen eigene Releasebindungen, Secret-Einrichtung überträgt private Daten und wurde nicht ausgeführt. Keine Signierhilfe/Gradletask/Testsuite gestartet;1372TS/378Browser/284Python und274historische quellenidentische JUnit unverändert erhalten. Dokumentintegrität, Originalplan/36IDs/103Gerätezeilen/ausgelieferter Katalog und geschützte Quellen/Manifeste gezielt prüfen; lokale Bundles/Restore/fsck/SHA256 sichern. Nachweise `/workspace/anker-t006-signiervoraussetzungen-20261113/`. Kein neuer Software-/CI-/Geräteerfolg. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe weiterhin offen.
+
 ## T-006: unsignierter Android-Integrationsbuild geprüft (13.11.2026)
 
 Basis `18f6bb2959f26882c9860a104e8bc3e85512fe04`, Branch `entwicklung/anker-neu`, sauber verifiziert. [Vollständiger Paketprüfpfad und Grenzen](INTEGRATION_T006.md).

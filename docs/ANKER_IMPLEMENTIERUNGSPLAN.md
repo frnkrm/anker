@@ -1,5 +1,11 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: ausschließlich lesende Signier-/Gerätebuild-Vorbereitung abgeschlossen (13.11.2026)
+
+Basis `b816e1a` sauber/verfügbar. Aktueller Auftrag überstimmt historische Upload-/Schlüsselaufträge: kein Schlüsselzugriff, Build, Signieren, Konfigurieren, Installieren, Workflowstart oder externer Eingriff. [Öffentliche Identitäts-/Pfad-/Versionsbelege](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) geprüft; B4-Nachweise konsistent, unsigned APK hashgleich. Alter Java-/Node-Helfer fixiert historischen Debugalias/-passwort, daher keine ungeprüfte Verwendung für `anker-mobile-release`. Kein Toolfix, Produktcode oder neue Signierengine.
+
+Kleinste noch fehlende Grundlage sind öffentliche Zielinstallationsangaben und die Nutzerbestätigung eines erreichbaren bestehenden Signierbesitzers. Erst danach kann eine separate lokale Signierfreigabe für exakt das geprüfte APK sinnvoll sein; keine automatische neue Version, kein Ersatzschlüssel oder Cloudtransfer. Alte Code17-Manifeste erhalten, Remote-CI-/Workflowgrenzen nicht umgehen. T-006/V-014 IN_ARBEIT; E-002–E-005/Gesamt-/Releasefreigabe offen. Dokumentation lokal committen und Bundle/Restore/SHA256 sichern; danach stoppen. Genau nächster Einzelauftrag: fehlende nichtgeheime Nutzerangaben einholen und zuordnen, ohne Schlüsseldateien oder Geräteaktion.
+
 ## T-006: begrenzt freigegebener unsignierter Prüfbuild abgeschlossen (13.11.2026)
 
 Aktuelle Nutzerfreigabe erlaubt ausschließlich lokalen UNSIGNIERTEN Paketbau und erforderliche generierte Websynchronisation; historische stehende Uploadaufträge gelten hierfür nicht. Saubere Basis18f6bb2/entwicklung/anker-neu verifiziert. Vorhandene JDK21/SDK36/Build-Tools35/Wrapper8.14.3 wiederverwendet, keine Version-/Paket-/Plugin-/Berechtigungsänderung. Keine Produktfunktion oder getrackte generierte Änderung.

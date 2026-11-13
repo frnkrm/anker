@@ -1,5 +1,15 @@
 # Aktueller Übergabestand
 
+## T-006: Signier-/Geräteprüfvoraussetzungen lesend geklärt (13.11.2026)
+
+Verfügbare saubere Basis `b816e1a4145a079fa35241194facb5f3f811cc1c`, Branch `entwicklung/anker-neu`. [Voraussetzungen, Versionsentscheidung und Codebelege](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Vorhandenes unsigniertes APK weiterhin vorhanden/38.608.942 Bytes/hashgleich; keine Build-/Sync-/Signier-/Geräte-/Remoteaktion und keine grüne Suite wiederholt. Öffentliche Code15-/Code16-/Code17-Zertifikatsangaben konsistent B4, aber kein heutiger Besitznachweis eines privaten Schlüssels oder Signaturbeleg der installierten App.
+
+Konkrete Lücke im alten lokalen Weg: `sign-local-update.mjs`/`AnkerApkTool.java` setzen historischen Debugpfad, Alias `AndroidDebugKey` und Debugpasswort voraus; nicht als geprüften Weg für den dokumentierten Releasealias `anker-mobile-release` ausgeben. Vorhandene offizielle Build-Tools können später nach ausdrücklicher Schlüsselzugriffs-/Signierfreigabe das bestehende hashgebundene APK lokal beim Besitzer signieren; GitHub-Secrets oder Wiederherstellung der alten Umgebung sind dafür keine automatische Voraussetzung. Nichts implementiert oder umkonfiguriert.
+
+Aktuelle Zielinstallation (Paket/Code/Herkunft/gegebenenfalls vorhandener öffentlicher Signierer) und bestätigter erreichbarer Signierbesitzer fehlen. Gleicher Code17 ist nicht allein ein Downgradefehler, höherer installierter Code verhindert aber einen regulären Rückschritt; keine Versionszahl erraten oder ändern. Play-AAB-Uploadzertifikat beweist nicht das ausgelieferte App-Zertifikat. Alte Code17-Manifeste auf80f6a692 unverändert und nicht auf den neuen Appstand übertragbar. T-006/V-014 IN_ARBEIT, E-002–E-005 und Gesamt-/Releasefreigabe offen.
+
+Nur Dokumentation lokal committen/sichern unter `/workspace/anker-t006-signiervoraussetzungen-20261113/`, finale Commit-ID dort. Alte Umgebung/835235b zurückgestellt, keine privaten Schlüssel gesucht/gelesen/kopiert. Danach stoppen. **Genau nächster eigener Auftrag: fehlende nichtgeheime Zielinstallations-/Signierbesitzerangaben beim Nutzer einholen und zuordnen; noch kein Schlüsselzugriff, Signieren, Bauen, Installieren oder Cloud-/Workflow-/Playeingriff.**
+
 Stand 13.11.2026, Europe/Berlin. **T-006: Web-/Logik-/PC-Integration und unsignierte lokale Android-Paketintegration belegt; Gesamtabschluss IN_ARBEIT.** Ausgangsbasis dieses Paketauftrags `18f6bb2959f26882c9860a104e8bc3e85512fe04`, Branch `entwicklung/anker-neu`, sauber verifiziert. Finale lokale Commit-ID im Abschlussmanifest. [Paketnachweis, Workflows und offene Grenzen](INTEGRATION_T006.md). Alte Umgebung/835235b zurückgestellt.
 
 ## T-006: neuer unsignierter Android-Prüfbuild
@@ -10,7 +20,7 @@ APK 38.608.942Bytes; Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479
 
 [Ausführlicher Nachweis](INTEGRATION_T006.md). APK/Metadaten/Logs/Snapshots/Bundles/Wiederherstellungsprüfung/SHA256 nur Cloud-lokal `/workspace/anker-t006-android-20261113/`; finale Dokumentationscommit-ID dort, Appquellcommit bleibt18f6bb2. Originalplan/36IDs/103Gerätezeilen und ausgelieferter Katalog erhalten. E-002–E-005, signierter geeigneter Geräteprüfbuild, exakte Remote-CI und Gesamt-/Releasefreigabe offen; alte auf80f6a692gebundene Code17-Manifeste unverändert. Kein Push/Merge/Tag/Signieren/Installieren/Workflow-/Cloud-/Playeingriff. Alte Umgebung/835235b zurückgestellt.
 
-Nach diesem Auftrag stoppen. Genau nächster eigener Auftrag: **T-006 – Signier- und Geräteprüfbuild-Voraussetzungen ausschließlich lesend klären.** Vorhandenen lokalen Signier-/Prüfweg, öffentliche Paket-/Zertifikatszuordnung und Versions-/Updategrenzen abgleichen, fehlende Nachweise/kleinste separate Freigabe benennen. Keine privaten Schlüssel suchen/lesen, nicht signieren/konfigurieren/installieren.
+Nach diesem Auftrag stoppen. Damals nächster, inzwischen oben abgeschlossener Auftrag: **T-006 – Signier- und Geräteprüfbuild-Voraussetzungen ausschließlich lesend klären.** Vorhandenen lokalen Signier-/Prüfweg, öffentliche Paket-/Zertifikatszuordnung und Versions-/Updategrenzen abgleichen, fehlende Nachweise/kleinste separate Freigabe benennen. Keine privaten Schlüssel suchen/lesen, nicht signieren/konfigurieren/installieren.
 
 ## T-006: belegt geprüfter Teil und verbleibende Grenzen
 

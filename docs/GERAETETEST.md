@@ -1,5 +1,11 @@
 # Geräteprüfung
 
+## T-006: Zielinstallation und Signierbesitzer vor Geräteprüfbuild klären (13.11.2026)
+
+Lesende Vorbereitung auf `b816e1a`, keine neue Gerätebeobachtung. [Paket-/Zertifikats-/Versionsentscheidung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): öffentliche historische B4-Belege und bestehendes unsigned APK sind keine Bestätigung des heute installierten Codes/Zertifikats. Erst fehlende nichtgeheime Nutzerangaben zu Paket, Version/Code, Herkunft und erreichbar bekanntem bestehendem Signierbesitzer aufnehmen. Keine Schlüsseldateien/-werte anfordern und dafür keinen Testbericht speichern, Alarm starten, Freigaben ändern, ADB einrichten oder etwas installieren. Ein vorhandener öffentlicher Zertifikats-/Codestandbeleg bleibt seinem tatsächlichen Stand zugeordnet; nicht aus einem alten Bericht eine aktuelle Installation ableiten.
+
+E-002–E-005,103historische Gerätezeilen und ausgelieferter Katalog bleiben unverändert offen bzw. historisch zugeordnet. Passender signierter Geräteprüfbuild, späterer Installations-/Updateversuch und reale Galaxy-/Windows-/Kalender-/NFC-Beobachtungen brauchen jeweils passende getrennte Freigaben. Kein Schlüssel-/Versionswechsel oder Datenlöschen als Umweg. T-006/V-014/Gesamt-/Releasefreigabe offen.
+
 ## T-006: unsigniertes Prüfartefakt, Gerätebeobachtungen offen (13.11.2026)
 
 Lokales unsigniertes Prüf-APK auf `18f6bb2` erstellt und nur softwareseitig geprüft: Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479379a9cbe9be28b043a0`, Paket `de.frnkrm.anker.mobile`, weiterhin Code17/`1.5.0-rc.3`. Aktuelle Webassets bytegleich eingebettet, Manifest/SDK/ZIP16KB/fehlende Signatur geprüft. [Paketmetadaten und Grenzen](INTEGRATION_T006.md). Das Artefakt ist ausdrücklich kein freigegebener Geräte- oder Updatebuild; nicht installiert und keine Installierbarkeit behauptet.

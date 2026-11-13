@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: ausschließlich öffentliche Signier-/Gerätebuild-Metadaten (13.11.2026)
+
+Auf `b816e1a` nur öffentliche Repository-/Prüfmetadaten und Skriptquellen gelesen; bekanntes unsigniertes APK auf Vorhandensein/Größe/Hash geprüft. Keine privaten Schlüssel oder Secretdateien gesucht/gelesen/kopiert, keine Passwörter/Umgebungswerte protokolliert, keine Schlüssel-/Nutzdatenübertragung. Secret-Einrichtung und Signierprogramme ausschließlich als Quelltext geprüft, nicht ausgeführt. Keine Produkt-/Daten-/Freigabe-/Berechtigungsänderung, keine produktive Löschung oder Gerätewirkung.
+
+Für die nächste Entscheidung genügen vorhandene öffentliche Paket-/Versions-/Herkunftsangaben und eine ja/nein/unbekannt-Angabe zur Erreichbarkeit eines bestehenden Signierbesitzers. Keine privaten Dateien, Speicherpfade, Passwörter, QR-/Arbeits-/Notiz-/Kalenderdaten oder Base64 anfordern. Ein öffentlicher Zertifikatsfingerabdruck ist kein Besitznachweis und keine Einwilligung zum Schlüsselzugriff. [Voraussetzungen und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Neue Sicherung enthält Dokumentation/öffentliche Quellhashmetadaten/Git-Bundles, keine APK-Duplikation, private Datei oder Toolbinaries; nur Cloud-lokal. Geräte-/OS-/Releasegrenzen bleiben offen.
+
 ## T-006: Datengrenzen des unsignierten Paketnachweises (13.11.2026)
 
 Nur lokale Synchronisation/Bündelung vorhandener Appdateien und Softwareprüfung des unsignierten APKs; keine Produkt-/Datenfluss-/Storequeue-/Schema-/Backup-/Sync-/Reminderänderung. Vor und nach Capsync blieb der getrackte Android-/Konfigurationsbestand unverändert. Manifestberechtigungen des Paketstands stimmen mit dem quellenidentischen historischen nativen Manifest überein; optionales NFC bleibt required=false, allowBackup=false und bestehende Backup-/Datenausnahmeregeln erhalten.
