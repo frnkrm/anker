@@ -1,5 +1,12 @@
 # Anker 2.0: Implementierungsplan
 
+## F-002 / V-009: bestätigtes Kurzmodusangebot (13.11.2026)
+
+Einzeln freigegeben auf `8149ece`: F-001-Zeitdefizit und offene kürzbare Schritte liefern eine Vorschau, keine automatische Änderung. `shortMorning` ergänzt den bestehenden Tages-Override, weil `light` den ganzen Tag und `zombie` die Schrittmenge verändern würden. Der vorhandene Planer wählt nur echte kürzere Varianten, erhält alle Schrittidentitäten und verändert den Abend nicht. Annahme läuft über den vorhandenen Tagesplan-Transaktionshelfer samt Undo-Basis, atomarer Aktualitäts-/Doppelprüfung und für diesen neuen Pfad ohne Awardauswertung. Ablehnung schreibt nichts. Sicherungsvalidator kennt den optionalen booleschen Wert, alte Logs bleiben gültig.
+
+Ein neuer Browsertest fand geerbte Nachvergabe von25XP für eine alte Weckbestätigung im allgemeinen Planänderungshelfer. Der F-002-Pfad wurde gezielt ohne Awardauswertung abgesichert; Assertion erhalten und neue Store-Regression ergänzt, Standardverhalten übriger Aktionen unverändert. F-002-Softwareabnahme abgeschlossen, reale Geräte und Veröffentlichung offen. Nächster Einzelauftrag T-004 zur Plattform-/Prüfvorbereitung vor F-003; keine neue Reminderfunktion vorweggenommen. [Status](PROJECT_STATUS.md) · [Nachweise](ANKER_TESTNACHWEISE.md).
+
+
 ## F-001 / V-008: Abfahrtsbereitschaft (13.11.2026)
 
 Einzeln freigegeben auf `32b9a15`: vorhandene Büroabfahrt und Termin-Legs auswählen, vorhandene offene Morgen-Schritte/extra Vorbereitungsblöcke ohne zweite Planung auswerten. `prepIncludesMorning` bleibt durch den vorhandenen Planer bereinigt. Neue reine Projektion `core/departure.ts`, kompakte Jetzt-Karte unter der Hauptaktion; keine neue Store-/Schema-/Reminderwirkung. Unbekannte Zeiten bleiben offen, negative Restzeit/Puffer werden nicht zu null gerundet; keine Pünktlichkeitszusage. Homeoffice, explizites Losgehen und Planwechsel berücksichtigt. Automatische Softwareabnahme abgeschlossen; echte Geräte und Veröffentlichung offen. F-002/F-003 nicht begonnen. [Kurzstatus](PROJECT_STATUS.md), [Prüfbelege](ANKER_TESTNACHWEISE.md).

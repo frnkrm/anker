@@ -87,7 +87,7 @@ function validOverride(value: unknown): boolean {
     || !optional(value, 'latestStart', (v) => v === null || finite(v))
     || !optional(value, 'lateUntil', (v) => v === 'open' || finite(v))
     || !optional(value, 'backAt', timestamp)
-    || !fields(value, ['homeOffice', 'light', 'zombie', 'adjusted'], (v) => typeof v === 'boolean')
+    || !fields(value, ['homeOffice', 'light', 'shortMorning', 'zombie', 'adjusted'], (v) => typeof v === 'boolean')
     || !optional(value, 'reason', text) || !fields(value, ['coveredSteps', 'uncoveredSteps'], stringList)) return false
   if (!optional(value, 'dayType', (v) => choice(v, ['work', 'weekend', 'vacation', 'sick']))
     || !optional(value, 'evening', (v) => choice(v, ['free', 'friends', 'sport', 'cook', 'appointment']))

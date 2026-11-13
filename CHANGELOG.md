@@ -1,5 +1,9 @@
 # Patch Notes
 
+## Lokal, nicht veröffentlicht – F-002 (2026-11-13)
+
+- Bei rechnerisch knapper Abfahrtszeit bietet Jetzt vorhandene kürzere Morgenvarianten ausdrücklich zur Annahme an. Alle Schritte und Erledigungen bleiben erhalten; Abend und globale Einstellungen unverändert. Ablehnung schreibt nichts. Neue Annahme prüft den aktuellen Plan atomar, ist rücknehmbar und vergibt keine Punkte. Unklare Zeiten und weiterhin zu knappe Schätzungen bleiben ehrlich. Keine neuen Erinnerungen, Berechtigungen oder Veröffentlichung.
+
 ## Lokal, nicht veröffentlicht – F-001 (2026-11-13)
 
 - Jetzt zeigt zur relevanten geplanten Abfahrt die Restzeit, geschätzte offene Vorbereitung und den rechnerischen Puffer. Erledigte Routine-Schritte werden nicht erneut gezählt; unklare Zeiten bleiben offen. Keine neuen Erinnerungen oder automatischen Erledigungen, keine neue Versions-/Paket-/Signaturänderung. Echte Geräteprüfung und Veröffentlichung bleiben offen.

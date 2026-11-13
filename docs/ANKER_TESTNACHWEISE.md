@@ -1,5 +1,26 @@
 # Anker: Testnachweise
 
+## F-002 / V-009: ausdrückliche Kurzmoduswahl (13.11.2026)
+
+Basis `8149ecea34bf3a5f72a4b9fe1913ccccd602ba7c`, Branch `entwicklung/anker-neu`. Reine Vorschau aus F-001 plus bestehende Tagesplantransaktion und Planer; optionaler boolescher Tages-Override samt Importvalidierung. Kein neuer Writer/Planer, keine neuen Reminder-/Native-/Paket-/Cloudänderungen. Integriert lokal ja, main nein, Gerätetest offen, veröffentlicht nein.
+
+| Ausgeführte Prüfung | Ergebnis und Grenze |
+|---|---|
+| `npm test` final | **1.224/1.224**,119Dateien, Exit0;18 neue Logik-/Storefälle, keine Fehler/Skips |
+| `npm run typecheck` final | Exit0, vollständiger TS-Stand einschließlich e2e |
+| Produktionsbuild über finalen Playwright-Webserver | `npm run build` erfolgreich, frische Produktionsvorschau; kein Deployment |
+| `CI=true npx playwright test --config=/workspace/anker-f002-20261113/local-playwright.config.ts e2e/morning-short.spec.ts e2e/departure-readiness.spec.ts e2e/redesign-now.spec.ts --workers=2` final | **17/17**, Exit0,40,1s:6 neue Fälle plus11 unveränderte F-001-/Jetztfälle |
+| `npm run lint` final | Exit0,0Fehler/1bestehende `generation.current`-Warnung |
+
+Store-/Logikabnahme: passende Ersparnis ausschließlich für offene Schritte, keine Annahme bei unbekannter Fahrt/Dauer oder abgelaufener Zeit; gleiche Revision bei bloßem Uhrtick; Revalidierung nach Plan-/Faktenänderung und wartender Transaktion; Doppeltippen nur ein `putMany`; Fehler lässt Zustand/Undo unverändert und erneut annehmbar; Reload und bestehende Tagesplanrücknahme; alle IDs/Kernschritte/Erledigungen/Abend/globalen Einstellungen erhalten. Optionale Flagvalidierung akzeptiert alte Logs und lehnt String statt boolean ab. Ohne bestätigte Wahl keine Kürzung aus dem neuen Angebot und keine Punkte/Erledigungen aus Lesen/Ablehnen/Annahme.
+
+Browserabnahme: Vorschau15→7min, explizite Annahme/Reload, später echter Minimalabschluss, Ablehnung ohne Schreiben auch nach Uhrtick, Angebot verschwindet am Abfahrtszeitpunkt, unbekannte Reise und schon gewählter Kurzmodus ohne Doppelangebot, weiterhin zu knappe Zeit ausdrücklich benannt,320px/160Prozent Schrift. Lokales System-Chromium156.0.8078.79; Standardbrowserdownload nicht erneut versucht. Keine Retries, Skips, Timeouterhöhung oder gelockerte Assertions; keine aktuelle GitHub-CI und keine neue komplette Android-/Windows-/Browservollprüfung behauptet.
+
+Rotbelege erhalten: erste gezielte Suite16/17 wegen nicht klonbarer Storefunktionen im neuen Testsnapshot (Fixture korrigiert). Erste Browserrunde16/17: bisheriger Tagesplanhelfer vergab bei Kurzmodusannahme offene25XP für vorhandenes `wakeAt`. Tatsächlicher neuer Integrationsfehler, nicht als Flaky behandelt. Nur dieser neue Transaktionspfad überspringt nun Awardauswertung; ursprüngliche Gamegleichheitsassertion blieb erhalten und zusätzliche Store-Regression prüft unquittierte Handlungen. Vollständige finale Suite und alle17 Browserfälle danach grün. Keine Abwahl als Erledigung.
+
+Rohbelege unter `/workspace/anker-f002-20261113/`: `targeted-unit.log`, `targeted-unit-green.log`, `logic.log`, `logic-final.log`, `browser.log`, `first-browser-results/` inklusive Fehlertrace, `browser-final.log`, `typecheck-initial.log`, `typecheck-final.log`, `lint-final.log`, lokale Konfiguration, Abschlussbundle und `RESULT.json`. Erfolgreiche unveränderte Native-/Hardwareprüfungen nicht wiederholt. F-003 bleibt offen; für dessen native Prüfbedingungen T-004 als nächsten Auftrag vorbereiten.
+
+
 ## F-001 / V-008: Restzeit, Vorbereitung und Puffer (13.11.2026)
 
 Ausgang `32b9a159f9f0609a25faf05ee9eed2466e8f37e9`, Branch `entwicklung/anker-neu`. Nur freigegebene reine Ableitung und Jetzt-Anzeige, keine Native-/Store-/Daten-/Reminder-/Paketänderung. Integriert lokal ja, auf main nein, Gerätetest offen, veröffentlicht nein.

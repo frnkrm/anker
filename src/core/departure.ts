@@ -4,6 +4,7 @@ import { todayBerlin, zonedToUtc } from './time'
 import type { DayLog, DayPlan, Leg } from './types'
 
 export interface DepartureReadiness {
+  targetId: string
   label: string
   leave?: number
   /** Real elapsed minutes, including Berlin's clock changes. Negative stays overdue. */
@@ -59,6 +60,7 @@ export function departureReadiness(plan: DayPlan, log: DayLog | undefined, nowMs
   const journeyOpen = target.leg?.travelOpen === true || target.leg?.locationOpen === true || target.leg?.originOpen === true
   const remainingMin = target.leave === undefined ? undefined : (at(target.leave) - nowMs) / 60_000
   return {
+    targetId: target.id,
     label: target.label, leave: target.leave, remainingMin, preparationMin,
     openSteps: steps.length, openItems, durationOpen, journeyOpen,
     bufferMin: remainingMin !== undefined && !durationOpen && !journeyOpen ? remainingMin - preparationMin : undefined,
