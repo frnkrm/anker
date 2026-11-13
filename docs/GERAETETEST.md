@@ -1,5 +1,11 @@
 # Geräteprüfung
 
+## F-010: lokale Wochenübersicht, Gerätebeobachtungen unverändert offen (13.11.2026)
+
+Auf Basis `27aa6f3` freiwillige rein lesende Übersicht vorhandener Tagesstände ergänzt:101gezielte TS-/Store-/Datenschutzfälle und16verschiedene Browserfälle grün, zusätzlicher320px-Bildkontrollfall1/1. Berliner Tag-/Wochengrenzen, kleine/leere Grundlage, Offline, Abwahl/Reload und unveränderte gespeicherte Daten softwareseitig geprüft. Keine neue native Funktion oder Hardwarewirkung.
+
+274Android-JUnit aus F-008 bleiben historisch; keine neue Geräteinstallation/Signierung/Tagaktion. Vorhandene Rückblick-/Alltags-/Kleinbildschirmstationen G78/G85/G98 bei gesonderter Gerätefreigabe nutzen, keine neuen Stationen/Häkchen oder behauptete Galaxy-/Windows-/Kalender-/NFC-Beobachtung. Alle103historischen Gerätezeilen erhalten. E-002–E-005 bleiben separat offen; T-006 darf diese Lücken bei lokaler Softwareintegration nicht als erledigt übernehmen.
+
 ## F-009: lokale Web-Softwareabnahme, Gerätebelege unverändert (13.11.2026)
 
 Auf Basis `5668aec` ausschließlich lokale stille Fokusbegleitung ergänzt:139gezielte TS-/Store-/Datenschutzfälle und21verschiedene Browserfälle zuletzt grün. Offline, bewusste Wahl, Pause/Wiederaufnahme/Planwechsel, ungültige Teile, private Arbeitsruhe sowie320px/160Prozent Schrift softwareseitig geprüft. Browser-Blur/Visibility und JVM-/Storefälle sind keine echte Android-Sperr-/Herstellerbeobachtung.

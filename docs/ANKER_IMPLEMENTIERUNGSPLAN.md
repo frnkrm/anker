@@ -1,5 +1,17 @@
 # Anker 2.0: Implementierungsplan
 
+## F-010 / V-007: freiwillige lokale Wochenangaben (13.11.2026)
+
+Saubere verfügbare Basis `27aa6f324294e16ca8af4cab65c7eaedf39841e0`, Branch `entwicklung/anker-neu`. Bestehende drei Rückblickfragen, WeeklyReview-/Vorschlagswriter, Rhythmusansicht, Fokus-/Lern-/Supportdaten geprüft. Fragen/Antworten bleiben beim bisherigen Besitzer; nur die fehlende Übersicht belastbarer Tagesstände ergänzt. Fokusarchive/Lernwerte und F-009 liefern keinen Hindernis-/Begleitverlauf und werden nicht umgedeutet.
+
+`core/weeklyReview.ts` projiziert ausschließlich bekannte DayLog-Modi, light/shortMorning/adjusted und bekannte morning/evening-Resultate. Keine Rekonstruktion historischer Pläne aus aktuellen Einstellungen. Datenabdeckung aus passenden Angaben statt bloßer Recordexistenz; unbekannte/fehlende/leere/falsch datierte Stände nicht als Nichtnutzung/Hindernis zählen. Nur aktuelle gespeicherte Auswahl, kein Verlauf/Wirksamkeits-/Ursachenbeleg. Berliner04:00-Plantag, Montag bis Sonntag, laufende Woche nur bis heute und vorherige volle Woche; Zeitwechsel/Jahresgrenzen kalenderbasiert.
+
+Neue optionale Leseansicht im bestehenden Review vor den drei Fragen angeboten. Eigener Öffnungs-/Abwahlknopf, Auswahl dieser/vorheriger Woche ausschließlich flüchtig, Verlassen/Reload schließt. Keine Persistenz/Freigabe aus Import, neuen Messwerte, Diagnosen, Aufgaben-/Notiztexte oder Kopien in Diagnose/Sync/Widget/PC/Native. Keine automatische Plan-/Timer-/Erledigungs-/XP-Wirkung; ursprünglicher manueller Rückblick-/Vorschlagsweg unverändert. Vorabdatenrahmen in DATENSCHUTZ_DATENGRENZEN.md.
+
+101/101gezielte Aggregations-/Support-/Store-/Datenschutzfälle in6Dateien (16neu),16/16Browserfälle (7neu+9bestehende Accessibility-/Probe-/Schlaf-/Navigationsfälle). Zusätzliche einzelne Bildnachprüfung1/1 nach Warten auf vorhandene Erfolgsanzeige aus synthetischen Daten; keine Produktänderung oder vollständige Suitenwiederholung dafür. Lint0Fehler/1bekannte fremde Warnung, Typecheck samt e2e/Build grün. Chromium156,320px/160Prozent Schrift visuell geprüft. Native unverändert,274JUnit aus F-008 historisch erhalten, nicht erneut ausgeführt. Originalplan/36IDs/103Gerätezeilen erhalten.
+
+Lokal committen und Bundle/Wiederherstellung/fsck/SHA256 sichern. Kein Push/Merge/Release/Signieren/Installieren/Cloud-/Playeingriff. Danach stoppen. Nächster zulässiger eigener Auftrag T-006: gemeinsame lokale Softwareintegration und Abgleich offener Geräte-/Releasehindernisse; keine Freigabe externer Aktionen. E-002–E-005 bleiben offen.
+
 ## F-009 / V-006: ausschließlich lokale stille Fokusbegleitung (13.11.2026)
 
 Saubere verfügbare Basis `5668aec4c44cf81c3523af1f1b69cdcbb7b8d60c`, Branch `entwicklung/anker-neu`. Bestandsabgleich: Fokus-/Starthilfezeit, Pause, Stopp, Wiedereinstieg, Storequeue und aktuelle Recoveryprüfung bereits vorhanden; keine lokale freiwillige Begleitwahl. Nur diese Lücke ergänzt, keine soziale Variante oder zweite Engine.

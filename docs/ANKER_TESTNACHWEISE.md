@@ -1,5 +1,21 @@
 # Anker: Testnachweise
 
+## F-010 / V-007: freiwillige Wochenübersicht aus vorhandenen Tagesständen (13.11.2026)
+
+Verfügbare saubere Basis `27aa6f324294e16ca8af4cab65c7eaedf39841e0`, Branch `entwicklung/anker-neu`.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS / Store / Datenschutz |101/101 in6Dateien: core/weeklyReview (14neu), state/weeklyReview (2neu), core/support, state/supportOffer, export/privacyBoundaries und backupSafety. Unveränderte erfolgreiche Auswahl nicht wiederholt |
+| Aggregation |Nur bekannte Tagesmodi/Flags und Routinenresultate, ein Tagesstand trotz mehrerer Angaben; Umwahl überschreibt statt Verlauf. Fehlende/leere/anders befüllte/falsch datierte/future Tage, unbekannte Felder/Modi/Resultate, erhaltene historische Schritt-IDs. Keine privaten Gründe/changes-/Schritttexte/technischen Receipts im Resultat. Eingaben unverändert |
+| Zeit |Aktuelle ISO-Planwoche bis heutigem Plantag, vorherige volle Woche, Montag03:59/04:00Berlin, Mitternacht, Jahres- und beide Zeitwechselgrenzen geprüft. Keine heutigen Pläne als historisches Soll verwendet |
+| Browser |16/16 in erster Auswahl:7neue F-010- und9bestehende Accessibility-/Trial-/Navigation-/Schlaf-/deutsche Anzeigefälle. Anschließend nur320px-Fall1/1 zur unverdeckten Bildkontrolle wiederholt, nachdem vorhandene Erfolgseinblendung aus synthetischen Tagesdaten verschwand. Insgesamt16verschiedene Fälle, keine roten Läufe dieses Tasks |
+| Freiwilligkeit / Daten |Öffnen/Zeitraumwechsel/Abwahl und Offlineansicht lassen sämtliche gespeicherten Records unverändert. Keine privaten Texte in neuer Übersicht, kein externer HTTP(S)-Abruf im geprüften Pfad. Reload/Tabwechsel schließen; kleine/leere Stichprobe ehrlich. Eigene Fragen/ausdrücklicher Save/Vorschlag bleiben erhalten; keine Änderung von Plan/Fokus/Wecker/Game durch bloße Übersicht |
+| UI / Werkzeuge |Chromium156 mit lokaler Konfiguration,320px/160Prozent Schrift ohne horizontalen Überlauf; Abwahl/eigene Antworten scrollend erreichbar, finale Bildkontrolle. Lint0Fehler/1bekannte TaskAssistance-Warnung, Typecheck einschließlich e2e und Produktionsbuild durch Playwright-Webserver grün. Nach letzter reiner Bildteständerung gezieltes ESLint/e2e-Typecheck |
+| Grenzen |Native/Manifest/Brücke/Storewriter/Datenmodell/Export/Reminder/PC/Pakete/Workflows unverändert.274Android-JUnit aus F-008 historisch erhalten, nicht wiederholt. Keine vollständige App-/Remote-CI-/Hardwareabnahme behauptet |
+
+Rohbelege `/workspace/anker-f010-20261113/`: logic-first.log, browser-first.log, browser-visual.log, erste/finale UI-Bilder, Lint-/Typecheck-Logs, Chromium-Konfiguration, Integrität/build-inventory.json/RESULT.json. Vorher-/Nachher-Bundles, unabhängige Wiederherstellung/fsck, RESTORE.md/SHA256SUMS im selben Ordner, nur Cloud-lokal. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten. Kein Push/Merge/Release/Cloud-/Playeingriff. E-002–E-005 bleiben offen, Softwarebelege ersetzen keine Gerätebeobachtung.
+
 ## F-009 / V-006: lokale stille Fokusbegleitung (13.11.2026)
 
 Basis `5668aec4c44cf81c3523af1f1b69cdcbb7b8d60c`, tatsächlich verfügbarer sauberer Branch `entwicklung/anker-neu`. Keine soziale Kommunikation, externe Nutzdaten oder echte Geräteaktionen.

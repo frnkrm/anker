@@ -1,5 +1,15 @@
 # Datenschutz und Datengrenzen – T-005
 
+## F-010: Datenentscheidung vor der Ergänzung und geprüfter Abschluss (13.11.2026)
+
+Zweck: freiwillig geöffnete lokale Wochenübersicht als Gesprächsgrundlage für die vorhandenen drei Rückblickfragen. Quelle sind ausschließlich bestehende DayLogs: bekannte Routinenresultate und ausdrücklich gespeicherte Tagesmodi, light/shortMorning/adjusted. Aggregiert werden Anzahlen gespeicherter Stände, keine Ursachen, Diagnosen, Nutzungshäufigkeit oder Wirksamkeit. Leere/fehlende/anders befüllte Tage sind keine Hindernis- oder Nichtnutzungsbelege. Keine Rekonstruktion historischer Pläne aus heutigen Einstellungen.
+
+Es werden keine zusätzlichen Daten gespeichert. Aufklappen/Abwahl und Wahl dieser/vorheriger Planwoche sind flüchtiger UI-Zustand; Reload/Verlassen schließen die Übersicht. Montag bis Sonntag nach vorhandenem Berliner Plantag mit04:00-Grenze; laufende Woche nur bis zum aktuellen Plantag, dieser ausdrücklich nicht abgeschlossen. Keine neuen Stichproben, Datenfelder, Lernwahl, Aufbewahrung oder produktive Löschung. Keine Freigabe aus Backup/Import.
+
+Keine freien Gründe, changes-Texte, Aufgaben-/Notiz-/Arbeits-/Kalender-/Schlaftexte, Lernstichproben, Fokusarchive oder Reminder-Receipts in der neuen Ausgabe. F-009 besitzt keinen gespeicherten Begleitverlauf. Kleine Stichprobe/Datenlücken und die Grenze eines überschreibbaren Tagesstands offen benennen. Keine neue Diagnose-/Backup-/Import-/Sync-/Widget-/PC-/Nativeausgabe, externe Kommunikation oder automatische Plan-/Timer-/Punktewirkung. Bestehende freiwillige Rückblickantworten und deren Speicher-/Vorschlagsweg bleiben beim bisherigen Besitzer. Eine spätere gespeicherte Auswertung oder weitere Datenquelle benötigt einen eigenen konkreten Datenrahmen.
+
+Dieser Rahmen ist umgesetzt: weeklyReview.ts nimmt ausschließlich days/now/period und liefert neutrale Summen mit Datumsbereich/Abdeckung; WeeklyEvidence öffnet erst bewusst und hält Auswahl nur im UI-Speicher. Kein Storewriter oder Datenfeld ergänzt, bestehende Freitextantworten werden nicht in die Übersicht kopiert.101gezielte TS-/Store-/Datenschutzfälle und16verschiedene Browserfälle grün, einschließlich vollständigem Recordvergleich vor/nach Lesen/Abwahl/Zeitraumwechsel und Offlinebetrieb ohne externe Anfragen. Bestehende manuelle Save-/Vorschlagsfunktion separat getestet, nicht automatisch ausgelöst. Keine neue Aufbewahrung/Löschung oder Wirkung aus Import, keine OS-/Hardware-/Serverlöschzusage. Echte Gerätebeobachtungen bleiben offen.
+
 ## F-009: Datenentscheidung vor der Ergänzung und geprüfter Abschluss (13.11.2026)
 
 Zweck: freiwillige lokale stille Fokusbegleitung innerhalb einer bereits bewusst geöffneten gültigen Fokusansicht. Keine echte andere Person, soziale Kommunikation, KI, Audio/Video oder Anwesenheitsbehauptung. Die vorhandenen Plan-/Recovery-/Fokusbesitzer liefern die Gültigkeit; keine neue Zeitmessung oder Messstichprobe.

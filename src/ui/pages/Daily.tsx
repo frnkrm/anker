@@ -10,6 +10,7 @@ import { planFor, today, useApp } from '../../state/store'
 import { WeatherCard } from '../components/WeatherCard'
 import { PackingForDay } from '../components/Packing'
 import { TrialCard } from '../components/DayTasks'
+import { WeeklyEvidence } from '../components/WeeklyEvidence'
 import { HubContent } from '../components/HubContent'
 import { restoreTextEntries } from '../components/listUndo'
 import { Button, Card, Checkbox, Choice, MoreInfo, Page, RingTimer, Section, Stepper, TextInput, notifySaved } from '../components/ui'
@@ -165,7 +166,7 @@ export function Prep({ embedded = false }: { embedded?: boolean } = {}) {
   </HubContent>
 }
 
-/** Drei unveränderte Rückblickfragen und die bisherige freiwillige Nutzungsprobe. */
+/** Bestehende Rückblickfragen; zusätzliche Wochenangaben bleiben eine freiwillige Leseansicht. */
 export function Review({ embedded = false }: { embedded?: boolean } = {}) {
   const st = useApp()
   const nav = useNavigate()
@@ -178,6 +179,7 @@ export function Review({ embedded = false }: { embedded?: boolean } = {}) {
   const area = 'min-h-24 w-full rounded-2xl bg-surface p-4 text-lg placeholder:text-muted'
   return <HubContent title="Wochenrückblick" back="/mehr" embedded={embedded}>
     <p className="px-1 text-muted">Drei Fragen, keine Bewertung. Stichworte reichen.</p>
+    <WeeklyEvidence />
     <form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault()
       try { await st.saveReview({ id: d, good, hard, change }); st.showToast('Danke dir. Gute neue Woche!'); nav('/') }
