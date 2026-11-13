@@ -1,5 +1,20 @@
 # Anker: Testnachweise
 
+## F-005 / V-001: aktuelle Wiedereinstiegskarte, bewusste Timerfortsetzung (13.11.2026)
+
+Basis `b4ec5a47c5f58eca12b9d874aa703f61bcae0b38`, Branch `entwicklung/anker-neu`, zu Beginn sauber. Keine vollständige App-/Native-/CI-Neupruefung behauptet.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Vitest-Endstand | **171/171**,10Dateien, Exit0. Recovery/Support/Guidance, Tasks/Teiltimer/Restore im bestehenden Store, Export-/Backup-/Widgetprivatheit;14neue Recoveryfälle. Keine neue Speicherung oder zweite Timerengine |
+| Browserauswahl | **30unterschiedliche Fälle abgedeckt**. Erste Auswahl27/28 in4Dateien; Starthilfe scheiterte beim Reload mit `net::ERR_ABORTED` nach noch nicht abgewartetem Sheet-History-Abbau. Dialog-/History-Barriere ergänzt, Folgelauf3/3 mit Hauptaktionsbudget/Quick-Recovery. Nach Ergänzung der frühen Weckerinstanz Schlusslauf9/9 einschließlich aller6neuen F-005-Fälle; restliche21unverändert erfolgreiche Bestandsfälle nicht mechanisch wiederholt |
+| Neue Browserabnahmen | aktueller exakter Teil/Notiz nach Reload; Pause/kein Seiteneffekt/ausdrückliches Weiter; abgelaufenes/fehlendes Zeitfenster ohne neuen Timer; erledigter/entfernter Teil ohne private Karte; aktuelle/entfernte Routine; Berliner Tageswechsel;320px/160Prozent Schrift/Scrollbedienung ohne horizontalen Überlauf |
+| Lint / Typecheck / Build | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Produktionsbuild durch lokalen Testserver. Zwischenstand: TS2345 beim zu breiten Guidance-Helferparameter, Lesetyp auf wirklich benötigte Daten eingegrenzt; Fehlerprotokoll erhalten |
+| Fehlerhistorie | erste Corefixture hatte deferredUntil ohne state:deferred; gemäß bestehender Semantik korrigiert. Keine Taskregeln dafür geändert. Erste Browser-/Buildfehlerlogs, Screenshot und Trace erhalten; keine Lockerung von Assertions/Timeouts/Retries |
+
+Rohbelege, lokale System-Chromium156-Konfiguration, Bilder, RESULT.json, Vorher-/Nachher-Bundles, Wiederherstellungsplan und SHA256SUMS unter `/workspace/anker-f005-20261113/`. Nur lokale Cloud-Sicherung. Öffnen und Rückkehr prüfen unveränderte Timeridentität/Restzeit, Lernwerte, Tagesfakten und Spielstand; Navigation startet keinen neuen/pausierten Timer. Storequeue, Backup-/Import-/Sync-/Diagnose-/Widget-/PC-Ausgaben ohne neue Felder. Originalplan/36IDs/103Gerätezeilen erhalten.260Android-JUnit aus F-003 unverändert historisch; keine neuen Geräte-/CI-Nachweise oder PC-Wirkungen. Reale Android-/Windows-/Kalenderbeobachtungen offen. Kein Push/Merge/Cloud-/Playeingriff.
+
+
 ## F-004 / V-005: Zeitvergleich und vorhandene Dauerbestätigungen (13.11.2026)
 
 Basis `4b6e3fd17c76b738a238cb2199e9ec3fbcee4dfa`, Branch `entwicklung/anker-neu`, sauberer Anfangsstand in neuer erreichbarer Umgebung. Vorhandene Prüfungen erhalten; kein vollständiger Logik-/Browser-/Native-/CI-Neulauf.

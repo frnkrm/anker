@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## F-005 / V-001: kurze validierte Wiedereinstiegskarte (13.11.2026)
+
+Basis `b4ec5a4`, nur lokaler Branch `entwicklung/anker-neu`, einzeln beauftragt. Vorhandene Recovery-/Fokus-/Aufgabenbesitzer wiederverwendet; `RecoverySheet` ist die einzige Karte für Jetzt und Quick-Recovery. Ergänzt Titel/aktuellen offenen Schritt, lokalen Timerstatus/Restzeit und vorhandene Wiedereinstiegsnotiz. Reine Leseprojektion validiert Aufgabe/exakten Teil, aktuellen Planschritt, Voll-/Minimalvariante und Berliner Instanz einschließlich bestehender früher Weckeraktivierung. Enge Typisierung des Datumshelfereingangs, keine Änderung an Guidance-Regeln. Nicht zuordenbare Alt-Routinenrouten nicht ausführen; keine Datenbereinigung.
+
+Rückkehr revalidiert vor Navigation, ruft keinen Timerwriter mehr auf; pausierte Zeit wird erst im Fokus mit Weiter fortgesetzt. Explizite Startaktionen bleiben erhalten. Kein zweiter Planer, Timer, Speicher oder Lernweg; keine automatische Erledigung/Punkte. Arbeitsruhe und lokale Text-/Backup-/Transportgrenzen bleiben erhalten. Schmale Karte und große Schrift im Browser geprüft. 171gezielte TS-Fälle/10Dateien,30unterschiedliche Browserfälle abgedeckt; genaue gestufte Läufe und erster Testbarrieren-/Typfehler in ANKER_TESTNACHWEISE.md. Reale Geräte offen.
+
+Status/Roadmap/Datengrenzen aktualisiert, Abschluss lokal committen und Bundle/SHA256 mit Wiederherstellung prüfen. Nichts pushen, mergen, veröffentlichen oder an Cloud/Play ändern. Nutzergrenzen haben Vorrang vor historischen Uploadaufträgen. Nach F-005 stoppen; F-006 nur nach eigenem Auftrag aus geprüftem Endstand.
+
+
 ## F-004 / V-005: Zeitverständnis auf bestehendem Fokusmodell (13.11.2026)
 
 Basis `4b6e3fd`, nur `entwicklung/anker-neu`, einzeln beauftragt. Vorhandene Ringe, Countdown-/Pausenbesitzer, Lernwahl, Bestätigungen und Median wiederverwendet. Ergänzt kompakte Timerzeit und Vergleich von Schätzung/Fenster/Timerzeit/eigener Bestätigung in bestehenden Fokusdetails; Hauptaktion bleibt vor Details. Die erste Darstellung mit allen Vergleichszeilen vor dem Ring wurde nach Sichtprüfung bei320px/Großschrift in die Details verlegt. Keine zweite Uhr oder neue Stichprobenart.

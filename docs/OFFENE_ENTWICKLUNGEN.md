@@ -4,9 +4,9 @@
 
 Maßgebliches Anforderungsinventar: [ANKER_PLAN.txt](ANKER_PLAN.txt), insbesondere Abschnitt 2; Arbeitsregeln in Abschnitt 5. Die Datei bleibt unverändert. Diese Tabelle ist die einzige aktuelle ID-Roadmap; die unten erhaltene Bestandsliste vom 10.11. ist historischer Kontext, keine zusätzliche Freigabe.
 
-**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. T-004 ist als Prüfvorbereitung abgeschlossen. T-002s native Nachbereitung hat JDK21/SDK36 eingerichtet und252Android-JUnit bestätigt; der Toolchainblocker für F-003 ist aufgehoben. F-003 wurde anschließend gesondert beauftragt und lokal umgesetzt; native Softwareabnahme260/260, reale Geräte offen. T-005 wurde anschließend gesondert beauftragt und lokal abgeschlossen; Datengrenzen/Backupimport abgesichert. F-004 wurde danach gesondert beauftragt und lokal abgenommen; nächster zulässiger Einzelauftrag F-005, gesondert beauftragen. Keine F-003-Implementierung durch T-004. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
+**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. T-004 ist als Prüfvorbereitung abgeschlossen. T-002s native Nachbereitung hat JDK21/SDK36 eingerichtet und252Android-JUnit bestätigt; der Toolchainblocker für F-003 ist aufgehoben. F-003 wurde anschließend gesondert beauftragt und lokal umgesetzt; native Softwareabnahme260/260, reale Geräte offen. T-005 wurde anschließend gesondert beauftragt und lokal abgeschlossen; Datengrenzen/Backupimport abgesichert. F-004 wurde danach gesondert beauftragt und lokal abgenommen; F-005 wurde anschließend gesondert beauftragt und lokal abgenommen; nächster zulässiger Einzelauftrag F-006, gesondert beauftragen. Keine F-003-Implementierung durch T-004. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
 
-Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. F-001/V-008, F-002/V-009, F-003/V-010 und F-004/V-005: Softwareabnahme ERLEDIGT, integriert ja im lokalen Arbeitsbranch, nein auf main; Gerätetest offen, veröffentlicht nein. Für übrige F-IDs kein nachgewiesener vollständiger Abschluss; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
+Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. F-001/V-008, F-002/V-009, F-003/V-010, F-004/V-005 und F-005/V-001: Softwareabnahme ERLEDIGT, integriert ja im lokalen Arbeitsbranch, nein auf main; Gerätetest offen, veröffentlicht nein. Für übrige F-IDs kein nachgewiesener vollständiger Abschluss; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
 
 | ID | Titel | Status | Abhängigkeit | Planverweis |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
 | F-004 | Zeitgefühl und Dauerabschätzung verbessern | ERLEDIGT | T-003, F-001; T-005 vor neuen Messdaten | [§ 2.3, F-004](ANKER_PLAN.txt) |
-| F-005 | Wiedereinstiegs-Assistent | OFFEN | T-003 | [§ 2.3, F-005](ANKER_PLAN.txt) |
+| F-005 | Wiedereinstiegs-Assistent | ERLEDIGT | T-003 | [§ 2.3, F-005](ANKER_PLAN.txt) |
 | F-006 | Übergangshelfer | OFFEN | T-003 | [§ 2.3, F-006](ANKER_PLAN.txt) |
 | F-007 | Blockaden sanft erkennen und Vereinfachung anbieten | OFFEN | T-003 | [§ 2.3, F-007](ANKER_PLAN.txt) |
 | F-008 | NFC-Ankerpunkte | OFFEN | T-005, Android-Machbarkeit und Freigabe | [§ 2.3, F-008](ANKER_PLAN.txt) |
@@ -31,7 +31,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | E-003 | Windows-Begleiter prüfen | OFFEN | T-004, Windows-Gerät | [§ 2.4, E-003](ANKER_PLAN.txt) |
 | E-004 | Kalenderzugriff prüfen | OFFEN | T-004, Kalenderfreigabe am Gerät | [§ 2.4, E-004](ANKER_PLAN.txt) |
 | E-005 | Optionalen NFC-Betrieb einrichten | OFFEN | F-008, geeignete Hardware | [§ 2.4, E-005](ANKER_PLAN.txt) |
-| V-001 | Wiedereinstiegs-Assistent | OFFEN | F-005 | [§ 2.1, V-001](ANKER_PLAN.txt) |
+| V-001 | Wiedereinstiegs-Assistent | ERLEDIGT | F-005 | [§ 2.1, V-001](ANKER_PLAN.txt) |
 | V-002 | Übergangshelfer | OFFEN | F-006 | [§ 2.1, V-002](ANKER_PLAN.txt) |
 | V-003 | Vereinfachung bei Blockaden | OFFEN | F-007 | [§ 2.1, V-003](ANKER_PLAN.txt) |
 | V-004 | Physische NFC-Ankerpunkte | OFFEN | F-008 | [§ 2.1, V-004](ANKER_PLAN.txt) |
@@ -56,7 +56,7 @@ Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 �
 - T-005: [Datenfluss-/Löschinventur und F-004-Rahmen](DATENSCHUTZ_DATENGRENZEN.md); keine Freigabe neuer externer Datenflüsse.
 - F-004: bestehende Fokus-/Lernwege ergänzt, Zeitvergleich und Pausenüberzug lokal abgenommen; keine neue Messstichprobe. Details in PROJECT_STATUS.md.
 - F-009: vorhandene Fokus-/Zeitfunktionen in `src/core/focus.ts`, `support.ts` und Store; neue Messdaten oder soziale Kommunikation erst nach T-005 bzw. eigener Freigabe.
-- F-005: `src/core/recovery.ts`, `support.ts` und `Now.tsx` besitzen bereits Resume-Punkte und Wiedereinstieg. Keine zweite Aufgabenverwaltung.
+- F-005/V-001 lokal softwareseitig abgeschlossen: reine Recoveryprojektion auf aktuelle offene Referenzen/Planvarianten, Timerstatus/Restzeit und vorhandene Notiz in derselben kurzen Karte. Rückkehr navigiert ohne Timerstart; Fortsetzung ausdrücklich im Fokus. Hauptaktion, Schreibqueue und Datenschutzgrenzen erhalten; echte Geräte offen. [Prüfungen/Übergabe](PROJECT_STATUS.md).
 - F-006/F-007: `src/core/guidance/` und `support.ts` sind vorhandene Besitzer von Führung/Unterstützungsmodi; neue Abnahmekriterien erst nach geklärter Basis gezielt vergleichen.
 - F-008/F-010: noch kein vollständiger gezielter Implementierungsabgleich; kein Fehlens- oder Erledigungsnachweis. Hardware-, Datenschutz- und Aggregationsabnahmen bleiben offen.
 

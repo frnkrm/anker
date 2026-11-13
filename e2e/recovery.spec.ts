@@ -96,6 +96,8 @@ test('Starthilfe wartet auf Start und bewahrt ihre Pause getrennt vom Routinenfo
   await expect.poll(async () => (await local(page))?.stuck?.timer?.status).toBe('paused')
   await expect(page.getByRole('timer')).toHaveText('1:30')
   await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
   await at(page, START + 180_000)
   await page.reload()
   await page.getByRole('button', { name: 'Ich hänge fest', exact: true }).click()

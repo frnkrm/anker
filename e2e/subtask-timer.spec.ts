@@ -327,6 +327,8 @@ test('Arbeitskarte und Fokusshortcut setzen denselben pausierten Teilschritt for
   await expect(page.getByRole('dialog').getByText('Tabelle öffnen', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Dort weitermachen', exact: true }).click()
   await expect(page).toHaveURL(/\/aufgabe\/work\/teil-bericht\?teil=teil-a$/)
+  expect((await local(page))?.focus?.timer.status).toBe('paused')
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
   expect((await local(page))?.focus?.id).toBe(initial.id)
 })

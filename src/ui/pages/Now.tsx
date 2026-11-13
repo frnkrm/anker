@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
 import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
-import { resumeRoute, usableResume } from '../../core/recovery'
-import { resolveTask, taskIsOpen, taskNextStep, taskTitle } from '../../core/tasks'
+import { recoveryPreview, resumeRoute } from '../../core/recovery'
+import { guidancePlanDate } from '../../core/guidance/model'
+import { taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
-import { addDays, fmtDuration, fmtTime, utcToZoned, weekday } from '../../core/time'
+import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
 import { plural } from '../../core/uiText'
 import { nowConflictNotice } from '../../core/planConflicts'
@@ -17,7 +18,9 @@ import { GuidanceTimeArc } from '../components/GuidanceTimeArc'
 import { nowActionTitle } from '../components/nowTitle'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
 import { useToday } from '../../state/hooks'
-import { useApp } from '../../state/store'
+import { planFor, today, useApp } from '../../state/store'
+import { useFocusClock } from '../../state/useFocusClock'
+import { countdownLabel } from '../components/fieldValues'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
 import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferent'
@@ -178,34 +181,44 @@ function stepLink(step: PlannedStep): { to: string; label: string } | undefined 
   return undefined
 }
 
+function currentRecovery(st: ReturnType<typeof useApp.getState>, now: number, selected?: ResumePoint) {
+  const plan = planFor(guidancePlanDate(st.local, today(), now), st)
+  const target = st.local.focus?.target
+  const matches = !selected || (target?.kind === 'routine'
+    ? selected.kind === 'step' && selected.refId === target.stepId
+    : target?.kind === selected.kind && target?.id === selected.refId && target?.partId === selected.partId)
+  const local = selected && !matches ? { ...st.local, focus: undefined } : st.local
+  return recoveryPreview({ plan, log: st.days[plan.date], local, inbox: st.inbox, work: st.local.work, nowMs: now,
+    workQuiet: workTasksQuiet({ plan, settings: st.settings, sessions: st.local.workSessions, m: minutesOnPlanDay(plan.date, now), nowMs: now }) })
+}
+
+function sameRecovery(a: ResumePoint, b: ResumePoint) {
+  return a.kind === b.kind && a.refId === b.refId && a.partId === b.partId && resumeRoute(a) === resumeRoute(b)
+}
+
 export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { open: boolean; onClose: () => void; onSmall: () => void; onCapture: (context?: ResumePoint) => void; onDifferent: () => void }) {
   const st = useApp()
   const nav = useNavigate()
-  const { plan, m } = useToday()
-  let point: ResumePoint | undefined = usableResume(st.local.resume, st.inbox, st.local.work)
-  const focus = st.local.focus
-  if (focus?.target.kind === 'routine') {
-    const target = focus.target
-    const step = st.settings.routines[target.routine].find((item) => item.id === target.stepId)
-    if (step && !st.days[target.date]?.steps[`${target.routine}:${target.stepId}`]) point = { kind: 'step', title: step.title, refId: step.id, route: `/fokus/${target.routine}`, at: focus.timer.startedAt }
-  } else if (focus) {
-    const target = focus.target
-    const task = resolveTask(target, st.inbox, st.local.work)
-    const part = target.partId ? task?.subtasks?.find((item) => item.id === target.partId && item.doneAt === undefined) : undefined
-    if (task && taskIsOpen(task) && (!target.partId || part)) point = { kind: target.kind, refId: target.id, ...(part ? { partId: part.id } : {}), title: taskTitle(task), nextStep: part?.title ?? taskNextStep(task, taskTitle(task)), at: focus.timer.startedAt, note: task.resumeNote ?? (point?.kind === target.kind && point.refId === target.id ? point.note : undefined) }
-  }
-  if (point?.kind === 'work' && st.settings.support.workAfterHoursQuiet && !st.local.workSessions.some((session) => session.endAt === undefined)
-    && (plan.workEnd === undefined || m >= plan.workEnd || plan.workInfo?.closed)) point = undefined
-  const current = point
+  const { now } = useToday()
+  const clock = useFocusClock(st.local.focus?.timer, open)
+  const preview = currentRecovery(st, st.local.focus?.timer.status === 'running' ? clock : now)
+  const current = preview?.point
   return <Sheet open={open} onClose={onClose} title={current ? 'Hier warst du' : 'Ab hier geht es weiter'}>
-    <p className="mb-3 text-xl font-semibold">{current?.nextStep || current?.title || 'Ein kleiner Einstieg reicht.'}</p>
-    {current?.note && <p className="mb-3 whitespace-pre-wrap text-muted">{current.note}</p>}
+    <section aria-label="Wiedereinstieg" className="mb-3 min-w-0 space-y-2 break-words">
+      {current?.nextStep && current.nextStep !== current.title && <p className="text-sm text-muted">{current.title}</p>}
+      <h2 className="text-xl font-semibold">{current?.nextStep || current?.title || 'Ein kleiner Einstieg reicht.'}</h2>
+      {preview && <p className="text-sm text-muted">{preview.timer === 'none' ? 'Kein gespeichertes Zeitfenster' : preview.timer === 'expired' ? 'Zeitfenster beendet'
+        : `${preview.timer === 'paused' ? 'Pausiert' : 'Läuft'} · noch ${countdownLabel(Math.ceil(preview.remainingMs! / 1000))} im Zeitfenster`}</p>}
+      {current?.note && <p className="whitespace-pre-wrap">{current.note}</p>}
+      {current && <p className="text-xs text-muted">Du setzt einen pausierten Timer im Fokus selbst fort.</p>}
+    </section>
     <div className="space-y-2">
       <Button variant="primary" size="lg" className="w-full" onClick={async () => {
         try {
           if (!current) { onSmall(); return }
-          if ((current.kind === 'task' || current.kind === 'work') && current.refId) await st.startTaskFocus({ kind: current.kind, id: current.refId }, undefined, current.partId)
-          const route = resumeRoute(current)
+          const fresh = currentRecovery(useApp.getState(), Date.now())?.point
+          if (!fresh || !sameRecovery(current, fresh)) { st.showToast('Der gemerkte Schritt hat sich geändert. Prüfe den aktuellen Wiedereinstieg.'); return }
+          const route = resumeRoute(fresh)
           onClose()
           if (route) nav(route)
           else onSmall()
@@ -306,8 +319,9 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       return (
         <>
           <Button variant="primary" size="xl" className="w-full" onClick={async () => {
-            if ((a.resume.kind === 'work' || a.resume.kind === 'task') && a.resume.refId) await st.startTaskFocus({ kind: a.resume.kind, id: a.resume.refId }, undefined, a.resume.partId)
-            const route = resumeRoute(a.resume)
+            const fresh = currentRecovery(useApp.getState(), Date.now(), a.resume)?.point
+            if (!fresh || !sameRecovery(a.resume, fresh)) { st.showToast('Der gemerkte Schritt hat sich geändert. Prüfe den aktuellen Wiedereinstieg.'); return }
+            const route = resumeRoute(fresh)
             if (route) nav(route)
             else onStuck()
           }}>
