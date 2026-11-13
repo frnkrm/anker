@@ -10,6 +10,8 @@ import { fmtTime, minutesOnPlanDay } from '../../core/time'
 import type { FocusPulseMode, ResumePoint, RoutineId } from '../../core/types'
 import { usePlan, useToday } from '../../state/hooks'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
+import { FocusTiming } from '../components/FocusTiming'
+import { countdownLabel } from '../components/fieldValues'
 import { emptyLog, useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
 import { TodayDifferent } from '../components/TodayDifferent'
@@ -129,6 +131,7 @@ export default function Focus() {
         </div>
       </>}
       details={<details className="min-w-0 space-y-3"><summary className="min-h-11 py-2 text-muted">Weitere Möglichkeiten</summary>
+        <FocusTiming timer={timer} now={now} estimateMin={cur?.minutes} windowMinutes={seconds / 60} />
         <Choice<FocusPulseMode> label="Fokus-Puls" value={st.settings.focus.pulse} options={(['off', 'gentle', 'strong'] as const).map(value => ({ value, label: PULSE_LABEL[value] }))} onChange={pulse => void run(() => st.saveSettings(settings => ({ ...settings, focus: { ...settings.focus, pulse } })))} />
         {step.minimal && !minimalMode && <Button size="lg" className="w-full" disabled={busy} onClick={() => void run(() => st.ensureFocus({ kind: 'routine', date, routine: r, stepId: step.id, minimal: true }, step.minimal!.minutes * 60))}>Kleinere Version</Button>}
         <Button variant="ghost" size="lg" className="w-full" disabled={busy} onClick={() => void done('skipped')}>Überspringen</Button>
@@ -140,7 +143,7 @@ export default function Focus() {
       {error && <div role="alert" className="text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</Button></div>}
       <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{title}</h1>
       <RingTimer remainingSec={left} totalSec={seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der Routine" depletionColors={guidance.enabled && guidance.depletionColors} />
-      {timer && <p className="text-sm text-muted">{Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen{timer.status === 'running' && ` · bis ${new Date(timer.deadlineAt).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })}`}</p>}
+      {timer && <p className="text-sm text-muted">Timerzeit {countdownLabel(Math.floor(elapsedMs(timer, now) / 1000))} ohne Pause{timer.status === 'paused' ? ' · pausiert' : ''}</p>}
       {timer && left === 0 && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wann du abschließt.</p>}
     </FocusFrame>
     <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />

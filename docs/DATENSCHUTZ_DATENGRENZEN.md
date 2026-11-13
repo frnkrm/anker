@@ -1,6 +1,6 @@
 # Datenschutz und Datengrenzen – T-005
 
-Stand 13.11.2026. Geprüfte Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, lokaler Branch `entwicklung/anker-neu`. Technischer Bestandsabgleich und gezielte Softwareabnahme; keine Konten-, Hardware-, Rechts- oder Veröffentlichungsfreigabe. F-004 ist nicht implementiert. Maßgeblicher Übergabestand: [PROJECT_STATUS.md](PROJECT_STATUS.md).
+Stand 13.11.2026. Geprüfte Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, lokaler Branch `entwicklung/anker-neu`. Technischer Bestandsabgleich und gezielte Softwareabnahme; keine Konten-, Hardware-, Rechts- oder Veröffentlichungsfreigabe. Der folgende T-005-Bestand bleibt erhalten; F-004s anschließender lokaler Abschluss ist am Ende beschrieben. Maßgeblicher Übergabestand: [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Bestehende Datenflüsse
 
@@ -47,3 +47,16 @@ F-004 kann als eigener lokaler Auftrag beginnen; T-003/F-001/F-003 und diese Dat
 Gezielte TS-/Store-/Sync-/Export-/Diagnose-/PC-/Widgetregressionen sowie Sicherungs-/Diagnose-/Syncbrowserfälle, Lint/Typecheck und Produktionsbuild: [ANKER_TESTNACHWEISE.md](ANKER_TESTNACHWEISE.md). Rohbelege und lokale Sicherung `/workspace/anker-t005-20261113/`.
 
 Die bestehende F-003-Abnahme mit260Android-JUnit bleibt erhalten; Android-/Reminder-/PC-/Synctransportquellen und Berechtigungen sind in T-005 unverändert. Native Tests wurden deshalb nicht mechanisch wiederholt. Kein neuer GitHub-CI-/Backendlauf, kein echter Kalender-/Health-/PC-/Freigabe-/OS-Sicherungsversuch. E-002–E-005 und bestehende Gerätebeobachtungen offen; unter bestehenden Stationen G1/G21/G35–G38/G66–G71/G84/G94/G97–G103 bei eigener Freigabe und eindeutiger Buildzuordnung später beobachten. Alle103historischen Gerätezeilen bleiben erhalten.
+
+## F-004: Entscheidung vor der Ergänzung (13.11.2026)
+
+F-004 ergänzt keine Stichprobe und kein Messarchiv. Vorhandene `TaskDurationSample`-Felder, ausdrückliche Lernwahl, Abschlussbestätigung,60erSchreibgrenze, Rücknahme und Reset bleiben. Vorschläge projizieren nur passende bestätigte Werte zwischen1und480Minuten; Herkunft und Arbeits-/Privatkontext müssen aus vorhandenen Quellaufgaben zuordenbar sein. Nicht zuordenbare Altdaten bleiben gespeichert und sichtbar, liefern aber keinen neuen Vorschlag. Keine automatische Anwendung einer Schätzung.
+
+Ein optionales `CountdownState.overrunMs` erhält ausschließlich die bereits berechnete Überzugszeit desselben Zeitfensters über eine Pause. Zweck: Timerlaufzeit darf beim Pausieren nach Ablauf nicht rückwärts springen; Pausendauer darf nicht hinzukommen. Keine bestätigte tatsächliche Tätigkeitsdauer, keine neue Handlung oder Erledigung. Speicherort bleibt `meta/local.focus` bzw. vorhandenes `focusHistory`; Aufbewahrung/Löschung und Arbeitsgruppenauswahl entsprechen diesem bestehenden Fokuszustand. Kein eigenes Archiv, keine Diagnose-/Sync-/Widget-/PC-/Native-Ausgabe. Importvalidierung prüft den optionalen nichtnegativen endlichen ganzzahligen Wert; alte Timer ohne Feld bleiben gültig. Neue Zeitfenster beginnen ohne Überzug. Historisch nicht gespeicherter Überzug alter pausierter Timer wird nicht erfunden.
+
+
+## F-004: lokaler Abschluss und fortbestehende Grenzen
+
+Der vorab beschriebene Rahmen wurde eingehalten: keine neuen Lernstichprobenfelder/-zeilen, keine automatische Bestätigung aus Timerzeit; nur optionale lokale Timerfortsetzung mit `overrunMs`. Bestehende15Dateien/175gezielte Tests und26Browserfälle abgedeckt, genaue Laufgrenzen in ANKER_TESTNACHWEISE.md. Quellen aktueller Bestätigungen werden über vorhandene IDs und aktuell expliziten Fachkontext zugeordnet; frühere Kontextwechsel werden daraus nicht rekonstruiert. Nicht zuordenbare/ungültige oder widersprüchliche Altwerte bleiben gespeichert und sind in der Rohwertliste weiterhin vorhanden, liefern aber keine neue Schätzung. Titel-/Serienähnlichkeit bleibt eine offen benannte Heuristik und keine sichere Vorhersage.
+
+Vergleich in vorhandenen Fokusdetails trennt Timer, Schätzung und tatsächlich vom Nutzer bestätigte Gesamtdauer. Neue Timerfelder bleiben in bisherigen lokalen Fokus-/Archivgrenzen, Arbeitsabwahl und Importvalidierung getestet. Keine zusätzliche Quelle für Diagnose/Sync/Widget/PC, kein nativer Transport verändert. Keine neue allgemeine Löschfrist oder nachträgliche Bereinigung eingeführt. F-004 beendet; folgende Aufgaben benötigen eigene Beauftragung.

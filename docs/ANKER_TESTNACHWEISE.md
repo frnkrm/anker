@@ -1,5 +1,23 @@
 # Anker: Testnachweise
 
+## F-004 / V-005: Zeitvergleich und vorhandene Dauerbestätigungen (13.11.2026)
+
+Basis `4b6e3fd17c76b738a238cb2199e9ec3fbcee4dfa`, Branch `entwicklung/anker-neu`, sauberer Anfangsstand in neuer erreichbarer Umgebung. Vorhandene Prüfungen erhalten; kein vollständiger Logik-/Browser-/Native-/CI-Neulauf.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielter Vitest-Endlauf | **175/175**,15Dateien, Exit0. Fokus/Tasks/neue Dauerprojektion, Store/Teiltimer, Export-/Backup-/Restore, Diagnose-, Widget- und PC-Briefingprivatheit.15neue Fälle:4Fokus (darunter2Berlin-DST),7Dauerprojektion,4Store-/Backupfälle |
+| Browserauswahl | **26unterschiedliche Fälle abgedeckt**. Erster Lauf23/24; ein Bestandsfall erwartete die ersetzte kombinierte Pause-/Zeitzeile. Angepasster Fall plus3neue F-004-Fälle4/4grün; zusätzliche2Routinefälle2/2grün. Nach Layoutkorrektur alle6betroffenen Fälle gemeinsam erneut6/6, restliche20nicht mechanisch wiederholt |
+| Lint / Typecheck / Produktionsbuild | Exit0; Lint0Fehler/1bekannte TaskAssistance-Warnung. Vollständiger Produktionsbuild vor lokalen Chromiumtests, keine Lockerung von Timeouts/Retries/CI |
+| UI / Grenzen | Chromium156,320px/160Prozent Schrift: kompakte Hauptansicht und geöffnete einspaltige Vergleichsdetails geprüft. Ring/Hauptaktion erhalten. Webnachweis, keine Hardwarebeobachtung |
+
+Rote Anfangsfälle zeigen den echten Überzugverlust bei Pause/Reload/Weiter und Berliner Zeitwechseln. Neue Projektionstests prüfen2vs3Angaben, unbestätigte/ungültige Minuten, Quell-/Geschäftskontext trotz gleichem Titel, fehlende Herkunft, Serien, robusten Median, doppelte/widersprüchliche Kopien und unveränderte Eingabedaten. Storefälle belegen Erhaltung von Sekunden/Überzug über Pause/Reload, Neustart ohne Überzug, unveränderte Schätzung/Erledigung/Game/Lernwerte, lokales Backup und Abwahl/Syncgrenze, kaputtes Feld vor irgendeiner Persistenz sowie ausdrückliche Bestätigung/Doppelschutz/Rücknahme. Keine neue Stichprobe aus Timerzeit.
+
+Neue Browserfälle: Schätzung30min getrennt vom2min-Fenster und Timerzeit; Pause/Reload/Weiter/Ablauf ohne Erledigung oder Punkte; bewusste Unterbrechung nach Überzug, leeres Bestätigungsfeld und eigene7min-Bestätigung; kleine Ansicht/Schrift/Details. Vorhandener Vorschlagsfall erhält seine Übernahme-/Resetassertionen, Fixture nun mit tatsächlich zuordenbaren Quellaufgaben statt erfundenen Sample-IDs ohne Herkunft. Alter Pausentextfall auf getrennten Vergleich und bestätigte Persistenz nach Weiter umgestellt, Assertions nicht entfernt. Zusätzlich wurde ein Routinenlauf zu früh gestartet: belegterPort4173, danach erst nach beendetem Testserver erneut erfolgreich. Nach dem Verschieben in die bestehenden Details suchten drei Zwischenfälle noch im geschlossenen Bereich; sie öffnen jetzt ausdrücklich die Details bzw. prüfen die sichtbare kompakte Timerzeit. Der Schlusslauf ist grün. Alle frühen Fehlerlogs und Traces bleiben erhalten.
+
+Rohbelege `/workspace/anker-f004-20261113/`: focus-before.log, Zwischen-/Endlogs, erster Browsertrace, finale UI-Bilder und lokale Konfiguration, RESULT.json, DOC-CHECK.json, Vorher-/Nachher-Git-Bundles/SHA256SUMS. Alle36Roadmap-IDs/103historischen Gerätezeilen erhalten, Originalplan bytegleich. Native-/Wecker-/Reminder-/PC-/Syncquellen, Paket-/Plugin-/Wrapperbindungen und Berechtigungen unverändert. Frühere260Android-JUnit bleiben F-003s Nachweis und wurden nicht erneut ausgeführt. Kein echter Galaxy-/Windows-/Kalender-/Health-/Anbieteraufruf, keine produktive Datenlöschung oder Veröffentlichung. Geräteteile offen; vorhandene G98-Bedien-/Fokusstation und G84-Sicherung bei später eigener Gerätefreigabe nutzen, kein neuer Pflichtfall.
+
+
 ## T-005 / V-015: gezielte Datenschutzabnahme (13.11.2026)
 
 Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, sauberer Anfangsstand `entwicklung/anker-neu` in neuer Umgebung. Codeinventur und belegte Import-/Exportkorrekturen gemäß [DATENSCHUTZ_DATENGRENZEN.md](DATENSCHUTZ_DATENGRENZEN.md). Kein echter Anbieteraufruf, Kontowiderruf, produktiver Datenimport/-löschung oder Geräteversuch.

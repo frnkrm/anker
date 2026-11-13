@@ -1,5 +1,6 @@
 import { addDays, daysBetween, type DateStr } from './time'
-import type { InboxItem, TaskFields, TaskPart, TaskRef, TaskState, WorkTask } from './types'
+import type { InboxItem, TaskDurationSample, TaskFields, TaskPart, TaskRef, TaskState, WorkTask } from './types'
+import { localBusinessNote } from './syncPrivacy'
 
 export type TaskResolution = TaskState | 'completed' | 'completed-minimal'
 export type TaskDetailDepth = 'three' | 'normal' | 'tiny'
@@ -154,6 +155,23 @@ export function durationSuggestion(samples: readonly { minutes: number; confirme
   const middle = median(values)
   const typical = values.filter((value) => value >= middle / 3 && value <= middle * 3)
   return Math.max(1, Math.round(median(typical.length >= 3 ? typical : values)))
+}
+
+/** Read-only evidence for the existing estimator. Titles alone do not prove source or privacy context. */
+export function taskDurationEvidence(ref: TaskRef, task: InboxItem | WorkTask, samples: readonly TaskDurationSample[], inbox: readonly InboxItem[], work: readonly WorkTask[]) {
+  const key = taskLearningKey(ref, task)
+  const sources = ref.kind === 'work' ? work : inbox.filter(source => localBusinessNote(source) === localBusinessNote(task))
+  const candidates = samples.filter(sample => sample.key === key && sample.confirmed === true
+    && Number.isFinite(sample.at) && sample.at >= 0
+    && Number.isFinite(sample.minutes) && sample.minutes >= 1 && sample.minutes <= 480
+    && sources.some(source => sample.id === `${ref.kind}:${source.id}:${sample.at}`))
+  const facts = new Map<string, TaskDurationSample | undefined>()
+  for (const sample of candidates) {
+    if (!facts.has(sample.id)) facts.set(sample.id, sample)
+    else if (facts.get(sample.id)?.minutes !== sample.minutes) facts.set(sample.id, undefined)
+  }
+  const usable = [...facts.values()].filter((sample): sample is TaskDurationSample => sample !== undefined)
+  return { count: usable.length, suggestion: durationSuggestion(usable) }
 }
 
 export function taskLearningKey(ref: TaskRef, task: TaskFields & { text?: string; title?: string }): string {

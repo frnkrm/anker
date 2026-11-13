@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { randomId } from '../../core/defaults'
 import { fromBerlinDateTimeInput, toBerlinDateTimeInput } from '../../core/evening'
 import { deadlineRisk } from '../../core/support'
-import { decomposeTask, durationSuggestion, taskIsOpen, taskLearningKey, taskNextStep, taskStateLabel, resolveTask, taskTitle, type TaskDetailDepth } from '../../core/tasks'
+import { decomposeTask, taskDurationEvidence, taskIsOpen, taskNextStep, taskStateLabel, resolveTask, taskTitle, type TaskDetailDepth } from '../../core/tasks'
 import { germanDateTime, minuteText, plural } from '../../core/uiText'
 import { addDays, zonedToUtc } from '../../core/time'
 import type { InboxItem, TaskFields, TaskPart, TaskRef, WorkTask } from '../../core/types'
@@ -121,8 +121,8 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
   const { busy, error, message, run } = useTaskAction()
   const parts = task.subtasks ?? []
   const learning = st.local.taskLearning
-  const samples = learning?.samples.filter((sample) => sample.key === taskLearningKey(taskRef, task)) ?? []
-  const suggestion = learning?.enabled ? durationSuggestion(samples) : undefined
+  const evidence = taskDurationEvidence(taskRef, task, learning?.samples ?? [], st.inbox, st.local.work)
+  const suggestion = learning?.enabled ? evidence.suggestion : undefined
   const updateDraft = <K extends keyof typeof draft>(key: K, value: typeof draft[K]) => setDraft((current) => ({ ...current, [key]: value }))
   const save = () => run(async () => {
     if (!draft.title.trim()) throw new Error('Ein Titel genügt; er darf nicht leer sein.')
@@ -170,7 +170,12 @@ function TaskDetails({ taskRef, task }: { taskRef: TaskRef; task: InboxItem | Wo
         <Button type="submit" disabled={busy} className="w-full">Übernehmen</Button>
       </fieldset>
     </form>
-    {suggestion !== undefined && <div className="space-y-2 rounded-xl bg-surface-2 p-3"><p className="text-sm">Aus {plural(samples.length, 'bestätigten lokalen Zeit', 'bestätigten lokalen Zeiten')}: Vorschlag etwa {minuteText(suggestion)}.</p><Button size="sm" disabled={busy} onClick={() => run(async () => { await st.updateTask(taskRef, { estimateMin: suggestion }); updateDraft('estimate', String(suggestion)) }, 'Schätzung übernommen.')}>Schätzung übernehmen</Button></div>}
+    {learning?.enabled && <div className="space-y-2 rounded-xl bg-surface-2 p-3">
+      {suggestion === undefined ? <p className="text-sm text-muted">{plural(evidence.count, 'brauchbare zuordenbare Bestätigung', 'brauchbare zuordenbare Bestätigungen')}. Ein Vorschlag erscheint ab drei. Alte Werte ohne zuordenbare Herkunft zählen nicht mit.</p>
+        : <><p className="text-sm">Aus {plural(evidence.count, 'bestätigten lokalen Zeit', 'bestätigten lokalen Zeiten')}: Vorschlag etwa {minuteText(suggestion)}.</p>
+          <p className="text-xs text-muted">Vorsichtiger Richtwert für ähnlich benannte Aufgaben oder dieselbe Serie im gleichen Kontext. Wenige Angaben sind keine sichere Vorhersage.</p>
+          <Button size="sm" disabled={busy} onClick={() => run(async () => { await st.updateTask(taskRef, { estimateMin: suggestion }); updateDraft('estimate', String(suggestion)) }, 'Schätzung übernommen.')}>Schätzung übernehmen</Button></>}
+    </div>}
     <div className="space-y-3">
       <h4 className="font-semibold">Kleine Schritte</h4>
       <Segmented<TaskDetailDepth> label="Detailtiefe" value={depth} onChange={setDepth} options={[{ value: 'three', label: '3 Schritte' }, { value: 'normal', label: 'Normal' }, { value: 'tiny', label: 'Sehr klein' }]} />

@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## F-004 / V-005: Zeitverständnis auf bestehendem Fokusmodell (13.11.2026)
+
+Basis `4b6e3fd`, nur `entwicklung/anker-neu`, einzeln beauftragt. Vorhandene Ringe, Countdown-/Pausenbesitzer, Lernwahl, Bestätigungen und Median wiederverwendet. Ergänzt kompakte Timerzeit und Vergleich von Schätzung/Fenster/Timerzeit/eigener Bestätigung in bestehenden Fokusdetails; Hauptaktion bleibt vor Details. Die erste Darstellung mit allen Vergleichszeilen vor dem Ring wurde nach Sichtprüfung bei320px/Großschrift in die Details verlegt. Keine zweite Uhr oder neue Stichprobenart.
+
+Bestehender Überzug ging nach Pause verloren: mit roten Coretests belegt und durch optionales lokales `overrunMs` erhalten, vorab nach Datengrenzen dokumentiert, validiert und ohne Pause weiterzählbar. Alte Timer gültig, neue Fenster ohne Überzug. Keine Erledigung/XP/Arbeitszeit aus Ablauf. Vorschläge lesen dieselben vorhandenen Bestätigungen und nutzen den bisherigen Median; nach Quellidentität/aktuellem Fachkontext, brauchbaren Minuten und doppelten/widersprüchlichen Identitäten filtern. Weniger als3Werte ergibt ehrlichen Hinweis, Übernahme bleibt eigene Wahl. Keine neuen Probezeilen oder Freigaben aus Wiederherstellung.
+
+175gezielte TS-Tests und26Browserfälle abgedeckt, genaue gestufte Nachweise in ANKER_TESTNACHWEISE.md. Native/Transport/Reminders/Wecker/Workflows/Pakete unverändert, Geräte offen. Lokaler Commit/Bundles/SHA256, nichts gepusht oder veröffentlicht. Aktuelle direkte Nutzergrenzen gehen historischen Play-Aufträgen vor. Nach F-004 stoppen; F-005 erst gesondert beauftragen.
+
+
 ## T-005 / V-015: Datengrenzen und sichere Wiederherstellung (13.11.2026)
 
 Basis `4e23706`, ausschließlich lokal auf `entwicklung/anker-neu`. Datenflüsse/Empfänger, lokale Speicherung, Sicherung, Diagnose, Lösch-/Aufbewahrungsgrenzen und native Reminderbelege im [verbindlichen Datengrenzenbericht](DATENSCHUTZ_DATENGRENZEN.md) erfasst. Belegte Import-/Backupfehler korrigiert: fremde Geräte-/Dienst-/Lernfreigaben nicht übernehmen, erneute Wahl für importierte Wetterorte/PC-Freitexte, Tombstone-Bodies nicht exportieren, Geschäfts-/verwaiste Lern-/Rückkehrkopien korrekt ausschließen und beim Teilimport erhalten, lokale Schlaf-Lesewahl nicht bei Nachvalidierung verlieren. Gleiche Importprojektion/Storequeue, keine produktive Bereinigung. UI erklärt die Grenzen. Alte Wetter-Importtests erwarten jetzt bewusste Reaktivierung; bestehende lokale Wetter-Migration behält ihre Wahl.

@@ -126,7 +126,10 @@ test('Lokale Zeitvorschläge bleiben freiwillig und werden nur ausdrücklich üb
   await toggle.click()
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.taskLearning?.enabled).toBe(true)
   const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
-  local.taskLearning = { enabled: true, samples: [10, 12, 14, 400].map((minutes, index) => ({ id: `sample-${index}`, key: 'work:bericht', label: 'Bericht', minutes, at: new Date('2026-11-06T09:00:00Z').getTime(), confirmed: true })) }
+  // Keep real source identities: a title-only imported sample is not sufficient evidence.
+  local.work.push(...[0, 1, 2, 3].map(index => ({ id: `earlier-${index}`, title: `Früherer Auftrag ${index}`, createdAt: 1, done: true })))
+  const sampleAt = Date.parse('2026-11-06T09:00:00Z')
+  local.taskLearning = { enabled: true, samples: [10, 12, 14, 400].map((minutes, index) => ({ id: `work:earlier-${index}:${sampleAt}`, key: 'work:bericht', label: 'Bericht', minutes, at: sampleAt, confirmed: true })) }
   await seed(page, [{ collection: 'meta', id: 'local', data: local }])
   await page.reload()
   const card = page.getByRole('heading', { name: 'Bericht', exact: true }).locator('..')

@@ -5,6 +5,8 @@ export type CountdownState = {
   durationMs: number
   startedAt: number
   pulseCheckpointMs: number
+  /** Already elapsed overrun retained across a pause; local timer state, never a learned duration. */
+  overrunMs?: number
 } & (
   | { status: 'running'; deadlineAt: number }
   | { status: 'paused'; remainingMs: number; pausedAt: number }
@@ -37,7 +39,8 @@ const duration = (value: unknown): value is number => typeof value === 'number' 
 
 export function validCountdown(value: unknown): value is CountdownState {
   if (!object(value) || !duration(value.durationMs) || !timestamp(value.startedAt)
-    || !duration(value.pulseCheckpointMs) || value.pulseCheckpointMs > value.durationMs) return false
+    || !duration(value.pulseCheckpointMs) || value.pulseCheckpointMs > value.durationMs
+    || value.overrunMs !== undefined && !timestamp(value.overrunMs)) return false
   if (value.status === 'running') return timestamp(value.deadlineAt)
   return value.status === 'paused' && timestamp(value.pausedAt) && duration(value.remainingMs) && value.remainingMs <= value.durationMs
 }
@@ -94,19 +97,21 @@ export function remainingMs(timer: CountdownState, nowMs: number): number {
 /** Überzug darf sichtbar bleiben; er ist weder ein Fehlschlag noch ein Erledigungsbeweis. */
 export function elapsedMs(timer: CountdownState, nowMs: number): number {
   const rawRemaining = timer.status === 'paused' ? timer.remainingMs : timer.deadlineAt - nowMs
-  return Number.isFinite(rawRemaining) ? Math.max(0, timer.durationMs - rawRemaining) : 0
+  return Number.isFinite(rawRemaining) ? Math.max(0, timer.durationMs - rawRemaining + (timer.overrunMs ?? 0)) : 0
 }
 
 export function pauseCountdown(timer: CountdownState, nowMs: number): CountdownState {
   if (timer.status === 'paused') return timer
+  const left = remainingMs(timer, nowMs)
+  const overrun = Math.max(0, elapsedMs(timer, nowMs) - timer.durationMs + left)
   return { durationMs: timer.durationMs, startedAt: timer.startedAt, pulseCheckpointMs: timer.pulseCheckpointMs,
-    status: 'paused', remainingMs: remainingMs(timer, nowMs), pausedAt: nowMs }
+    status: 'paused', remainingMs: left, pausedAt: nowMs, ...(overrun > 0 ? { overrunMs: overrun } : {}) }
 }
 
 export function resumeCountdown(timer: CountdownState, nowMs: number): CountdownState {
   if (timer.status === 'running') return timer
   return { durationMs: timer.durationMs, startedAt: timer.startedAt, pulseCheckpointMs: timer.pulseCheckpointMs,
-    status: 'running', deadlineAt: nowMs + timer.remainingMs }
+    status: 'running', deadlineAt: nowMs + timer.remainingMs, ...(timer.overrunMs ? { overrunMs: timer.overrunMs } : {}) }
 }
 
 /** Höchstens ein Hinweis für überschrittene Marken; kein Nachholen nach Pause/Ablauf. */
