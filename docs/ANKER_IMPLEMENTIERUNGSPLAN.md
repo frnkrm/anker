@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: Entscheidungsangaben als Nutzerbericht eingeordnet (14.11.2026)
+
+Basis `563e3da` sauber/verfügbar. Nutzer bezeichnet sich als Besitzer und berichtet internen Play-Test; GitHub-Schlüssel nur vermutet. [Beleggrenzen und Entscheidung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Die Antwort erweitert keine Freigabe: private Schlüssel weder suchen/lesen/kopieren noch als zugänglich behaupten, keine Console-/GitHubabfrage, kein Build/Signieren/Installieren/Versions-/Cloud-/Workflow-/Playeingriff. Interner Testcode und installierter Stand unbekannt. Nur Dokumentation lokal committen/sichern; T-006/V-014 und E-002–E-005/Gesamt-/Releasefreigabe offen halten. Danach genau ein neuer Auftrag: nichtgeheime Paket-/Versions-/vorhandene öffentliche Zertifikatsangaben des internen Testbuilds beim Nutzer einholen und zuordnen; keine wiederholte Besitzerfrage oder neue Produktarbeit.
+
 ## T-006: ausschließlich lesende Signier-/Gerätebuild-Vorbereitung abgeschlossen (13.11.2026)
 
 Basis `b816e1a` sauber/verfügbar. Aktueller Auftrag überstimmt historische Upload-/Schlüsselaufträge: kein Schlüsselzugriff, Build, Signieren, Konfigurieren, Installieren, Workflowstart oder externer Eingriff. [Öffentliche Identitäts-/Pfad-/Versionsbelege](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) geprüft; B4-Nachweise konsistent, unsigned APK hashgleich. Alter Java-/Node-Helfer fixiert historischen Debugalias/-passwort, daher keine ungeprüfte Verwendung für `anker-mobile-release`. Kein Toolfix, Produktcode oder neue Signierengine.

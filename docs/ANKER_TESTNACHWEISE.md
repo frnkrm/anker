@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: Nutzerangaben, keine neue Software-/CI-/Geräteprüfung (14.11.2026)
+
+Saubere verfügbare Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`. [Besitzer-/interner-Play-Test-Bericht und unbelegte GitHub-Schlüsselvermutung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) getrennt von technischen Nachweisen dokumentiert. Aktueller interner Versionscode, Zielinstallation/Signierer und nutzbares Signiermaterial nicht bestätigt; keine Schlüssel-/Secret-/Console-/Geräteabfrage. Kein Build/Sync/Signieren/Installieren oder Testlauf.1372TS/378Browser/284Python und274historische quellenidentische Android-JUnit erhalten. Nur Dokumentintegrität, unveränderten Originalplan/36IDs/103Gerätezeilen/geschützte Produkt-/Workflow-/Versions-/Freigabedateien sowie lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Neue Dokumentationssicherung `/workspace/anker-t006-entscheidungsangaben-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe unverändert offen.
+
 ## T-006: öffentliche Signier-/Gerätebuild-Voraussetzungen, keine neuen Tests (13.11.2026)
 
 Sauberer verfügbarer Ausgangscommit `b816e1a4145a079fa35241194facb5f3f811cc1c`. [Prüfmatrix mit Codebelegen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Vier öffentliche Code15-/Code16-/Code17-Zertifikatsangaben B4 konsistent; bisheriges unsigniertes APK vorhanden, Größe38.608.942/SHA25694f240a18f2047a57dcf5e13075504f02889a3281de00a40e4bcd8836baf7a0f bestätigt. Historische Signatur-/CI-Angaben nicht als frisch verifiziert ausgegeben. Keine historische signierte APK frisch kryptografisch geprüft und keine installierte Identität ausgelesen.

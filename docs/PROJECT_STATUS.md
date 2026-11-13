@@ -1,5 +1,11 @@
 # Aktueller Übergabestand
 
+## T-006: nichtgeheime Nutzerantwort eingeordnet (14.11.2026)
+
+Saubere verfügbare Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`, Branch `entwicklung/anker-neu`. [Nutzerantwort, Entscheidungsstand und nächste Metadatenklärung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Nutzer bezeichnet sich als Besitzer und meldet internen Test in seiner Play Console. Die Aussage „auf GitHub sollte es einen Schlüssel geben“ ist eine Vermutung, kein bestätigter Zugriff auf passendes Signiermaterial. Keine erneute Besitzerfrage und keine Schlüsselsuche/-lesung oder GitHub-/Playabfrage. Auch interne Testbuilds besitzen Versionscodes; heutiger Testcode und tatsächliche Zielinstallation/Signatur bleiben unbekannt. Kein öffentlicher Rollout behauptet.
+
+Ausschließlich Dokumentation fortgeschrieben; kein Build/Sync/Signieren/Installieren, keine Geräte-/Cloud-/Workflow-/Playaktion oder grüne Testwiederholung. Alte Code17-Manifeste und bisherige Pakete/Nachweise unverändert. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamt-/Geräte-/Releasefreigabe offen; alte Umgebung/835235b zurückgestellt. Lokal committen/sichern unter `/workspace/anker-t006-entscheidungsangaben-20261114/`, finale Commit-ID dort. Danach stoppen. Genau nächster eigener Auftrag: vorhandene nichtgeheime Paket-/Versions-/öffentliche Zertifikatsangaben des internen Play-Testbuilds beim Nutzer erfragen und zuordnen; keine eigene externe Abfrage oder Schlüssel-/Geräteaktion.
+
 ## T-006: Signier-/Geräteprüfvoraussetzungen lesend geklärt (13.11.2026)
 
 Verfügbare saubere Basis `b816e1a4145a079fa35241194facb5f3f811cc1c`, Branch `entwicklung/anker-neu`. [Voraussetzungen, Versionsentscheidung und Codebelege](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Vorhandenes unsigniertes APK weiterhin vorhanden/38.608.942 Bytes/hashgleich; keine Build-/Sync-/Signier-/Geräte-/Remoteaktion und keine grüne Suite wiederholt. Öffentliche Code15-/Code16-/Code17-Zertifikatsangaben konsistent B4, aber kein heutiger Besitznachweis eines privaten Schlüssels oder Signaturbeleg der installierten App.
@@ -8,7 +14,7 @@ Konkrete Lücke im alten lokalen Weg: `sign-local-update.mjs`/`AnkerApkTool.java
 
 Aktuelle Zielinstallation (Paket/Code/Herkunft/gegebenenfalls vorhandener öffentlicher Signierer) und bestätigter erreichbarer Signierbesitzer fehlen. Gleicher Code17 ist nicht allein ein Downgradefehler, höherer installierter Code verhindert aber einen regulären Rückschritt; keine Versionszahl erraten oder ändern. Play-AAB-Uploadzertifikat beweist nicht das ausgelieferte App-Zertifikat. Alte Code17-Manifeste auf80f6a692 unverändert und nicht auf den neuen Appstand übertragbar. T-006/V-014 IN_ARBEIT, E-002–E-005 und Gesamt-/Releasefreigabe offen.
 
-Nur Dokumentation lokal committen/sichern unter `/workspace/anker-t006-signiervoraussetzungen-20261113/`, finale Commit-ID dort. Alte Umgebung/835235b zurückgestellt, keine privaten Schlüssel gesucht/gelesen/kopiert. Danach stoppen. **Genau nächster eigener Auftrag: fehlende nichtgeheime Zielinstallations-/Signierbesitzerangaben beim Nutzer einholen und zuordnen; noch kein Schlüsselzugriff, Signieren, Bauen, Installieren oder Cloud-/Workflow-/Playeingriff.**
+Nur Dokumentation lokal committen/sichern unter `/workspace/anker-t006-signiervoraussetzungen-20261113/`, finale Commit-ID dort. Alte Umgebung/835235b zurückgestellt, keine privaten Schlüssel gesucht/gelesen/kopiert. Danach stoppen. **Damals nächster, inzwischen oben fortgeschriebener Auftrag: fehlende nichtgeheime Zielinstallations-/Signierbesitzerangaben beim Nutzer einholen und zuordnen; noch kein Schlüsselzugriff, Signieren, Bauen, Installieren oder Cloud-/Workflow-/Playeingriff.**
 
 Stand 13.11.2026, Europe/Berlin. **T-006: Web-/Logik-/PC-Integration und unsignierte lokale Android-Paketintegration belegt; Gesamtabschluss IN_ARBEIT.** Ausgangsbasis dieses Paketauftrags `18f6bb2959f26882c9860a104e8bc3e85512fe04`, Branch `entwicklung/anker-neu`, sauber verifiziert. Finale lokale Commit-ID im Abschlussmanifest. [Paketnachweis, Workflows und offene Grenzen](INTEGRATION_T006.md). Alte Umgebung/835235b zurückgestellt.
 

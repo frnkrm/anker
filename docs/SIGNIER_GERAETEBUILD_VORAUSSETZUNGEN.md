@@ -1,5 +1,30 @@
 # T-006 – Voraussetzungen für einen signierten Geräteprüfbuild
 
+## Nutzerantwort und Zuordnung vom 14.11.2026
+
+Auf sauberer verfügbarer Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`, Branch `entwicklung/anker-neu`, hat der Nutzer auf die zwei nichtgeheimen Rückfragen geantwortet. Seine Angaben werden als **Nutzerbericht** erfasst, nicht als unabhängiger Console-, Geräte- oder Schlüsselbeleg:
+
+> ich bin der besitzer und es läuft auf meiner play console als interner test. es gibt keine wirkliche app version, da die app noch nicht draußen ist. auf github unter frnkrm/anker sollte es einen schlüssel geben
+
+| Thema | Jetzt vorhandene Angabe | Weiterhin unbelegt |
+|---|---|---|
+| Besitzer | Nutzer bezeichnet sich selbst als Besitzer; nicht erneut nach seiner Besitzeraussage fragen | Erreichbarkeit und kryptografische Eignung konkreten privaten Signiermaterials folgen daraus nicht |
+| Verteilung | Laut Nutzer läuft Anker in seiner Play Console als interner Test; öffentliche Veröffentlichung wird nicht behauptet | Tatsächliche aktuelle Console-Einstellungen, Testrelease und Teilnehmerinstallation wurden nicht abgerufen/geprüft |
+| Version | Nutzer versteht „Version“ als öffentliche Veröffentlichung | Auch interne Testartefakte haben einen Versionscode. Aktueller Testversionscode/-name ist unbekannt, nicht null oder nicht vorhanden |
+| Zielinstallation | Keine zusätzliche Geräteangabe genannt | Tatsächlich auf dem Zielgerät installierte Paketkennung, Version/Code, Herkunft und Codestand unbekannt; interner Test in der Console beweist keine Installation vom Play-Kanal |
+| Signierschlüssel bei GitHub | Nutzer vermutet einen Schlüssel unter `frnkrm/anker` | Keine Bestätigung einer existierenden, vollständigen oder nutzbaren Schlüsselsicherung/Actions-Secret-Konfiguration; nichts gesucht, geöffnet oder übertragen |
+| Öffentliches Zertifikat | Keine neue Zertifikatsangabe vom Nutzer | Bisherige öffentliche B4-Belege bleiben historisch. Aktueller Play-App-Signierer und Uploadsignierer nicht ausgelesen oder gleichgesetzt |
+
+**Belegte Entscheidung:** Besitzerangabe und interne Play-Verteilung sind jetzt als Nutzerbericht vorhanden. Die vermutete GitHub-Ablage gilt weiter als unbekannte Schlüsselverfügbarkeit. Eine GitHub-Secretbindung wäre von einer öffentlichen Repositorydatei zu unterscheiden; deklarierte Secretnamen beweisen keine Einrichtung, und Secretwerte werden nicht angefordert oder ausgelesen. Aus „sollte es einen Schlüssel geben“ wird keine Freigabe zur Schlüsselsuche oder zum Zugriff abgeleitet. Die ursprüngliche Grenze „keine privaten Schlüssel suchen/lesen/kopieren“ gilt weiter.
+
+Die interne Play-Verteilung erlaubt keine neue Signierung, keinen Upload, Versionswechsel oder lokalen Updateversuch. Das unveränderte unsignierte Code17-APK ist weiterhin kein freigegebenes Geräteupdate; seine Kompatibilität zur tatsächlichen Zielinstallation bleibt offen. Ein späterer Play-Weg benötigt eine eigene Freigabe und eindeutige Artefakt-/Versions-/Signiererzuordnung; ein lokaler APK-Weg ist nicht automatisch mit einem Play-Update austauschbar. Keine neue technische Freigabe und keine neue Software-/CI-/Geräteprüfung aus dieser Antwort.
+
+**Genau nächster zulässiger Einzelauftrag:** T-006 – nichtgeheime Angaben des bestehenden internen Play-Testbuilds zuordnen. Den Nutzer gezielt um bereits verfügbare Paketkennung, Versionscode/-name des internen Testbuilds und nur falls vorhanden öffentliche App-Signier-/Uploadzertifikatsfingerabdrücke bitten. Testkanalstand und tatsächlich installierten Gerätestand unterscheiden, unbekannte Felder offen lassen. Besitzerangabe nicht erneut abfragen. Keine eigene Console-/GitHub-/Secretabfrage oder Geräteaktion, keine Schlüsseldateien/-pfade/-werte und keine Signierung/Versionierung/Installation/Veröffentlichung. Das ist eine neue begrenzte Metadatenklärung, kein Auftrag zur Schlüsselwiederherstellung.
+
+T-006/V-014 bleiben IN_ARBEIT; E-002–E-005 und Gesamt-/Geräte-/Releasefreigabe offen. Alte Umgebung/835235b bleiben zurückgestellt. Ausschließlich Dokumentation lokal committen und sichern unter `/workspace/anker-t006-entscheidungsangaben-20261114/`, finale Commit-ID im Abschlussmanifest. Keine grüne Suite wiederholt; ältere Belege/Sicherungen und die historischen Code17-Manifeste unverändert. Nach diesem Auftrag stoppen.
+
+## Vorheriger lesender Bestandsabgleich vom 13.11.2026
+
 Stand 13.11.2026, Europe/Berlin. Geprüfte saubere Ausgangsbasis `b816e1a4145a079fa35241194facb5f3f811cc1c`, Branch `entwicklung/anker-neu`. Ausschließlich vorhandene öffentliche Dateien, Skriptquellen und lokale Prüfmetadaten gelesen; Dokumentation lokal fortgeschrieben. Keine Signierprogramme, Gradle-, Build-, Sync-, Geräte-, GitHub- oder Play-Aktion ausgeführt. Alte Umgebung und `835235b` bleiben zurückgestellt und sind keine Voraussetzung dieser Bestandsaufnahme.
 
 ## Ergebnis und belastbare Identität
@@ -56,7 +81,7 @@ Historisch wurde Code17 als interner Entwurf und Code16 als aktiv gemeldet. Kein
 3. **Lokale Signierfreigabe fehlt:** Erst nach Zuordnung und bestätigtem Besitzer wäre der kleinste separat zu autorisierende technische Schritt: ausschließlich die oben exakt per Hash gebundene bestehende APK lokal beim Besitzer mit dem bestehenden passenden Schlüssel signieren und Ergebnis auf einen erwarteten Signierer, unveränderte Paket-/Version-/SDK-/Nutzlastdaten, CRC/Ausrichtung und neue SHA256 prüfen. Keine neue Version oder Appbuild, sofern die bestätigte Versionslage dies zulässt; keine Installation oder Veröffentlichung. Schlüsselzugriff und -prüfung müssten dabei ausdrücklich autorisiert werden. Aktuell nicht ausführen.
 4. **Geräte-/Gesamtfreigabe fehlt:** Selbst ein später erfolgreich signiertes Artefakt schließt E-002–E-005 nicht. Getrennte reale Galaxy-/Windows-/Kalender-/NFC-Beobachtungen und jeweilige Freigabe bleiben nötig; [bestehende Stationen](GERAETETEST.md) erhalten. T-006/V-014 bleiben insgesamt IN_ARBEIT.
 
-**Genau nächster zulässiger Einzelauftrag:** T-006 – fehlende nichtgeheime Entscheidungsangaben bei dem Nutzer einholen und zuordnen. Zielinstallation/Herkunft sowie allein die bestätigte Erreichbarkeit eines bestehenden Signierbesitzers abfragen; bekannte Angaben nicht erneut verlangen. Noch kein Signieren, Schlüsselzugriff, Versionswechsel oder Geräteeingriff. Ein weiterer bloßer Wiederholungslauf derselben Quellenprüfung beseitigt diese externen Nachweislücken nicht.
+**Damals nächster, durch die obige Nutzerantwort inzwischen fortgeschriebener Einzelauftrag:** T-006 – fehlende nichtgeheime Entscheidungsangaben bei dem Nutzer einholen und zuordnen. Zielinstallation/Herkunft sowie allein die bestätigte Erreichbarkeit eines bestehenden Signierbesitzers abfragen; bekannte Angaben nicht erneut verlangen. Noch kein Signieren, Schlüsselzugriff, Versionswechsel oder Geräteeingriff. Ein weiterer bloßer Wiederholungslauf derselben Quellenprüfung beseitigt diese externen Nachweislücken nicht.
 
 ## Nachweise und Sicherung dieses Auftrags
 

@@ -1,5 +1,9 @@
 # T-006 – lokale Softwareintegration und offene Gesamtfreigabe
 
+## T-006: Nutzerantwort zur internen Play-Verteilung (14.11.2026)
+
+Auf sauberem `563e3da` ausschließlich [nichtgeheime Nutzerangaben zugeordnet](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): Nutzer nennt sich Besitzer, meldet internen Play-Test und vermutet einen Schlüssel bei GitHub. Kein unabhängiger Console-/Geräte-/Secretbeleg; kein privater Schlüssel gesucht oder gelesen. Interner Test hat ebenfalls einen Versionscode, aktueller Code/Zielinstallation/Signierer und nutzbares Signiermaterial bleiben unbelegt. Daraus keine Signier-/Upload-/Versions-/Installationsfreigabe ableiten. Kein Build, Testlauf, Remote-, Geräte-, Cloud- oder Playeingriff. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamt-/Releasefreigabe offen. Nächster eigener Auftrag nur öffentliche Metadaten des internen Testbuilds anhand vorhandener Nutzerangaben klären; Besitzerangabe nicht erneut abfragen. Dokumentation lokal sichern, bisherige Artefakte/Manifeste erhalten.
+
 ## T-006: Signier-/Geräteprüfpfad lesend abgegrenzt (13.11.2026)
 
 Auf sauber geprüftem `b816e1a` nur öffentliche Quellen/Metadaten abgeglichen und Verfügbarkeit/Hash des vorhandenen unsignierten APKs bestätigt. [Vollständige Voraussetzungsmatrix](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). B4-Nachweise konsistent, heutige Zielinstallation und erreichbarer passender Signierbesitzer unbekannt. Alter lokaler Java-/Node-Signierhelfer hat feste Debugannahmen und ist kein belegter Releasealias-Pfad. Später kleinster lokaler technischer Weg kann offizielle vorhandene Build-Tools auf dem exakt hashgebundenen APK beim bestätigten Besitzer sein; erst mit separater ausdrücklicher Freigabe für Schlüsselzugriff/Signierung, ohne automatischen Versionswechsel/Neubuild/Installation.
