@@ -81,6 +81,7 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `types.ts` | Alle Datentypen (`Settings`, `DayLog`, `DayPlan` …) |
 | `defaults.ts` | Standardwerte und Zeitvorschlag, rückwärts vom Arbeitsbeginn |
 | `now.ts` | Was der Tagesplan gerade vorsieht |
+| `departure.ts` | Reine F-001-Projektion vorhandener Abfahrten/offener Vorbereitung; keine Planung oder Persistenz. Anzeige in `ui/components/DepartureReadiness.tsx` |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
 | `guidance/` | Benannte Abend-/Morgenphasen aus vorhandenem Plan und echten Tatsachen; Einstellungen, Kernschritte und Validierung |
 | `pcLink/` | v3-Typen, Briefing-/Statusprüfung, Ereignisregeln und gemeinsame Krypto-Fixtures; kein zweiter Planer |

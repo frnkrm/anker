@@ -1,5 +1,9 @@
 # Patch Notes
 
+## Lokal, nicht veröffentlicht – F-001 (2026-11-13)
+
+- Jetzt zeigt zur relevanten geplanten Abfahrt die Restzeit, geschätzte offene Vorbereitung und den rechnerischen Puffer. Erledigte Routine-Schritte werden nicht erneut gezählt; unklare Zeiten bleiben offen. Keine neuen Erinnerungen oder automatischen Erledigungen, keine neue Versions-/Paket-/Signaturänderung. Echte Geräteprüfung und Veröffentlichung bleiben offen.
+
 ## 1.5.0-rc.3 / Code17 und PC0.1.1 – laufende Fertigstellung (2026-11-10)
 
 Die gemeinsame Abschlussprüfung und die neuen Download-/Playbelege werden vor Auslieferung ergänzt. Die Code16-Belege darunter bleiben historisch; neue Gerätebeobachtungen sind nicht daraus abgeleitet.

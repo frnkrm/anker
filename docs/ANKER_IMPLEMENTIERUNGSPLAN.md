@@ -1,5 +1,10 @@
 # Anker 2.0: Implementierungsplan
 
+## F-001 / V-008: Abfahrtsbereitschaft (13.11.2026)
+
+Einzeln freigegeben auf `32b9a15`: vorhandene Büroabfahrt und Termin-Legs auswählen, vorhandene offene Morgen-Schritte/extra Vorbereitungsblöcke ohne zweite Planung auswerten. `prepIncludesMorning` bleibt durch den vorhandenen Planer bereinigt. Neue reine Projektion `core/departure.ts`, kompakte Jetzt-Karte unter der Hauptaktion; keine neue Store-/Schema-/Reminderwirkung. Unbekannte Zeiten bleiben offen, negative Restzeit/Puffer werden nicht zu null gerundet; keine Pünktlichkeitszusage. Homeoffice, explizites Losgehen und Planwechsel berücksichtigt. Automatische Softwareabnahme abgeschlossen; echte Geräte und Veröffentlichung offen. F-002/F-003 nicht begonnen. [Kurzstatus](PROJECT_STATUS.md), [Prüfbelege](ANKER_TESTNACHWEISE.md).
+
+
 ## T-002 / E-001 / T-003: lokaler Einrichtungsabschluss (13.11.2026)
 
 Auf Basis `e421ee5` sind Entwicklungsumgebung, Zugriffsgrenzen und vollständige Planungsunterlagen abgenommen. Alle36 IDs und V-Zuordnungen erhalten; F-003 benötigt F-001/T-003, nicht F-002; F-004 braucht T-005 vor neuen Messdaten. Nutzerfreigabe stellt Originalumgebung/`835235b` zurück. Native-/Kontogrenzen bleiben für spätere Aufgaben sichtbar, blockieren aber F-001s lokale Ableitung vorhandener Daten nicht. Keine Wiederholung unveränderter erfolgreicher Tests, keine Produkt-/Workflow-/Cloudänderung oder Veröffentlichung. Nächster möglicher Einzelauftrag: F-001, noch nicht begonnen. [Verbindlicher Kurzstatus](PROJECT_STATUS.md).

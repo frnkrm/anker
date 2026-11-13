@@ -29,6 +29,7 @@ import { InboxSheet } from '../components/Shell'
 import { BedtimePrompt } from '../components/BedtimePrompt'
 import { BedtimeSessionProvider } from '../components/BedtimeSession'
 import { BedtimeFollowUpCard } from '../components/BedtimeFollowUpCard'
+import { DepartureReadiness } from '../components/DepartureReadiness'
 import './now.css'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
@@ -101,6 +102,8 @@ function NowContent() {
       </div>
       {!bedtime && after && <p className="now-after" aria-label="Danach">Danach: {after}</p>}
     </section>
+
+    {!bedtime && <DepartureReadiness plan={plan} log={log} now={now} />}
 
     {!bedtime && readyToReview > 0 && m >= 14 * 60 && <Link to="/abend" className="flex min-h-11 items-center text-sm text-muted">Geparkt · {readyToReview} zum Ansehen ›</Link>}
     {!bedtime && conflict.active.slice(0, 1).map((item) => <aside key={item.id} className="now-conflict" aria-label="Überschneidung prüfen"><p>{item.summary}</p><div className="now-conflict-actions"><Link to="/tag" className="underline">Ansehen</Link><button type="button" onClick={() => void st.acknowledgePlanConflict(date, item.id).catch(() => st.showToast('Der Hinweis konnte noch nicht bestätigt werden. Versuche es erneut.'))}>Passt so</button></div></aside>)}

@@ -1,13 +1,13 @@
 # Aktueller Übergabestand
 
-Stand 13.11.2026, Europe/Berlin. **T-002, E-001 und T-003 abgeschlossen** für die lokale Web-/Logikentwicklung. Ausgangsstand dieses Abschlusses: `e421ee560cea709cba841843d35521b3f7755519`, Branch `entwicklung/anker-neu`, Arbeitsbaum `/workspace/anker`, zu Beginn sauber. Keine neue Produktfunktion. Nächster zulässiger Einzelauftrag: F-001, erst nach gesonderter Beauftragung. Keine parallele Folgeaufgabe starten.
+Stand 13.11.2026, Europe/Berlin. **F-001/V-008 lokal umgesetzt und automatisch geprüft.** Ausgangsstand `32b9a159f9f0609a25faf05ee9eed2466e8f37e9`, Branch `entwicklung/anker-neu`, Arbeitsbaum `/workspace/anker`, zu Beginn sauber. T-002/E-001/T-003 bleiben abgeschlossen. Nächster möglicher Einzelauftrag F-002 erst nach gesonderter Beauftragung; keine parallele Folgeaufgabe starten. Kein Push/Merge/Release oder Play-Aufruf.
 
 ## Arbeitsbasis und Verfügbarkeit
 
 - T-001 ist nach ausdrücklicher Nutzerentscheidung gesichert pausiert. Originalumgebung und `835235b` bleiben zurückgestellt und sind keine Voraussetzung. Mögliche spätere Wiederherstellung separat sichern/vergleichen; keine automatische Übernahme oder Rekonstruktion.
-- Lokale Historie: `6dfa632` (vollständiger Nutzerplan), `f7fa4e3` (Planungsdokumentation), `e421ee5` (Testkorrektur). Dieser Dokumentationsabschluss folgt darauf. Die finale Commit-ID steht im Abschlussbericht, nicht als selbstreferenzierende Dateischleife hier.
+- Lokale Historie: `6dfa632` (vollständiger Nutzerplan), `f7fa4e3` (Planungsdokumentation), `e421ee5` (Testkorrektur). Einrichtungsabschluss `32b9a15`, darauf der lokale F-001-Abschluss. Die finale Commit-ID steht im Abschlussbericht, nicht als selbstreferenzierende Dateischleife hier.
 - Letzte erfolgreiche Remote-Abfrage in dieser Unterhaltung: main/HEAD `e48d289`, Arbeitsbranch/PR2-Head `6dfa632`. Lokale Nachfolgecommits wurden nicht gepusht. PR2 laut Nutzerscreenshot/-bericht offen und nicht gemergt; kein aktueller unabhängiger API-Nachweis (`Forbidden`). Beim Wechsel in einen anderen Task zuerst prüfen, ob dieser lokale Abschluss tatsächlich vorhanden ist; ein Prompt überträgt keine Commits.
-- Produktquellen (`src`, Android) unverändert gegenüber `80f6a69`; e2e-Testquellen seit `e421ee5` gezielt korrigiert. Keine neue Release-/Gerätezusage. Nutzer-Screenshot zu GitHub-Lauf43331316553: 307/308 Browserfälle, Timerstart erwartete675000/tatsächlichundefined. Dieser Remote-Lauf bleibt historisch rot; kein neuer Runnerlauf ausgelöst.
+- Seit F-001 gezielte TS-/Jetzt-Änderungen und neue Logik-/Browsertests; Android, Store, Datenschemata, Reminder und Paket-/Lockdateien unverändert. e2e-Timerkorrektur aus `e421ee5` erhalten. Keine neue Release-/Gerätezusage. Nutzer-Screenshot zu GitHub-Lauf43331316553: 307/308 Browserfälle, Timerstart erwartete675000/tatsächlichundefined. Dieser Remote-Lauf bleibt historisch rot; kein neuer Runnerlauf ausgelöst.
 - Branch `work` bis `02e0a01` und frühere Bundles bleiben erhalten. `/workspace/anker-ci-fix-20261113/after.bundle` erfolgreich verifiziert; Original-/Planungssicherungen unter `/workspace/anker-recovery-20261113/` und `/workspace/anker-preparation-20261113/`. Nur Cloud-lokal, keine bestätigte externe Sicherung. Fehlende Originaldateien werden nicht als verloren ausgegeben.
 
 ## Abnahme T-002 / E-001 / T-003
@@ -16,7 +16,7 @@ Stand 13.11.2026, Europe/Berlin. **T-002, E-001 und T-003 abgeschlossen** für d
 |---|---|---|
 | T-002 | Umgebung identifiziert; Versionen/Befehle geprüft; Lockinstallation, Build und gezielte Browserprüfung aus CI-Fix erhalten; `npm ls --depth=0` erfolgreich; Setupvorschlag unten | Native-/Windows-Prüfungen erst für betroffene Aufgaben, keine Cloud-Setupänderung |
 | E-001 | Cloudstatus aktuell running/enforced; Git-Lesen und API-Grenzen geklärt; keine Secretbindungen/Identitäten; Nutzerwahl GPT-6.1 Sol/Hoch bestätigt | Keine Konto-/OAuth-/Play-Freigaben erteilt; fehlender Zugriff ist dokumentiert, nicht repariert |
-| T-003 | Alle36 IDs samt V-Zuordnungen, Abhängigkeiten und Originalabnahmen erfasst; eine Roadmap, ein Status, genau drei Fallvorlagen; Links und Widersprüche geprüft | F-001 bleibt OFFEN; spätere Aufgaben einzeln beauftragen |
+| T-003 | Alle36 IDs samt V-Zuordnungen, Abhängigkeiten und Originalabnahmen erfasst; eine Roadmap, ein Status, genau drei Fallvorlagen; Links und Widersprüche geprüft | F-001 inzwischen lokal umgesetzt; spätere Aufgaben einzeln beauftragen |
 
 Integriert: ja im lokalen Arbeitsbranch; nein auf main und nicht als neue GitHub-Verfügbarkeit bestätigt. Gerätetest für diesen Dokumentationsabschluss nicht nötig; veröffentlicht nein. Vollständige App-/Android-/Windows-Prüfung oder Releasefreigabe ist kein Teil dieser Abnahme.
 
@@ -56,4 +56,12 @@ Erhaltene Prüfung aus dem unmittelbar vorherigen Task: 15/15 gezielte Browserte
 
 Keine Pushes, Merges, Workflow-/Cloudänderungen oder Google-Play-Aktionen. CI läuft bei Push/PR; Play-Dispatch wählt Upload; Play-Pushpfad verlangt main/Workflowänderung/Marker; `v*`-Tags veröffentlichen APK-Releases. Externe Netlify-Kontoverknüpfung nicht unabhängig sichtbar. Historische Uploadaufträge sind für diese Einrichtung und F-001 keine Veröffentlichungsfreigabe. Aktueller Play-Bestand bleibt separat unbestätigt.
 
-Genau nächster Schritt: F-001 in derselben Unterhaltung ausdrücklich beauftragen. Nur vorhandene Plan-/Logdaten auswerten und Jetzt-Anzeige erweitern; keine F-002-/F-003-Implementierung, neue Messdaten oder zweite Engine. Bei Taskwechsel muss der lokale Abschluss erst tatsächlich zugänglich gemacht werden, ohne eigenmächtigen Push.
+## F-001-Abschluss
+
+`src/core/departure.ts` ist eine reine Projektion vorhandener Büro-/Terminwege, Morgenroutine und vom Planer bereits überlappungsbereinigter Vorbereitungsblöcke. Anzeige unter der Hauptaktion: Restzeit, geschätzte offene Vorbereitung, rechnerischer Puffer oder ehrlicher Hinweis auf offene Zeiten. Erledigte/entfallene Routine-Schritte nicht erneut zählen; explizite Wegbestätigung entfernt die jeweilige Karte. Homeoffice erzeugt keinen Büro-Weg; gesonderte Termine bleiben möglich. Vergangene Abfahrt bleibt negativ, beendet keine Routine und vergibt keine XP. Physische Restzeit aus bestehenden Berliner UTC-Konvertierungen, auch nach Mitternacht und bei Zeitwechseln. Nach 04:00 kein alter Plantag. Kein zweiter Planer, keine neue Persistenz oder Reminder.
+
+Prüfung auf gemeinsamem F-001-Code: **1.206/1.206 Logiktests** (23 neu), **15/15 ausgewählte Browserfälle** (5 neu, 6 bestehende Jetzt-/Layoutfälle und 4 Termin-/Wegefälle), Typecheck/Produktionsbuild grün; Lint0Fehler/1bestehende Warnung. System-Chromium156, 320px/160Prozent Schrift geprüft. Erster Buildversuch erkannte einen fehlenden Datumsparameter in neuer Browserfixture; korrigiert, danach Typecheck/Build/Browser grün. Historische Erstfehlerlogs bleiben erhalten. Keine neue vollständige Browser-/Android-/Windows-Suite oder erfolgreiche GitHub-CI behauptet. Echte Galaxy-/Windows-Beobachtungen weiterhin offen.
+
+Nachweise `/workspace/anker-f001-20261113/` einschließlich Logs, `RESULT.json`, Vorher-/Nachher-Bundles und SHA256-Verzeichnis. Integriert lokal ja, auf main nein; veröffentlicht nein. Sicherung nur Cloud-lokal. F-002/F-003 ausdrücklich nicht implementiert.
+
+Genau nächster Schritt: F-002 in derselben Unterhaltung einzeln beauftragen. Vorhandene Minimalvarianten und F-001-Projektion prüfen, bestätigungspflichtiges Kurzmodusangebot separat umsetzen. Bei Taskwechsel muss der lokale F-001-Abschluss erst tatsächlich verfügbar sein; kein eigenmächtiger Push.

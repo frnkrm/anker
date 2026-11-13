@@ -1,5 +1,25 @@
 # Anker: Testnachweise
 
+## F-001 / V-008: Restzeit, Vorbereitung und Puffer (13.11.2026)
+
+Ausgang `32b9a159f9f0609a25faf05ee9eed2466e8f37e9`, Branch `entwicklung/anker-neu`. Nur freigegebene reine Ableitung und Jetzt-Anzeige, keine Native-/Store-/Daten-/Reminder-/Paketänderung. Integriert lokal ja, auf main nein, Gerätetest offen, veröffentlicht nein.
+
+| Ausgeführte Prüfung | Ergebnis und Grenze |
+|---|---|
+| `npm test` | **1.206/1.206**, 117 Dateien, Exit0; darin23 neue `departure.test.ts`-Fälle, keine Fehler/Skips |
+| `npm run typecheck` | Nach korrigierter Browserfixture Exit0; erster Versuch fand fehlendes Datum für `initialGame`, Rotlog erhalten |
+| Playwright `departure-readiness.spec.ts` und `redesign-now.spec.ts`, CI=true, workers2 | **11/11**, Exit0: 5 neue Fälle (persistierte Erledigung/Reload ohne bloßes Lesen als Wirkung, überfällige Zeit/Losgehen, Homeoffice/unklare Reise, Planwechsel, 320px/160Prozent) plus6 vorhandene Hauptaktions-/Tages-/Layoutfälle |
+| Playwright `travel-sleep.spec.ts`, CI=true, workers2 | **4/4**, Exit0, vorhandene Orts-/Kundenweg-/Kalender-/Weckergrenzen |
+| Produktionsbuild über beide Playwright-Webserverstarts | `npm run build` erfolgreich, frische Produktionsvorschau; kein Deployment |
+| `npm run lint` nach finalem Produkt-/Teststand | Exit0,0Fehler/1bestehende Warnung in `useGuidanceView.ts` (`generation.current`) |
+
+Beide Browserbefehle verwenden `--config=/workspace/anker-f001-20261113/local-playwright.config.ts`. Vorhandenes Chromium156.0.8078.79, keine Retries/Skips/Timeouterhöhung; kein neuer Versuch des bereits blockierten Browserdownloads. Keine vollständige neue Browser-/Android-/Windows-Suite oder aktuelle grüne GitHub-CI. Keine echte Galaxy-/Samsung-/Windows-Beobachtung.
+
+Neue Logikfälle prüfen done/minimal/skipped/not-needed, vorgewählte Minimalzeit, unbekannte/ungültige Dauern, offene Packgegenstände ohne Budget, bereits im Plan bereinigte Vorbereitungsüberlappung, echte Wegbestätigungen, Homeoffice/Remote/Zuhause, Terminablauf/-wechsel, fehlende Fahrt, Berliner DST und Mitternacht/04:00 sowie Unveränderlichkeit der Eingaben. UTC-Restzeit nutzt dieselben vorhandenen Zeitkonvertierungen; nie Schlaf/Erledigung/XP aus Zeitablauf.
+
+Rohlogs/temporäre Konfiguration unter `/workspace/anker-f001-20261113/`: `unit-initial.log`, `logic.log`, `typecheck.log` (erster Fixturefehler), `typecheck-final.log`, `browser-initial.log` (Buildabbruch), `browser-pass1.log`, `travel-regression.log`, `lint-final.log`; Abschlussbundles und `RESULT.json` binden den lokalen Stand. Frühere vorhandene Nachweise bleiben historisch erhalten. Keine Play-/Cloud-/Workflowaktion.
+
+
 ## T-002 / E-001 / T-003: Dokumentationsabnahme (13.11.2026)
 
 Basis `e421ee560cea709cba841843d35521b3f7755519`, nur Dokumentation/Agentenanweisungen. Aktuelle Umgebung running, Beobachtungen aktuell und Netzwerkpolitik enforced; keine Secretbindungen. `npm ls --depth=0` Exit0, Node24.22.1/npm11.9.0/System-Chromium156.0.8078.79 bestätigt. Vorhandenes `after.bundle` aus CI-Fix erfolgreich verifiziert. Keine neue Installation, Build-/Browser-/Logik- oder Geräteprüfung; 15/15 Browserfälle/Build/Lint aus unverändertem CI-Fix als bestehende Belege erhalten.
