@@ -211,6 +211,9 @@ test('Q84: einmalige Weckwahl und offene Ist-Pause überstehen bewussten Offline
   await expect.poll(async () => (await day(page, TOMORROW))?.override.wakeOverride).toBe(405)
   const originalSettings = (await storedRecord<Settings>(page, 'settings', 'main'))!
   const originalLocal = (await local(page))!
+  // JSON bewahrt keine undefined-Felder; T-005 übernimmt keine fremde Routenfreigabe.
+  const restoredLocal = JSON.parse(JSON.stringify(originalLocal)) as LocalData
+  if (restoredLocal.assistance) delete restoredLocal.assistance.routes
   const originalDay = (await day(page, TOMORROW))!
   expect(originalSettings.anchor.wake).toBe(360)
   await page.goto(`${server.url}/backup`)
@@ -237,14 +240,16 @@ test('Q84: einmalige Weckwahl und offene Ist-Pause überstehen bewussten Offline
     await restored.getByRole('button', { name: 'Jetzt importieren', exact: true }).click()
     await expect.poll(async () => (await local(restored))?.workSessions.length).toBe(1)
     await clock(restored, 750)
-    expect(await local(restored)).toEqual(originalLocal)
+    expect(await local(restored)).toEqual(restoredLocal)
+    expect((await local(restored))?.assistance?.routes).toBeUndefined()
     expect(await day(restored, TOMORROW)).toEqual(originalDay)
     expect(await storedRecord<Settings>(restored, 'settings', 'main')).toEqual(originalSettings)
     await noFalseCompletion(restored)
     // Offline-Import ist oben belegt. Der frische Server-Reload prüft anschließend die Persistenz.
     await restoreContext.setOffline(false)
     await restored.reload()
-    expect(await local(restored)).toEqual(originalLocal)
+    expect(await local(restored)).toEqual(restoredLocal)
+    expect((await local(restored))?.assistance?.routes).toBeUndefined()
     expect((await day(restored, TOMORROW))?.override.wakeOverride).toBe(405)
     await restored.getByRole('link', { name: 'Jetzt', exact: true }).click()
     await expect(restored.getByRole('heading', { name: 'Pause läuft', exact: true })).toBeVisible()

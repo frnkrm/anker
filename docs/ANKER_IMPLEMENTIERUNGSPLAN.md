@@ -1,5 +1,13 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: gemeinsamer Web-/Logik-/PC-Prüfstand, Gesamtabschluss offen (13.11.2026)
+
+Saubere verfügbare Basis `4f3179c36afaa3408a1a57fc26d4a5a458c516bf`, Branch `entwicklung/anker-neu`. Nach gezielten F-001–F-010-Abnahmen fehlte der gemeinsame Gesamtlauf:1372/1372TS und378verschiedene Browserfälle zuletzt grün (375/378im Vollauf,3veraltete Testannahmen gezielt korrigiert und3/3grün). Keine Produktquelle geändert. Sechs Screenshotpfade in vier Specs auf Testausgaben umgestellt; zwei Abendtexte auf F-006-Vertrag und ein Backupfall auf T-005s nicht übernommene Routenfreigabe angepasst. Assertions zu PC/Bett/Weckwahl/Restdaten bleiben erhalten oder präziser. Kein Timeout/Skip/Retry gelockert.
+
+284Python-PC-Fälle zuletzt grün,19PowerShellfälle/4Parser,5Paketfälle,16lokale SQL/RLS-Fälle, Node↔Python-Loopback und CLI-Hilfe erfolgreich.36Update-/134Play-Offlinefälle grün, ausschließlich künstliche Daten/Toolantworten; keine Appsignierung oder Googleanfrage. Fehlende bereits festgelegte Testwerkzeuge isoliert außerhalb des Repos nachgerüstet, keine Projektversionen/Lockdateien geändert. Native-/NFC-/Brückenquellen seit F-008 identisch,274JUnit aus dessen vollständig hashgeprüfter Sicherung erhalten statt mechanisch wiederholt. Lint0Fehler/1bekannte Warnung, Typecheck/Build grün; nach Testfixes ESLint/e2e-Typecheck.
+
+[Vollständiger Integrationsstand, Workflow-Auslöser und Grenzen](INTEGRATION_T006.md). T-006/V-014 bleiben IN_ARBEIT: aktuelle Webassets noch nicht im Android-Paketstand, E-002–E-005 und Gesamt-/Releasefreigabe offen. Remote lesend bestätigt main e48d289/dev6dfa632; keine neue Remote-CI oder PR-Statusprüfung. Historische Code17-Freigabe bindet80f6a692, nicht den neuen Arbeitsstand. Kein Push/Merge/Tag/Release/Signieren/Installieren/Cloud-/Playeingriff. Nur lokaler Commit/Bundle/Wiederherstellung/SHA256. Nach Task stoppen; nächster eigener Auftrag ist ein ausdrücklich unsignierter lokaler Android-Integrationsbuild mit vorheriger Signier-/Taskprüfung, keine automatische Ausführung.
+
 ## F-010 / V-007: freiwillige lokale Wochenangaben (13.11.2026)
 
 Saubere verfügbare Basis `27aa6f324294e16ca8af4cab65c7eaedf39841e0`, Branch `entwicklung/anker-neu`. Bestehende drei Rückblickfragen, WeeklyReview-/Vorschlagswriter, Rhythmusansicht, Fokus-/Lern-/Supportdaten geprüft. Fragen/Antworten bleiben beim bisherigen Besitzer; nur die fehlende Übersicht belastbarer Tagesstände ergänzt. Fokusarchive/Lernwerte und F-009 liefern keinen Hindernis-/Begleitverlauf und werden nicht umgedeutet.

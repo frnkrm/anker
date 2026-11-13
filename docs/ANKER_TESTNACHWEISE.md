@@ -1,5 +1,24 @@
 # Anker: Testnachweise
 
+## T-006: gemeinsame lokale Integration, Gesamt-/Geräteabnahme offen (13.11.2026)
+
+Basis `4f3179c36afaa3408a1a57fc26d4a5a458c516bf`, sauberer Branch `entwicklung/anker-neu`. [Prüfpfad, Korrekturen, Workflows und offene Grenzen](INTEGRATION_T006.md).
+
+| Gemeinsame neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Vollständige TS-Suite |1372/1372in133Dateien,0Fehler/Skip. Vollständiger letzter F-001–F-010-Stand, keine Produktänderung dieses Tasks |
+| Browser vollständig + gezielt |375/378im ersten13,6min-Vollauf,3veraltete Assertions; nach belegter Korrektur3/3gezielt grün.378verschiedene Fälle zuletzt grün,0automatische Retries/Skip/Flaky; maschinenlesbar browser-coverage.json. Erste rote Logs/Traces erhalten;375grüne Fälle nicht nochmals ausgeführt |
+| Browser-Korrekturen |F-006s gemeinsame Abendübergänge statt alter Texte, PC/Bett nicht aus Uhrzeit bestätigen; offenes Ende ohne Uhrgrenze. Q84 respektiert T-005s entfernte fremde Routenfreigabe bei sonst unverändertem Backup/Weckwahl/Pause/Reload. Sechs Screenshots jetzt Testausgabe statt alter Sicherungs-/Temp-Pfade; bisherige F-008/F-009/F-010-Sicherungen komplett hashgeprüft und unverändert |
+| Python-PC |284verschiedene Fälle zuletzt grün: initial268grün/12Methodenrot/4Skip; QR-Abhängigkeit ergänzt,12QR grün,4Helper nach beschreibbarem PowerShell-Cache4/4grün. Keine Wiederholung des übrigen grünen Bestands; pc-python-coverage.json mit letzten Ergebnissen. Nur Fake-Windows/Loopback |
+| Weitere PC-/SQL-Prüfung |19/19PowerShell-PC-Stopp+4Parser,5/5Paket-/Installerfälle mit Fake-Effekten, Node↔Python pinnedTLS/ACK/Replay/Outbox/Tamper/Pin mit0Systemeffekten, CLI --help Exit0;16/16reale lokale PostgreSQL/RLS-Fälle in PGlite0.5.16. Kein Supabase/pg_cron oder echter Windowsbetrieb |
+| Offline-Releasegrenzen |36Android-Update-Mockfälle (33+3zunächst fehlende PowerShellfälle),134Play-Werkzeugfälle (75+24+35) grün. Künstliche Schlüssel/API-/Toolantworten, kein Signieren/Workflowstart/Googlezugriff |
+| Werkzeugbasis |Python3.12.14 mit vorhandenen gepinnten Basispaketen; fehlende qrcode8.2/zeroconf0.154.0 und CI-PGlite0.5.16 isoliert ergänzt. PowerShell7.5.4 mit offiziellem SHA256 geprüft, beschreibbare XDG-Pfade; keine globale/App-Paketänderung. Rohlogs früher Setupfehler erhalten |
+| Qualität / Native |Lint0Fehler/1bekannte TaskAssistance-Warnung, Typecheck/Produktionsbuild grün; gezieltes ESLint/e2e-Typecheck nach Testkorrekturen.274Android-JUnit aus F-008/31Suiten samt79Sicherungsdateihashes erhalten, native/NFC/TS-Brücke seit5668aec identisch; nicht wiederholt |
+
+Rohbelege `/workspace/anker-t006-20261113/`: vollständige/gezielte Browser-JSONs und Fehlerartefakte, logic-full.json, kombinierte Browser-/Pythonabdeckung, PowerShell/SQL/Paket-/Interoperabilitäts-/Offlineberichte, Toolversionen/-quellen/-Hashes, Workflow-/Build-/Integritätsdaten und remote-readonly.log. Nach Umgebungsneustart Berichte/HEAD/sechs Änderungen unverändert vorhanden, keine Wiederholung. Neue Werkzeuge separat `/workspace/anker-t006-tools-20261113/env.sh`. Nur Cloud-lokaler Abschluss mit Vorher-/Nachher-Bundle, unabhängiger Wiederherstellung/fsck/Dateihashes, RESTORE.md/SHA256SUMS.
+
+Native Paketintegration offen: aktuelle dist-Webdateien sind nicht die eingebetteten Android-Webdateien; kein Capsync/aktueller APK-Bau/Signieren erfolgt. E-002–E-005 bleiben offen,103historische Gerätezeilen erhalten. Remote main e48d289/dev6dfa632 lesend bestätigt; kein neuer Arbeitshead-CI-/PR-Nachweis. Keine Releasefreigabe aus lokalen Tests oder alter auf80f6a692gebundener Code17-Freigabe ableiten. T-006/V-014 insgesamt IN_ARBEIT.
+
 ## F-010 / V-007: freiwillige Wochenübersicht aus vorhandenen Tagesständen (13.11.2026)
 
 Verfügbare saubere Basis `27aa6f324294e16ca8af4cab65c7eaedf39841e0`, Branch `entwicklung/anker-neu`.

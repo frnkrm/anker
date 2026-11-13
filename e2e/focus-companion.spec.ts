@@ -187,7 +187,7 @@ test('F-009: neuer Plan in derselben Ansicht übernimmt die laufende Begleitung 
   await expect(active(page)).toBeVisible()
 })
 
-test('F-009: 320px und große Schrift erhalten Hauptaktion und Begleitstopp', async ({ page }) => {
+test('F-009: 320px und große Schrift erhalten Hauptaktion und Begleitstopp', async ({ page }, info) => {
   await setup(page); await page.setViewportSize({ width: 320, height: 740 })
   await page.addStyleTag({ content: 'html { font-size: 160% !important; }' })
   await start(page)
@@ -195,7 +195,7 @@ test('F-009: 320px und große Schrift erhalten Hauptaktion und Begleitstopp', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   const pause = page.getByRole('button', { name: 'Pause', exact: true })
   await pause.scrollIntoViewIfNeeded(); await expect(pause).toBeInViewport()
-  await page.screenshot({ path: '/workspace/anker-f009-20261113/focus-companion-320.png', fullPage: true })
+  await page.screenshot({ path: info.outputPath('focus-companion-320.png'), fullPage: true })
   await active(page).click()
   expect((await local(page))?.focus?.timer.status).toBe('running')
 })

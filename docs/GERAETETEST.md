@@ -1,5 +1,11 @@
 # Geräteprüfung
 
+## T-006: Software gemeinsam geprüft, keine neue Gerätebeobachtung (13.11.2026)
+
+Auf Basis `4f3179c`1372vollständige TS-Fälle,378verschiedene Browserfälle und284Python-PC-Fälle zuletzt grün, dazu PowerShell/SQL/Interoperabilität/Offlinewerkzeugprüfungen. Nur synthetische Daten, Loopback/Fake-Windows.274Android-JUnit aus F-008 wegen nachgewiesener Quellgleichheit erhalten statt wiederholt. [Details und Paket-/Releasegrenzen](INTEGRATION_T006.md).
+
+Android enthält noch andere Webassets als der aktuelle dist-Build; keine aktuelle installierbare geprüfte Paketzuordnung erzeugt. Kein Capsync/APK-/Signier-/Geräte-/Tag-/Kalender-/PC-Systemschritt ausgeführt. E-002–E-005 bleiben offen. Vor realen Prüfungen geeigneten aktuellen Paketstand/Quellkennung und ausdrückliche Gerätefreigabe zuordnen, vorhandene Stationen nutzen. Keine neuen Stationen/Häkchen: alle103historischen Gerätezeilen bytegleich erhalten. Lokales Grün ersetzt weder Galaxy-Wecker/Sperre/Zustellung, echten Windowsbetrieb noch Kalenderkonto/NFC-Hardware. T-006-Gesamtabschluss bleibt offen.
+
 ## F-010: lokale Wochenübersicht, Gerätebeobachtungen unverändert offen (13.11.2026)
 
 Auf Basis `27aa6f3` freiwillige rein lesende Übersicht vorhandener Tagesstände ergänzt:101gezielte TS-/Store-/Datenschutzfälle und16verschiedene Browserfälle grün, zusätzlicher320px-Bildkontrollfall1/1. Berliner Tag-/Wochengrenzen, kleine/leere Grundlage, Offline, Abwahl/Reload und unveränderte gespeicherte Daten softwareseitig geprüft. Keine neue native Funktion oder Hardwarewirkung.

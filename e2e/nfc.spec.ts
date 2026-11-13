@@ -161,7 +161,7 @@ test('Verlassen während Öffnungsbestätigung verwirft das verspätete Ja', asy
   expect(await page.evaluate(() => window.__nfcProbe.starts.length)).toBe(1)
 })
 
-test('Doppeltipp startet nur eine Sitzung; große Vorschau bleibt bedienbar', async ({ page }) => {
+test('Doppeltipp startet nur eine Sitzung; große Vorschau bleibt bedienbar', async ({ page }, info) => {
   await setup(page); await page.setViewportSize({ width: 320, height: 740 })
   await page.evaluate(() => document.documentElement.style.setProperty('--font-scale', '1.6'))
   await page.getByRole('button', { name: 'Anker-Tag lesen', exact: true }).dblclick()
@@ -169,7 +169,7 @@ test('Doppeltipp startet nur eine Sitzung; große Vorschau bleibt bedienbar', as
   await release(page, { status: 'read', target: 'recover' })
   await expect(page.getByRole('button', { name: 'Wiedereinstieg öffnen', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.screenshot({ path: '/workspace/anker-f008-20261113/nfc-preview-320.png', fullPage: true })
+  await page.screenshot({ path: info.outputPath('nfc-preview-320.png'), fullPage: true })
   await page.getByRole('button', { name: 'Nicht öffnen', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Anker-Tag lesen', exact: true })).toBeEnabled()
 })

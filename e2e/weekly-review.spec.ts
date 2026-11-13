@@ -141,7 +141,7 @@ test('F-010: drei eigene Fragen und ausdrückliches Speichern bleiben beim bishe
   expect(await storedRecord<unknown>(page, 'game', 'main')).toEqual(game)
 })
 
-test('F-010: 320px und große Schrift erhalten Abwahl und eigene Antworten', async ({ page }) => {
+test('F-010: 320px und große Schrift erhalten Abwahl und eigene Antworten', async ({ page }, info) => {
   await setup(page); await page.setViewportSize({ width: 320, height: 740 })
   await page.addStyleTag({ content: 'html { font-size: 160% !important; }' })
   await open(page)
@@ -152,7 +152,7 @@ test('F-010: 320px und große Schrift erhalten Abwahl und eigene Antworten', asy
   await answer.scrollIntoViewIfNeeded(); await expect(answer).toBeInViewport()
   // Die vorhandene Erfolgseinblendung aus synthetischen Tagesdaten darf die Bildkontrolle nicht verdecken.
   await page.getByText(/Mehr unter Spiel\.$/).waitFor({ state: 'hidden' })
-  await page.screenshot({ path: '/workspace/anker-f010-20261113/weekly-review-320-final.png', fullPage: true })
+  await page.screenshot({ path: info.outputPath('weekly-review-320-final.png'), fullPage: true })
   await close.click(); await expect(region(page)).toHaveCount(0)
   await expect(answer).toHaveValue('PRIVATE-HARD')
 })

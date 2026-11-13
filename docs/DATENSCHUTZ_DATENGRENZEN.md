@@ -1,5 +1,13 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: Integration ohne neuen Produktdatenfluss (13.11.2026)
+
+Nur Test-/Dokumentationskorrekturen auf `4f3179c`, keine Produktquelle, Datenfelder, Berechtigung, Storequeue-/Export-/Sync-/Reminder-/Nativeänderung oder produktive Datenlöschung. Q84-Test respektiert ausdrücklich T-005: JSON übernimmt keine undefined-Felder und keine fremde Routenfreigabe; übrige Backupdaten/Weckwahl/Pause erhalten. Reale importierte Freigaben wurden nicht aktiviert.
+
+Gemeinsame1372TS-/378Browser-/284Pythonbelege zuletzt grün, weitere PowerShell/SQL/Offlinegrenztests mit künstlichen Daten. Node↔Python nur Loopback und TestVault/Fake-Windows; keine aktive PC-/NFC-Wirkung. SQL-Test isoliert lokal, keine produktive Datenbank. Offline-Update-/Playtests benutzen synthetische Schlüssel und gemockte Werkzeuge/APIantworten, keine Appsignierung oder tatsächliche Googleanfrage. Öffentliche Werkzeugdownloads und lesende Git-Referenzabfrage sind keine Übertragung persönlicher Appdaten. Neue Tools ausschließlich im separaten Workspace-Verzeichnis, keine Appabhängigkeiten/Cloudsettings verändert.
+
+Signierprüfung beschränkt auf vorhandene Konfiguration als boolesche Metadaten und öffentliche Quellen/Fingerabdrücke; keine echten privaten Schlüssel gelesen/gesucht, keine Werte protokolliert oder Schlüsselverlust behauptet. Screenshotausgaben in Testverzeichnisse gelegt, damit alte Sicherungen unangetastet bleiben; F-008/F-009/F-010 vollständig hashgeprüft. Lokale Testprotokolle/Mockbilder enthalten ausschließlich synthetische Inhalte, keine neuen Diagnose-/Backup-/Sync-/PC-Felder. Software-/CI-/Gerätebelege getrennt in [INTEGRATION_T006.md](INTEGRATION_T006.md); E-002–E-005 und echte Lösch-/OS-/Kontobeobachtungen weiterhin offen.
+
 ## F-010: Datenentscheidung vor der Ergänzung und geprüfter Abschluss (13.11.2026)
 
 Zweck: freiwillig geöffnete lokale Wochenübersicht als Gesprächsgrundlage für die vorhandenen drei Rückblickfragen. Quelle sind ausschließlich bestehende DayLogs: bekannte Routinenresultate und ausdrücklich gespeicherte Tagesmodi, light/shortMorning/adjusted. Aggregiert werden Anzahlen gespeicherter Stände, keine Ursachen, Diagnosen, Nutzungshäufigkeit oder Wirksamkeit. Leere/fehlende/anders befüllte Tage sind keine Hindernis- oder Nichtnutzungsbelege. Keine Rekonstruktion historischer Pläne aus heutigen Einstellungen.
