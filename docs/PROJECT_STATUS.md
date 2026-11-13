@@ -1,36 +1,43 @@
 # Aktueller Übergabestand
 
-Stand 13.11.2026, Europe/Berlin. Aktuelle Aufgabe: lokalen CI-Tastaturtest korrigieren und Arbeitsbasis freigeben. Nutzerfreigabe: auf `entwicklung/anker-neu` weiterarbeiten; Originalumgebung und `835235b` zurückstellen; kein Push, Merge oder Play-Upload. Keine neue Produktfunktion. GPT-6.1 Sol / Hoch zuvor bestätigt.
+Stand 13.11.2026, Europe/Berlin. **T-002, E-001 und T-003 abgeschlossen** für die lokale Web-/Logikentwicklung. Ausgangsstand dieses Abschlusses: `e421ee560cea709cba841843d35521b3f7755519`, Branch `entwicklung/anker-neu`, Arbeitsbaum `/workspace/anker`, zu Beginn sauber. Keine neue Produktfunktion. Nächster zulässiger Einzelauftrag: F-001, erst nach gesonderter Beauftragung. Keine parallele Folgeaufgabe starten.
 
-## Ausgangsstand und Integration
+## Arbeitsbasis und Verfügbarkeit
 
-- Arbeitsbaum `/workspace/anker`, Branch `entwicklung/anker-neu`, Ausgangscommit `6dfa632c94422d61d6a71c6a4a72c15fefd4a407`, zu Beginn sauber. Aktuell genau ein Projektarbeitsbaum laut `git worktree list`; `.git`-Suche im Workspace war bereits erfolgt.
-- `git ls-remote` bestätigt main/HEAD `e48d2892846b4a2fec45bf0cefc396e1a4c92f10`, Arbeitsbranch `6dfa632`, PR-Referenz2 auf `6dfa632`. Gegen main ergänzt der Branch nur `docs/ANKER_PLAN.txt`. PR offen/geschlossen/übernommen unbekannt; GitHub-API liefert `Forbidden`. Keine automatischen Pushes/Merges.
-- Lokaler Branch `work` erhält die frühere Dokumentationsarbeit bis `02e0a01`. Deren Dateien wurden nicht erneut auf den Arbeitsbranch übertragen. Das geprüfte Bundle `/workspace/anker-recovery-20261113/anker-final.bundle` erhält diese Historie. ZIP unter `/workspace/outputs/anker-code17-sicherung-20261113.zip` weiterhin lesbar; externe Sicherung/Download nicht bestätigt.
-- Originalarbeitsbaum `anker-code17-final-docs` und `ACTIVE-SLEEP-RELEASE.md` fehlen hier. `835235b74765f2eed5519c8f40fc1126458c1063` lokal nicht vorhanden; erneuter gezielter Fetch: `not our ref`. Inhalt und fehlende Dateien unbekannt. Originalumgebung laut Nutzer im Chat „anker einrichten“, Support eingeschaltet; mögliche Existenz weiterhin annehmen.
-- App-/Android-/e2e-Quellen unverändert gegenüber `80f6a69`. Stille Folgehinweise/Snooze sind vorhanden; Default aus, NON_WAKEUP und `setSilent(true)` im vorhandenen Controller lesend bestätigt. Kein neuer Implementierungsabschluss, keine Gerätezusage.
+- T-001 ist nach ausdrücklicher Nutzerentscheidung gesichert pausiert. Originalumgebung und `835235b` bleiben zurückgestellt und sind keine Voraussetzung. Mögliche spätere Wiederherstellung separat sichern/vergleichen; keine automatische Übernahme oder Rekonstruktion.
+- Lokale Historie: `6dfa632` (vollständiger Nutzerplan), `f7fa4e3` (Planungsdokumentation), `e421ee5` (Testkorrektur). Dieser Dokumentationsabschluss folgt darauf. Die finale Commit-ID steht im Abschlussbericht, nicht als selbstreferenzierende Dateischleife hier.
+- Letzte erfolgreiche Remote-Abfrage in dieser Unterhaltung: main/HEAD `e48d289`, Arbeitsbranch/PR2-Head `6dfa632`. Lokale Nachfolgecommits wurden nicht gepusht. PR2 laut Nutzerscreenshot/-bericht offen und nicht gemergt; kein aktueller unabhängiger API-Nachweis (`Forbidden`). Beim Wechsel in einen anderen Task zuerst prüfen, ob dieser lokale Abschluss tatsächlich vorhanden ist; ein Prompt überträgt keine Commits.
+- Produktquellen (`src`, Android) unverändert gegenüber `80f6a69`; e2e-Testquellen seit `e421ee5` gezielt korrigiert. Keine neue Release-/Gerätezusage. Nutzer-Screenshot zu GitHub-Lauf43331316553: 307/308 Browserfälle, Timerstart erwartete675000/tatsächlichundefined. Dieser Remote-Lauf bleibt historisch rot; kein neuer Runnerlauf ausgelöst.
+- Branch `work` bis `02e0a01` und frühere Bundles bleiben erhalten. `/workspace/anker-ci-fix-20261113/after.bundle` erfolgreich verifiziert; Original-/Planungssicherungen unter `/workspace/anker-recovery-20261113/` und `/workspace/anker-preparation-20261113/`. Nur Cloud-lokal, keine bestätigte externe Sicherung. Fehlende Originaldateien werden nicht als verloren ausgegeben.
 
-## Verbindliche Arbeitsbasis und zurückgestellte Wiederherstellung
+## Abnahme T-002 / E-001 / T-003
 
-T-001 ist als **gesichert pausiert** abgeschlossen, nicht als wiederhergestellte Originalarbeit. Direkte Nutzerfreigabe in dieser Unterhaltung ersetzt die bisherige Wartebedingung: weitere lokale Entwicklung darf auf der belegten Basis `entwicklung/anker-neu` erfolgen. Nicht auf `835235b` oder die Verfügbarkeit der ursprünglichen Cloud angewiesen planen. Ein späteres Supportergebnis wird separat verglichen, nicht automatisch übernommen. Sicherungen und Branch `work` bleiben unverändert erhalten.
+| ID | Abschlussnachweis | Verbleibende Grenze |
+|---|---|---|
+| T-002 | Umgebung identifiziert; Versionen/Befehle geprüft; Lockinstallation, Build und gezielte Browserprüfung aus CI-Fix erhalten; `npm ls --depth=0` erfolgreich; Setupvorschlag unten | Native-/Windows-Prüfungen erst für betroffene Aufgaben, keine Cloud-Setupänderung |
+| E-001 | Cloudstatus aktuell running/enforced; Git-Lesen und API-Grenzen geklärt; keine Secretbindungen/Identitäten; Nutzerwahl GPT-6.1 Sol/Hoch bestätigt | Keine Konto-/OAuth-/Play-Freigaben erteilt; fehlender Zugriff ist dokumentiert, nicht repariert |
+| T-003 | Alle36 IDs samt V-Zuordnungen, Abhängigkeiten und Originalabnahmen erfasst; eine Roadmap, ein Status, genau drei Fallvorlagen; Links und Widersprüche geprüft | F-001 bleibt OFFEN; spätere Aufgaben einzeln beauftragen |
 
-GitHub-Lauf [43331316553](https://github.com/frnkrm/anker/actions/runs/43331316553), Job131576438067 laut Nutzerscreenshot: 307/308 Browserfälle, einziger Fehler `subtask-timer.spec.ts:267`, erwartete Dauer675000, tatsächlich `undefined`. PR2 laut Nutzer offen und nicht gemergt. Dies sind Screenshot-/Nutzerbelege; API weiterhin nicht verfügbar. Der lokale Folgestand war `f7fa4e3` (Planung), darauf folgt die hier dokumentierte Testkorrektur.
+Integriert: ja im lokalen Arbeitsbranch; nein auf main und nicht als neue GitHub-Verfügbarkeit bestätigt. Gerätetest für diesen Dokumentationsabschluss nicht nötig; veröffentlicht nein. Vollständige App-/Android-/Windows-Prüfung oder Releasefreigabe ist kein Teil dieser Abnahme.
 
-**Lokale Ursache und Korrektur:** Nach Übernahme eigener Minuten kann der Dialog bereits verschwunden sein, während sein Browser-Zurücklauf die Hauptansicht noch per `inert` sperrt. `focus()` plus Enter wartet darauf nicht. Test wartet nun auf Dialogende, verbrauchten Historymarker und aufgehobene Sperre; vor Enter wird echter Buttonfokus geprüft. Neuer Test hält den echten Zurücklauf an. Produktquellen unverändert. [Rot-/Grünnachweise](ANKER_TESTNACHWEISE.md).
+## Umgebung und reproduzierbare Befehle
 
-T-002/E-001: Web-Werkzeuge lokal nutzbar; SDK-/PowerShell-/API-/Kontogrenzen bleiben dokumentiert und blockieren erst ihre jeweiligen Aufgaben. T-003-Inventar und Vorlagen vorbereitet; als nächster Task gezielt Einrichtung/Dokumentation auf der freigegebenen Basis abschließen. Keine pauschale neue Funktionsfreigabe, F-001 erst danach einzeln beauftragen. [Einzige ID-Roadmap](OFFENE_ENTWICKLUNGEN.md).
+Aktive Umgebung `ccarenv_b64_Y2NhcmVudl83ZjQ4ZDgwMDU0ZTA4MTkxYjYzNTY1ODdjOWI2NjRhZA`, Status am Abschluss erneut running, Beobachtungen aktuell, Netzwerkpolitik enforced. Keine Secretbindungen/Laufzeitvariablen. Keine Cloud-Einstellungen verändert. Der zuletzt lesbare Konfigurationsentwurf hatte kein Installationsskript und Repository-ref `main`; tatsächlicher Arbeitsbranch bleibt `entwicklung/anker-neu` und muss beim nächsten Task geprüft werden.
 
-Aktueller Play-Bestand und historische Release-Nachweise bleiben separat offen. Kein Releaseabschluss aus einer Testkorrektur, keine Uploadpflicht aus historischen Anweisungen ableiten. Später lesend PR/CI/gespeicherten Bericht prüfen, sobald Zugang besteht; kein Workflowstart als Ersatz.
+Node24.22.1, npm11.9.0, Python3.12.14, OpenJDK21.0.13; installiertes System-Chromium156.0.8078.79. Web-Abhängigkeiten vorhanden, `npm ls --depth=0` erfolgreich. Kein erneutes `npm ci` ohne Anlass. Falls die Abhängigkeiten nach Umgebungswechsel fehlen: `npm ci --cache /tmp/anker-npm-cache --no-audit --no-fund`. Dieser Cachepfad vermeidet den zuvor nicht beschreibbaren Standardcache. Lockdateien und Paketversionen bleiben erhalten.
 
-## Umgebung und Befehle (lesend geprüft)
+Geprüfte Repositorybefehle: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. Passende Tests gezielt auswählen; keine automatischen Systemwirkungen starten. `npm run test:pc` benötigt PowerShell; Native-Unit-Tests `node scripts/gradle.mjs :app:testDebugUnitTest` benötigen die Android-Einrichtung. PC-Python-Tests aus `pc-companion` mit `python -m unittest discover -s tests -v`, Abhängigkeiten später bei Bedarf isoliert installieren.
 
-Aktive Umgebung `ccarenv_b64_Y2NhcmVudl83ZjQ4ZDgwMDU0ZTA4MTkxYjYzNTY1ODdjOWI2NjRhZA`, running; Beobachtungen aktuell, Netzwerkpolitik restricted/enforced. Keine Secretbindungen/Identitäten. Git-Lesezugriff funktioniert, GitHub-API `Forbidden`; daraus keine OAuth-/Play-Kontoberechtigung ableiten.
+Standard-Playwright-Browserdownload ist mit `403 Domain forbidden` blockiert. Für lokale Webtests existiert eine getestete Konfiguration mit installiertem Chromium; sie ändert nur Browserpfad, absolute Verzeichnisse und Reporter, nicht Prüfregeln/Timeouts/Retries:
 
-Node24.22.1, npm11.9.0, Python3.12.14, OpenJDK21.0.13 und `/usr/bin/chromium` vorhanden. `node_modules` jetzt mit unveränderten Lockdateien installiert; adb/gradle/pwsh nicht im PATH, an üblichen SDK-Pfaden kein Android-SDK gefunden. Wrapper ist im Repo, kein Beweis für vollständige SDK-Bereitschaft. Keine echte Android-/Windows-Hardware. Für den lokalen Browserlauf vorübergehend Vite-Preview genutzt und automatisch beendet. Keine Systempakete installiert. `npm ci` scheiterte zunächst an `/home/agent/.npm/_cacache`; mit `npm ci --cache /tmp/anker-npm-cache --no-audit --no-fund` erfolgreich. Playwright-Browserdownload `403 Domain forbidden`; lokaler Test nutzte vorhandenes Chromium156.0.8078.79 über eine temporäre Konfiguration außerhalb des Repositorys.
+```bash
+cd /workspace/anker
+CI=true npx playwright test --config=/workspace/anker-ci-fix-20261113/local-playwright.config.ts e2e/subtask-timer.spec.ts e2e/redesign-controls-extra.spec.ts --workers=2
+```
 
-Aus `package.json` bestätigt: `npm run dev` (Vite), `npm run lint`, `npm run typecheck`, `npm test` (Vitest), `npm run build`, `npm run test:e2e` (Playwright), `npm run test:pc` (PowerShell-Prüfhelfer). Native: `node scripts/gradle.mjs :app:testDebugUnitTest`; PC: aus `pc-companion` `python -m unittest discover -s tests -v`. Play-Werkzeugtests: die drei `scripts/test-google-play-*.py`. Releasebefehle sind keine allgemeinen Setup-Prüfungen und wurden nicht ausgeführt.
+Konfiguration und Systembrowser vor neuem Task auf Existenz prüfen; Testausgaben gehen nach `anker-ci-fix-20261113/test-results`. Vor späterem Wiederverwenden relevante alte Fehlerartefakte separat erhalten. Falls die lokale Hilfsdatei fehlt, aus `playwright.config.ts` außerhalb des Repositorys eine Konfiguration mit `use.launchOptions.executablePath: '/usr/bin/chromium'`, absoluten Test-/Ausgabepfaden und Webserver-cwd erstellen; keine CI-Datei ändern. F-001 benötigt keinen nativen Transport und keine neuen Berechtigungen. adb/gradle/pwsh sind derzeit nicht im PATH, an üblichen Pfaden wurde kein SDK gefunden. Reale Galaxy-/Windows-/Kalenderbeobachtungen bleiben Aufgaben T-004/E-002–E-004.
 
-Der lesbare Cloud-Konfigurationsentwurf meldet `install_script: null`, Repository-ref `main`, Mount `anker`. Der tatsächlich gewählte Arbeitsbranch ist dennoch `entwicklung/anker-neu`; beim nächsten Task ausdrücklich prüfen. Keine Cloud-Einstellung geändert. Für spätere Web-/Logikarbeit wäre folgender minimaler Setup-Skript-Inhalt sinnvoll (nur Vorschlag, nicht ausgeführt):
+Optionaler, nicht angewendeter Vorschlag für das Cloud-Installationsskript:
 
 ```bash
 #!/usr/bin/env bash
@@ -39,16 +46,14 @@ cd /workspace/anker
 npm ci --cache /tmp/anker-npm-cache --no-audit --no-fund
 ```
 
-Optionale spätere Browserhandlung: im sichtbaren Bereich „Umgebung bearbeiten“ das Installations-/Setup-Skript durch diesen Inhalt ersetzen und speichern; genaue Feldbezeichnung je Oberfläche. Nicht automatisch veröffentlichen. Keine Voraussetzung für die hier freigegebene lokale Weiterarbeit; die Originalumgebung ist zurückgestellt. Python-Abhängigkeiten später isoliert aus `pc-companion/requirements.txt`; keine unnötige Vorinstallation oder SDK-Komplettinstallation in diesem Dokumentationstask.
+Nur falls später gewünscht: in „Umgebung bearbeiten“ das Setup-/Installationsskript eintragen und speichern. Keine manuelle Browserhandlung ist für die jetzige lokale Weiterarbeit erforderlich. Keine Veröffentlichung der Umgebung beauftragt.
 
-## Workflow- und Kontogrenzen
+## Grenzen und Nachweise
 
-CI läuft bei Push/PR mit Prüfungen. Playworkflow nur main + Änderung der Workflowdatei + Marker; Inspektionsmarker gewinnt. Manueller Play-Dispatch wählt Upload. Diagnoseworkflow liest einen fest gebundenen alten Fehlerbericht; Android-Update ist manuell; `v*`-Tags erstellen APK/Release. Netlify-Konfiguration baut `npm run build`; Kontoverknüpfung/automatische Preview-Deployments sind nicht unabhängig sichtbar. Daher kein Push ohne geklärten Umfang. Main, bestehende Workflows, Google Play und Cloud-Konfiguration unverändert. Repository-Dokumentation ist keine Kontokonfiguration.
+[OFFENE_ENTWICKLUNGEN.md](OFFENE_ENTWICKLUNGEN.md) ist die einzige ID-Roadmap, [ANKER_PLAN.txt](ANKER_PLAN.txt) das unveränderte Anforderungsinventar einschließlich Abnahmen/Prüfstrategie. Architektur in [STRUKTUR.md](STRUKTUR.md), Nachweise in [ANKER_TESTNACHWEISE.md](ANKER_TESTNACHWEISE.md), drei Vorlagen in [PROMPT_TEMPLATES.md](PROMPT_TEMPLATES.md).
 
-## Nachweise und Sicherung
+Erhaltene Prüfung aus dem unmittelbar vorherigen Task: 15/15 gezielte Browsertests und Produktionsbuild grün; Lint0Fehler/1bestehende Warnung. Kontrollierter roter Versuch belegt das Timer-Eingabe-Rennen. Rohberichte und `RESULT.json` unter `/workspace/anker-ci-fix-20261113/`. Unveränderte erfolgreichen Prüfungen nicht wiederholt; keine neue vollständige App-/Gerätesuite behauptet.
 
-Test-/Dokumentationsprüfungen: [ANKER_TESTNACHWEISE.md](ANKER_TESTNACHWEISE.md). Neue Planungsdokumente nur lokal, integriert nein, veröffentlicht nein, Gerätetest nicht nötig. Kein neuer Produktcode. Kein Push oder PR durch den Agenten erstellt; PR2 wurde laut Nutzer zuvor manuell geöffnet. Vorbereitungsbundle `/workspace/anker-preparation-20261113/before-planning.bundle` enthält alle vorgefundenen Refs; abschließendes `prepared.bundle` sichert die lokalen Dokumentationscommits zusätzlich. Beides nur aktuelle Cloud, keine externe Verfügbarkeit behauptet.
+Keine Pushes, Merges, Workflow-/Cloudänderungen oder Google-Play-Aktionen. CI läuft bei Push/PR; Play-Dispatch wählt Upload; Play-Pushpfad verlangt main/Workflowänderung/Marker; `v*`-Tags veröffentlichen APK-Releases. Externe Netlify-Kontoverknüpfung nicht unabhängig sichtbar. Historische Uploadaufträge sind für diese Einrichtung und F-001 keine Veröffentlichungsfreigabe. Aktueller Play-Bestand bleibt separat unbestätigt.
 
-Lokaler CI-Fix: 15/15 gezielte Browserfälle und Build grün, Lint Exit0 mit einer bestehenden Warnung. Keine vollständige neue App-/Android-/Windows-Gesamtprüfung oder erfolgreiche GitHub-CI behauptet. Nachweise unter `/workspace/anker-ci-fix-20261113/`, abschließendes geprüftes Git-Bundle `after.bundle`. Änderungen nur lokal auf Arbeitsbranch; GitHub-Lauf bleibt unverändert rot.
-
-Genau nächste Handlung: In derselben Unterhaltung den Abschluss von T-002/E-001/T-003 auf dieser Basis beauftragen, ohne Supportantwort abzuwarten. Kein Push/Merge/Play, keine Produktfunktion in diesem Schritt.
+Genau nächster Schritt: F-001 in derselben Unterhaltung ausdrücklich beauftragen. Nur vorhandene Plan-/Logdaten auswerten und Jetzt-Anzeige erweitern; keine F-002-/F-003-Implementierung, neue Messdaten oder zweite Engine. Bei Taskwechsel muss der lokale Abschluss erst tatsächlich zugänglich gemacht werden, ohne eigenmächtigen Push.

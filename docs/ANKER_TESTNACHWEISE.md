@@ -1,5 +1,11 @@
 # Anker: Testnachweise
 
+## T-002 / E-001 / T-003: Dokumentationsabnahme (13.11.2026)
+
+Basis `e421ee560cea709cba841843d35521b3f7755519`, nur Dokumentation/Agentenanweisungen. Aktuelle Umgebung running, Beobachtungen aktuell und Netzwerkpolitik enforced; keine Secretbindungen. `npm ls --depth=0` Exit0, Node24.22.1/npm11.9.0/System-Chromium156.0.8078.79 bestätigt. Vorhandenes `after.bundle` aus CI-Fix erfolgreich verifiziert. Keine neue Installation, Build-/Browser-/Logik- oder Geräteprüfung; 15/15 Browserfälle/Build/Lint aus unverändertem CI-Fix als bestehende Belege erhalten.
+
+Abschlussprüfung: Originalplan bytegleich zu `6dfa632`, alle36 IDs genau einmal, alle15 V-Zuordnungen, Abhängigkeiten F-003/F-004, drei Vorlagen, lokale Dokumentlinks und konsistente Abschlussstatus T-002/E-001/T-003; `git diff --check`. Kein Produkt-/Test-/Paket-/Workflowunterschied gegenüber `e421ee5`. Historische Testergebnisse unverändert. Kurzstatus bereinigt veraltete Aussagen zum e2e-Stand und stellt frühere Originalumgebungsblocker ausdrücklich als überholt dar. Native-/GitHub-API-/Play-Grenzen bleiben offen, kein Vollzugriff behauptet. Lokaler Commit und verifiziertes Abschlussbundle, kein Push/Merge/Release. Nächster Einzelauftrag F-001 fachlich vorbereitet, nicht implementiert.
+
 ## Lokaler CI-Tastaturtest: kontrollierter Rot-/Grünnachweis (13.11.2026)
 
 Ausgangscommit `f7fa4e3`, Branch `entwicklung/anker-neu`. Nutzerscreenshot von Lauf43331316553/Job131576438067 belegt 307/308 Browserfälle mit `Expected675000 / Received undefined` nach Enter, Exit1. Kein API-Nachweis. Im lokalen normalen Einzellauf besteht der ursprüngliche Test (1/1); das allein widerlegt kein Eingabe-Rennen.

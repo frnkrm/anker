@@ -1,6 +1,7 @@
 # Anker – Arbeitsanweisungen
 
 - Zuerst `CLAUDE.md`, `docs/ANKER_IMPLEMENTIERUNGSPLAN.md` und `docs/ANKER_TESTNACHWEISE.md` lesen.
+- Für neue Einzelaufträge zusätzlich `docs/PROJECT_STATUS.md` und die konkrete ID in `docs/ANKER_PLAN.txt` lesen; Roadmap in `docs/OFFENE_ENTWICKLUNGEN.md`.
 - Aufträge: `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v6.md` und `docs/auftraege/ANKER_ENTWICKLUNGSAUFTRAG_v7_PC.md`.
 - Direkte aktuelle Nutzeranweisungen haben Vorrang vor widersprechenden Anhangdetails; Entscheidungen im Implementierungsplan festhalten.
 - Bestehende Planer, Store-Schreibqueue, Daten und IDs wiederverwenden. Kein zweiter Tagesplaner.

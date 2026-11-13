@@ -1,18 +1,18 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
-## Verbindliche Roadmap – vorläufiger Stand 13.11.2026
+## Verbindliche Roadmap – Einrichtungsabschluss 13.11.2026
 
 Maßgebliches Anforderungsinventar: [ANKER_PLAN.txt](ANKER_PLAN.txt), insbesondere Abschnitt 2; Arbeitsregeln in Abschnitt 5. Die Datei bleibt unverändert. Diese Tabelle ist die einzige aktuelle ID-Roadmap; die unten erhaltene Bestandsliste vom 10.11. ist historischer Kontext, keine zusätzliche Freigabe.
 
-**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. Produktfunktionen benötigen weiterhin Einzelauftrag und abgeschlossene Vorbereitung. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
+**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 kann als nächster Einzelauftrag freigegeben werden; noch keine Produktfunktion implementiert. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
 
-Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert nein (nur lokal auf `entwicklung/anker-neu`, PR-Zustand unbekannt); Gerätetest nicht nötig; veröffentlicht nein. Für sämtliche neuen F-IDs: integriert nein als nachgewiesener Abschluss dieser ID, Gerätetest offen, veröffentlicht nein; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
+Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. Für sämtliche neuen F-IDs: integriert nein als nachgewiesener Abschluss dieser ID, Gerätetest offen, veröffentlicht nein; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
 
 | ID | Titel | Status | Abhängigkeit | Planverweis |
 |---|---|---|---|---|
 | T-001 | Unterbrochene Entwicklung retten | ERLEDIGT | gesichert pausiert; bekannte Basis ausdrücklich freigegeben, spätere Wiederherstellung separat | [§ 2.2, T-001](ANKER_PLAN.txt) |
-| T-002 | Umgebung und Entwicklungsbefehle prüfen | BEREIT_ZUR_PRÜFUNG | T-001 | [§ 2.2, T-002](ANKER_PLAN.txt) |
-| T-003 | Roadmap und Übergabedokumentation einrichten | BEREIT_ZUR_PRÜFUNG | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
+| T-002 | Umgebung und Entwicklungsbefehle prüfen | ERLEDIGT | T-001 | [§ 2.2, T-002](ANKER_PLAN.txt) |
+| T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | OFFEN | T-003 | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | OFFEN | vor neuen Datenflüssen | [§ 2.2, T-005](ANKER_PLAN.txt) |
 | T-006 | Integration und Gesamtabschluss | OFFEN | umgesetzte Funktionen, Integration und Gerätebelege | [§ 2.2, T-006](ANKER_PLAN.txt) |
@@ -26,7 +26,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | F-008 | NFC-Ankerpunkte | OFFEN | T-005, Android-Machbarkeit und Freigabe | [§ 2.3, F-008](ANKER_PLAN.txt) |
 | F-009 | Freiwilliges Body Doubling | OFFEN | T-005; soziale Variante gesonderte Freigabe | [§ 2.3, F-009](ANKER_PLAN.txt) |
 | F-010 | Wochenrückblick über Hindernisse | OFFEN | T-005; ggf. F-004/F-007 | [§ 2.3, F-010](ANKER_PLAN.txt) |
-| E-001 | Cloud-Zugriffe prüfen | BEREIT_ZUR_PRÜFUNG | T-001, Kontozugriff | [§ 2.4, E-001](ANKER_PLAN.txt) |
+| E-001 | Cloud-Zugriffe prüfen | ERLEDIGT | T-001; Zugriffsgrenzen dokumentiert, keine neuen Kontorechte | [§ 2.4, E-001](ANKER_PLAN.txt) |
 | E-002 | Android-Wecker real prüfen | OFFEN | T-004, Android-Gerät und Buildzuordnung | [§ 2.4, E-002](ANKER_PLAN.txt) |
 | E-003 | Windows-Begleiter prüfen | OFFEN | T-004, Windows-Gerät | [§ 2.4, E-003](ANKER_PLAN.txt) |
 | E-004 | Kalenderzugriff prüfen | OFFEN | T-004, Kalenderfreigabe am Gerät | [§ 2.4, E-004](ANKER_PLAN.txt) |
