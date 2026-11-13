@@ -28,7 +28,7 @@ export function validReminderAction(value: unknown): value is ReminderAction {
 }
 
 export function currentReminderAction(a: ReminderAction, plans: DayPlan[], logs: Record<string, DayLog | undefined>, s: Settings, extras: ReminderExtras, now: number): boolean {
-  return validReminderAction(a) && a.at <= now + 60_000 && reminderRevisions(plans, logs, s, extras)[`${a.date}|${a.key}`] === a.revision
+  return validReminderAction(a) && !a.key.startsWith('prepare:') && a.at <= now + 60_000 && reminderRevisions(plans, logs, s, extras)[`${a.date}|${a.key}`] === a.revision
 }
 
 /** Stored with the effect in its existing record. Old backups may omit receipts. */

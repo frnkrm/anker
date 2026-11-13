@@ -4,9 +4,9 @@
 
 Maßgebliches Anforderungsinventar: [ANKER_PLAN.txt](ANKER_PLAN.txt), insbesondere Abschnitt 2; Arbeitsregeln in Abschnitt 5. Die Datei bleibt unverändert. Diese Tabelle ist die einzige aktuelle ID-Roadmap; die unten erhaltene Bestandsliste vom 10.11. ist historischer Kontext, keine zusätzliche Freigabe.
 
-**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. T-004 ist als Prüfvorbereitung abgeschlossen. T-002s native Nachbereitung hat JDK21/SDK36 eingerichtet und252Android-JUnit bestätigt; der Toolchainblocker für F-003 ist aufgehoben. F-003 als nächster Einzelauftrag noch gesondert beauftragen. Keine F-003-Implementierung durch T-004. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
+**Neue Nutzerentscheidung vom 13.11.2026:** Originalumgebung und `835235b` zurückstellen; auf `entwicklung/anker-neu` lokal weiterarbeiten. T-001 ist als gesichert pausiert abgeschlossen, nicht wiederhergestellt. Vorhandene Sicherungen erhalten. Die alte Umgebung blockiert die weitere Einrichtung nicht mehr. T-002/E-001/T-003 sind für die lokale Web-/Logikentwicklung abgeschlossen. F-001 wurde anschließend einzeln freigegeben und lokal umgesetzt. F-002 wurde anschließend einzeln freigegeben und lokal umgesetzt. T-004 ist als Prüfvorbereitung abgeschlossen. T-002s native Nachbereitung hat JDK21/SDK36 eingerichtet und252Android-JUnit bestätigt; der Toolchainblocker für F-003 ist aufgehoben. F-003 wurde anschließend gesondert beauftragt und lokal umgesetzt; native Softwareabnahme260/260, reale Geräte offen. Nächster zulässiger Einzelauftrag T-005 vor neuen F-004-Messdaten, gesondert beauftragen. Keine F-003-Implementierung durch T-004. Status OFFEN bedeutet unbewertete Restabnahme, nicht „im Bestand fehlt alles“. [Aktuelle Nachweise und Wiederaufnahme](PROJECT_STATUS.md).
 
-Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. F-001/V-008 und F-002/V-009: Softwareabnahme ERLEDIGT, integriert ja im lokalen Arbeitsbranch, nein auf main; Gerätetest offen, veröffentlicht nein. Für übrige F-IDs kein nachgewiesener vollständiger Abschluss; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
+Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für diese neue Planungsdokumentation: Integriert ja im lokalen Arbeitsbranch, nein auf main (nicht gepusht; PR2 laut Nutzer offen, API-Nachweis fehlt); Gerätetest nicht nötig; veröffentlicht nein. F-001/V-008, F-002/V-009 und F-003/V-010: Softwareabnahme ERLEDIGT, integriert ja im lokalen Arbeitsbranch, nein auf main; Gerätetest offen, veröffentlicht nein. Für übrige F-IDs kein nachgewiesener vollständiger Abschluss; vorhandene Teilfunktionen bleiben davon unberührt. E-002–E-005/T-004/T-006 benötigen Gerätebelege, T-005 abhängig vom Datenfluss. Keine historische Gerätezelle ändern.
 
 | ID | Titel | Status | Abhängigkeit | Planverweis |
 |---|---|---|---|---|
@@ -18,7 +18,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-006 | Integration und Gesamtabschluss | OFFEN | umgesetzte Funktionen, Integration und Gerätebelege | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
-| F-003 | Dynamischen Vorbereitungsimpuls ergänzen | OFFEN | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
+| F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
 | F-004 | Zeitgefühl und Dauerabschätzung verbessern | OFFEN | T-003, F-001; T-005 vor neuen Messdaten | [§ 2.3, F-004](ANKER_PLAN.txt) |
 | F-005 | Wiedereinstiegs-Assistent | OFFEN | T-003 | [§ 2.3, F-005](ANKER_PLAN.txt) |
 | F-006 | Übergangshelfer | OFFEN | T-003 | [§ 2.3, F-006](ANKER_PLAN.txt) |
@@ -40,7 +40,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-007 | Wochenrückblick über Hindernisse | OFFEN | F-010 | [§ 2.1, V-007](ANKER_PLAN.txt) |
 | V-008 | Abfahrts-Countdown mit Pufferbewertung | ERLEDIGT | F-001 | [§ 2.1, V-008](ANKER_PLAN.txt) |
 | V-009 | Rechtzeitiger Kurzmodus | ERLEDIGT | F-002 | [§ 2.1, V-009](ANKER_PLAN.txt) |
-| V-010 | Dynamischer Vorbereitungsimpuls | OFFEN | F-003 | [§ 2.1, V-010](ANKER_PLAN.txt) |
+| V-010 | Dynamischer Vorbereitungsimpuls | ERLEDIGT | F-003; Software lokal, Geräte offen | [§ 2.1, V-010](ANKER_PLAN.txt) |
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
@@ -52,7 +52,7 @@ Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 �
 ### Belegte vorhandene Grundlagen, keine vollständige neue Abnahme
 
 - F-001/V-008 abgeschlossen: `src/core/departure.ts` projiziert Restzeit, offene Vorbereitung und rechnerischen Puffer aus bestehendem Plan/Log. `DepartureReadiness` ergänzt Jetzt ohne weitere Aktion oder Persistenz. 23 neue Logikfälle, 5 neue Browserfälle und bestehende Regressionen belegt; echte Geräte offen. [Nachweise](ANKER_TESTNACHWEISE.md). F-002/V-009 abgeschlossen: bekanntes Zeitdefizit bietet ausschließlich vorhandene kürzere Morgenvarianten an. Explizite Annahme, atomare Aktualitäts-/Doppelprüfung, keine Punkte aus der Wahl, keine Schrittentfernung. Ablehnung nur für die unveränderte aktuelle Ansicht; `shortMorning` im bestehenden Tages-Override ist rücknehmbar. Abend/globaler Modus unverändert. Vorhandene `leave-10`-/`leave`-/`latest-leave`-Regeln unverändert.
-- F-003: vorhandene Reminder-Engine und Android-`ReminderScheduler` weiterverwenden. Vorhandene feste Zehn-Minuten-Meldung ist kein belegter dynamischer Impuls.
+- F-003: vorhandene Reminder-Engine und Android-`ReminderScheduler` erweitert; datierter dynamischer Impuls ersetzt passende Vorwarnungen, fristgebunden und ohne Erledigungswirkung. Software lokal abgenommen; tatsächliche Android-Zustellung offen, siehe PROJECT_STATUS.md/GERAETETEST.md.
 - F-004/F-009: vorhandene Fokus-/Zeitfunktionen in `src/core/focus.ts`, `support.ts` und Store; neue Messdaten oder soziale Kommunikation erst nach T-005 bzw. eigener Freigabe.
 - F-005: `src/core/recovery.ts`, `support.ts` und `Now.tsx` besitzen bereits Resume-Punkte und Wiedereinstieg. Keine zweite Aufgabenverwaltung.
 - F-006/F-007: `src/core/guidance/` und `support.ts` sind vorhandene Besitzer von Führung/Unterstützungsmodi; neue Abnahmekriterien erst nach geklärter Basis gezielt vergleichen.

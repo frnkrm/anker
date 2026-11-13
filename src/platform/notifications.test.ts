@@ -54,6 +54,28 @@ function bedAction(): ReminderActionInfo {
 }
 
 describe('Native Rückmeldungen: lesen, dauerhaft verarbeiten, dann bestätigen', () => {
+  it('überträgt datierten Impuls mit Abfahrtsfrist, ersetzt bei Fortschritt die Revision und entfernt alte Hinweise', async () => {
+    vi.setSystemTime(zonedToUtc(date, 300))
+    await useApp.getState().saveSettings(s => ({ ...s, onboarded: true }))
+    const before = structuredClone({ days: useApp.getState().days, game: useApp.getState().game })
+    await rescheduleAll()
+    const request = () => mocks.sync.mock.calls.at(-1)![0]
+    const hint = () => request().reminders.find(e => e.date === date && e.key === 'prepare:work')!
+    const first = hint()
+    expect(first).toMatchObject({ validUntil: zonedToUtc(date, planFor(date).leave!), actions: false, exact: false, critical: false, channel: 'sanft' })
+    expect(request().reminders.some(e => e.date === date && e.key === 'leave-10')).toBe(false)
+    expect(request().ruleSnapshot?.rules.some(r => r.key.startsWith('prepare:'))).toBe(false)
+    expect({ days: useApp.getState().days, game: useApp.getState().game }).toEqual(before)
+    const step = planFor(date).blocks.find(b => b.routine === 'morning')!.steps![0]!
+    await useApp.getState().setStep(date, 'morning', step.id, 'done')
+    await rescheduleAll()
+    expect(hint().revision).not.toBe(first.revision)
+    expect(hint().token).toBe(first.token)
+    await useApp.getState().setOverride(date, { homeOffice: true })
+    await rescheduleAll()
+    expect(hint()).toBeUndefined()
+    expect(request().revisions).not.toHaveProperty(`${date}|prepare:work`)
+  })
   it('übermittelt die eigene stille Bettwahl und den vorhandenen Delay, ohne andere Keys umzuetikettieren', async () => {
     await useApp.getState().saveSettings(settings => ({ ...settings, onboarded: true, sleep: { ...settings.sleep, bedtimeFollowUpsEnabled: true, fallAsleepMin: 45 }, support: { ...settings.support, windDown: { ...settings.support.windDown, enabled: true } } }))
     await rescheduleAll()

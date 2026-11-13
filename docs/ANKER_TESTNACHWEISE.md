@@ -1,5 +1,27 @@
 # Anker: Testnachweise
 
+## F-003 / V-010: dynamische Vorbereitungsimpulse (13.11.2026)
+
+Basis `2bef19df7f3bc304f62638c977b12f2fa00e7f3f`, sauberer Arbeitsbaum auf `entwicklung/anker-neu`. Lokale Softwareabnahme; kein Push/Merge/CI-/Release-/Geräte-/Playlauf. Native Werkzeuge aus `/workspace/anker-toolchains/env.sh` wiederverwendet, keine erneute Installation/Capacitor-Synchronisation erforderlich.
+
+| Tatsächliche Prüfung | Ergebnis und Grenze |
+|---|---|
+| Vollständiger `npm test -- --reporter=dot` | **1255/1255**,120Dateien, Exit0; F-001/F-002, Logik, Store, Bridge, Kalender-/Reminderregressionen enthalten |
+| Letzte gezielte Ergänzung: vorhandene Ablehnungen erhalten | **105/105** in6Dateien: preparation/build/policy/rules, Store und native Brücke; ein zusätzlicher Fall gegenüber obigem Vollstand, insgesamt32 neue TS-Fälle seit1224; unveränderte restliche Suite nicht erneut aufgerufen |
+| Android `:app:testDebugUnitTest --no-daemon --console=plain --max-workers=2` | **260/260**,29Suiten,0Fehler/Skips, Exit0;8neue PreparationReminderTest-Fälle,196Tasks davon5ausgeführt/191aktuell,30s. App-/Test-Kotlin kompiliert; keine Signierung oder Gerätewirkung |
+| Ausgewählter Chromium-Browserlauf | **30 unterschiedliche Fälle final abgedeckt**:28bestehende F-001/F-002/Jetzt-/Zeitübersichtsfälle bestanden im29/30-Lauf;2neue F-003-Fälle nach Fixturekorrektur grün. Kein erneuter Komplettlauf behauptet. Letzte Änderung am Ablehnungsfilter erneut mit diesen2Fällen geprüft |
+| Lint/Typecheck/Produktionsbuild | Exit0; Lint0Fehler/1bekannte TaskAssistance-Warnung; keine neuen Warnings unterdrückt. Produktionsbuild auch als Vorbedingung der lokalen Playwright-Konfiguration |
+| Sichtprüfung | System-Chromium156,320px/160Prozent Schrift; nächste bewusste Handlung und Abfahrtskarte lesbar, kein horizontaler Überlauf |
+
+TS-Rechenfälle: offene vs. done/minimal/skipped/not-needed; F-002-Varianten; fertige Vorbereitung/Abfahrt/Arbeitsstart; mehrere datierte Wege, Morgen-/Terminüberlappung ohne zweite Büroabfahrt; fehlende/ungültige Dauern, unbekannte Pack-/Fahrzeiten; Homeoffice/Remote/Absage/Ankunft/Rückkehr; Plan-/Tagesänderung, Mitternacht/Berlin-DST; Ruhe/Fokus/Film/Modus; datierte Revision bei stabilem Token und neutraler Wochenbasis. Storetests bestätigen neue Revision nach echten Schrittaktionen, Entfernung nach vollständiger Vorbereitung und Reload; gefälschte done/skip des actionlosen Impulses ändern weder Fakten, Receipts noch Spielstand. Bridge-Mock bestätigt Frist/Flags, aktualisierte Revision und Entfernung bei Planwechsel. Browser prüft Zeitübersichtsrolle travel, aktuelle berechnete Zeit und Persistenz ohne automatische Erledigung; beweist keine Android-Zustellung.
+
+Kotlin: gültiger frischer Impuls vor Abfahrt, genau zur Abfahrt ungültig; Slot/Android-Timeout auf Frist begrenzt; Absage/neue Revision entfernt Queue/Karte; Fortschritt aktualisiert unverbraucht, verbrauchter datierter Token wird nicht erneut eingeplant; Ruhe/Fokus/Film und kein automatischer Snooze; Weckervorrang/3erBudget; feste sichere Jetzt-Route ohne Privat-ID; neue widersprüchliche oder fristlose Payload abgewiesen, Legacy ohne Feld weiterhin gültig. JSON-Brücke beidseitig kompiliert; keine echte Android-JSON-/Receiver-/OS-Integration aus reinen JUnit-Mocks behauptet.
+
+Erste Fehlversuche bleiben lesbar:1224er Bestandslauf mit2veränderten Bestandsannahmen (leave-10/Planrolleprep), erste neue Fixtures mit unbestätigtem Streckenursprung und aktivem Nacht-Ruhefilter; anschließend korrigiert. Ein ungenutzter Test-Typimport ließ den ersten Typecheck/Browser-Webserverstart abbrechen, danach entfernt. Erster tatsächlicher Browserlauf29/30: Test navigierte unmittelbar nach zweiter Erledigung weiter und las alten Cache. Korrektur wartet auf bestätigten DB-Schritt und aktuellen Cache, keine längeren Timeouts oder Retries. Danach2/2grün. Keine Produktkorrektur aus diesem Fixturefehler nötig.
+
+Rohbelege `/workspace/anker-f003-20261113/`: erste/finale Logik-, Lint-, Typecheck-, Build-/Browserlogs, erster/finaler Testdelta-Log, `native-first.log`, `JUNIT-RESULT.json`, JUnit-XML/HTML, `first-browser-results/` mit Fehlerkontext/Trace, finale Bilder, `RESULT.json`, Git-Bundles und SHA256SUMS. Vorherige Belege nicht überschrieben. Alle103Geräteergebniszeilen erhalten. Echte Android-Zustellung/Doze/Notification-Timeout, Windows und Kalenderkonten offen; bestehende G21/G38/G66–G71 sowie Weckerstationen gemäß GERAETETEST.md. Nur Cloud-lokal gesichert und nicht auf main/GitHub verfügbar; T-005 vor neuen F-004-Messdaten separat beauftragen.
+
+
 ## T-002: native Werkzeuge und frische Android-JUnit (13.11.2026)
 
 Basis `a820115284cf22938e96dd1e4ea115764158575e`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine getrackte Produkt-/Test-/Paket-/Plugin-/Wrapperänderung. Keine Übernahme historischer Ergebnisse als neue Ausführung: folgende252JUnit wurden tatsächlich frisch ausgeführt; bisherige Web-/Browserprüfungen nicht wiederholt.

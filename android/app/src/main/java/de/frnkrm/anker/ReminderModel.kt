@@ -25,6 +25,7 @@ data class ReminderEntry(
     val ruleId: String = "",
     val deferredFrom: Long = 0,
     val quietFollowUps: Boolean = false,
+    val validUntil: Long = 0,
 )
 
 data class SlotEntry(val slot: Int, val key: String, val date: String, val rank: Int, val expiresAt: Long, val revision: String = "", val token: String = "")
@@ -54,6 +55,14 @@ object ReminderLogic {
     const val MAX_CONSUMED_TOKENS = 2048
 
     fun notificationId(slot: Int) = FIRST_NOTIFICATION_ID + slot
+
+    /** Preparation is soft and actionless; incomplete/new corrupt payloads never become unbounded. */
+    fun validAt(e: ReminderEntry, now: Long): Boolean =
+        (e.validUntil == 0L || now < e.validUntil) &&
+        (!e.key.startsWith("prepare:") || (e.validUntil > e.at && !e.actions && !e.critical && !e.exact && e.channel == "sanft" && !e.quietFollowUps))
+
+    fun displayDuration(e: ReminderEntry, now: Long): Long =
+        if (e.validUntil > 0) minOf(VISIBLE_MS, (e.validUntil - now).coerceAtLeast(0)) else VISIBLE_MS
 
     fun quietBed(entry: ReminderEntry): Boolean = entry.key == "bed" && entry.quietFollowUps
     fun freshness(entry: ReminderEntry): Long = if (quietBed(entry)) QUIET_BED_FRESH_MS else STALE_MS
@@ -86,6 +95,7 @@ object ReminderLogic {
 
     /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
     fun tapDestination(key: String): String? = when {
+        key.startsWith("prepare:") -> "now"
         key == "guidance-wind-down" || key == "guidance-brain-dump" || key == "guidance-evening-light" -> "now"
         key == "wind-down" -> "evening"
         key.startsWith("thought-review:") && key.length > "thought-review:".length -> "thoughts"
@@ -95,18 +105,18 @@ object ReminderLogic {
 
     /** Neue Planung aus der App. Nur weiterhin relevante verschobene Erinnerungen bleiben erhalten. */
     fun replace(old: List<ReminderEntry>, incoming: List<ReminderEntry>, relevant: Set<String>, now: Long, revisions: Map<String, String>? = null, consumed: Set<String> = emptySet()): List<ReminderEntry> {
-        val current = old.filter { "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
+        val current = old.filter { validAt(it, now) && it.token !in consumed && "${it.date}|${it.key}" in relevant && (revisions == null || revisions["${it.date}|${it.key}"] == it.revision) }
         // Ein noch unterwegs befindlicher Receiver darf seinen frischen Termin nicht durch Appöffnung verlieren.
         val due = current.filter { it.at <= now && now - PcReminderGate.originalAt(it) <= freshness(it) }
         val snoozed = current.filter { (it.snoozes > 0 || it.deferredFrom > 0) && it.at > now && now - PcReminderGate.originalAt(it) <= freshness(it) }
         // Auch ein frisch fälliger Snooze ersetzt die alten Stufen, bis sein Receiver ihn verarbeitet.
         val snoozedKeys = (snoozed + due.filter { it.snoozes > 0 }).map { it.date to it.key }.toSet()
-        return (due + snoozed + incoming.filter { it.token !in consumed && it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
+        return (due + snoozed + incoming.filter { validAt(it, now) && it.token !in consumed && it.at > now && (it.date to it.key) !in snoozedKeys }).sortedBy { it.at }
     }
 
     /** Teilt in Fälliges und Restliches. Veraltetes fällt weg, je Schlüssel kommt nur die neueste Stufe. */
     fun takeDue(queue: List<ReminderEntry>, now: Long): DueResult {
-        val (reached, remaining) = queue.partition { it.at <= now }
+        val (reached, remaining) = queue.filter { validAt(it, now) }.partition { it.at <= now }
         val fresh = reached.filter { now - PcReminderGate.originalAt(it) <= freshness(it) }
         val latest = fresh.groupBy { it.date to it.key }.map { (_, v) -> v.maxBy { it.at } }.sortedBy { it.at }
         return DueResult(latest, remaining)
@@ -123,11 +133,12 @@ object ReminderLogic {
 
     fun place(slots: List<SlotEntry>, e: ReminderEntry, now: Long, protectedDisplays: Int): Placement {
         val live = trimToBudget(slots, now, protectedDisplays)
+        if (!validAt(e, now)) return Placement(live, null, null)
         val candidates = linkedSetOf(e.slot, SLOT_LATEST).filter { !(protectedDisplays > 0 && it == SLOT_LATEST) }
         for (c in candidates) {
             val occ = live.firstOrNull { it.slot == c }
             if (occ == null || occ.rank <= e.rank) {
-                val entry = SlotEntry(c, e.key, e.date, e.rank, now + VISIBLE_MS, e.revision, e.token)
+                val entry = SlotEntry(c, e.key, e.date, e.rank, now + displayDuration(e, now), e.revision, e.token)
                 val next = trimToBudget(live.filter { it.slot != c } + entry, now, protectedDisplays)
                 if (entry in next) return Placement(next, c, occ)
             }
@@ -224,6 +235,7 @@ object ReminderLogic {
 
     /** Only explicitly critical anchors bypass global quiet and a currently running focus. */
     fun allowed(e: ReminderEntry, now: Long, policy: ReminderPolicy, focusUntil: Long): Boolean {
+        if (!validAt(e, now)) return false
         if (!e.key.startsWith("go:") && !e.key.startsWith("prep:") && policy.ranges.any { now >= it.from && now < it.to }) return false
         if (e.critical) return true
         if (now < focusUntil) return false

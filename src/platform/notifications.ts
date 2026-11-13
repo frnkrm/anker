@@ -111,7 +111,7 @@ async function scheduleSnapshot() {
     const specs = buildReminders(plans, logs, st.settings, now, datedEnd - now, extras)
     const last = ordinaryDates[ordinaryDates.length - 1]!
     const hintAt = zonedToUtc(last, 18 * 60)
-    const reminders = [...specs, reopenHint(hintAt, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical, quietFollowUps }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical, ...(quietFollowUps === true && key === 'bed' ? { quietFollowUps: true } : {}) }))
+    const reminders = [...specs, reopenHint(hintAt, last)].map(({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical, quietFollowUps, validUntil }) => ({ key, date, at, channel, title, body, actions, slot, rank, exact, revision, token, critical, ...(quietFollowUps === true && key === 'bed' ? { quietFollowUps: true } : {}), ...(validUntil !== undefined ? { validUntil } : {}) }))
     const revisions = reminderRevisions(plans, logs, st.settings, extras)
     for (const r of reminders.filter((r) => r.key === 'open-app')) revisions[`${r.date}|${r.key}`] = r.revision
     const policy = reminderPolicy(plans, st.settings)

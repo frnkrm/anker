@@ -57,6 +57,7 @@ object ReminderScheduler {
         ruleId = o.optString("ruleId"),
         deferredFrom = o.optLong("deferredFrom"),
         quietFollowUps = o.opt("quietFollowUps") == true,
+        validUntil = o.optLong("validUntil", 0),
     )
 
     private fun entryToJson(e: ReminderEntry) = JSONObject()
@@ -65,6 +66,7 @@ object ReminderScheduler {
         .put("slot", e.slot).put("rank", e.rank).put("exact", e.exact).put("snoozes", e.snoozes)
         .put("revision", e.revision).put("token", e.token).put("critical", e.critical).put("ruleId", e.ruleId).put("deferredFrom", e.deferredFrom)
         .put("quietFollowUps", e.quietFollowUps)
+        .put("validUntil", e.validUntil)
 
     private fun loadQueue(ctx: Context): List<ReminderEntry> = try {
         val a = JSONArray(AnkerPrefs.reminderQueue(ctx))
@@ -499,7 +501,7 @@ object ReminderScheduler {
             .setContentText(e.body)
             .setAutoCancel(true)
             .setContentIntent(open)
-            .setTimeoutAfter(ReminderLogic.VISIBLE_MS)
+            .setTimeoutAfter(ReminderLogic.displayDuration(e, System.currentTimeMillis()).coerceAtLeast(1))
             .setDeleteIntent(actionIntent(ctx, ACTION_SWIPED, e, slot, 0))
         if (e.actions && e.token.isNotEmpty() && e.revision.isNotEmpty()) {
             b.addAction(0, "Erledigt", actionIntent(ctx, ACTION_DONE, e, slot, 1))
@@ -533,7 +535,7 @@ object ReminderScheduler {
         val source = AnkerPrefs.reminderLastShown(ctx, date, key)?.let {
             try { entryFromJson(JSONObject(it)) } catch (_: Exception) { null }
         } ?: return
-        if (!source.actions || source.revision != revision || source.token != token) return
+        if (source.key.startsWith("prepare:") || !source.actions || source.revision != revision || source.token != token) return
         val revisions = try { JSONObject(AnkerPrefs.reminderRevisions(ctx)) } catch (_: Exception) { return }
         if (revisions.optString("$date|$key") != revision) return
         val queue = loadQueue(ctx)

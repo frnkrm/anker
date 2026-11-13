@@ -39,6 +39,29 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
     return { id, action: 'done' as const, key, date, at: event.at, revision: event.revision, token: event.token }
   }
 
+  it('revidiert den Vorbereitungsimpuls über die vorhandene Schrittaktion und entfernt ihn nach vollständiger Vorbereitung', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(zonedToUtc(date, 300))
+    const current = () => buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, Date.now()).find(e => e.key === 'prepare:work')
+    const before = current()!
+    expect(before).toBeDefined()
+    const steps = openSteps(planFor(date), useApp.getState().days[date], 'morning')
+    await useApp.getState().setStep(date, 'morning', steps[0]!.id, 'done')
+    expect(current()!.revision).not.toBe(before.revision)
+    expect(current()!.token).toBe(before.token)
+    for (const step of steps.slice(1)) await useApp.getState().setStep(date, 'morning', step.id, 'not-needed')
+    expect(current()).toBeUndefined()
+    await useApp.getState().load()
+    expect(current()).toBeUndefined()
+    expect(useApp.getState().days[date]?.leftAt).toBeUndefined()
+  })
+
+  it.each(['done', 'skip'] as const)('weist selbst eine passende native %s-Aktion des actionlosen Impulses ohne Fakten, Receipt oder Punkte ab', async action => {
+    const a = { ...actionFor('prepare:work'), action }
+    const before = structuredClone({ days: useApp.getState().days, game: useApp.getState().game })
+    expect(await useApp.getState().applyReminderAction(a)).toBe('obsolete')
+    expect({ days: useApp.getState().days, game: useApp.getState().game }).toEqual(before)
+  })
+
   it('verarbeitet Doppeltippen einmal und erhält Zeit, Receipt und XP nach erneutem Laden', async () => {
     const a = actionFor('bed')
     const put = vi.spyOn(storage.repo!, 'putMany')
@@ -118,6 +141,8 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
     ['leave-10', 'leftAt', 'leave'],
     ['pcstop-15', 'pcOffAt', 'pcstop'],
   ] as const)('ordnet Erledigt bei %s der tatsächlichen Handlung zu', async (key, field, main) => {
+    // Legacy fallback still has its historical explicit action when no routine can replace it.
+    if (key === 'leave-10') await useApp.getState().saveSettings(s => ({ ...s, routines: { ...s.routines, morning: [] }, sport: { ...s.sport, days: s.sport.days.map(() => false) } }))
     const a = actionFor(key)
     expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
     expect(useApp.getState().days[date]?.[field]).toBe(a.at)

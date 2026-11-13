@@ -2,6 +2,7 @@ import { fmtTime, minutesOnPlanDay, utcToZoned, weekday, zonedToUtc } from '../t
 import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowStep } from '../types'
 import { eveningLightMinute } from '../guidance/eveningLight'
 import { minuteText } from '../uiText'
+import { preparationImpulses } from './preparation'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
 
@@ -53,12 +54,14 @@ export interface ReminderSpec {
   critical: boolean
   /** Only the opted-in bed trigger enters the separate native silent session. */
   quietFollowUps?: boolean
+  /** Dated preparation must disappear at departure, even if Android delivers late. */
+  validUntil?: number
 }
 
 /** Harte Zeiten und Übergänge halten den zweiten Slot, laufende Aufgaben den ersten, der Rest den dritten. */
 export function slotFor(key: string): { slot: 0 | 1 | 2; rank: number } {
   if (key === 'leave' || key === 'latest-leave' || key === 'pcstop' || key === 'bed' || key.startsWith('go:')) return { slot: 1, rank: 4 }
-  if (key === 'leave-10' || key === 'latest-start' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
+  if (key === 'leave-10' || key.startsWith('prepare:') || key === 'latest-start' || key === 'pcstop-15' || key.startsWith('deadline')) return { slot: 1, rank: 3 }
   if (key === 'morning' || key === 'evening' || key === 'meds' || key.startsWith('prep:')) return { slot: 0, rank: 2 }
   return { slot: 2, rank: 1 }
 }
@@ -108,6 +111,10 @@ interface Base {
   escalate: boolean
   hard?: boolean
   quietFollowUps?: boolean
+  atUtc?: number
+  validUntil?: number
+  revisionFacts?: unknown
+  preparationTarget?: string
 }
 
 /** Opaque deterministic version; no private text crosses the native boundary through it. */
@@ -157,14 +164,30 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   const guidanceEveningEnabled = guidance?.enabled === true && guidance.eveningEscalation === true
   const guidanceEveningOpen = guidanceEveningEnabled && !sick && !plan.openEnd
     && log?.bedAt === undefined && !log?.dismissed?.includes('evening')
+  const preparation = preparationImpulses(plan, log, s)
+  const dynamicMorning = preparation.some(p => p.at !== undefined
+    && (p.targetId === 'work' || p.targetId === plan.morningAnchors?.[0]?.id))
 
-  if (!sick && morning?.steps?.length && !Object.keys(log?.steps ?? {}).some((k) => k.startsWith('morning:'))) {
+  if (!sick && !dynamicMorning && morning?.steps?.length && !Object.keys(log?.steps ?? {}).some((k) => k.startsWith('morning:'))) {
     out.push({ key: 'morning', at: morning.start + 3, channel: 'sanft', title: `${t(morning.start)} – Morgenroutine`, body: 'Dein nächster Schritt steht in Anker bereit.', escalate: false })
   }
   const wi = plan.workInfo
-  if (plan.leave !== undefined && !log?.leftAt && !wi?.started) {
-    out.push({ key: 'leave-10', at: plan.leave - 10, channel: 'uebergang', title: `Noch 10 Minuten bis Losgehen`, body: `Um ${t(plan.leave)} geht's los. Schuhe, Schlüssel, Handy.`, escalate: false })
-    out.push({ key: 'leave', at: plan.leave, channel: 'uebergang', title: `${t(plan.leave)} – Losgehen!`, body: 'Jetzt los, dann bist du entspannt pünktlich.', escalate: true, hard: true })
+  for (const impulse of preparation) {
+    if (impulse.at === undefined) continue
+    const legacyKey = impulse.targetId === 'work' ? 'leave-10' : `prep:${impulse.targetId.slice('commitment:'.length)}`
+    if (log?.dismissed?.includes(legacyKey)) continue
+    out.push({ key: `prepare:${impulse.targetId}`, at: minutesOnPlanDay(plan.date, impulse.at), atUtc: impulse.at,
+      validUntil: impulse.validUntil, preparationTarget: impulse.targetId, revisionFacts: impulse.revisionFacts,
+      channel: 'sanft', title: 'Zeit für deine Vorbereitung',
+      body: 'Offene Schritte und dein Startpuffer sind eingeplant. Dein nächster Schritt steht in Anker bereit.', escalate: false })
+  }
+  const workPreparation = preparation.find(p => p.targetId === 'work')
+  if (plan.leave !== undefined && workPreparation) {
+    // Preserve the neutral legacy warning only when no calculable preparation replaces it.
+    if (!workPreparation.known || !plan.blocks.some(b => b.routine === 'morning' && b.steps?.length)) {
+      out.push({ key: 'leave-10', at: plan.leave - 10, channel: 'uebergang', title: `Noch 10 Minuten bis Losgehen`, body: `Um ${t(plan.leave)} geht's los. Schuhe, Schlüssel, Handy.`, escalate: false, validUntil: workPreparation.validUntil, preparationTarget: 'work' })
+    }
+    out.push({ key: 'leave', at: plan.leave, channel: 'uebergang', title: `${t(plan.leave)} – Losgehen!`, body: 'Deine geplante Abfahrt ist jetzt. Prüfe deinen nächsten Schritt in Anker.', escalate: true, hard: true })
   }
   // Die eigene Grenze meldet sich je einmal, ohne Wiederholung und ohne Vorwurf
   if (wi && !wi.started && !wi.fixedMorning && wi.latestStart !== undefined && wi.plannedStart <= wi.latestStart) {
@@ -225,8 +248,9 @@ function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Bas
   // Wege zu Terminen. Texte allgemein, denn Ort und Anlass bleiben auf dem Gerät.
   for (const l of plan.legs ?? []) {
     const c = l.commitment
-    if (c.leftAt || c.arrivedAt || c.backAt) continue
-    if (l.prepStart !== undefined) out.push({ key: `prep:${c.id}`, at: l.prepStart, channel: 'sanft', title: 'Bald fertig machen', body: 'Dein Termin rückt näher.', escalate: false, hard: true })
+    if (c.status === 'cancelled' || c.leftAt !== undefined || c.arrivedAt !== undefined || c.backAt !== undefined) continue
+    const impulse = preparation.find(p => p.targetId === `commitment:${c.id}`)
+    if (l.prepStart !== undefined && !impulse?.known) out.push({ key: `prep:${c.id}`, at: l.prepStart, channel: 'sanft', title: 'Bald fertig machen', body: 'Dein Termin rückt näher. Noch offene Zeiten kannst du in Anker prüfen.', escalate: false, hard: true, validUntil: impulse?.validUntil, preparationTarget: `commitment:${c.id}` })
     if (l.leave !== undefined) out.push({ key: `go:${c.id}`, at: l.leave, channel: 'uebergang', title: `${t(l.leave)} – Losgehen`, body: `Dann bist du um ${t(c.start)} da.`, escalate: c.commitment === 'hard', hard: true })
   }
   if (s.alarm.medicationEnabled && s.alarm.medicationReminderAt !== null) {
@@ -267,7 +291,7 @@ export function reminderRevisions(plans: DayPlan[], logs: Record<string, DayLog 
     const log = logs[plan.date]
     for (const b of baseReminders(plan, log, s)) {
       const levels = b.escalate ? escalationSteps(s.reminders.intensity) : 0
-      const allowed = Array.from({ length: levels + 1 }, (_, e) => zonedToUtc(plan.date, b.at + e * s.reminders.repeatAfterMin)).some((at) => reminderAllowed(plan, log, s, at, !!b.hard, b.key, extras, policy))
+      const allowed = Array.from({ length: levels + 1 }, (_, e) => b.atUtc ?? zonedToUtc(plan.date, b.at + e * s.reminders.repeatAfterMin)).some((at) => reminderAllowed(plan, log, s, at, !!b.hard, b.key, extras, policy))
       if (log?.dismissed?.includes(b.key) || !allowed) continue
       out[`${plan.date}|${b.key}`] = baseRevision(plan, log, s, b)
     }
@@ -369,7 +393,7 @@ export function buildReminders(
       const levels = b.escalate ? steps : 0
       for (let e = 0; e <= levels; e++) {
         const m = b.at + e * gap
-        const at = zonedToUtc(plan.date, m)
+        const at = b.atUtc ?? zonedToUtc(plan.date, m)
         if (at <= nowMs || at > nowMs + lookaheadMs) continue
         if (!reminderAllowed(plan, log, s, at, !!b.hard, b.key, extras, policy)) continue
         const revision = baseRevision(plan, log, s, b)
@@ -387,9 +411,11 @@ export function buildReminders(
           escalation: e,
           actions: b.escalate || b.key === 'leave-10' || b.key === 'pcstop-15',
           revision,
-          token: reminderDeliveryToken(revision, at, e),
+          // One opportunity per dated route; changed progress updates the revision, never replays delivery.
+          token: b.preparationTarget ? reminderRevision([plan.date, 'preparation-once', b.preparationTarget]) : reminderDeliveryToken(revision, at, e),
           critical: !!b.hard,
           ...(b.quietFollowUps === true ? { quietFollowUps: true } : {}),
+          ...(b.validUntil !== undefined ? { validUntil: b.validUntil } : {}),
         })
       }
     }

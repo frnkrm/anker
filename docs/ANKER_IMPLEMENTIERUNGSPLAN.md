@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## F-003 / V-010: datierter dynamischer Vorbereitungsimpuls (13.11.2026)
+
+Basis `2bef19df7f3bc304f62638c977b12f2fa00e7f3f`, ausschließlich lokal auf `entwicklung/anker-neu`. Die vorhandene F-001-Projektion liefert jetzt auch alle bereits geplanten Wege. Reiner Impuls aus offener Dauer plus vorhandener Aktivierungsreserve, mindestens bisherige10min; Ankunftspuffer nicht doppelt. UTC-Subtraktion für Berlin/DST. Kein weiterer Planer, Writer, Messdatensatz oder Reminder-Dienst.
+
+Passende leave-10/prep/Morgenstart-Hinweise durch genau einen datierten sanften prepare-Impuls ersetzen; Abfahrt und Wochenbasis erhalten. Native Brücke beidseitig um optionale Abfahrtsfrist erweitert; Queue, Anzeige und Timeout verwerfen/entfernen den Impuls spätestens dann. Opake Revision aktualisiert Plan/Fakten, stabiler datierter Wegtoken nutzt vorhandenes Verbrauchsledger gegen erneute Zustellung nach Fortschritt/Umplanung. Bewusste bisherige Ablehnungen erhalten. Keine Erledigungsaktionen oder Punkte aus Zustellung; Fokus/Ruhe/Budget/Weckergrenzen bleiben. Unbekannte Zeiten ergeben keinen berechneten Impuls; vorhandener allgemeiner Fallback bleibt neutral. Keine neuen Berechtigungen, Paket-/Plugin-/Wrapper-/Cloud-/Workflowänderungen, PC-Wirkungen oder Veröffentlichung. Direkte aktuelle Nutzergrenzen haben Vorrang vor historischen Uploadaufträgen.
+
+Softwareabnahme und genaue Grenzen in [PROJECT_STATUS.md](PROJECT_STATUS.md) und [ANKER_TESTNACHWEISE.md](ANKER_TESTNACHWEISE.md). Gerätebeobachtung gemäß bestehenden G-Stationen weiter offen, keine Ergebniszellen umgeschrieben. F-003 endet hier; T-005 ist der nächste gesonderte Auftrag vor neuen F-004-Messdaten.
+
+
 ## T-002-Nachbereitung: native Prüfumgebung abgenommen (13.11.2026)
 
 Auf `a820115` nur lokale Werkzeuge und Dokumentation eingerichtet: vollständiges JDK21.0.13 zur vorhandenen passenden JRE, SDK/API36 Revision2 und offizielle Commandline-Tools23.0, Build-Tools35.0.0 aus unverändertem AGP8.13-Artefakt ermittelt. Wrapper8.14.3/AGP8.13/Kotlin2.4.21/Paketbindungen unverändert. Der erste JUnit-Aufruf belegte fehlende generierte Cordova-Variablen; nur deswegen cap sync, ohne getrackten Diff. Danach252/252 Android-JUnit in28Suiten und196ausgeführte Gradleaufgaben grün. Alte Native-Blockeraussagen darunter gelten für ihren jeweiligen Zwischenstand; aktuelle Aktivierung und Nachweise in [PROJECT_STATUS.md](PROJECT_STATUS.md). F-003s Toolchainblocker aufgehoben, Produktauftrag noch offen; kein APK-/Release-/Geräte-/Playeingriff.

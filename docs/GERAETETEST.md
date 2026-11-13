@@ -1,5 +1,14 @@
 # Geräteprüfung
 
+## F-003: Softwareabschluss, Geräteanteile weiterhin offen (13.11.2026)
+
+Auf Basis `2bef19d` dynamischen datierten prepare-Impuls in bestehendem Planer-/Reminder-/Schedulerpfad ergänzt.260/260 Android-JUnit in29Suiten einschließlich8neuer Frist-/Revisions-/Ledger-/Ruhe-/Fokus-/Budgetfälle grün;1255vollständige TS-Tests plus105gezielte Fälle nach letzter Ablehnungsregression und30ausgewählte Browserfälle abgedeckt. Web-/JUnit-/Bridge-Mocks sind keine beobachtete Android-Zustellung. Kein Gerätebuild signiert/installiert und keine Hardwarekontrolle erfolgt; alle103historischen Gerätezeilen bleiben unverändert.
+
+Bei später eigener Gerätefreigabe und eindeutiger Buildzuordnung dieselben Stationen G21/G38/G66–G71 nutzen: offene Vorbereitung länger als10min; ein prepare-Impuls statt leave-10/prep/gleichartigem Morgenstart, tatsächliche Abfahrt bleibt. Danach Schritte/Kurzmodus ändern, App schließen/wieder öffnen, Abfahrt verschieben/absagen oder explizit bestätigen. Kein zweiter verbrauchter Impuls, alte Karte bei Änderung weg, verspätete Zustellung spätestens zur Abfahrt verwerfen und sichtbare Karte per Timeout entfernen. Ruhe/Fokus/Filmfenster und Rang3 unter Abfahrt Rang4 prüfen; Wecker-/Kartenbudget zusätzlich G1/G22/G35–G37. Unbekannte Zeiten zeigen nur vorhandenen allgemeinen Fallback, Homeoffice erfindet keinen Weg. Zustellung/Öffnen schließen nichts ab und vergeben keine Punkte. Android-Doze/Kanal-/Rechteverhalten und tatsächliches Verschwinden müssen real beobachtet werden, Zuverlässigkeit bleibt unbestätigt.
+
+Die folgenden Abschnitte bewahren den damaligen T-004-/T-002-Stand. Dortige Aussagen „F-003 nicht implementiert“ bzw. „blockiert“ gelten für diese Vorstufen, nicht den aktuellen Softwareabschluss. Kein neuer G-Test, Geräte-Häkchen oder Systemeingriff. [Aktueller Projektstatus](PROJECT_STATUS.md), Rohbelege `/workspace/anker-f003-20261113/`.
+
+
 ## T-002-Nachbereitung: native Softwareprüfung verfügbar (13.11.2026)
 
 Nach dem unten erhaltenen T-004-Befund ausdrücklich eingerichtet: vollständiges lokales JDK21.0.13, Android-Commandline-Tools23.0, Plattform android-36 Revision2 und Build-Tools35.0.0 (AGP8.13-Default aus offiziellem Artefakt geprüft). Wrapper8.14.3 unverändert. Der frühere Compiler-/SDKblocker ist behoben; er beschreibt im T-004-Abschnitt den Zustand vor dieser Nachbereitung.
