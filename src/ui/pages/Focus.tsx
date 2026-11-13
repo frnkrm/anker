@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { elapsedMs, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
-import { guidancePlanDate, guidancePreferences } from '../../core/guidance'
-import { MorningBrainDump } from '../components/GuidanceControls'
+import { deriveGuidance, guidancePlanDate, guidancePreferences } from '../../core/guidance'
+import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
+import { GuidanceNightPage, MorningBrainDump } from '../components/GuidanceControls'
+import { BedtimeSessionProvider } from '../components/BedtimeSession'
 import { nextHardTime } from '../../core/planner'
 import { openSteps } from '../../core/now'
 import { MODE_LABEL } from '../../core/support'
-import { fmtTime, minutesOnPlanDay } from '../../core/time'
+import { minutesOnPlanDay } from '../../core/time'
 import type { FocusPulseMode, ResumePoint, RoutineId } from '../../core/types'
-import { usePlan, useToday } from '../../state/hooks'
+import { nextNow, usePlan, useToday } from '../../state/hooks'
+import { nowActionTitle } from '../components/nowTitle'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { FocusTiming } from '../components/FocusTiming'
 import { countdownLabel } from '../components/fieldValues'
@@ -50,7 +53,8 @@ export default function Focus() {
   const session = target && stored && focusTargetKey(stored.target) === focusTargetKey(target) ? stored : undefined
   const cur = minimalMode && step?.minimal ? step.minimal : step
   const seconds = (cur?.minutes ?? 0) * 60
-  const now = useFocusClock(session?.timer)
+  const focusClock = useFocusClock(session?.timer)
+  const now = session?.timer.status === 'running' ? focusClock : base.now
   useFocusPulse(guidance.enabled && (guidance.paceKeeper || guidance.speakSteps) ? undefined : session, now)
   const m = minutesOnPlanDay(date, now)
   const [error, setError] = useState('')
@@ -91,18 +95,20 @@ export default function Focus() {
   const mode = log.override.mode
 
   if (!step) {
+    const view = deriveGuidance({ plan, log, local: st.local, settings: st.settings, nowMs: now })
+    if (guidanceNightVisible(view, guidance)) return <BedtimeSessionProvider><GuidanceNightPage view={view} /></BedtimeSessionProvider>
     const reallyCompleted = steps.length > 0 && steps.every((item) => ['done', 'minimal'].includes(log.steps[`${r}:${item.id}`] ?? ''))
+    const next = nextNow(st, now).action
+    const hint = transitionHint(next, plan, st.settings)
     return (
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center px-6 text-center safe-top">
-        <h1 className="text-4xl font-semibold">{reallyCompleted ? r === 'morning' ? 'Morgenroutine fertig' : 'Abendroutine fertig' : 'Für heute nichts mehr offen'}</h1>
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center px-4 text-center safe-top sm:px-6">
+        <h1 className="max-w-full break-words text-2xl font-semibold sm:text-4xl">{reallyCompleted ? r === 'morning' ? 'Morgenroutine fertig' : 'Abendroutine fertig' : 'Für heute nichts mehr offen'}</h1>
         {!reallyCompleted && <p className="mt-3 text-muted">Deine Auswahl bleibt erhalten. Übersprungen oder heute nicht nötig wird nicht als erledigt gespeichert.</p>}
-        <p className="mt-3 text-xl text-muted">
-          {r === 'morning'
-            ? plan.leave !== undefined ? `Losgehen um ${fmtTime(plan.leave)}.` : 'Genieß den Tag.'
-            : plan.openEnd ? 'Für heute ist hier nichts mehr offen.'
-              : m >= plan.bed ? 'Jetzt ist Zeit fürs Bett.'
-                : m >= plan.pcStop ? `Zeit zum Runterkommen. Bett um ${fmtTime(plan.bed)}.` : `Jetzt Freizeit bis ${fmtTime(plan.pcStop)}.`}
-        </p>
+        <section aria-label="Nächster Übergang" className="mt-4 w-full min-w-0 space-y-2 break-words">
+          <p className="text-sm text-muted">Als Nächstes</p>
+          <h2 className="text-xl font-semibold">{nowActionTitle(next, plan, m)}</h2>
+          {hint && <p className="text-muted">{hint}</p>}
+        </section>
         {r === 'morning' && guidance.enabled && <div className="mt-5 w-full"><MorningBrainDump /></div>}
         <Button variant="primary" size="xl" className="mt-10 w-full" onClick={() => nav('/')}>Weiter</Button>
         <Link to={`/druck?typ=${r}`} className="mt-3 flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>

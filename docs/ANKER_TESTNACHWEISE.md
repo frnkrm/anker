@@ -1,5 +1,23 @@
 # Anker: Testnachweise
 
+## F-006 / V-002: Übergang mit einer aktuellen Handlung (13.11.2026)
+
+Basis `769ea77f8af56bda2cd703e4bdd4988b0d41afbb`, sauberer Branch `entwicklung/anker-neu`. Vorhandene erfolgreiche Nachweise erhalten, keine vollständige App-/CI-/Native-Suite wiederholt.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS-/Storeauswahl | **169verschiedene Fälle in12Dateien abgedeckt**,9neue Übergangsfälle. Auswahl167/168; korrigierter neuer Morgenfixturefall und sein Testpaket8/8; neue Nacht-Einstiegsprüfung samt zugehöriger Projektion6/6. Maschinell letzter Ergebnisstand aller169Fälle grün in `logic-coverage.json`; kein einzelner169erGesamtlauf behauptet |
+| Geprüfte Softwaregrenzen | Now/Support/Guidance/Recovery, Guidance-/Teiltimer-/neue Lesepfad-Storefälle, PC-Link-Briefing/Übergang und Widgetprivatheit. Vorher rot: frühe Weckerinstanz wurde zur alten Nacht, überholter Merker wurde Hauptaktion, beendeter Abendblock blieb erneut Tätigkeit. Keine zweite Planung oder Schreibqueue |
+| Browserauswahl | **29verschiedene Fälle abgedeckt**. Erste Auswahl24/25 (7neue Übergänge,12bestehende Guidance,6F-005). Der neue Fokus-Nachtzweig war ohne Schlafstatus-Provider leer; Trace nennt den fehlenden Kontext. Provider wiederverwendet, betroffener Schlusslauf11/11 einschließlich4zusätzlicher bestehender Pause-/Hauptaktions-/Quick-Recoveryfälle. Layoutschlusslauf1/1 nach schmaler Überschrift/lesbaren Endbildern; übrige erfolgreiche Fälle nicht mechanisch wiederholt |
+| Browserabnahmen | expliziter letzter Routineabschluss, aktuelle Freizeit-/PC-/Nachtfolge und Zeitwechsel; Weiter ohne Erledigung/Punkte; PC-Rückmeldung nur durch Tippen; Abbruch/Annahme/offenes Ende derselben Abendzeitaktion; frühe Morgeninstanz und Pause/Rückkehr; gewählte QR-Nachtansicht ohne QR-/Native-Aktion;320px/160Prozent Schrift, Hauptaktion und kein horizontaler Überlauf |
+| Lint / Typecheck / Produktionsbuild | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Typecheck separat und im Produktionsbuild des lokalen Browserwegs. Frühe unbenutzte fmtTime-Einfuhr und ungültige undefined-Testzuweisung korrigiert; keine Paket-/CI-Anpassung |
+| Erste Testkorrekturen | Neue frühe Morgenfixture hatte zusätzlich den üblichen Sportschritt; explizit sportfrei gemacht. Neue Morgen-Pausefixture lag im gültigen Losgehfenster; tatsächlich passenden Homeofficefall verwendet, bestehender Wege-Vorrang bleibt. Rote Gegenbelege und Zwischenlogs erhalten, keine Assertions/Timeouts/Retries gelockert |
+
+Rohbelege `/workspace/anker-f006-20261113/`: Transition-/Planer-Rotläufe, gestufte TS-Logs/logic-coverage.json, Browser-Fehlertrace und finale Logs/Bilder, lokale Chromium156-Konfiguration, RESULT.json, Vorher-/Nachher-Bundles, Wiederherstellungsanleitung und SHA256SUMS. Endbilder mit freiwilliger Spieleinblendung ausgeschaltet, vorherige synthetische Erfolgsanzeige bleibt als früher Bildstand erhalten. Store-Leseprojektion schreibt0Records und verändert keine Timer/Game/Tagesdaten. Im Verlängerungsbrowserfall keine externen HTTP(S)-Anfragen, aktive PC-/Dienstfreigaben ausgeschaltet; keine Aussage über echte gekoppelte Geräte.
+
+Native/Storewriter/Reminder/Wecker/Transport/PC-Begleiter/Pakete/Workflows unverändert;260Android-JUnit aus F-003 historisch erhalten. Der neue Nachtzweig verwendet lediglich denselben bestehenden nativen Statusbeobachter/Aktionskontext; kein neuer TS-/Kotlin-Vertrag oder nativer Rechenweg. Keine Hardwarebeobachtung, kein frischer GitHub-CI-Nachweis. Reale Galaxy-/Windows-/Kalenderprüfungen offen. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten; kein Push/Merge/Release/Cloud-/Playeingriff.
+
+
 ## F-005 / V-001: aktuelle Wiedereinstiegskarte, bewusste Timerfortsetzung (13.11.2026)
 
 Basis `b4ec5a47c5f58eca12b9d874aa703f61bcae0b38`, Branch `entwicklung/anker-neu`, zu Beginn sauber. Keine vollständige App-/Native-/CI-Neupruefung behauptet.

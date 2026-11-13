@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## F-006 / V-002: aktuelle Übergänge ohne zweiten Controller (13.11.2026)
+
+Basis `769ea77`, sauberer lokaler Branch `entwicklung/anker-neu`, gesonderter Einzelauftrag. Vorhandene Pause/Weiter, Abendverlängerung/offenes Ende, PC-Rückmeldung, Guidance-Phasen und Storequeue wiederverwendet. Ergänzt nur fehlende Folgeprojektion und kurze Texte. Derselbe `nextNow`/`nextAction`-Weg für Jetzt, Abschluss und bestehende Capture-/Shortcutleser; aktivierter früher Morgen und überholte Merker korrekt. `nowView` lässt geschlossene Routineblöcke nicht als neue Tätigkeit stehen. Keine Häkchen/Punkte aus Uhrzeit oder Zustellung, F-005s bewusste Timerfortsetzung erhalten.
+
+Abschluss nennt die aktuell ausgewählte Handlung, Weiter navigiert ohne Startwriter. Ein bestehender Nacht-Einstiegsschutz wird von Jetzt/Fokus geteilt; derselbe Nachtinhalt samt bestehendem Schlafstatus-Provider, keine neue Nachtsteuerung. PC-Stopp präzisiert Speichern/ausdrückliche Rückmeldung; Abendzeit ändern erreicht direkt die vorhandene LateForm und optionalen Freigaben. Keine neuen PC-Befehle, Transportfelder, Kopplung oder Wirkungen. Optionaler ruhiger Handgriff bleibt derselbe Settingswert. Kleine Ansicht/Großschrift im Browser angesehen, Abschlussüberschrift angepasst.
+
+169verschiedene gezielte TS-Fälle/12Dateien gestuft grün,29verschiedene Browserfälle abgedeckt; genaue Laufgrenzen, frühe rote Belege und korrigierte Providerintegration in ANKER_TESTNACHWEISE.md. Typecheck/Build grün, Lint0Fehler/1bekannte Warnung. Originalplan/36IDs/103Gerätezeilen erhalten. Native-/Reminder-/Storewriter-/PC-/Sync-/Paketbestand unverändert, Hardware offen. Abschluss lokal committen und Bundle/Clone/fsck/SHA256 prüfen. Kein Push/Merge/Release/Cloud-/Playeingriff; aktuelle Nutzergrenzen gehen historischen Uploadaufträgen vor. Nach F-006 stoppen, F-007 nur nach eigenem Auftrag.
+
+
 ## F-005 / V-001: kurze validierte Wiedereinstiegskarte (13.11.2026)
 
 Basis `b4ec5a4`, nur lokaler Branch `entwicklung/anker-neu`, einzeln beauftragt. Vorhandene Recovery-/Fokus-/Aufgabenbesitzer wiederverwendet; `RecoverySheet` ist die einzige Karte für Jetzt und Quick-Recovery. Ergänzt Titel/aktuellen offenen Schritt, lokalen Timerstatus/Restzeit und vorhandene Wiedereinstiegsnotiz. Reine Leseprojektion validiert Aufgabe/exakten Teil, aktuellen Planschritt, Voll-/Minimalvariante und Berliner Instanz einschließlich bestehender früher Weckeraktivierung. Enge Typisierung des Datumshelfereingangs, keine Änderung an Guidance-Regeln. Nicht zuordenbare Alt-Routinenrouten nicht ausführen; keine Datenbereinigung.

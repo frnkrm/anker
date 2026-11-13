@@ -4,10 +4,12 @@ import { EVENING_LABELS } from '../../core/defaults'
 import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
 import { recoveryPreview, resumeRoute } from '../../core/recovery'
 import { guidancePlanDate } from '../../core/guidance/model'
+import { activePlanDate } from '../../core/now'
 import { taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
-import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
-import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, utcToZoned, weekday } from '../../core/time'
+import { currentMode, isBehind, MODE_HINT, MODE_LABEL, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
+import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
+import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, todayBerlin, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
 import { plural } from '../../core/uiText'
 import { nowConflictNotice } from '../../core/planConflicts'
@@ -17,8 +19,8 @@ import { GuidanceHomeExtras, GuidanceNightPage } from '../components/GuidanceCon
 import { GuidanceTimeArc } from '../components/GuidanceTimeArc'
 import { nowActionTitle } from '../components/nowTitle'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
-import { useToday } from '../../state/hooks'
-import { planFor, today, useApp } from '../../state/store'
+import { nextNow, useToday } from '../../state/hooks'
+import { emptyLog, planFor, today, useApp } from '../../state/store'
 import { useFocusClock } from '../../state/useFocusClock'
 import { countdownLabel } from '../components/fieldValues'
 import { SportToggle } from '../components/SportToggle'
@@ -42,9 +44,13 @@ const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei'
 export default function Now() { return <BedtimeSessionProvider><NowContent /></BedtimeSessionProvider> }
 
 function NowContent() {
-  const { date, plan, log, m, now } = useToday()
+  const { now } = useToday(1000)
   const st = useApp()
   const guidance = useGuidanceView()
+  const date = guidancePlanDate(st.local, activePlanDate(now, todayBerlin), now)
+  const plan = planFor(date, st)
+  const log = st.days[date] ?? emptyLog(date)
+  const m = minutesOnPlanDay(date, now)
   const guidanceOptions = guidancePreferences(st.settings.guidance)
   const [adjust, setAdjust] = useState(false)
   const [stuck, setStuck] = useState(false)
@@ -59,8 +65,9 @@ function NowContent() {
   const [capture, setCapture] = useState(false)
   const [captureContext, setCaptureContext] = useState<ResumePoint>()
   const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext }
-  const v = nextAction(input)
+  const v = nextNow(st, now)
   const a = v.action
+  const hint = transitionHint(a, plan, st.settings)
   const mode = currentMode(log)
   const suggestion = suggestedMode(st.settings, log, m)
   const behind = isBehind(plan, log, m)
@@ -81,8 +88,7 @@ function NowContent() {
   const openDifferent = (view: typeof differentView = 'menu') => { setDifferentView(view); setDifferent(true); setAdjust(false) }
   const primaryLabelMinutes = v.estimatedMin
   const timeArc = guidanceOptions.enabled && guidanceOptions.timeArc && !!v.hard && ['pc-stop', 'bed', 'leave'].includes(v.hard.key) && v.hard.at - m > 0 && v.hard.at - m <= 60
-  if (guidanceOptions.enabled && (guidance.phase === 'NIGHT_LOCK' && (guidanceOptions.bedtimeQr || guidanceOptions.pcLock)
-    || guidance.phase === 'BEDTIME_HARD_CUT' && (guidanceOptions.eveningEscalation || guidanceOptions.bedtimeQr || guidanceOptions.pcLock))) return <GuidanceNightPage view={guidance} />
+  if (guidanceNightVisible(guidance, guidanceOptions)) return <GuidanceNightPage view={guidance} />
 
   return <div className="now-page" data-testid="now-page">
     {!bedtime && <>
@@ -97,7 +103,7 @@ function NowContent() {
     {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
 
     <section aria-live="polite" className="now-action">
-      {!bedtime && a.sub && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{a.sub} ›</Link> : <p className="now-context">{a.sub}</p>)}
+      {!bedtime && hint && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{hint} ›</Link> : <p className="now-context">{hint}</p>)}
       <h1 className="now-title">{nowActionTitle(a, plan, m)}</h1>
       {!bedtime && reason && <p className="now-reason">{reason}</p>}
       <div className="now-buttons">
@@ -482,9 +488,12 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       return <Button size="lg" className="w-full" onClick={onLate}>Abendzeit ändern</Button>
     case 'pcoff':
       return (
-        <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'pcOffAt')}>
-          PC ist aus
-        </Button>
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'pcOffAt')}>
+            PC ist aus
+          </Button>
+          <Button size="lg" className="w-full" onClick={onLate}>Abendzeit ändern</Button>
+        </>
       )
     case 'bed':
       return (

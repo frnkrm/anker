@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
-import { nextAction, type NextView } from '../core/support'
-import { minutesOnPlanDay } from '../core/time'
+import { nextAction, workTasksQuiet, type NextView } from '../core/support'
+import { activePlanDate } from '../core/now'
+import { guidancePlanDate } from '../core/guidance/model'
+import { recoveryPreview } from '../core/recovery'
+import { minutesOnPlanDay, todayBerlin } from '../core/time'
 import type { DayLog, DayPlan } from '../core/types'
 import { emptyLog, planFor, today, useApp } from './store'
 
@@ -32,11 +35,14 @@ export function useToday(tick = 15_000): { date: string; plan: DayPlan; log: Day
 }
 
 /** Was gerade dran ist, außerhalb von React gelesen (z. B. beim Speichern eines Gedankens). */
-export function nextNow(): NextView {
-  const st = useApp.getState()
-  const date = today()
-  const now = Date.now()
-  return nextAction({ plan: planFor(date), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext })
+export function nextNow(st = useApp.getState(), now = Date.now()): NextView {
+  const date = guidancePlanDate(st.local, activePlanDate(now, todayBerlin), now)
+  const plan = planFor(date, st)
+  const input = { plan, log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, sessions: st.local.workSessions, context: st.local.taskContext }
+  // Nur den vorhandenen Merker prüfen, keinen anderen Fokus als neue Hauptaktion einsetzen.
+  const resume = st.local.resume ? recoveryPreview({ ...input,
+    local: { resume: st.local.resume, focusHistory: st.local.focusHistory, guidance: st.local.guidance }, workQuiet: workTasksQuiet(input) })?.point : undefined
+  return nextAction({ ...input, resume })
 }
 
 export function usePlan(date: string): DayPlan {

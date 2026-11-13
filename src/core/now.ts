@@ -118,6 +118,13 @@ export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowV
   }
 
   if (!block) return view({ type: 'info', title: 'Kurz durchatmen', sub: hard ? `${hard.label} um ${t(hard.at)}` : undefined })
+  // Ein zeitlich noch laufender Routineblock ist nach dem letzten offenen Schritt
+  // keine neue Tätigkeit. Tagesfakten bleiben unverändert, die Folgeschritte oben gelten weiter.
+  if (block.routine && !openSteps(plan, log, block.routine).length) {
+    return view(block.routine === 'evening'
+      ? { type: 'free', title: 'Freizeit – zocken erlaubt', sub: plan.openEnd ? 'Ohne festes Ende' : `Bis ${t(plan.pcStop)}`, canExtend: true }
+      : { type: 'info', title: 'Kurz durchatmen', sub: hard ? `${hard.label} um ${t(hard.at)}` : undefined })
+  }
   switch (block.kind) {
     case 'work':
       return view({ type: 'work', title: block.title, sub: `Bis ${t(block.end)}` })
