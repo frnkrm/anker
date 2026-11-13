@@ -1,5 +1,12 @@
 # Geräteprüfung
 
+## T-004: NFC-Prüfpfad vor F-008 (13.11.2026)
+
+Auf sauberem `5b6f893` ausschließlich Code/SDK/Tooling gelesen, keine Gerätebeobachtung. [NFC_MACHBARKEIT.md](NFC_MACHBARKEIT.md) enthält nachgewiesene Voraussetzungen und die geplanten Software-/Gerätefälle. Reader Mode seitAPI19 passt zum unveränderten minSdk26/SDK36; vorhandene Native-Brücke nutzbar. Kein NFC-Lesepfad, Manifestrecht, Tag-Schreibvorgang oder NFC-Gerätezugriff ergänzt. Toolchain vorhanden; tatsächliches Galaxy/NFC-Tag im Cloud-Executor nicht nachgewiesen.
+
+E-005 bleibt offen und führt später zusätzliche NFC-Varianten unter bestehenden Stationen: G98 Bedienung/fehlende Hardware/manueller Rückweg; G78/G80/G81/G85 aktuelle Handlung/Timerpause/Mehrfachtipps; G84/G86 Daten-/Backupgrenze; G1/G99/G101 Wecker-/QR-Vorrang. Erst eigene spätere Freigabe, vorbereiteten neutralen Tag, genaue Geräte-/System-/Buildkennung und echte Beobachtung erfassen. Keine fremden oder produktiven Tags beschreiben. Keine neuen G-IDs, Häkchen oder Verdoppelung der bisherigen Versuche; alle103historischen Gerätezeilen und Ergebniszellen bleiben erhalten. NFC-Softwaretests/Mime-Parser/Mocks sind keine Funk-/Galaxy-Abnahme; Windows/Kalender bleiben getrennt offen.
+
+
 ## F-003: Softwareabschluss, Geräteanteile weiterhin offen (13.11.2026)
 
 Auf Basis `2bef19d` dynamischen datierten prepare-Impuls in bestehendem Planer-/Reminder-/Schedulerpfad ergänzt.260/260 Android-JUnit in29Suiten einschließlich8neuer Frist-/Revisions-/Ledger-/Ruhe-/Fokus-/Budgetfälle grün;1255vollständige TS-Tests plus105gezielte Fälle nach letzter Ablehnungsregression und30ausgewählte Browserfälle abgedeckt. Web-/JUnit-/Bridge-Mocks sind keine beobachtete Android-Zustellung. Kein Gerätebuild signiert/installiert und keine Hardwarekontrolle erfolgt; alle103historischen Gerätezeilen bleiben unverändert.

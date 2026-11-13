@@ -1,5 +1,14 @@
 # Anker 2.0: Implementierungsplan
 
+## T-004: gezielte NFC-Machbarkeitsvorbereitung vor F-008 (13.11.2026)
+
+Basis `5b6f893`, tatsächlicher sauberer Branch `entwicklung/anker-neu`. Nur Bestands-/SDK-/Javadoc-/Manifest-/Werkzeugprüfung und Dokumentation. Installiertes JDK21/SDK36/Reader-API19 reicht für minSdk26; kein Toolchainblocker festgestellt, keine Installation oder Versionsänderung. Vorhandene Native-Brücke und QR-/manuelle Wege geprüft; kein NFC-Lesepfad oder Manifestrecht vorhanden. Zwei generische Diagnose-Allowlistwerte nfc sind keine Funktion. Vollständiger [Entwurf und Prüfpfad](NFC_MACHBARKEIT.md).
+
+Minimaler Vorschlag für eigenen F-008-Auftrag: ausdrücklich gestartete begrenzte Vordergrund-Lesesitzung, drei neutrale feste Ziele und Bestätigung, keine Tagschreibfunktion, dauerhafte Zuordnung, Authentifizierung oder Ortsgeschichte. Optionales NFC-Manifestrecht/Feature nur nach ausdrücklichem Folgeauftrag. Native TS/Kotlin/Web-Verträge im vorhandenen Plugin, Lifecycle-/Alarmvorrang und alte QR-/Timeridentitäten erhalten. SDK-Status ist kein Galaxy-/Tag-/Funkbeleg; reine Modelle und spätere reale E-005-Varianten getrennt. Keine neuen Geräte-IDs/-Häkchen.
+
+Nur Dokumentprüfungen/Verfügbarkeitschecks neu, keine unveränderten Produkt-/Browser-/JUnit-Suiten wiederholt. Produktcode/Manifest/Pakete/Workflows bytegleich zur Basis, Originalplan/36IDs/103Gerätezeilen erhalten. Dokumentation lokal committen und Bundle/Clone/fsck/SHA256 prüfen. Kein Push/Merge/Release/Cloud-/Playeingriff. Aktuelle Grenzen gehen historischen Uploadaufträgen vor. Nach T-004 stoppen; F-008 erst separat mit genau benannter NFC-Manifestfreigabe.
+
+
 ## F-007 / V-003: belegtes freiwilliges Vereinfachungsangebot (13.11.2026)
 
 Basis `7a2b227`, tatsächlicher sauberer Branch `entwicklung/anker-neu`, gesonderter Einzelauftrag. Bestandsmodi, suggestedMode und Starthilfe geprüft. Keine belastbare Historie mehrfachen Verschiebens vorhanden; Nichtnutzung/letztes deferredUntil nicht als Blockade deuten. Stattdessen nur ausdrückliche Verkleinerung einer noch aktuellen Starthilfe als belegter Auslöser. Angebot im bereits geöffneten Hilfefenster, kein neuer Hauptscreen, keine automatische Öffnung. Annahme wählt bestehenden Tagesmodus Einfach anfangen; keine Routine-/Kernschritte entfernen, keine Zeitmessung oder automatische Timerfortsetzung.

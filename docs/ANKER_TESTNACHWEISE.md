@@ -1,5 +1,22 @@
 # Anker: Testnachweise
 
+## T-004: NFC-Machbarkeit und Prüfpfad, nur Bestandsnachweise (13.11.2026)
+
+Saubere Basis `5b6f893602c00da6cd1b7c4d13a821e0b47c1b10`, Branch `entwicklung/anker-neu`. Keine F-008-Implementierung, neuen Berechtigungen oder NFC-/Tagaktionen.
+
+| Tatsächliche neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Git/Anweisungen | Basis vorhanden, richtiger Branch, Arbeitsbaum zu Beginn sauber; Anweisungen/Status/Plan/Datengrenzen und relevante Gerätestationen gelesen |
+| Compiler/SDK | Java/Javac21.0.13 Exit0. SDK36Rev2/CLI23/Build-Tools35 aus installierten Metadaten. javap für NfcAdapter/Ndef/NdefMessage/NdefRecord/Tag/TagLostException Exit0; ReaderCallback in Methodensignatur, Reader-APIs seit19 aus API-XML. Keine Installation oder Gradleausführung |
+| API-Dokumentation | Installierte offizielle SDK-Stubquellen/Javadoc gelesen: nur Vordergrund, Adapter/Cache können fehlen, NDEF-I/O braucht NFC-Recht und Hintergrundthread. FLAG_READER_SKIP_NDEF_CHECK würde benötigte NDEF-Erkennung ausschalten. Definitionen, keine echte API-/Funkwirkung |
+| Bestand/Manifest | Nur zwei generische NFC-Diagnose-Allowlistwerte, kein Reader-/NDEF-APIpfad. Keine NFC-Rechte/-Features/-Intentfilter im App-Manifest oder zwei erhaltenen Debug-Merge-Manifesteinträgen. Alte Merge-Dateien sind kein frischer Build. Native-/QR-/Link-/Fokus-/manuelle Wege am tatsächlichen Code geprüft |
+| Dokumente/Integrität | Neuer NFC_MACHBARKEIT.md mit begrenztem Entwurf, Datenrahmen, geplanter Softwareabnahme und realem E-005-Pfad. Relative Links, vorhandene Ziele/Quellen, Originalplan/36Roadmap-IDs/103Gerätezeilen sowie unveränderte Produkt-/Manifest-/Paket-/Workflowquellen geprüft |
+
+Rohbelege unter `/workspace/anker-nfc-vorbereitung-20261113/`: inventory.json/SDK-Hashes, toolchain-inventory.log, sdk-nfc-api.log, sdk-local-metadata.log, sdk-nfc-javadoc.log, Dokumentprüfung und RESULT.json, Vorher-/Nachher-Bundles/RESTORE.md/SHA256SUMS. Nur Cloud-lokal. Referenzseiten sind als weiterführende offizielle Links erfasst, nicht extern neu abgerufen; Tatsachenbelege des Tasks kommen aus lokalem SDK und Code.
+
+Produktcode unverändert: keine erneuten Lint-/Typecheck-/Build-/Browser-/JUnit-Suiten notwendig oder ausgeführt, keine neuen Testzahlen erfunden. F-007s114TS-/23Browserfälle und F-003s260Android-JUnit bleiben ihre historischen Softwarebelege. Noch keine F-008-Tests vorhanden/bestanden. SDK/API-Eignung ersetzt weder tatsächliche Galaxy-Fähigkeit noch E-005-Tag-/Lifecycle-/QR-/Weckerbeobachtung. Kein Zugriff auf echte Geräte, Tag-Schreiben, Systemrechte, Kalender/PC/Cloud/GitHub/Play oder externe Nutzdatenübertragung.
+
+
 ## F-007 / V-003: freiwilliger Modus und respektierte Tagesabwahl (13.11.2026)
 
 Basis `7a2b227d080e111bc74075b8673a623507546b43`, sauberer Branch `entwicklung/anker-neu`. Unveränderte erfolgreiche Prüfungen erhalten, keine vollständige App-/Native-/CI-Neusuite.
