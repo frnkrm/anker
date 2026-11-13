@@ -19,6 +19,49 @@ async function choose(page: Page, records: Rec[]) {
 }
 const settings = () => ({ ...defaultSettings('2026-11-02'),onboarded:true,bed:1470,themeId:'piraten' as const })
 
+test('Wiederherstellung aktiviert keine fremden Datenfreigaben und erhält importierte Orte und Privattexte lokal', async ({ page }) => {
+  const external: string[] = []
+  await page.route('**/*', route => {
+    if (new URL(route.request().url()).origin === 'http://localhost:4173') return route.continue()
+    external.push(new URL(route.request().url()).origin)
+    return route.abort()
+  })
+  await page.clock.setFixedTime(new Date(now))
+  await page.goto('/start')
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
+  await page.getByRole('button', { name: /Passt, los/ }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.onboarded).toBe(true)
+  const before = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  await page.goto('/backup?wiederherstellen=1')
+  await expect(page.getByText(/Verbindungen, Audio- und PC-Freigaben bleiben/)).toBeVisible()
+  const incoming = [record('settings', { ...settings(), integrations: { sync: true, googleCalendar: true, writeCalendar: true, healthConnect: true },
+    extras: { dictation: true, spokenCues: true }, guidance: { ...before.guidance, enabled: true, pcLock: true } }),
+  record('meta', { ...emptyLocal(), healthSleepEnabled: true, weatherProfile: { enabled: true, city: 'Importierter Ort', lat: 50, lng: 9 },
+    assistance: { routes: { enabled: true, automatic: true, version: 1, at: now } }, taskLearning: { enabled: true, samples: [] },
+    guidance: { days: {}, receipts: [], ifThen: { wish: 'Privat', outcome: 'Privat', obstacle: 'Privat', sentence: 'Mein privater Satz', showOnPc: true } } })]
+  const picker = page.waitForEvent('filechooser')
+  await page.getByRole('button', { name: 'Sicherung importieren', exact: true }).click()
+  // An older file can contain device flags that today's exporter already omits.
+  await (await picker).setFiles({ name: 'altdatei.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ app: 'anker', version: 1, records: incoming })) })
+  await page.getByRole('button', { name: 'Sicherung jetzt wiederherstellen', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('2 Einträge aus der Sicherung wiederhergestellt')
+  const saved = (await storedRecord<Settings>(page, 'settings', 'main'))!
+  expect(saved.integrations).toEqual(before.integrations)
+  expect(saved.extras).toEqual(before.extras)
+  expect(saved.guidance).toEqual(before.guidance)
+  expect(saved.bed).toBe(1470)
+  const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
+  expect(local.healthSleepEnabled === true).toBe(false)
+  expect(local.assistance?.routes).toBeUndefined()
+  expect(local.taskLearning?.enabled).toBe(false)
+  expect(local.weatherProfile).toMatchObject({ enabled: false, city: 'Importierter Ort' })
+  expect(local.guidance?.ifThen).toMatchObject({ sentence: 'Mein privater Satz', showOnPc: false })
+  await page.reload()
+  expect((await storedRecord<Settings>(page, 'settings', 'main'))?.integrations).toEqual(before.integrations)
+  expect(external).toEqual([])
+})
+
 test('Vorhandene Sicherung ist vor Ersteinrichtung erreichbar; Daten und alte Berichte kommen erst nach bewusster Wiederherstellung',async ({page}) => {
   await page.clock.setFixedTime(new Date(now))
   await page.setViewportSize({ width:320,height:844 })

@@ -1,5 +1,21 @@
 # Anker: Testnachweise
 
+## T-005 / V-015: gezielte Datenschutzabnahme (13.11.2026)
+
+Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, sauberer Anfangsstand `entwicklung/anker-neu` in neuer Umgebung. Codeinventur und belegte Import-/Exportkorrekturen gemäß [DATENSCHUTZ_DATENGRENZEN.md](DATENSCHUTZ_DATENGRENZEN.md). Kein echter Anbieteraufruf, Kontowiderruf, produktiver Datenimport/-löschung oder Geräteversuch.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielter Vitest-Endlauf | **176/176**,16Dateien, Exit0; Export-/Backupvalidierung, Store-/Queue-/Health-/Aufgabenregressionen, Syncprivacy, Diagnose TS/Bridge, PC-Briefing-/Protokoll und Widgetprivacy.17neue Fälle:15in privacyBoundaries.test.ts und2Storefälle. Kein vollständiger Logik-Neulauf |
+| Lokaler Chromium-Browserlauf | **14/14**,4Dateien: backup-restore, backup-safety, diagnostic-export, sync-privacy. Ein neuer Fall mit echten Import-/IDBwegen, Altdatei-Freigaben, Reload und blockierten/nicht gestarteten externen Abrufen; übrige13passende Bestandsfälle. Mocks sind kein Backend-/OS-Nachweis |
+| Lint/Typecheck/Produktionsbuild | Exit0,0Lintfehler/1bekannte TaskAssistance-Warnung. Build durch lokale Playwright-Webservervorbedingung und vollständige TS-Prüfung; keine Prüfregel-/Timeout-/Retrylockerung |
+| Bestandsintegrität | Originalplan und alle36Roadmap-IDs erhalten;103historische Geräteergebniszeilen bytegleich, Native-/Reminder-/Paket-/Manifest-/Workflowbestand unverändert. Relative Dokumentationslinks und git diff --check geprüft |
+
+Rote Belege zuerst: Integrationsflags/Tombstone-Inhalte; danach eigene Wetter-/PC-Freitext- und tatsächliche Lernkopienfälle. Zwischenschritte fanden zusätzlich das Zurücksetzen aktueller Schlaf-Lesewahl durch Nachvalidierung sowie den fehlenden ausgeschalteten Lern-Default bei leerem Zielbestand. Fünf alte Wetterimport-Abnahmen auf neue Freigabegrenze angepasst; ihre Atomaritäts-/Fehler-/Reloadbehauptungen erhalten. Reine lokale Migration übernimmt weiterhin die vorhandene Wahl. Eine neue anfänglich unvollständige Guidance-Testfixture vollständig gemacht; bekannte ungültige Rohfelder werden weiterhin vor Projektion verworfen. Keine Assertions entfernt, um Lücken zu verstecken.
+
+Nachweise unter `/workspace/anker-t005-20261113/`: privacy-before*.log, gezielte Zwischen-/Endlogs, Browser-/Lint-/Typecheckbelege, lokale Browserkonfiguration, RESULT.json, Bestands-/Linkkontrolle, Git-Bundles und SHA256SUMS. Frühere Belege erhalten. Unveränderte vollständige F-003-Abnahme mit1255Logikfällen+105gezielten Schlussregressionen und260Android-JUnit bleibt ihr damaliger Nachweis; nicht als neuer kompletter Lauf ausgegeben. Native Dateien nicht geändert oder erneut kompiliert. Geräte-/Kontobeobachtungen zu Kalender/Health/PC/Androidbackup und echter Zustellung bleiben offen. Kein Push/Merge/Release/Cloud-/Playeingriff.
+
+
 ## F-003 / V-010: dynamische Vorbereitungsimpulse (13.11.2026)
 
 Basis `2bef19df7f3bc304f62638c977b12f2fa00e7f3f`, sauberer Arbeitsbaum auf `entwicklung/anker-neu`. Lokale Softwareabnahme; kein Push/Merge/CI-/Release-/Geräte-/Playlauf. Native Werkzeuge aus `/workspace/anker-toolchains/env.sh` wiederverwendet, keine erneute Installation/Capacitor-Synchronisation erforderlich.

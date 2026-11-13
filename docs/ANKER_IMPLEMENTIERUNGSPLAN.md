@@ -1,5 +1,12 @@
 # Anker 2.0: Implementierungsplan
 
+## T-005 / V-015: Datengrenzen und sichere Wiederherstellung (13.11.2026)
+
+Basis `4e23706`, ausschließlich lokal auf `entwicklung/anker-neu`. Datenflüsse/Empfänger, lokale Speicherung, Sicherung, Diagnose, Lösch-/Aufbewahrungsgrenzen und native Reminderbelege im [verbindlichen Datengrenzenbericht](DATENSCHUTZ_DATENGRENZEN.md) erfasst. Belegte Import-/Backupfehler korrigiert: fremde Geräte-/Dienst-/Lernfreigaben nicht übernehmen, erneute Wahl für importierte Wetterorte/PC-Freitexte, Tombstone-Bodies nicht exportieren, Geschäfts-/verwaiste Lern-/Rückkehrkopien korrekt ausschließen und beim Teilimport erhalten, lokale Schlaf-Lesewahl nicht bei Nachvalidierung verlieren. Gleiche Importprojektion/Storequeue, keine produktive Bereinigung. UI erklärt die Grenzen. Alte Wetter-Importtests erwarten jetzt bewusste Reaktivierung; bestehende lokale Wetter-Migration behält ihre Wahl.
+
+Gezielte Regressionen/Browser und Lint/Typecheck/Build belegt in ANKER_TESTNACHWEISE.md; Vorher-/Nachher-Sicherung nur lokal. Native/Remindertransport, Workflows, Paketbindungen und Rechte unverändert. Keine neuen Messdaten, externen Übertragungen oder PC-/Cloud-/Playwirkungen. Aktuelle Nutzergrenzen gehen historischen Release-/Uploadaufträgen vor. T-005 endet hier; F-004 ausschließlich nach eigenem Auftrag und innerhalb des konkret dokumentierten Datenrahmens.
+
+
 ## F-003 / V-010: datierter dynamischer Vorbereitungsimpuls (13.11.2026)
 
 Basis `2bef19df7f3bc304f62638c977b12f2fa00e7f3f`, ausschließlich lokal auf `entwicklung/anker-neu`. Die vorhandene F-001-Projektion liefert jetzt auch alle bereits geplanten Wege. Reiner Impuls aus offener Dauer plus vorhandener Aktivierungsreserve, mindestens bisherige10min; Ankunftspuffer nicht doppelt. UTC-Subtraktion für Berlin/DST. Kein weiterer Planer, Writer, Messdatensatz oder Reminder-Dienst.

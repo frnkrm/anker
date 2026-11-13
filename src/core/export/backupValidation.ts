@@ -175,8 +175,8 @@ export function validatedRecords(value: unknown): Rec[] {
     // Ein importierter Cache ist weder Wahrheit noch ein versteckter Weg für ausgeschlossene Gruppen.
     const data = { ...record.data }
     delete data.timeCatalog
-    // Eine Sicherung ist keine Lesefreigabe auf diesem Gerät.
-    if (Object.hasOwn(data, 'healthSleepEnabled')) data.healthSleepEnabled = false
+    // Device choices are projected at the import boundary. Validation of a merged
+    // record must not revoke the target device's already chosen permission.
     return { ...record, data }
   })
 }

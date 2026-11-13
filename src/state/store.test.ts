@@ -436,7 +436,8 @@ describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
     { collection: 'settings', id: 'main', data: oldSettings(), updated_at: Date.now() + 10_000, deleted: false },
     { collection: 'meta', id: 'local', data: local, updated_at: Date.now() + 10_000, deleted: false },
   ])))
-  const expected = { enabled: true, city: legacyWeather.city, lat: 0, lng: legacyWeather.lng, revision: 'legacy-weather' }
+  // Importing the location is not fresh permission to fetch it. Existing local migration keeps its own choice.
+  const expected = { enabled: false, city: legacyWeather.city, lat: 0, lng: legacyWeather.lng, revision: 'legacy-weather' }
 
   it('importiert ein echtes Altbackup, committet Ort und bereinigte Settings gemeinsam und bleibt nach Reload lokal', async () => {
     const records = backup(); const before = structuredClone(records)
@@ -513,7 +514,7 @@ describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
     expect(useApp.getState().settings).toBe(before.settings)
     await useApp.getState().load()
     expect(useApp.getState().ready).toBe(true)
-    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect(useApp.getState().local.weatherProfile).toEqual({ ...expected, enabled: true })
     expect(batch).toHaveBeenCalledTimes(2)
     for (const [records] of batch.mock.calls) expect(records.map(({ collection, id }) => `${collection}/${id}`)).toEqual(['settings/main', 'meta/local'])
   })

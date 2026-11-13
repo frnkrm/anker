@@ -29,7 +29,7 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     expect(partial.records.find((record) => record.id === 'deleted-private')).toMatchObject({ deleted: true, data: null })
     expect(partial.records.find((record) => record.id === 'private')?.data).toEqual(privateNote)
     expect(parseBackup(JSON.stringify(partial))).toEqual(partial.records)
-    expect(makeBackup(records, new Date(at)).records).toEqual(records)
+    expect(makeBackup(records, new Date(at)).records).toEqual(records.map(r => r.deleted ? { ...r, data: null } : r))
     expect(records).toEqual(before)
   })
   it('verwirft einen gemischten Batch mit kaputtem Header statt nur seinen gültigen Teil zu übernehmen', () => {
@@ -164,7 +164,7 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
     const businessFocus = { id: 'business-focus', target: { kind: 'task', id: business.id, partId: 'a' }, timer }
     const workFocus = { id: 'work-focus', target: { kind: 'work', id: 'work', partId: 'b' }, timer }
     const privateFocus = { id: 'private-focus', target: { kind: 'task', id: 'private', partId: 'c' }, timer }
-    const records = [record('inbox', business.id, business), record('meta', 'local', { work: [], focusHistory: [businessFocus, workFocus, privateFocus] })]
+    const records = [record('inbox', business.id, business), record('inbox', 'private', { id: 'private', text: 'Privat', status: 'task', createdAt: at }), record('meta', 'local', { work: [], focusHistory: [businessFocus, workFocus, privateFocus] })]
     const partial = makeBackup(records, new Date(at), { work: false }).records.map((r) => ({ ...r, updated_at: at + 1 }))
     expect(JSON.stringify(partial)).not.toContain('business-focus')
     const imported = previewImport(partial, records).records.find((r) => r.collection === 'meta')?.data as LocalData

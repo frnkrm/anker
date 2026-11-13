@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
 import { initialGame } from '../core/game'
+import type { Settings } from '../core/types'
 import { MemoryRepository } from '../data/memory'
 import type { Rec, Repository } from '../data/types'
 import { useApp } from './store'
@@ -18,6 +19,35 @@ beforeEach(async () => {
   await app().load()
 })
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers() })
+
+it('übernimmt Wiederherstellungsdaten ohne fremde Gerätefreigaben und erhält die lokale Schlafwahl durch alle Validierungen', async () => {
+  await app().saveLocal(local => ({ ...local, healthSleepEnabled: true }))
+  const settings = { ...app().settings, integrations: { sync: true, healthConnect: true, googleCalendar: true, writeCalendar: true }, bed: 1470 }
+  const records = [record('settings', settings), record('meta', { work: [], healthSleepEnabled: false, assistance: { routes: { enabled: true, at: now, version: 1, automatic: true } } })]
+  const choices = structuredClone(app().settings.integrations)
+  await app().importRecords(records, 'restore')
+  expect(app().settings).toMatchObject({ integrations: choices, bed: 1470 })
+  expect(app().local.healthSleepEnabled).toBe(true)
+  expect(app().local.assistance?.routes).toBeUndefined()
+  await app().load()
+  expect(app().settings.integrations).toEqual(choices)
+  expect(app().local.healthSleepEnabled).toBe(true)
+})
+
+it('behält die aktuelle Gerätewahl auch hinter einer wartenden lokalen Änderung', async () => {
+  let release!: () => void; let began!: () => void
+  const hold = new Promise<void>(resolve => { release = resolve })
+  const started = new Promise<void>(resolve => { began = resolve })
+  const put = storage.repo!.put.bind(storage.repo!)
+  vi.spyOn(storage.repo!, 'put').mockImplementationOnce(async (...args) => { began(); await hold; return put(...args) })
+  const save = app().saveSettings(s => ({ ...s, integrations: { ...s.integrations, googleCalendar: true } }))
+  await started
+  const restoring = app().importRecords([record('settings', { ...defaultSettings(date), bed: 1470 })], 'restore')
+  release(); await save; await restoring
+  expect(app().settings.integrations.googleCalendar).toBe(true)
+  expect(app().settings.bed).toBe(1470)
+  expect((await storage.repo!.get<Settings>('settings', 'main'))?.integrations.googleCalendar).toBe(true)
+})
 
 it('stellt alte Settings und echten Spielstand trotz neuer Ersteinrichtung dauerhaft wieder her', async () => {
   await app().saveSettings((s) => ({ ...s, onboarded:true }))
