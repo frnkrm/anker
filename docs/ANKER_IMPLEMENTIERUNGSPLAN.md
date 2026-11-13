@@ -1,5 +1,13 @@
 # Anker 2.0: Implementierungsplan
 
+## F-008 / V-004: freiwilliger lesender NFC-Einstieg (13.11.2026)
+
+Saubere Basis `e5f0030`, Branch `entwicklung/anker-neu`. Ausdrückliche Nutzerfreigabe ausschließlich für NFC-Manifestrecht und optionale NFC-Hardware. Eine flüchtige Reader-Instanz im vorhandenen Plugin, kein zusätzlicher Dienst/Intentfilter/Planer/Store. Parser/Sitzungsregeln in NfcAnchorModel.kt, Adapter/Lebenszyklus in NfcAnchorReader.kt. TS-Vertrag core/nfc.ts, Adapter platform/nfc.ts; Seite /anker unter Mehr, vorhandene Ziele /, /vorbereitung, /wiedereinstieg.
+
+Begründete Verfeinerung des T-004-Entwurfs: `confirmNfcAnchor(sessionId,target)` ergänzt Status/Scan/Abbruch, um die Vorschau nativ frisch und einmalig innerhalb ihrer ursprünglichen Frist zu bestätigen. Vorzeitige Bestätigung verbraucht keinen laufenden Scan; alte Kennungen/Generationen beeinflussen keine neue Sitzung. Reader endet bei Fund; begrenzter Wächter bis Bestätigung/Abbruch/Fristende. Kein automatischer Neustart oder permanenter Beobachter.
+
+48gezielte TS-,274Android-JUnit- und22Browserfälle erfolgreich; Lint0Fehler/1bekannte Warnung, Typecheck/Build grün. [Vertrag und Hardwaregrenzen](NFC_MACHBARKEIT.md), [Nachweise](ANKER_TESTNACHWEISE.md). Keine Tag-Schreibfunktion, persistente Zuordnung oder Messdaten. E-005 offen. Lokal committen/Bundle/Wiederherstellung/SHA256 sichern. Kein Push/Merge/Release/Cloud-/Playeingriff; aktuelle Nutzergrenzen überstimmen historische Uploadaufträge. Danach stoppen. Nächster eigener Auftrag F-009 ausschließlich lokale stille Fokusbegleitung.
+
 ## T-004: gezielte NFC-Machbarkeitsvorbereitung vor F-008 (13.11.2026)
 
 Basis `5b6f893`, tatsächlicher sauberer Branch `entwicklung/anker-neu`. Nur Bestands-/SDK-/Javadoc-/Manifest-/Werkzeugprüfung und Dokumentation. Installiertes JDK21/SDK36/Reader-API19 reicht für minSdk26; kein Toolchainblocker festgestellt, keine Installation oder Versionsänderung. Vorhandene Native-Brücke und QR-/manuelle Wege geprüft; kein NFC-Lesepfad oder Manifestrecht vorhanden. Zwei generische Diagnose-Allowlistwerte nfc sind keine Funktion. Vollständiger [Entwurf und Prüfpfad](NFC_MACHBARKEIT.md).

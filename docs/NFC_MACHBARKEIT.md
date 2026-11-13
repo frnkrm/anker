@@ -1,5 +1,23 @@
 # NFC-Machbarkeit und Prüfpfad für F-008
 
+## Aktueller F-008-Softwareabschluss (13.11.2026)
+
+Auf sauberem `e5f0030`, Branch `entwicklung/anker-neu`, ausdrücklich beauftragten lesenden Umfang umgesetzt. Die anschließenden T-004-Abschnitte sind der unveränderte historische Entwurf. Dessen Voraussetzungen sind jetzt softwareseitig erfüllt; E-005-Geräteabnahme bleibt offen. Kein Tag-Schreiben oder dauerhafte Zuordnung.
+
+`NfcAnchorModel.kt` akzeptiert nur genau einen TNF_MIME_MEDIA-Record, MIME `application/vnd.frnkrm.anker.anchor`, strikt dekodiertes UTF-8 exakt `anker:1:now`, `anker:1:prep` oder `anker:1:recover`, maximal32Payload-/256Nachrichtenbytes. Zusätzlich leere NDEF-Record-ID erforderlich. Keine Normalisierung, Extras, URI/Text/AAR oder andere Ziele. Kein Tag-UID-Zugriff; freie Tagdaten verlassen den Parser nicht.
+
+Ein `NfcAnchorReader` im vorhandenen Plugin liest nur Androids gecachte NDEF-Nachricht im Reader Mode (A/B/F/V, NO_PLATFORM_SOUNDS, ausdrücklich kein SKIP_NDEF_CHECK). Kein Ndef.connect/read/write/format, keine NFC-Intentfilter/Receiver/Dienste. Manifestdelta genau NFC-Recht und uses-feature optional. Kein Tool-/Paket-/Versionsupdate.
+
+Vier passende TS/Kotlin-Methoden: `getNfcStatus`, `scanNfcAnchor(sessionId)`, `cancelNfcScan(sessionId)` und als begründete Entwurfspräzisierung **`confirmNfcAnchor(sessionId,target)`**. Letztere prüft vorhandene Vorschau, ursprüngliche Frist und aktuellen Vordergrund-/Sperr-/Wecker-/Adapterzustand nativ erneut und verbraucht sie einmalig. Keine Öffnungsfreigabe aus überholter Webvorschau. Vorzeitige Bestätigung zerstört keinen laufenden Scan; alte Kennungen/Generationen beeinflussen keinen neuen.
+
+Maximal30Sekunden monotone Gesamtsitzung einschließlich Vorschau. Funk endet bei gültigem Ergebnis; ein nur sitzungsgebundener200ms-Wächter verwirft bei Frist/fehlender Eignung. Pause/Stop/Destroy und Alarmstart brechen zusätzlich direkt ab. Sperre/Power/WindowFocus/Vordergrund vor Scan, Ergebnis und Bestätigung prüfen. Resume öffnet keinen Scan. UI-Frist/Generation schützen auch gegen hängende Brücke/verspätete Bestätigung nach Abbruch oder Navigation. Vorschaubestätigung öffnet nur aktuelle vorhandene Ziele; Timerfortsetzung bleibt bei deren Besitzer ausdrücklich.
+
+Seite `/anker` unter Mehr: inaktiv beim Öffnen, eigener Scanstart, neutrale Vorschau, Öffnen/Nicht öffnen. Drei manuelle Ziele bleiben auf Web/PWA/Windows sowie bei NFC fehlend/aus verfügbar. Unbekannter Brücken-/Sperrzustand gibt kein Öffnen frei; bestehende Shellnavigation bleibt verfügbar. Keine private Plan-/Aufgabenreferenz oder Rohdaten/UID in Brücke, DB, Diagnose, Backup, Import, Sync oder PC. Flüchtige Bedienkennungen sind keine Authentifizierung oder Ortsbelege.
+
+Softwarebelege:48gezielte TS-Fälle(14neu),274Android-JUnit in31Suiten(14neu),22Browserfälle(17neu+5bestehende). Lint0Fehler/1bekannte Warnung, Typecheck/Build grün. Lokaler Chromium156-Pfad,320px/160Prozent Schrift. [Testnachweise](ANKER_TESTNACHWEISE.md), [Datengrenzen](DATENSCHUTZ_DATENGRENZEN.md). Rohbelege/Sicherung `/workspace/anker-f008-20261113/`. Keine reale NFC-/Sperr-/Wecker-/Tagbeobachtung. Nach F-008 stoppen; nächster eigener Auftrag F-009 nur lokale stille Fokusbegleitung. E-005 verwendet weiterhin den unten beschriebenen Geräteprüfpfad nach gesonderter Freigabe.
+
+## Historischer T-004-Vorbereitungsstand
+
 Stand 13.11.2026. Ergänzende T-004-Vorbereitung auf sauberer Basis `5b6f893602c00da6cd1b7c4d13a821e0b47c1b10`, Branch `entwicklung/anker-neu`. **Lesender Softwareumfang technisch vorbereitbar; keine NFC-Funktion implementiert oder freigegeben.** Reale Android-/NFC-Beobachtungen bleiben offen. Anforderung: [ANKER_PLAN.txt](ANKER_PLAN.txt), F-008/V-004 und E-005; Datenrahmen: [DATENSCHUTZ_DATENGRENZEN.md](DATENSCHUTZ_DATENGRENZEN.md).
 
 ## Tatsächlich geprüfter Bestand

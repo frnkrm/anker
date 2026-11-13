@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
     <!-- Optional: only selected Google calendars already synchronized by Android. Never writes. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 

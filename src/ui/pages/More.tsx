@@ -40,6 +40,7 @@ export default function More() {
   ]
   return <Page title="Mehr">
     <SetupHint />
+    <Link to="/anker" className="flex min-h-12 items-center rounded-2xl border border-line px-4">Ankerpunkte · NFC & manuelle Ziele</Link>
     <div className="space-y-3" data-more-hub>
       {groups.map((group) => <section key={group.title} className="space-y-2">
         <h2 className="px-1 text-sm text-muted">{group.title}</h2>

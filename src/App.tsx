@@ -27,6 +27,7 @@ const ReviewHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ defau
 const AlarmHub = lazy(() => import('./ui/pages/Hubs').then((module) => ({ default: module.AlarmHub })))
 const Inbox = lazy(() => import('./ui/pages/Inbox'))
 const More = lazy(() => import('./ui/pages/More'))
+const NfcAnchors = lazy(() => import('./ui/pages/NfcAnchors'))
 const RhythmWeek = lazy(() => import('./ui/pages/RhythmWeek'))
 const WindDown = lazy(() => import('./ui/pages/WindDown'))
 const Settings = lazy(() => import('./ui/pages/Settings'))
@@ -239,6 +240,7 @@ export default function App() {
             <Route path="/wiedereinstieg" element={<QuickRecovery />} />
             <Route path="/fokus-start" element={<QuickFocus />} />
             <Route path="/mehr" element={<More />} />
+            <Route path="/anker" element={<NfcAnchors />} />
             <Route path="/abend" element={<EveningHub />} />
             <Route path="/rhythmus" element={<RhythmWeek />} />
             <Route path="/schlaf" element={<AlarmHub />} />

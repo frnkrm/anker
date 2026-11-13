@@ -1,5 +1,17 @@
 # Datenschutz und Datengrenzen – T-005
 
+## F-008: konkreter flüchtiger Datenrahmen und Abschluss (13.11.2026)
+
+Aktuelle Nutzerfreigabe ausschließlich `android.permission.NFC` und `android.hardware.nfc` required=false. Keine Laufzeitfreigabe, Intentfilter, Dienste, Hintergrundscans oder Writer. Ältere T-005-/T-004-Abschnitte bleiben historisch; aktueller [NFC-Vertrag](NFC_MACHBARKEIT.md).
+
+Zweck: öffentliche neutrale Zielkennung nach eigener Bestätigung öffnen. Zulässiges NDEF nur MIME und exakte now/prep/recover-Payload, keine Record-ID. Kein Zugriff auf Tag-UID oder UID-/Hashzuordnung. Parser verarbeitet kurzzeitig Androids gecachte Nachricht, keine Rohkopie behalten; Brücke liefert nur bekannte Status-/Zielwerte. Keine freien Tagtexte in UI, Fehlern/Diagnose. Native Sitzung hält flüchtige zufällige Bedienkennung, Generation, monotone Frist und optional neutrales Ziel. Keine private Aufgaben-/Planreferenz oder Zeitmessung. Kennung ist kein Identitäts-/Standort-/Weckerbeleg.
+
+Aufbewahrung maximal30Sekunden ab Scanstart, auch für Vorschau; Funk endet nach Fund. Verwerfen bei Abbruch, Timeout, Pause/Stop/Destroy, Sperre, fehlendem Vordergrund oder Wecker. Bestätigung revalidiert und verbraucht die Vorschau einmalig. UI verwirft verspätete Ergebnisse auch bei Navigation/Timeout. Kein Neustart aus Resume/Appstart/Backup/Import.
+
+Keine neuen Felder in Einstellungen, LocalData, Journal, Storequeue, Backup/Import, Sync, Widget oder PC. Keine Scanlisten/-zeiten, persistente Freigabe oder Zuordnung. Keine Netzwerkaufrufe im NFC-Pfad; bestehende Dienste einer bewusst geöffneten Zielseite behalten ihre bisherigen Freigaben. Keine produktive Datenlöschung: nur flüchtiger Sitzungszustand wird verworfen. Adapter/Modell und strenge Brückengrenze, vorhandene Datenschutzregressionen und Browser-Datenvergleiche geprüft;48TS/274JUnit/22Browser. Keine reale Hardware-/OS-Speicher- oder externe Löschzusage.
+
+Writer/private Zuordnungen/dauerhafte Daten brauchen einen eigenen Auftrag mit Zweck/Feldern/Freigabe/Aufbewahrung/Löschung/Backupgrenzen. E-005 offen, keine echte Geräte-/Tagaktion.
+
 Stand 13.11.2026. Geprüfte Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, lokaler Branch `entwicklung/anker-neu`. Technischer Bestandsabgleich und gezielte Softwareabnahme; keine Konten-, Hardware-, Rechts- oder Veröffentlichungsfreigabe. Der folgende T-005-Bestand bleibt erhalten; F-004s anschließender lokaler Abschluss ist am Ende beschrieben. Maßgeblicher Übergabestand: [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Bestehende Datenflüsse

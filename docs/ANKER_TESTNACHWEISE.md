@@ -1,5 +1,23 @@
 # Anker: Testnachweise
 
+## F-008 / V-004: lesende NFC-Softwareabnahme (13.11.2026)
+
+Basis `e5f0030bdb8ccac00938aa82fcccbada36d94cd8`, anfangs sauberer Branch `entwicklung/anker-neu`. Keine realen Geräte-/Tagaktionen.
+
+| Prüfung | Tatsächliches Ergebnis / Grenze |
+|---|---|
+| TS / Datenschutz / Brücke |45/45 in6Dateien (core/nfc, platform/nfc, recoveryPreview, export/privacyBoundaries, platform/native, nativeSafe), anschließend bestehende Linkfälle3/3. Insgesamt48verschiedene Fälle,14neu. Neutrale Antworten, Extrafelder/Fehler geschlossen, keine Rohfehlerausgabe, manuelle Webwege, bestehende Backup-/Privatgrenzen |
+| Android-JUnit |274/274 in31Suiten,0Fehler/Skip.14neu:6Parser-/8Sitzungsfälle; vollständige bestehende260 mitgeprüft. MIME/TNF/UTF-8/Größen/Records/IDs, Busy, Doppel-/vorzeitige Bestätigung, alte Kennungen, Frist/Sperrzustand und bewusster Neustart. Reine JVM-Regeln, keine echte Adapter-/Funkwirkung |
+| Native Integration |Plugin samt Reader/lifecycle hooks kompiliert. Erst Kompilier-/Bestandslauf, nach ergänzten Tests und vorzeitigem Bestätigungsschutz finaler Lauf mit `source /workspace/anker-toolchains/env.sh` und `node scripts/gradle.mjs :app:testDebugUnitTest`. Kein Capsync/Install/Signieren/Toolupdate nötig |
+| Browser |14/14neue Fälle, danach8/8(3weitere neue+5bestehende), insgesamt22. Vorschau/Annahme/Abwahl, Doppeltipp/Busy, Abbruch/alte Antworten, Pause/Resume, Wecker, native Ablehnung, hängende Brücke, ursprüngliche Vorschaufrist, verspätete Bestätigung nach Navigation, ungültige Antworten, NFC fehlend/aus, manueller Webweg |
+| UI / Regressionen |System-Chromium156,320px/160Prozent Schrift ohne horizontalen Überlauf, nfc-preview-320.png visuell geprüft. Lokale Daten/Fokus in Scan-/Ablehnungspfaden erhalten. Bestehende Launchlink-/Alarmpriorität/Quick-Recovery/Berliner Tageswechsel geprüft. Keine Erledigung/Arbeitszeit aus Öffnen |
+| Werkzeuge |Lint0Fehler/1bestehende Warnung TaskAssistance.tsx, Typecheck samt e2e und Produktionsbuild grün. Build durch Playwright-Webserver, beide Läufe Exit0. Keine vollständige Websuite/neue GitHub-CI behauptet |
+| Integrität |Originalplan bytegleich,36IDs/103Gerätezeilen erhalten. Genau NFC-Recht/optionales Feature; keine weiteren Manifestfilter/Dienste. Daten/Store/Sync/QR/Alarmmodelle/Pakete/Workflows unverändert; Plugin nur NFC-Methoden/Abbruchhooks |
+
+Rohbelege `/workspace/anker-f008-20261113/`: logic.log, links.log, android-first.log/android-final.log, android-junit-xml/, browser-first.log/browser-regressions.log, Lint-/Typecheck-Logs, lokale Playwright-Konfiguration und UI-Bild. Keine roten Testläufe dieses Tasks. Bundle-/Clone-/fsck-/SHA256-Nachweise, RESULT.json und RESTORE.md im selben Verzeichnis. Frühere unveränderte Erfolge bleiben historische Belege.
+
+E-005 OFFEN: tatsächliche NFC-Eignung, Funk/Tags, Sperre/Resume/Alarmrennen und reale QR-Rückwege benötigen eigene Gerätebeobachtung nach Freigabe. JVM-/Brücken-/Browserbelege ersetzen diese nicht. Windows/Kalender/PC bleiben getrennt offen. Keine Standortbeobachtung, neuen Persistenzfelder, Nutzdatenübertragung, Geräteinstallation oder Cloud-/GitHub-/Playaktion.
+
 ## T-004: NFC-Machbarkeit und Prüfpfad, nur Bestandsnachweise (13.11.2026)
 
 Saubere Basis `5b6f893602c00da6cd1b7c4d13a821e0b47c1b10`, Branch `entwicklung/anker-neu`. Keine F-008-Implementierung, neuen Berechtigungen oder NFC-/Tagaktionen.

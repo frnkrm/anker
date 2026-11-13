@@ -1,5 +1,11 @@
 # Geräteprüfung
 
+## F-008: Software geprüft, E-005 offen (13.11.2026)
+
+Lesender Einstieg auf Basis `e5f0030` implementiert:48gezielte TS-,274Android-JUnit-,22Browserfälle. Keine echte Adapter-/Funk-/Sperr-/Herstellerbeobachtung daraus ableiten. Genau die erlaubten NFC-Manifestdeklarationen ergänzt. Keine neue Gerätezeile/Häkchen, Installation oder echter Tagzugriff.
+
+E-005 verwendet den [NFC-Prüfpfad](NFC_MACHBARKEIT.md) unter G98/G78/G80/G81/G85/G84/G86/G1/G99/G101. Vorbereiteter neutraler Tag mit einem MIME-Record ohne Record-ID/private Inhalte; selbst starten und Vorschau ausdrücklich öffnen. Ursprüngliches30Sekundenfenster gilt auch für Vorschau. Pause/Sperre/Wecker verwerfen, Resume startet nichts. Fehlendes/ausgeschaltetes NFC lässt manuelle Ziele. Cache/Nicht-NDEF/ungültige Tags/Mehrfachtipp/gleichzeitiger Wecker und QR-/Notausgang tatsächlich beobachten. Hier keine Freigabe für Geräteinstallation oder Tagvorbereitung/-schreiben. Alle103historischen Gerätezeilen unverändert. E-002–E-005 bleiben getrennt offen.
+
 ## T-004: NFC-Prüfpfad vor F-008 (13.11.2026)
 
 Auf sauberem `5b6f893` ausschließlich Code/SDK/Tooling gelesen, keine Gerätebeobachtung. [NFC_MACHBARKEIT.md](NFC_MACHBARKEIT.md) enthält nachgewiesene Voraussetzungen und die geplanten Software-/Gerätefälle. Reader Mode seitAPI19 passt zum unveränderten minSdk26/SDK36; vorhandene Native-Brücke nutzbar. Kein NFC-Lesepfad, Manifestrecht, Tag-Schreibvorgang oder NFC-Gerätezugriff ergänzt. Toolchain vorhanden; tatsächliches Galaxy/NFC-Tag im Cloud-Executor nicht nachgewiesen.
