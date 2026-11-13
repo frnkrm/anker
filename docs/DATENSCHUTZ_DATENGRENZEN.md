@@ -1,5 +1,13 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: Datengrenzen des unsignierten Paketnachweises (13.11.2026)
+
+Nur lokale Synchronisation/Bündelung vorhandener Appdateien und Softwareprüfung des unsignierten APKs; keine Produkt-/Datenfluss-/Storequeue-/Schema-/Backup-/Sync-/Reminderänderung. Vor und nach Capsync blieb der getrackte Android-/Konfigurationsbestand unverändert. Manifestberechtigungen des Paketstands stimmen mit dem quellenidentischen historischen nativen Manifest überein; optionales NFC bleibt required=false, allowBackup=false und bestehende Backup-/Datenausnahmeregeln erhalten.
+
+Keine privaten Schlüssel oder personenbezogenen App-/Kalender-/Arbeits-/Tagdaten gesucht/gelesen/kopiert. Signierumgebung nur als Vorhandenseinswerte protokolliert; keine Secretwerte, keine Signierkonfiguration und keine Signatur erzeugt. Fehlende festgelegte Maven-Bestandsartefakte nach erstem Offlinefehler nachgeladen, keine Nutzdatenübertragung oder Konto-/Cloudfreigabe. Artefakte enthalten Produktionscode/öffentliche Buildmetadaten und generierte Appdateien, keine neuen Nutzermessdaten. Paket-/ZIP-/Manifestbelege ändern keine Laufzeitfreigabe oder reale Gerätespeicherung. [Prüfumfang und Grenzen](INTEGRATION_T006.md).
+
+Sicherung nur Cloud-lokal unter `/workspace/anker-t006-android-20261113/`, getrennt vom Nutzerdatenbackup: APK, öffentliche Metadaten/Hashes/Logs, generierte Vorher-/Nachherdateien und Git-Historie. Keine Toolbinaries, persönlichen Appdaten oder privaten Schlüssel im Bundle. Keine produktive Löschung oder aktive NFC-/PC-/Gerätewirkung. E-002–E-005, reale OS-/Lösch-/Kontobeobachtungen und Gesamt-/Releasefreigabe offen.
+
 ## T-006: Integration ohne neuen Produktdatenfluss (13.11.2026)
 
 Nur Test-/Dokumentationskorrekturen auf `4f3179c`, keine Produktquelle, Datenfelder, Berechtigung, Storequeue-/Export-/Sync-/Reminder-/Nativeänderung oder produktive Datenlöschung. Q84-Test respektiert ausdrücklich T-005: JSON übernimmt keine undefined-Felder und keine fremde Routenfreigabe; übrige Backupdaten/Weckwahl/Pause erhalten. Reale importierte Freigaben wurden nicht aktiviert.

@@ -1,10 +1,16 @@
 # Geräteprüfung
 
+## T-006: unsigniertes Prüfartefakt, Gerätebeobachtungen offen (13.11.2026)
+
+Lokales unsigniertes Prüf-APK auf `18f6bb2` erstellt und nur softwareseitig geprüft: Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479379a9cbe9be28b043a0`, Paket `de.frnkrm.anker.mobile`, weiterhin Code17/`1.5.0-rc.3`. Aktuelle Webassets bytegleich eingebettet, Manifest/SDK/ZIP16KB/fehlende Signatur geprüft. [Paketmetadaten und Grenzen](INTEGRATION_T006.md). Das Artefakt ist ausdrücklich kein freigegebener Geräte- oder Updatebuild; nicht installiert und keine Installierbarkeit behauptet.
+
+E-002–E-005 bleiben offen: Galaxy-Wecker/Sperre/Zustellung, Windows-Systemwirkungen, echtes Kalenderkonto/Rechte und NFC-Hardware/Lifecycle. Erst geeigneten getrennt autorisierten signierten Paketstand samt öffentlicher Build-/Zertifikatszuordnung klären, dann vorhandene Stationen nach gesonderter Gerätefreigabe verwenden. Keine Geräte-/Tag-/PC-/Kalenderaktion oder neue Häkchen; alle103historischen Gerätezeilen und der ausgelieferte Katalog bytegleich erhalten.274historische Android-JUnit sind keine Gerätebeobachtung. T-006/V-014/Gesamt-/Releasefreigabe bleiben offen.
+
 ## T-006: Software gemeinsam geprüft, keine neue Gerätebeobachtung (13.11.2026)
 
 Auf Basis `4f3179c`1372vollständige TS-Fälle,378verschiedene Browserfälle und284Python-PC-Fälle zuletzt grün, dazu PowerShell/SQL/Interoperabilität/Offlinewerkzeugprüfungen. Nur synthetische Daten, Loopback/Fake-Windows.274Android-JUnit aus F-008 wegen nachgewiesener Quellgleichheit erhalten statt wiederholt. [Details und Paket-/Releasegrenzen](INTEGRATION_T006.md).
 
-Android enthält noch andere Webassets als der aktuelle dist-Build; keine aktuelle installierbare geprüfte Paketzuordnung erzeugt. Kein Capsync/APK-/Signier-/Geräte-/Tag-/Kalender-/PC-Systemschritt ausgeführt. E-002–E-005 bleiben offen. Vor realen Prüfungen geeigneten aktuellen Paketstand/Quellkennung und ausdrückliche Gerätefreigabe zuordnen, vorhandene Stationen nutzen. Keine neuen Stationen/Häkchen: alle103historischen Gerätezeilen bytegleich erhalten. Lokales Grün ersetzt weder Galaxy-Wecker/Sperre/Zustellung, echten Windowsbetrieb noch Kalenderkonto/NFC-Hardware. T-006-Gesamtabschluss bleibt offen.
+Beim vorherigen Web-/PC-Lauf waren die Android-Webassets veraltet; jetzt ist oben ausschließlich Capsync/unsignierter APK-Bau belegt. Keine Signierung, Installation oder Geräte-/Tag-/Kalender-/PC-Systemaktion. E-002–E-005 bleiben offen. Vor realen Prüfungen geeigneten aktuellen Paketstand/Quellkennung und ausdrückliche Gerätefreigabe zuordnen, vorhandene Stationen nutzen. Keine neuen Stationen/Häkchen: alle103historischen Gerätezeilen bytegleich erhalten. Lokales Grün ersetzt weder Galaxy-Wecker/Sperre/Zustellung, echten Windowsbetrieb noch Kalenderkonto/NFC-Hardware. T-006-Gesamtabschluss bleibt offen.
 
 ## F-010: lokale Wochenübersicht, Gerätebeobachtungen unverändert offen (13.11.2026)
 

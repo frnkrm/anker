@@ -1,5 +1,21 @@
 # Anker: Testnachweise
 
+## T-006: unsignierter Android-Integrationsbuild geprüft (13.11.2026)
+
+Basis `18f6bb2959f26882c9860a104e8bc3e85512fe04`, Branch `entwicklung/anker-neu`, sauber verifiziert. [Vollständiger Paketprüfpfad und Grenzen](INTEGRATION_T006.md).
+
+| Neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Webbuild/Capacitor | Produktionsbuild einschließlich Typecheck grün, Capsync erfolgreich; kein getrackter Diff an generierten Dateien/Projektbindung |
+| Signaturfreiheit vor Build | Konfiguration/Umgebungsnamen nur auf Vorhandensein geprüft, nicht gebunden; keine privaten Schlüssel gelesen. Vor/nach Sync Dryrun, Release-Signierkonfiguration null. Externer beobachtender Guard auch bei Ausführung aktiv; keine Signier-/Debugpaket-/Installationstasks |
+| Native Paketintegration | Offlineversuch 2m13s/274Tasks ausgeführt, zwei Cacheartefakte fehlten. Gleicher abgesicherter Folgelauf erfolgreich 1m43s/211ausgeführt/273up-to-date; AAR-Metadaten, Kotlin-/Ressourcen-/DEX-/Paketintegration und Vital-Lint geprüft. Nur bestehende festgelegte Mavenartefakte nachgeladen, keine Updates/Neuinstallation |
+| Paket / SDK / Version | de.frnkrm.anker.mobile, unverändert Code17/1.5.0-rc.3; min26/target36/compile36; Manifest/31Rechte gleich historischem quellenidentischem nativen Manifest, NFC optional, allowBackup=false, nicht debuggable |
+| Asset-/Quellabgleich |71dist-Dateien und75generierte Android-Assets bytegleich, keine veralteten Webreste; Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479379a9cbe9be28b043a0`.8ELF64-Bibliotheken PT_LOAD16KBkonform, ZIP-CRC und zipalign -c -P16 -v4 grün |
+| Fehlende APK-Signatur | apksigner verify --verbose Exit1: Missing META-INF/MANIFEST.MF; zusätzlich v1-Signaturdateien und v2/v3-Block ausgeschlossen. Keine Installierbarkeits-/Update-/Geräteaussage |
+| Artefakt |38.608.942Bytes, SHA256 `94f240a18f2047a57dcf5e13075504f02889a3281de00a40e4bcd8836baf7a0f`; Anker-T006-UNSIGNIERT.apk, build-proof-local.json und Rohlogs unter /workspace/anker-t006-android-20261113/ |
+
+274JUnit/31Suiten aus F-008 weiterhin quellenidentisch erhalten, nicht neu ausgeführt;1372TS-/378Browser-/284Python- und übrige gemeinsame Nachweise unverändert erhalten. Keine komplette Web-/Browser-/PC-Suite wiederholt. Originalplan/36IDs/103Gerätezeilen/ausgelieferter Katalog erhalten; nach Dokumentationsänderungen Paketquellkennung unverändert. Vorher-/Nachher-Generatarchive und Bundles, Wiederherstellung/fsck/SHA256 nur Cloud-lokal. T-006/V-014 IN_ARBEIT; E-002–E-005/Remote-CI/Gesamt-/Releasefreigabe offen. Kein Push/Merge/Tag/Signieren/Installieren/Workflow-/Cloud-/Playeingriff; alte Code17-Freigabemanifeste unverändert.
+
 ## T-006: gemeinsame lokale Integration, Gesamt-/Geräteabnahme offen (13.11.2026)
 
 Basis `4f3179c36afaa3408a1a57fc26d4a5a458c516bf`, sauberer Branch `entwicklung/anker-neu`. [Prüfpfad, Korrekturen, Workflows und offene Grenzen](INTEGRATION_T006.md).
@@ -17,7 +33,7 @@ Basis `4f3179c36afaa3408a1a57fc26d4a5a458c516bf`, sauberer Branch `entwicklung/a
 
 Rohbelege `/workspace/anker-t006-20261113/`: vollständige/gezielte Browser-JSONs und Fehlerartefakte, logic-full.json, kombinierte Browser-/Pythonabdeckung, PowerShell/SQL/Paket-/Interoperabilitäts-/Offlineberichte, Toolversionen/-quellen/-Hashes, Workflow-/Build-/Integritätsdaten und remote-readonly.log. Nach Umgebungsneustart Berichte/HEAD/sechs Änderungen unverändert vorhanden, keine Wiederholung. Neue Werkzeuge separat `/workspace/anker-t006-tools-20261113/env.sh`. Nur Cloud-lokaler Abschluss mit Vorher-/Nachher-Bundle, unabhängiger Wiederherstellung/fsck/Dateihashes, RESTORE.md/SHA256SUMS.
 
-Native Paketintegration offen: aktuelle dist-Webdateien sind nicht die eingebetteten Android-Webdateien; kein Capsync/aktueller APK-Bau/Signieren erfolgt. E-002–E-005 bleiben offen,103historische Gerätezeilen erhalten. Remote main e48d289/dev6dfa632 lesend bestätigt; kein neuer Arbeitshead-CI-/PR-Nachweis. Keine Releasefreigabe aus lokalen Tests oder alter auf80f6a692gebundener Code17-Freigabe ableiten. T-006/V-014 insgesamt IN_ARBEIT.
+Beim vorigen Web-/PC-Lauf war die native Paketintegration offen; der obige neue Abschnitt belegt nun Capsync und unsignierten Paketbau. Geräte-/Signierfreigabe bleibt offen. E-002–E-005 bleiben offen,103historische Gerätezeilen erhalten. Remote main e48d289/dev6dfa632 lesend bestätigt; kein neuer Arbeitshead-CI-/PR-Nachweis. Keine Releasefreigabe aus lokalen Tests oder alter auf80f6a692gebundener Code17-Freigabe ableiten. T-006/V-014 insgesamt IN_ARBEIT.
 
 ## F-010 / V-007: freiwillige Wochenübersicht aus vorhandenen Tagesständen (13.11.2026)
 
