@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: Integrationsplanung ohne zusätzliche Freigaben (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): ausschließlich öffentliche GitHub-Ref-/PR-/CI-/Rulesetsdaten und lokale Versionierungs-/Workflow-/Netlifydefinitionen gelesen. Keine API-/Secret-/Playabfrage,Authreparatur,neuen Nutzdaten,Schlüssel-/Session-/Wertsuche oder externe Schreibaktion. Reale Cloudbindung/Webveröffentlichung nicht aus netlify.toml behauptet; mögliche main-Webautomatik als künftige eigene Integrationswirkung benannt. Kein AAB-/Signier-/Upload-/Gerätezugriff. U1/alteSicherungen unverändert,B4Upload-/8APlayrolle getrennt. T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
 ## T-006: regulärer PR ohne Signier-/Datenfreigabe (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Nur Gitquellen/öffentliche PR-/Ref-/CI-/Rulesetsdaten geprüft. Besitzer erstelltPR3 über bestehende eigene Sitzung; keine neuen Zugangsdaten, Cookies, Tokens, Schlüssel-/Secretwerte gesucht/angefordert oder Cloudkonfiguration geändert. Vorbereitete PR-Beschreibung enthält ausschließlich Quell-/Prüf-/Freigabeinformationen. Bestehende automatische PR-CI mit Fakes/Webbuilds/Artefakten erlaubt, kein prepare/sign/Play-/Gerätezugriff. U1/Sicherungen erhalten, keine neue Messung/Persistenz/Nutzdatenübertragung. E lokal; T-006/V-014/E-002–E-005 und weitere Freigaben offen.

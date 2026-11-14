@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: vorhandene PR3-/Push-CI gelesen, keine Wiederholung (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): frische öffentliche HTML-Endbelege für ci.yml43614039702/push/Entwicklung/L und43616437865/pull_request opened#3/Entwicklung,beide Success/Versuch1/1372VitestohneFehleroderSkips/379Playwright. Kein Lauf neu gestartet,keine lokale Suite oder Paketprüfung/Build/Signierprobe wiederholt. PR-API-head_sha/Runnercheckout weiter unbekannt,synthetischer0874 separat; keine W-main-CI erfunden. Heute nur Quellen-/Diff-/Trigger-/Dokument-/Bestands-/Bundle-/SHA256-Prüfung. Software/CI ersetzt E-002–E-005 nicht; T-006/V-014/Gesamtfreigaben offen.
+
 ## T-006: neue PR3-CI separat vom Pushlauf (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): [PR-Lauf43616437865](https://github.com/frnkrm/anker/actions/runs/43616437865), ci.yml / pull_request opened#3 / Entwicklung / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (8.8m). WorkflowdateiquelleL und PR-Checks-L belegt; API-head_sha und tatsächlicherRunnercheckout nicht ausgelesen, synthetischerMergeref nicht gleichsetzen. Frühere PushCI43614039702/L und lokale43Offlinefälle getrennt erhalten. Kein lokaler Test/Build, echter Signier-/AAB-/Hardwarebeleg oder neue nativeJUnit. Branch-/PR-CI ersetzt W-main-CI nicht; T-006/V-014/E-002–E-005/Gesamtfreigaben offen.

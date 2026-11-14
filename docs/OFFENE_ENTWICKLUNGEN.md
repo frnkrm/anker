@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: PR3-Integrationsvorlage bereit, Merge weiter offen (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): PR3Open/L→mainM, vorhandene Push-/PR-CI weiterhin grün,Diff-/Triggerabgleich konkret. Keine neue Freigabe: normaler Merge-Commit/eigene main-W-CI und mögliche bestehende main-Webautomatik erst separat autorisieren. Weitere AAB-Dispatch-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen,unbekannte Schutz-/Review-/Runtime-SHA-Belege erhalten. T-006/V-014 IN_ARBEIT,E-002–E-005 OFFEN. Genau nächster eigener Auftrag regulärePR3-main-Integration samt automatischerCI-Nachkontrolle,kein prepare/sign.
+
 ## T-006: AAB-Entwurf in PR3, Integration weiter offen (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): PR3Open/QuelleL/mainM, neuer PR-Lauf43616437865 Versuch1 **erfolgreich**. Kein Merge/W/AAB-Dispatch/Signieren. Fehlende Review-/Konflikt-/klassischeSchutz-/Runtime-SHA-Belege ehrlich offen. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag PR3-main-Integration ausschließlich lesend konkret vorbereiten.

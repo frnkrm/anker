@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: PR3-main-Integration konkret geplant, noch nicht freigegeben (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): saubere lokale BasisE1231b3d, aktuelle Refs Entwicklung/PR3-headL3f5345dd und main/App-M10cc894a bestätigt. PR3Open; vorhandene PushCI43614039702 und PRCI43616437865 weiterhin Success, jeVersuch1/1372Vitest/379Playwright. Vollständiger M→L-Diff3Commits/17Dateien/2308+2− abgeglichen; lokale Dokumentationsnachfolger nicht im PR. Keine Tests/CI/Builds wiederholt.
+
+Regulärer späterer Merge-Commit nur nach neuer Integrationsfreigabe und erfüllten Serverbedingungen. No reviews/öffentliche leereRulesetsseite sind keine Schutz-/Reviewfreigabe; klassischerBranchschutz/Konflikt-/angemeldeteAnforderungen und PR-Runtime-SHA bleiben unbekannt. Tatsächlichesmain-W erst nach Merge bestimmen,0874-Mergeref nicht vorwegnehmen; exakte erfolgreiche push/main/ci.yml fürW und getrenntesM-Gate erhalten. Kein Docs-Ersatz. Eine mögliche bestehende main-Webautomatik muss die neue Freigabe ausdrücklich einschließen.
+
+Heute nur Planung/Status lokal committen und sichern, kein Nachpush/Merge/AAB-Dispatch/Signieren/Play-/Cloud-/Geräteeingriff. U1/alteArbeitsbäume/Sicherungen erhalten; W/U2/S fehlen. T-006/V-014 IN_ARBEIT,E-002–E-005 und weitere Freigaben offen. Genau nächster separat zu beauftragender Auftrag: PR3 regulär als Merge-Commit integrieren und eigene main-CI für tatsächlichesW nachkontrollieren, einschließlich unveränderter Automatik nur im ausdrücklich neu freigegebenen Umfang. Folgende Stände historisch; danach stoppen.
+
 ## T-006: regulärer PR3 offen, CI nachkontrolliert (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Besitzer hat den normalen UI-Handgriff ausgeführt; [PR3](https://github.com/frnkrm/anker/pull/3) Open, QuelleL `3f5345dd08032aa6d19328a2c2cee22527150266`, Zielmain/AppquelleM `10cc894a27302a5a49b6884c843d2a6b509ab354`. Lokaler AusgangD `a72741d5985ae67d3c790017a9099e8e38d20856` nicht übertragen. Neuer ci.yml-Lauf43616437865 / pull_request opened#3 / Entwicklung / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (8.8m).

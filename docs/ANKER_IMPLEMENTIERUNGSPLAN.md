@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: konkrete PR3-main-Vorlage ausschließlich lesend erstellt (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): aktuelle L/M-Refs,PR3Open,zwei vorhandene grüneCI/Versuch1 und vollständigerDiff bestätigt. Normaler späterer Merge-Commit,frische Quellen-/Server-/Triggerprüfung,Abbruchbedingungen und eigene main-W-CI konkret. Kein Admin/Force/Queue/Docs-Ausnahme; öffentliche Schutz-/Review-/Runtime-SHA-Lücken nicht umgedeutet. main-Webautomatik getrennt in künftige Integrationsfreigabe aufnehmen; prepare/sign/Upload/Geräte separat. Nur Plan-/Statusdokumentation lokal,kein Test-/Build-/Workflow-/Auth-/Cloud-/Playeingriff. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; nächster eigener Auftrag regulärePR3-Integration mit main-CI-Nachkontrolle erst nach separater Beauftragung.
+
 ## T-006: PR3 regulär erstellt, keine main-Integration (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): frischeRefs L/M und17Dateien/3Commits geprüft; API-Forbidden führte zum erlaubten Besitzer-UI-Handgriff, kein zusätzlicher PR/Push. PR3 Open/L→mainM, ci.yml43616437865 pull_request opened#3 / Versuch1 **erfolgreich**. CI-Workflow ausL/PR-Checks-L/synthetischerMergeref getrennt; Runtime-SHA und klassischeSchutz-/Konfliktanforderungen öffentlich unbekannt. Keine Tests/Builds lokal oder Produkt-/Workflowänderung; prepare/sign nicht gestartet. E nur lokal sichern. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; nächster eigener Auftrag PR3-main-Integration ausschließlich lesend konkret vorbereiten.
