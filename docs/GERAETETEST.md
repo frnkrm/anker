@@ -1,5 +1,9 @@
 # Geräteprüfung
 
+## T-006: lokales AAB validiert, keine Gerätebeobachtung (14.11.2026)
+
+[Unsignierter AAB-Integrationsnachweis auff657d2e](AAB_INTEGRATION_T006.md) mit Bundletool/Manifest/Assets/CRC/JAR-Signaturfreiheit ergänzt; Code17/1.5.0-rc.3 unverändert. Kein direkt installierbares oder Play-angenommenes Artefakt, keine Versions-/Signier-/Upload-/Installationsfreigabe. Nutzerbericht Google-Play-Herkunft und Rollen8A-App/B4-Upload unverändert, tatsächliche installierte Version/Signatur/Quelle nicht ausgelesen. Kein B4-Direktupdate einer8A-Installation oder Deinstallations-/Datenlösch-/Signaturumweg. Keine Geräte-/Tag-/PC-/Freigabeaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.
+
 ## T-006: genutzte Galaxy-App laut Nutzer aus Google Play (14.11.2026)
 
 Nutzerantwort „google play“ zur Herkunft der aktuell benutzten App erfasst. [Prüfweg und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Kein Gerät ausgelesen, Zertifikat/Version/Quellcommit nicht ermittelt; Herkunft allein bestätigt keinen neuen Test oder tatsächlichen8A-Gerätesignierer. Späteren Play-Prüfpfad vorbereiten, kein B4-Sideload-Update zusagen und keine Deinstallation/Datenlöschung/Signaturumgehung verlangen. Keine Geräte-/Freigabe-/Installationsaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten. Lokaler unsignierter AAB-Nachweis wäre eigener Softwareauftrag, keine Geräte-/Uploadfreigabe. E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.

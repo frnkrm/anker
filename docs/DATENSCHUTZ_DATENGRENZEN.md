@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: lokaler unsignierter AAB-Paketnachweis ohne neuen Datenfluss (14.11.2026)
+
+Auf `f657d2e` ausschließlich vorhandenen Produktionscode/öffentliche Assets zu einem lokalen unsignierten AAB paketiert und gelesen; [Nachweis](AAB_INTEGRATION_T006.md). Keine Produkt-/Persistenz-/Storequeue-/Backup-/Sync-/Reminder-/Berechtigungsänderung.31Manifestrechte/Backup- und Extraktionsregeln/optionales NFC unverändert, keine Nutzer-/Kalender-/Arbeits-/Tagdaten oder privaten Schlüssel gesucht/gelesen/kopiert. Signierbindung nur als Vorhandenseinswerte geprüft, keine Secretwerte in Logs; externer Guard beobachtet/stoppt, ändert keine Projektkonfiguration. JDK-JarFile-Auditor öffnet nur das angegebene Bundle und keinen Keystore/Truststore; Signierwerkzeuge nicht ausgeführt. Gradle/Bundletool aus bestehenden Caches offline, keine Toolinstallation oder externe Console-/GitHub-/Secretabfrage.
+
+Sicherung nur Cloud-lokal `/workspace/anker-t006-aab-20261114/`: unsigniertes Prüf-AAB, öffentliche Metadaten/Logs/Hashes, generierte Vorher-/Nachhersnapshots und Git-Bundles. Keine persönlichen Appdaten oder privaten Schlüssel darin, keine neue Messung/produktive Löschung oder echte Geräte-/NFC-/PC-Wirkung. Code17 ist keine neue Uploadfreigabe; Herkunft Google Play/Signiererrollen8A/B4 bleiben Nutzerberichte. E-002–E-005/OS-/Geräte-/Signier-/Upload-/Gesamtfreigaben offen.
+
 ## T-006: ausschließlich öffentliche Signier-/Gerätebuild-Metadaten (13.11.2026)
 
 Auf `b816e1a` nur öffentliche Repository-/Prüfmetadaten und Skriptquellen gelesen; bekanntes unsigniertes APK auf Vorhandensein/Größe/Hash geprüft. Keine privaten Schlüssel oder Secretdateien gesucht/gelesen/kopiert, keine Passwörter/Umgebungswerte protokolliert, keine Schlüssel-/Nutzdatenübertragung. Secret-Einrichtung und Signierprogramme ausschließlich als Quelltext geprüft, nicht ausgeführt. Keine Produkt-/Daten-/Freigabe-/Berechtigungsänderung, keine produktive Löschung oder Gerätewirkung.
