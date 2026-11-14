@@ -1,5 +1,25 @@
 # T-006 – Voraussetzungen für einen signierten Geräteprüfbuild
 
+## Interne Play-Testbuild-Metadaten laut Nutzer vom 14.11.2026
+
+Geprüfte saubere Basis `37bc7b97972f47144331d488fb35a1d45564f57e`, Branch `entwicklung/anker-neu`. Der Nutzer nennt auf die gezielte Frage nach den Release-Details folgende Angaben. **Nutzerbericht, keine eigene Console-/GitHub-/Secret-/API-Abfrage und kein Geräteauslesen.** Besitzer und interner Test wurden nicht erneut abgefragt.
+
+| Angefragtes Feld | Nutzerangabe wörtlich | Zuordnung und Grenze |
+|---|---|---|
+| Paketkennung | `de.frnkrm.anker.mobile` | Stimmt mit der bekannten lokalen Paketkennung überein; kein Beleg einer bestimmten Installation |
+| Versionscode | `17` | Als Code17 des beschriebenen internen Testeintrags erfasst; nicht als installierter oder höchster überhaupt vergebener Code |
+| Versionsname | `Anker 1.5.0-rc.3 · Code17` | Genau als gemeldeter Versionsname behalten. Ob dies der technische Bundle-Versionsname oder ein frei gewählter Release-Name ist, wurde nicht unabhängig bestätigt. Keine stille Kürzung auf `1.5.0-rc.3` |
+| Aktiv oder Entwurf | `Entwurf` | Berichteter Testeintrag ist ein Entwurf, kein Nachweis eines aktiven bzw. für Tester verfügbaren Code17-Releases. Andere aktive Releases werden dadurch weder bestätigt noch ausgeschlossen |
+| Öffentliche Zertifikate | Nicht mitgeteilt | Aktueller App-Signier- und Uploadzertifikatsfingerabdruck weiter unbekannt; historische B4-Angaben nicht als heutige Console-Belege übernehmen |
+
+**Entscheidung:** Paket und Code lassen sich auf Metadatenebene dem bekannten Code17-Paket zuordnen, nicht dessen tatsächlichem Quellcommit oder APK/AAB-Hash. Gleiche Paket-/Codeangaben machen den Entwurf nicht zum neuen lokalen F-001–F-010-Integrationsstand. Der lokale Appquellcommit bleibt `18f6bb2959f26882c9860a104e8bc3e85512fe04`, dessen unsigniertes Prüf-APK unverändert separat belegt ist. Historische Code17-Manifeste binden weiter `80f6a692`; keine neue oder ersetzende Freigabe und keine neue Versionszahl daraus ableiten.
+
+Der zuvor gemeldete interne Test und der nun gemeldete Entwurf sind kein Widerspruch: Ein Testkanal kann Entwürfe enthalten; sein sonstiger aktiver Stand wurde nicht geprüft. Die tatsächlich auf dem Zielgerät installierte Paket-/Versions-/Quell-/Signiererzuordnung bleibt unbekannt. Vermutetes Signiermaterial bei GitHub bleibt unbestätigt. Ohne öffentlichen Signiererabgleich keine Kompatibilität eines später lokal signierten APKs mit einem Play-installierten APK versprechen; App-Signierschlüssel und Uploadschlüssel sind getrennte Rollen. Keine Signier-, Versions-, Installations-, Upload- oder Veröffentlichungsfreigabe aus den Angaben ableiten.
+
+**Genau nächster zulässiger Einzelauftrag:** T-006 – öffentliche App-Signier- und Uploadzertifikatsangaben anhand Nutzerangaben zuordnen. Nur um die öffentlichen SHA256-Fingerabdrücke mit eindeutiger Rollenbezeichnung bitten, sofern der Nutzer diese bereitstellen kann; verständlich auf die bestehende Console-Ansicht App-Integrität/App-Signierung hinweisen, ohne dort etwas zu ändern oder herunterzuladen. Fehlende Angaben bleiben unbekannt. Keine Besitzer-/Paket-/Code-/Entwurfsfrage wiederholen, keine eigene Console-/GitHub-/Secret-/API-Abfrage, keine privaten Schlüssel/Dateien/Pfade/Passwörter oder Zugriff darauf anfordern. Kein Build, Signieren, Installieren, Versionswechsel, Upload oder Veröffentlichung. Ein öffentlicher Fingerabdruck beweist keinen Zugriff auf den zugehörigen privaten Schlüssel.
+
+Ausschließlich Dokumentation lokal committen und sichern unter `/workspace/anker-t006-play-metadaten-20261114/`, finale Commit-ID im Abschlussmanifest. Bisherige Artefakte, Sicherungen, Quellstände und historische Code17-Freigabemanifeste unverändert; keine grüne Suite wiederholt. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamt-/Geräte-/Releasefreigabe offen. Alte Umgebung/835235b bleiben zurückgestellt. Nach diesem Auftrag stoppen.
+
 ## Nutzerantwort und Zuordnung vom 14.11.2026
 
 Auf sauberer verfügbarer Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`, Branch `entwicklung/anker-neu`, hat der Nutzer auf die zwei nichtgeheimen Rückfragen geantwortet. Seine Angaben werden als **Nutzerbericht** erfasst, nicht als unabhängiger Console-, Geräte- oder Schlüsselbeleg:
@@ -19,7 +39,7 @@ Auf sauberer verfügbarer Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`, Bran
 
 Die interne Play-Verteilung erlaubt keine neue Signierung, keinen Upload, Versionswechsel oder lokalen Updateversuch. Das unveränderte unsignierte Code17-APK ist weiterhin kein freigegebenes Geräteupdate; seine Kompatibilität zur tatsächlichen Zielinstallation bleibt offen. Ein späterer Play-Weg benötigt eine eigene Freigabe und eindeutige Artefakt-/Versions-/Signiererzuordnung; ein lokaler APK-Weg ist nicht automatisch mit einem Play-Update austauschbar. Keine neue technische Freigabe und keine neue Software-/CI-/Geräteprüfung aus dieser Antwort.
 
-**Genau nächster zulässiger Einzelauftrag:** T-006 – nichtgeheime Angaben des bestehenden internen Play-Testbuilds zuordnen. Den Nutzer gezielt um bereits verfügbare Paketkennung, Versionscode/-name des internen Testbuilds und nur falls vorhanden öffentliche App-Signier-/Uploadzertifikatsfingerabdrücke bitten. Testkanalstand und tatsächlich installierten Gerätestand unterscheiden, unbekannte Felder offen lassen. Besitzerangabe nicht erneut abfragen. Keine eigene Console-/GitHub-/Secretabfrage oder Geräteaktion, keine Schlüsseldateien/-pfade/-werte und keine Signierung/Versionierung/Installation/Veröffentlichung. Das ist eine neue begrenzte Metadatenklärung, kein Auftrag zur Schlüsselwiederherstellung.
+**Damals nächster, inzwischen oben fortgeschriebener Einzelauftrag:** T-006 – nichtgeheime Angaben des bestehenden internen Play-Testbuilds zuordnen. Den Nutzer gezielt um bereits verfügbare Paketkennung, Versionscode/-name des internen Testbuilds und nur falls vorhanden öffentliche App-Signier-/Uploadzertifikatsfingerabdrücke bitten. Testkanalstand und tatsächlich installierten Gerätestand unterscheiden, unbekannte Felder offen lassen. Besitzerangabe nicht erneut abfragen. Keine eigene Console-/GitHub-/Secretabfrage oder Geräteaktion, keine Schlüsseldateien/-pfade/-werte und keine Signierung/Versionierung/Installation/Veröffentlichung. Das ist eine neue begrenzte Metadatenklärung, kein Auftrag zur Schlüsselwiederherstellung.
 
 T-006/V-014 bleiben IN_ARBEIT; E-002–E-005 und Gesamt-/Geräte-/Releasefreigabe offen. Alte Umgebung/835235b bleiben zurückgestellt. Ausschließlich Dokumentation lokal committen und sichern unter `/workspace/anker-t006-entscheidungsangaben-20261114/`, finale Commit-ID im Abschlussmanifest. Keine grüne Suite wiederholt; ältere Belege/Sicherungen und die historischen Code17-Manifeste unverändert. Nach diesem Auftrag stoppen.
 

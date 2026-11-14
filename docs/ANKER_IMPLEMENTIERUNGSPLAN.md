@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: interne Play-Metadaten zugeordnet, Signierrollen offen (14.11.2026)
+
+Basis `37bc7b9` sauber/verfügbar. Nutzerbericht zu Paket `.mobile`/Code17/Entwurf dokumentiert; Versionsnamensangabe `Anker 1.5.0-rc.3 · Code17` wörtlich erhalten, mögliche Release-Namensrolle offen. [Entscheidung und nächste begrenzte Klärung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Kein neuer Quell-/Aktivierungs-/Gerätebeleg und keine Schlüssel-/Signier-/Versions-/Uploadfreigabe. Aktuelle Nutzergrenzen gelten unverändert; kein Build, externe Abfrage, Workflow-/Cloud-/Playeingriff oder Testwiederholung. Nur Dokumentation lokal committen/sichern, T-006/V-014/E-002–E-005/Gesamtfreigaben offen halten. Danach genau ein neuer Auftrag: öffentliche App-Signier-/Uploadzertifikatsfingerabdrücke rollengetrennt anhand Nutzerangaben zuordnen, falls bereitstellbar; keine bereits beantworteten Besitzer-/Paket-/Code-/Entwurfsfragen wiederholen.
+
 ## T-006: Entscheidungsangaben als Nutzerbericht eingeordnet (14.11.2026)
 
 Basis `563e3da` sauber/verfügbar. Nutzer bezeichnet sich als Besitzer und berichtet internen Play-Test; GitHub-Schlüssel nur vermutet. [Beleggrenzen und Entscheidung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Die Antwort erweitert keine Freigabe: private Schlüssel weder suchen/lesen/kopieren noch als zugänglich behaupten, keine Console-/GitHubabfrage, kein Build/Signieren/Installieren/Versions-/Cloud-/Workflow-/Playeingriff. Interner Testcode und installierter Stand unbekannt. Nur Dokumentation lokal committen/sichern; T-006/V-014 und E-002–E-005/Gesamt-/Releasefreigabe offen halten. Danach genau ein neuer Auftrag: nichtgeheime Paket-/Versions-/vorhandene öffentliche Zertifikatsangaben des internen Testbuilds beim Nutzer einholen und zuordnen; keine wiederholte Besitzerfrage oder neue Produktarbeit.

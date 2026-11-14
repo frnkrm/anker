@@ -1,5 +1,9 @@
 # T-006 – lokale Softwareintegration und offene Gesamtfreigabe
 
+## T-006: Paket-/Code17-Entwurf laut Console-Nutzerbericht (14.11.2026)
+
+Auf sauberem `37bc7b9` [interne Testmetadaten eingeordnet](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): `.mobile`, Code17, gemeldeter Versionsname `Anker 1.5.0-rc.3 · Code17`, Entwurf. Titel/technischer Bundle-Versionsname nicht unabhängig abgeglichen, nicht still normalisiert. Keine aktive Verteilung oder Gleichheit mit lokalem Integrationsartefakt/Quellcommit behauptet. Andere aktive Releases und installierter Stand unbekannt. Keine eigene externe Abfrage oder Produkt-/Paket-/Versions-/Workflow-/Freigabeänderung, keine Tests/Build/Signier-/Geräte-/Playaktion. T-006/V-014 und E-002–E-005/Gesamt-/Releasefreigabe offen. Genau nächster eigener Auftrag nur öffentliche Signiererrollen/Fingerabdrücke anhand Nutzerangaben zuordnen; fehlende Angaben unbekannt, kein Schlüsselzugriff. Dokumentation lokal sichern, alte Nachweise/Code17-Manifeste erhalten.
+
 ## T-006: Nutzerantwort zur internen Play-Verteilung (14.11.2026)
 
 Auf sauberem `563e3da` ausschließlich [nichtgeheime Nutzerangaben zugeordnet](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): Nutzer nennt sich Besitzer, meldet internen Play-Test und vermutet einen Schlüssel bei GitHub. Kein unabhängiger Console-/Geräte-/Secretbeleg; kein privater Schlüssel gesucht oder gelesen. Interner Test hat ebenfalls einen Versionscode, aktueller Code/Zielinstallation/Signierer und nutzbares Signiermaterial bleiben unbelegt. Daraus keine Signier-/Upload-/Versions-/Installationsfreigabe ableiten. Kein Build, Testlauf, Remote-, Geräte-, Cloud- oder Playeingriff. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamt-/Releasefreigabe offen. Nächster eigener Auftrag nur öffentliche Metadaten des internen Testbuilds anhand vorhandener Nutzerangaben klären; Besitzerangabe nicht erneut abfragen. Dokumentation lokal sichern, bisherige Artefakte/Manifeste erhalten.
