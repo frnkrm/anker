@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: regulärer PR ohne Signier-/Datenfreigabe (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Nur Gitquellen/öffentliche PR-/Ref-/CI-/Rulesetsdaten geprüft. Besitzer erstelltPR3 über bestehende eigene Sitzung; keine neuen Zugangsdaten, Cookies, Tokens, Schlüssel-/Secretwerte gesucht/angefordert oder Cloudkonfiguration geändert. Vorbereitete PR-Beschreibung enthält ausschließlich Quell-/Prüf-/Freigabeinformationen. Bestehende automatische PR-CI mit Fakes/Webbuilds/Artefakten erlaubt, kein prepare/sign/Play-/Gerätezugriff. U1/Sicherungen erhalten, keine neue Messung/Persistenz/Nutzdatenübertragung. E lokal; T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
 ## T-006: GitHub-Entwurfsübertragung ohne Signier-/Nutzdateneingriff (14.11.2026)
 
 [Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): nur freigegebene Gitquellen nach Entwicklung und öffentliche Ref-/PR-/CI-Metadaten gelesen; keine Secrets, privaten Dateien, Nutzdaten oder Google-Play-Quellen abgefragt. Genau ein PushL mit bestehender automatischer CI samt synthetischen Prüfungen/Webbuilds/Artefakten freigegeben. AAB prepare/sign nicht gestartet; kein Schlüsselgebrauch oder neue App-Datenübertragung. U1/alte Sicherungen unverändert; keine zusätzliche Messung/Löschung/Freigabe. Joblog-/API-Lücken bleiben offen. D nur lokal; main-Integration, Workflowstart, Signier-/Upload-/Geräte-/Gesamtfreigaben offen.

@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: regulärer PR3 offen, CI nachkontrolliert (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Besitzer hat den normalen UI-Handgriff ausgeführt; [PR3](https://github.com/frnkrm/anker/pull/3) Open, QuelleL `3f5345dd08032aa6d19328a2c2cee22527150266`, Zielmain/AppquelleM `10cc894a27302a5a49b6884c843d2a6b509ab354`. Lokaler AusgangD `a72741d5985ae67d3c790017a9099e8e38d20856` nicht übertragen. Neuer ci.yml-Lauf43616437865 / pull_request opened#3 / Entwicklung / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (8.8m).
+
+Workflowansicht referenziert ci.yml ausL; PR-Checks wählenL. Synthetischer Mergeref `0874d430eea96a7f7f521e26a03d0d2a30ee05cb` separat beobachtet, tatsächliches API-run.head_sha und Runnercheckout öffentlich nicht ausgelesen. Kein Gleichsetzen mitmain/W. No reviews; klassischer Branchschutz/Konfliktstatus/angemeldete Serveranforderungen öffentlich unbekannt, keine Freigabe daraus. APIForbidden/fehlendeBrowsersteuerung nicht repariert; kein Doppel-PR, Push, Merge, AAB-Dispatch, Signieren oder Play-/Cloud-/Geräteeingriff.
+
+E nur lokaler Dokumentationsabschluss/Sicherung, nicht nachpushen. U1/alteArbeitsbäume/Sicherungen unverändert, W/U2/S fehlen. T-006/V-014 IN_ARBEIT, E-002–E-005 und alle weiteren Freigaben offen. Genau nächster eigener Auftrag: PR3-main-Integration ausschließlich lesend konkret vorbereiten; separate Beauftragung nötig. Folgende Stände historisch; danach stoppen.
+
 ## T-006: AAB-Entwurf auf Entwicklungsbranch übertragen (14.11.2026)
 
 [Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): genau ein Fast-forward-Push von **L `3f5345dd08032aa6d19328a2c2cee22527150266`** auf Entwicklung; main **M `10cc894a27302a5a49b6884c843d2a6b509ab354`** erhalten. PR2 bleibt Merged mit historischem head C; heute kein neuer PR. CI **43614039702**, ci.yml / push / entwicklung/anker-neu / exakt L, Versuch **1**, Ergebnis **erfolgreich**. Die erfolgreiche Entwicklungsbranch-CI ist belegt; ein neuer PR wurde heute nicht angelegt.

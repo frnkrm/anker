@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: AAB-Entwurf in PR3, Integration weiter offen (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): PR3Open/QuelleL/mainM, neuer PR-Lauf43616437865 Versuch1 **erfolgreich**. Kein Merge/W/AAB-Dispatch/Signieren. Fehlende Review-/Konflikt-/klassischeSchutz-/Runtime-SHA-Belege ehrlich offen. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag PR3-main-Integration ausschließlich lesend konkret vorbereiten.
+
 ## T-006: AAB-Entwurf remote, Integration weiter offen (14.11.2026)
 
 [Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwicklung jetzt L3f5345dd, main weiter M10cc894a; CI43614039702 / push / exakt L / Versuch1 **erfolgreich**. Kein neuer PR/Merge/AAB-Dispatch oder Signieren. Genau nächster separat beauftragbarer Schritt: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen; lokale43Offlinefälle und U1 bleiben getrennte Nachweise.
@@ -69,7 +73,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | AAB-Workflow lokal entworfen/43Offlinefälle grün; Remote-/main-W-/Dispatch-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | AAB-Entwurf PR3 Open, Push-/PR-CI nachkontrolliert; main-W-/Dispatch-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -98,7 +102,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/unsignedU1 belegt,Automationsentwurf lokal geprüft; realer W/U2/S-Pfad und Geräte/Gesamtfreigaben fehlen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/unsignedU1 belegt,Automationsentwurf in PR3; realer main-W/U2/S-Pfad und Geräte/Gesamtfreigaben fehlen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.

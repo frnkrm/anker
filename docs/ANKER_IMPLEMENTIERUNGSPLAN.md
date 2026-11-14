@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: PR3 regulär erstellt, keine main-Integration (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): frischeRefs L/M und17Dateien/3Commits geprüft; API-Forbidden führte zum erlaubten Besitzer-UI-Handgriff, kein zusätzlicher PR/Push. PR3 Open/L→mainM, ci.yml43616437865 pull_request opened#3 / Versuch1 **erfolgreich**. CI-Workflow ausL/PR-Checks-L/synthetischerMergeref getrennt; Runtime-SHA und klassischeSchutz-/Konfliktanforderungen öffentlich unbekannt. Keine Tests/Builds lokal oder Produkt-/Workflowänderung; prepare/sign nicht gestartet. E nur lokal sichern. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; nächster eigener Auftrag PR3-main-Integration ausschließlich lesend konkret vorbereiten.
+
 ## T-006: AAB-Entwurf einmalig übertragen und CI nachkontrolliert (14.11.2026)
 
 [Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwicklung L3f5345dd / main M10cc894a, ein normaler Push; ci.yml43614039702 / push / Entwicklung / exakt L / Versuch1 **erfolgreich**. Nur bestehende automatische CI freigegeben; keine AAB-Dispatch-/Signier-/Upload-/main-/Cloudaktion. Keine lokalen Tests/Builds oder Produktänderungen. D lokal sichern, nicht nachpushen. API403/Joblog-Anmeldung als Beleggrenzen, keine neuen Metadatenfragen. L/D/W/U1/U2/S getrennt; T-006/V-014/E-002–E-005 und Gesamtfreigaben offen. Genau nächster eigener Auftrag: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge.

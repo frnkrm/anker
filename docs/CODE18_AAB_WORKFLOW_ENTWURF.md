@@ -1,5 +1,9 @@
 # T-006 – lokaler Entwurf des manuellen Code18-AAB-Prüfworkflows
 
+## Fortschreibung: regulärer PR3 offen (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): neuerPR3/L→mainM über ausdrücklich erlaubten Besitzer-UI-Handgriff erstellt. PR-CI43616437865 / pull_request / Versuch1 **erfolgreich**, separate PushCI43614039702 erhalten. L nicht als tatsächlichesmain-W oder tatsächlichenRunnercheckout ausgeben; synthetischerMergeref getrennt, Runtime-SHA unbekannt. E nur lokal, kein Nachpush/Merge/AAB-Workflowstart oder Signieren. U1unverändert, W/U2/S/Geräte-/Gesamtfreigaben offen; folgende Angaben historisch.
+
 ## Fortschreibung: L übertragen, separate Branch-CI nachkontrolliert (14.11.2026)
 
 [Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwurfshead L `3f5345dd08032aa6d19328a2c2cee22527150266` genau einmal gepusht; main M unverändert. CI43614039702 / push / Entwicklung / exakt L / Versuch1 **erfolgreich**. Kein AAB-Workflowstart oder echte Signierung. Die folgenden Angaben „nur lokal/nicht übertragen“ beschreiben den vorherigen Entwurfsauftrag. D ist neuer lokaler Dokumentationsabschluss, nicht nachgepusht; W/U2/S bleiben unbelegt. Gesamt-/Gerätefreigaben offen.
