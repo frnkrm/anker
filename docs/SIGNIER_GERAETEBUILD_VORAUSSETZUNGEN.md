@@ -1,5 +1,9 @@
 # T-006 – Voraussetzungen für einen signierten Geräteprüfbuild
 
+## GitHub-Nutzerbericht ohne neuen Signiernachweis zugeordnet (14.11.2026)
+
+[Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md) auf def0c5f: PR2 Open und Lauf43331316553 push/Entwicklung laut Nutzer; headSHA/Ergebnis unbekannt. Vier Signing-Secrets weiterhin weder als vorhanden noch als fehlend bestätigt, Scope jeweils nicht einsehbar. Keine Rechte-/Inhalts-/B4-Key-/Signierbarkeitsaussage. Selbst grüner Entwicklungsbranch-Lauf erfüllt keinen exakten main-Push-CI-Gate. Kein Schlüssel-/Wertzugriff, keine eigene externe Abfrage/Signierprobe oder Konfigurationsänderung. Alte Code17-Freigaben und Code18-Quelle014870f3 erhalten. Gesamt-/Signier-/Upload-/Gerätefreigaben offen. Nächster eigener Auftrag nur vorhandene fehlende CI-Metadaten einholen/zuordnen, nicht erneut nicht einsehbare Secrets erfragen.
+
 ## Aktuelle GitHub-Voraussetzungen ausschließlich lesend geprüft (14.11.2026)
 
 [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md) auf a29ba67: main e48d289/dev6dfa632 frisch bestätigt; Quelle014870f3 und Dokumentationshead fehlen in beiden Zielbranchhistorien. Workflowinhalte bytegleich zu Remote, aber Actions-/PR-/CI-/Secretnamen-/Scope-API durch CONNECT403 blockiert. Vier ANKER_ANDROID-Namen/Scopes unbekannt, kein Schlüssel-/Signierzugriff nachgewiesen. Signierjob bindet kein Environment; bloße Environment-Secrets wären dort nicht automatisch verfügbar. Exakter erfolgreicher main-Push-CI-Beleg bleibt nötig, keine Docs-Ausnahme. Existierender APK-Signierworkflow ersetzt keinen Code18-AAB-Signierprozess. Keine Konfigurations-/Manifeständerung, Signierprobe oder Playabfrage; Gesamtfreigaben offen. Nächster eigener Auftrag nur nichtgeheime GitHub-Oberflächenbelege vom Nutzer einholen und zuordnen. Ältere Abschnitte bleiben historische Nachweise, nicht heutige Ausführungsfreigaben.

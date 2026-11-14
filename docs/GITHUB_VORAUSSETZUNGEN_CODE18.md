@@ -1,5 +1,39 @@
 # T-006 – GitHub-Voraussetzungen für Code18
 
+## Nutzerbericht zu PR2 und CI, Secretbestand weiterhin unbekannt (14.11.2026)
+
+Auf sauberem Branch `entwicklung/anker-neu`, Ausgangshead **`def0c5fab72d1a935c5cedc798d2689544442484`**, die Antwort des Nutzers zu vorhandenen GitHub-Oberflächenangaben dokumentiert. Keine eigene externe Abfrage oder erneute Ref-/APIprüfung. Die folgenden Angaben sind ein **Nutzerbericht**, kein unabhängig ausgelesener GitHub- oder CI-Nachweis.
+
+| Angabe | Zuordnung aus der Antwort |
+|---|---|
+| PR2 | **Open**, Quellbranch `entwicklung/anker-neu`, Zielbranch `main` |
+| Genannter CI-Lauf | [43331316553](https://github.com/frnkrm/anker/actions/runs/43331316553) |
+| Ereignis / Branch | `push` / `entwicklung/anker-neu` laut Nutzer |
+| CI-headSHA | Nutzer schreibt `?`: **unbekannt** |
+| CI-Ergebnis | Nutzer schreibt `?`: **unbekannt** |
+| Aktualität / Wiederholungsversuch | Nicht unabhängig geprüft; keine Bestätigung, dass dies weiterhin der letzte Lauf ist |
+
+Bei jedem der vier angefragten Namen blieb die Auswahl `vorhanden/nicht aufgeführt/nicht einsehbar` unverändert stehen; ausschließlich der Scope wurde mit **nicht einsehbar** beantwortet. Daraus keine Auswahl „vorhanden“ oder „nicht aufgeführt“ ableiten:
+
+| Name | Vorhandensein | Scope |
+|---|---|---|
+| `ANKER_ANDROID_KEYSTORE_BASE64` | Unbekannt | Nicht einsehbar laut Nutzer |
+| `ANKER_ANDROID_STORE_PASSWORD` | Unbekannt | Nicht einsehbar laut Nutzer |
+| `ANKER_ANDROID_KEY_ALIAS` | Unbekannt | Nicht einsehbar laut Nutzer |
+| `ANKER_ANDROID_KEY_PASSWORD` | Unbekannt | Nicht einsehbar laut Nutzer |
+
+Keine Feststellung über fehlende Secrets, tatsächliche Repositoryrechte, Secretinhalte, B4-Schlüsselzugriff oder Signierbarkeit. Nicht einsehbare Scopes werden nicht durch neue Rechte-/Secretkonfiguration ersetzt. Keine Werte, privaten Dateien, Passwörter oder Tokens angefordert. Rohzuordnung ausschließlich nichtgeheimer Angaben in `nutzerbericht.json` der neuen lokalen Sicherung.
+
+Die Antwort passt zu den im vorherigen Auftrag angekündigten PR2-/Entwicklungsrefs; deren SHA `6dfa632…` wird **nicht** als headSHA dieses CI-Laufs übernommen. Bereits früher im Chat gezeigte Screenshots desselben Laufs dokumentierten einen damaligen Playwright-Fehlschlag; sie belegen kein aktuelles Ergebnis oder einen möglichen späteren Wiederholungsversuch. Nutzerbericht und historische Screenshots bleiben getrennt.
+
+**Quell- und Gateentscheidung:** Die Code18-AAB-Versionsquelle bleibt `014870f3ee52c0233118d2852ef0719aa9bc602b`; der lokale Dokumentationshead ist eine andere Rolle. Die Antwort ordnet keine dieser SHAs dem CI-Lauf zu. Schon der gemeldete Entwicklungsbranch erfüllt nicht den vorhandenen main-Push-CI-Gate, selbst bei einem künftig belegten grünen Ergebnis. Open-Status ist keine Review-/Mergefreigabe. Die Ref-/Workflowbelege und CONNECT403-Sperre im folgenden Abschnitt bleiben Belege des vorherigen Auftrags, heute nicht erneut überprüft. Keine Docs-Ausnahme, keine Umgehung durch Gleichsetzen der Quellen.
+
+**Ergebnis und nächster Schritt:** Die gelieferten Angaben sind zugeordnet; CI-headSHA/Ergebnis und Secretnamen/Scopes bleiben unvollständig. Genau nächster separater Einzelauftrag: ausschließlich die noch fehlende vollständige headSHA, den angezeigten Wiederholungsversuch und das Ergebnis des bereits genannten Laufs43331316553 anhand der Nutzeroberfläche einholen und zuordnen. Den Lauf nicht neu starten, keine Secret-/Scope-/bekannten PR-/Play-/Besitzerfragen wiederholen. Fehlende Angaben dürfen unbekannt bleiben; daraus keinen Signier- oder Remoteauftrag ableiten.
+
+Nur Dokumentation lokal committen und sichern unter `/workspace/anker-t006-github-nutzerbelege-20261114/`; Ausgangs-/Abschlusscommit im Sicherungsmanifest, Artefaktquelle unverändert. Keine Tests/Builds, externen Abfragen oder GitHub-/Cloud-/Secret-/Signier-/Geräte-/Playaktionen. T-006/V-014 IN_ARBEIT; E-002–E-005 und Gesamt-/Signier-/Upload-/Geräte-/Releasefreigaben offen. Alte Umgebung/835235b zurückgestellt, Code17-Manifeste unverändert. Danach stoppen.
+
+## Historische technische Bestandsaufnahme des vorherigen Auftrags
+
 Stand 14.11.2026, Europe/Berlin. Ausschließlich lesender Auftrag auf sauberem Branch `entwicklung/anker-neu`, Ausgangs-Dokumentationshead `a29ba67ac0fcfac0abe439194075069e62bb45e4`. Versionsquelle des bereits geprüften unsignierten AAB bleibt **`014870f3ee52c0233118d2852ef0719aa9bc602b`**; [Paketnachweis](CODE18_AAB_INTEGRATION_T006.md). Alte Umgebung/835235b zurückgestellt. Keine Produkt-, Versions-, Signier-, Workflow- oder Freigabemanifeständerung.
 
 ## Frisch bestätigte Refs und Quellen

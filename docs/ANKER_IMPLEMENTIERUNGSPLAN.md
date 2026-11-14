@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: vorhandene GitHub-Nutzerangaben zugeordnet (14.11.2026)
+
+Basis def0c5f sauber/verfügbar. [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md): PR2 Open/Entwicklung→main und Lauf43331316553 push/Entwicklung laut Nutzer; SHA/Ergebnis unbekannt, Secret-Vorhandenseinsauswahl unverändert und alle Scopes nicht einsehbar. Kein aktueller unabhängiger CI-/Secret-/Schlüsselbeleg. Historischen Screenshot und PR-head nicht zum aktuellen CI-Beweis ergänzen; main-Push-CI-Gate erhalten. Keine externe Abfrage, Konfigurations-/Produktänderung, Test-/Build-/Signier-/Play-/Remoteaktion. Nur Dokumentation/Cloud-lokale Sicherung `/workspace/anker-t006-github-nutzerbelege-20261114/`. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag nur fehlende CI-headSHA/Versuch/Ergebnis des genannten vorhandenen Laufs beim Nutzer zuordnen; keine erneute Secret-/bekannte PRfrage. Danach stoppen.
+
 ## T-006: lesende GitHub-Prüfung, API-Teil blockiert (14.11.2026)
 
 Basis a29ba67 sauber, Versionquelle014870f3 unverändert. [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md): Remote-main e48d289 und dev/PR2-head6dfa632 frisch bestätigt, neue lokale Quellen nicht in diesen Branchhistorien. Fünf Workflowblobs an beiden Remote-SHAs gleich lokal. PR-/CI-/Secret-Metadaten durch API-CONNECT403 blockiert; Namen/Scopes unbekannt, keine fehlenden Secrets oder ausreichenden Rechte ableiten. Bestehende exakte main-Push-CI-Gates ohne Docs-Ausnahme erhalten. APK-Updateworkflow ist kein signierter AAB-Weg; alte Code17-Freigaben unverändert. Nur Dokumentation, keine Tests/Builds/Signier-/Remote-/Cloud-/Playaktionen. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; Sicherung `/workspace/anker-t006-github-voraussetzungen-20261114/`. Genau nächster eigener Auftrag: vorhandene nichtgeheime GitHub-Oberflächenmetadaten vom Nutzer einholen/zuordnen, keine Werte oder Konfigurationsänderung; danach stoppen.

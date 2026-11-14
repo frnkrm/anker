@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: Nutzerbericht ist kein neuer CI-/Softwaretest (14.11.2026)
+
+Basis def0c5f sauber; [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md). Nutzer meldet PR2 Open/Entwicklung→main und CI43331316553 push/Entwicklung; SHA/Ergebnis unbekannt. Scopes der vier Signing-Secrets nicht einsehbar, Bestand nicht bestätigt. Keine eigene externe Abfrage und kein Test-/Build-/Signier-/Gerätelauf. Historische Screenshots nicht als aktuelle CI-Wiederholungsresultate ausgegeben.1372TS/378Browser/284Python und274historische quellenidentische JUnit unverändert als frühere Belege erhalten. Nur Dokumentdiff/Quellschutz/36IDs/103Gerätezeilen/Links sowie lokale Vorher-/Nachher-Bundle-/Wiederherstellungs-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-nutzerbelege-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: frische Remote-Refs und API-Fehler, keine Testsuite (14.11.2026)
 
 Saubere Basis a29ba67; [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md). ls-remote erfolgreich, main e48d289/dev6dfa632/PR2-Refs dokumentiert; kein Fetch/Checkout. Vorhandene Commitobjekte/Workflowblobs mit frisch bestätigten SHAs abgeglichen: alle fünf Definitionen bytegleich. Beide neuen lokalen Quellen nicht in bestätigten main-/dev-Historien. gh-GETs für PR/CI/Workflow/Secretnamen/Scope scheitern Forbidden; curl bestätigt CONNECT403 bei HTTP=000. Kein frischer CI-headSHA-/Secret-/Schlüssel-/Signierbeleg. Keine Software-/Build-/Geräteprüfung wiederholt;1372TS/378Browser/284Python/274historische quellenidentische JUnit bleiben frühere Belege. Nur Dokumentintegrität/geschützte Dateien/36IDs/103Gerätezeilen sowie lokale Bundle-/Restore-/fsck-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-voraussetzungen-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen.
