@@ -1,5 +1,9 @@
 # Künftige Updates von Anker Neu signieren
 
+**Signiererabgrenzung 14.11.2026:** Nutzer meldet Play-App-Signierzertifikat8A und UploadzertifikatB4. Der unten beschriebene B4-APK-/Direktverteilungsweg ist kein belegtes reguläres Update einer8A-signierten Play-Installation; höhere Version allein genügt nicht. [Vollständige öffentliche Rollen und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Keine belegte Signierrotation, keine heutige Schlüsselverfügbarkeit oder neue Freigabe. Nicht als Aufforderung zu Secret-Einrichtung, Signieren, Workflowstart, Deinstallation oder Playaktion verstehen. Historische Code17-JSON-Manifeste unverändert.
+
+**Einordnung 13.11.2026, T-006:** Die folgenden Cloud-Schlüssel-/RC6-/Secretangaben sind historische Belege vom7.11., keine Bestätigung heutiger Schlüsselverfügbarkeit oder neue Freigabe. Aktueller lokaler Stand und alter Debug-Signierhelfer wurden [gezielt lesend abgeglichen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Zielinstallation und erreichbarer passender Signierbesitzer sind noch unbekannt; keine Schlüssel suchen/übertragen, Secret-Einrichtung starten, Workflow ausführen oder installieren. Alte Code17-Freigabemanifeste bleiben auf ihren historischen Quellstand gebunden. Maßgeblich ist [PROJECT_STATUS.md](PROJECT_STATUS.md).
+
 Stand: 7. November 2026, **Anker Neu 1.3.0-rc.6 / Code 13**, Paket `de.frnkrm.anker.mobile`. Die [fertige signierte APK](INSTALLATION_ANKER_NEU.md) kann direkt am Handy installiert werden. Der private Release-Schlüssel wurde auf ausdrücklichen Nutzerwunsch geschützt in der aktuellen Cloud-Arbeitsumgebung erzeugt. Er liegt weder im Repository noch im öffentlichen APK-Download. Eine dauerhafte externe Sicherung und die GitHub-Signiersecrets wurden noch nicht eingerichtet.
 
 ## Welche Signatur erhalten bleiben muss

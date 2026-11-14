@@ -33,20 +33,33 @@ function withoutDeviceCalendar(value: Record<string, unknown>): Record<string, u
   return object(value.extras) ? { ...value, extras: without(value.extras, ['deviceCalendar']) } : value
 }
 
+/** Learning keys group by title/series; only the existing sample id retains its source task id. */
+function omittedSample(value: unknown, businessIds: ReadonlySet<string>, privateIds: ReadonlySet<string>): boolean {
+  if (!object(value)) return true
+  const key = typeof value.key === 'string' ? value.key : ''
+  const source = typeof value.id === 'string' ? value.id : ''
+  const matches = (id: string) => source.startsWith(`task:${id}:`) || key === `task:${id}`
+  return key.startsWith('work:') || source.startsWith('work:') || [...businessIds].some(matches)
+    || ![...privateIds].some(matches)
+}
+
+const privateNoteIds = (records: readonly Rec[]) => new Set(records.filter(r => r.collection === 'inbox'
+  && object(r.data) && !localBusinessNote(r.data)).map(r => r.id))
+
 /** Weggelassene Gruppen fehlen wirklich; sie werden beim Import nicht als Löschauftrag ausgegeben. */
 export function selectBackupRecords(records: readonly Rec[], choice: Partial<BackupSelection> = {}): Rec[] {
   const selection = { ...COMPLETE_BACKUP, ...choice }
   const businessIds = new Set(records.filter((record) => record.collection === 'inbox' && localBusinessNote(record.data)).map((record) => record.id))
-  const businessKeys = new Set([...businessIds].map((id) => `task:${id}`))
+  const privateIds = privateNoteIds(records)
   const workReference = (value: unknown): boolean => object(value) && (value.kind === 'work' || value.kind === 'task'
-    && businessIds.has(String(value.refId ?? value.id)))
+    && !privateIds.has(String(value.refId ?? value.id)))
   return records.filter((record) => (record.collection !== 'meta' || record.id !== TIME_CATALOG_RECORD_ID)
     && (selection.places || record.collection !== 'meta' || record.id !== 'events')
     && (selection.work || record.collection !== 'inbox' || !businessIds.has(record.id))).map((record) => {
     const copy = structuredClone(record)
     if (copy.collection === 'meta' && copy.id === 'local' && object(copy.data)) copy.data = withoutDeviceCalendar(copy.data)
-    if (copy.deleted) return selection.work ? copy.collection === 'meta' && copy.id === 'local' && object(copy.data)
-      ? { ...copy, data: without(copy.data, ['timeCatalog', 'pcBridge', 'healthSleepEnabled']) } : copy : { ...copy, data: null }
+    // A deletion only needs identity/revision. Its former body must not bypass an omitted group.
+    if (copy.deleted) return { ...copy, data: null }
     if (!object(copy.data)) return copy
     let data = copy.data
     if (record.collection === 'settings') {
@@ -70,7 +83,7 @@ export function selectBackupRecords(records: readonly Rec[], choice: Partial<Bac
         if (object(data.captureDraft) && workReference(data.captureDraft.context)) data = without(data, ['captureDraft'])
         if (object(data.focus) && workReference(data.focus.target)) data = without(data, ['focus'])
         if (Array.isArray(data.focusHistory)) data = { ...data, focusHistory: data.focusHistory.filter((focus) => !object(focus) || !workReference(focus.target)) }
-        if (object(data.taskLearning) && Array.isArray(data.taskLearning.samples)) data = { ...data, taskLearning: { ...data.taskLearning, samples: data.taskLearning.samples.filter((sample) => !object(sample) || typeof sample.key !== 'string' || !sample.key.startsWith('work:') && !businessKeys.has(sample.key)) } }
+        if (object(data.taskLearning) && Array.isArray(data.taskLearning.samples)) data = { ...data, taskLearning: { ...data.taskLearning, samples: data.taskLearning.samples.filter(sample => !omittedSample(sample, businessIds, privateIds)) } }
       }
     }
     return { ...copy, data }
@@ -88,7 +101,11 @@ export function parseBackup(text: string): Rec[] {
   try { value = JSON.parse(text) } catch { throw new Error('Die Datei ist kein gültiges JSON.') }
   if (!object(value) || value.app !== 'anker' || !Array.isArray(value.records)) throw new Error('Das ist keine Anker-Sicherung.')
   if (value.version !== 1) throw new Error('Diese Sicherung stammt aus einer anderen App-Version.')
-  return validatedRecords(withoutPcConnection(value.records))
+  return validatedRecords(withoutPcConnection(value.records)).map(record => {
+    if (record.collection !== 'meta' || record.id !== 'local' || !object(record.data)
+      || !Object.hasOwn(record.data, 'healthSleepEnabled')) return record
+    return { ...record, data: { ...record.data, healthSleepEnabled: false } }
+  })
 }
 
 /** An imported file cannot transplant device pairing, ACKs, native cursors or calendar consent.
@@ -98,8 +115,29 @@ function withoutPcConnection(records: unknown): unknown {
     ? { ...record, data: withoutDeviceCalendar(without(record.data, ['pcBridge'])) } : record) : records
 }
 
+/** Restoring data is not fresh consent to external reads, uploads, audio or PC effects.
+ * Omitted choices are retained from this device by preserveOmitted, or use disabled defaults.
+ * Keep validation before projection so malformed imported data still rejects the whole batch. */
+function withoutDeviceConsents(record: Rec): Rec {
+  if (record.deleted || !object(record.data)) return record
+  if (record.collection === 'settings') {
+    const data = without(record.data, ['integrations', 'extras', 'guidance'])
+    return { ...record, data: object(data.weather) ? { ...data, weather: { ...data.weather, enabled: false } } : data }
+  }
+  if (record.collection !== 'meta' || record.id !== 'local') return record
+  let data = without(record.data, ['healthSleepEnabled'])
+  if (object(data.assistance)) data = { ...data, assistance: without(data.assistance, ['ai', 'routes']) }
+  if (object(data.extras)) data = { ...data, extras: without(data.extras, ['geofences']) }
+  if (object(data.weatherProfile)) data = { ...data, weatherProfile: { ...data.weatherProfile, enabled: false } }
+  if (object(data.taskLearning)) data = { ...data, taskLearning: { ...data.taskLearning, enabled: false } }
+  if (object(data.guidance) && object(data.guidance.ifThen)) data = { ...data,
+    guidance: { ...data.guidance, ifThen: { ...data.guidance.ifThen, showOnPc: false } } }
+  return { ...record, data }
+}
+
 /** Nur fehlende Objektfelder ergänzen. Vorhandene Werte/Listen bleiben weiterhin pro Record LWW. */
 function preserveOmitted(current: unknown, incoming: unknown, path = ''): unknown {
+  if (path === 'local.taskLearning' && object(incoming)) incoming = { ...incoming, enabled: object(current) && current.enabled === true }
   // Sitzungen und Rückwege sind vollständige Identitäten. Eine alte Elternreferenz
   // ohne partId darf niemals die Teilreferenz einer neueren lokalen Sitzung erben.
   if (['local.focus', 'local.resume', 'local.captureDraft'].includes(path) || /^local\.deviceTests\.reports\.[1-9]\d*$/.test(path)) return incoming
@@ -110,14 +148,24 @@ function preserveOmitted(current: unknown, incoming: unknown, path = ''): unknow
 }
 
 /** Eine Sicherung ohne Arbeitsgruppe enthält nur den privaten Teil des Fokusarchivs. */
-function preserveWorkHistory(current: unknown, incoming: unknown, businessIds: ReadonlySet<string>): unknown {
-  if (!object(current) || !object(incoming) || Object.hasOwn(incoming, 'work')
-    || !Array.isArray(current.focusHistory) || !Array.isArray(incoming.focusHistory)) return incoming
-  const incomingHistory = incoming.focusHistory.filter(isFocusSession)
-  const retained = current.focusHistory.filter(isFocusSession).filter((focus) =>
-    (focus.target.kind === 'work' || focus.target.kind === 'task' && businessIds.has(focus.target.id))
-    && !incomingHistory.some((next) => sameFocusTarget(next.target, focus.target)))
-  return { ...incoming, focusHistory: [...incomingHistory, ...retained] }
+function preserveWorkHistory(current: unknown, incoming: unknown, businessIds: ReadonlySet<string>, privateIds: ReadonlySet<string>): unknown {
+  if (!object(current) || !object(incoming) || Object.hasOwn(incoming, 'work')) return incoming
+  let out = incoming
+  if (Array.isArray(current.focusHistory) && Array.isArray(incoming.focusHistory)) {
+    const incomingHistory = incoming.focusHistory.filter(isFocusSession)
+    const retained = current.focusHistory.filter(isFocusSession).filter((focus) =>
+      (focus.target.kind === 'work' || focus.target.kind === 'task' && !privateIds.has(focus.target.id))
+      && !incomingHistory.some((next) => sameFocusTarget(next.target, focus.target)))
+    out = { ...out, focusHistory: [...incomingHistory, ...retained] }
+  }
+  if (object(current.taskLearning) && object(incoming.taskLearning)
+    && Array.isArray(current.taskLearning.samples) && Array.isArray(incoming.taskLearning.samples)) {
+    const samples = incoming.taskLearning.samples
+    const retained = current.taskLearning.samples.filter(sample => omittedSample(sample, businessIds, privateIds)
+      && !samples.some(next => object(next) && object(sample) && next.id === sample.id))
+    out = { ...out, taskLearning: { ...incoming.taskLearning, samples: [...samples, ...retained] } }
+  }
+  return out
 }
 
 /** Normaler Import bleibt LWW; Wiederherstellen ist eine eigene bewusste Wahl. */
@@ -157,17 +205,18 @@ export interface ImportPreview {
 /** Vorschau und unmittelbarer Store-Import benutzen dieselbe Projektion, keine zweite Import-Engine. */
 export function previewImport(incoming: unknown, current: readonly Rec[], mode: BackupImportMode = 'merge', nowMs = Date.now()): ImportPreview {
   if (mode !== 'merge' && mode !== 'restore') throw new Error('Dieser Importmodus ist nicht gültig.')
-  const records = validatedRecords(withoutPcConnection(incoming))
+  const records = validatedRecords(withoutPcConnection(incoming)).map(withoutDeviceConsents)
   const candidates = mode === 'restore' ? restoreCandidates(records, current, nowMs) : records
   const previous = new Map(current.map((record) => [key(record), record]))
   const businessIds = new Set(current.filter((record) => record.collection === 'inbox' && !record.deleted && localBusinessNote(record.data)).map((record) => record.id))
+  const privateIds = privateNoteIds(current)
   const winners = new Map<string, Rec>()
   for (const record of candidates) {
     const id = key(record)
     const before = winners.get(id) ?? previous.get(id)
     if (!remoteWins(before, record)) continue
     const beforeData = before?.deleted ? undefined : before?.data
-    const incomingData = record.collection === 'meta' && record.id === 'local' ? preserveWorkHistory(beforeData, record.data, businessIds) : record.data
+    const incomingData = record.collection === 'meta' && record.id === 'local' ? preserveWorkHistory(beforeData, record.data, businessIds, privateIds) : record.data
     const merged = !record.deleted && ((record.collection === 'settings' && record.id === 'main') || (record.collection === 'meta' && record.id === 'local'))
       ? { ...record, data: preserveOmitted(beforeData, incomingData, record.collection === 'meta' ? 'local' : 'settings') }
       : record

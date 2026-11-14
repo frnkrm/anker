@@ -4,6 +4,13 @@ export function stepMinutes(s: PlannedStep): number {
   return s.useMinimal && s.minimal ? s.minimal.minutes : s.minutes
 }
 
+/** Nur echte kürzere, benannte Varianten wählen; alle Schrittidentitäten erhalten. */
+export function shorterSteps(steps: PlannedStep[]): PlannedStep[] {
+  return steps.map(step => step.minimal?.title.trim() && Number.isFinite(step.minimal.minutes)
+    && step.minimal.minutes > 0 && step.minimal.minutes < stepMinutes(step)
+    ? { ...step, useMinimal: true } : step)
+}
+
 export function totalMinutes(steps: PlannedStep[]): number {
   return steps.reduce((sum, s) => sum + stepMinutes(s), 0)
 }

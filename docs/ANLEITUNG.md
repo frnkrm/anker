@@ -25,8 +25,11 @@ Anker bietet dir einen nächsten Schritt an. Du entscheidest, was heute passt, u
 Unten ist die Navigation: **Jetzt · Tag · Mehr**. Der Gedanken-Knopf bleibt als eigene kleine Aktion erreichbar. Unter **Mehr** liegen Arbeit, Abend & Alltag, Schlaf & Wecker, Spiel und die Einstellungen.
 
 ### Jetzt
+
 - **Die eine Aktion**, groß, mit einem Hauptknopf und höchstens zwei weiteren. Darüber in einem Satz, warum das gerade dran ist, wenn es dafür einen echten Grund gibt.
 - **Oben** die nächste feste Zeit mit dünnem Balken.
+- **Abfahrtsbereitschaft:** Unter deiner Hauptaktion stehen die geplante Abfahrt, offene Vorbereitung und der rechnerische Puffer. Zeiten sind Schätzungen, keine Pünktlichkeitszusage. Erledigte oder bewusst entfallene Routine-Schritte zählen nicht erneut; ohne sichere Zeit bleibt der Puffer offen. Homeoffice bekommt keine erfundene Büroabfahrt. Erst dein „Bin los“ bestätigt das Losgehen.
+- **Kurzmodusangebot:** Bei bekannter knapper Abfahrtszeit kannst du die angezeigten kürzeren Morgenvarianten mit **Kurzmodus übernehmen** wählen. Alle Schritte bleiben erhalten; die Wahl erledigt nichts und vergibt keine Punkte. **So lassen** ändert nichts und blendet das unveränderte Angebot in dieser Ansicht aus. Auch wenn die kurze Schätzung nicht reicht, sagt Anker das ausdrücklich. Die Wahl gilt nur für den heutigen Morgen; die bestehende Rücknahme unter „Heute anders“ bleibt erhalten.
 - **„Ich hänge fest“:** ein Bildschirm mit einem winzigen Schritt und 2-Minuten-Ring (Starten, Geschafft, Etwas kleiner, Pause).
 - **„Plan & Optionen“** klappt Tageslinie, Fokus-Modus, Überspringen, Hinweise und „Tag neu sortieren“ auf. **Mehr** in der Navigation öffnet die weiteren Bereiche der App.
 - **Knopf oben rechts** (z. B. „Arbeitstag ▾“): Unterstützung, Tagesart, spontan Homeoffice, Abendplan.

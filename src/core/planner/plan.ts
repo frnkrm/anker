@@ -21,7 +21,7 @@ import type {
   WorkSession,
 } from '../types'
 import { hardConflicts, legSpan, planLegs } from './adaptive'
-import { allMinimal, busyMinutes, fitSteps, minimalMinutes, placeAfter, totalMinutes } from './fit'
+import { allMinimal, busyMinutes, fitSteps, minimalMinutes, placeAfter, shorterSteps, totalMinutes } from './fit'
 import { zombieRoutineSteps } from '../guidance/routines'
 
 export interface PlanInput {
@@ -232,9 +232,14 @@ const workEndBase = rule.endPreference ?? rule.plannedStart + rule.targetNetMin 
   const overloaded = o.mode === 'ueberlastet'
   if (overloaded && !o.zombie) morningSteps = morningSteps.filter((x) => (x.tag && SICK_BASICS.has(x.tag)) || x.id === 'keys')
   const fit = lowMorning ? { steps: allMinimal(morningSteps), minimal: true, fits: true } : fitSteps(morningSteps, window)
+  if (o.shortMorning) {
+    fit.steps = shorterSteps(fit.steps)
+    fit.minimal = fit.steps.some(step => step.useMinimal)
+    fit.fits = totalMinutes(fit.steps) <= window
+  }
   // Morgenroutine bewusst später: gleicher Inhalt, spätere Zeit
   const morningLater = typeof o.routineAt?.morning === 'number' ? o.routineAt.morning : undefined
-  if (fit.minimal && !lowMorning) {
+  if (fit.minimal && !lowMorning && !o.shortMorning) {
     notes.push(
       fit.fits
         ? earlyEvent

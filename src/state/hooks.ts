@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { nextAction, type NextView } from '../core/support'
+import { currentSupportView, type NextView } from '../core/support'
 import { minutesOnPlanDay } from '../core/time'
 import type { DayLog, DayPlan } from '../core/types'
-import { emptyLog, planFor, today, useApp } from './store'
+import { emptyLog, planFor, supportInput, today, useApp } from './store'
 
 /** Aktuelle Zeit, aktualisiert alle `ms` Millisekunden. */
 export function useNow(ms = 15_000): number {
@@ -32,11 +32,8 @@ export function useToday(tick = 15_000): { date: string; plan: DayPlan; log: Day
 }
 
 /** Was gerade dran ist, außerhalb von React gelesen (z. B. beim Speichern eines Gedankens). */
-export function nextNow(): NextView {
-  const st = useApp.getState()
-  const date = today()
-  const now = Date.now()
-  return nextAction({ plan: planFor(date), log: st.days[date], m: minutesOnPlanDay(date, now), nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext })
+export function nextNow(st = useApp.getState(), now = Date.now()): NextView {
+  return currentSupportView(supportInput(st, now), st.local)
 }
 
 export function usePlan(date: string): DayPlan {

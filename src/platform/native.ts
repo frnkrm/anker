@@ -5,6 +5,7 @@ import type { ReminderAction } from '../core/reminders/actions'
 import type { ReminderPolicy } from '../core/reminders/build'
 import type { PaperSize, PrintDocumentSheet } from '../core/print'
 import type { GeofenceSnapshot, GeofenceStatus, GeofenceSuggestion, GeofenceVisit } from '../core/geofences'
+import type { NfcScanResult, NfcStatus, NfcTarget } from '../core/nfc'
 
 export type { GeofenceStatus, GeofenceSuggestion } from '../core/geofences'
 
@@ -104,6 +105,7 @@ export interface NativeReminder {
   ruleId?: string
   /** Uses the same dated bedtime source, with strictly silent native follow-ups. */
   quietFollowUps?: boolean
+  validUntil?: number
 }
 
 export type ReminderActionInfo = ReminderAction
@@ -192,6 +194,10 @@ export interface GeofenceState extends GeofenceStatus { suggestions: GeofenceSug
 
 /** Eigenes Kotlin-Plugin (android/app/src/main/java/.../AnkerNativePlugin.kt). */
 export interface AnkerNativePlugin {
+  getNfcStatus(): Promise<NfcStatus>
+  scanNfcAnchor(o: { sessionId: string }): Promise<NfcScanResult>
+  cancelNfcScan(o: { sessionId: string }): Promise<void>
+  confirmNfcAnchor(o: { sessionId: string; target: NfcTarget }): Promise<{ allowed: boolean }>
   getVoiceCapabilities(): Promise<VoiceCapabilities>
   startDictation(): Promise<VoiceResult>
   stopDictation(): Promise<void>
@@ -276,6 +282,10 @@ export interface AnkerNativePlugin {
 
 // Im Web gibt es keinen Wecker: nur still antworten, nie so tun, als wäre etwas geplant
 const web: Partial<AnkerNativePlugin> = {
+  async getNfcStatus() { return { status: 'unsupported', canOpen: true } },
+  async scanNfcAnchor() { return { status: 'unsupported' } },
+  async cancelNfcScan() {},
+  async confirmNfcAnchor() { return { allowed: false } },
   async getDiagnosticJournal() { return { version: 1, available: false, retentionDays: 7, maxEntries: 800, events: [] } },
   async getVoiceCapabilities() { return { dictationSupported: false, speechSupported: false, localOnly: true } },
   async startDictation() { return { status: 'unavailable' } },

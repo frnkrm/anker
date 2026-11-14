@@ -140,6 +140,7 @@ export function Backup() {
   return (
     <Page className="settings-page" title="Sicherung" back="/mehr">
       <p className="px-1 text-muted">Bewahre deine Daten als persönliche Sicherungsdatei auf.</p>
+      <p className="text-sm text-muted">Verbindungen, Audio- und PC-Freigaben bleiben beim Import so, wie du sie auf diesem Gerät gewählt hast. Auf einem neuen Gerät wählst du sie erneut. Importierte Wetterorte und private Wenn-dann-Texte benötigen eine neue Freigabe für Wetterabrufe bzw. die Anzeige am PC.</p>
       <MoreInfo summary="Welche Daten enthält die Datei?">
         <p>Alle Daten liegen auf diesem Gerät. Eine Sicherung ist eine Datei, die du aufbewahrst.</p>
         <p>Sicherungen sind nicht verschlüsselt. Eine vollständige Sicherung enthält auch Arbeitsaufgaben und private Protokolle. Du kannst unten bewusst Bereiche weglassen.</p>

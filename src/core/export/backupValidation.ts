@@ -87,7 +87,7 @@ function validOverride(value: unknown): boolean {
     || !optional(value, 'latestStart', (v) => v === null || finite(v))
     || !optional(value, 'lateUntil', (v) => v === 'open' || finite(v))
     || !optional(value, 'backAt', timestamp)
-    || !fields(value, ['homeOffice', 'light', 'zombie', 'adjusted'], (v) => typeof v === 'boolean')
+    || !fields(value, ['homeOffice', 'light', 'shortMorning', 'zombie', 'adjusted'], (v) => typeof v === 'boolean')
     || !optional(value, 'reason', text) || !fields(value, ['coveredSteps', 'uncoveredSteps'], stringList)) return false
   if (!optional(value, 'dayType', (v) => choice(v, ['work', 'weekend', 'vacation', 'sick']))
     || !optional(value, 'evening', (v) => choice(v, ['free', 'friends', 'sport', 'cook', 'appointment']))
@@ -175,8 +175,8 @@ export function validatedRecords(value: unknown): Rec[] {
     // Ein importierter Cache ist weder Wahrheit noch ein versteckter Weg für ausgeschlossene Gruppen.
     const data = { ...record.data }
     delete data.timeCatalog
-    // Eine Sicherung ist keine Lesefreigabe auf diesem Gerät.
-    if (Object.hasOwn(data, 'healthSleepEnabled')) data.healthSleepEnabled = false
+    // Device choices are projected at the import boundary. Validation of a merged
+    // record must not revoke the target device's already chosen permission.
     return { ...record, data }
   })
 }

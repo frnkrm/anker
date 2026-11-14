@@ -1,6 +1,9 @@
-import { isFocusSession, isStuckSession, validFocus, validStuck } from './focus'
-import { resolveTask, taskIsOpen, taskNextStep, taskTitle, validTaskFields, validTaskParts, validTaskRef } from './tasks'
-import type { InboxItem, LocalData, ResumePoint, WorkTask } from './types'
+import { isFocusSession, isStuckSession, remainingMs, sameFocusTarget, validFocus, validStuck, type FocusSession } from './focus'
+import { resolveTask, taskIsActionable, taskIsOpen, taskNextStep, taskTitle, validTaskFields, validTaskParts, validTaskRef } from './tasks'
+import { activePlanDate, openSteps } from './now'
+import { guidancePlanDate } from './guidance/model'
+import { todayBerlin } from './time'
+import type { DayLog, DayPlan, InboxItem, LocalData, ResumePoint, WorkTask } from './types'
 
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
 const timestamp = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(new Date(value).getTime()) && value >= 0
@@ -72,6 +75,59 @@ export function usableResume(resume: ResumePoint | undefined, inbox: readonly In
 export function resumeRoute(resume: ResumePoint): string | undefined {
   if ((resume.kind === 'task' || resume.kind === 'work') && resume.refId) return `/aufgabe/${resume.kind}/${encodeURIComponent(resume.refId)}${resume.partId === undefined ? '' : `?teil=${encodeURIComponent(resume.partId)}`}`
   return internalRoute(resume.route) ? resume.route : undefined
+}
+
+/** Reine Leseprojektion für den bestehenden Wiedereinstieg, ohne eigenen Plan oder Schreibweg. */
+export function recoveryPreview(input: {
+  plan: DayPlan; log?: DayLog; local: Pick<LocalData, 'resume' | 'focus' | 'focusHistory' | 'guidance'>
+  inbox: readonly InboxItem[]; work: readonly WorkTask[]; nowMs: number; workQuiet?: boolean
+}): { point: ResumePoint; focus?: FocusSession; remainingMs?: number; timer: 'none' | 'running' | 'paused' | 'expired' } | undefined {
+  const { plan, local, inbox, work, nowMs, workQuiet } = input
+  if (!timestamp(nowMs) || plan.date !== guidancePlanDate(local, activePlanDate(nowMs, todayBerlin), nowMs)) return undefined
+  const facts = input.log?.date === plan.date ? input.log : undefined
+  const saved = usableResume(local.resume, inbox, work)
+  const available = (point: ResumePoint): ResumePoint | undefined => {
+    if ((point.kind === 'task' || point.kind === 'work') && point.refId) {
+      const task = resolveTask({ kind: point.kind, id: point.refId }, inbox, work)
+      if (!task || !taskIsActionable(task, nowMs) || workQuiet && point.kind === 'work'
+        || 'taskDate' in task && task.taskDate !== undefined && task.taskDate > plan.date) return undefined
+      return usableResume(point, inbox, work)
+    }
+    // Alte ungebundene Routinenrouten belegen keinen aktuellen Schritt und könnten beim Öffnen einen neuen Timer starten.
+    if (point.kind === 'step' || point.route?.startsWith('/fokus')) return undefined
+    return workQuiet && point.kind === 'work' ? undefined : point
+  }
+  const fromFocus = (focus: FocusSession): ResumePoint | undefined => {
+    const target = focus.target
+    if (target.kind === 'routine') {
+      if (target.date !== plan.date) return undefined
+      const step = openSteps(plan, facts, target.routine)[0]
+      if (!step || step.id !== target.stepId || step.useMinimal && !target.minimal || target.minimal && !step.minimal) return undefined
+      const title = target.minimal ? step.minimal!.title : step.title
+      const route = `/fokus/${target.routine}`
+      const note = saved?.kind === 'step' && saved.refId === step.id && saved.route === route
+        && guidancePlanDate(local, activePlanDate(saved.at, todayBerlin), saved.at) === plan.date ? saved.note : undefined
+      return { kind: 'step', title, refId: step.id, route, at: focus.timer.startedAt, ...(note ? { note } : {}) }
+    }
+    const task = resolveTask(target, inbox, work)
+    if (!task) return undefined
+    const note = task.resumeNote ?? (saved?.kind === target.kind && saved.refId === target.id && saved.partId === target.partId ? saved.note : undefined)
+    return available({ kind: target.kind, refId: target.id, ...(target.partId !== undefined ? { partId: target.partId } : {}),
+      title: taskTitle(task), at: focus.timer.startedAt, ...(note !== undefined ? { note } : {}) })
+  }
+  let focus = local.focus && isFocusSession(local.focus) ? local.focus : undefined
+  let point = focus ? fromFocus(focus) : undefined
+  if (!point) {
+    focus = undefined
+    point = saved ? available(saved) : undefined
+    if (point && (point.kind === 'task' || point.kind === 'work') && point.refId) {
+      const target = { kind: point.kind, id: point.refId, ...(point.partId !== undefined ? { partId: point.partId } : {}) }
+      focus = local.focusHistory?.find(entry => isFocusSession(entry) && entry.timer.status === 'paused' && sameFocusTarget(entry.target, target))
+    }
+  }
+  if (!point) return undefined
+  const left = focus ? remainingMs(focus.timer, nowMs) : undefined
+  return { point, focus, remainingMs: left, timer: !focus ? 'none' : left === 0 ? 'expired' : focus.timer.status }
 }
 
 const taskFields = ['reminderRevision', 'description', 'why', 'nextStep', 'resumeNote', 'priority', 'deadline', 'earliestStart', 'estimateMin', 'context', 'energy', 'state', 'startedAt', 'deferredUntil', 'done', 'doneAt', 'doneMode', 'subtasks', 'recurrence', 'source'] as const

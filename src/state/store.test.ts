@@ -39,6 +39,29 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
     return { id, action: 'done' as const, key, date, at: event.at, revision: event.revision, token: event.token }
   }
 
+  it('revidiert den Vorbereitungsimpuls über die vorhandene Schrittaktion und entfernt ihn nach vollständiger Vorbereitung', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(zonedToUtc(date, 300))
+    const current = () => buildReminders([planFor(date)], useApp.getState().days, useApp.getState().settings, Date.now()).find(e => e.key === 'prepare:work')
+    const before = current()!
+    expect(before).toBeDefined()
+    const steps = openSteps(planFor(date), useApp.getState().days[date], 'morning')
+    await useApp.getState().setStep(date, 'morning', steps[0]!.id, 'done')
+    expect(current()!.revision).not.toBe(before.revision)
+    expect(current()!.token).toBe(before.token)
+    for (const step of steps.slice(1)) await useApp.getState().setStep(date, 'morning', step.id, 'not-needed')
+    expect(current()).toBeUndefined()
+    await useApp.getState().load()
+    expect(current()).toBeUndefined()
+    expect(useApp.getState().days[date]?.leftAt).toBeUndefined()
+  })
+
+  it.each(['done', 'skip'] as const)('weist selbst eine passende native %s-Aktion des actionlosen Impulses ohne Fakten, Receipt oder Punkte ab', async action => {
+    const a = { ...actionFor('prepare:work'), action }
+    const before = structuredClone({ days: useApp.getState().days, game: useApp.getState().game })
+    expect(await useApp.getState().applyReminderAction(a)).toBe('obsolete')
+    expect({ days: useApp.getState().days, game: useApp.getState().game }).toEqual(before)
+  })
+
   it('verarbeitet Doppeltippen einmal und erhält Zeit, Receipt und XP nach erneutem Laden', async () => {
     const a = actionFor('bed')
     const put = vi.spyOn(storage.repo!, 'putMany')
@@ -118,6 +141,8 @@ describe('Dauerhafte Erinnerungsaktionen', () => {
     ['leave-10', 'leftAt', 'leave'],
     ['pcstop-15', 'pcOffAt', 'pcstop'],
   ] as const)('ordnet Erledigt bei %s der tatsächlichen Handlung zu', async (key, field, main) => {
+    // Legacy fallback still has its historical explicit action when no routine can replace it.
+    if (key === 'leave-10') await useApp.getState().saveSettings(s => ({ ...s, routines: { ...s.routines, morning: [] }, sport: { ...s.sport, days: s.sport.days.map(() => false) } }))
     const a = actionFor(key)
     expect(await useApp.getState().applyReminderAction(a)).toBe('applied')
     expect(useApp.getState().days[date]?.[field]).toBe(a.at)
@@ -411,7 +436,8 @@ describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
     { collection: 'settings', id: 'main', data: oldSettings(), updated_at: Date.now() + 10_000, deleted: false },
     { collection: 'meta', id: 'local', data: local, updated_at: Date.now() + 10_000, deleted: false },
   ])))
-  const expected = { enabled: true, city: legacyWeather.city, lat: 0, lng: legacyWeather.lng, revision: 'legacy-weather' }
+  // Importing the location is not fresh permission to fetch it. Existing local migration keeps its own choice.
+  const expected = { enabled: false, city: legacyWeather.city, lat: 0, lng: legacyWeather.lng, revision: 'legacy-weather' }
 
   it('importiert ein echtes Altbackup, committet Ort und bereinigte Settings gemeinsam und bleibt nach Reload lokal', async () => {
     const records = backup(); const before = structuredClone(records)
@@ -488,7 +514,7 @@ describe('Wetterort-Migration im echten Store und Sicherungsimport', () => {
     expect(useApp.getState().settings).toBe(before.settings)
     await useApp.getState().load()
     expect(useApp.getState().ready).toBe(true)
-    expect(useApp.getState().local.weatherProfile).toEqual(expected)
+    expect(useApp.getState().local.weatherProfile).toEqual({ ...expected, enabled: true })
     expect(batch).toHaveBeenCalledTimes(2)
     for (const [records] of batch.mock.calls) expect(records.map(({ collection, id }) => `${collection}/${id}`)).toEqual(['settings/main', 'meta/local'])
   })

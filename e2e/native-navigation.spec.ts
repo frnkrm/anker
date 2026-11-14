@@ -282,7 +282,7 @@ test('Laufender Fokus spiegelt nur sein tatsächliches Timerende und räumt beim
 })
 
 for (const width of [390, 320]) for (const scale of [1, 1.6]) {
-  test(`Wecker-Formular und Diagnose bei ${width}px / ${scale}`, async ({ page }) => {
+  test(`Wecker-Formular und Diagnose bei ${width}px / ${scale}`, async ({ page }, info) => {
     await page.setViewportSize({width, height:844})
     await nativeEntry(page, 'de.frnkrm.anker.mobile://now', true, {reminderDelivery: {
       channels: [{id:'sanft',importance:0,blocked:true},{id:'uebergang',importance:2,blocked:false},{id:'wecker',importance:-1,blocked:false}],
@@ -317,9 +317,9 @@ for (const width of [390, 320]) for (const scale of [1, 1.6]) {
     await page.getByRole('radio',{name:'5',exact:true}).click()
     await expect(page.getByRole('radio',{name:'5',exact:true})).toHaveAttribute('aria-checked','true')
     if(width===320 && scale===1.6) {
-      await page.screenshot({path:'/tmp/anker-alarm-layout-320-160.png',fullPage:true})
-      await page.getByRole('region',{name:'Alltags-Erinnerungen'}).screenshot({path:'/tmp/anker-alarm-diagnosis-320-160.png'})
-      await page.getByRole('group',{name:'Vorwecker Minuten ändern',exact:true}).screenshot({path:'/tmp/anker-alarm-prewake-320-160.png'})
+      await page.screenshot({path:info.outputPath('anker-alarm-layout-320-160.png'),fullPage:true})
+      await page.getByRole('region',{name:'Alltags-Erinnerungen'}).screenshot({path:info.outputPath('anker-alarm-diagnosis-320-160.png')})
+      await page.getByRole('group',{name:'Vorwecker Minuten ändern',exact:true}).screenshot({path:info.outputPath('anker-alarm-prewake-320-160.png')})
     }
   })
 }

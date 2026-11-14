@@ -29,7 +29,7 @@ describe('Slots und lange Vorausplanung', () => {
     const s = defaultSettings('2026-11-01')
     const r = buildReminders(plansFor(s, 2), {}, s, now)
     expect(r.find((x) => x.key === 'leave')!.exact).toBe(true)
-    expect(r.find((x) => x.key === 'morning')!.exact).toBe(false)
+    expect(r.find((x) => x.key === 'prepare:work')!.exact).toBe(false)
   })
 
   it('Erledigtes ist nicht mehr relevant und wird aus der Leiste geräumt', () => {

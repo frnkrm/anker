@@ -1,5 +1,130 @@
 # Geräteprüfung
 
+## T-006: Code18 lokal unsigniert geprüft, keine Installation (14.11.2026)
+
+[Neuer Code18/1.5.0-rc.4-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md) aus Versionsquelle014870f mit frischen Webassets/7608…Kennung belegt. Nur lokale freigegebene Versions-/Paketumsetzung, kein direkt installierbares oder Play-angenommenes/signiertes Update. Nutzerherkunft Google Play und Rollen8A-App/B4-Upload bleiben getrennt; tatsächlich installierter Stand nicht ausgelesen, keine B4-Direkt-APK als Update einer8A-Installation zusagen. Kein Installieren, Testalarm, neue Freigabe, Geräte-/Tag-/PC-Aktion oder Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten; E-002–E-005/T-006/V-014/Gesamt-/Signier-/Upload-/Gerätefreigaben offen. Alte Code17-Belege behalten ihren ursprünglichen Bezug.
+
+## T-006: lokales AAB validiert, keine Gerätebeobachtung (14.11.2026)
+
+[Unsignierter AAB-Integrationsnachweis auff657d2e](AAB_INTEGRATION_T006.md) mit Bundletool/Manifest/Assets/CRC/JAR-Signaturfreiheit ergänzt; Code17/1.5.0-rc.3 unverändert. Kein direkt installierbares oder Play-angenommenes Artefakt, keine Versions-/Signier-/Upload-/Installationsfreigabe. Nutzerbericht Google-Play-Herkunft und Rollen8A-App/B4-Upload unverändert, tatsächliche installierte Version/Signatur/Quelle nicht ausgelesen. Kein B4-Direktupdate einer8A-Installation oder Deinstallations-/Datenlösch-/Signaturumweg. Keine Geräte-/Tag-/PC-/Freigabeaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.
+
+## T-006: genutzte Galaxy-App laut Nutzer aus Google Play (14.11.2026)
+
+Nutzerantwort „google play“ zur Herkunft der aktuell benutzten App erfasst. [Prüfweg und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Kein Gerät ausgelesen, Zertifikat/Version/Quellcommit nicht ermittelt; Herkunft allein bestätigt keinen neuen Test oder tatsächlichen8A-Gerätesignierer. Späteren Play-Prüfpfad vorbereiten, kein B4-Sideload-Update zusagen und keine Deinstallation/Datenlöschung/Signaturumgehung verlangen. Keine Geräte-/Freigabe-/Installationsaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten. Lokaler unsignierter AAB-Nachweis wäre eigener Softwareauftrag, keine Geräte-/Uploadfreigabe. E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.
+
+## T-006: Play-/Direktinstallationssignierer vor Updateversuch unterscheiden (14.11.2026)
+
+Nutzer meldet Play-App-Signierzertifikat8A und UploadzertifikatB4; [öffentlicher Rollenvergleich und vollständige Werte](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Historische direkt verteilte B4-APKs sind kein belegtes reguläres Update einer8A-Installation. Weder höhere Version noch Deinstallation/Datenlöschung als Signaturumweg verwenden. Tatsächliche Herkunft/Zertifikat/Version der genutzten Galaxy-App nicht ausgelesen. Nur Herkunft anhand bereits bekannter Nutzerangaben klären; kein Testalarm, ADB, Geräte-/Freigabe-/Installationsschritt oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen. Spätere reale Prüfungen brauchen geeigneten separat autorisierten Paket-/Signierer-/Versionsbezug.
+
+## T-006: Zielinstallation und Signierbesitzer vor Geräteprüfbuild klären (13.11.2026)
+
+Lesende Vorbereitung auf `b816e1a`, keine neue Gerätebeobachtung. [Paket-/Zertifikats-/Versionsentscheidung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): öffentliche historische B4-Belege und bestehendes unsigned APK sind keine Bestätigung des heute installierten Codes/Zertifikats. Erst fehlende nichtgeheime Nutzerangaben zu Paket, Version/Code, Herkunft und erreichbar bekanntem bestehendem Signierbesitzer aufnehmen. Keine Schlüsseldateien/-werte anfordern und dafür keinen Testbericht speichern, Alarm starten, Freigaben ändern, ADB einrichten oder etwas installieren. Ein vorhandener öffentlicher Zertifikats-/Codestandbeleg bleibt seinem tatsächlichen Stand zugeordnet; nicht aus einem alten Bericht eine aktuelle Installation ableiten.
+
+E-002–E-005,103historische Gerätezeilen und ausgelieferter Katalog bleiben unverändert offen bzw. historisch zugeordnet. Passender signierter Geräteprüfbuild, späterer Installations-/Updateversuch und reale Galaxy-/Windows-/Kalender-/NFC-Beobachtungen brauchen jeweils passende getrennte Freigaben. Kein Schlüssel-/Versionswechsel oder Datenlöschen als Umweg. T-006/V-014/Gesamt-/Releasefreigabe offen.
+
+## T-006: unsigniertes Prüfartefakt, Gerätebeobachtungen offen (13.11.2026)
+
+Lokales unsigniertes Prüf-APK auf `18f6bb2` erstellt und nur softwareseitig geprüft: Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479379a9cbe9be28b043a0`, Paket `de.frnkrm.anker.mobile`, weiterhin Code17/`1.5.0-rc.3`. Aktuelle Webassets bytegleich eingebettet, Manifest/SDK/ZIP16KB/fehlende Signatur geprüft. [Paketmetadaten und Grenzen](INTEGRATION_T006.md). Das Artefakt ist ausdrücklich kein freigegebener Geräte- oder Updatebuild; nicht installiert und keine Installierbarkeit behauptet.
+
+E-002–E-005 bleiben offen: Galaxy-Wecker/Sperre/Zustellung, Windows-Systemwirkungen, echtes Kalenderkonto/Rechte und NFC-Hardware/Lifecycle. Erst geeigneten getrennt autorisierten signierten Paketstand samt öffentlicher Build-/Zertifikatszuordnung klären, dann vorhandene Stationen nach gesonderter Gerätefreigabe verwenden. Keine Geräte-/Tag-/PC-/Kalenderaktion oder neue Häkchen; alle103historischen Gerätezeilen und der ausgelieferte Katalog bytegleich erhalten.274historische Android-JUnit sind keine Gerätebeobachtung. T-006/V-014/Gesamt-/Releasefreigabe bleiben offen.
+
+## T-006: Software gemeinsam geprüft, keine neue Gerätebeobachtung (13.11.2026)
+
+Auf Basis `4f3179c`1372vollständige TS-Fälle,378verschiedene Browserfälle und284Python-PC-Fälle zuletzt grün, dazu PowerShell/SQL/Interoperabilität/Offlinewerkzeugprüfungen. Nur synthetische Daten, Loopback/Fake-Windows.274Android-JUnit aus F-008 wegen nachgewiesener Quellgleichheit erhalten statt wiederholt. [Details und Paket-/Releasegrenzen](INTEGRATION_T006.md).
+
+Beim vorherigen Web-/PC-Lauf waren die Android-Webassets veraltet; jetzt ist oben ausschließlich Capsync/unsignierter APK-Bau belegt. Keine Signierung, Installation oder Geräte-/Tag-/Kalender-/PC-Systemaktion. E-002–E-005 bleiben offen. Vor realen Prüfungen geeigneten aktuellen Paketstand/Quellkennung und ausdrückliche Gerätefreigabe zuordnen, vorhandene Stationen nutzen. Keine neuen Stationen/Häkchen: alle103historischen Gerätezeilen bytegleich erhalten. Lokales Grün ersetzt weder Galaxy-Wecker/Sperre/Zustellung, echten Windowsbetrieb noch Kalenderkonto/NFC-Hardware. T-006-Gesamtabschluss bleibt offen.
+
+## F-010: lokale Wochenübersicht, Gerätebeobachtungen unverändert offen (13.11.2026)
+
+Auf Basis `27aa6f3` freiwillige rein lesende Übersicht vorhandener Tagesstände ergänzt:101gezielte TS-/Store-/Datenschutzfälle und16verschiedene Browserfälle grün, zusätzlicher320px-Bildkontrollfall1/1. Berliner Tag-/Wochengrenzen, kleine/leere Grundlage, Offline, Abwahl/Reload und unveränderte gespeicherte Daten softwareseitig geprüft. Keine neue native Funktion oder Hardwarewirkung.
+
+274Android-JUnit aus F-008 bleiben historisch; keine neue Geräteinstallation/Signierung/Tagaktion. Vorhandene Rückblick-/Alltags-/Kleinbildschirmstationen G78/G85/G98 bei gesonderter Gerätefreigabe nutzen, keine neuen Stationen/Häkchen oder behauptete Galaxy-/Windows-/Kalender-/NFC-Beobachtung. Alle103historischen Gerätezeilen erhalten. E-002–E-005 bleiben separat offen; T-006 darf diese Lücken bei lokaler Softwareintegration nicht als erledigt übernehmen.
+
+## F-009: lokale Web-Softwareabnahme, Gerätebelege unverändert (13.11.2026)
+
+Auf Basis `5668aec` ausschließlich lokale stille Fokusbegleitung ergänzt:139gezielte TS-/Store-/Datenschutzfälle und21verschiedene Browserfälle zuletzt grün. Offline, bewusste Wahl, Pause/Wiederaufnahme/Planwechsel, ungültige Teile, private Arbeitsruhe sowie320px/160Prozent Schrift softwareseitig geprüft. Browser-Blur/Visibility und JVM-/Storefälle sind keine echte Android-Sperr-/Herstellerbeobachtung.
+
+Keine Native-/Brücken-/Manifest-/NFC-/PC-Änderung, keine neue Hardwareprüfung erforderlich oder ausgeführt.274Android-JUnit aus F-008 bleiben historisch. Vorhandene Fokus-/Pause-/Wiedereinstiegsstationen G78/G80/G81/G85 und kleine Ansichten G98 bei gesonderter späterer Gerätefreigabe beobachten; keine neue Station, Häkchen, Installation oder Begleitstatistik. Alle103historischen Gerätezeilen erhalten; E-002–E-005 bleiben separat offen.
+
+## F-008: Software geprüft, E-005 offen (13.11.2026)
+
+Lesender Einstieg auf Basis `e5f0030` implementiert:48gezielte TS-,274Android-JUnit-,22Browserfälle. Keine echte Adapter-/Funk-/Sperr-/Herstellerbeobachtung daraus ableiten. Genau die erlaubten NFC-Manifestdeklarationen ergänzt. Keine neue Gerätezeile/Häkchen, Installation oder echter Tagzugriff.
+
+E-005 verwendet den [NFC-Prüfpfad](NFC_MACHBARKEIT.md) unter G98/G78/G80/G81/G85/G84/G86/G1/G99/G101. Vorbereiteter neutraler Tag mit einem MIME-Record ohne Record-ID/private Inhalte; selbst starten und Vorschau ausdrücklich öffnen. Ursprüngliches30Sekundenfenster gilt auch für Vorschau. Pause/Sperre/Wecker verwerfen, Resume startet nichts. Fehlendes/ausgeschaltetes NFC lässt manuelle Ziele. Cache/Nicht-NDEF/ungültige Tags/Mehrfachtipp/gleichzeitiger Wecker und QR-/Notausgang tatsächlich beobachten. Hier keine Freigabe für Geräteinstallation oder Tagvorbereitung/-schreiben. Alle103historischen Gerätezeilen unverändert. E-002–E-005 bleiben getrennt offen.
+
+## T-004: NFC-Prüfpfad vor F-008 (13.11.2026)
+
+Auf sauberem `5b6f893` ausschließlich Code/SDK/Tooling gelesen, keine Gerätebeobachtung. [NFC_MACHBARKEIT.md](NFC_MACHBARKEIT.md) enthält nachgewiesene Voraussetzungen und die geplanten Software-/Gerätefälle. Reader Mode seitAPI19 passt zum unveränderten minSdk26/SDK36; vorhandene Native-Brücke nutzbar. Kein NFC-Lesepfad, Manifestrecht, Tag-Schreibvorgang oder NFC-Gerätezugriff ergänzt. Toolchain vorhanden; tatsächliches Galaxy/NFC-Tag im Cloud-Executor nicht nachgewiesen.
+
+E-005 bleibt offen und führt später zusätzliche NFC-Varianten unter bestehenden Stationen: G98 Bedienung/fehlende Hardware/manueller Rückweg; G78/G80/G81/G85 aktuelle Handlung/Timerpause/Mehrfachtipps; G84/G86 Daten-/Backupgrenze; G1/G99/G101 Wecker-/QR-Vorrang. Erst eigene spätere Freigabe, vorbereiteten neutralen Tag, genaue Geräte-/System-/Buildkennung und echte Beobachtung erfassen. Keine fremden oder produktiven Tags beschreiben. Keine neuen G-IDs, Häkchen oder Verdoppelung der bisherigen Versuche; alle103historischen Gerätezeilen und Ergebniszellen bleiben erhalten. NFC-Softwaretests/Mime-Parser/Mocks sind keine Funk-/Galaxy-Abnahme; Windows/Kalender bleiben getrennt offen.
+
+
+## F-003: Softwareabschluss, Geräteanteile weiterhin offen (13.11.2026)
+
+Auf Basis `2bef19d` dynamischen datierten prepare-Impuls in bestehendem Planer-/Reminder-/Schedulerpfad ergänzt.260/260 Android-JUnit in29Suiten einschließlich8neuer Frist-/Revisions-/Ledger-/Ruhe-/Fokus-/Budgetfälle grün;1255vollständige TS-Tests plus105gezielte Fälle nach letzter Ablehnungsregression und30ausgewählte Browserfälle abgedeckt. Web-/JUnit-/Bridge-Mocks sind keine beobachtete Android-Zustellung. Kein Gerätebuild signiert/installiert und keine Hardwarekontrolle erfolgt; alle103historischen Gerätezeilen bleiben unverändert.
+
+Bei später eigener Gerätefreigabe und eindeutiger Buildzuordnung dieselben Stationen G21/G38/G66–G71 nutzen: offene Vorbereitung länger als10min; ein prepare-Impuls statt leave-10/prep/gleichartigem Morgenstart, tatsächliche Abfahrt bleibt. Danach Schritte/Kurzmodus ändern, App schließen/wieder öffnen, Abfahrt verschieben/absagen oder explizit bestätigen. Kein zweiter verbrauchter Impuls, alte Karte bei Änderung weg, verspätete Zustellung spätestens zur Abfahrt verwerfen und sichtbare Karte per Timeout entfernen. Ruhe/Fokus/Filmfenster und Rang3 unter Abfahrt Rang4 prüfen; Wecker-/Kartenbudget zusätzlich G1/G22/G35–G37. Unbekannte Zeiten zeigen nur vorhandenen allgemeinen Fallback, Homeoffice erfindet keinen Weg. Zustellung/Öffnen schließen nichts ab und vergeben keine Punkte. Android-Doze/Kanal-/Rechteverhalten und tatsächliches Verschwinden müssen real beobachtet werden, Zuverlässigkeit bleibt unbestätigt.
+
+Die folgenden Abschnitte bewahren den damaligen T-004-/T-002-Stand. Dortige Aussagen „F-003 nicht implementiert“ bzw. „blockiert“ gelten für diese Vorstufen, nicht den aktuellen Softwareabschluss. Kein neuer G-Test, Geräte-Häkchen oder Systemeingriff. [Aktueller Projektstatus](PROJECT_STATUS.md), Rohbelege `/workspace/anker-f003-20261113/`.
+
+
+## T-002-Nachbereitung: native Softwareprüfung verfügbar (13.11.2026)
+
+Nach dem unten erhaltenen T-004-Befund ausdrücklich eingerichtet: vollständiges lokales JDK21.0.13, Android-Commandline-Tools23.0, Plattform android-36 Revision2 und Build-Tools35.0.0 (AGP8.13-Default aus offiziellem Artefakt geprüft). Wrapper8.14.3 unverändert. Der frühere Compiler-/SDKblocker ist behoben; er beschreibt im T-004-Abschnitt den Zustand vor dieser Nachbereitung.
+
+Aktivierung: `source /workspace/anker-toolchains/env.sh`; dann im Repository `node scripts/gradle.mjs :app:testDebugUnitTest --no-daemon --console=plain --max-workers=2`. Frischer Lauf: **252/252 JUnit in28Suiten,0Fehler/Skips,196Tasks ausgeführt**, Exit0, einschließlich App-/Testkompilierung. Erst nach belegtem Fehler `npx cap sync android` für fehlende generierte Cordova-Datei ausgeführt; alle getrackten Produkt-/Projektdateien bleiben unverändert. Reproduktionsdaten, Tool-/SDKpfade, offizielle Paketprüfsummen und rohe Berichte im [Kurzstatus](PROJECT_STATUS.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md).
+
+Dies ist ausschließlich eine native **Softwareprüfung**, kein App-Installations-, Weckerton-, Zustellungs-, Windows- oder Kalenderkontonachweis. Alle103 historischen Gerätezeilen samt Ergebniszellen bleiben unverändert; G21/G38/G66–G71 und die unten beschriebenen weiteren Stationen behalten ihre offenen aktuellen Geräteanteile. F-003 ist weiterhin nicht implementiert. Kein Signieren, Release, Gerätinstallieren oder Play-Aufruf durch diese Einrichtung. Bei neuer Umgebung das lokale Aktivierungsskript und Proxyselektoren erneut prüfen; keine globale Toolverfügbarkeit aus dem Git-Bundle ableiten.
+
+## T-004: Prüfvorbereitung für F-003 (13.11.2026)
+
+Dies ist eine Zuordnung künftiger Prüfungen, **kein neuer Gerätebericht**. Ausgangscode `b669856` enthält F-001/F-002 nur lokal. Die folgenden historischen Tabellen und ihre Ergebniszellen bleiben bytegleich; dieselben 103 IDs weiterverwenden. Ein alter Code17-Installationsstand belegt nicht die neuen lokalen Funktionen. Für spätere Beobachtungen App-/PC-Version, vollständigen Quellcommit bzw. Quellfingerprint, genaue Android-/One-UI-/Windows-Version, Einstellungen, Zeitpunkt/Zeitzone und tatsächliche Beobachtung getrennt notieren. Ohne passende Buildzuordnung nur Teilbefund, keine neue Abnahme.
+
+### Vorhandene Stationen statt neuer IDs
+
+| Aufgabe | Bestehende Stationen | Gezielte Beobachtung / offene Grenze |
+|---|---|---|
+| F-003: Vorbereitungsimpuls, Abfahrt und Terminänderung | G21, G38, G66–G69 | Einen bewusst geplanten Weg mit offenen Vorbereitungen wählen; rechtzeitigen Impuls und bestehende leave-10/leave getrennt beobachten. Danach Schritt bestätigen, Kurzmodus wählen, Abfahrt verschieben/absagen bzw. Bin los melden; kein doppelter/alter Hinweis und keine Wiederholung nach Abfahrt. Fehlende Fahrt/Dauer und Homeoffice ohne Weg vergleichen. Ruhe/Fokus sowie begrenzte Kartenplätze einhalten. Kein neuer G-Test erforderlich. |
+| Android-Wecker bleibt eigener Besitzer | G1, G22, G35–G37; G71 bei Langzeitversuch | Hörbarkeit, tatsächliches Klingeln und Weckervorrang separat beobachten; technischer Notify-/Playeraufruf beweist weder Anzeige noch Ton. Für reale Weckversuche unabhängigen Wecker beibehalten. Wochenregeln nach datiertem Vorrat dürfen keine veralteten offenen Schritte nachholen. |
+| Bestehende Snoozes und Neustart | G21, G24–G26, G67–G71 | 5 Min später innerhalb bestehender Frische, Ruhe/Fokus/Neustart und Vorratsende getrennt prüfen; historische Erfolge nicht auf neuen Build umdatieren. Kein minutengenaues Samsung-Zustellversprechen. |
+| Kalender/Einmal-Weckzeit | G35–G39, G94 | Nach eigener Handyfreigabe gewählte Kalender/Quelle, Zeit, ganztägige Berliner Tage und Widerruf vergleichen; Cache aus Anker entfernen bedeutet keine Google-Terminlöschung. Gerätesynchronisierung nicht aus einem lesbaren Cache ableiten. Play-Dienstkonto berechtigt nicht zum privaten Kalender. |
+| Windows-Begleiter | G97, G98, G102, G103 | Zuerst wirkungsfreier Testabend: Kopplung, bestätigter Abgleich, Tray/DPI/LAN und Versionszuordnung. Echte Sperre/Audio/Herunterfahren/WoL nur nach eigener vorhandener Wahl, nicht durch T-004. Windows-CI mit Fake-Effekten beweist keine echte Desktop-/Gerätebedienung. |
+
+Alle neu zu prüfenden Teilbeobachtungen bleiben offen. Historische `ok`/Teilweise-/Problem-Zellen darunter gelten nur für ihren damaligen Build. F-001/F-002 sind automatisch geprüft, nicht am Galaxy/Windows bestätigt; ihr UI-/Bedienvergleich kann im vorhandenen G98-Kontext erfolgen, ohne neue Pflichtstation. Die stummen Schlafhinweise G96/G101 sind eine eigene freiwillige Prüfung und werden nicht durch F-003 ersetzt.
+
+### F-003: Software-Prüfpfad vor Gerätebeobachtung
+
+1. Dieselben Besitzer prüfen: `core/departure.ts`/`morningShort.ts`, `core/reminders/build.ts`, `rules.ts`, `actions.ts`, `platform/notifications.ts` sowie Kotlin `ReminderModel`, `ReminderRules`, `ReminderScheduler`. Keine zweite Reminder-Engine. F-003 ist hier nicht implementiert.
+2. Vorhandene Logikfälle passend ergänzen: `departure.test.ts`, `morningShort.test.ts`, `reminders/build.test.ts`, `policy.test.ts`, `rules.test.ts`, `dates.test.ts`, `deadlineRevision.test.ts`, bei Änderung von Schrittfakten auch Store-/Reminderaktionen (`state/store.test.ts`, `state/morningShort.test.ts`) und `platform/notifications.test.ts`/`effects.test.ts`. Rechenfälle für offene vs. erledigte/entfallene Schritte, Puffer, fehlende Zeiten, Homeoffice, geänderten Tag, Berlin/DST/04:00, passende Revision/Token und alte Aktionen. Die künftigen F-003-Fälle müssen im tatsächlichen Implementierungsauftrag entstehen, nicht hier als neue Testduplikate.
+3. Keine doppelten leave-10-/leave-Karten, keine Zustellung nach Abfahrt/Planwechsel und unveränderter Weckervorrang; datierte Zustandsprojektion von neutralen Wochenbasisregeln unterscheiden. Ein heute offener Schritt ist keine pauschale zukünftige Wochenregel. Slot-/Budget-/Ruhe-/Fokus-/Snooze-Grenzen mit bestehenden Modellfällen erhalten.
+4. Für Native gezielt `ReminderModelTest`, `ReminderRulesTest`, `ReminderSnoozeTest` und bei betroffener Priorität `PcReminderGateTest` nutzen. Signatur, Version oder Veröffentlichung sind dafür nicht erforderlich. Nach verfügbarer Toolchain beispielsweise:
+
+```bash
+cd /workspace/anker
+node scripts/gradle.mjs :app:testDebugUnitTest --tests 'de.frnkrm.anker.ReminderModelTest' --tests 'de.frnkrm.anker.ReminderRulesTest' --tests 'de.frnkrm.anker.ReminderSnoozeTest' --tests 'de.frnkrm.anker.PcReminderGateTest'
+```
+
+Bei Native-/Brückenänderungen zusätzlich ungesignt bzw. Debug `:app:assembleDebug` als Kompiliernachweis und passende vollständige `:app:testDebugUnitTest` vor Abschluss einplanen. Build bedeutet keine Installation. APK nicht ungefragt über die bestehende B4-signierte Nutzerinstallation installieren und keine Deinstallation/Schlüsselneuerzeugung zur Umgehung eines Signaturkonflikts.
+
+5. Webintegration: vorhandene `e2e/departure-readiness.spec.ts`, `morning-short.spec.ts`, `redesign-now.spec.ts` und bei betroffenen Terminquellen `travel-sleep.spec.ts`/`device-calendar.spec.ts`; native Antworten kontrolliert simulieren. `npm run lint`, `npm run typecheck`, `npm run build`; Logik-/Browservollumfang nach tatsächlicher Änderung bündeln. Bestehender lokaler Chromium-Konfigurationsweg bleibt nutzbar, mit eigenem Ausgabeordner und erhaltenen alten Fehlerartefakten. Mock-/Browserlauf ist keine echte Android-Zustellung.
+
+### Konkreter Toolchainbefund und kleinste Nachbereitung
+
+Am 13.11.2026 Linux x86_64: Java-Runtime21.0.13 vorhanden, **kein javac** im PATH oder den vorgefundenen `/usr/lib/jvm/*/bin`-Pfaden; damit kein vollständig nutzbares JDK21. `JAVA_HOME`, `ANDROID_HOME`, `ANDROID_SDK_ROOT`, `GRADLE_USER_HOME` nicht gesetzt. Kein `sdkmanager`, `adb`, Emulator, globales Gradle oder PowerShell im PATH. Kein SDK an den geprüften üblichen Pfaden; keine `android/local.properties`, kein vorgefundener Gradlecache unter den geprüften Standardpfaden. Das beweist fehlende nutzbare Einrichtung, nicht die Abwesenheit jeder denkbaren Datei in anderen Umgebungen.
+
+Projektbindung: SDK min26/compile36/target36, AGP8.13.0, Kotlin2.4.21, Wrapper8.14.3 (`-all`). `gradlew` ausführbar; Wrapper-JAR vollständig lesbar mit Mainklasse. Vorhandene Capacitor-Referenzen, installierte Node-Module und `dist/index.html` sind auffindbar, aber nicht als native Kompilierung gewertet. **Keine globale Gradle-Installation nötig.**
+
+Kleinster nächster Technikauftrag ist eine gezielte **T-002-Nachbereitung: native Android-Prüfumgebung**. Benötigt werden vollständiges JDK21 samt Compiler, offizielle Android-Commandline-Tools, Plattform `platforms;android-36` und die von AGP8.13 tatsächlich verlangten Build-Tools. Das Repository setzt keine `buildToolsVersion`; deren genaue Version bei der Einrichtung aus offizieller AGP-Auflösung bestimmen, nicht vom Nutzer erraten lassen oder willkürlich pinnen. Platform-Tools/adb nur zusätzlich für spätere Geräteanbindung, kein Emulator oder Komplett-Android-Studio für JUnit nötig. SDK-Lizenzen und Netz-/Cachepfade vor Download bzw. Annahme klären. JDK/SDK und Gradlecache bevorzugt in geeigneten beschreibbaren Tool-/Cachepfaden einrichten; keine Projekt-, Plugin- oder Wrapperversionsänderung.
+
+Nach ausdrücklich beauftragter Einrichtung zuerst `javac -version`, `sdkmanager --list_installed` und Wrapperversion prüfen; dann vorhandene gezielte Android-JUnit-Suite, ohne Release, Signierung oder Gerätewirkung. Wrapperaufrufe laden bei fehlendem Cache Gradle und weitere Abhängigkeiten; deshalb in diesem Vorbereitungstask nicht aufgerufen. Nur falls generierte Capacitor-Referenzen tatsächlich fehlen, später kontrolliert synchronisieren und Git-Diff prüfen; hier kein unbegründetes `cap sync`. F-003s native Softwareabnahme ist bis dahin blockiert, T-004s reine Vorbereitung damit abgeschlossen.
+
+Windows-/Kalendergrenzen: Linux ist kein Windows-PC. Python3.12 und teilweise Basispakete sind vorhanden; `zeroconf` und `qrcode` fehlen aktuell, Windows-spezifische `pystray/comtypes/pycaw` sind unter Linux nicht bereit. `pc-companion/requirements.txt` ist die maßgebliche gepinnte Abhängigkeitsliste; nur bei betroffenem späterem Auftrag isoliert installieren. `npm run test:pc` benötigt PowerShell und ist kein echter Sperr-/Shutdownversuch. Kalenderautomatik besitzt `state/calendar.test.ts`, `deviceCalendarChoice.test.ts`, `export/deviceCalendarBackup.test.ts`, `DeviceCalendarModelTest` und `e2e/device-calendar.spec.ts`; im Manifest steht READ_CALENDAR, nicht WRITE_CALENDAR. Daraus folgt keine erteilte Berechtigung oder echte Kontobeobachtung.
+
+Die bestehende `ci.yml` enthält Web-/Toolprüfungen und PC-Jobs für Linux/Windows; **keinen Android-JUnit-/App-Kompilierungsjob**. „Android-Updateprüfung“ ist ein Python-Werkzeugtest. Grün in diesen Jobs ersetzt daher keinen Native-Nachweis. Keine CI-Änderung, kein neuer Runnerlauf und keine Gerätewirkung durch T-004.
+
+
+## Historische Geräteberichte und bestehende Stationen
+
 **Code17 / 1.5.0-rc.3 und PC0.1.1 in Vorbereitung, 10.11.2026:** Neue gemeinsame Prüfungen in G94 und G97–G103 sowie erhaltenes Verschieben in G21/G67 und freiwillige leise Schlaf-Folgehinweise in G96/G101, weiterhin dieselben 103 IDs und sieben v7-Stationen. Kalenderfreigabe, PC-Verwaltung, Update und Relay sind eigene freiwillige Versuche; nichts davon ist durch Softwaretests am Gerät bestätigt. **Historischer Code16-Prüfumfang:** G1 ergänzt Weckerverlauf und selektiven Diagnoseexport, G96/G101 den freiwilligen Vergleich mit Samsung-Spiel-Touchschutz. Es bleiben 103 IDs, sechs kurze Updateprüfungen und sieben v7-Stationen. Alte Ergebniszellen belegen ausschließlich ihren damaligen Stand; neue Code16-Gerätebeobachtungen sind offen. Das Journal beginnt erst nach diesem Update, höchstens sieben Tage/800 Ereignisse. Für den früher betroffenen Morgen ist keine nachträgliche Tonbestätigung möglich. Ein technischer Playerstart bestätigt weder Hörbarkeit noch Aufwachen.
 
 **v7-Arbeitsstand, 09.11.2026:** Unter **Gemeinsam testen → v7 gemeinsam ausprobieren · 7 Stationen** bilden G97–G103 eine gemeinsame Handy-/PC-Runde. Die sechs kurzen bisherigen Updateprüfungen bleiben der Standard. Neue Ergebnisse sind offen; alte Berichte und IDs bleiben unverändert. [Setup und gemeinsamer Prüfweg](PC_BEGLEITER.md).

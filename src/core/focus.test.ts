@@ -5,6 +5,31 @@ const now = Date.parse('2026-11-06T10:00:00+01:00')
 const config = { pulse: 'gentle' as const, everyMin: 2 as const, halfway: true, lastMinute: true }
 
 describe('Persistente Fokuszeit', () => {
+  it('validiert das optionale lokale Überzugfeld und erhält alte Timer ohne Feld', () => {
+    const timer = pauseCountdown(createCountdown(120, now), now + 180_000)
+    expect(validCountdown(timer)).toBe(true)
+    for (const overrunMs of [-1, NaN, Infinity, 0.1, 'privat']) expect(validCountdown({ ...timer, overrunMs })).toBe(false)
+    expect(validCountdown({ ...timer, overrunMs: undefined })).toBe(true)
+    const resumed = resumeCountdown(timer, now + 3600_000)
+    expect(pulseMark(resumed, config, now + 3600_000, 0)).toBeUndefined()
+    expect(createCountdown(120, now + 3600_000)).not.toHaveProperty('overrunMs')
+  })
+  it('erhält Überzug durch Pause, Reload und Weiter ohne die Pause als Timerzeit mitzuzählen', () => {
+    const running = createCountdown(120, now)
+    const paused = pauseCountdown(running, now + 180_450)
+    expect(elapsedMs(paused, now + 3 * 86_400_000)).toBe(180_450)
+    const resumed = resumeCountdown(JSON.parse(JSON.stringify(paused)), now + 3 * 86_400_000)
+    expect(elapsedMs(resumed, now + 3 * 86_400_000 + 30_550)).toBe(211_000)
+    expect(remainingMs(resumed, now + 3 * 86_400_000 + 30_550)).toBe(0)
+    const again = pauseCountdown(resumed, now + 3 * 86_400_000 + 30_550)
+    expect(elapsedMs(again, now + 4 * 86_400_000)).toBe(211_000)
+    expect(pauseCountdown(again, now + 5 * 86_400_000)).toBe(again)
+  })
+  it.each(['2026-03-29T01:55:00+01:00', '2026-10-25T02:55:00+02:00'])('zählt physische Timerzeit über Berliner Zeitwechsel und keine Pause (%s)', start => {
+    const at = Date.parse(start), timer = createCountdown(120, at)
+    const paused = pauseCountdown(timer, at + 300_000)
+    expect(elapsedMs(paused, at + 7200_000)).toBe(300_000)
+  })
   it('berechnet nach Reload oder langer Hintergrundzeit aus derselben Deadline', () => {
     const timer = createCountdown(600, now)
     const restored = JSON.parse(JSON.stringify(timer))

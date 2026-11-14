@@ -1,5 +1,10 @@
 # Struktur des Repositorys
 
+## Planung ab 13.11.2026
+
+Ist-Code bleibt in den unten beschriebenen bestehenden Besitzern. Die aktuelle ID-Roadmap steht ausschließlich in [OFFENE_ENTWICKLUNGEN.md](OFFENE_ENTWICKLUNGEN.md), der knappe Übergabestand mit Umgebungsbefund in [PROJECT_STATUS.md](PROJECT_STATUS.md), drei Fallvorlagen in [PROMPT_TEMPLATES.md](PROMPT_TEMPLATES.md). Anforderungen und Abnahmen bleiben unverändert in `ANKER_PLAN.txt`. Neue Architektur ist nicht implementiert oder freigegeben; keine zweite Planungs-/Reminder-/Store-Engine.
+
+
 Wo liegt was, und wo änderst du was? Die Bedienung der App steht in [ANLEITUNG.md](ANLEITUNG.md), die Einrichtung der Dienste im [README](../README.md).
 
 **v7: Abend, Morgen und PC-Begleiter.** Es gibt weiterhin einen Tagesplaner, eine Store-Schreibqueue und den bestehenden Android-Weckerbesitzer. Die neue Zustandsprojektion und PC-Ausführung werden daran angeschlossen. Implementierung, automatische Tests und echte Android-/Windows-Beobachtungen stehen getrennt im [Implementierungsplan](ANKER_IMPLEMENTIERUNGSPLAN.md) und den [Testnachweisen](ANKER_TESTNACHWEISE.md).
@@ -76,6 +81,8 @@ Reine Funktionen ohne Seiteneffekte. Hier liegen auch die meisten Tests.
 | `types.ts` | Alle Datentypen (`Settings`, `DayLog`, `DayPlan` …) |
 | `defaults.ts` | Standardwerte und Zeitvorschlag, rückwärts vom Arbeitsbeginn |
 | `now.ts` | Was der Tagesplan gerade vorsieht |
+| `departure.ts` | Reine F-001-Projektion vorhandener Abfahrten/offener Vorbereitung; keine Planung oder Persistenz. Anzeige in `ui/components/DepartureReadiness.tsx` |
+| `morningShort.ts` | Reine F-002-Vorschau aus F-001 und vorhandenen Varianten; UI `MorningShortOffer`, atomare Annahme über Tagesplanaktion in `state/store.ts`, optional `DayOverride.shortMorning` |
 | `support.ts` | `nextAction()`: wählt genau eine Handlung (Plan, Arbeit, Aufgaben, Wiedereinstieg), Modi, Fokus-Puls, „Tag neu sortieren“ |
 | `guidance/` | Benannte Abend-/Morgenphasen aus vorhandenem Plan und echten Tatsachen; Einstellungen, Kernschritte und Validierung |
 | `pcLink/` | v3-Typen, Briefing-/Statusprüfung, Ereignisregeln und gemeinsame Krypto-Fixtures; kein zweiter Planer |

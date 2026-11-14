@@ -1,17 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { elapsedMs, focusTargetKey, pauseCountdown, remainingMs, resumeCountdown, type FocusTarget } from '../../core/focus'
-import { guidancePlanDate, guidancePreferences } from '../../core/guidance'
-import { MorningBrainDump } from '../components/GuidanceControls'
+import { deriveGuidance, guidancePlanDate, guidancePreferences } from '../../core/guidance'
+import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
+import { GuidanceNightPage, MorningBrainDump } from '../components/GuidanceControls'
+import { BedtimeSessionProvider } from '../components/BedtimeSession'
 import { nextHardTime } from '../../core/planner'
 import { openSteps } from '../../core/now'
 import { MODE_LABEL } from '../../core/support'
-import { fmtTime, minutesOnPlanDay } from '../../core/time'
+import { minutesOnPlanDay } from '../../core/time'
 import type { FocusPulseMode, ResumePoint, RoutineId } from '../../core/types'
-import { usePlan, useToday } from '../../state/hooks'
+import { nextNow, usePlan, useToday } from '../../state/hooks'
+import { nowActionTitle } from '../components/nowTitle'
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
+import { FocusTiming } from '../components/FocusTiming'
+import { countdownLabel } from '../components/fieldValues'
 import { emptyLog, useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
+import { FocusCompanion } from '../components/FocusCompanion'
 import { TodayDifferent } from '../components/TodayDifferent'
 import { Button, Choice, RingTimer, Sheet, TextInput } from '../components/ui'
 
@@ -48,7 +54,8 @@ export default function Focus() {
   const session = target && stored && focusTargetKey(stored.target) === focusTargetKey(target) ? stored : undefined
   const cur = minimalMode && step?.minimal ? step.minimal : step
   const seconds = (cur?.minutes ?? 0) * 60
-  const now = useFocusClock(session?.timer)
+  const focusClock = useFocusClock(session?.timer)
+  const now = session?.timer.status === 'running' ? focusClock : base.now
   useFocusPulse(guidance.enabled && (guidance.paceKeeper || guidance.speakSteps) ? undefined : session, now)
   const m = minutesOnPlanDay(date, now)
   const [error, setError] = useState('')
@@ -89,18 +96,20 @@ export default function Focus() {
   const mode = log.override.mode
 
   if (!step) {
+    const view = deriveGuidance({ plan, log, local: st.local, settings: st.settings, nowMs: now })
+    if (guidanceNightVisible(view, guidance)) return <BedtimeSessionProvider><GuidanceNightPage view={view} /></BedtimeSessionProvider>
     const reallyCompleted = steps.length > 0 && steps.every((item) => ['done', 'minimal'].includes(log.steps[`${r}:${item.id}`] ?? ''))
+    const next = nextNow(st, now).action
+    const hint = transitionHint(next, plan, st.settings)
     return (
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center px-6 text-center safe-top">
-        <h1 className="text-4xl font-semibold">{reallyCompleted ? r === 'morning' ? 'Morgenroutine fertig' : 'Abendroutine fertig' : 'Für heute nichts mehr offen'}</h1>
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center px-4 text-center safe-top sm:px-6">
+        <h1 className="max-w-full break-words text-2xl font-semibold sm:text-4xl">{reallyCompleted ? r === 'morning' ? 'Morgenroutine fertig' : 'Abendroutine fertig' : 'Für heute nichts mehr offen'}</h1>
         {!reallyCompleted && <p className="mt-3 text-muted">Deine Auswahl bleibt erhalten. Übersprungen oder heute nicht nötig wird nicht als erledigt gespeichert.</p>}
-        <p className="mt-3 text-xl text-muted">
-          {r === 'morning'
-            ? plan.leave !== undefined ? `Losgehen um ${fmtTime(plan.leave)}.` : 'Genieß den Tag.'
-            : plan.openEnd ? 'Für heute ist hier nichts mehr offen.'
-              : m >= plan.bed ? 'Jetzt ist Zeit fürs Bett.'
-                : m >= plan.pcStop ? `Zeit zum Runterkommen. Bett um ${fmtTime(plan.bed)}.` : `Jetzt Freizeit bis ${fmtTime(plan.pcStop)}.`}
-        </p>
+        <section aria-label="Nächster Übergang" className="mt-4 w-full min-w-0 space-y-2 break-words">
+          <p className="text-sm text-muted">Als Nächstes</p>
+          <h2 className="text-xl font-semibold">{nowActionTitle(next, plan, m)}</h2>
+          {hint && <p className="text-muted">{hint}</p>}
+        </section>
         {r === 'morning' && guidance.enabled && <div className="mt-5 w-full"><MorningBrainDump /></div>}
         <Button variant="primary" size="xl" className="mt-10 w-full" onClick={() => nav('/')}>Weiter</Button>
         <Link to={`/druck?typ=${r}`} className="mt-3 flex min-h-11 items-center text-muted">{r === 'morning' ? 'Morgenroutine drucken' : 'Abendroutine drucken'}</Link>
@@ -121,6 +130,7 @@ export default function Focus() {
   const pauseOrContinue = () => session && run(async () => { if (guidance.enabled) await st.recordGuidanceInteraction(date); await st.updateFocus(session.id, current => ({ ...current, timer: current.timer.status === 'running' ? pauseCountdown(current.timer, Date.now()) : resumeCountdown(current.timer, Date.now()) })) })
   return <>
     <FocusFrame back="/" context={<>Schritt {index + 1} von {steps.length}{log.override.zombie && <span className="block">Zombie-Modus · deine Kernschritte</span>}{mode && mode !== 'normal' && <span className="block">{MODE_LABEL[mode]}</span>}</>} capture={captureContext} progress={index / steps.length}
+      companion={target ? <FocusCompanion target={target} now={now} /> : undefined}
       footer={<>
         <Button variant="primary" size="xl" className="w-full" disabled={busy} onClick={() => { if (session) void done(minimalMode ? 'minimal' : 'done'); else setError('Die Fokuszeit wird noch vorbereitet. Versuche es gleich noch einmal.') }}>Erledigt</Button>
         <div className="grid grid-cols-2 gap-2">
@@ -129,6 +139,7 @@ export default function Focus() {
         </div>
       </>}
       details={<details className="min-w-0 space-y-3"><summary className="min-h-11 py-2 text-muted">Weitere Möglichkeiten</summary>
+        <FocusTiming timer={timer} now={now} estimateMin={cur?.minutes} windowMinutes={seconds / 60} />
         <Choice<FocusPulseMode> label="Fokus-Puls" value={st.settings.focus.pulse} options={(['off', 'gentle', 'strong'] as const).map(value => ({ value, label: PULSE_LABEL[value] }))} onChange={pulse => void run(() => st.saveSettings(settings => ({ ...settings, focus: { ...settings.focus, pulse } })))} />
         {step.minimal && !minimalMode && <Button size="lg" className="w-full" disabled={busy} onClick={() => void run(() => st.ensureFocus({ kind: 'routine', date, routine: r, stepId: step.id, minimal: true }, step.minimal!.minutes * 60))}>Kleinere Version</Button>}
         <Button variant="ghost" size="lg" className="w-full" disabled={busy} onClick={() => void done('skipped')}>Überspringen</Button>
@@ -140,7 +151,7 @@ export default function Focus() {
       {error && <div role="alert" className="text-warm"><p>{error}</p><Button size="sm" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</Button></div>}
       <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{title}</h1>
       <RingTimer remainingSec={left} totalSec={seconds} paused={timer?.status === 'paused'} pulse={st.settings.focus.pulse} label="Restzeit der Routine" depletionColors={guidance.enabled && guidance.depletionColors} />
-      {timer && <p className="text-sm text-muted">{Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen{timer.status === 'running' && ` · bis ${new Date(timer.deadlineAt).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })}`}</p>}
+      {timer && <p className="text-sm text-muted">Timerzeit {countdownLabel(Math.floor(elapsedMs(timer, now) / 1000))} ohne Pause{timer.status === 'paused' ? ' · pausiert' : ''}</p>}
       {timer && left === 0 && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wann du abschließt.</p>}
     </FocusFrame>
     <TodayDifferent open={different} onClose={() => setDifferent(false)} onApplied={() => nav('/')} date={date} m={m} action={{ type: 'step', title, routine: r, step, index, total: steps.length }} />

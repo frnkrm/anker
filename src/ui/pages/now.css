@@ -13,6 +13,7 @@
 .now-buttons>div{min-width:0;}
 .now-buttons>div>button{min-width:0;white-space:normal;overflow-wrap:anywhere;font-size:.95rem;padding-inline:.65rem;}
 .now-after{font-size:.8rem;line-height:1.4;color:var(--muted);overflow-wrap:anywhere;}
+.now-departure{min-width:0;border:1px solid var(--line);border-radius:1rem;padding:.6rem .75rem;font-size:.8rem;line-height:1.45;overflow-wrap:anywhere;color:var(--muted);}
 .now-adjust{display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;border:1px solid var(--line);border-radius:1rem;color:var(--muted);}
 .now-conflict{border-left:3px solid var(--warm);padding:.6rem .75rem;font-size:.85rem;line-height:1.4;}
 .now-conflict-actions{display:flex;gap:.75rem;align-items:center;}

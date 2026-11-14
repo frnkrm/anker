@@ -120,6 +120,9 @@ test('Arbeitsunterbrechung findet nach drei Tagen denselben nächsten Schritt, T
   await expect(page.getByRole('heading', { name: 'Tabelle öffnen', exact: true })).toBeVisible()
   await expect(page.getByText('Für den Wiedereinstieg: Die zweite Zeile ansehen', { exact: true })).toBeVisible()
   await expect(page.getByRole('timer')).toHaveText('20:00')
+  expect((await local(page))!.focus).toEqual(paused)
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
+  await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
   const resumed = (await local(page))!.focus!
   expect(resumed.id).toBe(initial.id)
   expect(resumed.target).toEqual(initial.target)

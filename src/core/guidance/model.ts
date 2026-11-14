@@ -22,7 +22,7 @@ export interface GuidanceInput {
 }
 
 /** An actual early alarm may activate the next morning before the ordinary 04:00 rollover. */
-export function guidancePlanDate(local: LocalData, activeDate: DateStr, nowMs: number): DateStr {
+export function guidancePlanDate(local: Pick<LocalData, 'guidance'>, activeDate: DateStr, nowMs: number): DateStr {
   const wallDate = todayBerlin(nowMs)
   if (wallDate !== activeDate && wallDate !== addDays(activeDate, 1)) return activeDate
   const day = local.guidance?.days[wallDate]

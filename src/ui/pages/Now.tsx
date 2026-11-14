@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
 import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
-import { resumeRoute, usableResume } from '../../core/recovery'
-import { resolveTask, taskIsOpen, taskNextStep, taskTitle } from '../../core/tasks'
+import { recoveryPreview, resumeRoute } from '../../core/recovery'
+import { guidancePlanDate } from '../../core/guidance/model'
+import { activePlanDate } from '../../core/now'
+import { taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
-import { currentMode, isBehind, MODE_HINT, MODE_LABEL, nextAction, rescueItems, suggestedMode, workTasksQuiet, type NextAction } from '../../core/support'
-import { addDays, fmtDuration, fmtTime, utcToZoned, weekday } from '../../core/time'
+import { currentMode, isBehind, MODE_HINT, MODE_LABEL, rescueItems, suggestedMode, supportContextKey, workTasksQuiet, type NextAction } from '../../core/support'
+import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
+import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, todayBerlin, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
 import { plural } from '../../core/uiText'
 import { nowConflictNotice } from '../../core/planConflicts'
@@ -16,8 +19,10 @@ import { GuidanceHomeExtras, GuidanceNightPage } from '../components/GuidanceCon
 import { GuidanceTimeArc } from '../components/GuidanceTimeArc'
 import { nowActionTitle } from '../components/nowTitle'
 import type { DayType, EveningPlan, PlannedStep, ResumePoint, SupportMode } from '../../core/types'
-import { useToday } from '../../state/hooks'
-import { useApp } from '../../state/store'
+import { nextNow, useToday } from '../../state/hooks'
+import { emptyLog, planFor, today, useApp } from '../../state/store'
+import { useFocusClock } from '../../state/useFocusClock'
+import { countdownLabel } from '../components/fieldValues'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
 import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferent'
@@ -29,6 +34,8 @@ import { InboxSheet } from '../components/Shell'
 import { BedtimePrompt } from '../components/BedtimePrompt'
 import { BedtimeSessionProvider } from '../components/BedtimeSession'
 import { BedtimeFollowUpCard } from '../components/BedtimeFollowUpCard'
+import { DepartureReadiness } from '../components/DepartureReadiness'
+import { MorningShortOffer } from '../components/MorningShortOffer'
 import './now.css'
 
 const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei', vacation: 'Urlaub', sick: 'Krank' }
@@ -37,9 +44,13 @@ const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei'
 export default function Now() { return <BedtimeSessionProvider><NowContent /></BedtimeSessionProvider> }
 
 function NowContent() {
-  const { date, plan, log, m, now } = useToday()
+  const { now } = useToday(1000)
   const st = useApp()
   const guidance = useGuidanceView()
+  const date = guidancePlanDate(st.local, activePlanDate(now, todayBerlin), now)
+  const plan = planFor(date, st)
+  const log = st.days[date] ?? emptyLog(date)
+  const m = minutesOnPlanDay(date, now)
   const guidanceOptions = guidancePreferences(st.settings.guidance)
   const [adjust, setAdjust] = useState(false)
   const [stuck, setStuck] = useState(false)
@@ -54,8 +65,9 @@ function NowContent() {
   const [capture, setCapture] = useState(false)
   const [captureContext, setCaptureContext] = useState<ResumePoint>()
   const input = { plan, log, m, nowMs: now, settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume, sessions: st.local.workSessions, context: st.local.taskContext }
-  const v = nextAction(input)
+  const v = nextNow(st, now)
   const a = v.action
+  const hint = transitionHint(a, plan, st.settings)
   const mode = currentMode(log)
   const suggestion = suggestedMode(st.settings, log, m)
   const behind = isBehind(plan, log, m)
@@ -76,8 +88,7 @@ function NowContent() {
   const openDifferent = (view: typeof differentView = 'menu') => { setDifferentView(view); setDifferent(true); setAdjust(false) }
   const primaryLabelMinutes = v.estimatedMin
   const timeArc = guidanceOptions.enabled && guidanceOptions.timeArc && !!v.hard && ['pc-stop', 'bed', 'leave'].includes(v.hard.key) && v.hard.at - m > 0 && v.hard.at - m <= 60
-  if (guidanceOptions.enabled && (guidance.phase === 'NIGHT_LOCK' && (guidanceOptions.bedtimeQr || guidanceOptions.pcLock)
-    || guidance.phase === 'BEDTIME_HARD_CUT' && (guidanceOptions.eveningEscalation || guidanceOptions.bedtimeQr || guidanceOptions.pcLock))) return <GuidanceNightPage view={guidance} />
+  if (guidanceNightVisible(guidance, guidanceOptions)) return <GuidanceNightPage view={guidance} />
 
   return <div className="now-page" data-testid="now-page">
     {!bedtime && <>
@@ -92,7 +103,7 @@ function NowContent() {
     {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
 
     <section aria-live="polite" className="now-action">
-      {!bedtime && a.sub && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{a.sub} ›</Link> : <p className="now-context">{a.sub}</p>)}
+      {!bedtime && hint && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{hint} ›</Link> : <p className="now-context">{hint}</p>)}
       <h1 className="now-title">{nowActionTitle(a, plan, m)}</h1>
       {!bedtime && reason && <p className="now-reason">{reason}</p>}
       <div className="now-buttons">
@@ -101,6 +112,9 @@ function NowContent() {
       </div>
       {!bedtime && after && <p className="now-after" aria-label="Danach">Danach: {after}</p>}
     </section>
+
+    {!bedtime && <DepartureReadiness plan={plan} log={log} now={now} />}
+    {!bedtime && <MorningShortOffer plan={plan} log={log} now={now} />}
 
     {!bedtime && readyToReview > 0 && m >= 14 * 60 && <Link to="/abend" className="flex min-h-11 items-center text-sm text-muted">Geparkt · {readyToReview} zum Ansehen ›</Link>}
     {!bedtime && conflict.active.slice(0, 1).map((item) => <aside key={item.id} className="now-conflict" aria-label="Überschneidung prüfen"><p>{item.summary}</p><div className="now-conflict-actions"><Link to="/tag" className="underline">Ansehen</Link><button type="button" onClick={() => void st.acknowledgePlanConflict(date, item.id).catch(() => st.showToast('Der Hinweis konnte noch nicht bestätigt werden. Versuche es erneut.'))}>Passt so</button></div></aside>)}
@@ -173,34 +187,44 @@ function stepLink(step: PlannedStep): { to: string; label: string } | undefined 
   return undefined
 }
 
+function currentRecovery(st: ReturnType<typeof useApp.getState>, now: number, selected?: ResumePoint) {
+  const plan = planFor(guidancePlanDate(st.local, today(), now), st)
+  const target = st.local.focus?.target
+  const matches = !selected || (target?.kind === 'routine'
+    ? selected.kind === 'step' && selected.refId === target.stepId
+    : target?.kind === selected.kind && target?.id === selected.refId && target?.partId === selected.partId)
+  const local = selected && !matches ? { ...st.local, focus: undefined } : st.local
+  return recoveryPreview({ plan, log: st.days[plan.date], local, inbox: st.inbox, work: st.local.work, nowMs: now,
+    workQuiet: workTasksQuiet({ plan, settings: st.settings, sessions: st.local.workSessions, m: minutesOnPlanDay(plan.date, now), nowMs: now }) })
+}
+
+function sameRecovery(a: ResumePoint, b: ResumePoint) {
+  return a.kind === b.kind && a.refId === b.refId && a.partId === b.partId && resumeRoute(a) === resumeRoute(b)
+}
+
 export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }: { open: boolean; onClose: () => void; onSmall: () => void; onCapture: (context?: ResumePoint) => void; onDifferent: () => void }) {
   const st = useApp()
   const nav = useNavigate()
-  const { plan, m } = useToday()
-  let point: ResumePoint | undefined = usableResume(st.local.resume, st.inbox, st.local.work)
-  const focus = st.local.focus
-  if (focus?.target.kind === 'routine') {
-    const target = focus.target
-    const step = st.settings.routines[target.routine].find((item) => item.id === target.stepId)
-    if (step && !st.days[target.date]?.steps[`${target.routine}:${target.stepId}`]) point = { kind: 'step', title: step.title, refId: step.id, route: `/fokus/${target.routine}`, at: focus.timer.startedAt }
-  } else if (focus) {
-    const target = focus.target
-    const task = resolveTask(target, st.inbox, st.local.work)
-    const part = target.partId ? task?.subtasks?.find((item) => item.id === target.partId && item.doneAt === undefined) : undefined
-    if (task && taskIsOpen(task) && (!target.partId || part)) point = { kind: target.kind, refId: target.id, ...(part ? { partId: part.id } : {}), title: taskTitle(task), nextStep: part?.title ?? taskNextStep(task, taskTitle(task)), at: focus.timer.startedAt, note: task.resumeNote ?? (point?.kind === target.kind && point.refId === target.id ? point.note : undefined) }
-  }
-  if (point?.kind === 'work' && st.settings.support.workAfterHoursQuiet && !st.local.workSessions.some((session) => session.endAt === undefined)
-    && (plan.workEnd === undefined || m >= plan.workEnd || plan.workInfo?.closed)) point = undefined
-  const current = point
+  const { now } = useToday()
+  const clock = useFocusClock(st.local.focus?.timer, open)
+  const preview = currentRecovery(st, st.local.focus?.timer.status === 'running' ? clock : now)
+  const current = preview?.point
   return <Sheet open={open} onClose={onClose} title={current ? 'Hier warst du' : 'Ab hier geht es weiter'}>
-    <p className="mb-3 text-xl font-semibold">{current?.nextStep || current?.title || 'Ein kleiner Einstieg reicht.'}</p>
-    {current?.note && <p className="mb-3 whitespace-pre-wrap text-muted">{current.note}</p>}
+    <section aria-label="Wiedereinstieg" className="mb-3 min-w-0 space-y-2 break-words">
+      {current?.nextStep && current.nextStep !== current.title && <p className="text-sm text-muted">{current.title}</p>}
+      <h2 className="text-xl font-semibold">{current?.nextStep || current?.title || 'Ein kleiner Einstieg reicht.'}</h2>
+      {preview && <p className="text-sm text-muted">{preview.timer === 'none' ? 'Kein gespeichertes Zeitfenster' : preview.timer === 'expired' ? 'Zeitfenster beendet'
+        : `${preview.timer === 'paused' ? 'Pausiert' : 'Läuft'} · noch ${countdownLabel(Math.ceil(preview.remainingMs! / 1000))} im Zeitfenster`}</p>}
+      {current?.note && <p className="whitespace-pre-wrap">{current.note}</p>}
+      {current && <p className="text-xs text-muted">Du setzt einen pausierten Timer im Fokus selbst fort.</p>}
+    </section>
     <div className="space-y-2">
       <Button variant="primary" size="lg" className="w-full" onClick={async () => {
         try {
           if (!current) { onSmall(); return }
-          if ((current.kind === 'task' || current.kind === 'work') && current.refId) await st.startTaskFocus({ kind: current.kind, id: current.refId }, undefined, current.partId)
-          const route = resumeRoute(current)
+          const fresh = currentRecovery(useApp.getState(), Date.now())?.point
+          if (!fresh || !sameRecovery(current, fresh)) { st.showToast('Der gemerkte Schritt hat sich geändert. Prüfe den aktuellen Wiedereinstieg.'); return }
+          const route = resumeRoute(fresh)
           onClose()
           if (route) nav(route)
           else onSmall()
@@ -214,6 +238,7 @@ export function RecoverySheet({ open, onClose, onSmall, onCapture, onDifferent }
 
 function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonger, onStuck, onInterrupted }: { action: NextAction; date: string; m: number; mode: SupportMode; estimatedMin?: number; onLate: () => void; onLonger: () => void; onStuck: () => void; onInterrupted: () => void }) {
   const st = useApp()
+  const smallerHelp = st.local.stuck?.contextKey === supportContextKey(a, date, st.local.focus?.target) && st.local.stuck.level > 0
   const nav = useNavigate()
   const partFor = (kind: 'task' | 'work', id: string) => {
     const target = st.local.focus?.target
@@ -248,7 +273,7 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
         <>
           {mode === 'startschwierigkeit' ? (
             <Button variant="primary" size="xl" className="w-full" onClick={onStuck}>
-              2 Minuten anfangen
+              {smallerHelp ? 'Klein anfangen' : '2 Minuten anfangen'}
             </Button>
           ) : (
             <Button variant="primary" size="xl" className="w-full" onClick={() => st.setStep(date, a.routine, a.step.id, a.step.useMinimal ? 'minimal' : 'done')}>
@@ -301,8 +326,9 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       return (
         <>
           <Button variant="primary" size="xl" className="w-full" onClick={async () => {
-            if ((a.resume.kind === 'work' || a.resume.kind === 'task') && a.resume.refId) await st.startTaskFocus({ kind: a.resume.kind, id: a.resume.refId }, undefined, a.resume.partId)
-            const route = resumeRoute(a.resume)
+            const fresh = currentRecovery(useApp.getState(), Date.now(), a.resume)?.point
+            if (!fresh || !sameRecovery(a.resume, fresh)) { st.showToast('Der gemerkte Schritt hat sich geändert. Prüfe den aktuellen Wiedereinstieg.'); return }
+            const route = resumeRoute(fresh)
             if (route) nav(route)
             else onStuck()
           }}>
@@ -463,9 +489,12 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       return <Button size="lg" className="w-full" onClick={onLate}>Abendzeit ändern</Button>
     case 'pcoff':
       return (
-        <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'pcOffAt')}>
-          PC ist aus
-        </Button>
+        <>
+          <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'pcOffAt')}>
+            PC ist aus
+          </Button>
+          <Button size="lg" className="w-full" onClick={onLate}>Abendzeit ändern</Button>
+        </>
       )
     case 'bed':
       return (

@@ -7,7 +7,10 @@ import type { FocusPulseMode, InboxItem, ResumePoint, TaskRef, WorkTask } from '
 import { useFocusClock, useFocusPulse } from '../../state/useFocusClock'
 import { useApp } from '../../state/store'
 import { FocusFrame } from '../components/FocusFrame'
+import { FocusCompanion } from '../components/FocusCompanion'
 import { TaskPurpose } from '../components/TaskPurpose'
+import { FocusTiming } from '../components/FocusTiming'
+import { countdownLabel } from '../components/fieldValues'
 import { Button, Checkbox, Choice, DurationPicker, RingTimer, Section, Sheet, TextInput } from '../components/ui'
 
 const clockTime = (at: number) => new Date(at).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })
@@ -67,6 +70,8 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const left = timer ? remainingMs(timer, now) : undefined
   const expired = left === 0
   const paused = timer?.status === 'paused'
+  const confirmed = task.doneAt === undefined ? undefined : st.local.taskLearning?.samples.find(sample =>
+    sample.confirmed && sample.id === `${reference.kind}:${reference.id}:${task.doneAt}`)?.minutes
 
   const run = async (action: () => Promise<void>) => {
     if (pending.current) return
@@ -114,6 +119,7 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
   const finish = () => partId ? completePart() : complete()
   return <>
     <FocusFrame back={back} context={<>{reference.kind === 'work' ? 'Arbeitsaufgabe' : 'Deine Aufgabe'} · {taskStateLabel(task)}</>} capture={open && !unavailablePart ? context : undefined}
+      companion={open && !unavailablePart ? <FocusCompanion target={target} now={now} /> : undefined}
       footer={open && !unavailablePart ? <>
         {(!timer || expired) ? <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void start()}>{expired ? 'Neues Zeitfenster starten' : 'Fokus starten'} · {String(duration).replace('.', ',')} min</Button>
           : <Button disabled={busy} variant="primary" size="xl" className="w-full" onClick={() => void (paused ? continueFocus() : run(() => st.pauseTaskFocus(reference, undefined, undefined, partId)))}>{paused ? 'Weiter' : 'Pause'}</Button>}
@@ -123,6 +129,8 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
         </div>
       </> : undefined}
       details={open && !unavailablePart ? <details className="min-w-0 space-y-3"><summary className="min-h-11 py-2 text-muted">Details & Abschluss</summary>
+        <FocusTiming timer={timer} now={now} estimateMin={partId ? part?.estimateMin : task.estimateMin}
+          windowMinutes={duration} showConfirmation={!partId} />
         <TaskPurpose taskRef={reference} task={task} />
         <Choice<FocusPulseMode> label="Fokus-Puls" value={st.settings.focus.pulse} options={[{ value: 'off', label: 'Aus' }, { value: 'gentle', label: 'Sanft' }, { value: 'strong', label: 'Deutlich' }]} onChange={pulse => void run(() => st.saveSettings(settings => ({ ...settings, focus: { ...settings.focus, pulse } })))} />
         {task.description && <p className="whitespace-pre-wrap break-words text-muted">{task.description}</p>}
@@ -141,13 +149,14 @@ function TaskFocusBody({ reference, task }: { reference: TaskRef; task: InboxIte
       {part && !unavailablePart && <p className="text-sm text-muted">Teilschritt</p>}
       <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{unavailablePart && open ? 'Teilschritt nicht verfügbar' : open ? nextStep : title}</h1>
       {open && resumeNote && <p className="whitespace-pre-wrap break-words text-sm text-muted">Für den Wiedereinstieg: {resumeNote}</p>}
+      {!open && !unavailablePart && <FocusTiming now={now} estimateMin={task.estimateMin} confirmedMin={confirmed} showConfirmation />}
       {!open ? <div className="space-y-3"><p className="text-xl text-accent">{taskStateLabel(task)}</p>
         <Button disabled={busy} variant="primary" onClick={() => void run(() => task.done ? st.completeTask(reference, false) : st.setTaskState(reference, 'pending'))}>{task.done ? 'Erledigung zurücknehmen' : 'Aufgabe wieder öffnen'}</Button>
         <Link to={back} className="flex min-h-12 items-center justify-center text-accent">Zur Aufgabenliste</Link>
       </div> : unavailablePart ? <div className="space-y-3"><p className="text-muted">{part?.doneAt !== undefined ? 'Dieser Teilschritt ist bereits erledigt.' : 'Dieser Teilschritt ist nicht mehr in der Aufgabe.'} Wähle einen offenen Schritt oder die gesamte Aufgabe.</p>{targetChoice}<p className="text-sm text-muted">Hier startet kein Timer von selbst.</p></div> : <>
         {timer && <>
           <RingTimer remainingSec={Math.ceil((left ?? 0) / 1000)} totalSec={timer.durationMs / 1000} paused={paused} pulse={st.settings.focus.pulse} label="Restzeit im Fokus" depletionColors={guidancePreferences(st.settings.guidance).enabled && guidancePreferences(st.settings.guidance).depletionColors} />
-          <p className="text-sm text-muted">{paused ? 'Pausiert' : `Bis ${clockTime(timer.deadlineAt)}`} · {Math.floor(elapsedMs(timer, now) / 60_000)} min vergangen</p>
+          <p data-testid="focus-elapsed" className="text-sm text-muted">{paused ? 'Pausiert' : `Bis ${clockTime(timer.deadlineAt)}`} · Timerzeit {countdownLabel(Math.floor(elapsedMs(timer, now) / 1000))} ohne Pause</p>
           {expired && <p className="text-sm text-muted">Zeitfenster zu Ende. Du entscheidest, wie du weitermachst.</p>}
         </>}
         {(!timer || expired) && <div className="min-w-0 space-y-3">

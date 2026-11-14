@@ -174,6 +174,8 @@ export interface DayOverride {
   mode?: SupportMode
   /** „Tag neu sortieren“: Rest des Tages in kleinen Versionen */
   light?: boolean
+  /** Bewusst gewählte kürzere Varianten nur für diesen Morgen; keine Schritte ausblenden. */
+  shortMorning?: boolean
   /** Tagesbezogene Kernschritte, keine Erledigung der ausgeblendeten Schritte. */
   zombie?: boolean
   /** Einmalige Weckzeit für diesen Tag, nach Bestätigung. Ändert nie den Standard. */
@@ -210,7 +212,7 @@ export interface DayLog {
   prepCooked?: boolean
   tidyDone?: boolean
   prepChecklist?: string[]
-  /** Erinnerungs-Schlüssel, die für heute mit „Heute nicht“ abgelehnt wurden */
+  /** Für heute abgelehnte Erinnerungs-/Angebotsschlüssel; keine privaten Kontexttexte. */
   dismissed?: string[]
   /** Bounded opaque receipts, committed with the corresponding reminder action. */
   reminderReceipts?: string[]

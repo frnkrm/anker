@@ -57,6 +57,7 @@ async function at(page: Page, ms: number) {
 async function sheetsClosed(page: Page) {
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect.poll(() => page.evaluate(() => history.state?.ankerSheet ?? null)).toBeNull()
+  await expect.poll(() => page.locator('#root').evaluate((node) => !!node.closest('[inert]'))).toBe(false)
 }
 
 async function target(page: Page, partId: string) {
@@ -86,6 +87,7 @@ async function duration(page: Page, minutes: string) {
   await field.fill(minutes)
   await field.blur()
   await dialog.getByRole('button', { name: 'Übernehmen', exact: true }).click()
+  await sheetsClosed(page)
 }
 
 async function stop(page: Page) {
@@ -246,6 +248,15 @@ for (const state of ['erledigt', 'entfernt'] as const) {
   })
 }
 
+async function startFocusByKeyboard(page: Page) {
+  await sheetsClosed(page)
+  const start = page.getByRole('button', { name: /^Fokus starten/ })
+  await expect(start).toBeEnabled()
+  await start.focus()
+  await expect(start).toBeFocused()
+  await page.keyboard.press('Enter')
+}
+
 test('Freie Minuten sind per Tastatur bedienbar, ungültige Dauer bleibt ohne Start, kleine Anzeige läuft nicht über', async ({ page }, testInfo) => {
   await onboard(page)
   await seedWork(page)
@@ -262,8 +273,7 @@ test('Freie Minuten sind per Tastatur bedienbar, ungültige Dauer bleibt ohne St
   await minutes.fill('11.25')
   await minutes.press('Tab')
   await picker.getByRole('button', { name: 'Übernehmen', exact: true }).click()
-  await page.getByRole('button', { name: /^Fokus starten/ }).focus()
-  await page.keyboard.press('Enter')
+  await startFocusByKeyboard(page)
   await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(675_000)
   const originalFont = await page.evaluate(() => document.body.style.fontFamily)
   const widths = []
@@ -317,6 +327,8 @@ test('Arbeitskarte und Fokusshortcut setzen denselben pausierten Teilschritt for
   await expect(page.getByRole('dialog').getByText('Tabelle öffnen', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Dort weitermachen', exact: true }).click()
   await expect(page).toHaveURL(/\/aufgabe\/work\/teil-bericht\?teil=teil-a$/)
+  expect((await local(page))?.focus?.timer.status).toBe('paused')
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect.poll(async () => (await local(page))?.focus?.timer.status).toBe('running')
   expect((await local(page))?.focus?.id).toBe(initial.id)
 })
@@ -398,4 +410,38 @@ test('Starthilfe verwechselt beim Wechsel zwischen Teilschritten keine gespeiche
   await expect(dialog.getByRole('button', { name: 'Weiter', exact: true })).toBeVisible()
   await expect(dialog.getByRole('button', { name: 'Starten', exact: true })).toHaveCount(0)
   expect((await local(page))?.stuck).toEqual(saved)
+})
+
+test('Tastaturstart nach eigenen Minuten wartet auf den gehaltenen Browser-Zurücklauf', async ({ page }) => {
+  await onboard(page)
+  await seedWork(page)
+  await page.goto(`${ROUTE}?teil=teil-a`)
+  await page.getByRole('radiogroup', { name: 'Teilschritt-Timer Minuten' }).getByRole('radio', { name: /Eigene/ }).click()
+  const picker = page.getByRole('dialog').last()
+  await picker.getByRole('spinbutton', { name: 'Teilschritt-Timer Minuten in Minuten', exact: true }).fill('11.25')
+  await expect.poll(() => page.evaluate(() => history.state?.ankerSheet)).toBeTruthy()
+  // Only hold the real browser traversal, never the timer or persistence action.
+  await page.evaluate(() => {
+    const back = history.back.bind(history)
+    history.back = () => {
+      Object.assign(window, { __releaseTimerSheetBack: () => { history.back = back; back() } })
+    }
+  })
+  await picker.getByRole('button', { name: 'Übernehmen', exact: true }).click()
+  await expect(page.locator('#root')).toHaveAttribute('inert', '')
+  // The helper must remain pending until the real popstate unblocks the page.
+  let settled = false
+  const starting = startFocusByKeyboard(page).then(() => { settled = true })
+  try {
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.locator('#root')).toHaveAttribute('inert', '')
+    expect((await local(page))?.focus).toBeUndefined()
+    expect(settled).toBe(false)
+  } finally {
+    await page.evaluate(() => {
+      ;(window as unknown as { __releaseTimerSheetBack: () => void }).__releaseTimerSheetBack()
+    })
+  }
+  await starting
+  await expect.poll(async () => (await local(page))?.focus?.timer.durationMs).toBe(675_000)
 })

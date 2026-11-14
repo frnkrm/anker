@@ -1,5 +1,389 @@
 # Anker: Testnachweise
 
+## T-006: neuer NFC-Rot-/Grünnachweis und gezielte lokale Prüfung (14.11.2026)
+
+Basis1b1bce8 sauber, [NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md). Vor Fix zwei gezielte Browserfälle: alterFall1grün, neue kontrollierte Navigation-vor-Unmount-Regression1rot (`/vorbereitung`statt`/mehr`),31,8s; rote JSON/Trace/Fehlerbild erhalten. Nach minimaler UI-Gültigkeitskorrektur vollständige NFC-Datei18/18grün,61,2s,0Skip/Flaky/Retry; alterFall und neueRegression grün, bestehende Frist-/Pause-/Wecker-/manuelle320px-/160%-Grenzen erhalten.31/31TS in5Dateien (core/nfc,platform/nfc,native,nativeSafe,export/privacyBoundaries) grün. Lint0Fehler/1bekannteTaskAssistanceWarnung, Typecheck inkl.e2e und Webbuild Exit0. Keine nativen/PC-/Vollsuiten wiederholt und keine neue Remote-CI behauptet. Neue Webquellkennunge9c1249900f449001be6dfb80674a5fe9b2b27af8d2cabf195dba9b2ab654b99; altesAAB014870f3/7608…ist vorFix/historisch. Log-/JSON-/Build-/Quell-/Dokument-/Bundle-/Restore-/SHA256-Belege `/workspace/anker-t006-nfc-fix-20261114/`, nur Cloud-lokal. Produkt-/Testdiff genau2Dateien, Code17-Manifeste/Versionen/SDK/Native/103Gerätezeilen/36IDs erhalten; T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+## T-006: neue Remote-Refs/PR-/CI-Webnachweise nach erlaubtem Push (14.11.2026)
+
+Basis H1847c8a sauber, lokale Quell-/Workflow-/Hookprüfung und Vorher-Bundle grün. [Push und neue CI-Nachkontrolle](GITHUB_BRANCH_PUSH_CODE18.md): einmaliger Fast-forward-Push Exit0, vorher/nachher Gitrefs und main-Erhalt belegt. API-CONNECT403, keine fehlenden Rechte/Secrets behauptet; ohne Anmeldung/Konfigurationsänderung GitHub-HTML200 liefert PR2 Open und tatsächlich neue CI43549032956(push,H)/43549036157(PR2synchronize,Titelanker@1847c8a). Endergebnisse im Bericht und Rohmetadaten; kein ungeprüftes Gleichsetzen von PR-Merge-/Checkout-SHA, Versuch unbekannt. Keine lokalen Suiten/Builds oder manuelle Reruns/Fixes; alte1372TS/378Browser/284Python/274historischeJUnit bleiben getrennte lokale Belege. Nur Abschlussdokumentintegrität/36IDs/103Gerätezeilen/Quellschutz und lokale Bundle-/Wiederherstellungs-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-branch-push-20261114/`, nur Cloud-lokal; Quellstand H zusätzlich auf GitHub, Abschlusscommit nicht nachpushen. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+Frische neue CI getrennt: Push43549032956 Failure10m28s,1372Vitest/377Browsergrün/1NFCrot (e2e/nfc.spec.ts:158:22,expected`/mehr`,received`/vorbereitung`nach verspäteter Öffnungsbestätigung). PR43549036157 Success11m57s,1372Vitest/378Browsergrün. Direkt aus sichtbaren Summaryannotationen; Ursache nicht untersucht, keine Timeout-/Retry-/Test-/Codeänderung. Aktuelle NFC-Integrationsabnahme bleibt offen; frühere lokale378grüne Fälle nicht überschreiben oder als neue fehlerfreie Push-CI ausgeben.
+
+## T-006: lokale Übergabediff-/Trigger-/Quellprüfung, keine neue Suite (14.11.2026)
+
+Basis08813c6 sauber, [Konkrete GitHub-Übergabevorlage](GITHUB_UEBERGABE_CODE18_PLAN.md).31Commits/120Dateien gegenüber lokal vorhandener historischer6dfa632-Basis inventarisiert, lokale Fast-forward-Abstammung belegt; aktuelle GitHubverfügbarkeit nicht abgefragt. Fünf Workflows/alte17-Manifeste/SDK-/Capacitor-/Netlifydatei unverändert, Lockgraph abseits Rootversionen gleich; seit AAB-Quelle014870f3 nur Dokumentationsdiff. Aktuelles vorhandenes18-AAB54.264.513Bytes/SHA256d0d5cfed…als Übergabereferenz bestätigt, kein Neubau/Pakettest.1372TS/378verschiedeneBrowser/284Python/274historischequellenidentischeJUnit sowie frühere Lint-/Typecheck-/Build-/Plattformbelege erhalten, keine Wiederholung. Nur Dokumentintegrität/Originalplan/36IDs/103Gerätezeilen/Links und lokale Bundle-/Restore-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-uebergabe-20261114/`, nur Cloud-lokal. Keine neue CI/Signier-/Geräte-/Releasefreigabe; T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+## T-006: Screenshot-Checkstatus und Nutzer-SHA ergänzt, kein Testlauf (14.11.2026)
+
+Basis2086918 sauber, [Ergänzte CI-Zuordnung](GITHUB_VORAUSSETZUNGEN_CODE18.md): vollständige6dfa632-SHA laut Nutzer zum zuvor genannten CI43331316553; Commitseite zeigt CI/check(push) Failing und fünf erfolgreiche Checks inklusive CI/check(pull_request). Versuchnummer unbekannt, keine unabhängige API-/Run-Summaryprüfung. Keine erneute CI-Rückfrage erforderlich; historische Logfehler nicht zu neuem Fehlerbeweis umgewertet. Keine Tests/Builds/Signier-/Geräte-/externen Aktionen wiederholt;1372TS/378Browser/284Python/274historische quellenidentische JUnit bleiben frühere Nachweise. Nur Dokumentintegrität/geschützte Quellen/36IDs/103Gerätezeilen/Links und lokale Bundle-/Wiederherstellungs-/SHA256-Prüfungen. Sicherung `/workspace/anker-t006-ci-zuordnung-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+## T-006: Nutzerbericht ist kein neuer CI-/Softwaretest (14.11.2026)
+
+Basis def0c5f sauber; [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md). Nutzer meldet PR2 Open/Entwicklung→main und CI43331316553 push/Entwicklung; SHA/Ergebnis unbekannt. Scopes der vier Signing-Secrets nicht einsehbar, Bestand nicht bestätigt. Keine eigene externe Abfrage und kein Test-/Build-/Signier-/Gerätelauf. Historische Screenshots nicht als aktuelle CI-Wiederholungsresultate ausgegeben.1372TS/378Browser/284Python und274historische quellenidentische JUnit unverändert als frühere Belege erhalten. Nur Dokumentdiff/Quellschutz/36IDs/103Gerätezeilen/Links sowie lokale Vorher-/Nachher-Bundle-/Wiederherstellungs-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-nutzerbelege-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+## T-006: frische Remote-Refs und API-Fehler, keine Testsuite (14.11.2026)
+
+Saubere Basis a29ba67; [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md). ls-remote erfolgreich, main e48d289/dev6dfa632/PR2-Refs dokumentiert; kein Fetch/Checkout. Vorhandene Commitobjekte/Workflowblobs mit frisch bestätigten SHAs abgeglichen: alle fünf Definitionen bytegleich. Beide neuen lokalen Quellen nicht in bestätigten main-/dev-Historien. gh-GETs für PR/CI/Workflow/Secretnamen/Scope scheitern Forbidden; curl bestätigt CONNECT403 bei HTTP=000. Kein frischer CI-headSHA-/Secret-/Schlüssel-/Signierbeleg. Keine Software-/Build-/Geräteprüfung wiederholt;1372TS/378Browser/284Python/274historische quellenidentische JUnit bleiben frühere Belege. Nur Dokumentintegrität/geschützte Dateien/36IDs/103Gerätezeilen sowie lokale Bundle-/Restore-/fsck-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-voraussetzungen-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen.
+
+## T-006: frische lokale Version18/rc.4 mit eigenem AAB-Prüfstand (14.11.2026)
+
+Basis0c78c9e sauber, exakt drei Versionsdateien/fünf Werte als `014870f3ee52c0233118d2852ef0719aa9bc602b` vor Bau committet. [Vollständiger Code18-Prüfbericht](CODE18_AAB_INTEGRATION_T006.md). Gezielte tatsächliche Versions-/Lock-/source_version-Vertragsprüfung grün, Dependencies/Signierlogik/SDK/Rechte/Produktquellen unverändert. Frischer Webbuild einschließlich Typecheck und Capsync grün, neuer7608…Appfingerabdruck/aktuelle Assets. Neuer18/rc.4-Guard und Offline-Dryrun sichern null-Signierbindung/keine Signier-/APK-Tasks,143AGP-JARs hashgleich. Offlinebau1m1s/44Tasks ausgeführt/440wiederverwendet. Bundletool1.18.1 validate/Manifest/Config,672JAR-Einträge ohne Signierer/Zertifikate/Signaturdateien, CRC/Struktur grün. Paket18/rc.4/min26/target36/compile36 bestätigt; Manifest nur zwei Versionsattribute verschieden,31Rechte/Komponenten/Backupregeln/NFC optional gleich.71Web-/75generierte Assets bytegleich im Bundle,16Nativebibliotheken/3DEX gleich17,8ELF64PT_LOAD16KBkonform; kein APK-zipalign als AAB-Prüfung.
+
+Vorhandene Warnungen inklusive Vital-Lint-Metrikinitialisierung erhalten, keine globale HOME-/Cloudänderung; keine roten Bau-/Paketprüfläufe oder neue Tools/Abhängigkeiten.1372TS/378Browser/284Python im bisherigen geprüften unveränderten Produktumfang und274historische JUnit bei gleichen relevanten nativen/Test-/Dependencyinputs (nur Versionsdefaults geändert) erhalten, kein neuer Vollsuite-/JUnitlauf behauptet. Code17-Rohbundle vor Wiederverwendung archiviert, alle48Dateien des alten AAB-Sicherungsordners vorab hashgleich; alte Artefakte/Guards/Manifeste erhalten. Neuer AAB54.264.513Bytes/SHA256d0d5cfedc21e2201329dccf77177040f85884136e0ee44e5ea6ee600acbe282b und Nachweise `/workspace/anker-code18-aab-20261114/`, nur Cloud-lokal. Originalplan/36IDs/103historische Gerätezeilen/ausgelieferter Katalog/geschützte Quellen sichern, lokale Bundles/Restore/fsck/SHA256 prüfen. T-006/V-014/E-002–E-005/Gesamt-/Signier-/Upload-/Gerätefreigaben offen, kein Signieren/Installieren/externer Eingriff/Workflow-/Playaktion.
+
+## T-006: Versions-/Quellplanung auf Nutzerangabe17, kein neuer Testlauf (14.11.2026)
+
+Saubere verfügbare Basis `b8306d6337ee4c7f4e8efdbdd82808eb8d8829ff`. [Vorschlag18/1.5.0-rc.4](PLAY_PRUEFSTAND_VERSION_PLAN.md) vorbereitet: Nutzerantwort17 nach vollständiger Bundlelistenfrage; vorheriger Screenshot zeigt technische Bundleversion1.5.0-rc.3 und Release-Namen getrennt, Code17-Testrelease Entwurf/Code16intern verfügbar. Beides kein eigener API-/Gerätebeleg oder freie Nummernreservierung. Vorgeschlagene Version nicht umgesetzt; Projekt-/Lock-/Android-Versionen und alte Code17-Manifeste/Artefakte erhalten.1372TS/378Browser/284Python,274historische quellenidentische JUnit und vorhandene unsignedAPK-/AAB-Paketbelege behalten ihren bisherigen Bezug. Keine Suite/Build/Signier-/Geräte-/externe Aktion. Nur Dokumentintegrität/Originalplan/36IDs/103historische Gerätezeilen/geschützte Versions-/Produkt-/Workflow-/Freigabedateien und lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Sicherung `/workspace/anker-t006-versionsplan-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen.
+
+## T-006: neuer unsignierter lokaler AAB-Prüfbuild (14.11.2026)
+
+Saubere verfügbare Basis `f657d2e2dedab71bf0d70c9d88263bab258e9055`. [Vollständiger AAB-Prüfpfad und Grenzen](AAB_INTEGRATION_T006.md). Dryrun/Signierpräsenz/AGP-Paketworker/Guard belegen signaturfreien `packageReleaseBundle` ohne signReleaseBundle-/APK-Erzeugung; echter Offlinebau1m9s/21Tasks ausgeführt/463wiederverwendet. Bundletool1.18.1 validate/Manifest/Config grün.672JAR-Dateieinträge ohne CodeSigners/Certificates vollständig gelesen, Signaturmetadaten fehlen, CRC/Struktur grün. Paket `.mobile`, Code17/1.5.0-rc.3/min26/target36/compile36 unverändert;31Rechte/Backupregeln/NFC optional erhalten.71Web-/75generierte Assets bytegleich,16Bibliotheken/3DEX gleich bisherigem APK,8ELF64PT_LOAD16KBkonform. Keine APK-zipalign- oder APK-Signaturprüfung als AAB-Nachweis ausgegeben.
+
+Aktuelle Quellkennung/Assetinventare schon vor Build identisch bisherigem geprüften APK; kein nötiger Webbuild/Capsync, kein Tooldownload/Versionsupdate oder Produktdiff.1372TS/378Browser/284Python und274historische quellenidentische Android-JUnit erhalten; keine unveränderte Suite wiederholt. Kein neuer Remote-CI-/Play-/Geräte-/Installierbarkeitsbeleg. AAB54.264.513Bytes/SHA256c928963f83651306b9a65d21a8fbdb0064e1387eb2f36b5c80901db88410fe1c und Rohlogs unter `/workspace/anker-t006-aab-20261114/`, nur Cloud-lokal. Originalplan/36IDs/103historische Gerätezeilen/ausgelieferter Katalog/alte Code17-Manifeste erhalten. T-006/V-014/E-002–E-005/Gesamt-/Versions-/Signier-/Uploadfreigaben offen, kein Signieren/Installieren/externer Eingriff/Workflow-/Playaktion. Lokale Bundles/Restore/fsck/SHA256 sichern und stoppen.
+
+## T-006: Galaxy-Herkunft als Nutzerbericht, keine Geräte-/Softwareprüfung (14.11.2026)
+
+Saubere verfügbare Basis `d32c0a3ef608df4cf1c17ee287ec9af49161aac5`. [Antwort „google play“ und gestufter späterer Prüfweg](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) erfasst, keine eigene Console-/GitHub-/Secret-/APIabfrage oder Geräteaktion; Herkunft nicht als verifizierte installierte Version/Signatur ausgegeben. Kein Build/Sync/Signieren/Installieren/Testlauf oder externer Eingriff.1372TS/378Browser/284Python und274historische quellenidentische JUnit erhalten; bestehender APK-Paketnachweis historisch erhalten, kein neuer AAB-Nachweis behauptet. Nur Dokumentintegrität, Originalplan/36IDs/103historische Gerätezeilen/ausgelieferter Katalog/geschützte Quellen/alte Code17-Manifeste und lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Sicherung `/workspace/anker-t006-play-herkunft-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe offen.
+
+## T-006: öffentlicher SHA256-Rollenvergleich, keine neue Suite (14.11.2026)
+
+Saubere verfügbare Basis `f08d6205dbb3fac28526128049571dfcf412c567`. Zwei vom Nutzer gemeldete öffentliche Fingerabdrücke als32Hexbytes validiert und mit vier bestehenden B4-Feldern verglichen: [App-Signierer8A, UploadB4](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md), unterschiedlich. Vier B4-Felder passen zum Uploadzertifikat und nicht zum gemeldeten Play-App-Signierer. Das ist ein Text-/Metadatenvergleich, keine unabhängige Console-, Kryptografie-, Geräte-, Schlüssel- oder Secretprüfung. Kein Build/Sync/Signieren/Installieren/Testlauf oder externer Eingriff;1372TS/378Browser/284Python und274historische quellenidentische JUnit erhalten. Nur Dokumentintegrität, Originalplan/36IDs/103historische Gerätezeilen/ausgelieferter Katalog/geschützte Quellen/alte Code17-Manifeste und lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Nachweise `/workspace/anker-t006-signierrollen-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe offen.
+
+## T-006: Console-Nutzerbericht zu Code17-Entwurf, keine neue Suite (14.11.2026)
+
+Saubere verfügbare Basis `37bc7b97972f47144331d488fb35a1d45564f57e`. [Nutzerangaben Paket/Code/Versionstext/Entwurf und Aussagegrenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) dokumentiert; keine unabhängige Console-/Secret-/Geräteabfrage und keine Zertifikatsangabe hinzuinterpretiert. Paket/Code stimmen mit bekannten lokalen Metadaten überein, tatsächlicher Entwurfsquellstand und installierter Stand bleiben offen. Kein Build/Sync/Signieren/Installieren/Testlauf.1372TS/378Browser/284Python und274historische quellenidentische JUnit erhalten. Nur Dokumentintegrität, unveränderte geschützte Quellen/Versionen/Workflows/alte Code17-Manifeste, Originalplan/36IDs/103historische Gerätezeilen und lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Neue Dokumentationssicherung `/workspace/anker-t006-play-metadaten-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe offen.
+
+## T-006: Nutzerangaben, keine neue Software-/CI-/Geräteprüfung (14.11.2026)
+
+Saubere verfügbare Basis `563e3dad9d763b278f1e1e4bbdf20a5389ed0cad`. [Besitzer-/interner-Play-Test-Bericht und unbelegte GitHub-Schlüsselvermutung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md) getrennt von technischen Nachweisen dokumentiert. Aktueller interner Versionscode, Zielinstallation/Signierer und nutzbares Signiermaterial nicht bestätigt; keine Schlüssel-/Secret-/Console-/Geräteabfrage. Kein Build/Sync/Signieren/Installieren oder Testlauf.1372TS/378Browser/284Python und274historische quellenidentische Android-JUnit erhalten. Nur Dokumentintegrität, unveränderten Originalplan/36IDs/103Gerätezeilen/geschützte Produkt-/Workflow-/Versions-/Freigabedateien sowie lokale Bundle-Wiederherstellung/fsck/SHA256 prüfen. Neue Dokumentationssicherung `/workspace/anker-t006-entscheidungsangaben-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe unverändert offen.
+
+## T-006: öffentliche Signier-/Gerätebuild-Voraussetzungen, keine neuen Tests (13.11.2026)
+
+Sauberer verfügbarer Ausgangscommit `b816e1a4145a079fa35241194facb5f3f811cc1c`. [Prüfmatrix mit Codebelegen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Vier öffentliche Code15-/Code16-/Code17-Zertifikatsangaben B4 konsistent; bisheriges unsigniertes APK vorhanden, Größe38.608.942/SHA25694f240a18f2047a57dcf5e13075504f02889a3281de00a40e4bcd8836baf7a0f bestätigt. Historische Signatur-/CI-Angaben nicht als frisch verifiziert ausgegeben. Keine historische signierte APK frisch kryptografisch geprüft und keine installierte Identität ausgelesen.
+
+Nur Skriptquellen/öffentliche Manifeste geprüft: alter lokaler Helfer hat feste Debugalias-/Passwortannahmen; neuere Gradle-/Workflowwege unterstützen eigene Releasebindungen, Secret-Einrichtung überträgt private Daten und wurde nicht ausgeführt. Keine Signierhilfe/Gradletask/Testsuite gestartet;1372TS/378Browser/284Python und274historische quellenidentische JUnit unverändert erhalten. Dokumentintegrität, Originalplan/36IDs/103Gerätezeilen/ausgelieferter Katalog und geschützte Quellen/Manifeste gezielt prüfen; lokale Bundles/Restore/fsck/SHA256 sichern. Nachweise `/workspace/anker-t006-signiervoraussetzungen-20261113/`. Kein neuer Software-/CI-/Geräteerfolg. T-006/V-014/E-002–E-005/Gesamt-/Releasefreigabe weiterhin offen.
+
+## T-006: unsignierter Android-Integrationsbuild geprüft (13.11.2026)
+
+Basis `18f6bb2959f26882c9860a104e8bc3e85512fe04`, Branch `entwicklung/anker-neu`, sauber verifiziert. [Vollständiger Paketprüfpfad und Grenzen](INTEGRATION_T006.md).
+
+| Neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Webbuild/Capacitor | Produktionsbuild einschließlich Typecheck grün, Capsync erfolgreich; kein getrackter Diff an generierten Dateien/Projektbindung |
+| Signaturfreiheit vor Build | Konfiguration/Umgebungsnamen nur auf Vorhandensein geprüft, nicht gebunden; keine privaten Schlüssel gelesen. Vor/nach Sync Dryrun, Release-Signierkonfiguration null. Externer beobachtender Guard auch bei Ausführung aktiv; keine Signier-/Debugpaket-/Installationstasks |
+| Native Paketintegration | Offlineversuch 2m13s/274Tasks ausgeführt, zwei Cacheartefakte fehlten. Gleicher abgesicherter Folgelauf erfolgreich 1m43s/211ausgeführt/273up-to-date; AAR-Metadaten, Kotlin-/Ressourcen-/DEX-/Paketintegration und Vital-Lint geprüft. Nur bestehende festgelegte Mavenartefakte nachgeladen, keine Updates/Neuinstallation |
+| Paket / SDK / Version | de.frnkrm.anker.mobile, unverändert Code17/1.5.0-rc.3; min26/target36/compile36; Manifest/31Rechte gleich historischem quellenidentischem nativen Manifest, NFC optional, allowBackup=false, nicht debuggable |
+| Asset-/Quellabgleich |71dist-Dateien und75generierte Android-Assets bytegleich, keine veralteten Webreste; Quellkennung `552f037d8560dcc3fe59b6ae441a0d77484e0ca40b479379a9cbe9be28b043a0`.8ELF64-Bibliotheken PT_LOAD16KBkonform, ZIP-CRC und zipalign -c -P16 -v4 grün |
+| Fehlende APK-Signatur | apksigner verify --verbose Exit1: Missing META-INF/MANIFEST.MF; zusätzlich v1-Signaturdateien und v2/v3-Block ausgeschlossen. Keine Installierbarkeits-/Update-/Geräteaussage |
+| Artefakt |38.608.942Bytes, SHA256 `94f240a18f2047a57dcf5e13075504f02889a3281de00a40e4bcd8836baf7a0f`; Anker-T006-UNSIGNIERT.apk, build-proof-local.json und Rohlogs unter /workspace/anker-t006-android-20261113/ |
+
+274JUnit/31Suiten aus F-008 weiterhin quellenidentisch erhalten, nicht neu ausgeführt;1372TS-/378Browser-/284Python- und übrige gemeinsame Nachweise unverändert erhalten. Keine komplette Web-/Browser-/PC-Suite wiederholt. Originalplan/36IDs/103Gerätezeilen/ausgelieferter Katalog erhalten; nach Dokumentationsänderungen Paketquellkennung unverändert. Vorher-/Nachher-Generatarchive und Bundles, Wiederherstellung/fsck/SHA256 nur Cloud-lokal. T-006/V-014 IN_ARBEIT; E-002–E-005/Remote-CI/Gesamt-/Releasefreigabe offen. Kein Push/Merge/Tag/Signieren/Installieren/Workflow-/Cloud-/Playeingriff; alte Code17-Freigabemanifeste unverändert.
+
+## T-006: gemeinsame lokale Integration, Gesamt-/Geräteabnahme offen (13.11.2026)
+
+Basis `4f3179c36afaa3408a1a57fc26d4a5a458c516bf`, sauberer Branch `entwicklung/anker-neu`. [Prüfpfad, Korrekturen, Workflows und offene Grenzen](INTEGRATION_T006.md).
+
+| Gemeinsame neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Vollständige TS-Suite |1372/1372in133Dateien,0Fehler/Skip. Vollständiger letzter F-001–F-010-Stand, keine Produktänderung dieses Tasks |
+| Browser vollständig + gezielt |375/378im ersten13,6min-Vollauf,3veraltete Assertions; nach belegter Korrektur3/3gezielt grün.378verschiedene Fälle zuletzt grün,0automatische Retries/Skip/Flaky; maschinenlesbar browser-coverage.json. Erste rote Logs/Traces erhalten;375grüne Fälle nicht nochmals ausgeführt |
+| Browser-Korrekturen |F-006s gemeinsame Abendübergänge statt alter Texte, PC/Bett nicht aus Uhrzeit bestätigen; offenes Ende ohne Uhrgrenze. Q84 respektiert T-005s entfernte fremde Routenfreigabe bei sonst unverändertem Backup/Weckwahl/Pause/Reload. Sechs Screenshots jetzt Testausgabe statt alter Sicherungs-/Temp-Pfade; bisherige F-008/F-009/F-010-Sicherungen komplett hashgeprüft und unverändert |
+| Python-PC |284verschiedene Fälle zuletzt grün: initial268grün/12Methodenrot/4Skip; QR-Abhängigkeit ergänzt,12QR grün,4Helper nach beschreibbarem PowerShell-Cache4/4grün. Keine Wiederholung des übrigen grünen Bestands; pc-python-coverage.json mit letzten Ergebnissen. Nur Fake-Windows/Loopback |
+| Weitere PC-/SQL-Prüfung |19/19PowerShell-PC-Stopp+4Parser,5/5Paket-/Installerfälle mit Fake-Effekten, Node↔Python pinnedTLS/ACK/Replay/Outbox/Tamper/Pin mit0Systemeffekten, CLI --help Exit0;16/16reale lokale PostgreSQL/RLS-Fälle in PGlite0.5.16. Kein Supabase/pg_cron oder echter Windowsbetrieb |
+| Offline-Releasegrenzen |36Android-Update-Mockfälle (33+3zunächst fehlende PowerShellfälle),134Play-Werkzeugfälle (75+24+35) grün. Künstliche Schlüssel/API-/Toolantworten, kein Signieren/Workflowstart/Googlezugriff |
+| Werkzeugbasis |Python3.12.14 mit vorhandenen gepinnten Basispaketen; fehlende qrcode8.2/zeroconf0.154.0 und CI-PGlite0.5.16 isoliert ergänzt. PowerShell7.5.4 mit offiziellem SHA256 geprüft, beschreibbare XDG-Pfade; keine globale/App-Paketänderung. Rohlogs früher Setupfehler erhalten |
+| Qualität / Native |Lint0Fehler/1bekannte TaskAssistance-Warnung, Typecheck/Produktionsbuild grün; gezieltes ESLint/e2e-Typecheck nach Testkorrekturen.274Android-JUnit aus F-008/31Suiten samt79Sicherungsdateihashes erhalten, native/NFC/TS-Brücke seit5668aec identisch; nicht wiederholt |
+
+Rohbelege `/workspace/anker-t006-20261113/`: vollständige/gezielte Browser-JSONs und Fehlerartefakte, logic-full.json, kombinierte Browser-/Pythonabdeckung, PowerShell/SQL/Paket-/Interoperabilitäts-/Offlineberichte, Toolversionen/-quellen/-Hashes, Workflow-/Build-/Integritätsdaten und remote-readonly.log. Nach Umgebungsneustart Berichte/HEAD/sechs Änderungen unverändert vorhanden, keine Wiederholung. Neue Werkzeuge separat `/workspace/anker-t006-tools-20261113/env.sh`. Nur Cloud-lokaler Abschluss mit Vorher-/Nachher-Bundle, unabhängiger Wiederherstellung/fsck/Dateihashes, RESTORE.md/SHA256SUMS.
+
+Beim vorigen Web-/PC-Lauf war die native Paketintegration offen; der obige neue Abschnitt belegt nun Capsync und unsignierten Paketbau. Geräte-/Signierfreigabe bleibt offen. E-002–E-005 bleiben offen,103historische Gerätezeilen erhalten. Remote main e48d289/dev6dfa632 lesend bestätigt; kein neuer Arbeitshead-CI-/PR-Nachweis. Keine Releasefreigabe aus lokalen Tests oder alter auf80f6a692gebundener Code17-Freigabe ableiten. T-006/V-014 insgesamt IN_ARBEIT.
+
+## F-010 / V-007: freiwillige Wochenübersicht aus vorhandenen Tagesständen (13.11.2026)
+
+Verfügbare saubere Basis `27aa6f324294e16ca8af4cab65c7eaedf39841e0`, Branch `entwicklung/anker-neu`.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS / Store / Datenschutz |101/101 in6Dateien: core/weeklyReview (14neu), state/weeklyReview (2neu), core/support, state/supportOffer, export/privacyBoundaries und backupSafety. Unveränderte erfolgreiche Auswahl nicht wiederholt |
+| Aggregation |Nur bekannte Tagesmodi/Flags und Routinenresultate, ein Tagesstand trotz mehrerer Angaben; Umwahl überschreibt statt Verlauf. Fehlende/leere/anders befüllte/falsch datierte/future Tage, unbekannte Felder/Modi/Resultate, erhaltene historische Schritt-IDs. Keine privaten Gründe/changes-/Schritttexte/technischen Receipts im Resultat. Eingaben unverändert |
+| Zeit |Aktuelle ISO-Planwoche bis heutigem Plantag, vorherige volle Woche, Montag03:59/04:00Berlin, Mitternacht, Jahres- und beide Zeitwechselgrenzen geprüft. Keine heutigen Pläne als historisches Soll verwendet |
+| Browser |16/16 in erster Auswahl:7neue F-010- und9bestehende Accessibility-/Trial-/Navigation-/Schlaf-/deutsche Anzeigefälle. Anschließend nur320px-Fall1/1 zur unverdeckten Bildkontrolle wiederholt, nachdem vorhandene Erfolgseinblendung aus synthetischen Tagesdaten verschwand. Insgesamt16verschiedene Fälle, keine roten Läufe dieses Tasks |
+| Freiwilligkeit / Daten |Öffnen/Zeitraumwechsel/Abwahl und Offlineansicht lassen sämtliche gespeicherten Records unverändert. Keine privaten Texte in neuer Übersicht, kein externer HTTP(S)-Abruf im geprüften Pfad. Reload/Tabwechsel schließen; kleine/leere Stichprobe ehrlich. Eigene Fragen/ausdrücklicher Save/Vorschlag bleiben erhalten; keine Änderung von Plan/Fokus/Wecker/Game durch bloße Übersicht |
+| UI / Werkzeuge |Chromium156 mit lokaler Konfiguration,320px/160Prozent Schrift ohne horizontalen Überlauf; Abwahl/eigene Antworten scrollend erreichbar, finale Bildkontrolle. Lint0Fehler/1bekannte TaskAssistance-Warnung, Typecheck einschließlich e2e und Produktionsbuild durch Playwright-Webserver grün. Nach letzter reiner Bildteständerung gezieltes ESLint/e2e-Typecheck |
+| Grenzen |Native/Manifest/Brücke/Storewriter/Datenmodell/Export/Reminder/PC/Pakete/Workflows unverändert.274Android-JUnit aus F-008 historisch erhalten, nicht wiederholt. Keine vollständige App-/Remote-CI-/Hardwareabnahme behauptet |
+
+Rohbelege `/workspace/anker-f010-20261113/`: logic-first.log, browser-first.log, browser-visual.log, erste/finale UI-Bilder, Lint-/Typecheck-Logs, Chromium-Konfiguration, Integrität/build-inventory.json/RESULT.json. Vorher-/Nachher-Bundles, unabhängige Wiederherstellung/fsck, RESTORE.md/SHA256SUMS im selben Ordner, nur Cloud-lokal. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten. Kein Push/Merge/Release/Cloud-/Playeingriff. E-002–E-005 bleiben offen, Softwarebelege ersetzen keine Gerätebeobachtung.
+
+## F-009 / V-006: lokale stille Fokusbegleitung (13.11.2026)
+
+Basis `5668aec4c44cf81c3523af1f1b69cdcbb7b8d60c`, tatsächlich verfügbarer sauberer Branch `entwicklung/anker-neu`. Keine soziale Kommunikation, externe Nutzdaten oder echte Geräteaktionen.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS-/Store-/Datenschutz |139/139 in7Dateien: core/focusCompanion (12neu), focus, recoveryPreview, support; state/tasks und subtaskFocus; core/export/privacyBoundaries. Bestehende Start-/Pause-/Archiv-/Teilschritt-/Queue-/Importgrenzen erhalten. Kein neuer Storewriter |
+| Neue reine Abnahmen |Nur aktueller sichtbarer Fokus, kein alter Merker-/Archivfallback; erledigt/entfernt/abgesagt/verschoben, falscher Teil, künftige private Aufgabe und Berliner Routinen-/Variantenwechsel ausgeschlossen. Pausen-/Resume-/Ablauf-/neues Zeitfenster getrennt; Ausgabe ohne private Titel/Notizen, Eingaben unverändert |
+| Browser |21verschiedene Fälle im letzten Ergebnisstand grün,10neu. Erster Lauf14grün/1roter neuer Test (selectOption/combobox statt tatsächlicher Radiobuttons); Nachlauf7/7: korrigierter neuer Fall, zusätzlicher Planreferenzfall,5bestehende Fälle. Nur den roten Fall wiederholt; Altartefakte erhalten. browser-coverage.json ordnet die Läufe zu |
+| Interaktion / Datenschutz |Offline explizit starten/beenden ohne neue gespeicherte Werte; bestehende Fokus-/Puls-/Audiofreigaben unverändert. Keine privaten Texte in Begleitkarte, keine externen HTTP(S)-Anfragen im geprüften Start-/Stopppfad. Fokus zuerst über eigenen bisherigen Start. Pause/Weiter, Blur/Verbergen/Resume, Reload, Ablauf und neues Zeitfenster übernehmen keine Begleitwahl |
+| Regressionen / UI |Teilwechsel/Teilabschluss ohne Ersatztimer, Routineplanwechsel/Recovery, neue Planreferenz in derselben Ansicht, Arbeitsruhe. Bestehende6Recoveryvorschau-,2Routine-/Starthilfe-,2Teilschritt-/Shortcut- und1Quick-Recovery-Fälle. System-Chromium156,320px/160Prozent Schrift, Hauptaktion und Begleitstopp scrollend erreichbar ohne horizontalen Überlauf; Bild visuell kontrolliert |
+| Werkzeuge |Lint0Fehler/1bestehende TaskAssistance-Warnung, Typecheck einschließlich e2e und Produktionsbuild durch Playwright-Webserver grün. Nach letzter reiner Testkorrektur gezieltes ESLint/e2e-Typecheck grün. Keine vollständige Web-/Remote-CI-Neusuite behauptet |
+| Native / Geräte |Keine native/Manifest-/Brücken-/Reminder-/Paketänderung.274Android-JUnit aus F-008 bleiben historische Belege und wurden nicht wiederholt. Keine neue Android-/Windows-/Kalender-/NFC-Hardwarebeobachtung |
+
+Rohbelege `/workspace/anker-f009-20261113/`: logic-first.log, browser-first.log/browser-regressions.log, erster Fehlertrace/-bild/-kontext, unveränderte lokale Chromium-Konfiguration, focus-companion-320.png, Lint-/Typecheck-Logs, browser-coverage.json, Integrität und RESULT.json. Vorher-/Nachher-Bundles, unabhängige Wiederherstellung/fsck, RESTORE.md und SHA256SUMS im selben Ordner, nur Cloud-lokal.
+
+F-009 nur im lokalen stillen Umfang abgeschlossen; soziale Variante nicht implementiert/freigegeben. Keine Persistenz, Messung, produktive Löschung oder Übernahme einer Freigabe aus Backup/Import. Kein Push/Merge/Release/Signieren/Installieren/Cloud-/Playeingriff. E-002–E-005 und103historische Gerätezeilen unverändert offen/erhalten. Kein Begleitverlauf für spätere Rückblickaussagen vorhanden.
+
+## F-008 / V-004: lesende NFC-Softwareabnahme (13.11.2026)
+
+Basis `e5f0030bdb8ccac00938aa82fcccbada36d94cd8`, anfangs sauberer Branch `entwicklung/anker-neu`. Keine realen Geräte-/Tagaktionen.
+
+| Prüfung | Tatsächliches Ergebnis / Grenze |
+|---|---|
+| TS / Datenschutz / Brücke |45/45 in6Dateien (core/nfc, platform/nfc, recoveryPreview, export/privacyBoundaries, platform/native, nativeSafe), anschließend bestehende Linkfälle3/3. Insgesamt48verschiedene Fälle,14neu. Neutrale Antworten, Extrafelder/Fehler geschlossen, keine Rohfehlerausgabe, manuelle Webwege, bestehende Backup-/Privatgrenzen |
+| Android-JUnit |274/274 in31Suiten,0Fehler/Skip.14neu:6Parser-/8Sitzungsfälle; vollständige bestehende260 mitgeprüft. MIME/TNF/UTF-8/Größen/Records/IDs, Busy, Doppel-/vorzeitige Bestätigung, alte Kennungen, Frist/Sperrzustand und bewusster Neustart. Reine JVM-Regeln, keine echte Adapter-/Funkwirkung |
+| Native Integration |Plugin samt Reader/lifecycle hooks kompiliert. Erst Kompilier-/Bestandslauf, nach ergänzten Tests und vorzeitigem Bestätigungsschutz finaler Lauf mit `source /workspace/anker-toolchains/env.sh` und `node scripts/gradle.mjs :app:testDebugUnitTest`. Kein Capsync/Install/Signieren/Toolupdate nötig |
+| Browser |14/14neue Fälle, danach8/8(3weitere neue+5bestehende), insgesamt22. Vorschau/Annahme/Abwahl, Doppeltipp/Busy, Abbruch/alte Antworten, Pause/Resume, Wecker, native Ablehnung, hängende Brücke, ursprüngliche Vorschaufrist, verspätete Bestätigung nach Navigation, ungültige Antworten, NFC fehlend/aus, manueller Webweg |
+| UI / Regressionen |System-Chromium156,320px/160Prozent Schrift ohne horizontalen Überlauf, nfc-preview-320.png visuell geprüft. Lokale Daten/Fokus in Scan-/Ablehnungspfaden erhalten. Bestehende Launchlink-/Alarmpriorität/Quick-Recovery/Berliner Tageswechsel geprüft. Keine Erledigung/Arbeitszeit aus Öffnen |
+| Werkzeuge |Lint0Fehler/1bestehende Warnung TaskAssistance.tsx, Typecheck samt e2e und Produktionsbuild grün. Build durch Playwright-Webserver, beide Läufe Exit0. Keine vollständige Websuite/neue GitHub-CI behauptet |
+| Integrität |Originalplan bytegleich,36IDs/103Gerätezeilen erhalten. Genau NFC-Recht/optionales Feature; keine weiteren Manifestfilter/Dienste. Daten/Store/Sync/QR/Alarmmodelle/Pakete/Workflows unverändert; Plugin nur NFC-Methoden/Abbruchhooks |
+
+Rohbelege `/workspace/anker-f008-20261113/`: logic.log, links.log, android-first.log/android-final.log, android-junit-xml/, browser-first.log/browser-regressions.log, Lint-/Typecheck-Logs, lokale Playwright-Konfiguration und UI-Bild. Keine roten Testläufe dieses Tasks. Bundle-/Clone-/fsck-/SHA256-Nachweise, RESULT.json und RESTORE.md im selben Verzeichnis. Frühere unveränderte Erfolge bleiben historische Belege.
+
+E-005 OFFEN: tatsächliche NFC-Eignung, Funk/Tags, Sperre/Resume/Alarmrennen und reale QR-Rückwege benötigen eigene Gerätebeobachtung nach Freigabe. JVM-/Brücken-/Browserbelege ersetzen diese nicht. Windows/Kalender/PC bleiben getrennt offen. Keine Standortbeobachtung, neuen Persistenzfelder, Nutzdatenübertragung, Geräteinstallation oder Cloud-/GitHub-/Playaktion.
+
+## T-004: NFC-Machbarkeit und Prüfpfad, nur Bestandsnachweise (13.11.2026)
+
+Saubere Basis `5b6f893602c00da6cd1b7c4d13a821e0b47c1b10`, Branch `entwicklung/anker-neu`. Keine F-008-Implementierung, neuen Berechtigungen oder NFC-/Tagaktionen.
+
+| Tatsächliche neue Prüfung | Ergebnis / Grenze |
+|---|---|
+| Git/Anweisungen | Basis vorhanden, richtiger Branch, Arbeitsbaum zu Beginn sauber; Anweisungen/Status/Plan/Datengrenzen und relevante Gerätestationen gelesen |
+| Compiler/SDK | Java/Javac21.0.13 Exit0. SDK36Rev2/CLI23/Build-Tools35 aus installierten Metadaten. javap für NfcAdapter/Ndef/NdefMessage/NdefRecord/Tag/TagLostException Exit0; ReaderCallback in Methodensignatur, Reader-APIs seit19 aus API-XML. Keine Installation oder Gradleausführung |
+| API-Dokumentation | Installierte offizielle SDK-Stubquellen/Javadoc gelesen: nur Vordergrund, Adapter/Cache können fehlen, NDEF-I/O braucht NFC-Recht und Hintergrundthread. FLAG_READER_SKIP_NDEF_CHECK würde benötigte NDEF-Erkennung ausschalten. Definitionen, keine echte API-/Funkwirkung |
+| Bestand/Manifest | Nur zwei generische NFC-Diagnose-Allowlistwerte, kein Reader-/NDEF-APIpfad. Keine NFC-Rechte/-Features/-Intentfilter im App-Manifest oder zwei erhaltenen Debug-Merge-Manifesteinträgen. Alte Merge-Dateien sind kein frischer Build. Native-/QR-/Link-/Fokus-/manuelle Wege am tatsächlichen Code geprüft |
+| Dokumente/Integrität | Neuer NFC_MACHBARKEIT.md mit begrenztem Entwurf, Datenrahmen, geplanter Softwareabnahme und realem E-005-Pfad. Relative Links, vorhandene Ziele/Quellen, Originalplan/36Roadmap-IDs/103Gerätezeilen sowie unveränderte Produkt-/Manifest-/Paket-/Workflowquellen geprüft |
+
+Rohbelege unter `/workspace/anker-nfc-vorbereitung-20261113/`: inventory.json/SDK-Hashes, toolchain-inventory.log, sdk-nfc-api.log, sdk-local-metadata.log, sdk-nfc-javadoc.log, Dokumentprüfung und RESULT.json, Vorher-/Nachher-Bundles/RESTORE.md/SHA256SUMS. Nur Cloud-lokal. Referenzseiten sind als weiterführende offizielle Links erfasst, nicht extern neu abgerufen; Tatsachenbelege des Tasks kommen aus lokalem SDK und Code.
+
+Produktcode unverändert: keine erneuten Lint-/Typecheck-/Build-/Browser-/JUnit-Suiten notwendig oder ausgeführt, keine neuen Testzahlen erfunden. F-007s114TS-/23Browserfälle und F-003s260Android-JUnit bleiben ihre historischen Softwarebelege. Noch keine F-008-Tests vorhanden/bestanden. SDK/API-Eignung ersetzt weder tatsächliche Galaxy-Fähigkeit noch E-005-Tag-/Lifecycle-/QR-/Weckerbeobachtung. Kein Zugriff auf echte Geräte, Tag-Schreiben, Systemrechte, Kalender/PC/Cloud/GitHub/Play oder externe Nutzdatenübertragung.
+
+
+## F-007 / V-003: freiwilliger Modus und respektierte Tagesabwahl (13.11.2026)
+
+Basis `7a2b227d080e111bc74075b8673a623507546b43`, sauberer Branch `entwicklung/anker-neu`. Unveränderte erfolgreiche Prüfungen erhalten, keine vollständige App-/Native-/CI-Neusuite.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielte TS-/Store-/Datenschutzfälle | **114verschiedene Fälle in9Dateien abgedeckt**,19neu. Bestand62/62; weitere Auswahl50/51, korrigierte neue Pakete18/18; ein neuer Reminder-Isolationsfall1/1 per Namensfilter (10vorher geprüfte Fälle nicht nochmals ausgewählt). Letzter Ergebnisstand aller114Fälle grün in logic-coverage.json |
+| Abnahmen | explizite Verkleinerung statt Nichtnutzungs-/Verschiebevermutung; vorhandener Modus/Tagesabwahl; alte/erledigte/entfernte/abgesagte/verschobene Ziele und veraltete Teilreferenz; flüchtige Plan-/Inhaltsrevision, Tageswechsel; Doppeltippen/Queuewartezeit/Moduswechsel, Speicherfehler mit Wiederholung; Timer/Kernschritte/Game unverändert |
+| Datenschutz | nur allgemeiner Tagesschlüssel statt Arbeits-/Aufgaben-/Notizkopien, Backup/Import/optional gewählter Tages-Sync; bestehende T-005-/Widget-/PC-Briefingprivatheit; Reminderprojektion vor/nach allgemeiner Abwahl identisch. Keine neue Feld-/Mess-/Transportfreigabe |
+| Browser | **23/23in zwei Auswahlen**:18/18 (5neue F-007-,7F-006-,6F-005-Fälle), danach5/5 bestehende Routine-/Starthilfepause, Teilkontext, Hauptaktionsbudget und Quick-Recovery. Kein fehlgeschlagener Browserlauf dieses Tasks |
+| UI | System-Chromium156,320px/160Prozent Schrift; vorhandenes Hilfefenster scrollt, Annahme/Abwahl erreichbar ohne horizontalen Überlauf. Schließen übernimmt keinen Modus, Tagesabwahl bleibt über Reload/anderen Schritt; Annahme startet keinen Fokus-/Hilfetimer. Bild mit freiwilligen Spieleinblendungen aus |
+| Lint / Typecheck / Build | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Produktionsbuild im lokalen Chromiumweg, keine Paket-/CI-/Timeout-/Retryänderung |
+
+Frühe Tests korrigiert: eine neue Assertion verwendete toContain direkt auf optionalem undefined statt leerer Liste; zu breite neue Test-Objektliterale für enge Lesetypen und fehlende Non-null-Nachweise im geladenen Tagesfixture korrigiert. Produktregeln/Assertionsinhalt nicht gelockert. Rohlogs/Selektionsgrenzen unter `/workspace/anker-f007-20261113/`, einschließlich logic-coverage.json, Bilder, RESULT.json, Vorher-/Nachher-Bundles/RESTORE.md/SHA256SUMS. Nur Cloud-lokal gesichert.
+
+114gezielte Softwarefälle ersetzen keine Hardwareprüfung. Native-/Wecker-/Reminder-/PC-/Synctransport, Wrapper-/Plugin-/Paketbindungen, Berechtigungen und Workflows unverändert.260Android-JUnit aus F-003 historisch erhalten; kein neuer Native-/CI-/Galaxy-/Windows-/Kalender-/NFC-Lauf oder externe Dienstwirkung. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten. Keine produktive Löschung, kein Push/Merge/Release/Cloud-/Playeingriff. Eine automatische Auswertung wiederholten Verschiebens ist mangels belastbarer Verlaufsdaten ausdrücklich nicht zugesagt.
+
+
+## F-006 / V-002: Übergang mit einer aktuellen Handlung (13.11.2026)
+
+Basis `769ea77f8af56bda2cd703e4bdd4988b0d41afbb`, sauberer Branch `entwicklung/anker-neu`. Vorhandene erfolgreiche Nachweise erhalten, keine vollständige App-/CI-/Native-Suite wiederholt.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| TS-/Storeauswahl | **169verschiedene Fälle in12Dateien abgedeckt**,9neue Übergangsfälle. Auswahl167/168; korrigierter neuer Morgenfixturefall und sein Testpaket8/8; neue Nacht-Einstiegsprüfung samt zugehöriger Projektion6/6. Maschinell letzter Ergebnisstand aller169Fälle grün in `logic-coverage.json`; kein einzelner169erGesamtlauf behauptet |
+| Geprüfte Softwaregrenzen | Now/Support/Guidance/Recovery, Guidance-/Teiltimer-/neue Lesepfad-Storefälle, PC-Link-Briefing/Übergang und Widgetprivatheit. Vorher rot: frühe Weckerinstanz wurde zur alten Nacht, überholter Merker wurde Hauptaktion, beendeter Abendblock blieb erneut Tätigkeit. Keine zweite Planung oder Schreibqueue |
+| Browserauswahl | **29verschiedene Fälle abgedeckt**. Erste Auswahl24/25 (7neue Übergänge,12bestehende Guidance,6F-005). Der neue Fokus-Nachtzweig war ohne Schlafstatus-Provider leer; Trace nennt den fehlenden Kontext. Provider wiederverwendet, betroffener Schlusslauf11/11 einschließlich4zusätzlicher bestehender Pause-/Hauptaktions-/Quick-Recoveryfälle. Layoutschlusslauf1/1 nach schmaler Überschrift/lesbaren Endbildern; übrige erfolgreiche Fälle nicht mechanisch wiederholt |
+| Browserabnahmen | expliziter letzter Routineabschluss, aktuelle Freizeit-/PC-/Nachtfolge und Zeitwechsel; Weiter ohne Erledigung/Punkte; PC-Rückmeldung nur durch Tippen; Abbruch/Annahme/offenes Ende derselben Abendzeitaktion; frühe Morgeninstanz und Pause/Rückkehr; gewählte QR-Nachtansicht ohne QR-/Native-Aktion;320px/160Prozent Schrift, Hauptaktion und kein horizontaler Überlauf |
+| Lint / Typecheck / Produktionsbuild | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Typecheck separat und im Produktionsbuild des lokalen Browserwegs. Frühe unbenutzte fmtTime-Einfuhr und ungültige undefined-Testzuweisung korrigiert; keine Paket-/CI-Anpassung |
+| Erste Testkorrekturen | Neue frühe Morgenfixture hatte zusätzlich den üblichen Sportschritt; explizit sportfrei gemacht. Neue Morgen-Pausefixture lag im gültigen Losgehfenster; tatsächlich passenden Homeofficefall verwendet, bestehender Wege-Vorrang bleibt. Rote Gegenbelege und Zwischenlogs erhalten, keine Assertions/Timeouts/Retries gelockert |
+
+Rohbelege `/workspace/anker-f006-20261113/`: Transition-/Planer-Rotläufe, gestufte TS-Logs/logic-coverage.json, Browser-Fehlertrace und finale Logs/Bilder, lokale Chromium156-Konfiguration, RESULT.json, Vorher-/Nachher-Bundles, Wiederherstellungsanleitung und SHA256SUMS. Endbilder mit freiwilliger Spieleinblendung ausgeschaltet, vorherige synthetische Erfolgsanzeige bleibt als früher Bildstand erhalten. Store-Leseprojektion schreibt0Records und verändert keine Timer/Game/Tagesdaten. Im Verlängerungsbrowserfall keine externen HTTP(S)-Anfragen, aktive PC-/Dienstfreigaben ausgeschaltet; keine Aussage über echte gekoppelte Geräte.
+
+Native/Storewriter/Reminder/Wecker/Transport/PC-Begleiter/Pakete/Workflows unverändert;260Android-JUnit aus F-003 historisch erhalten. Der neue Nachtzweig verwendet lediglich denselben bestehenden nativen Statusbeobachter/Aktionskontext; kein neuer TS-/Kotlin-Vertrag oder nativer Rechenweg. Keine Hardwarebeobachtung, kein frischer GitHub-CI-Nachweis. Reale Galaxy-/Windows-/Kalenderprüfungen offen. Originalplan/36Roadmap-IDs/103Gerätezeilen erhalten; kein Push/Merge/Release/Cloud-/Playeingriff.
+
+
+## F-005 / V-001: aktuelle Wiedereinstiegskarte, bewusste Timerfortsetzung (13.11.2026)
+
+Basis `b4ec5a47c5f58eca12b9d874aa703f61bcae0b38`, Branch `entwicklung/anker-neu`, zu Beginn sauber. Keine vollständige App-/Native-/CI-Neupruefung behauptet.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Vitest-Endstand | **171/171**,10Dateien, Exit0. Recovery/Support/Guidance, Tasks/Teiltimer/Restore im bestehenden Store, Export-/Backup-/Widgetprivatheit;14neue Recoveryfälle. Keine neue Speicherung oder zweite Timerengine |
+| Browserauswahl | **30unterschiedliche Fälle abgedeckt**. Erste Auswahl27/28 in4Dateien; Starthilfe scheiterte beim Reload mit `net::ERR_ABORTED` nach noch nicht abgewartetem Sheet-History-Abbau. Dialog-/History-Barriere ergänzt, Folgelauf3/3 mit Hauptaktionsbudget/Quick-Recovery. Nach Ergänzung der frühen Weckerinstanz Schlusslauf9/9 einschließlich aller6neuen F-005-Fälle; restliche21unverändert erfolgreiche Bestandsfälle nicht mechanisch wiederholt |
+| Neue Browserabnahmen | aktueller exakter Teil/Notiz nach Reload; Pause/kein Seiteneffekt/ausdrückliches Weiter; abgelaufenes/fehlendes Zeitfenster ohne neuen Timer; erledigter/entfernter Teil ohne private Karte; aktuelle/entfernte Routine; Berliner Tageswechsel;320px/160Prozent Schrift/Scrollbedienung ohne horizontalen Überlauf |
+| Lint / Typecheck / Build | Exit0, Lint0Fehler/1bekannte TaskAssistance-Warnung. Produktionsbuild durch lokalen Testserver. Zwischenstand: TS2345 beim zu breiten Guidance-Helferparameter, Lesetyp auf wirklich benötigte Daten eingegrenzt; Fehlerprotokoll erhalten |
+| Fehlerhistorie | erste Corefixture hatte deferredUntil ohne state:deferred; gemäß bestehender Semantik korrigiert. Keine Taskregeln dafür geändert. Erste Browser-/Buildfehlerlogs, Screenshot und Trace erhalten; keine Lockerung von Assertions/Timeouts/Retries |
+
+Rohbelege, lokale System-Chromium156-Konfiguration, Bilder, RESULT.json, Vorher-/Nachher-Bundles, Wiederherstellungsplan und SHA256SUMS unter `/workspace/anker-f005-20261113/`. Nur lokale Cloud-Sicherung. Öffnen und Rückkehr prüfen unveränderte Timeridentität/Restzeit, Lernwerte, Tagesfakten und Spielstand; Navigation startet keinen neuen/pausierten Timer. Storequeue, Backup-/Import-/Sync-/Diagnose-/Widget-/PC-Ausgaben ohne neue Felder. Originalplan/36IDs/103Gerätezeilen erhalten.260Android-JUnit aus F-003 unverändert historisch; keine neuen Geräte-/CI-Nachweise oder PC-Wirkungen. Reale Android-/Windows-/Kalenderbeobachtungen offen. Kein Push/Merge/Cloud-/Playeingriff.
+
+
+## F-004 / V-005: Zeitvergleich und vorhandene Dauerbestätigungen (13.11.2026)
+
+Basis `4b6e3fd17c76b738a238cb2199e9ec3fbcee4dfa`, Branch `entwicklung/anker-neu`, sauberer Anfangsstand in neuer erreichbarer Umgebung. Vorhandene Prüfungen erhalten; kein vollständiger Logik-/Browser-/Native-/CI-Neulauf.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielter Vitest-Endlauf | **175/175**,15Dateien, Exit0. Fokus/Tasks/neue Dauerprojektion, Store/Teiltimer, Export-/Backup-/Restore, Diagnose-, Widget- und PC-Briefingprivatheit.15neue Fälle:4Fokus (darunter2Berlin-DST),7Dauerprojektion,4Store-/Backupfälle |
+| Browserauswahl | **26unterschiedliche Fälle abgedeckt**. Erster Lauf23/24; ein Bestandsfall erwartete die ersetzte kombinierte Pause-/Zeitzeile. Angepasster Fall plus3neue F-004-Fälle4/4grün; zusätzliche2Routinefälle2/2grün. Nach Layoutkorrektur alle6betroffenen Fälle gemeinsam erneut6/6, restliche20nicht mechanisch wiederholt |
+| Lint / Typecheck / Produktionsbuild | Exit0; Lint0Fehler/1bekannte TaskAssistance-Warnung. Vollständiger Produktionsbuild vor lokalen Chromiumtests, keine Lockerung von Timeouts/Retries/CI |
+| UI / Grenzen | Chromium156,320px/160Prozent Schrift: kompakte Hauptansicht und geöffnete einspaltige Vergleichsdetails geprüft. Ring/Hauptaktion erhalten. Webnachweis, keine Hardwarebeobachtung |
+
+Rote Anfangsfälle zeigen den echten Überzugverlust bei Pause/Reload/Weiter und Berliner Zeitwechseln. Neue Projektionstests prüfen2vs3Angaben, unbestätigte/ungültige Minuten, Quell-/Geschäftskontext trotz gleichem Titel, fehlende Herkunft, Serien, robusten Median, doppelte/widersprüchliche Kopien und unveränderte Eingabedaten. Storefälle belegen Erhaltung von Sekunden/Überzug über Pause/Reload, Neustart ohne Überzug, unveränderte Schätzung/Erledigung/Game/Lernwerte, lokales Backup und Abwahl/Syncgrenze, kaputtes Feld vor irgendeiner Persistenz sowie ausdrückliche Bestätigung/Doppelschutz/Rücknahme. Keine neue Stichprobe aus Timerzeit.
+
+Neue Browserfälle: Schätzung30min getrennt vom2min-Fenster und Timerzeit; Pause/Reload/Weiter/Ablauf ohne Erledigung oder Punkte; bewusste Unterbrechung nach Überzug, leeres Bestätigungsfeld und eigene7min-Bestätigung; kleine Ansicht/Schrift/Details. Vorhandener Vorschlagsfall erhält seine Übernahme-/Resetassertionen, Fixture nun mit tatsächlich zuordenbaren Quellaufgaben statt erfundenen Sample-IDs ohne Herkunft. Alter Pausentextfall auf getrennten Vergleich und bestätigte Persistenz nach Weiter umgestellt, Assertions nicht entfernt. Zusätzlich wurde ein Routinenlauf zu früh gestartet: belegterPort4173, danach erst nach beendetem Testserver erneut erfolgreich. Nach dem Verschieben in die bestehenden Details suchten drei Zwischenfälle noch im geschlossenen Bereich; sie öffnen jetzt ausdrücklich die Details bzw. prüfen die sichtbare kompakte Timerzeit. Der Schlusslauf ist grün. Alle frühen Fehlerlogs und Traces bleiben erhalten.
+
+Rohbelege `/workspace/anker-f004-20261113/`: focus-before.log, Zwischen-/Endlogs, erster Browsertrace, finale UI-Bilder und lokale Konfiguration, RESULT.json, DOC-CHECK.json, Vorher-/Nachher-Git-Bundles/SHA256SUMS. Alle36Roadmap-IDs/103historischen Gerätezeilen erhalten, Originalplan bytegleich. Native-/Wecker-/Reminder-/PC-/Syncquellen, Paket-/Plugin-/Wrapperbindungen und Berechtigungen unverändert. Frühere260Android-JUnit bleiben F-003s Nachweis und wurden nicht erneut ausgeführt. Kein echter Galaxy-/Windows-/Kalender-/Health-/Anbieteraufruf, keine produktive Datenlöschung oder Veröffentlichung. Geräteteile offen; vorhandene G98-Bedien-/Fokusstation und G84-Sicherung bei später eigener Gerätefreigabe nutzen, kein neuer Pflichtfall.
+
+
+## T-005 / V-015: gezielte Datenschutzabnahme (13.11.2026)
+
+Basis `4e23706932f90bd3c396e25ddb3af31131efcc49`, sauberer Anfangsstand `entwicklung/anker-neu` in neuer Umgebung. Codeinventur und belegte Import-/Exportkorrekturen gemäß [DATENSCHUTZ_DATENGRENZEN.md](DATENSCHUTZ_DATENGRENZEN.md). Kein echter Anbieteraufruf, Kontowiderruf, produktiver Datenimport/-löschung oder Geräteversuch.
+
+| Tatsächliche Prüfung | Ergebnis / Grenze |
+|---|---|
+| Gezielter Vitest-Endlauf | **176/176**,16Dateien, Exit0; Export-/Backupvalidierung, Store-/Queue-/Health-/Aufgabenregressionen, Syncprivacy, Diagnose TS/Bridge, PC-Briefing-/Protokoll und Widgetprivacy.17neue Fälle:15in privacyBoundaries.test.ts und2Storefälle. Kein vollständiger Logik-Neulauf |
+| Lokaler Chromium-Browserlauf | **14/14**,4Dateien: backup-restore, backup-safety, diagnostic-export, sync-privacy. Ein neuer Fall mit echten Import-/IDBwegen, Altdatei-Freigaben, Reload und blockierten/nicht gestarteten externen Abrufen; übrige13passende Bestandsfälle. Mocks sind kein Backend-/OS-Nachweis |
+| Lint/Typecheck/Produktionsbuild | Exit0,0Lintfehler/1bekannte TaskAssistance-Warnung. Build durch lokale Playwright-Webservervorbedingung und vollständige TS-Prüfung; keine Prüfregel-/Timeout-/Retrylockerung |
+| Bestandsintegrität | Originalplan und alle36Roadmap-IDs erhalten;103historische Geräteergebniszeilen bytegleich, Native-/Reminder-/Paket-/Manifest-/Workflowbestand unverändert. Relative Dokumentationslinks und git diff --check geprüft |
+
+Rote Belege zuerst: Integrationsflags/Tombstone-Inhalte; danach eigene Wetter-/PC-Freitext- und tatsächliche Lernkopienfälle. Zwischenschritte fanden zusätzlich das Zurücksetzen aktueller Schlaf-Lesewahl durch Nachvalidierung sowie den fehlenden ausgeschalteten Lern-Default bei leerem Zielbestand. Fünf alte Wetterimport-Abnahmen auf neue Freigabegrenze angepasst; ihre Atomaritäts-/Fehler-/Reloadbehauptungen erhalten. Reine lokale Migration übernimmt weiterhin die vorhandene Wahl. Eine neue anfänglich unvollständige Guidance-Testfixture vollständig gemacht; bekannte ungültige Rohfelder werden weiterhin vor Projektion verworfen. Keine Assertions entfernt, um Lücken zu verstecken.
+
+Nachweise unter `/workspace/anker-t005-20261113/`: privacy-before*.log, gezielte Zwischen-/Endlogs, Browser-/Lint-/Typecheckbelege, lokale Browserkonfiguration, RESULT.json, Bestands-/Linkkontrolle, Git-Bundles und SHA256SUMS. Frühere Belege erhalten. Unveränderte vollständige F-003-Abnahme mit1255Logikfällen+105gezielten Schlussregressionen und260Android-JUnit bleibt ihr damaliger Nachweis; nicht als neuer kompletter Lauf ausgegeben. Native Dateien nicht geändert oder erneut kompiliert. Geräte-/Kontobeobachtungen zu Kalender/Health/PC/Androidbackup und echter Zustellung bleiben offen. Kein Push/Merge/Release/Cloud-/Playeingriff.
+
+
+## F-003 / V-010: dynamische Vorbereitungsimpulse (13.11.2026)
+
+Basis `2bef19df7f3bc304f62638c977b12f2fa00e7f3f`, sauberer Arbeitsbaum auf `entwicklung/anker-neu`. Lokale Softwareabnahme; kein Push/Merge/CI-/Release-/Geräte-/Playlauf. Native Werkzeuge aus `/workspace/anker-toolchains/env.sh` wiederverwendet, keine erneute Installation/Capacitor-Synchronisation erforderlich.
+
+| Tatsächliche Prüfung | Ergebnis und Grenze |
+|---|---|
+| Vollständiger `npm test -- --reporter=dot` | **1255/1255**,120Dateien, Exit0; F-001/F-002, Logik, Store, Bridge, Kalender-/Reminderregressionen enthalten |
+| Letzte gezielte Ergänzung: vorhandene Ablehnungen erhalten | **105/105** in6Dateien: preparation/build/policy/rules, Store und native Brücke; ein zusätzlicher Fall gegenüber obigem Vollstand, insgesamt32 neue TS-Fälle seit1224; unveränderte restliche Suite nicht erneut aufgerufen |
+| Android `:app:testDebugUnitTest --no-daemon --console=plain --max-workers=2` | **260/260**,29Suiten,0Fehler/Skips, Exit0;8neue PreparationReminderTest-Fälle,196Tasks davon5ausgeführt/191aktuell,30s. App-/Test-Kotlin kompiliert; keine Signierung oder Gerätewirkung |
+| Ausgewählter Chromium-Browserlauf | **30 unterschiedliche Fälle final abgedeckt**:28bestehende F-001/F-002/Jetzt-/Zeitübersichtsfälle bestanden im29/30-Lauf;2neue F-003-Fälle nach Fixturekorrektur grün. Kein erneuter Komplettlauf behauptet. Letzte Änderung am Ablehnungsfilter erneut mit diesen2Fällen geprüft |
+| Lint/Typecheck/Produktionsbuild | Exit0; Lint0Fehler/1bekannte TaskAssistance-Warnung; keine neuen Warnings unterdrückt. Produktionsbuild auch als Vorbedingung der lokalen Playwright-Konfiguration |
+| Sichtprüfung | System-Chromium156,320px/160Prozent Schrift; nächste bewusste Handlung und Abfahrtskarte lesbar, kein horizontaler Überlauf |
+
+TS-Rechenfälle: offene vs. done/minimal/skipped/not-needed; F-002-Varianten; fertige Vorbereitung/Abfahrt/Arbeitsstart; mehrere datierte Wege, Morgen-/Terminüberlappung ohne zweite Büroabfahrt; fehlende/ungültige Dauern, unbekannte Pack-/Fahrzeiten; Homeoffice/Remote/Absage/Ankunft/Rückkehr; Plan-/Tagesänderung, Mitternacht/Berlin-DST; Ruhe/Fokus/Film/Modus; datierte Revision bei stabilem Token und neutraler Wochenbasis. Storetests bestätigen neue Revision nach echten Schrittaktionen, Entfernung nach vollständiger Vorbereitung und Reload; gefälschte done/skip des actionlosen Impulses ändern weder Fakten, Receipts noch Spielstand. Bridge-Mock bestätigt Frist/Flags, aktualisierte Revision und Entfernung bei Planwechsel. Browser prüft Zeitübersichtsrolle travel, aktuelle berechnete Zeit und Persistenz ohne automatische Erledigung; beweist keine Android-Zustellung.
+
+Kotlin: gültiger frischer Impuls vor Abfahrt, genau zur Abfahrt ungültig; Slot/Android-Timeout auf Frist begrenzt; Absage/neue Revision entfernt Queue/Karte; Fortschritt aktualisiert unverbraucht, verbrauchter datierter Token wird nicht erneut eingeplant; Ruhe/Fokus/Film und kein automatischer Snooze; Weckervorrang/3erBudget; feste sichere Jetzt-Route ohne Privat-ID; neue widersprüchliche oder fristlose Payload abgewiesen, Legacy ohne Feld weiterhin gültig. JSON-Brücke beidseitig kompiliert; keine echte Android-JSON-/Receiver-/OS-Integration aus reinen JUnit-Mocks behauptet.
+
+Erste Fehlversuche bleiben lesbar:1224er Bestandslauf mit2veränderten Bestandsannahmen (leave-10/Planrolleprep), erste neue Fixtures mit unbestätigtem Streckenursprung und aktivem Nacht-Ruhefilter; anschließend korrigiert. Ein ungenutzter Test-Typimport ließ den ersten Typecheck/Browser-Webserverstart abbrechen, danach entfernt. Erster tatsächlicher Browserlauf29/30: Test navigierte unmittelbar nach zweiter Erledigung weiter und las alten Cache. Korrektur wartet auf bestätigten DB-Schritt und aktuellen Cache, keine längeren Timeouts oder Retries. Danach2/2grün. Keine Produktkorrektur aus diesem Fixturefehler nötig.
+
+Rohbelege `/workspace/anker-f003-20261113/`: erste/finale Logik-, Lint-, Typecheck-, Build-/Browserlogs, erster/finaler Testdelta-Log, `native-first.log`, `JUNIT-RESULT.json`, JUnit-XML/HTML, `first-browser-results/` mit Fehlerkontext/Trace, finale Bilder, `RESULT.json`, Git-Bundles und SHA256SUMS. Vorherige Belege nicht überschrieben. Alle103Geräteergebniszeilen erhalten. Echte Android-Zustellung/Doze/Notification-Timeout, Windows und Kalenderkonten offen; bestehende G21/G38/G66–G71 sowie Weckerstationen gemäß GERAETETEST.md. Nur Cloud-lokal gesichert und nicht auf main/GitHub verfügbar; T-005 vor neuen F-004-Messdaten separat beauftragen.
+
+
+## T-002: native Werkzeuge und frische Android-JUnit (13.11.2026)
+
+Basis `a820115284cf22938e96dd1e4ea115764158575e`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine getrackte Produkt-/Test-/Paket-/Plugin-/Wrapperänderung. Keine Übernahme historischer Ergebnisse als neue Ausführung: folgende252JUnit wurden tatsächlich frisch ausgeführt; bisherige Web-/Browserprüfungen nicht wiederholt.
+
+| Befehl / Prüfung | Beobachtetes Ergebnis |
+|---|---|
+| Vollständiges lokales JDK, `javac -version` | Exit0,21.0.13; offizielles Debian-Sicherheits-JDK-Paket21.0.13+9-1~deb13u2 SHA256-verifiziert, identische Version zur vorhandenen JRE; keine System-Java-Aktualisierung |
+| Wrapper `node scripts/gradle.mjs --version` | Exit0,8.14.3, JVM21.0.13; kein globales Gradle installiert |
+| Offizielle AGP8.13-Artefakte per `javap` | CommonExtensionImpl nutzt ToolsRevisionUtils.DEFAULT_BUILD_TOOLS_REVISION; Initialisierung setzt diesen Wert auf MIN_BUILD_TOOLS_REV=35.0.0. Keine Version geraten oder im Projekt geändert |
+| `sdkmanager --sdk_root="$ANDROID_HOME" --list_installed` | Exit0 mit Plattform android-36 Revision2, Build-Tools35.0.0, Commandline-Tools23.0. Offizielle Repositorymetadaten, Commandline-Archivgröße/SHA1/CRC geprüft, zusätzliche lokale SHA256 in TOOLCHAIN.json |
+| Erster `:app:testDebugUnitTest` | Exit1 vor Tests: fehlende `android/capacitor-cordova-android-plugins/cordova.variables.gradle`; Fehlerlog erhalten |
+| `npx cap sync android` nur nach diesem Befund | Exit0, nötige ignorierte Datei erzeugt; kein getrackter Git-Diff |
+| Zweiter `node scripts/gradle.mjs :app:testDebugUnitTest --no-daemon --console=plain --max-workers=2` | **BUILD SUCCESSFUL**, Exit0,2m2s, **196Tasks ausgeführt**; **252Tests/28Suiten,0Failures/Errors/Skips**, aus rohen JUnit-XML summiert, App-/Test-Kotlin-/Javakompilierung enthalten |
+
+Aktivierung nur für den jeweiligen Aufruf: `source /workspace/anker-toolchains/env.sh`. Leerer Gradlecache erforderte den ersten Wrapper-/Abhängigkeitsdownload; Cache und Proxykonfiguration nur in lokalen Toolpfaden. Commandline-Tools23 delegieren sdkmanager an Android CLI; erste Bestandsabfrage scheiterte mit `Failed to create bin dir / Read-only file system`, durch ANDROID_USER_HOME/XDG im Workspace behoben. Ein lokaler Wrapper nutzt bei weiteren CLI-Aufrufen `--no-metrics`; sdkmanager-Versionstext allein ist `unknown (Android CLI)`, tatsächliche Pkg.Revision23.0 aus offizieller source.properties bestätigt. Keine Projekt-/Cloud-/Kontokonfiguration geändert.
+
+Warnungen aus unveränderten Quellen bleiben sichtbar: Deprecated-/Unchecked-APIhinweise, Kotlinhinweis zum künftig mindestens benötigten Gradle8.14.4 in Kotlin2.5. Aktueller gebundener Stand8.14.3/2.4.21 besteht; kein Upgrade oder Suppressionsschalter. Keine APK-/Releaseerzeugung, Signierung, Geräteinstallation, neue Berechtigung, Push/Merge oder Google-Play-Aktion. Native Softwareprüfung beweist keine echte Zustellung/Hörbarkeit oder Galaxy-/Windows-/Kalenderbeobachtung.
+
+Belege unter `/workspace/anker-native-setup-20261113/`: `RESULT.json`, `TOOLCHAIN.json`, `JUNIT-RESULT.json`, `junit-xml/`, `junit-html/`, Aktivierungs-/Toolkonfigurationskopien, offizielle AGP-Bytecodeauszüge, Gradle-/SDK-/Compiler-Ausgaben, `android-unit-first.log`, `cap-sync.log`, `android-unit-second.log`, Vorher-/Nachher-Git-Bundles und SHA256-Verzeichnis. Werkzeuge/Downloads selbst unter `/workspace/anker-toolchains`; Bundle sichert Git-Historie, nicht alle SDK-/JDK-Binärdateien. Keine externe Sicherung oder automatische Wiederherstellung in anderen Umgebungen behauptet. F-003 kann nun als separater Produktauftrag beginnen; Geräteteile bleiben offen.
+
+
+## T-004: lesende Plattform-/Prüfpfadprüfung (13.11.2026)
+
+Basis `b6698562a98c0945e7f12d814ca9ba702b0ee060`, `entwicklung/anker-neu`, sauberer Anfangsstand. Keine neuen Produkt-/Gerätetests;1224 Logik-/17 Browsererfolge aus F-002 bleiben deren vorhandene Nachweise. Keine Übertragung historischer252 Androidfälle auf eine neue Toolchainprüfung.
+
+| Geprüft | Tatsächlicher Befund |
+|---|---|
+| Plattform/Java | Linux x86_64, `java -version` Exit0:21.0.13; kein javac im PATH und keiner in den vorgefundenen JVM-Verzeichnissen; frühere JDK-Angabe daher korrigiert |
+| Android | ANDROID_HOME/ANDROID_SDK_ROOT/JAVA_HOME nicht gesetzt, keine SDK-Commandline-/adb-/Emulatorwerkzeuge im PATH und kein SDK an den geprüften üblichen Pfaden; lokale SDK-Konfiguration fehlt |
+| Wrapper/Projektbindung | gradlew ausführbar, Wrapper-JAR CRC-fehlerfrei/Mainklasse vorhanden;8.14.3-all, AGP8.13.0, Kotlin2.4.21, min26/compile36/target36; keine explizite Build-Tools-Version |
+| Native Vorbedingungen | Capacitor-Referenzen, Node-Module und dist vorhanden; keine Aussage über Kompilierbarkeit. Kein Wrapperaufruf, Download, Lizenzannahme oder Installation |
+| Windows/Python | Linux, PowerShell nicht im PATH; zeroconf/qrcode und Windows-spezifische Bibliotheken nicht bereit. Kein echter Windows-/Systemwirkungstest |
+| Kalender | Bestehende TS-/Kotlin-/Browserprüfpfade vorhanden; Manifest READ_CALENDAR ohne WRITE_CALENDAR. Keine tatsächliche Zustimmung, Kontoabfrage oder Gerätebeobachtung |
+| CI | ci.yml gelesen: Web-/Toolprüfungen und PC-Linux/Windows, kein Android-JUnit-/App-Buildjob; Python-Android-Updateprüfung ersetzt keinen Native-Lauf |
+
+`TOOLS.json` und `java-version.log` unter `/workspace/anker-t004-20261113/` binden diese lesenden Befunde an Basiscommit/Umgebung. Abwesenheit bezieht sich auf konfigurierte Selektoren, PATH und benannte geprüfte Pfade, nicht auf alle denkbaren Maschinen. Wrapper-JAR-Verifikation ist kein Gradle-/JUnit-Lauf. [Konkrete F-003-Prüfkette, bestehende Stationen und kleinster Toolchainumfang](GERAETETEST.md).
+
+Dokumentationsabschluss prüft unveränderten Produkt-/Test-/Workflow-/Paketbestand, bytegleichen Plan und unveränderte Geräteergebniszeilen, alle36 Roadmap-IDs/Abhängigkeiten, lokale Links und `git diff --check`; lokaler Commit mit verifiziertem Bundle. T-004 vorbereitet ERLEDIGT, E-002/E-003/E-004 und reale Geräte offen; F-003 bis nativer T-002-Nachbereitung blockiert. Keine Wiederholung unveränderter Tests, kein Push/Merge/Cloud-/Playeingriff.
+
+
+## F-002 / V-009: ausdrückliche Kurzmoduswahl (13.11.2026)
+
+Basis `8149ecea34bf3a5f72a4b9fe1913ccccd602ba7c`, Branch `entwicklung/anker-neu`. Reine Vorschau aus F-001 plus bestehende Tagesplantransaktion und Planer; optionaler boolescher Tages-Override samt Importvalidierung. Kein neuer Writer/Planer, keine neuen Reminder-/Native-/Paket-/Cloudänderungen. Integriert lokal ja, main nein, Gerätetest offen, veröffentlicht nein.
+
+| Ausgeführte Prüfung | Ergebnis und Grenze |
+|---|---|
+| `npm test` final | **1.224/1.224**,119Dateien, Exit0;18 neue Logik-/Storefälle, keine Fehler/Skips |
+| `npm run typecheck` final | Exit0, vollständiger TS-Stand einschließlich e2e |
+| Produktionsbuild über finalen Playwright-Webserver | `npm run build` erfolgreich, frische Produktionsvorschau; kein Deployment |
+| `CI=true npx playwright test --config=/workspace/anker-f002-20261113/local-playwright.config.ts e2e/morning-short.spec.ts e2e/departure-readiness.spec.ts e2e/redesign-now.spec.ts --workers=2` final | **17/17**, Exit0,40,1s:6 neue Fälle plus11 unveränderte F-001-/Jetztfälle |
+| `npm run lint` final | Exit0,0Fehler/1bestehende `generation.current`-Warnung |
+
+Store-/Logikabnahme: passende Ersparnis ausschließlich für offene Schritte, keine Annahme bei unbekannter Fahrt/Dauer oder abgelaufener Zeit; gleiche Revision bei bloßem Uhrtick; Revalidierung nach Plan-/Faktenänderung und wartender Transaktion; Doppeltippen nur ein `putMany`; Fehler lässt Zustand/Undo unverändert und erneut annehmbar; Reload und bestehende Tagesplanrücknahme; alle IDs/Kernschritte/Erledigungen/Abend/globalen Einstellungen erhalten. Optionale Flagvalidierung akzeptiert alte Logs und lehnt String statt boolean ab. Ohne bestätigte Wahl keine Kürzung aus dem neuen Angebot und keine Punkte/Erledigungen aus Lesen/Ablehnen/Annahme.
+
+Browserabnahme: Vorschau15→7min, explizite Annahme/Reload, später echter Minimalabschluss, Ablehnung ohne Schreiben auch nach Uhrtick, Angebot verschwindet am Abfahrtszeitpunkt, unbekannte Reise und schon gewählter Kurzmodus ohne Doppelangebot, weiterhin zu knappe Zeit ausdrücklich benannt,320px/160Prozent Schrift. Lokales System-Chromium156.0.8078.79; Standardbrowserdownload nicht erneut versucht. Keine Retries, Skips, Timeouterhöhung oder gelockerte Assertions; keine aktuelle GitHub-CI und keine neue komplette Android-/Windows-/Browservollprüfung behauptet.
+
+Rotbelege erhalten: erste gezielte Suite16/17 wegen nicht klonbarer Storefunktionen im neuen Testsnapshot (Fixture korrigiert). Erste Browserrunde16/17: bisheriger Tagesplanhelfer vergab bei Kurzmodusannahme offene25XP für vorhandenes `wakeAt`. Tatsächlicher neuer Integrationsfehler, nicht als Flaky behandelt. Nur dieser neue Transaktionspfad überspringt nun Awardauswertung; ursprüngliche Gamegleichheitsassertion blieb erhalten und zusätzliche Store-Regression prüft unquittierte Handlungen. Vollständige finale Suite und alle17 Browserfälle danach grün. Keine Abwahl als Erledigung.
+
+Rohbelege unter `/workspace/anker-f002-20261113/`: `targeted-unit.log`, `targeted-unit-green.log`, `logic.log`, `logic-final.log`, `browser.log`, `first-browser-results/` inklusive Fehlertrace, `browser-final.log`, `typecheck-initial.log`, `typecheck-final.log`, `lint-final.log`, lokale Konfiguration, Abschlussbundle und `RESULT.json`. Erfolgreiche unveränderte Native-/Hardwareprüfungen nicht wiederholt. F-003 bleibt offen; für dessen native Prüfbedingungen T-004 als nächsten Auftrag vorbereiten.
+
+
+## F-001 / V-008: Restzeit, Vorbereitung und Puffer (13.11.2026)
+
+Ausgang `32b9a159f9f0609a25faf05ee9eed2466e8f37e9`, Branch `entwicklung/anker-neu`. Nur freigegebene reine Ableitung und Jetzt-Anzeige, keine Native-/Store-/Daten-/Reminder-/Paketänderung. Integriert lokal ja, auf main nein, Gerätetest offen, veröffentlicht nein.
+
+| Ausgeführte Prüfung | Ergebnis und Grenze |
+|---|---|
+| `npm test` | **1.206/1.206**, 117 Dateien, Exit0; darin23 neue `departure.test.ts`-Fälle, keine Fehler/Skips |
+| `npm run typecheck` | Nach korrigierter Browserfixture Exit0; erster Versuch fand fehlendes Datum für `initialGame`, Rotlog erhalten |
+| Playwright `departure-readiness.spec.ts` und `redesign-now.spec.ts`, CI=true, workers2 | **11/11**, Exit0: 5 neue Fälle (persistierte Erledigung/Reload ohne bloßes Lesen als Wirkung, überfällige Zeit/Losgehen, Homeoffice/unklare Reise, Planwechsel, 320px/160Prozent) plus6 vorhandene Hauptaktions-/Tages-/Layoutfälle |
+| Playwright `travel-sleep.spec.ts`, CI=true, workers2 | **4/4**, Exit0, vorhandene Orts-/Kundenweg-/Kalender-/Weckergrenzen |
+| Produktionsbuild über beide Playwright-Webserverstarts | `npm run build` erfolgreich, frische Produktionsvorschau; kein Deployment |
+| `npm run lint` nach finalem Produkt-/Teststand | Exit0,0Fehler/1bestehende Warnung in `useGuidanceView.ts` (`generation.current`) |
+
+Beide Browserbefehle verwenden `--config=/workspace/anker-f001-20261113/local-playwright.config.ts`. Vorhandenes Chromium156.0.8078.79, keine Retries/Skips/Timeouterhöhung; kein neuer Versuch des bereits blockierten Browserdownloads. Keine vollständige neue Browser-/Android-/Windows-Suite oder aktuelle grüne GitHub-CI. Keine echte Galaxy-/Samsung-/Windows-Beobachtung.
+
+Neue Logikfälle prüfen done/minimal/skipped/not-needed, vorgewählte Minimalzeit, unbekannte/ungültige Dauern, offene Packgegenstände ohne Budget, bereits im Plan bereinigte Vorbereitungsüberlappung, echte Wegbestätigungen, Homeoffice/Remote/Zuhause, Terminablauf/-wechsel, fehlende Fahrt, Berliner DST und Mitternacht/04:00 sowie Unveränderlichkeit der Eingaben. UTC-Restzeit nutzt dieselben vorhandenen Zeitkonvertierungen; nie Schlaf/Erledigung/XP aus Zeitablauf.
+
+Rohlogs/temporäre Konfiguration unter `/workspace/anker-f001-20261113/`: `unit-initial.log`, `logic.log`, `typecheck.log` (erster Fixturefehler), `typecheck-final.log`, `browser-initial.log` (Buildabbruch), `browser-pass1.log`, `travel-regression.log`, `lint-final.log`; Abschlussbundles und `RESULT.json` binden den lokalen Stand. Frühere vorhandene Nachweise bleiben historisch erhalten. Keine Play-/Cloud-/Workflowaktion.
+
+
+## T-002 / E-001 / T-003: Dokumentationsabnahme (13.11.2026)
+
+Basis `e421ee560cea709cba841843d35521b3f7755519`, nur Dokumentation/Agentenanweisungen. Aktuelle Umgebung running, Beobachtungen aktuell und Netzwerkpolitik enforced; keine Secretbindungen. `npm ls --depth=0` Exit0, Node24.22.1/npm11.9.0/System-Chromium156.0.8078.79 bestätigt. Vorhandenes `after.bundle` aus CI-Fix erfolgreich verifiziert. Keine neue Installation, Build-/Browser-/Logik- oder Geräteprüfung; 15/15 Browserfälle/Build/Lint aus unverändertem CI-Fix als bestehende Belege erhalten.
+
+Abschlussprüfung: Originalplan bytegleich zu `6dfa632`, alle36 IDs genau einmal, alle15 V-Zuordnungen, Abhängigkeiten F-003/F-004, drei Vorlagen, lokale Dokumentlinks und konsistente Abschlussstatus T-002/E-001/T-003; `git diff --check`. Kein Produkt-/Test-/Paket-/Workflowunterschied gegenüber `e421ee5`. Historische Testergebnisse unverändert. Kurzstatus bereinigt veraltete Aussagen zum e2e-Stand und stellt frühere Originalumgebungsblocker ausdrücklich als überholt dar. Native-/GitHub-API-/Play-Grenzen bleiben offen, kein Vollzugriff behauptet. Lokaler Commit und verifiziertes Abschlussbundle, kein Push/Merge/Release. Nächster Einzelauftrag F-001 fachlich vorbereitet, nicht implementiert.
+
+## Lokaler CI-Tastaturtest: kontrollierter Rot-/Grünnachweis (13.11.2026)
+
+Ausgangscommit `f7fa4e3`, Branch `entwicklung/anker-neu`. Nutzerscreenshot von Lauf43331316553/Job131576438067 belegt 307/308 Browserfälle mit `Expected675000 / Received undefined` nach Enter, Exit1. Kein API-Nachweis. Im lokalen normalen Einzellauf besteht der ursprüngliche Test (1/1); das allein widerlegt kein Eingabe-Rennen.
+
+Kontrollierter Versuch hält nur den echten `history.back()` des Minuten-Sheets an. Originale Folge `focus(); keyboard.press('Enter')` produziert auch nach anschließender Freigabe **denselben Fehler**, 1/1 fehlgeschlagen, erwartete Dauer675000/tatsächlichundefined. Timer, Store und Persistenz werden nicht gemockt. Danach wartet der Test auf Dialogende, verbrauchten Historymarker und aufgehobenes `inert`; er prüft echten Fokus vor Enter. Regression hält den Zurücklauf weiter kontrolliert an und bestätigt nach Freigabe die gespeicherten675000ms. Keine Timeouterhöhung, kein Retry/Skip, keine abgeschwächte Datenassertion.
+
+**Grün:** `CI=true npx playwright test --config=/tmp/anker-playwright.config.ts e2e/subtask-timer.spec.ts e2e/redesign-controls-extra.spec.ts --workers=2`: **15/15**, Exit0, 1,0min, einschließlich neuem Regressionstest, vollständiger Timerdatei und vorhandenen gehaltenen Sheet-/Auswahlfällen. Webserverbefehl führt vorher `npm run build` aus: erfolgreich. `npm run lint`: Exit0, 0Fehler/1bestehende Warnung (`generation.current`, react-hooks/exhaustive-deps). Keine vollständige neue Browser-/Logik-/Android-/Windows-Suite; GitHub-CI weiterhin historisch rot bis zu einem gesondert freigegebenen späteren Push und Runnerlauf.
+
+Umgebung: Node24.22.1, npm11.9.0, vorhandenes System-Chromium156.0.8078.79. Playwright-Chromiumdownload scheiterte mit `403 Domain forbidden`; temporäre Konfiguration setzt nur absoluten Test-/Ausgabe-/Webserverpfad, Reporter und Browserpfad. Repository-Playwright-Konfiguration und Workflows unverändert. `npm ci --cache /tmp/anker-npm-cache --no-audit --no-fund` erfolgreich; Standardcache zuvor `ENOENT`. Paket-/Lockdateien unverändert.
+
+Rohbelege außerhalb Git unter `/workspace/anker-ci-fix-20261113/`: `baseline.log`, `held-back-red.log`, `red-results/` mit Screenshot/Trace, `targeted-green.log`, `lint.log`, vor/nachher Git-Bundles und temporäre Laufkonfiguration. Nur Test- und Dokumentationsänderungen; kein Produkt-, Versions-, Signatur- oder Playeingriff. T-001 nun durch Nutzerentscheid gesichert pausiert, kein Entwicklungsblocker.
+
+
+## Einrichtung und Bestandsprüfung (13.11.2026)
+
+Ausgangscommit `6dfa632c94422d61d6a71c6a4a72c15fefd4a407`, Branch `entwicklung/anker-neu`, nur Dokumentationsänderungen. `ANKER_PLAN.txt`: 766 Zeilen und vollständige 36 IDs (15 V, 10 F, 6 T, 5 E); Datei unverändert. Dokumentationsprüfung vergleicht IDs, V-Zuordnungen, lokale Links und Abhängigkeiten; `git diff --check` als Abschlussprüfung. Keine neue Produkt-/Geräteprüfung daraus ableiten.
+
+`git bundle verify` der bisherigen Sicherung erfolgreich; SHA256 der drei vorhandenen Testlogs stimmen mit `checks.json` überein; vorhandene ZIP-Kopie CRC-fehlerfrei. Diese erhaltenen Logs belegen 75 Upload-/24 Auth-/35 Workflowtests auf `e48d289` (134 insgesamt, früher in dieser Unterhaltung ausgeführt), keinen neuen Lauf hier. Die historischen 136 sind ohne `835235b` nicht reproduziert. 1.183 Logik-/308 Browser-/252 Android-Fälle bleiben historische Übergabe, nicht erneut ausgeführt. Keine Abhängigkeiten für einen reinen Dokumentationsabschluss installiert. Keine neuen Galaxy-/Windows-Ergebnisse.
+
+Remote-Refs erneut gelesen: main `e48d289`, Arbeitsbranch/PR2-Head `6dfa632`. PR-/Actions-API `Forbidden`, Fetch `835235b` `not our ref`; aktueller Play-Bestand unbestätigt. Fehlende Originaldateien bleiben möglicherweise in der Supportumgebung erhalten. [Konkrete Grenzen und Wiederaufnahme](PROJECT_STATUS.md).
+
+
 ## Code17: G3 identische lokale und entfernte Timer-Prüffehler (10.11.2026)
 
 Auf `1e68b06fe855b06886a69926a5ad562580648084` bleiben 1.183 Logik- und 252 frische Nativefälle samt unsigned APK/AAB grün. Lokal und in [CI42746477364](https://github.com/frnkrm/anker/actions/runs/42746477364) enden die Browserprüfungen mit **305/308, drei Fehlern, ohne Retries/Skips**. Alle drei Fehler stammen aus `subtask-timer.spec.ts:141/224` und der nachträglichen `aria-checked`-Prüfung in `helpers/controls.ts:42`: Der gewählte Fokus wird korrekt angezeigt, während die ausgewählte Radioansicht nach `TaskFocus`-Navigation absichtlich entfällt. Die beiden vorherigen Eingabe-Fehler sind behoben. Rohbelege: `shipping4/recheck2`, `public-ci-1e68b06-error-review/OBSERVED-RESULT.json` und Native5; tatsächliche Prozess-Exitcodes sind gespeichert. Der folgende Timer-Prüfablauf erhält alle bisherigen Restzeit-, Persistenz-, XP- und Nicht-Erledigt-Bedingungen. Kein Signieren oder Playupload aus diesem roten Stand.

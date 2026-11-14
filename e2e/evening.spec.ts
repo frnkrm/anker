@@ -32,17 +32,22 @@ async function finishEvening(page: Page) {
 test('Abendroutine bietet nach PC-Stopp und Bettzeit keine neue Freizeit an', async ({ page }) => {
   const { pcStop, bed } = await onboard(page)
   await finishEvening(page)
-  await expect(page.getByText(`Jetzt Freizeit bis ${pcStop}.`, { exact: true })).toBeVisible()
+  const next = page.getByRole('region', { name: 'Nächster Übergang', exact: true })
+  await expect(next.getByRole('heading', { name: 'Freizeit – zocken erlaubt', exact: true })).toBeVisible()
 
   await page.clock.setFixedTime(new Date(`2026-11-02T${pcStop}:00+01:00`))
   await page.reload()
-  await expect(page.getByText(`Zeit zum Runterkommen. Bett um ${bed}.`, { exact: true })).toBeVisible()
-  await expect(page.getByText(/Jetzt Freizeit/)).toHaveCount(0)
+  await expect(next.getByRole('heading', { name: 'PC aus', exact: true })).toBeVisible()
+  await expect(next).toContainText('Speichere deinen aktuellen Stand')
+  await expect(next.getByRole('heading', { name: 'Freizeit – zocken erlaubt', exact: true })).toHaveCount(0)
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.pcOffAt).toBeUndefined()
 
   await page.clock.setFixedTime(new Date(`2026-11-02T${bed}:00+01:00`))
   await page.reload()
-  await expect(page.getByText('Jetzt ist Zeit fürs Bett.', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Jetzt Freizeit/)).toHaveCount(0)
+  await expect(next.getByRole('heading', { name: 'Ab ins Bett', exact: true })).toBeVisible()
+  await expect(next.getByRole('heading', { name: 'Freizeit – zocken erlaubt', exact: true })).toHaveCount(0)
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.pcOffAt).toBeUndefined()
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.bedAt).toBeUndefined()
 })
 
 test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', async ({ page }) => {
@@ -54,8 +59,11 @@ test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', a
   await page.getByRole('button', { name: 'Übernehmen', exact: true }).click()
   await expect(page.getByText('Viel Spaß. Der Abend gehört dir. Ob dein PC die Änderung übernommen hat, ist nicht bestätigt.', { exact: true })).toBeVisible()
   await finishEvening(page)
-  await expect(page.getByText('Für heute ist hier nichts mehr offen.', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Jetzt Freizeit bis/)).toHaveCount(0)
+  const next = page.getByRole('region', { name: 'Nächster Übergang', exact: true })
+  await expect(next.getByRole('heading', { name: 'Freizeit – zocken erlaubt', exact: true })).toBeVisible()
+  await expect(next).toContainText('Dein Abend bleibt offen. Du entscheidest, wann du wechselst.')
+  await expect(next).not.toContainText(/\d{1,2}:\d{2}/)
+  expect((await storedRecord<DayLog>(page, 'days', '2026-11-02'))?.override.lateUntil).toBe('open')
 })
 
 test('Abendeinstellungen sind gebündelt und optionale Schalter bleiben eine eigene Wahl', async ({ page }) => {

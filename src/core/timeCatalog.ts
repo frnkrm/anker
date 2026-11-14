@@ -131,7 +131,7 @@ export function currentTimeCatalog(state: TimeCatalogState, now: number, runtime
 
 const reminderCategory = (key: string): TimeCategory => {
   if (key.startsWith('deadline') || key === 'latest-start') return 'work'
-  if (key.startsWith('prep:') || key.startsWith('go:') || key.startsWith('leave') || key === 'latest-leave') return 'travel'
+  if (key.startsWith('prepare:') || key.startsWith('prep:') || key.startsWith('go:') || key.startsWith('leave') || key === 'latest-leave') return 'travel'
   if (key === 'meds' || key === 'gymbag') return 'health'
   if (key === 'prepcook') return 'household'
   if (key === 'review' || key.startsWith('thought-review:') || key.startsWith('tomorrow-step:')) return 'reflection'
@@ -175,7 +175,7 @@ export function buildTimeCatalog(input: TimeCatalogInput): TimeCatalogSnapshot {
   const datedEnds = input.plans.map((plan) => zonedToUtc(plan.date, Math.max(2 * 1440, plan.bed, plan.pcStop, ...plan.blocks.map((block) => block.end))))
   const lookahead = Math.max(rangeEnd, ...explicitAt, ...datedEnds) - rangeStart + DAY
   const oneOffReminder = (key: string, date: string) => {
-    if (/^(deadline-|thought-review:|tomorrow-step:|prep:|go:)/.test(key)) return true
+    if (/^(deadline-|thought-review:|tomorrow-step:|prepare:|prep:|go:)/.test(key)) return true
     const o = input.days[date]?.override
     if (!o) return false
     if (['pcstop-15', 'pcstop', 'bed', 'guidance-wind-down', 'guidance-brain-dump', 'guidance-evening-light'].includes(key)) return o.lateUntil !== undefined || !!o.pcStopExtendMin

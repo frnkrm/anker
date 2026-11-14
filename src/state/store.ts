@@ -14,6 +14,8 @@ import { nextTaskOccurrence, resolveTask, taskIsOpen, taskLearningKey, taskNextS
 import { applyAwards, advanceGame, dayGoals, dayStatus, initialGame, levelFor, theme, type DayStatus } from '../core/game'
 import { activePlanDate, openSteps, routineCompleted, stepKey } from '../core/now'
 import { buildDayPlan } from '../core/planner'
+import { morningShortOffer } from '../core/morningShort'
+import { simplificationOffer, SUPPORT_OFFER_DISMISSED, type NextInput } from '../core/support'
 import { planConflicts, validConflictAcknowledgements } from '../core/planConflicts'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
@@ -154,6 +156,9 @@ interface AppState {
   setAlarmStatus(a: AlarmStatus): void
   /** Änderung über „Heute anders“: merkt den Ausgangsstand, damit alles rückgängig zu machen ist */
   adjustDay(date: DateStr, label: string, fn: (log: DayLog) => DayLog): Promise<void>
+  /** Aktuelles Kurzmodusangebot in derselben Tagesplantransaktion bewusst übernehmen. */
+  acceptMorningShort(date: DateStr, revision: string): Promise<boolean>
+  respondSupportOffer(date: DateStr, revision: string, choice: 'accept' | 'dismiss'): Promise<boolean>
   /** Zurück zum ursprünglichen Plan. Wirklich Erledigtes bleibt erledigt. */
   restoreDay(date: DateStr): Promise<void>
   saveCommitment(c: Commitment): Promise<void>
@@ -392,9 +397,12 @@ function editTask(ref: TaskRef, edit: (task: InboxItem | WorkTask, data: TaskDat
 }
 
 /** Planänderung und private Rücknahmebasis werden gemeinsam gespeichert, ohne echte Handlungen zu erfinden. */
-function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: LocalData) => DayLog, accept?: () => boolean): Promise<void> {
+function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: LocalData) => DayLog, accept?: () => boolean, options: { obsolete?: 'ignore'; evaluateProgress?: false } = {}): Promise<void> {
   return atomic(async () => {
-    if (accept && !accept()) throw new Error('Dieser Vorschlag passt nicht mehr zum aktuellen Plan. Bitte prüfe den Termin erneut.')
+    if (accept && !accept()) {
+      if (options.obsolete === 'ignore') return
+      throw new Error('Dieser Vorschlag passt nicht mehr zum aktuellen Plan. Bitte prüfe den Termin erneut.')
+    }
     const st = useApp.getState()
     const local = structuredClone(st.local)
     let log = structuredClone(st.days[date] ?? emptyLog(date))
@@ -407,7 +415,8 @@ function editDayPlan(date: DateStr, label: string, edit: (log: DayLog, local: Lo
     log = { ...log, before, steps: { ...log.steps, ...performed }, override: { ...log.override, adjusted: true, ...(confirmedBackAt !== undefined ? { backAt: confirmedBackAt } : {}) }, changes: [...(log.changes ?? []), label] }
     pauseChangedRoutine(local, log)
     const plan = planFor(date, { ...st, local, days: { ...st.days, [date]: log } })
-    const award = applyAwards(plan, log, st.game, st.settings)
+    // A proposal choice is not a completed action, including previously unclaimed awards.
+    const award = options.evaluateProgress === false ? { log, game: st.game, gained: 0 } : applyAwards(plan, log, st.game, st.settings)
     const records: RepositoryWrite[] = [{ collection: 'days', id: date, data: award.log }, { collection: 'meta', id: 'local', data: sourceLocal(local) }]
     if (award.gained) records.push({ collection: 'game', id: 'main', data: award.game })
     await repo.putMany(records)
@@ -461,6 +470,14 @@ function eventsFor(date: DateStr, events: CalendarEvent[]): CalendarEvent[] {
     const end = minutesOnPlanDay(date, e.end)
     return end > 0 && s < 1440 + 360
   })
+}
+
+/** Eine Eingabe für denselben bestehenden Planer und alle aktuellen Unterstützungsleser. */
+export function supportInput(st = useApp.getState(), nowMs = Date.now()): NextInput {
+  const date = guidancePlanDate(st.local, activePlanDate(nowMs, todayBerlin), nowMs)
+  return { plan: planFor(date, st), log: st.days[date], m: minutesOnPlanDay(date, nowMs), nowMs,
+    settings: st.settings, inbox: st.inbox, work: st.local.work, resume: st.local.resume,
+    sessions: st.local.workSessions, context: st.local.taskContext }
 }
 
 export function statusOf(date: DateStr, st = useApp.getState()): DayStatus {
@@ -1378,6 +1395,37 @@ export const useApp = create<AppState>()((set, get) => ({
 
   adjustDay(date, label, fn) {
     return editDayPlan(date, label, (log) => fn(log))
+  },
+
+  async acceptMorningShort(date, revision) {
+    let applied = false
+    await editDayPlan(date, 'Morgenroutine in kurzen Varianten', log => {
+      applied = true
+      return { ...log, override: { ...log.override, shortMorning: true } }
+    }, () => {
+      const st = get()
+      const offer = morningShortOffer(planFor(date, st), st.days[date], Date.now())
+      return offer !== undefined && offer.revision === revision
+    }, { obsolete: 'ignore', evaluateProgress: false })
+    return applied
+  },
+
+  respondSupportOffer(date, revision, choice) {
+    return atomic(async () => {
+      const st = get()
+      const input = supportInput(st)
+      if (!revision || date !== input.plan.date || (choice !== 'accept' && choice !== 'dismiss')
+        || input.log?.dismissed?.includes(SUPPORT_OFFER_DISMISSED)) return false
+      if (choice === 'accept' && simplificationOffer(input, st.local)?.revision !== revision) return false
+      const log = structuredClone(input.log ?? emptyLog(date))
+      log.dismissed = [...(log.dismissed ?? []), SUPPORT_OFFER_DISMISSED]
+      if (choice === 'accept') log.override = { ...log.override, mode: 'startschwierigkeit' }
+      // Eine Wahl ist kein Fortschritt: keine Awards, Timeränderung oder Erledigung.
+      await repo.putMany([{ collection: 'days', id: date, data: log }])
+      set({ days: { ...st.days, [date]: log } })
+      changed()
+      return true
+    })
   },
 
   restoreDay(date) {

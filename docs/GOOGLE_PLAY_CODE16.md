@@ -1,5 +1,7 @@
 # Anker: erster Google-Play-Upload
 
+**Historische Code16-Vorbereitung, Einordnung 14.11.2026:** Nutzer meldet inzwischen Play-App-Signierer8A und UploadzertifikatB4; die damalige Aufforderung zur B4-App-Schlüsselübernahme ist kein heutiger Übertragungs-/Signaturänderungsauftrag. [Aktuelle Rollen und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Neues lokales [unsigniertes Code17-Prüf-AAB](AAB_INTEGRATION_T006.md) ist separat geprüft, nicht das damalige signierte Code16-Bundle und keine neue Upload-/Versions-/Installationsfreigabe. Kein PEPK-/Secret-/Schlüsseltransfer, kein Console-/Workflowstart oder Playeingriff daraus ableiten; historische JSON-Freigabemanifeste bleiben unverändert.
+
 **Nachtrag 10.11.2026:** Der [neue Uploadworkflow](GOOGLE_PLAY_UPLOAD_WORKFLOW.md) bestätigt in [Lauf42721896696](https://github.com/frnkrm/anker/actions/runs/42721896696) tatsächlich die Google-Anmeldung und **bereits das identische Code16-Bundle im internen Test, Status `completed`**. Deshalb nur lesende Bestandsbestätigung `already-active`, kein erneuter Upload oder neu veröffentlichter Release. 92 Offline-Tests sowie der echte GitHub-/Google-Abgleich grün. [Nachweis](PLAY_CODE16_KONTO_NACHWEIS.json). Testerzugang, Googles App-Signieridentität und Handyinstallation nicht aus diesem API-Nachweis ableiten. Die Zugriffs-/Kontoangaben vom 9. November darunter bleiben der historische Vorbereitungsstand.
 
 

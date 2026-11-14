@@ -40,6 +40,12 @@ import java.lang.ref.WeakReference
     Permission(alias = "deviceCalendarRead", strings = [Manifest.permission.READ_CALENDAR]),
 ])
 class AnkerNativePlugin : Plugin() {
+    private var nfcReader: NfcAnchorReader? = null
+    private fun nfc(): NfcAnchorReader = nfcReader ?: NfcAnchorReader(activity) { voiceForeground }.also { nfcReader = it }
+    @PluginMethod fun getNfcStatus(call: PluginCall) { activity.runOnUiThread { call.resolve(nfc().status()) } }
+    @PluginMethod fun scanNfcAnchor(call: PluginCall) { activity.runOnUiThread { nfc().scan(call.getString("sessionId") ?: "") { call.resolve(it) } } }
+    @PluginMethod fun cancelNfcScan(call: PluginCall) { activity.runOnUiThread { nfcReader?.cancel(call.getString("sessionId") ?: ""); call.resolve() } }
+    @PluginMethod fun confirmNfcAnchor(call: PluginCall) { activity.runOnUiThread { call.resolve(nfc().confirm(call.getString("sessionId") ?: "", call.getString("target") ?: "")) } }
     @PluginMethod fun deviceCalendarPermission(call: PluginCall) {
         if (call.getBoolean("request") == true && getPermissionState("deviceCalendarRead") != PermissionState.GRANTED) {
             if (!voiceForeground || activity?.isFinishing != false) { call.reject("DEVICE_CALENDAR_FOREGROUND_REQUIRED"); return }
@@ -76,12 +82,14 @@ class AnkerNativePlugin : Plugin() {
     override fun handleOnResume() { super.handleOnResume(); voiceForeground = true; try { BedtimePromptController.onAppResume(context) } catch (_: Exception) { } }
     override fun handleOnPause() {
         voiceForeground = false
+        activity.runOnUiThread { nfcReader?.cancelAll() }
         dictationLease.cancel(); speechLease.cancel()
         try { BedtimePromptController.onAppPause(context) } catch (_: Exception) { }
         super.handleOnPause()
         activity.runOnUiThread { voice.stopDictation(); voice.stopSpeaking(); alarmTonePreview.stop() }
     }
-    override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { voice.destroy(); alarmTonePreview.stop() }; super.handleOnDestroy() }
+    override fun handleOnStop() { activity.runOnUiThread { nfcReader?.cancelAll() }; super.handleOnStop() }
+    override fun handleOnDestroy() { voiceForeground = false; dictationLease.cancel(); speechLease.cancel(); activity.runOnUiThread { nfcReader?.cancelAll(); voice.destroy(); alarmTonePreview.stop() }; super.handleOnDestroy() }
 
     @PluginMethod fun getVoiceCapabilities(call: PluginCall) { activity.runOnUiThread { call.resolve(voice.capabilities()) } }
     @PluginMethod fun startDictation(call: PluginCall) {
@@ -248,6 +256,7 @@ class AnkerNativePlugin : Plugin() {
 
         fun notifyRinging() {
             BedtimePromptController.onAlarmStarted()
+            instance?.get()?.let { plugin -> plugin.activity.runOnUiThread { plugin.nfcReader?.cancelAll("blocked") } }
             instance?.get()?.notifyListeners("alarmRinging", JSObject(), true)
         }
 

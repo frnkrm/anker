@@ -197,9 +197,11 @@ describe('Abgeleitete Zeitübersicht', () => {
     st.days[far] = { date: far, steps: {}, override: { lateUntil: 24 * 60 + 30, routineAt: { evening: 20 * 60 } } }
     st.local.commitments = [{ id: 'visit', date: far, label: 'Ein Termin', start: 14 * 60, end: 15 * 60, travelMin: 20, locationKind: 'onsite', placeLabel: 'Bewusster Ort', context: 'personal', commitment: 'hard' }]
     const result = build(st)
-    for (const role of ['reminder.go', 'reminder.prep', 'reminder.pcstop', 'pc.stop-command', 'plan.bedtime', 'plan.evening-routine']) {
+    for (const role of ['reminder.go', 'reminder.prepare', 'reminder.pcstop', 'pc.stop-command', 'plan.bedtime', 'plan.evening-routine']) {
       expect(result.entries.some((entry) => entry.functionId === role && entry.source.date === far), role).toBe(true)
     }
+    expect(result.entries.some(entry => entry.source.date === far && entry.functionId === 'reminder.prep')).toBe(false)
+    expect(result.entries.find(entry => entry.source.date === far && entry.functionId === 'reminder.prepare')?.category).toBe('travel')
     expect(result.entries.filter((entry) => entry.functionId === 'alarm.main')).toHaveLength(14)
     expect(result.entries.some((entry) => entry.functionId === 'reminder.wind-down' && entry.source.date === far)).toBe(false)
     const bedtime = result.entries.find((entry) => entry.functionId === 'plan.bedtime' && entry.source.date === far)!
