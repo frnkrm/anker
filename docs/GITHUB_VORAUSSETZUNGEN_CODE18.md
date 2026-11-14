@@ -1,5 +1,7 @@
 # T-006 – GitHub-Voraussetzungen für Code18
 
+Nachtrag14.11.2026: Der gesondert beauftragte einmalige Branch-Push H1847c8a ist inzwischen [ausgeführt und nachkontrolliert](GITHUB_BRANCH_PUSH_CODE18.md), main erhalten. GitHub-HTML liefert neue PR-/CI-Metadaten trotz API-Sperre. Folgende Plan-/Lesebelege bleiben historisch, keine Wiederholungsfreigabe; keine erneuten Metadaten-/Secretfragen.
+
 Nachtrag14.11.2026: Der nachfolgend empfohlene lokale Übergabeplan ist inzwischen als [konkrete Vorlage](GITHUB_UEBERGABE_CODE18_PLAN.md) vorbereitet; kein Push oder externe Abfrage. CI-Nutzerzuordnung bleibt abgeschlossen, Secret-/Scope-Nachfragen bleiben unnötig.
 
 ## CI-SHA und angezeigter Checkstatus ergänzt (14.11.2026)

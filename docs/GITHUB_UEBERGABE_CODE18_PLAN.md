@@ -1,5 +1,7 @@
 # T-006 – konkrete lokale GitHub-Übergabevorlage für Code18
 
+Nachtrag14.11.2026: Der gesondert beauftragte einmalige Branch-Push H1847c8a ist inzwischen [ausgeführt und nachkontrolliert](GITHUB_BRANCH_PUSH_CODE18.md), main erhalten. GitHub-HTML liefert neue PR-/CI-Metadaten trotz API-Sperre. Folgende Plan-/Lesebelege bleiben historisch, keine Wiederholungsfreigabe; keine erneuten Metadaten-/Secretfragen.
+
 Stand 14.11.2026, Europe/Berlin. **Nur vorbereitet, keine Übertragungsfreigabe und keine externe Abfrage in diesem Auftrag.** Ausgangshead `08813c644373302975bdf3bd250972464b00ef11`, sauberer Branch `entwicklung/anker-neu`. Alte Umgebung/835235b bleiben zurückgestellt. Der Abschlusscommit dieses Planungsauftrags wird nach dem Commit außerhalb des Repositorys in `HANDOFF_COMMIT.txt` und `RESULT.json` exakt gebunden; keine selbstreferenzierende Commit-SHA im Gitinhalt.
 
 ## 1. Quellen und tatsächlich lokaler Unterschied

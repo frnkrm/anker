@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: ausdrücklich erlaubte Quellübertragung, nur Metadaten nachgelesen (14.11.2026)
+
+[Push und neue CI-Nachkontrolle](GITHUB_BRANCH_PUSH_CODE18.md): genau ein erlaubter Git-Fast-forward-Push H1847c8a auf Entwicklungsbranch, keine Appnutzdaten-/AAB-/Sicherungsordnerübertragung, Signierung oder neuer Freigabedatenfluss. Keine Secret-/Schlüssel-/Wertsuche, Token-/Cookie-/Auth-/Cloud-/Secretänderung oder Google-Play-/Consoleabfrage. Nur aktuelle Gitrefs und PR-/CI-Metadaten gelesen: API-CONNECT403, vorhandene GitHub-HTML-Seiten200. Ausgewählte öffentliche Status-/Quell-/Triggerkontexte gespeichert, keine vollständigen HTML-/Login-/Joblogdateien oder privaten Werte. Vorhandene automatische CI und gegebenenfalls bereits eingerichtete Previewautomatik ausdrücklich erlaubt; keine aktive Deploymentkonfiguration geändert oder Previewerfolg behauptet.
+
+Neue Sicherung `/workspace/anker-t006-branch-push-20261114/` nur Cloud-lokal: Git-Bundles/Push-/Ref-/Webmetadaten/Dokumentintegrität/Restore/SHA256, keine neue AAB- oder Appdatenkopie. Quellen H zusätzlich auf GitHub bestätigt, lokaler Abschluss nicht erneut übertragen. Produkt-/Daten-/Versions-/Workflow-/alte Code17-Freigabemanifeste unverändert; Secretbestand/Scope weiter unbekannt, Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
 ## T-006: begrenzte lesende GitHub-Metadatenprüfung (14.11.2026)
 
 [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md) auf a29ba67: nur öffentliche Ref-/Workflow-/Quellmetadaten und erfolglose API-GETs für PR/CI/Actions sowie Signing-Secretnamen/Scopes. CONNECT403 verhindert APIantworten; keine Secretliste oder Werte erhalten, keine Rechte-/Fehlbestandsannahme. Keine privaten Dateien/Passwörter/Token gesucht, gelesen oder protokolliert; keine Auth-/Proxy-/Cloud-/Secretänderung oder Umgehung. Bestehender HTTPS-Zugang nur für lesende Metadatenanfragen verwendet, keine Google-/Consoleabfrage oder Nutzdaten-/Schlüsselübertragung. Produkt-/Persistenz-/Backup-/Sync-/Reminder-/Freigabedaten unverändert.
