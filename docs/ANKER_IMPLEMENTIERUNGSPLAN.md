@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: einmaliger prepare-Aufruf fehlgeschlagen, kein Fix (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. VorabQuellen/Workflow/M-/W-CI geprüft; wegenAPIForbidden erlaubterBesitzer-UI-Rückweg,keineAuthreparatur/Doppelstart. TatsächlicherDetailfehler hinterLog-Anmeldung,keineUrsacheerfunden. NurStatusdokumentation,Hlokal sichern;keineProdukt-/Workflow-/Versionsänderung/Tests/Builds/Signieren/Playaktion. T-006/V-014/E-002–E-005/Freigabenoffen. Genau nächsterAuftrag vorhandenenResolvefehler lesend einholen,keinFix/Neustart.
+
 ## T-006: regulärer PR3-Merge mit eigener main-CI belegt (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). M bleibt Appquelle mit eigenem frischem gelesenem M-main-CI-Beleg. W extern gebunden,nicht lokal gefetcht; G nur Dokumentationsabschluss,nicht nachpushen. Bestehende automatische main-CI/gegebenenfalls main-Webwirkung autorisiert,keine aktiveCloudänderung/manuellenAAB-/Signier-/Playaktion. Keine Tests/Builds lokal. Main-Integration im belegtenUmfang erledigt,T-006/V-014/E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf aus M mit Workflow W starten und U2-Nachweise nachkontrollieren.

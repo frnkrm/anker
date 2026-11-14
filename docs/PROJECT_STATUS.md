@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: erster prepare-Lauf in resolve abgebrochen (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. Angefordert war ausschließlichprepare mitApp-M10cc894a/W741fb7b und leerenSignierbindungen; tatsächlicheInputstrings nicht unabhängig öffentlich ausgelesen. Kein Appcheckout/Build/Unsigned-Prüferfolg behauptet.
+
+Öffentlich nur `Process completed with exit code 1.`. Resolve-DetailseiteHTTP200/`Sign in to view logs`;eigentlicheUrsache unbekannt. BekanntegrüneM-/W-main-CI nicht mit diesem rotenPrepare-Lauf gleichsetzen. Kein Fix/Neustart oder Signieraufruf.
+
+Gnur Ausgang,Hnur lokalerAbschluss,nichtpushen. U1/alteArbeitsbäume/Sicherungen/Code17 erhalten;T-006/V-014 IN_ARBEIT,E-002–E-005 und weitereFreigabenoffen. Genau nächster eigenerAuftrag vorhandenenResolve-Detailfehler ausP ausschließlichlesend einholen/zuordnen;keine erneuten bekanntenMetadatenfragen. FolgendeStände historisch;danachstoppen.
+
 ## T-006: PR3 regulär integriert, eigene W-main-CI nachkontrolliert (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m).

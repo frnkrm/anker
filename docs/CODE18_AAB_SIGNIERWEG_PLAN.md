@@ -1,5 +1,9 @@
 # T-006 – konkreter Plan für den signierten Code18-AAB-Prüfweg
 
+## Fortschreibung: erster Stufe-C-Aufruf in resolve fehlgeschlagen (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. Kein U2/H2/HP/ArtefaktA und damit keine konkreteSignierübergabe. StufeB/M-/W-main-CI bleibtbelegt,StufeCnichtabgenommen. Detailfehler muss erst lesend belegt werden,keinFix/Neustart/sign oderalteCode17-Manifesteumdeuten. FrüherePlanungsstände historisch,Hnur lokalsichern und weitereFreigabenoffenhalten.
+
 ## Fortschreibung: Stufe B im belegten Umfang abgeschlossen (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). M/App-CI43601398931 getrennt bestätigt; tatsächlichesW alsWorkflowquelle bekannt,nichtlokalgeholt. Vorherige Formulierungen ohneW beziehen sich auf früherePlanung. StufeC/prepare weiterhin separat freigeben,keinKeygebrauch/sign/Play/Gerätefreigabe. U1nichtU2; konkreteH2/HP/P/Versuch/A nochunbekannt. Gnur lokal.

@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: realer prepare-Abbruch vor Build statt Paketnachweis (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. ÖffentlicherExitcode1 im resolve-Schritt;keine Bundletool/JAR/Assets/Manifest/SDK/ZIP/ELF-/Nullsignierprüfung inP ausgeführt. Keine tatsächlichenInputstrings/Detailursache öffentlich bestätigt. Jobseite `Sign in to view logs`,keinberechtigterDownload-/Detailzugriff repariert. Vorherige M-/W-CI und43lokaleOfflinefälle getrennt erhalten,keineTests/CIwiederholt. KeinSoftwarebeleg alsHardwarebeobachtung;T-006/V-014/E-002–E-005/offeneFreigaben erhalten.
+
 ## T-006: neue exakte push/main/W-CI statt Branchersatz (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). Neuer vollständiger CommitlinkW/Ref-/PR-mergeCommitSha/ElternM-L/Actions-/Summaryversuch binden den eigenen main-Nachweis. Separates M/main/push43601398931/Versuch1Success erneuert gelesen,kein Neulauf. PR-Runtime-SHA-Lücke historisch erhalten,kein Ersatz für W-CI nötig. Lokale43Offlinefälle/Fakes bleiben eigene ältere Belege,keine echteSignierung/AAB-/Geräteabnahme/JUnit neu. Keine lokaleSuite/Build/CI-Neustart; T-006/V-014/E-002–E-005 und weitere Freigaben offen.

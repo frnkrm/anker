@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: prepare in resolve rot, Detailfehler fehlt (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. KonkreterBlocker fehlenderDetailfehler hinterJoblog-Anmeldung,nichtunbelegteRootcause. Bestehende W/M-main-CI grün erhalten. Genau nächster eigenerAuftrag vorhandenenP-Resolvefehler lesend einholen/zuordnen,keinFix/Neustart/Signieren. T-006/V-014 IN_ARBEIT,E-002–E-005/Freigabenoffen.
+
 ## T-006: PR3Merged, Paket-/Geräteabschluss weiter offen (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). WorkflowquelleW jetzt konkret,AppquelleM/U1 getrennt erhalten; W lokal nicht beschafft. U2/S/Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. T-006/V-014 IN_ARBEIT,E-002–E-005 OFFEN. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf aus M mit Workflow W starten und U2-Nachweise nachkontrollieren.
@@ -81,7 +85,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | PR3Merged, tatsächlichesW/main-CI erfolgreich; Dispatch-/U2-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | PR3Merged,W/main-CI grün; ersterprepare inresolve rot/Detailfehler fehlt,U2-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -110,7 +114,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/U1 und W/main-CI erfolgreich belegt; U2/S-Pfad und Geräte/Gesamtfreigaben fehlen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/U1 und W/main-CI belegt; prepareResolvefehler/U2/S und Geräte/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
