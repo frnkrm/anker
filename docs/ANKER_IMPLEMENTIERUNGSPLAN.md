@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: minimale NFC-Navigationskorrektur lokal abgeschlossen (14.11.2026)
+
+Basis1b1bce8 sauber, [NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md). Gesteuerte echte Link-/Historyreihenfolge reproduziert Produktlücke vor React-Unmount: neuerFallrot auf altem Produktcode, ursprünglicherFall lokalgrün. Vorhandene NFC-live-/Epochprüfung mit BrowserRouterpfad/-entry-key ergänzt, ein Regressionstest; keine Native-/Store-/Schema-/Paket-/Versions-/Workflowänderung.18Browser/31TS grün, Lint/Typecheck/Webbuild grün, keine Vollsuite/274historischeJUnit wiederholt. Altes AAB014870f3 enthält den Fix nicht; neue e9c1…Webkennung nur lokaler Webstand. Kein Push/Remoteabruf/Workflow-/Signier-/Cloud-/Play-/Geräteeingriff. Sicherung `/workspace/anker-t006-nfc-fix-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag begrenzter korrigierter Entwicklungsbranch-Push/automatischeCI-Nachkontrolle erst nach neuer Beauftragung; danach stoppen.
+
 ## T-006: einmaliger erlaubter Entwicklungsbranch-Push ausgeführt (14.11.2026)
 
 Basis H1847c8a sauber, aktuelle Sollrefs und lokale Quell-/Workflow-/Hookgrenzen geprüft. [Push und neue CI-Nachkontrolle](GITHUB_BRANCH_PUSH_CODE18.md): genau ein Fast-forward-Push6dfa632→H, Refantwort Entwicklung/PR2-head H/main e48d289 unverändert. API-CONNECT403 erhalten, vorhandene GitHub-HTML-Seiten liefern PR2 Open und neue Push-/PR-Läufe43549032956/43549036157; Endstatus und SHA-/Versuchgrenzen im Bericht. Keine Docs-Ausnahme/main-Gateumgehung oder neue Artefaktquelle: unsigned AAB weiterhin014870f3, nicht mit übertragen. Keine erneute Metadatenfrage/Secret-/Auth-/Cloudänderung, lokale Tests/Builds/Fixes/Neustarts/Signier-/Playaktion. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Abschlussdokumentation lokal committen/sichern `/workspace/anker-t006-branch-push-20261114/`, ausdrücklich kein zweiter Push; danach stoppen.

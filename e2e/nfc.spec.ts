@@ -161,6 +161,33 @@ test('Verlassen während Öffnungsbestätigung verwirft das verspätete Ja', asy
   expect(await page.evaluate(() => window.__nfcProbe.starts.length)).toBe(1)
 })
 
+test('Navigationsbeginn verwirft ein Ja bereits vor dem React-Unmount', async ({ page }) => {
+  await setup(page); await scan(page); await release(page, { status: 'read', target: 'prep' })
+  const before = await local(page)
+  await page.evaluate(() => { window.__nfcProbe.holdConfirmation = true })
+  await page.getByRole('button', { name: 'Vorbereitung öffnen', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => window.__nfcProbe.confirmations)).toBe(1)
+  await page.evaluate(() => {
+    const push = history.pushState.bind(history)
+    history.pushState = (...args) => {
+      push(...args)
+      if (location.pathname === '/mehr') {
+        history.pushState = push
+        // Echte Linknavigation beibehalten; nur die Brückenantwort genau zwischen
+        // Historywechsel und dem anschließenden Router-Render auflösen.
+        window.__nfcProbe.confirmationRelease!({ allowed: true })
+      }
+    }
+  })
+  await page.getByRole('link', { name: 'Mehr', exact: true }).click()
+  await expect(page).toHaveURL(/\/mehr$/)
+  await expect(page.getByRole('link', { name: /Ankerpunkte/ })).toBeVisible()
+  expect(await local(page)).toEqual(before)
+  await page.getByRole('link', { name: /Ankerpunkte/ }).click()
+  await expect(page.getByRole('region', { name: 'Erkanntes Ankerziel' })).toHaveCount(0)
+  expect(await page.evaluate(() => window.__nfcProbe.starts.length)).toBe(1)
+})
+
 test('Doppeltipp startet nur eine Sitzung; große Vorschau bleibt bedienbar', async ({ page }, info) => {
   await setup(page); await page.setViewportSize({ width: 320, height: 740 })
   await page.evaluate(() => document.documentElement.style.setProperty('--font-scale', '1.6'))

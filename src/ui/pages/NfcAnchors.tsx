@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { NFC_TARGETS, NFC_WINDOW_MS, type NfcStatus, type NfcTarget } from '../../core/nfc'
 import { cancelNfcAnchor, confirmNfcAnchor, nfcStatus, readNfcAnchor } from '../../platform/nfc'
 import { AnkerNative, isNative } from '../../platform/native'
@@ -20,6 +20,7 @@ const RESULT = {
 
 export default function NfcAnchors() {
   const nav = useNavigate()
+  const location = useLocation()
   const [status, setStatus] = useState<NfcStatus>({ status: 'unavailable', canOpen: false })
   const [busy, setBusy] = useState(false)
   const [reading, setReading] = useState(false)
@@ -29,6 +30,12 @@ export default function NfcAnchors() {
   const session = useRef<string | undefined>(undefined)
   const cancelling = useRef<Promise<void>>(Promise.resolve())
   const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // BrowserRouter schreibt den Historyeintrag vor seinem React-Transition-Render.
+  // Eine noch montierte alte Seite darf ab diesem Wechsel keine Antwort übernehmen.
+  const isCurrent = useCallback((version: number) => live.current && version === epoch.current
+    && window.location.pathname === location.pathname
+    && (window.history.state?.key ?? 'default') === location.key, [location.key, location.pathname])
 
   const invalidate = useCallback(() => {
     ++epoch.current; pending.current = false
@@ -41,8 +48,8 @@ export default function NfcAnchors() {
   const refresh = useCallback(async () => {
     const version = epoch.current
     const value = await nfcStatus()
-    if (live.current && version === epoch.current) setStatus(value)
-  }, [])
+    if (isCurrent(version)) setStatus(value)
+  }, [isCurrent])
   useEffect(() => {
     live.current = true
     void refresh()
@@ -61,7 +68,7 @@ export default function NfcAnchors() {
   }, [invalidate, refresh])
 
   const scan = async () => {
-    if (pending.current) return
+    if (pending.current || !isCurrent(epoch.current)) return
     invalidate()
     pending.current = true; setBusy(true); setReading(true); setMessage('')
     const version = epoch.current, id = crypto.randomUUID()
@@ -71,19 +78,19 @@ export default function NfcAnchors() {
       invalidate(); setMessage('Das Lesefenster ist zu Ende. Du kannst bewusst neu starten.')
     }, NFC_WINDOW_MS)
     await cancelling.current
-    if (!live.current || version !== epoch.current) return
+    if (!isCurrent(version)) return
     const value = await readNfcAnchor(id)
-    if (!live.current || version !== epoch.current || document.visibilityState !== 'visible') return
+    if (!isCurrent(version) || document.visibilityState !== 'visible') return
     pending.current = false; setBusy(false); setReading(false)
     if (value.status === 'read') { setTarget(value.target); setMessage('Ziel erkannt. Es wurde noch nichts geöffnet.') }
     else { invalidate(); setMessage(RESULT[value.status]); void refresh() }
   }
   const open = async (chosen: NfcTarget, fromTag = false) => {
-    if (pending.current) return
+    if (pending.current || !isCurrent(epoch.current)) return
     pending.current = true; setBusy(true); setMessage('')
     const version = epoch.current, id = session.current
     const allowed = fromTag ? !!id && await confirmNfcAnchor(id, chosen) : (await nfcStatus()).canOpen
-    if (!live.current || version !== epoch.current) return
+    if (!isCurrent(version)) return
     pending.current = false; setBusy(false)
     if (!allowed || document.visibilityState !== 'visible') {
       invalidate(); setMessage('Das Ziel kann gerade nicht geöffnet werden. Prüfe den Status oder lies den Tag erneut.'); void refresh(); return

@@ -1,5 +1,7 @@
 # T-006 – begrenzter Entwicklungsbranch-Push und Nachkontrolle
 
+Nachtrag14.11.2026: Der unten offene NFC-Fall wurde inzwischen [gezielt lokal reproduziert und korrigiert](NFC_CI_KORREKTUR_T006.md), ohne weiteren Push/Workflowstart. Die hier dokumentierten Remote-Läufe H bleiben unveränderte historische Befunde; lokale18NFC-Browser/31TS grün sind keine neue Remote-CI und kein korrigierter Paketbuild.
+
 Stand 14.11.2026, Europe/Berlin. Neuer ausdrücklicher Auftrag erlaubt genau einen normalen Fast-forward-Push des Übergabecommits **H=`1847c8a041432d41a4598f5ab2e6d99540f8ddac`** ausschließlich nach `refs/heads/entwicklung/anker-neu` in `frnkrm/anker`, samt unverändert dadurch ausgelöster CI/gegebenenfalls vorhandener Previewautomatik. Keine main-/Tag-/Merge-/Signier-/Installations-/Playfreigabe. [Vorbereitete Übergabegrenzen](GITHUB_UEBERGABE_CODE18_PLAN.md). Alte Umgebung/835235b bleiben zurückgestellt.
 
 ## Vorprüfung und tatsächlich einmalige Übertragung

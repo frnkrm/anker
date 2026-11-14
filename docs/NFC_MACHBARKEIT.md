@@ -1,5 +1,9 @@
 # NFC-Machbarkeit und Prüfpfad für F-008
 
+## T-006: Navigationsrace vor React-Unmount lokal korrigiert (14.11.2026)
+
+[NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md) auf1b1bce8: BrowserRouter-History wechselt vor Transition/Effect-Cleanup; bloße UI-live-/Generationsprüfung war in diesem Fenster nicht ausreichend. Neue rote Regression auf altem Produktcode beweist unerwünschtes Zielöffnen trotz Verlassen. Gemeinsame NFC-Gültigkeitsprüfung nutzt nun zusätzlich vorhandenen Routerpfad/-entry-key, keine zweite Sitzung/Navigation/Engine oder native Vertragsänderung.18NFC-Browser/31TS-/Brücken-/Datenschutzfälle und Lint/Typecheck/Webbuild grün; keine echte NFC-/Tag-/Galaxybeobachtung, E-005 offen. Native Quellen/JUnit quellenbezogen historisch erhalten, kein erneuter nativer Lauf. Älterer Softwareabschluss unten bleibt historisch; bestehendes AAB014870f3 enthält diesen späteren Fix nicht. Kein Push/Paketneubau oder Signier-/Gerätefreigabe.
+
 ## Aktueller F-008-Softwareabschluss (13.11.2026)
 
 Auf sauberem `e5f0030`, Branch `entwicklung/anker-neu`, ausdrücklich beauftragten lesenden Umfang umgesetzt. Die anschließenden T-004-Abschnitte sind der unveränderte historische Entwurf. Dessen Voraussetzungen sind jetzt softwareseitig erfüllt; E-005-Geräteabnahme bleibt offen. Kein Tag-Schreiben oder dauerhafte Zuordnung.

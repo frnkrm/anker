@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: flüchtige NFC-Gültigkeit an Routereintrag gebunden (14.11.2026)
+
+[NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md): vorhandener Routerpfad/-entry-key werden ausschließlich flüchtig mit dem noch gültigen NFC-live-/Epochkontext verglichen, damit veraltete Scan-/Status-/Bestätigungsantworten bei begonnenem Seitenwechsel keine Wirkung erhalten. Keine zusätzlichen gespeicherten Felder/Proben/Verläufe, kein Logging von Router-/Tagdaten, keine Freigabe aus Backup/Import und keine neue Brücken-/Sync-/Widget-/PC-/Netzübertragung. Bestehende Native-Sitzung, Frist, Weckervorrang, bewusste Öffnung und manuelle Wege erhalten. Keine produktive Datenlöschung; nur bestehender flüchtiger Kontext verworfen.
+
+Synthetische lokale Browserbrücke reproduziert Reihenfolge zwischen echtem Historywechsel und React-Render; gespeichertes LocalData bleibt im grünen Regressionstest unverändert.31TS-/Brücken-/Datenschutzfälle/18NFC-Browser grün, keine realen Geräte-/Tagaktionen, Schlüssel-/Wertsuche oder externe Abfragen. Sicherung `/workspace/anker-t006-nfc-fix-20261114/` enthält Quell-/Test-/Dokument-Git-Bundles, synthetische rote/grüne Testartefakte/Logs/Hashes, keine neuen privaten Nutzdaten oder APK-/AAB-Kopie; nur Cloud-lokal. Altes AAB bleibt vorFix/historisch, Geräte-/Signier-/Upload-/Gesamtfreigaben offen.
+
 ## T-006: ausdrücklich erlaubte Quellübertragung, nur Metadaten nachgelesen (14.11.2026)
 
 [Push und neue CI-Nachkontrolle](GITHUB_BRANCH_PUSH_CODE18.md): genau ein erlaubter Git-Fast-forward-Push H1847c8a auf Entwicklungsbranch, keine Appnutzdaten-/AAB-/Sicherungsordnerübertragung, Signierung oder neuer Freigabedatenfluss. Keine Secret-/Schlüssel-/Wertsuche, Token-/Cookie-/Auth-/Cloud-/Secretänderung oder Google-Play-/Consoleabfrage. Nur aktuelle Gitrefs und PR-/CI-Metadaten gelesen: API-CONNECT403, vorhandene GitHub-HTML-Seiten200. Ausgewählte öffentliche Status-/Quell-/Triggerkontexte gespeichert, keine vollständigen HTML-/Login-/Joblogdateien oder privaten Werte. Vorhandene automatische CI und gegebenenfalls bereits eingerichtete Previewautomatik ausdrücklich erlaubt; keine aktive Deploymentkonfiguration geändert oder Previewerfolg behauptet.
