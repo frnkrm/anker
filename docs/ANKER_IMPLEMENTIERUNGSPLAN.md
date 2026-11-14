@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: Versionsentscheidung nur vorbereitet, keine Umsetzung (14.11.2026)
+
+Basis `b8306d6` sauber/verfügbar. Höchster Gesamtcode17 laut Nutzer nach vollständiger Listenfrage; kein eigener Readback. [Vorschlag18/1.5.0-rc.4 und Quellbindung](PLAY_PRUEFSTAND_VERSION_PLAN.md) konkret dokumentiert, nicht reserviert/frei garantiert. Aktuelle Nutzergrenzen verbieten jede Projekt-/Versions-/Freigabedateiänderung und Build-/Signier-/Remote-/Uploadaktion; alle Versionsdateien und historischen Code17-Manifeste bleiben bytegleich17/rc.3. Kleinster neuer Auftrag wäre ausschließlich drei Versionsdateien lokal umsetzen, neuen Versionsquellcommit binden, notwendige frische Web-/Capacitor-/UNSIGNIERTE AAB-Prüfung; keine Produktfunktion/Abhängigkeits-/Signierkonfigurationsänderung. Neue Appkennung/Artefakthashes erst dann, alte Code17-Belege erhalten. Nur Planung lokal committen/sichern, keine Tests wiederholen. T-006/V-014/E-002–E-005/Gesamt-/Versions-/Signier-/Upload-/Gerätefreigaben offen. Danach stoppen; nächster Umsetzungsauftrag bedarf eigener ausdrücklicher Beauftragung.
+
 ## T-006: freigegebener lokaler UNSIGNIERTER AAB-Paketauftrag belegt (14.11.2026)
 
 Basis `f657d2e` sauber/verfügbar. Nutzerfreigabe beschränkt auf unsignierten lokalen AAB-Bau und gegebenenfalls nötige generierte Synchronisation; historische Uploadaufträge gelten hierfür nicht. [Prüfweg/Metadaten/Ergebnisse](AAB_INTEGRATION_T006.md): vorhandener PackageBundleTask/Bundletool1.18.1/Toolchain verwendet, Signaturfreiheit vor und während Bau belegt, kein Signiertask oder APK-Erzeugung, keine Schlüssel-/Signierkonfigurationsänderung. Bundleformat/Manifest/Paket/Code17/1.5.0-rc.3/SDK/Assets/672unsignedJAR-Einträge/CRC belegt, keine neue Toolinstallation. Quellen und153generierte Bestandsdateien unverändert; kein Webbuild/Capsync nötig, erfolgreiche Tests erhalten.

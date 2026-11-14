@@ -1,5 +1,9 @@
 # T-006 – lokale Softwareintegration und offene Gesamtfreigabe
 
+## T-006: Versions-/Quellvorschlag auf gemeldetem Gesamtcode17 vorbereitet (14.11.2026)
+
+Auf sauberem `b8306d6` Nutzerantwort17 auf vollständige Bundlelistenfrage eingeordnet; Screenshot zeigt nur neueste Einträge und beweist allein kein Gesamtinventar. [Konkreter Plan Code18/1.5.0-rc.4](PLAY_PRUEFSTAND_VERSION_PLAN.md) auf geprüfter Basisb8306d6, nicht reserviert/frei garantiert oder umgesetzt. Projekt und bestehende Code17-APK-/AAB-Artefakte/Manifeste bleiben unverändert17/rc.3. Spätere drei Versionsdateien ändern Appfingerprintinputs und benötigen neuen Quellcommit/neue Appkennung/frischen Web-/Capacitor-/unsignierten AAB-Nachweis nach eigener ausdrücklicher Beauftragung. Keine eigene externe Abfrage/Schlüssel-/Build-/Signier-/Upload-/Geräte-/Workflow-/Cloudaktion oder Testwiederholung. Remote-/CI-/Signier-/Versions-/Upload-/Geräte-/Gesamtfreigaben getrennt offen, T-006/V-014 IN_ARBEIT/E-002–E-005 OFFEN. Nur Planung lokal sichern und stoppen; genau nächster eigener Auftrag begrenzte lokale Umsetzung18/rc.4 plus unsignierter Neubau, noch nicht ausführen.
+
 ## T-006: unsignierte AAB-Paketintegration lokal geschlossen (14.11.2026)
 
 Auf sauberem `f657d2e` [lokales UNSIGNIERTES AAB erstellt und geprüft](AAB_INTEGRATION_T006.md): vorhandener PackageBundleTask vor signReleaseBundle, Signierpräsenz/Dryrun/AGP-Bytecode/Guard geprüft, echter Taskgraph ohne Signier-/APK-Erzeugung. Offline1m9s/21Tasks ausgeführt/463wiederverwendet. Bundletool1.18.1 validate/Manifest/Config,672JAR-Dateieinträge ohne Signierer, keine Signaturmetadaten, ZIP-CRC,71Web-/75generierte Assets bytegleich,31Rechte/Backupgrenzen/SDK/Paket/Code17/1.5.0-rc.3 bestätigt.16Bibliotheken und3DEX gleich bisherigem APK,8ELF64PT_LOAD16KBkonform; kein APK-zipalign als AAB-Ersatz. Quellkennung unverändert; kein nötiger Webbuild/Capsync oder neue Toolinstallation, keine grüne Suite wiederholt.

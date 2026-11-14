@@ -1,5 +1,7 @@
 # T-006 – lokaler unsignierter AAB-Integrationsnachweis
 
+**Planungsfortschreibung 14.11.2026:** Der [Vorschlag Code18/1.5.0-rc.4](PLAY_PRUEFSTAND_VERSION_PLAN.md) auf Basisb8306d6 ist nicht umgesetzt oder freigegeben. Dieser erhaltene Nachweis und sein AAB bleiben unverändert **Code17/1.5.0-rc.3** mit ursprünglicher Quelle/Quellkennung/SHA256. Nach einer separat beauftragten Versionierung wären ein neuer Versionscommit und frische Web-/Capacitor-/AAB-Prüfungen nötig; keine Umdeutung oder bloße Umbenennung des alten Artefakts und keine Uploadfreigabe.
+
 Stand 14.11.2026, Europe/Berlin. Saubere verfügbare Ausgangsbasis `f657d2e2dedab71bf0d70c9d88263bab258e9055`, Branch `entwicklung/anker-neu`. Nutzerauftrag erlaubt ausschließlich lokalen UNSIGNIERTEN AAB-Prüfbuild und nötige generierte Websynchronisation. Kein Versions-/Signier-/Installations-/Upload-/Workflow-/Cloudauftrag. Alte Umgebung/835235b zurückgestellt.
 
 ## Artefakt und Quelle
@@ -57,7 +59,7 @@ Vorhandene flatDir-/Gradle-Kotlin-Warnungen bleiben im Rohlog erhalten; keine Up
 
 Galaxy-Herkunft Google Play und öffentliche Rollen8A-App/B4-Upload sind Nutzerberichte. Private Uploadschlüsselverfügbarkeit, installierte Version/Signatur, exakte Remote-/CI-/Releasebedingungen und reale E-002–E-005-Beobachtungen bleiben offen. Keine direkte Installierbarkeit oder Play-Annahme aus dem AAB behaupten, kein B4-Sideload-Update einer8A-Installation empfehlen, keine Deinstallation/Datenlöschung/Signaturumgehung.
 
-**Genau nächster zulässiger Einzelauftrag:** T-006 – Versionsentscheidung für einen neuen internen Play-Prüfstand vorbereiten, ohne etwas zu ändern. Nur noch fehlenden höchsten bereits belegten Versionscode über alle vorhandenen Artefakte/Tracks anhand Nutzerangaben klären; bekannter einzelner Code17-Entwurf ist kein vollständiges Inventar. Danach konkreten Versions-/Quellvorschlag mit erforderlichen getrennten Freigaben formulieren. Keine eigene Console-/GitHub-/Secretabfrage, keine freie nächste Nummer erraten, keine Projekt-/Versions-/Freigabedatei ändern, keine Schlüssel-/Build-/Signier-/Upload-/Geräteaktion. Bereits bekannte Besitzer-, Herkunfts-, Entwurfs- und Zertifikatsangaben nicht erneut abfragen. Erst ein weiterer ausdrücklicher Auftrag könnte eine echte Versionsänderung und neuen entsprechend geprüften Build erlauben.
+**Damals nächster, durch den oben verlinkten Plan inzwischen abgeschlossener Einzelauftrag:** T-006 – Versionsentscheidung für einen neuen internen Play-Prüfstand vorbereiten, ohne etwas zu ändern. Nur noch fehlenden höchsten bereits belegten Versionscode über alle vorhandenen Artefakte/Tracks anhand Nutzerangaben klären; bekannter einzelner Code17-Entwurf ist kein vollständiges Inventar. Danach konkreten Versions-/Quellvorschlag mit erforderlichen getrennten Freigaben formulieren. Keine eigene Console-/GitHub-/Secretabfrage, keine freie nächste Nummer erraten, keine Projekt-/Versions-/Freigabedatei ändern, keine Schlüssel-/Build-/Signier-/Upload-/Geräteaktion. Bereits bekannte Besitzer-, Herkunfts-, Entwurfs- und Zertifikatsangaben nicht erneut abfragen. Erst ein weiterer ausdrücklicher Auftrag könnte eine echte Versionsänderung und neuen entsprechend geprüften Build erlauben.
 
 ## Lokale Sicherung
 
