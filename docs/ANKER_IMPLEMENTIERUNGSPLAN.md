@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: regulärer PR3-Merge mit eigener main-CI belegt (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). M bleibt Appquelle mit eigenem frischem gelesenem M-main-CI-Beleg. W extern gebunden,nicht lokal gefetcht; G nur Dokumentationsabschluss,nicht nachpushen. Bestehende automatische main-CI/gegebenenfalls main-Webwirkung autorisiert,keine aktiveCloudänderung/manuellenAAB-/Signier-/Playaktion. Keine Tests/Builds lokal. Main-Integration im belegtenUmfang erledigt,T-006/V-014/E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf aus M mit Workflow W starten und U2-Nachweise nachkontrollieren.
+
 ## T-006: konkrete PR3-main-Vorlage ausschließlich lesend erstellt (14.11.2026)
 
 [Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): aktuelle L/M-Refs,PR3Open,zwei vorhandene grüneCI/Versuch1 und vollständigerDiff bestätigt. Normaler späterer Merge-Commit,frische Quellen-/Server-/Triggerprüfung,Abbruchbedingungen und eigene main-W-CI konkret. Kein Admin/Force/Queue/Docs-Ausnahme; öffentliche Schutz-/Review-/Runtime-SHA-Lücken nicht umgedeutet. main-Webautomatik getrennt in künftige Integrationsfreigabe aufnehmen; prepare/sign/Upload/Geräte separat. Nur Plan-/Statusdokumentation lokal,kein Test-/Build-/Workflow-/Auth-/Cloud-/Playeingriff. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; nächster eigener Auftrag regulärePR3-Integration mit main-CI-Nachkontrolle erst nach separater Beauftragung.

@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: neue exakte push/main/W-CI statt Branchersatz (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). Neuer vollständiger CommitlinkW/Ref-/PR-mergeCommitSha/ElternM-L/Actions-/Summaryversuch binden den eigenen main-Nachweis. Separates M/main/push43601398931/Versuch1Success erneuert gelesen,kein Neulauf. PR-Runtime-SHA-Lücke historisch erhalten,kein Ersatz für W-CI nötig. Lokale43Offlinefälle/Fakes bleiben eigene ältere Belege,keine echteSignierung/AAB-/Geräteabnahme/JUnit neu. Keine lokaleSuite/Build/CI-Neustart; T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
 ## T-006: vorhandene PR3-/Push-CI gelesen, keine Wiederholung (14.11.2026)
 
 [Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): frische öffentliche HTML-Endbelege für ci.yml43614039702/push/Entwicklung/L und43616437865/pull_request opened#3/Entwicklung,beide Success/Versuch1/1372VitestohneFehleroderSkips/379Playwright. Kein Lauf neu gestartet,keine lokale Suite oder Paketprüfung/Build/Signierprobe wiederholt. PR-API-head_sha/Runnercheckout weiter unbekannt,synthetischer0874 separat; keine W-main-CI erfunden. Heute nur Quellen-/Diff-/Trigger-/Dokument-/Bestands-/Bundle-/SHA256-Prüfung. Software/CI ersetzt E-002–E-005 nicht; T-006/V-014/Gesamtfreigaben offen.

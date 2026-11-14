@@ -1,5 +1,9 @@
 # T-006 – konkreter Plan für den signierten Code18-AAB-Prüfweg
 
+## Fortschreibung: Stufe B im belegten Umfang abgeschlossen (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). M/App-CI43601398931 getrennt bestätigt; tatsächlichesW alsWorkflowquelle bekannt,nichtlokalgeholt. Vorherige Formulierungen ohneW beziehen sich auf früherePlanung. StufeC/prepare weiterhin separat freigeben,keinKeygebrauch/sign/Play/Gerätefreigabe. U1nichtU2; konkreteH2/HP/P/Versuch/A nochunbekannt. Gnur lokal.
+
 ## Fortschreibung: Stufe A lokal implementiert und offline geprüft (14.11.2026)
 
 Der folgende Plan ist jetzt als [lokaler Workflow-/Prüfhelferentwurf](CODE18_AAB_WORKFLOW_ENTWURF.md) umgesetzt;43gezielteOfflinefälle grün. Keine externeAbfrage/Appbuild/echteSignierung/Workflowausführung oder Übertragung. Ursprüngliche Formulierungen „Datei heute nicht angelegt/Implementierung nicht begonnen“ unten beschreiben den davorliegenden Planungsauftrag. L bleibt lokalerEntwurf,nichtspäteresW;U1unverändert,keineRunner-U2/signedS-Nachweise. Nächster eigenerAuftrag begrenzterEntwicklungsbranch-PushL/automatischeCI-Nachkontrolle erst nachseparaterFreigabe;weitereStufenB–F einschließlichmain/WCI undprepare/sign bleibenoffen.

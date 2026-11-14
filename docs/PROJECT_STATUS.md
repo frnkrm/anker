@@ -1,5 +1,15 @@
 # Aktueller Übergabestand
 
+## T-006: PR3 regulär integriert, eigene W-main-CI nachkontrolliert (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m).
+
+Appquelle bleibtM `10cc894a27302a5a49b6884c843d2a6b509ab354`,eigener M-CI43601398931/push/main/Versuch1/Success heute erneut gelesen. Workflowdateien ausW entsprechen den geprüften L-Quellzeilen; W noch kein lokales Gitobjekt,kein Fetch/Checkout. AusgangF nicht übertragen, neuer AbschlussG nur lokal. Kein Ersatz durch Branch-/PR-Grün und keine Docs-Ausnahme.
+
+Besitzer führte den erlaubten normalen UI-Merge nach API-Forbidden/fehlenderAgentensteuerung aus. Nur bestehende automatische main-CI/Webbuild/Artefakte und gegebenenfalls bestehende main-Webautomatik freigegeben; tatsächlicheWebveröffentlichung nicht separat belegt. Kein manueller AAB-Dispatch,Signieren,Play-/Cloud-/Geräteeingriff oder lokaleTests/Builds. U1/alteArbeitsbäume/Sicherungen erhalten; U2/S fehlen.
+
+Main-Integration belegt; T-006/V-014 IN_ARBEIT,E-002–E-005 und Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf aus M mit Workflow W starten und U2-Nachweise nachkontrollieren,separate Beauftragung nötig. Folgende Stände historisch;danach stoppen.
+
 ## T-006: PR3-main-Integration konkret geplant, noch nicht freigegeben (14.11.2026)
 
 [Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): saubere lokale BasisE1231b3d, aktuelle Refs Entwicklung/PR3-headL3f5345dd und main/App-M10cc894a bestätigt. PR3Open; vorhandene PushCI43614039702 und PRCI43616437865 weiterhin Success, jeVersuch1/1372Vitest/379Playwright. Vollständiger M→L-Diff3Commits/17Dateien/2308+2− abgeglichen; lokale Dokumentationsnachfolger nicht im PR. Keine Tests/CI/Builds wiederholt.

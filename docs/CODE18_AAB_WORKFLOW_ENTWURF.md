@@ -1,5 +1,9 @@
 # T-006 – lokaler Entwurf des manuellen Code18-AAB-Prüfworkflows
 
+## Fortschreibung: tatsächliches main-W und eigene CI (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). NeuerAAB-Workflow jetzt aufmain,aber kein automatischer Dispatch; MbleibtfesteAppquelle,U1historischeunsignedReferenz,U2/Sfehlen. Folgende reinlokale/PR3Open/Wunbekannt-Angaben historisch. Gnichtnachpushen,weitereFreigabenoffen.
+
 ## Fortschreibung: regulärer PR3 offen (14.11.2026)
 
 [PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): neuerPR3/L→mainM über ausdrücklich erlaubten Besitzer-UI-Handgriff erstellt. PR-CI43616437865 / pull_request / Versuch1 **erfolgreich**, separate PushCI43614039702 erhalten. L nicht als tatsächlichesmain-W oder tatsächlichenRunnercheckout ausgeben; synthetischerMergeref getrennt, Runtime-SHA unbekannt. E nur lokal, kein Nachpush/Merge/AAB-Workflowstart oder Signieren. U1unverändert, W/U2/S/Geräte-/Gesamtfreigaben offen; folgende Angaben historisch.
