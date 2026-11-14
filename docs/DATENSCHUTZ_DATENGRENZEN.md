@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: unsignierter M-Prüfbuild und öffentliche Dependencyauflösung (14.11.2026)
+
+[Neuer M-AAB-Nachweis](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): genau ein freigegebener isolierter GitHubclone und neuer lokaler Entwicklungsbranch;vorhandene Repositories/Sicherungen unverändert. Nur öffentlicher Quell-/CI-/Refbeleg,Projekt-/Generator-/Artefaktdaten verarbeitet. Bestehende Nodeabhängigkeiten unabhängig kopiert;fehlende bereitsgebundene Mavenbibliotheken aus vorhandenen öffentlichen Repositories im Gradlecache ergänzt,keine Paketversions-/Toolupdates oder privaten Appdatenübertragungen. Zwei öffentliche Google-Maven-SHA1 gegen tatsächlicheBibliotheken verifiziert,lokaleSHA256gespeichert. Finale Buildauflösung war nichtoffline;keine Play-/Console-/Secretabfrage oder Auth-/Cloudkonfigurationsänderung.
+
+Signierdatei/Umgebungsbindungen nur auf Vorhandensein geprüft,fehlen. Beobachtender Guard setzt keine Signierkonfiguration um,nullBinding im echtenGraph,kein Signier-/Installations-/Uploadtask. JAR-Auditor öffnet nur frisches AAB und liest alle672Dateien,keine Schlüssel/Truststores oder Appnutzdaten. Neue lokale Sicherung `/workspace/anker-main-code18-aab-pruefung-20261114/` enthält öffentliche AAB-/Generator-/Quell-/Log-/Hash-/Bundlebelege,keine privaten Schlüssel,Secretwerte,Kontakte/Arbeits-/Kalender-/Tagdaten. Kein Produkt-/Storequeue-/Sync-/Persistenz-/Freigabewechsel oder echteNFC-/PC-/Gerätewirkung. HistorischeCode17Manifeste bytegleich,014-AAB nicht wiederhergestellt. Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
 ## T-006: flüchtige NFC-Gültigkeit an Routereintrag gebunden (14.11.2026)
 
 [NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md): vorhandener Routerpfad/-entry-key werden ausschließlich flüchtig mit dem noch gültigen NFC-live-/Epochkontext verglichen, damit veraltete Scan-/Status-/Bestätigungsantworten bei begonnenem Seitenwechsel keine Wirkung erhalten. Keine zusätzlichen gespeicherten Felder/Proben/Verläufe, kein Logging von Router-/Tagdaten, keine Freigabe aus Backup/Import und keine neue Brücken-/Sync-/Widget-/PC-/Netzübertragung. Bestehende Native-Sitzung, Frist, Weckervorrang, bewusste Öffnung und manuelle Wege erhalten. Keine produktive Datenlöschung; nur bestehender flüchtiger Kontext verworfen.
