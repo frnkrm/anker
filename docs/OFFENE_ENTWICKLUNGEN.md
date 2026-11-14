@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: AAB-Signierweg konkret geplant, noch nicht implementiert (14.11.2026)
+
+[Plan mit getrennten Freigaben](CODE18_AAB_SIGNIERWEG_PLAN.md): manueller prepare/sign-Entwurf,exakte M-/W-/CI-/U2-/S-Zuordnung,B4/8A-Rollen,Fail-closed-Prüfung und unberührte Code17-Grenzen konkret. Nur lokale Dokumentation,keine externe Abfrage/Tests/Build/Signierung/Workflowänderung. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag lokale AAB-Workflow-/Prüfhelferentwurfsimplementierung mit Offlineprüfungen/CI-Einbindung,keine Remote-/Signieraktion.
+
 ## T-006: korrigiertes M-AAB lokal unsigniert geprüft (14.11.2026)
 
 [Neuer M-Paketnachweis](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): QuelleM10cc894/e9c124…,Code18rc4,54264632Bytes/SHA25674e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50,unsigned/Bundletool/ZIP/JAR/Assets/Manifest/SDK/ELF grün. Nur bestehende Mavenbibliotheksversionen nachgeladen,keine Tools/Projektversionen aktualisiert. Alte Arbeitsbäume/Sicherungen erhalten,kein Push/Signieren/Installieren/Play-/Workflow-/Cloudschreiben. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag ausschließlich lesenden konkreten Code18-AAB-Signierwegplan erstellen,keine Schlüssel-/Secret-/bekannten Metadatenfragen. Historisches014-AAB bleibt vorFix/nicht wiederhergestellt.
@@ -57,7 +61,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | M-main-CI und korrigiertes unsignedAAB belegt; Signier-/Upload-/Geräte-/Gesamtfreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | M-CI/unsignedAAB belegt; signierter AAB-Weg konkret geplant, Implementierung/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -86,7 +90,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M-Paket unsigniert geprüft; signierter AAB-Weg und reale Geräte-/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Getrennter AAB-Signierplan bereit; signiertes Artefakt und Geräte-/Gesamtfreigaben fehlen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.

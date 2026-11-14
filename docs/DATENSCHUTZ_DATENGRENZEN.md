@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: reine lokale Signierplanung ohne private Zugriffe (14.11.2026)
+
+[Code18-Signierplan](CODE18_AAB_SIGNIERWEG_PLAN.md): nur getrackte öffentliche Definitionen,vorhandene öffentliche Paket-/CIbelege und U1-Dateihash gelesen. Keine Secretnamen-/Scope-/Werteabfrage,Umgebungssuche,private Datei/Zertifikatsstore geöffnet oder Signierskript ausgeführt;keine externe Abfrage. B4/8A und vier Namen sind bereits bekannte öffentliche Angaben,kein neuer Zugriffsbeleg. Geplanter späterer prepare erhält keine Schlüssel;sign nur nach exakter Artefaktfreigabe und eigener Autorisierung,Verifikation ohne Secrets,keine private Datei im Artefakt/Cache. Heute keine Implementierung oder solche Aktionen. Neue Sicherung enthält Dokumentation/öffentliche Referenzmetadaten/Gitbundles/Hashes,keine neue AAB-/Schlüssel-/Appdatenkopie. Alte Artefakte/Arbeitsbäume/Sicherungen erhalten;Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
 ## T-006: unsignierter M-Prüfbuild und öffentliche Dependencyauflösung (14.11.2026)
 
 [Neuer M-AAB-Nachweis](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): genau ein freigegebener isolierter GitHubclone und neuer lokaler Entwicklungsbranch;vorhandene Repositories/Sicherungen unverändert. Nur öffentlicher Quell-/CI-/Refbeleg,Projekt-/Generator-/Artefaktdaten verarbeitet. Bestehende Nodeabhängigkeiten unabhängig kopiert;fehlende bereitsgebundene Mavenbibliotheken aus vorhandenen öffentlichen Repositories im Gradlecache ergänzt,keine Paketversions-/Toolupdates oder privaten Appdatenübertragungen. Zwei öffentliche Google-Maven-SHA1 gegen tatsächlicheBibliotheken verifiziert,lokaleSHA256gespeichert. Finale Buildauflösung war nichtoffline;keine Play-/Console-/Secretabfrage oder Auth-/Cloudkonfigurationsänderung.

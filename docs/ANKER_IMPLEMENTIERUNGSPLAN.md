@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: Code18-AAB-Signierplanung lokal abgeschlossen (14.11.2026)
+
+[Neuer konkreter Plan](CODE18_AAB_SIGNIERWEG_PLAN.md): bestehende APK-/Code17-Pfade nur gelesen;lokales unsignedU1 perHash/Beleg gebunden. Manueller neuer prepare/sign-Weg mit getrennten M-/W-/CI-/U2-/S-Bindungen,exakter späterer H2/HP/Run-/Artefaktfreigabe,isoliertem B4-Keygebrauch und secretfreier JAR-/Nutzlastprüfung spezifiziert. Kein Code/Workflow/Manifest geändert,keine externe Abfrage/Tests/Build/Signierung;alteArtefakte/Guards erhalten. Nur Dokumentation lokal committen/sichern. StufeA lokale Entwurfsimplementierung/Offlineprüfungen ist genau nächster eigener Auftrag,keine Ausführungs-/Uploadfreigabe. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: lokaler unsignierter M-Paketnachweis abgeschlossen (14.11.2026)
 
 [M-AAB-Prüfbericht](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): genau isolierter Clone/Entwicklungsbranch von M10cc894,unveränderte18/rc.4-Quellen,vorheriger717-Arbeitsbaum/altes4f/Sicherungen erhalten. Frischer Web-/Capacitorstand e9c124…,beobachtender Nullsignierguard/577Taskgraph/PackageBundleTask,finaler Paketbau51s grün. Cachelücken bestehender Bibliotheksversionen über Maven ergänzt,keine Tool-/Paket-/Wrapperupdates;final nicht offline. Neues unsignedAAB54.264.632Bytes/SHA25674e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50,Bundletool/ZIP/JAR/71Web-/75Asset-/Manifest/SDK/ELF geprüft. Keine neue Produktfunktion/Signierung/Installation/Upload-/Workflow-/Cloud-/Remote-Schreibaktion. Nur Dokumentation lokal committen/sichern,BuildquelleM von Abschlusshead trennen. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen;genau nächster Auftrag lesender konkreter Signierwegplan für Code18-AAB,keine Secret-/Schlüsselsuche oder bekannte Metadatenfragen.

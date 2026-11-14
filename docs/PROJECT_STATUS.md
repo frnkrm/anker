@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: konkreter AAB-Signierweg nur geplant (14.11.2026)
+
+[Konkreter Code18-AAB-Signierwegplan](CODE18_AAB_SIGNIERWEG_PLAN.md) aus sauberem Ausgangse3ef74fa: U1/54.264.632Bytes/SHA25674e65b1a…de050d50 und vorhandene M-CI-/Paketbelege lokal bestätigt,keine externe Abfrage oder erneute Suite/Build/Signierprobe. APK-Update/sign-local/Tagrelease sind keine AAB-Signierer; alter Publisher und Code17-Manifeste sind fest gebunden und bleiben unverändert.
+
+Neuer manueller Zwei-Modus-Workflow ist ausschließlich **geplant**, nicht angelegt: prepare ohne Secrets erzeugt eigenes U2 aus exakt M; dessen Hash/Metadaten/Run-/Artefakt-ID werden vor separat freizugebendem sign festgelegt. Isolierter B4-Keygebrauch erst dann,secretfreie vollständige JAR-/Nutzlast-Verifikation danach. Lokales U1 und Runner-U2 nicht gleichsetzen; W erst nach regulärer späterer Integration/CI benennen. M-main-CI bleibt eigenständiger exakter Gate,keine Docs-Ausnahme. B4Upload/8APlay-App und unbekannter Secret-/Keyzugriff getrennt;keine bekannten Metadatenfragen wiederholen.
+
+Nur neue Dokumentation lokal committen/sichern `/workspace/anker-t006-code18-aab-signierplan-20261114/`,nicht pushen. Originalartefakt/Code17-Guards/Workflows/Produktquellen/alte Arbeitsbäume/Sicherungen unverändert;keine Schlüssel-/Wertsuche oder Auth-/Cloud-/Play-/Geräteaktion. T-006/V-014 IN_ARBEIT,E-002–E-005/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster separat zu beauftragender Auftrag: lokalen neuen AAB-Workflow-/Prüfhelferentwurf mit gezielten Offlineprüfungen und CI-Einbindung erstellen;kein Appbuild/Signierung/Workflowstart/Übertragung. Folgende Stände historisch;danach stoppen.
+
 ## T-006: korrigiertes unsigniertes AAB aus geprüfter main-Quelle lokal belegt (14.11.2026)
 
 [Frischer unsignierter AAB-Nachweis aus main M](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): isolierter neuer Arbeitsort `/workspace/anker-main-code18-aab`,Branchentwicklung/anker-neu,Buildquelle **10cc894a27302a5a49b6884c843d2a6b509ab354**,sauber vor/nach Bau. Vorherige717559ab-Dokumentation und altes4f-Repository/Sicherungen unverändert. Genau ein neuer freigegebener Clone ohne Tags,Quell-M-Bundle geprüft; keine alten Produktpatches. Code18/rc.4/Paket/SDK/Rechte/Signierlogik unverändert.

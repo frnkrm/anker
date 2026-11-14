@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: statischer Signierwegabgleich, keine Tests wiederholt (14.11.2026)
+
+[Code18-AAB-Signierplan](CODE18_AAB_SIGNIERWEG_PLAN.md): vorhandenes U1 auf Größe/SHA256 und Referenznachweise auf Verfügbarkeit gebunden,Workflow-/Signier-/Publisherquellen ausschließlich lokal gelesen. Keine neue Bundletool-/JAR-/Logik-/Browser-/JUnitprüfung,kein Appbuild/Signierprobe oder externer CI-Abruf. Vorhandene M-CI379/1372 und unsignedPaketbelege bleiben frühere getrennte Nachweise. Neue geplante Offlineprüfmatrix behandelt Quellen-/Workflow-/Artefakt-/Versuchsbindung,fehlendeSecrets,Signatur-/Nutzlastmanipulation und keine Trigger/Secretlecks;noch nicht implementiert/ausgeführt. Heutige Dokument-/Quell-/Altbestand-/Bundle-/Restore-/Hashintegrität im Abschlussmanifest `/workspace/anker-t006-code18-aab-signierplan-20261114/`. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: frischer M-Web-/AAB-Nachweis, keine Vollsuite wiederholt (14.11.2026)
 
 [Prüfbericht mit tatsächlichen Versuchen/Grenzen](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): QuelleM10cc894/CI43601398931vorClonegrün,frischer isolierter sauberer Entwicklungsbranch. Webbuild/TypeScript+CapSync erfolgreich,notwendige Wiederholung nach erstmals erzeugter XML-Fingerprintressource;stabil e9c124…. Zwei Guard-Dryrun-Fehlklassifikationen eigener Prüfscripte korrigiert,keine Produktlücke;endgültiger577Taskgraph/nullSigningConfig und Workerbytecode geprüft. Drei Offlinebauversuche mit konkret fehlenden bestehenden Cacheartefakten erhalten;Mavenauflösung gebundener Versionen erlaubt normalen finalen Paketbau51s/180ausgeführt/304up-to-date. Keine SDK/JDK/Packageversion geändert und kein Lint/Signiergate deaktiviert.
