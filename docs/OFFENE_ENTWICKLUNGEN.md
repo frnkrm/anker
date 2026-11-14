@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: AAB-Entwurf remote, Integration weiter offen (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwicklung jetzt L3f5345dd, main weiter M10cc894a; CI43614039702 / push / exakt L / Versuch1 **erfolgreich**. Kein neuer PR/Merge/AAB-Dispatch oder Signieren. Genau nächster separat beauftragbarer Schritt: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen; lokale43Offlinefälle und U1 bleiben getrennte Nachweise.
+
 ## T-006: AAB-Entwurf lokal geprüft, Remoteintegration offen (14.11.2026)
 
 [EntwurfStufeA](CODE18_AAB_WORKFLOW_ENTWURF.md): manuellerprepare/sign-Weg/striktePrüfhelfer/gezielteCI-Einbindung lokal fertig,43Offlinefällegrün. Keine echteSignierung/Runnerausführung,Actionlintfehlend;U1unverändert,Mfest,W/U2/Snichtbelegt. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigenerAuftrag begrenzter Entwicklungsbranch-PushL mit frischemRef-/Triggerabgleich/erlaubterautomatischerCI-Nachkontrolle,separateFreigabe nötig. Kein main-/Workflowstart-/Signier-/Uploadauftrag.

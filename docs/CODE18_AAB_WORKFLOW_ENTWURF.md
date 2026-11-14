@@ -1,5 +1,9 @@
 # T-006 – lokaler Entwurf des manuellen Code18-AAB-Prüfworkflows
 
+## Fortschreibung: L übertragen, separate Branch-CI nachkontrolliert (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwurfshead L `3f5345dd08032aa6d19328a2c2cee22527150266` genau einmal gepusht; main M unverändert. CI43614039702 / push / Entwicklung / exakt L / Versuch1 **erfolgreich**. Kein AAB-Workflowstart oder echte Signierung. Die folgenden Angaben „nur lokal/nicht übertragen“ beschreiben den vorherigen Entwurfsauftrag. D ist neuer lokaler Dokumentationsabschluss, nicht nachgepusht; W/U2/S bleiben unbelegt. Gesamt-/Gerätefreigaben offen.
+
 Stand **14.11.2026, Europe/Berlin**. [Signierwegplan Stufe A](CODE18_AAB_SIGNIERWEG_PLAN.md) lokal umgesetzt und gezielt offline geprüft. **Keine Workflowausführung, Appbuilds, echte Signierung oder Übertragung.**
 
 ## Identitäten und Umfang

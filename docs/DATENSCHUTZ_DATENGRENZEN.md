@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: GitHub-Entwurfsübertragung ohne Signier-/Nutzdateneingriff (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): nur freigegebene Gitquellen nach Entwicklung und öffentliche Ref-/PR-/CI-Metadaten gelesen; keine Secrets, privaten Dateien, Nutzdaten oder Google-Play-Quellen abgefragt. Genau ein PushL mit bestehender automatischer CI samt synthetischen Prüfungen/Webbuilds/Artefakten freigegeben. AAB prepare/sign nicht gestartet; kein Schlüsselgebrauch oder neue App-Datenübertragung. U1/alte Sicherungen unverändert; keine zusätzliche Messung/Löschung/Freigabe. Joblog-/API-Lücken bleiben offen. D nur lokal; main-Integration, Workflowstart, Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
 ## T-006: AAB-Entwurf mit synthetischen Offlineprüfungen (14.11.2026)
 
 [Entwurfsnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): neue Automationsdefinition/Prüfhelfer nur lokal geschrieben. Keine externeAbfrage,echtenSignier-/Secret-/Scope-/Wertezugriffe oder Appbuild/Upload/Cloudänderung. Positive Signierregressionen erzeugen ausschließlich synthetische Nichtschlüsselbytes in temporärenDateien und Prozessattrappen,keinen privatenSchlüssel/Signieridentität. EchterJava-JAR-Test nur unsignedsynthetisch/signed-Abweisung;U1nurlesendmitneuenWerkzeugen geprüft. Vorhandene17öffentlicheVendorJARs fürOffline-Toolchecklokalkopiert,keineDownloads oder Paketupdates.

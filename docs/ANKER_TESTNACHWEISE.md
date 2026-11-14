@@ -1,5 +1,11 @@
 # Anker: Testnachweise
 
+## T-006: tatsächliche Entwicklungsbranch-CI für AAB-Entwurf (14.11.2026)
+
+Die öffentliche Summary bestätigt für den neuen L-Lauf **1372 Vitest bestanden / 0 Fehler / 0 Skips** und **379 Playwright bestanden (9,5Minuten)**. Bestehende Runner-/Node- und eine React-Hook-Lintwarnung bleiben Warnungen, keine neue Änderungsfreigabe. Kein neuer JUnit-/Hardware-/AAB-Signiernachweis.
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): neuer [Lauf43614039702](https://github.com/frnkrm/anker/actions/runs/43614039702) aus exakt L `3f5345dd08032aa6d19328a2c2cee22527150266`, ci.yml / push / entwicklung/anker-neu / Versuch1, **erfolgreich**. Vollständiger Commitlink, aktueller Versuch und Endstatus aus öffentlich lesbarer Actions-Liste/Summary gesichert. Joblogs verlangen Anmeldung; Jobgruppenendpunkt400, API-CONNECT403. Keine unbekannten Einzelzahlen oder lokalen43Fälle als neue Runner-Signierprüfung ausgeben. Kein lokaler Test/Build oder CI-Neustart. M-main-CI bleibt getrennt; L-Branch-CI ersetzt W-main-CI nicht. Kein realer AAB-Workflow-/B4-/Gerätebeleg. T-006/V-014 und E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: 43 gezielte neue Offlinefälle für AAB-Entwurf (14.11.2026)
 
 [Neuer Entwurfs-/Prüfbericht](CODE18_AAB_WORKFLOW_ENTWURF.md):29Protokoll-/JAR-Grenzfälle und14Workflow-/YAML-/Shell-/Strukturfälle grün,0Skip. API-/Prozessaufrufe in positiven Signierfällen ausschließlich synthetisch;keine echtenSchlüssel/Signierprobe. JDK21 kompiliert nur Verifikationshelfer,liest synthetischesunsignedZIP und verweigert signed;kein Appbuild. Bestehendes js-yaml/bash -n/PythonAST genutzt.17vorhandeneVendorJARs gehasht,Bundletool-Kommandohilfeoffline;neue Prüfhilfen lesen U1 gegen vollständigeManifestbindung/672Einträge/8ELF64,Originalhash unverändert. Erste CLI-Gatereihenfolge korrigiert,initialesFehlerlog erhalten. Neue Schema-/Receipt-/Signierreplay-/Outputbindungsänderungen gezielt nachgeprüft,keineTests gelockert.

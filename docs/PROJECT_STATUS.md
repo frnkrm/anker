@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: AAB-Entwurf auf Entwicklungsbranch übertragen (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): genau ein Fast-forward-Push von **L `3f5345dd08032aa6d19328a2c2cee22527150266`** auf Entwicklung; main **M `10cc894a27302a5a49b6884c843d2a6b509ab354`** erhalten. PR2 bleibt Merged mit historischem head C; heute kein neuer PR. CI **43614039702**, ci.yml / push / entwicklung/anker-neu / exakt L, Versuch **1**, Ergebnis **erfolgreich**. Die erfolgreiche Entwicklungsbranch-CI ist belegt; ein neuer PR wurde heute nicht angelegt.
+
+Öffentliche Summary: **1372 Vitest bestanden / 0 Fehler / 0 Skips, 379 Playwright bestanden**. API CONNECT403, HTML lesbar; Joblogs verlangen Anmeldung. Keine Authreparatur, keine weiteren Detailzahlen ohne Beleg. Lokale43Offlinefälle bleiben historischer eigener Nachweis; keine lokalen Tests/Builds wiederholt. AAB-Workflow nicht gestartet, kein Signieren/Play-/Cloud-/Geräteeingriff. U1/alte Arbeitsbäume/Sicherungen erhalten. D nur lokaler Abschluss, nicht nachpushen; L ist nicht künftiges main-W, U2/S fehlen.
+
+T-006/V-014 IN_ARBEIT, E-002–E-005 und main-/Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster eigener Auftrag: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge; separate Freigabe erforderlich. Folgende Stände historisch; danach stoppen.
+
 ## T-006: manueller AAB-Workflow lokal entworfen und offline geprüft (14.11.2026)
 
 [Lokaler Entwurfs-/Prüfnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): saubere Basis3fbc6541,Branchentwicklung/anker-neu. Neuer ausschließlicher main/workflow_dispatch-Workflow mit getrennten prepare/sign-Aufrufen,festem App-M,separatem künftigem W,exakten M-/W-main-CI-Gates und Run-/Versuch-/Artefakt-/Archiv-/AAB-/Metadatenbindung. Kein Appcode/Buildartefaktcode im Signierjob,nur W-Prüfcode und bekannteWerkzeuge;vierSecretreferenzen ausschließlich im tatsächlichen Signierschritt,keine Verfügbarkeitsabfrage/kein unsigned Fallback. Secretfreies vollständiges JAR-/B4-/U2↔S-Payloadverify vor finalem Prüfarbeitsartefakt. Bestehende APK-/Release-/Play-/Code17-Pfade unverändert;ci.yml nur JDK21/gezielte neue Offlineprüfungen ergänzt.

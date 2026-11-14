@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: AAB-Entwurf einmalig übertragen und CI nachkontrolliert (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwicklung L3f5345dd / main M10cc894a, ein normaler Push; ci.yml43614039702 / push / Entwicklung / exakt L / Versuch1 **erfolgreich**. Nur bestehende automatische CI freigegeben; keine AAB-Dispatch-/Signier-/Upload-/main-/Cloudaktion. Keine lokalen Tests/Builds oder Produktänderungen. D lokal sichern, nicht nachpushen. API403/Joblog-Anmeldung als Beleggrenzen, keine neuen Metadatenfragen. L/D/W/U1/U2/S getrennt; T-006/V-014/E-002–E-005 und Gesamtfreigaben offen. Genau nächster eigener Auftrag: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge.
+
 ## T-006: lokale AAB-Automation Stufe A umgesetzt (14.11.2026)
 
 [Entwurf und Grenzen](CODE18_AAB_WORKFLOW_ENTWURF.md): neuer manueller prepare/sign-Workflow,notwendige strikte Prüfhelfer/JavaVerifier/unsignedGradleguard/hashgebundenebestehendeTools,gezielte CI-Einbindung. M/W und U1/U2/S getrennt,keine automatischeSignierung,kein unsignedErfolgsfallback,Schlüssel nur später isoliert,Verify ohneSecrets.43Offlinefälle grün;Actionlint fehlt,kein echterGitHub-/B4-Signierbeleg. Kein Appbuild/externesAPI/Workflowstart/Signieren/Push oder Produkt-/Version-/Berechtigungsänderung. Nur lokal committen/sichern,LnichtW;altePfad-/Code17-Gates erhalten. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen. Nächster eigener Auftrag begrenzter Entwicklungsbranch-PushL/CI-Nachkontrolle mit separaterFreigabe,kein main-/AAB-Dispatch.
