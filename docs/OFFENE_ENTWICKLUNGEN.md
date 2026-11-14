@@ -1,5 +1,7 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+**Fortschreibung Signierrollen 14.11.2026:** [Nutzerfingerabdrücke lokal verglichen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): Play-App-Signierer8A und UploadB4 verschieden; vier B4-Nachweise passen zum Uploadzertifikat. Historische B4-Direkt-APKs sind kein belegtes reguläres Update einer8A-Installation; keine Rotation oder heutiger privater Schlüsselzugriff belegt. Keine eigene externe/Schlüssel-/Geräte-/Build-/Signier-/Playaktion. Genau nächster eigener Auftrag tatsächliche Galaxy-Installationsherkunft anhand Nutzerangaben zuordnen. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamtfreigaben offen.
+
 **Fortschreibung interne Testmetadaten 14.11.2026:** Nutzer meldet Paket `de.frnkrm.anker.mobile`, Code17, Versionstext wörtlich `Anker 1.5.0-rc.3 · Code17`, Status `Entwurf`. [Zuordnung und Beleggrenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Kein aktiver Release-/Quell-/Gerätenachweis und keine stille Normalisierung des Versionstexts. Nächster eigener Auftrag nur öffentliche App-Signier-/Uploadzertifikatsrollen anhand Nutzerangaben zuordnen, falls bereitstellbar. Keine eigene externe Abfrage, Schlüssel-/Geräteaktion oder neue Freigabe; T-006/V-014 IN_ARBEIT, E-002–E-005 offen.
 
 **Fortschreibung 14.11.2026:** [Nichtgeheime Nutzerantwort eingeordnet](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): Nutzer nennt sich Besitzer und meldet internen Play-Test. GitHub-Schlüsselablage bleibt Vermutung; aktueller Testcode/Zielinstallation/Signierer und nutzbares Signiermaterial unbekannt. Keine Schlüssel-/Console-/Geräteabfrage oder neue Freigabe. T-006/V-014 IN_ARBEIT, E-002–E-005 offen. Nächster eigener Auftrag nur nichtgeheime Metadaten des internen Testbuilds beim Nutzer einholen; bekannte Besitzerangabe nicht erneut abfragen.
@@ -19,7 +21,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Software/unsigned Paket belegt; Nutzer meldet .mobile/Code17/Entwurf; Signierer/Zielinstallation/Signiermaterial sowie Geräte-/Gesamtfreigabe offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Software/unsigned Paket belegt; Play-App8A/UploadB4 laut Nutzer verschieden; Zielinstallation/privates Signiermaterial/Geräte-/Gesamtfreigabe offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -48,7 +50,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Software/unsigned Paket belegt; Code17-Entwurf laut Nutzer zugeordnet; Signierer-/Geräte-/Quellzuordnung und Gesamtfreigabe offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Software/unsigned Paket belegt; Play-App8A/UploadB4 rollengetrennt; Geräte-/Quell-/privater Signierzugriff/Gesamtfreigabe offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.

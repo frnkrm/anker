@@ -1,5 +1,9 @@
 # Geräteprüfung
 
+## T-006: Play-/Direktinstallationssignierer vor Updateversuch unterscheiden (14.11.2026)
+
+Nutzer meldet Play-App-Signierzertifikat8A und UploadzertifikatB4; [öffentlicher Rollenvergleich und vollständige Werte](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Historische direkt verteilte B4-APKs sind kein belegtes reguläres Update einer8A-Installation. Weder höhere Version noch Deinstallation/Datenlöschung als Signaturumweg verwenden. Tatsächliche Herkunft/Zertifikat/Version der genutzten Galaxy-App nicht ausgelesen. Nur Herkunft anhand bereits bekannter Nutzerangaben klären; kein Testalarm, ADB, Geräte-/Freigabe-/Installationsschritt oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen. Spätere reale Prüfungen brauchen geeigneten separat autorisierten Paket-/Signierer-/Versionsbezug.
+
 ## T-006: Zielinstallation und Signierbesitzer vor Geräteprüfbuild klären (13.11.2026)
 
 Lesende Vorbereitung auf `b816e1a`, keine neue Gerätebeobachtung. [Paket-/Zertifikats-/Versionsentscheidung](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): öffentliche historische B4-Belege und bestehendes unsigned APK sind keine Bestätigung des heute installierten Codes/Zertifikats. Erst fehlende nichtgeheime Nutzerangaben zu Paket, Version/Code, Herkunft und erreichbar bekanntem bestehendem Signierbesitzer aufnehmen. Keine Schlüsseldateien/-werte anfordern und dafür keinen Testbericht speichern, Alarm starten, Freigaben ändern, ADB einrichten oder etwas installieren. Ein vorhandener öffentlicher Zertifikats-/Codestandbeleg bleibt seinem tatsächlichen Stand zugeordnet; nicht aus einem alten Bericht eine aktuelle Installation ableiten.

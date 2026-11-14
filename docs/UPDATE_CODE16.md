@@ -1,5 +1,7 @@
 # Anker aktualisieren: Code16
 
+**Historischer B4-Direktdownload, Abgrenzung 14.11.2026:** Nutzer meldet Play-App-Signierer8A und UploadsigniererB4. Die folgende B4-APK ist kein belegtes reguläres Update einer8A-signierten Play-Installation; die damalige Direktupdatebeschreibung setzt eine passend signierte Zielinstallation voraus. [Aktuelle Rollen und vollständige öffentliche Fingerabdrücke](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Keine neue Installationsfreigabe, keine Deinstallation/Datenlöschung oder Schlüssel-/Versionsumgehung; tatsächlicher Gerätestand weiter unbekannt.
+
 **1.5.0-rc.2 / Code16**, weiterhin **Anker**. Gleiche App-Kennung und geprüfte bestehende B4-Signatur; Routinen, Einstellungen, Spielstand und Berichte bleiben beim regulären Update erhalten.
 
 1. Auf dem Handy [Anker-Code16-ZIP herunterladen](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code16-20261109).

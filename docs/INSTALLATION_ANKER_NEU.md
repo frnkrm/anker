@@ -1,5 +1,7 @@
 # Anker Neu direkt auf dem Handy installieren
 
+**Historischer Direktdownload, Abgrenzung 14.11.2026:** Diese Anleitung betrifft die unten bezeichnete B4-signierte Code13-APK. Laut aktuellen Nutzerangaben ist B4 das Play-Uploadzertifikat, der Play-App-Signierer lautet8A. Die alte B4-Datei ist kein belegtes reguläres Update einer8A-signierten Play-Installation; tatsächliche Zielinstallation unbekannt. [Rollen, vollständige Fingerabdrücke und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Nicht als neue Installationsfreigabe verstehen, bestehende App/Daten erhalten und keinen Schlüssel-/Versions-/Deinstallationsumweg verwenden.
+
 **1.3.0-rc.6 / Code 13**, neue App **Anker Neu**. [ZIP mit signierter APK herunterladen, ca. 22 MB](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-neu-rc6-20261107). Für diesen fertigen Download sind weder PC noch PowerShell nötig.
 
 **Wenn Anker Neu bereits installiert ist:** Die ZIP entpacken, darin `Anker-Neu-Code13.apk` öffnen, darüber installieren und anschließend Anker Neu öffnen. Derselbe Release-Schlüssel und der höhere Versionscode ermöglichen ein Update ohne Deinstallation; Einstellungen, Aufgaben und Testberichte bleiben im bestehenden App-Speicher. Für einen ersten Umzug aus der bisherigen App gelten die Schritte unten.
