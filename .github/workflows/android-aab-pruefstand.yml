@@ -1,0 +1,262 @@
+name: Code18 AAB – manueller Prüfstand
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'prepare baut ohne Signiersecrets; sign benötigt separat freigegebene Artefaktbindung'
+        type: choice
+        options: [prepare, sign]
+        required: true
+        default: prepare
+      source_commit:
+        description: 'Feste geprüfte Appquelle M'
+        type: string
+        required: true
+        default: '10cc894a27302a5a49b6884c843d2a6b509ab354'
+      expected_workflow_commit:
+        description: 'Separat geprüfte vollständige main-Workflow-SHA W'
+        type: string
+        required: true
+      prepare_run_id:
+        description: 'Nur sign: erfolgreicher prepare-Lauf P'
+        type: string
+        default: ''
+      prepare_run_attempt:
+        description: 'Nur sign: ausdrücklich freigegebener Versuch von P'
+        type: string
+        default: ''
+      unsigned_artifact_id:
+        description: 'Nur sign: unveränderliche Artefakt-ID A aus P'
+        type: string
+        default: ''
+      expected_unsigned_sha256:
+        description: 'Nur sign: freigegebene AAB-SHA256 H2, kein Archivdigest'
+        type: string
+        default: ''
+      expected_proof_sha256:
+        description: 'Nur sign: freigegebene Metadaten-SHA256 HP'
+        type: string
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: anker-code18-aab-proof
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    if: github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      context: ${{ steps.gate.outputs.context }}
+      mode: ${{ steps.gate.outputs.mode }}
+      workflow: ${{ steps.gate.outputs.workflow }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: policy
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/android-aab-proof.py
+      - name: Exakte getrennte main-CI für M und W prüfen
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AAB_INPUTS: ${{ toJSON(inputs) }}
+        run: python3 policy/scripts/android-aab-proof.py resolve
+
+  prepare:
+    needs: resolve
+    if: needs.resolve.outputs.mode == 'prepare'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      AAB_INPUTS: ${{ toJSON(inputs) }}
+      AAB_CONTEXT: ${{ needs.resolve.outputs.context }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ needs.resolve.outputs.workflow }}
+          path: policy
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/android-aab-proof.py
+            scripts/AnkerAabVerifier.java
+            scripts/android-aab-tools.json
+            scripts/android-aab-unsigned.gradle
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: '10cc894a27302a5a49b6884c843d2a6b509ab354'
+          path: app
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gebundene öffentliche Prüfwerkzeuge vorbereiten
+        run: python3 policy/scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/aab-tools"
+      - name: Benötigte bestehende Android-SDK-Versionen bereitstellen
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Ausschließlich M ohne Signierbindung paketieren
+        working-directory: app
+        env:
+          AAB_APP_ROOT: ${{ github.workspace }}/app
+        run: |
+          npm ci
+          npm run build
+          node node_modules/@capacitor/cli/bin/capacitor sync android
+          npm run build
+          node node_modules/@capacitor/cli/bin/capacitor sync android
+          node scripts/gradle.mjs :app:packageReleaseBundle --dry-run --no-daemon --console=plain --max-workers=2 --init-script "$GITHUB_WORKSPACE/policy/scripts/android-aab-unsigned.gradle"
+          node scripts/gradle.mjs :app:packageReleaseBundle --no-daemon --console=plain --max-workers=2 --init-script "$GITHUB_WORKSPACE/policy/scripts/android-aab-unsigned.gradle"
+      - name: Frisches unsigned U2 vollständig prüfen und binden
+        id: proof
+        run: >-
+          python3 policy/scripts/android-aab-proof.py prepare
+          --tools "$RUNNER_TEMP/aab-tools" --app "$GITHUB_WORKSPACE/app"
+          --bundle "$GITHUB_WORKSPACE/app/android/app/build/intermediates/intermediary_bundle/release/packageReleaseBundle/intermediary-bundle.aab"
+          --output "$RUNNER_TEMP/aab-unsigned"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        id: artifact
+        with:
+          name: anker-code18-unsigned-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/aab-unsigned/unsigned.aab
+            ${{ runner.temp }}/aab-unsigned/proof.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Öffentliche Werte für separate Signierentscheidung ausgeben
+        env:
+          UNSIGNED_SHA: ${{ steps.proof.outputs.unsigned_sha }}
+          PROOF_SHA: ${{ steps.proof.outputs.proof_sha }}
+          ARTIFACT_ID: ${{ steps.artifact.outputs.artifact-id }}
+          ARCHIVE_SHA: ${{ steps.artifact.outputs.artifact-digest }}
+          POLICY_SHA: ${{ needs.resolve.outputs.workflow }}
+        run: |
+          printf 'prepare erfolgreich; keine Signierung.\nW: %s\nP: %s; Versuch: %s\nArtefakt-ID: %s\nArchiv-SHA256: %s\nAAB-SHA256 H2: %s\nMetadaten-SHA256 HP: %s\n' "$POLICY_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$ARTIFACT_ID" "$ARCHIVE_SHA" "$UNSIGNED_SHA" "$PROOF_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+  sign:
+    needs: resolve
+    if: needs.resolve.outputs.mode == 'sign'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    env:
+      AAB_INPUTS: ${{ toJSON(inputs) }}
+      AAB_CONTEXT: ${{ needs.resolve.outputs.context }}
+    outputs:
+      artifact: ${{ steps.pending.outputs.artifact-id }}
+    steps:
+      # Sparse W policy only: no app checkout, npm/Gradle, or executable build artifact.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ needs.resolve.outputs.workflow }}
+          path: policy
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/android-aab-proof.py
+            scripts/AnkerAabVerifier.java
+            scripts/android-aab-tools.json
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gebundene öffentliche Prüfwerkzeuge ohne Secrets vorbereiten
+        run: python3 policy/scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/aab-tools"
+      - name: Freigegebene Daten vor Schlüsselgebrauch erneut prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 policy/scripts/android-aab-proof.py input --tools "$RUNNER_TEMP/aab-tools" --input "$RUNNER_TEMP/aab-input"
+      - name: Genau U2 mit vorhandenem B4-Schlüssel signieren
+        env:
+          ANKER_ANDROID_KEYSTORE_BASE64: ${{ secrets.ANKER_ANDROID_KEYSTORE_BASE64 }}
+          ANKER_ANDROID_STORE_PASSWORD: ${{ secrets.ANKER_ANDROID_STORE_PASSWORD }}
+          ANKER_ANDROID_KEY_ALIAS: ${{ secrets.ANKER_ANDROID_KEY_ALIAS }}
+          ANKER_ANDROID_KEY_PASSWORD: ${{ secrets.ANKER_ANDROID_KEY_PASSWORD }}
+        run: python3 policy/scripts/android-aab-proof.py sign --tools "$RUNNER_TEMP/aab-tools" --input "$RUNNER_TEMP/aab-input" --output "$RUNNER_TEMP/aab-pending"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        id: pending
+        with:
+          name: anker-code18-signed-pending-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/aab-pending/signed.aab
+            ${{ runner.temp }}/aab-pending/sign-proof.json
+          if-no-files-found: error
+          retention-days: 1
+
+  verify:
+    needs: [resolve, sign]
+    if: needs.resolve.outputs.mode == 'sign'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    env:
+      AAB_INPUTS: ${{ toJSON(inputs) }}
+      AAB_CONTEXT: ${{ needs.resolve.outputs.context }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ needs.resolve.outputs.workflow }}
+          path: policy
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/android-aab-proof.py
+            scripts/AnkerAabVerifier.java
+            scripts/android-aab-tools.json
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gebundene Prüfwerkzeuge ohne Secrets vorbereiten
+        run: python3 policy/scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/aab-tools"
+      - name: Exakte unsigned und signed Daten desselben Versuchs übernehmen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNED_ARTIFACT: ${{ needs.sign.outputs.artifact }}
+        run: >-
+          python3 policy/scripts/android-aab-proof.py input
+          --tools "$RUNNER_TEMP/aab-tools" --input "$RUNNER_TEMP/aab-input"
+          --signed-artifact-id "$SIGNED_ARTIFACT" --signed-input "$RUNNER_TEMP/aab-signed"
+      - name: JAR-Signierer Nutzlast und Paket vollständig ohne Secrets verifizieren
+        env:
+          SIGNED_ARTIFACT: ${{ needs.sign.outputs.artifact }}
+        run: >-
+          python3 policy/scripts/android-aab-proof.py verify
+          --tools "$RUNNER_TEMP/aab-tools" --input "$RUNNER_TEMP/aab-input"
+          --signed-input "$RUNNER_TEMP/aab-signed" --signed-artifact-id "$SIGNED_ARTIFACT"
+          --output "$RUNNER_TEMP/aab-verified"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        id: verified
+        with:
+          name: Anker-Code18-AAB-Pruefstand-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/aab-verified/Anker-Code18-SIGNIERT.aab
+            ${{ runner.temp }}/aab-verified/proof.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Ausschließlich öffentlichen Prüferfolg ausgeben
+        env:
+          ARTIFACT_ID: ${{ steps.verified.outputs.artifact-id }}
+          ARCHIVE_SHA: ${{ steps.verified.outputs.artifact-digest }}
+        run: |
+          printf 'Signiertes AAB vollständig geprüft. Kein Play-Upload und keine Geräteabnahme.\nArtefakt-ID: %s\nArchiv-SHA256: %s\n' "$ARTIFACT_ID" "$ARCHIVE_SHA" >> "$GITHUB_STEP_SUMMARY"

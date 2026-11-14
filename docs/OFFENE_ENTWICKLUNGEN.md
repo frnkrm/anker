@@ -1,5 +1,17 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: AAB-Entwurf lokal geprüft, Remoteintegration offen (14.11.2026)
+
+[EntwurfStufeA](CODE18_AAB_WORKFLOW_ENTWURF.md): manuellerprepare/sign-Weg/striktePrüfhelfer/gezielteCI-Einbindung lokal fertig,43Offlinefällegrün. Keine echteSignierung/Runnerausführung,Actionlintfehlend;U1unverändert,Mfest,W/U2/Snichtbelegt. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigenerAuftrag begrenzter Entwicklungsbranch-PushL mit frischemRef-/Triggerabgleich/erlaubterautomatischerCI-Nachkontrolle,separateFreigabe nötig. Kein main-/Workflowstart-/Signier-/Uploadauftrag.
+
+## T-006: AAB-Signierweg konkret geplant, noch nicht implementiert (14.11.2026)
+
+[Plan mit getrennten Freigaben](CODE18_AAB_SIGNIERWEG_PLAN.md): manueller prepare/sign-Entwurf,exakte M-/W-/CI-/U2-/S-Zuordnung,B4/8A-Rollen,Fail-closed-Prüfung und unberührte Code17-Grenzen konkret. Nur lokale Dokumentation,keine externe Abfrage/Tests/Build/Signierung/Workflowänderung. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag lokale AAB-Workflow-/Prüfhelferentwurfsimplementierung mit Offlineprüfungen/CI-Einbindung,keine Remote-/Signieraktion.
+
+## T-006: korrigiertes M-AAB lokal unsigniert geprüft (14.11.2026)
+
+[Neuer M-Paketnachweis](MAIN_CODE18_AAB_PRUEFBUILD_T006.md): QuelleM10cc894/e9c124…,Code18rc4,54264632Bytes/SHA25674e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50,unsigned/Bundletool/ZIP/JAR/Assets/Manifest/SDK/ELF grün. Nur bestehende Mavenbibliotheksversionen nachgeladen,keine Tools/Projektversionen aktualisiert. Alte Arbeitsbäume/Sicherungen erhalten,kein Push/Signieren/Installieren/Play-/Workflow-/Cloudschreiben. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag ausschließlich lesenden konkreten Code18-AAB-Signierwegplan erstellen,keine Schlüssel-/Secret-/bekannten Metadatenfragen. Historisches014-AAB bleibt vorFix/nicht wiederhergestellt.
+
 ## T-006: NFC-CI-Lücke lokal geschlossen, Remoteprüfung offen (14.11.2026)
 
 [NFC-CI-Korrektur mit Rot-/Grünnachweis](NFC_CI_KORREKTUR_T006.md): deterministischer Rot-/Grünfall belegt Navigation vor React-Unmount; minimaler Routereintragsguard/einRegressionstest,18Browser/31TS/Lint/Typecheck/Webbuild grün. Keine neue Remote-CI oder aktueller korrigierter Paketbuild. AltesAAB014870f3 historisch vorFix; Geräteabnahmen unverändert offen. T-006/V-014 IN_ARBEIT. Nächster eigener Auftrag korrigierten Abschlusscommit begrenzt auf Entwicklungsbranch pushen/neue automatischeCI lesend nachkontrollieren, nur nach separater ausdrücklicher Freigabe. Jetzt nur lokaler Abschluss, keine erneuten Metadatenfragen.
@@ -53,7 +65,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | NFC-Navigationsrace lokal belegt/korrigiert,18Browser/31TS grün; erneute Remote-/Paket-/Geräte-/Gesamtprüfung offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | AAB-Workflow lokal entworfen/43Offlinefälle grün; Remote-/main-W-/Dispatch-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -82,7 +94,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Quellpush H historisch; NFC-Fix lokal grün, neue Remote-/main-/Paket-/Geräte-/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/unsignedU1 belegt,Automationsentwurf lokal geprüft; realer W/U2/S-Pfad und Geräte/Gesamtfreigaben fehlen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
