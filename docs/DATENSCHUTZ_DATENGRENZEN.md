@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: AAB-Entwurf mit synthetischen Offlineprüfungen (14.11.2026)
+
+[Entwurfsnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): neue Automationsdefinition/Prüfhelfer nur lokal geschrieben. Keine externeAbfrage,echtenSignier-/Secret-/Scope-/Wertezugriffe oder Appbuild/Upload/Cloudänderung. Positive Signierregressionen erzeugen ausschließlich synthetische Nichtschlüsselbytes in temporärenDateien und Prozessattrappen,keinen privatenSchlüssel/Signieridentität. EchterJava-JAR-Test nur unsignedsynthetisch/signed-Abweisung;U1nurlesendmitneuenWerkzeugen geprüft. Vorhandene17öffentlicheVendorJARs fürOffline-Toolchecklokalkopiert,keineDownloads oder Paketupdates.
+
+Entwurf referenziert vier bestehende ANKER_ANDROID-Namen nur im späteren Signierschritt;prepare/verify ohneSigniersecrets,unbekannteVerfügbarkeit bleibtunbekannt. StrikteDatei-/Hash-/Run-/Artefaktgrenzen,keineCodeausführungausBuildartefakten,keineTokenweiterleitunganzumSpeicherumgeleiteteDownloads,temporärerKeycleanup undkeineprivatenToolausgaben. SignierterErfolg erst nachsecretfreiemPayload-/B4-Verify,keinePlay-/Gerätewirkung. Heute diese privatenPfade nurausdrücklichgemockt. NeueSicherungenthältQuell-/Dokument-/synthetischeTest-/öffentlicheToolkopien/Referenzhashbelege,keineprivateDatei oder neueAAB-Kopie. AlteArbeitsbäume/Artefakte/Sicherungen bytegleich erhalten;Signier-/Upload-/Geräte-/Gesamtfreigabenoffen.
+
 ## T-006: reine lokale Signierplanung ohne private Zugriffe (14.11.2026)
 
 [Code18-Signierplan](CODE18_AAB_SIGNIERWEG_PLAN.md): nur getrackte öffentliche Definitionen,vorhandene öffentliche Paket-/CIbelege und U1-Dateihash gelesen. Keine Secretnamen-/Scope-/Werteabfrage,Umgebungssuche,private Datei/Zertifikatsstore geöffnet oder Signierskript ausgeführt;keine externe Abfrage. B4/8A und vier Namen sind bereits bekannte öffentliche Angaben,kein neuer Zugriffsbeleg. Geplanter späterer prepare erhält keine Schlüssel;sign nur nach exakter Artefaktfreigabe und eigener Autorisierung,Verifikation ohne Secrets,keine private Datei im Artefakt/Cache. Heute keine Implementierung oder solche Aktionen. Neue Sicherung enthält Dokumentation/öffentliche Referenzmetadaten/Gitbundles/Hashes,keine neue AAB-/Schlüssel-/Appdatenkopie. Alte Artefakte/Arbeitsbäume/Sicherungen erhalten;Signier-/Upload-/Geräte-/Gesamtfreigaben offen.

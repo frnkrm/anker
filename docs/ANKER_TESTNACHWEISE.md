@@ -1,5 +1,11 @@
 # Anker: Testnachweise
 
+## T-006: 43 gezielte neue Offlinefälle für AAB-Entwurf (14.11.2026)
+
+[Neuer Entwurfs-/Prüfbericht](CODE18_AAB_WORKFLOW_ENTWURF.md):29Protokoll-/JAR-Grenzfälle und14Workflow-/YAML-/Shell-/Strukturfälle grün,0Skip. API-/Prozessaufrufe in positiven Signierfällen ausschließlich synthetisch;keine echtenSchlüssel/Signierprobe. JDK21 kompiliert nur Verifikationshelfer,liest synthetischesunsignedZIP und verweigert signed;kein Appbuild. Bestehendes js-yaml/bash -n/PythonAST genutzt.17vorhandeneVendorJARs gehasht,Bundletool-Kommandohilfeoffline;neue Prüfhilfen lesen U1 gegen vollständigeManifestbindung/672Einträge/8ELF64,Originalhash unverändert. Erste CLI-Gatereihenfolge korrigiert,initialesFehlerlog erhalten. Neue Schema-/Receipt-/Signierreplay-/Outputbindungsänderungen gezielt nachgeprüft,keineTests gelockert.
+
+Actionlint nicht vorhanden,keineInstallation/Servervalidierung. NeuerGradleguard/API-/Runner-/echterSigned-B4-Pfad noch nicht ausgeführt;Mocks kein Kryptoerfolg. Alte M-CI379Browser/1372Vitest und274historischeJUnit erhalten,keine Produktvollsuite mechanisch wiederholt. Quellen-/Dokument-/U1-/Altbestand-/Bundle-/Restore-/SHA256-Abschluss im Manifest `/workspace/anker-t006-code18-aab-entwurf-20261114/`. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: statischer Signierwegabgleich, keine Tests wiederholt (14.11.2026)
 
 [Code18-AAB-Signierplan](CODE18_AAB_SIGNIERWEG_PLAN.md): vorhandenes U1 auf Größe/SHA256 und Referenznachweise auf Verfügbarkeit gebunden,Workflow-/Signier-/Publisherquellen ausschließlich lokal gelesen. Keine neue Bundletool-/JAR-/Logik-/Browser-/JUnitprüfung,kein Appbuild/Signierprobe oder externer CI-Abruf. Vorhandene M-CI379/1372 und unsignedPaketbelege bleiben frühere getrennte Nachweise. Neue geplante Offlineprüfmatrix behandelt Quellen-/Workflow-/Artefakt-/Versuchsbindung,fehlendeSecrets,Signatur-/Nutzlastmanipulation und keine Trigger/Secretlecks;noch nicht implementiert/ausgeführt. Heutige Dokument-/Quell-/Altbestand-/Bundle-/Restore-/Hashintegrität im Abschlussmanifest `/workspace/anker-t006-code18-aab-signierplan-20261114/`. T-006/V-014 IN_ARBEIT,E-002–E-005/Gesamtfreigaben offen.

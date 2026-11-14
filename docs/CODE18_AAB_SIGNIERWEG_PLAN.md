@@ -1,5 +1,9 @@
 # T-006 – konkreter Plan für den signierten Code18-AAB-Prüfweg
 
+## Fortschreibung: Stufe A lokal implementiert und offline geprüft (14.11.2026)
+
+Der folgende Plan ist jetzt als [lokaler Workflow-/Prüfhelferentwurf](CODE18_AAB_WORKFLOW_ENTWURF.md) umgesetzt;43gezielteOfflinefälle grün. Keine externeAbfrage/Appbuild/echteSignierung/Workflowausführung oder Übertragung. Ursprüngliche Formulierungen „Datei heute nicht angelegt/Implementierung nicht begonnen“ unten beschreiben den davorliegenden Planungsauftrag. L bleibt lokalerEntwurf,nichtspäteresW;U1unverändert,keineRunner-U2/signedS-Nachweise. Nächster eigenerAuftrag begrenzterEntwicklungsbranch-PushL/automatischeCI-Nachkontrolle erst nachseparaterFreigabe;weitereStufenB–F einschließlichmain/WCI undprepare/sign bleibenoffen.
+
 Stand **14.11.2026, Europe/Berlin**. Nur lokale Quelleninspektion und neue Planungsdokumentation. **Kein implementierter oder ausgeführter Signierweg und keine Signierfreigabe.**
 
 ## Gesicherter Ausgang und tatsächliche Lücke

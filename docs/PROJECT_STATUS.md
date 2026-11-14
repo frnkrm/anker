@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: manueller AAB-Workflow lokal entworfen und offline geprüft (14.11.2026)
+
+[Lokaler Entwurfs-/Prüfnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): saubere Basis3fbc6541,Branchentwicklung/anker-neu. Neuer ausschließlicher main/workflow_dispatch-Workflow mit getrennten prepare/sign-Aufrufen,festem App-M,separatem künftigem W,exakten M-/W-main-CI-Gates und Run-/Versuch-/Artefakt-/Archiv-/AAB-/Metadatenbindung. Kein Appcode/Buildartefaktcode im Signierjob,nur W-Prüfcode und bekannteWerkzeuge;vierSecretreferenzen ausschließlich im tatsächlichen Signierschritt,keine Verfügbarkeitsabfrage/kein unsigned Fallback. Secretfreies vollständiges JAR-/B4-/U2↔S-Payloadverify vor finalem Prüfarbeitsartefakt. Bestehende APK-/Release-/Play-/Code17-Pfade unverändert;ci.yml nur JDK21/gezielte neue Offlineprüfungen ergänzt.
+
+**43/43 Offlinefälle grün** (29Protokoll/JAR-Grenzen,14Workflow/YAML/Shell/Struktur),0Skip. Echte Java-Unsigned-/Signed-required-Negativgrenze ohne Schlüssel,positive Signierfälle ausschließlich gemockt.17vorhandeneWerkzeugJARs hashgebunden/offline geprüft;neue Hilfen lesend mit U1 kompatibel,Hash74e65b1a…de050d50 unverändert. Actionlint nicht verfügbar,nicht installiert;kein neuer GitHub-/Runner-/B4-Signierbeleg. Kein Appbuild,echteSignierung,API-/Secret-/Cloud-/Play-/Geräteaktion oder Push.
+
+Lokaler Abschlusscommit L und Sicherung `/workspace/anker-t006-code18-aab-entwurf-20261114/`,nicht übertragen. L ist nicht W,M bleibt10cc894;U2/S existieren nicht. AlteArbeitsbäume/Artefakte/Sicherungen und zurückgestellteUmgebung835235b erhalten. T-006/V-014 IN_ARBEIT,E-002–E-005/Integrations-/Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster eigener Auftrag einmaliger begrenzter Entwicklungsbranch-PushL nach frischer Quellen-/Triggerprüfung und neue CI lesend nachkontrollieren,erst nach separaterFreigabe samt bestehenderPush-/Previewautomatik. Keine neueAAB-Dispatch-/main-/Signierfreigabe. Folgende Abschnitte historisch;danach stoppen.
+
 ## T-006: konkreter AAB-Signierweg nur geplant (14.11.2026)
 
 [Konkreter Code18-AAB-Signierwegplan](CODE18_AAB_SIGNIERWEG_PLAN.md) aus sauberem Ausgangse3ef74fa: U1/54.264.632Bytes/SHA25674e65b1a…de050d50 und vorhandene M-CI-/Paketbelege lokal bestätigt,keine externe Abfrage oder erneute Suite/Build/Signierprobe. APK-Update/sign-local/Tagrelease sind keine AAB-Signierer; alter Publisher und Code17-Manifeste sind fest gebunden und bleiben unverändert.

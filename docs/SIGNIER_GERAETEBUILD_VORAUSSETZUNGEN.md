@@ -1,5 +1,9 @@
 # T-006 – Voraussetzungen für einen signierten Geräteprüfbuild
 
+## T-006: manueller AAB-Prüfworkflow lokal entworfen, Signierfreigabe fehlt (14.11.2026)
+
+[LokalerEntwurfStufeA](CODE18_AAB_WORKFLOW_ENTWURF.md): separateprepare/sign-Dispatches,fixesM/gekoppelteexaktemain-CI,späteresWmiteigenermain-CI,exakteP/Versuch/A/H2/HP-Bindung,Keyisolierung/keinFallback/secretfreiesJAR-Verify implementiert.43Offlinefällegrün,positiveSignierung ausschließlichProzessattrappen;kein privaterZugriff oder echteB4-Signaturbelegt. VierNamen/Scope/Keyzugriff weiterhinunbestätigt,nichtabgefragt;B4/8Agetrennt. Actionlintfehlt,realerServer-/Runnerpfadungeprüft. LlokalerEntwurfistnichtW,keinesignedS/U2entstanden. BestehendeAPK-/Code17-Pfade undManifesteunverändert. Nächster eigenerAuftrag begrenzterBranch-PushL/CI-Abgleich,separateFreigabe;regulärespäteremain-Integration/WCI,prepare,sign/verify,Upload/Geräte weitereeigeneFreigaben. T-006/V-014/E-002–E-005/Gesamtfreigabenoffen.
+
 ## T-006: konkreter getrennter AAB-Prüfweg vorbereitet (14.11.2026)
 
 [Aktueller konkreter Signierplan](CODE18_AAB_SIGNIERWEG_PLAN.md): neuer manueller prepare/sign-Weg statt Umdeutung vorhandener APK-/Code17-Werkzeuge. Lokales U1 bleibt Referenz;Runner-U2 erhält eigene Nachweise/Hash/Artefakt-ID und separate Signierfreigabe. WorkflowquelleW erst später aus tatsächlicher Integration/main-CI,M bleibt feste Appquelle mit eigenem exaktem CI-Gate. B4-Endzertifikat und vollständige JAR-/U2↔S-Nutzlastprüfung zwingend;8A ist andere Play-App-Rolle. Secretbestand/Scope/privateVerfügbarkeit unbekannt,keine neue Abfrage/Frage oderSchlüsselsuche. Heute nur Planungsdokumentation;Implementierung/Remoteintegration/prepare/sign/Upload/Geräte jeweils getrennt. Genau nächster eigener Auftrag lokale Entwurfsimplementierung mit synthetischen Offlineprüfungen und CI-Einbindung,noch keine Signierung/Workflowausführung. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.

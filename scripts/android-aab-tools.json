@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "bundletoolVersion": "1.18.1",
+  "provenance": "Existing M AGP8.13.0 resolved classpath; no dependency version change",
+  "jars": [
+    {
+      "file": "aapt2-proto-8.13.0-13719691.jar",
+      "sha256": "6acec63c16c58667f7bb2ab31bc1e84465b113a8347b03fb8955b7eabee1eb69",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.13.0-13719691/aapt2-proto-8.13.0-13719691.jar",
+        "https://repo.maven.apache.org/maven2/com/android/tools/build/aapt2-proto/8.13.0-13719691/aapt2-proto-8.13.0-13719691.jar"
+      ]
+    },
+    {
+      "file": "bundletool-1.18.1.jar",
+      "sha256": "a73341a7945abcb0e6b8971c7b1b2801bd765006447ca0d2437a4260d572ceac",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/android/tools/build/bundletool/1.18.1/bundletool-1.18.1.jar",
+        "https://repo.maven.apache.org/maven2/com/android/tools/build/bundletool/1.18.1/bundletool-1.18.1.jar"
+      ]
+    },
+    {
+      "file": "auto-value-annotations-1.6.2.jar",
+      "sha256": "b48b04ddba40e8ac33bf036f06fc43995fc5084bd94bdaace807ce27d3bea3fb",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar",
+        "https://repo.maven.apache.org/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar"
+      ]
+    },
+    {
+      "file": "jsr305-3.0.2.jar",
+      "sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+        "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+      ]
+    },
+    {
+      "file": "gson-2.11.0.jar",
+      "sha256": "57928d6e5a6edeb2abd3770a8f95ba44dce45f3b23b7a9dc2b309c581552a78b",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar",
+        "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar"
+      ]
+    },
+    {
+      "file": "dagger-2.28.3.jar",
+      "sha256": "f1dd23f8ae34a8e91366723991ead0d6499d1a3e9163ce550c200b02d76a872b",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3.jar",
+        "https://repo.maven.apache.org/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3.jar"
+      ]
+    },
+    {
+      "file": "error_prone_annotations-2.30.0.jar",
+      "sha256": "144f3aefbd6e27daec55d3753b2c6b13c1afdaf0cf04816cdb564588ed92f1bd",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/errorprone/error_prone_annotations/2.30.0/error_prone_annotations-2.30.0.jar",
+        "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.30.0/error_prone_annotations-2.30.0.jar"
+      ]
+    },
+    {
+      "file": "failureaccess-1.0.2.jar",
+      "sha256": "8a8f81cf9b359e3f6dfa691a1e776985c061ef2f223c9b2c80753e1b458e8064",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+        "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar"
+      ]
+    },
+    {
+      "file": "guava-33.3.1-jre.jar",
+      "sha256": "4bf0e2c5af8e4525c96e8fde17a4f7307f97f8478f11c4c8e35a0e3298ae4e90",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar",
+        "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar"
+      ]
+    },
+    {
+      "file": "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "sha256": "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+        "https://repo.maven.apache.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+      ]
+    },
+    {
+      "file": "j2objc-annotations-3.0.0.jar",
+      "sha256": "88241573467ddca44ffd4d74aa04c2bbfd11bf7c17e0c342c94c9de7a70a7c64",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+        "https://repo.maven.apache.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar"
+      ]
+    },
+    {
+      "file": "protobuf-java-util-3.25.5.jar",
+      "sha256": "dacc58b2c3d2fa8d4bddc1acb881e78d6cf7c137dd78bc1d67f6aca732436a8d",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/protobuf/protobuf-java-util/3.25.5/protobuf-java-util-3.25.5.jar",
+        "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java-util/3.25.5/protobuf-java-util-3.25.5.jar"
+      ]
+    },
+    {
+      "file": "protobuf-java-3.25.5.jar",
+      "sha256": "8540247fad9e06baefa8fb45eb313802d019f485f14300e0f9d6b556ed88e753",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar",
+        "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar"
+      ]
+    },
+    {
+      "file": "javax.inject-1.jar",
+      "sha256": "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+        "https://repo.maven.apache.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+      ]
+    },
+    {
+      "file": "jose4j-0.9.5.jar",
+      "sha256": "808fb3166f3e67dad9811c331029ab1681242fd52b735bc3f33f281167fcc72e",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/org/bitbucket/b_c/jose4j/0.9.5/jose4j-0.9.5.jar",
+        "https://repo.maven.apache.org/maven2/org/bitbucket/b_c/jose4j/0.9.5/jose4j-0.9.5.jar"
+      ]
+    },
+    {
+      "file": "checker-qual-3.43.0.jar",
+      "sha256": "3fbc2e98f05854c3df16df9abaa955b91b15b3ecac33623208ed6424640ef0f6",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+        "https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar"
+      ]
+    },
+    {
+      "file": "slf4j-api-1.7.30.jar",
+      "sha256": "cdba07964d1bb40a0761485c6b1e8c2f8fd9eb1d19c53928ac0d7f9510105c57",
+      "urls": [
+        "https://dl.google.com/dl/android/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar",
+        "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
+      ]
+    }
+  ]
+}

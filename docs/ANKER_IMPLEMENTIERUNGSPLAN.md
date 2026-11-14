@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: lokale AAB-Automation Stufe A umgesetzt (14.11.2026)
+
+[Entwurf und Grenzen](CODE18_AAB_WORKFLOW_ENTWURF.md): neuer manueller prepare/sign-Workflow,notwendige strikte Prüfhelfer/JavaVerifier/unsignedGradleguard/hashgebundenebestehendeTools,gezielte CI-Einbindung. M/W und U1/U2/S getrennt,keine automatischeSignierung,kein unsignedErfolgsfallback,Schlüssel nur später isoliert,Verify ohneSecrets.43Offlinefälle grün;Actionlint fehlt,kein echterGitHub-/B4-Signierbeleg. Kein Appbuild/externesAPI/Workflowstart/Signieren/Push oder Produkt-/Version-/Berechtigungsänderung. Nur lokal committen/sichern,LnichtW;altePfad-/Code17-Gates erhalten. T-006/V-014/E-002–E-005 und Gesamtfreigaben offen. Nächster eigener Auftrag begrenzter Entwicklungsbranch-PushL/CI-Nachkontrolle mit separaterFreigabe,kein main-/AAB-Dispatch.
+
 ## T-006: Code18-AAB-Signierplanung lokal abgeschlossen (14.11.2026)
 
 [Neuer konkreter Plan](CODE18_AAB_SIGNIERWEG_PLAN.md): bestehende APK-/Code17-Pfade nur gelesen;lokales unsignedU1 perHash/Beleg gebunden. Manueller neuer prepare/sign-Weg mit getrennten M-/W-/CI-/U2-/S-Bindungen,exakter späterer H2/HP/Run-/Artefaktfreigabe,isoliertem B4-Keygebrauch und secretfreier JAR-/Nutzlastprüfung spezifiziert. Kein Code/Workflow/Manifest geändert,keine externe Abfrage/Tests/Build/Signierung;alteArtefakte/Guards erhalten. Nur Dokumentation lokal committen/sichern. StufeA lokale Entwurfsimplementierung/Offlineprüfungen ist genau nächster eigener Auftrag,keine Ausführungs-/Uploadfreigabe. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.

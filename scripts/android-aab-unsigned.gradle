@@ -1,0 +1,37 @@
+import java.nio.file.Files
+import java.nio.file.LinkOption
+
+// Only observes/rejects. Applied before evaluating M's project configuration.
+def root = new File(System.getenv('AAB_APP_ROOT'), 'android').canonicalFile
+def check = {
+    if (Files.exists(new File(root, 'keystore.properties').toPath(), LinkOption.NOFOLLOW_LINKS))
+        throw new GradleException('AAB_UNSIGNED_BINDING_PRESENT')
+    ['ANDROID_KEYSTORE_PATH','ANDROID_KEYSTORE_PASSWORD','ANDROID_KEY_ALIAS','ANDROID_KEY_PASSWORD'].each {
+        if (System.getenv(it)) throw new GradleException('AAB_UNSIGNED_BINDING_PRESENT')
+    }
+    if (System.getenv('VERSION_CODE') || System.getenv('VERSION_NAME')) throw new GradleException('AAB_VERSION_OVERRIDE')
+}
+check()
+gradle.settingsEvaluated { settings ->
+    if (settings.settingsDir.canonicalFile != root) throw new GradleException('AAB_WRONG_SOURCE_ROOT')
+    check()
+}
+gradle.beforeProject { check() }
+gradle.taskGraph.whenReady { graph ->
+    check()
+    def android = gradle.rootProject.project(':app').extensions.getByName('android')
+    if (android.buildTypes.getByName('release').signingConfig != null || android.defaultConfig.versionCode != 18
+            || android.defaultConfig.versionName != '1.5.0-rc.4' || android.defaultConfig.applicationId != 'de.frnkrm.anker.mobile')
+        throw new GradleException('AAB_UNSIGNED_SOURCE_VERSION')
+    if (gradle.startParameter.taskNames != [':app:packageReleaseBundle']) throw new GradleException('AAB_WRONG_TASK')
+    graph.allTasks.each { task ->
+        def n = task.name.toLowerCase(Locale.ROOT)
+        if (n.contains('sign') || ['install','upload','publish','assemble'].any { n.startsWith(it) }
+                || task.class.name.contains('FinalizeBundleTask') || n in ['bundlerelease','packagerelease']
+                || (n.contains('debug') && !(task.name in ['stripReleaseDebugSymbols','mergeReleaseNativeDebugMetadata'])))
+            throw new GradleException('AAB_FORBIDDEN_TASK')
+    }
+    def target = graph.allTasks.find { it.path == ':app:packageReleaseBundle' }
+    if (target == null || !target.class.name.contains('PackageBundleTask')) throw new GradleException('AAB_WRONG_WORKER')
+    println('AAB_UNSIGNED_GRAPH_VERIFIED')
+}
