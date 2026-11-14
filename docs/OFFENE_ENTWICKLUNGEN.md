@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: GitHub-Übergabevorlage lokal bereit (14.11.2026)
+
+[Konkrete GitHub-Übergabevorlage](GITHUB_UEBERGABE_CODE18_PLAN.md): konkreter Delta-/Quell-/Workflow-/Nachweisabgleich und noch nicht ausgeführte Ein-Ref-Pushvorlage. Historische Remoteangaben14.11.2026um01:59–02:00UTC, keine aktuelle externe Abfrage. Geplanter H getrennt von014870f3-AAB-Quelle und künftiger CI/main-SHA; unveränderte automatische CI/gegebenenfalls bestehende Previewautomatik braucht spätere Pushfreigabe. Kein main-/Signier-/Upload-/Gerätebeleg. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag begrenzter aktueller Ref-/PR-/CI-Abgleich und einmaliger Fast-forward-Entwicklungsbranch-Push nur bei ausdrücklicher separater Beauftragung; jetzt keine Übertragung/Aktion. Keine erneuten Metadatenfragen.
+
 ## T-006: CI-Nutzerbeleg vervollständigt, Gesamtfreigabe offen (14.11.2026)
 
 [Ergänzte CI-Zuordnung](GITHUB_VORAUSSETZUNGEN_CODE18.md): Nutzer-SHA6dfa632 und passender Commit-Screenshot mit fehlgeschlagenem Push-Check/fünf grünen Checks; Versuchnummer unbekannt. Keine weitere SHA-/Ergebnis-/Secretfrage nötig. Keine neue main-Push-CI/Code18-/Signierfreigabe. T-006/V-014 IN_ARBEIT; E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag konkrete lokale GitHub-Übergabeplanung aus vorhandenen Diffs/Workflows, keine externe Abfrage oder Übertragung/Ausführung. Ältere nächste Aufträge bleiben historisch.
@@ -41,7 +45,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Code18 unsigned lokal belegt; CI6dfa632-Pushcheck laut Screenshot fehlgeschlagen, CI-Zuordnung erledigt; Secrets/Gesamtfreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Code18 unsigned/CI-Zuordnung lokal belegt; GitHub-Übergabevorlage bereit, noch kein Push; Geräte-/Signier-/Gesamtfreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -70,7 +74,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Lokale18/rc.4-/AAB-Nachweise erhalten; GitHub-API blockiert; Signier-/Upload-/Geräte-/Remote-/Gesamtfreigabe offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Lokale18/rc.4-/AAB-Nachweise und konkrete Übergabevorlage; aktuelle Remote-CI/Geräte-/Signier-/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.

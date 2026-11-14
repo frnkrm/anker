@@ -1,5 +1,7 @@
 # T-006 – GitHub-Voraussetzungen für Code18
 
+Nachtrag14.11.2026: Der nachfolgend empfohlene lokale Übergabeplan ist inzwischen als [konkrete Vorlage](GITHUB_UEBERGABE_CODE18_PLAN.md) vorbereitet; kein Push oder externe Abfrage. CI-Nutzerzuordnung bleibt abgeschlossen, Secret-/Scope-Nachfragen bleiben unnötig.
+
 ## CI-SHA und angezeigter Checkstatus ergänzt (14.11.2026)
 
 Sauberer Ausgangshead `208691836849aed7bb0758175d3e1976f7110842` auf `entwicklung/anker-neu`. Neue Nutzerantwort nennt die vollständige SHA **`6dfa632c94422d61d6a71c6a4a72c15fefd4a407`** zum zuvor genannten [Lauf43331316553](https://github.com/frnkrm/anker/actions/runs/43331316553). Als40Hexzeichen formal gültig; nicht aus einer PR-Ref erraten. Der mitgelieferte Screenshot zeigt dieselbe SHA in der GitHub-Commit-URL und die Checkübersicht dieses Commits. Keine eigene externe Abfrage.
