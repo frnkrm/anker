@@ -1,5 +1,9 @@
 # T-006 – lokale Softwareintegration und offene Gesamtfreigabe
 
+## GitHub-Remoteabgleich mit gesperrter API (14.11.2026)
+
+[GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md): sauberer lokaler Ausgangshead a29ba67, unsignierte AAB-Versionquelle014870f3 unverändert. main e48d289/dev6dfa632 aktuell angekündigt, neue Quellen nicht in beiden Branchhistorien. Fünf Workflows bytegleich an bestätigten Remote-SHAs; kein Fetch/Checkout. PR-/CI-/Secret-Metadaten durch CONNECT403 gesperrt, keine aktuelle CI oder vorhandenen/fehlenden Secrets behauptet. Exakte Quell-/main-/Push-CI-Gates und alte Code17-Manifeste erhalten. Nur Dokumentation, keine grüne Suite/Buildprüfung wiederholt oder Remote-/Signier-/Cloud-/Playaktion. Lokaler Teil belegt, T-006/V-014 insgesamt IN_ARBEIT; E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag nichtgeheime vorhandene GitHub-Oberflächenbelege vom Nutzer einholen; keine Konfigurationsänderung oder Werte anfordern.
+
 ## T-006: ausdrücklich beauftragte lokale Version18/rc.4 und frischer AAB-Nachweis (14.11.2026)
 
 Auf sauberem0c78c9e ausschließlich freigegebene Versionsfelder geändert und vor Bau als `014870f3ee52c0233118d2852ef0719aa9bc602b` gebunden. [Code18-Prüfbericht](CODE18_AAB_INTEGRATION_T006.md): frischer Webbuild/Typecheck/Capsync, neue7608…Quellkennung, signaturfreier18/rc.4-Dryrun/Guardgraph, Offline-PackageBundleTask1m1s/44ausgeführt/440up-to-date. Bundletool1.18.1 validate/Manifest/Config,672JAR-Einträge unsigned/CRC,71aktuelle Web-/75generierte Assets bytegleich; Manifest nur Versionsattribute verschieden,31Rechte/Komponenten/Backupregeln/SDK erhalten,16Bibliotheken/3DEX gleichCode17. Neues AAB54.264.513Bytes/SHA256d0d5cfedc21e2201329dccf77177040f85884136e0ee44e5ea6ee600acbe282b. Alte Code17-Belege unverändert und Rohoutput gesichert, Dependencies/Signierlogik/Produkt-/Workflowquellen unverändert, keine Pakete/Tools installiert oder grüne Suite wiederholt.

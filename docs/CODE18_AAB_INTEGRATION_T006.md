@@ -1,5 +1,7 @@
 # T-006 – Code18/1.5.0-rc.4 lokal und unsigniert geprüft
 
+Nachtrag 14.11.2026: Der damals nächste lesende GitHub-Auftrag ist inzwischen separat beauftragt und als [Ref-/Workflowabgleich mit blockierter API](GITHUB_VORAUSSETZUNGEN_CODE18.md) dokumentiert. Die folgende Paketquelle/Artefaktbindung bleibt unverändert; spätere Dokumentationsheads sind keine neuen Buildquellen.
+
 Stand 14.11.2026, Europe/Berlin. Saubere verfügbare Ausgangsbasis `0c78c9e814e158e73125556aae2c06fc471feb0d`, Branch `entwicklung/anker-neu`. Der neue ausdrückliche Nutzerauftrag erlaubt ausschließlich die drei benannten Versionsdateien, lokale Quellbindung, frischen Web-/Capacitor-/UNSIGNIERTEN AAB-Prüfbuild und Dokumentationsabschluss. Keine Produktfunktion, Signier-/Upload-/Remote-/Gerätefreigabe. Alte Umgebung/835235b zurückgestellt.
 
 ## Exakte Quellen und Artefakt

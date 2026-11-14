@@ -1,5 +1,11 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: begrenzte lesende GitHub-Metadatenprüfung (14.11.2026)
+
+[GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md) auf a29ba67: nur öffentliche Ref-/Workflow-/Quellmetadaten und erfolglose API-GETs für PR/CI/Actions sowie Signing-Secretnamen/Scopes. CONNECT403 verhindert APIantworten; keine Secretliste oder Werte erhalten, keine Rechte-/Fehlbestandsannahme. Keine privaten Dateien/Passwörter/Token gesucht, gelesen oder protokolliert; keine Auth-/Proxy-/Cloud-/Secretänderung oder Umgehung. Bestehender HTTPS-Zugang nur für lesende Metadatenanfragen verwendet, keine Google-/Consoleabfrage oder Nutzdaten-/Schlüsselübertragung. Produkt-/Persistenz-/Backup-/Sync-/Reminder-/Freigabedaten unverändert.
+
+Sicherung `/workspace/anker-t006-github-voraussetzungen-20261114/` enthält Dokumentation, öffentliche Gitbelege, GET-Fehler und Git-Bundles, keine neuen Appnutzdaten oder AAB-Duplikation; nur Cloud-lokal. Benötigte Namen im Workflow beweisen keine gespeicherten Secrets, deren Inhalt oder Signierbarkeit. Nächste Nutzerbelege ausschließlich Namen/Scopes und nichtgeheime PR-/CI-Metadaten, niemals Werte/Schlüssel oder erneute bekannte Playfragen. E-002–E-005 und Gesamt-/Signier-/Upload-/Gerätefreigaben offen.
+
 ## T-006: lokale Version18/rc.4 und unsignierter AAB-Bau ohne neuen Datenfluss (14.11.2026)
 
 Nach ausdrücklicher enger Nutzerfreigabe genau drei Versionsdateien lokal geändert, vor Bau als014870f gebunden, frische öffentliche Produktions-Webassets synchronisiert und [unsigniertes Code18-AAB geprüft](CODE18_AAB_INTEGRATION_T006.md). Kein Produkt-/Datenmodell-/Storequeue-/Backup-/Sync-/Reminder-/Berechtigungs-/Signierlogikwechsel;31Manifestrechte/Komponenten/Backupregeln/NFC optional erhalten. Keine privaten Schlüssel/Secretwerte gesucht/gelesen/kopiert oder protokolliert; Bindungen nur auf Vorhandensein, neuer externer Guard beobachtet/stoppt. JAR-Auditor liest nur AAB, keinen Keystore/Truststore. Kein eigener Console-/GitHub-/Secret-/APIabruf oder Signieren/Installieren/Nutzdaten- oder Schlüsselübertragung. Vital-Lint-Metrikinitialisierungswarnung nicht durch HOME-/Cloudänderung behoben. Vorhandene Tools/Dependencies wiederverwendet, keine neuen Paketupdates.

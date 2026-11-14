@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: lesende GitHub-Prüfung, API-Teil blockiert (14.11.2026)
+
+Basis a29ba67 sauber, Versionquelle014870f3 unverändert. [GitHub-Bestandsaufnahme](GITHUB_VORAUSSETZUNGEN_CODE18.md): Remote-main e48d289 und dev/PR2-head6dfa632 frisch bestätigt, neue lokale Quellen nicht in diesen Branchhistorien. Fünf Workflowblobs an beiden Remote-SHAs gleich lokal. PR-/CI-/Secret-Metadaten durch API-CONNECT403 blockiert; Namen/Scopes unbekannt, keine fehlenden Secrets oder ausreichenden Rechte ableiten. Bestehende exakte main-Push-CI-Gates ohne Docs-Ausnahme erhalten. APK-Updateworkflow ist kein signierter AAB-Weg; alte Code17-Freigaben unverändert. Nur Dokumentation, keine Tests/Builds/Signier-/Remote-/Cloud-/Playaktionen. T-006/V-014/E-002–E-005/Gesamtfreigaben offen; Sicherung `/workspace/anker-t006-github-voraussetzungen-20261114/`. Genau nächster eigener Auftrag: vorhandene nichtgeheime GitHub-Oberflächenmetadaten vom Nutzer einholen/zuordnen, keine Werte oder Konfigurationsänderung; danach stoppen.
+
 ## T-006: gesondert freigegebene lokale Umsetzung18/rc.4 mit unsigniertem Neubau (14.11.2026)
 
 Basis0c78c9e sauber/verfügbar. Aktueller Auftrag erlaubt ausschließlich drei Versionsdateien, lokale Quellbindung und frischen Web-/Capacitor-/UNSIGNIERTEN AAB-Bau, keine historische automatische Playaktion. Versionsquelle `014870f3ee52c0233118d2852ef0719aa9bc602b` zuerst sauber committet, Dependencygraph/Signierlogik/SDK/Rechte/Produkt-/Test-/Workflowquellen unverändert. [Neue Paket-/Versions-/Quellbelege](CODE18_AAB_INTEGRATION_T006.md):7608…Quellkennung, Manifest18/rc.4, AABd0d5cfed…unsigned/Bundletool/CRC/Assets. Keine alte17-Kennung umetikettiert, alte Artefakte/Guards/Manifeste/Logs erhalten und Rohoutput vor Wiederverwendung archiviert. Keine Tools/Pakete neu oder unveränderte Suite wiederholt.
