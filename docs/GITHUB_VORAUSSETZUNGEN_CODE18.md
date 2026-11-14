@@ -1,5 +1,30 @@
 # T-006 – GitHub-Voraussetzungen für Code18
 
+## CI-SHA und angezeigter Checkstatus ergänzt (14.11.2026)
+
+Sauberer Ausgangshead `208691836849aed7bb0758175d3e1976f7110842` auf `entwicklung/anker-neu`. Neue Nutzerantwort nennt die vollständige SHA **`6dfa632c94422d61d6a71c6a4a72c15fefd4a407`** zum zuvor genannten [Lauf43331316553](https://github.com/frnkrm/anker/actions/runs/43331316553). Als40Hexzeichen formal gültig; nicht aus einer PR-Ref erraten. Der mitgelieferte Screenshot zeigt dieselbe SHA in der GitHub-Commit-URL und die Checkübersicht dieses Commits. Keine eigene externe Abfrage.
+
+| Fehlende Angabe | Jetzt belegte Zuordnung |
+|---|---|
+| CI-headSHA | `6dfa632c94422d61d6a71c6a4a72c15fefd4a407` laut Nutzer; Commitseite im Screenshot passt dazu |
+| Ausgefülltes Ergebnisfeld | Leer geblieben; keine Textangabe erfunden |
+| Tatsächlich sichtbarer Status | **CI / check (push): Failing after9m**, rotes Kreuz |
+| Übrige sichtbare Checks | CI/check(pull_request) und vier PC-Begleiter-Matrixchecks erfolgreich; insgesamt **1 failing and5successful checks** |
+| Versuchnummer | **Unbekannt**, keine Nummer im Screenshot |
+| Ereignis / Branch / PR | Aus vorherigem Nutzerbericht: push/entwicklung/anker-neu; PR2 Open von Entwicklung nach main, nicht erneut abgefragt |
+
+Das Bild ist eine Commit-Checkübersicht, keine Run-Summary. Die Zuordnung zum gemeldeten Lauf beruht auf der Nutzerantwort im laufenden Auftrag; Run-ID/Versuch/Run-Metadaten wurden nicht unabhängig aus dem Bild oder per API verifiziert. Der rote Push-Check ist ein verwertbarer Oberflächenbeleg für dessen angezeigten Fehlschlag; **der gemeldete Stand ist nicht insgesamt grün**. Der grüne PR-Check ersetzt keinen erfolgreichen Push-Check. Die Abweichung allein beweist weder einen neuen Produktfehler noch eine bestimmte Fehlerursache. Historische Playwright-Fehlerlogs bleiben historische Belege; keine Tests wiederholt oder Codefixes aus der Statusanzeige abgeleitet. Das sichtbare Commit-Label Verified ist kein App-/Uploadzertifikats- oder privater Schlüsselbeleg.
+
+Die vormals unvollständige CI-Nutzerzuordnung ist damit im lieferbaren Umfang abgeschlossen. Die unbekannte Versuchnummer bleibt offen und rechtfertigt keine erneute Metadatenfrageschleife. Keine weitere Nachfrage nach diesem bereits gelieferten SHA-/Ergebnisbeleg oder den nicht einsehbaren Secrets erforderlich.
+
+**Quellen und Grenzen:** CI-/Commitbeleg6dfa632 ist weder die Code18-AAB-Versionsquelle `014870f3ee52c0233118d2852ef0719aa9bc602b` noch der lokale Dokumentationshead2086918 oder dessen Nachfolger. Die früher bestätigten Remote-Refs/Workflowblobs wurden heute nicht erneut extern geprüft. Entwicklungsbranch-Push und grüner PR-Check erfüllen keinen exakten erfolgreichen **main-Push-ci.yml-Gate**. Vier Signing-Secrets/Scopes weiterhin unbekannt/nicht einsehbar, keine Signierbarkeit bewiesen. Alte Code17-Manifeste und Code18-Artefaktbindung bleiben unverändert; keine Signier-/Upload-/Geräte-/Gesamtfreigabe.
+
+Nur belegte Dokumentation lokal committen und unter `/workspace/anker-t006-ci-zuordnung-20261114/` sichern: Nutzer-/Screenshottranskription ohne neue Bilddateikopie, Vorher-/Nachher-Bundle/Integritäts-/Wiederherstellungsnachweis/SHA256. Keine eigene externe Abfrage, Tests/Builds/Signierung/Installation, GitHub-/Workflow-/Cloud-/Secret-/Versions-/Playaktion. T-006/V-014 IN_ARBEIT, E-002–E-005 und Gesamtfreigaben offen. Alte Umgebung/835235b zurückgestellt.
+
+**Genau nächster zulässiger Einzelauftrag:** Die lokale GitHub-Übergabe konkret vorbereiten, ohne Übertragung: vorhandenen lokalen Unterschied zur zuletzt bestätigten Entwicklungs-SHA6dfa632 zusammenstellen, vorgesehene Übergabe-/Artefaktquellen unterscheiden und aus vorhandenen Workflowdefinitionen die Wirkungen eines späteren Branch-Pushs/PR-Updates sowie nötige separate main-/CI-/Signier-/Uploadentscheidungen benennen. Nur Dokumentation/Planung anhand lokaler Belege, keine erneute CI-/Secret-Nutzerfrage, keine externe Abfrage oder Aktion. Noch keine Pushfreigabe und kein Workflowstart; danach stoppen.
+
+## Historischer Nutzerbericht vor Ergänzung der CI-Angaben
+
 ## Nutzerbericht zu PR2 und CI, Secretbestand weiterhin unbekannt (14.11.2026)
 
 Auf sauberem Branch `entwicklung/anker-neu`, Ausgangshead **`def0c5fab72d1a935c5cedc798d2689544442484`**, die Antwort des Nutzers zu vorhandenen GitHub-Oberflächenangaben dokumentiert. Keine eigene externe Abfrage oder erneute Ref-/APIprüfung. Die folgenden Angaben sind ein **Nutzerbericht**, kein unabhängig ausgelesener GitHub- oder CI-Nachweis.

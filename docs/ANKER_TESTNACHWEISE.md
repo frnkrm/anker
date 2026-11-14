@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: Screenshot-Checkstatus und Nutzer-SHA ergänzt, kein Testlauf (14.11.2026)
+
+Basis2086918 sauber, [Ergänzte CI-Zuordnung](GITHUB_VORAUSSETZUNGEN_CODE18.md): vollständige6dfa632-SHA laut Nutzer zum zuvor genannten CI43331316553; Commitseite zeigt CI/check(push) Failing und fünf erfolgreiche Checks inklusive CI/check(pull_request). Versuchnummer unbekannt, keine unabhängige API-/Run-Summaryprüfung. Keine erneute CI-Rückfrage erforderlich; historische Logfehler nicht zu neuem Fehlerbeweis umgewertet. Keine Tests/Builds/Signier-/Geräte-/externen Aktionen wiederholt;1372TS/378Browser/284Python/274historische quellenidentische JUnit bleiben frühere Nachweise. Nur Dokumentintegrität/geschützte Quellen/36IDs/103Gerätezeilen/Links und lokale Bundle-/Wiederherstellungs-/SHA256-Prüfungen. Sicherung `/workspace/anker-t006-ci-zuordnung-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: Nutzerbericht ist kein neuer CI-/Softwaretest (14.11.2026)
 
 Basis def0c5f sauber; [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md). Nutzer meldet PR2 Open/Entwicklung→main und CI43331316553 push/Entwicklung; SHA/Ergebnis unbekannt. Scopes der vier Signing-Secrets nicht einsehbar, Bestand nicht bestätigt. Keine eigene externe Abfrage und kein Test-/Build-/Signier-/Gerätelauf. Historische Screenshots nicht als aktuelle CI-Wiederholungsresultate ausgegeben.1372TS/378Browser/284Python und274historische quellenidentische JUnit unverändert als frühere Belege erhalten. Nur Dokumentdiff/Quellschutz/36IDs/103Gerätezeilen/Links sowie lokale Vorher-/Nachher-Bundle-/Wiederherstellungs-/SHA256-Prüfung. Sicherung `/workspace/anker-t006-github-nutzerbelege-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen.

@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: fehlende CI-Angaben aus Nutzerbeleg zugeordnet (14.11.2026)
+
+Basis2086918 sauber/verfügbar. [Ergänzte CI-Zuordnung](GITHUB_VORAUSSETZUNGEN_CODE18.md): SHA6dfa632 vollständig vom Nutzer, Screenshot zeigt roten Push-Check und fünf grüne Checks einschließlich PR-Check. Text-Ergebnis leer, Versuch unbekannt; Commit-Checkübersicht kein eigener API-/Runversuchsbeleg. Ausreichende Nutzerzuordnung abgeschlossen, keine erneute Nachfrage nach SHA/Ergebnis/Secrets. Lokaler Code18-Quellstand014870f3 und Dokumentationshead bleiben von alter CI-SHA getrennt; main-Push-CI-Gate unverändert. Keine Tests/Builds/externe Abfragen/Produkt-/Remote-/Signier-/Cloud-/Playänderung. Sicherung `/workspace/anker-t006-ci-zuordnung-20261114/`, nur Cloud-lokal. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag ausschließlich konkrete lokale GitHub-Übergabeplanung anhand bestehender Quellen/Diffs/Workflows; keine Übertragung oder Freigabeausführung. Danach stoppen.
+
 ## T-006: vorhandene GitHub-Nutzerangaben zugeordnet (14.11.2026)
 
 Basis def0c5f sauber/verfügbar. [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md): PR2 Open/Entwicklung→main und Lauf43331316553 push/Entwicklung laut Nutzer; SHA/Ergebnis unbekannt, Secret-Vorhandenseinsauswahl unverändert und alle Scopes nicht einsehbar. Kein aktueller unabhängiger CI-/Secret-/Schlüsselbeleg. Historischen Screenshot und PR-head nicht zum aktuellen CI-Beweis ergänzen; main-Push-CI-Gate erhalten. Keine externe Abfrage, Konfigurations-/Produktänderung, Test-/Build-/Signier-/Play-/Remoteaktion. Nur Dokumentation/Cloud-lokale Sicherung `/workspace/anker-t006-github-nutzerbelege-20261114/`. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag nur fehlende CI-headSHA/Versuch/Ergebnis des genannten vorhandenen Laufs beim Nutzer zuordnen; keine erneute Secret-/bekannte PRfrage. Danach stoppen.

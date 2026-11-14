@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: CI-Nutzerbeleg vervollständigt, Gesamtfreigabe offen (14.11.2026)
+
+[Ergänzte CI-Zuordnung](GITHUB_VORAUSSETZUNGEN_CODE18.md): Nutzer-SHA6dfa632 und passender Commit-Screenshot mit fehlgeschlagenem Push-Check/fünf grünen Checks; Versuchnummer unbekannt. Keine weitere SHA-/Ergebnis-/Secretfrage nötig. Keine neue main-Push-CI/Code18-/Signierfreigabe. T-006/V-014 IN_ARBEIT; E-002–E-005/Gesamtfreigaben offen. Nächster eigener Auftrag konkrete lokale GitHub-Übergabeplanung aus vorhandenen Diffs/Workflows, keine externe Abfrage oder Übertragung/Ausführung. Ältere nächste Aufträge bleiben historisch.
+
 ## T-006: unvollständige GitHub-Nutzerbelege zugeordnet (14.11.2026)
 
 [Zuordnung des Nutzerberichts](GITHUB_VORAUSSETZUNGEN_CODE18.md): PR2 Open/Entwicklung→main; CI43331316553 push/Entwicklung, headSHA/Ergebnis unbekannt. Signing-Secrets nicht bestätigt, Scope laut Nutzer nicht einsehbar. Keine externe Abfrage oder Rechte-/Secretänderung, kein neuer CI-/Signierbeleg. T-006/V-014 IN_ARBEIT; E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag nur fehlende headSHA/Versuch/Ergebnis des vorhandenen CI-Laufs beim Nutzer zuordnen; keine erneuten Secret-/bekannten PRfragen oder Workflowstarts. Frühere nächste Schritte im folgenden Text sind historisch.
@@ -37,7 +41,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Code18 unsigned lokal belegt; PR2 Open laut Nutzer, CI-SHA/Ergebnis und Secretscope unbekannt; Gesamtfreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Code18 unsigned lokal belegt; CI6dfa632-Pushcheck laut Screenshot fehlgeschlagen, CI-Zuordnung erledigt; Secrets/Gesamtfreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
