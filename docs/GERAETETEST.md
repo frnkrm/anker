@@ -1,5 +1,9 @@
 # Geräteprüfung
 
+## T-006: genutzte Galaxy-App laut Nutzer aus Google Play (14.11.2026)
+
+Nutzerantwort „google play“ zur Herkunft der aktuell benutzten App erfasst. [Prüfweg und Grenzen](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Kein Gerät ausgelesen, Zertifikat/Version/Quellcommit nicht ermittelt; Herkunft allein bestätigt keinen neuen Test oder tatsächlichen8A-Gerätesignierer. Späteren Play-Prüfpfad vorbereiten, kein B4-Sideload-Update zusagen und keine Deinstallation/Datenlöschung/Signaturumgehung verlangen. Keine Geräte-/Freigabe-/Installationsaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten. Lokaler unsignierter AAB-Nachweis wäre eigener Softwareauftrag, keine Geräte-/Uploadfreigabe. E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.
+
 ## T-006: Play-/Direktinstallationssignierer vor Updateversuch unterscheiden (14.11.2026)
 
 Nutzer meldet Play-App-Signierzertifikat8A und UploadzertifikatB4; [öffentlicher Rollenvergleich und vollständige Werte](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md). Historische direkt verteilte B4-APKs sind kein belegtes reguläres Update einer8A-Installation. Weder höhere Version noch Deinstallation/Datenlöschung als Signaturumweg verwenden. Tatsächliche Herkunft/Zertifikat/Version der genutzten Galaxy-App nicht ausgelesen. Nur Herkunft anhand bereits bekannter Nutzerangaben klären; kein Testalarm, ADB, Geräte-/Freigabe-/Installationsschritt oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen. Spätere reale Prüfungen brauchen geeigneten separat autorisierten Paket-/Signierer-/Versionsbezug.
