@@ -1,5 +1,13 @@
 # T-006 – Versions-/Quellvorschlag für den nächsten internen Play-Prüfstand
 
+## Umsetzungsfortschreibung nach separatem Nutzerauftrag (14.11.2026)
+
+Die später ausdrücklich freigegebene **lokale** Versionierung18/rc.4 ist umgesetzt: Versionsquellcommit `014870f3ee52c0233118d2852ef0719aa9bc602b` auf entwicklung/anker-neu, exakt drei Versionsdateien/fünf Werte und unveränderte Dependencies/Signierlogik/SDK/Rechte. [Frischer unsignierter Code18-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md) bindet neue7608…Appkennung, aktuelle Webassets und neues AAB/SHA256d0d5cfedc21e2201329dccf77177040f85884136e0ee44e5ea6ee600acbe282b. Alte Code17-Artefakte/Quellen/Guards/Protokolle/Manifeste erhalten, nicht umetikettiert. Der vorherige Vorschlag gilt damit ausschließlich für die lokale Umsetzung als gesondert beauftragt; er reserviert18weiterhin nicht bei Play und erteilt keine Signier-/Upload-/Remote-/Gerätefreigabe.
+
+Keine Schlüsselsuche, Secretwerte oder externe Abfrage/Signierung/Installation/Push/Merge/Tag/Workflow-/Cloud-/Playaktion. T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag zur separaten ausdrücklichen Beauftragung: GitHub-Voraussetzungen für den lokalen Code18-Stand ausschließlich lesend anhand Remote-/PR-/CI-/Workflowmetadaten und vorhandener Signing-Secretnamen/Scope prüfen, niemals Werte oder private Dateien. Aktuell nicht ausführen; fehlenden Zugriff als solchen dokumentieren, keine Auth-/Cloud-/Secretänderung. Der folgende ursprüngliche Planungsstand bleibt als historische Entscheidungskette erhalten.
+
+## Ursprünglicher Planungsstand vor der lokalen Umsetzungsfreigabe
+
 Stand 14.11.2026, Europe/Berlin. Saubere verfügbare Ausgangsbasis `b8306d6337ee4c7f4e8efdbdd82808eb8d8829ff`, Branch `entwicklung/anker-neu`. **Ausschließlich Planung: keine Version geändert, kein Code reserviert und keine Signier-/Upload-/Releasefreigabe erteilt.** Alte Umgebung/835235b bleiben zurückgestellt. Ein weiterer ausdrücklicher Auftrag ist vor jeder Umsetzung erforderlich.
 
 ## Belegstand

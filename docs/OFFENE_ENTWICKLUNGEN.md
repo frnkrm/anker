@@ -1,5 +1,7 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+**Fortschreibung lokale18/rc.4-Umsetzung 14.11.2026:** [Frischer unsignierter Code18-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md), Versionsquelle014870f vor Bau gebunden; genau drei Versionsdateien/fünf Werte, Dependencies/Produkt-/Signierlogik unverändert. Neue7608…Appkennung, AABd0d5cfed…/Manifest18/rc.4 tatsächlich geprüft; alte Code17-Artefakte/Guards/Logs/Manifeste erhalten. Keine Signierung/Installation/externe Abfrage/Push/Merge/Workflow-/Cloud-/Playaktion oder neue Vollsuite. T-006/V-014 IN_ARBEIT und E-002–E-005/Gesamt-/Signier-/Upload-/Gerätefreigaben offen. Genau nächster separater Auftrag nur lesende GitHub-Refs/PR-/CI-/Workflow-/Signing-Secretnamenmetadaten prüfen, keine Werte oder Schreib-/Signieraktion; heute nicht ausführen.
+
 **Fortschreibung Versionsplanung 14.11.2026:** [Konkreter Vorschlag Code18/1.5.0-rc.4 auf Basisb8306d6](PLAY_PRUEFSTAND_VERSION_PLAN.md), nachdem Nutzer höchsten Gesamtcode17 nennt. Keine Nummer reserviert/frei garantiert, Projekt-/Versions-/Freigabedateien unverändert17/rc.3. Neuer Versionscommit/Quellkennung/Artefakthash noch nicht vorhanden; alte Code17-Belege erhalten. Nur Planung lokal sichern, keine externe Abfrage/Schlüssel-/Build-/Signier-/Upload-/Geräteaktion oder Testwiederholung. T-006/V-014 IN_ARBEIT und E-002–E-005/Gesamtfreigaben offen. Genau nächster Auftrag zur separaten ausdrücklichen Beauftragung: begrenzte lokale Versionierung18/rc.4 und frischer UNSIGNIERTER AAB-Prüfbuild, aktuell nicht ausführen.
 
 **Fortschreibung AAB-Prüfauftrag 14.11.2026:** [Lokale unsignierte AAB-Paketintegration belegt](AAB_INTEGRATION_T006.md), vorab gesichert/Taskgraph signaturfrei, vorhandenes Bundletool1.18.1/Manifest/Config/672JAR-Einträge/CRC/Assets geprüft. Code17/1.5.0-rc.3 unverändert, keine Signier-/Upload-/Geräte-/Playfreigabe. Keine Produkt-/Versions-/Workflowänderung oder erfolgreiche Suite wiederholt. T-006/V-014 IN_ARBEIT, E-002–E-005/Gesamtfreigaben offen. Genau nächster eigener Auftrag Versionsentscheidung anhand höchstem bereits belegtem Artefakt-/Trackcode als Nutzerangabe vorbereiten, ohne Änderung oder eigene externe Abfrage.
@@ -27,7 +29,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Software/unsigned APK und AAB lokal belegt;18/rc.4 nur Vorschlag nach Gesamtcode17 laut Nutzer; Umsetzung/Signier-/Remote-/Geräte-/Gesamtfreigabe offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | Version18/rc.4 lokal umgesetzt und frisches unsigned AAB belegt; Signier-/Upload-/Remote-/Geräte-/Gesamtfreigabe offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -56,7 +58,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Software/unsigned APK und AAB belegt;18/rc.4 nur geplant, Versions-/Signier-/Upload-/Geräte-/Remote-/Gesamtfreigabe offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | Lokale18/rc.4-Umsetzung und unsigned AAB belegt; Signier-/Upload-/Geräte-/Remote-/Gesamtfreigabe offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.

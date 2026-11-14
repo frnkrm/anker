@@ -1,5 +1,9 @@
 # Geräteprüfung
 
+## T-006: Code18 lokal unsigniert geprüft, keine Installation (14.11.2026)
+
+[Neuer Code18/1.5.0-rc.4-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md) aus Versionsquelle014870f mit frischen Webassets/7608…Kennung belegt. Nur lokale freigegebene Versions-/Paketumsetzung, kein direkt installierbares oder Play-angenommenes/signiertes Update. Nutzerherkunft Google Play und Rollen8A-App/B4-Upload bleiben getrennt; tatsächlich installierter Stand nicht ausgelesen, keine B4-Direkt-APK als Update einer8A-Installation zusagen. Kein Installieren, Testalarm, neue Freigabe, Geräte-/Tag-/PC-Aktion oder Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten; E-002–E-005/T-006/V-014/Gesamt-/Signier-/Upload-/Gerätefreigaben offen. Alte Code17-Belege behalten ihren ursprünglichen Bezug.
+
 ## T-006: lokales AAB validiert, keine Gerätebeobachtung (14.11.2026)
 
 [Unsignierter AAB-Integrationsnachweis auff657d2e](AAB_INTEGRATION_T006.md) mit Bundletool/Manifest/Assets/CRC/JAR-Signaturfreiheit ergänzt; Code17/1.5.0-rc.3 unverändert. Kein direkt installierbares oder Play-angenommenes Artefakt, keine Versions-/Signier-/Upload-/Installationsfreigabe. Nutzerbericht Google-Play-Herkunft und Rollen8A-App/B4-Upload unverändert, tatsächliche installierte Version/Signatur/Quelle nicht ausgelesen. Kein B4-Direktupdate einer8A-Installation oder Deinstallations-/Datenlösch-/Signaturumweg. Keine Geräte-/Tag-/PC-/Freigabeaktion oder neue Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten, E-002–E-005/T-006/V-014/Gesamt-/Releasefreigabe offen.
