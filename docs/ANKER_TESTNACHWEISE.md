@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: PR4-CI getrennt vom erfolgreichen K-Pushlauf (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): CI43666843700, ci.yml/pull_request opened#4/Entwicklung/Versuch1 Success, 9m51s. Öffentliche Notices: 1372 passed/0 failed/0 skipped Vitest;379 passed (8.7m) Playwright. Workflowdateiquelle K und PR-head-K belegt, API-run.head_sha/Runnercheckout weiterhin unbekannt; synthetische PR-Mergeref nicht gleichgesetzt. Vorhandene Push-CI43664473155/K separat erhalten; keine lokale Test-/Buildwiederholung. Direkter PR-.diff-Abruf mit Tunnel403 gescheitert, vorhandener vollständiger W...K-Vergleich mit lokalem L→K-Diff und frischer PR-Dateiansicht abgeglichen. Kein echter AAB-/Signier-/Gerätebeleg oder neues main-W2-Gate. U2/S und E-002–E-005 bleiben offen.
+
 ## T-006: neue exakte K-Push-CI statt lokaler Wiederholung (15.11.2026)
 
 [Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): CI43664473155, ci.yml/push/entwicklung/anker-neu, vollständiger K `77316d69d637c0445cf5d2f4dada37c23011a70f`, Versuch1, Success/10m3s. Öffentliche Notices: 1372 passed/0 failed/0 skipped für Vitest, 379 passed (8.8m) für Playwright. Workflowansicht und Commitlink binden K; API-run.head_sha/Runnercheckout nicht ausgelesen. Einzelne AAB-Offlinezahlen aus Runnerlogs nicht zusätzlich behauptet. Frühere 35+5 lokale Offlineprüfungen getrennt erhalten, heute keine lokalen Tests/Builds. Keine neue native JUnit, AAB-, Signier- oder Geräteabnahme; P weiterhin fehlgeschlagen, U2/S fehlen. K-Branch-CI ersetzt keine spätere main-CI.

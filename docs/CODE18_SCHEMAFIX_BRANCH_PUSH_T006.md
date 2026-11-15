@@ -1,5 +1,9 @@
 # T-006 – Prepare-Schemafix übertragen, Push-CI nachkontrolliert
 
+## Fortschreibung: neuer regulärer PR4 erstellt und PR-CI abgeschlossen (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Nach eigenem Auftrag und Besitzer-UI-Handgriff PR4 Open/K→mainW. Eigene PR-CI43666843700/Versuch1 Success mit1372Vitest/379Playwright laut öffentlicher Summary. Die folgende Beschreibung „kein PR erstellt“ ist der historische Push-Abschluss; dessen K-Push-CI bleibt separat gültig. Kein Merge/Push/Workflowneustart oder lokaler Test/Build. Q nur neue lokale Dokumentation, weitere Freigaben offen.
+
 Stand **15.11.2026**. Genau ein freigegebener normaler Fast-forward-Push auf den Entwicklungsbranch; anschließend ausschließlich lesende CI-/Refnachkontrolle und lokale Abschlussdokumentation. **Kein PR erstellt, main unverändert, kein prepare/sign-Aufruf.**
 
 ## Quellen und aktueller Refbeleg

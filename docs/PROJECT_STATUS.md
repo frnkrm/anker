@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: regulärer PR4 offen, eigene PR-CI grün (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Besitzer führte den vorgesehenen normalen UI-Handgriff aus. PR4 Open, Quelle Entwicklung/K `77316d69d637c0445cf5d2f4dada37c23011a70f`, Ziel main/W `741fb7b09f0a442d779aaed192bd223724d3523f`. Frische Gitrefs bestätigen Entwicklung/PR4-head=K und main=W. Lokaler Ausgang N `a16ac724` nicht übertragen. Vollständiger öffentlicher W...K-Vergleich mit lokalem L→K-Diff inhaltlich abgeglichen: 7 Commits/16 Dateien/713+2−, nur Dokumentation/Helper-/Testfix. Zusätzlicher direkter PR-.diff-Download scheitert nach Weiterleitung an Tunnel403; Vergleichsbeleg und PR-Dateiansicht bleiben getrennt gesichert.
+
+Neue CI **43666843700 / ci.yml / pull_request opened #4 / Entwicklung / Versuch1 / Success**, 9m51s. Öffentliche Summary: **1372 Vitest ohne Fehler/Skips, 379 Playwright (8.7m)**. Workflowdateiquelle und Checksansicht K; API-run.head_sha/Runnercheckout unbekannt. Synthetischer PR-Mergeref `1f97d8d2…` ist weder main-W2 noch bestätigter Checkout. Bestehende K-Push-CI43664473155 separat grün erhalten, nicht wiederholt.
+
+Öffentlich No reviews/leere Rulesets sind keine Schutz-/Mergefreigabe; klassische Schutz-/Konflikt-/angemeldete Serveranforderungen nicht unabhängig lesbar. APIForbidden nicht repariert, keine PR-Schreibprobe/Auth-/Cloud-/Secret-/Playaktion. Heute keine lokalen Tests/Builds, kein Merge/Push oder manueller AAB-Aufruf. U1/alte Sicherungen/Code17 erhalten; kein U2/H2/HP/A/S. Q nur lokaler Abschluss, nicht nachpushen. T-006/V-014 IN_ARBEIT, E-002–E-005/weitere Freigaben offen. Genau nächster eigener Auftrag PR4-main-Integration ausschließlich lesend konkret vorbereiten; noch keine Integrationsfreigabe. Folgende Abschnitte historisch.
+
 ## T-006: Prepare-Schemafix gepusht, eigene Branch-CI grün (15.11.2026)
 
 [Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Genau ein normaler Fast-forward-Push von K `77316d69d637c0445cf5d2f4dada37c23011a70f` auf Entwicklung erfolgreich. Frische Refs vorab L/W, danach und zuletzt um 01:55:13 UTC Entwicklung=K und main=W `741fb7b09f0a442d779aaed192bd223724d3523f`. Vollständiger Übergabediff 16 Dateien/713+2−, nur Dokumentation und belegter Helper-/Testfix. Alle sechs Workflows unverändert, keine lokalen Tests/Builds wiederholt.

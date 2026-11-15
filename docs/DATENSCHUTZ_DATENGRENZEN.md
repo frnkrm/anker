@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: regulärer PR4 ohne Secret- oder Gerätezugriff (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Besitzer führte die autorisierte normale PR-Erstellung mit geprüftem Titel/Text aus. Agent las öffentliche GitHub-Ref-/PR-/CI-/Workflowdaten; eigene API-Leseabfrage Forbidden, direkter PR-Diff-Redirect Tunnel403, keine Reparatur/Umgehung oder Secret-/Session-/Schlüsselsuche. Zulässiger vollständiger Vergleich W...K und aktuelle PR-Refs getrennt von unbekannten API-/Runnerdaten belegt. Bestehende automatische PR-CI freigegeben, keine Cloudänderung/manuellen AAB-/Signier-/Play-/Geräteaktionen oder Paketdownloads. U1 unverändert, U2/S fehlen. Historische UI-Wartebelege und aktueller Q-Abschluss lokal sichern, nicht nachpushen.
+
 ## T-006: autorisierte Quellübergabe ohne Secret- oder Nutzdatenzugriff (15.11.2026)
 
 [Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Ausschließlich freigegebene Quell-/Dokumentationsübertragung K auf den Entwicklungsbranch und öffentliche GitHub-Ref-/PR-/CI-/Workflowmetadaten gelesen. Keine Secret-/Schlüssel-/Session-/Google-Playabfrage oder Auth-/Cloudänderung. Automatische bestehende CI einschließlich synthetischer Offlineprüfungen, Webbuild und PC-Quellpaketartefakt erlaubt; kein manueller AAB-/Signierlauf, kein Paketdownload oder echte Gerätewirkung. U1 unverändert, U2/S fehlen. Öffentliche Commit-/HTML-Belege von nicht gelesenen API-/Runnerdaten getrennt. N mit Belegen nur lokal sichern, weitere Freigaben offen.
