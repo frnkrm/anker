@@ -355,9 +355,31 @@ class WorkflowShapeTests(unittest.TestCase):
         for flag,expected in [('true','inspect'),('false','upload')]:
             with tempfile.TemporaryDirectory() as directory:
                 output=Path(directory)/'output'
-                with patch.dict(os.environ,{'INSPECTION_REQUESTED':flag,'GITHUB_OUTPUT':str(output)},clear=True):exec(MODE,{})
+                with patch.dict(os.environ,{'INSPECTION_REQUESTED':flag,'EVENT_NAME':'push','GITHUB_OUTPUT':str(output)},clear=True):exec(MODE,{})
                 self.assertEqual(output.read_text(),'mode='+expected+'\n')
         with patch.dict(os.environ,{'INSPECTION_REQUESTED':PRIVATE_BODY},clear=True),self.assertRaises(SystemExit):exec(MODE,{})
+
+    def test_dispatch_defaults_to_inspection_and_requires_explicit_upload(self):
+        self.assertIn("          EVENT_NAME: ${{ github.event_name }}", step('Ausführung eindeutig festlegen'))
+        self.assertIn("          DISPATCH_OPERATION: ${{ inputs.operation }}", step('Ausführung eindeutig festlegen'))
+        self.assertIn("        default: inspect", WORKFLOW)
+        self.assertIn("        options: [inspect, upload]", WORKFLOW)
+        for operation, expected in [('', 'inspect'), ('inspect', 'inspect'), ('upload', 'upload')]:
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / 'output'
+                env = {'EVENT_NAME': 'workflow_dispatch', 'DISPATCH_OPERATION': operation,
+                       'INSPECTION_REQUESTED': 'false', 'GITHUB_OUTPUT': str(output)}
+                with patch.dict(os.environ, env, clear=True):
+                    exec(MODE, {})
+                self.assertEqual(output.read_text(), 'mode=' + expected + '\n')
+        for event, operation in [('workflow_dispatch', PRIVATE_BODY), ('pull_request', 'upload')]:
+            with tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / 'output'
+                env = {'EVENT_NAME': event, 'DISPATCH_OPERATION': operation,
+                       'INSPECTION_REQUESTED': 'false', 'GITHUB_OUTPUT': str(output)}
+                with patch.dict(os.environ, env, clear=True), self.assertRaises(SystemExit):
+                    exec(MODE, {})
+                self.assertFalse(output.exists())
 
     def test_manual_main_gate_and_single_marked_push_are_explicit(self):
         header = WORKFLOW.split('\njobs:', 1)[0]
