@@ -1,5 +1,17 @@
 # Code17 im internen Test bereitstellen
 
+## Ergebnis des ersten Versuchs und sichere Diagnose
+
+[PR8](https://github.com/frnkrm/anker/pull/8) nach grüner Push-/PR-CI integriert: main `f92b94d2525d65ffe73972e1e7b6d98e7f51e794`. [Bereitstellung43742005929](https://github.com/frnkrm/anker/actions/runs/43742005929) scheiterte mit HTTP_FORBIDDEN, bundleVerified=true, commitAttempted=false, commitAcknowledged=false, activeReleaseVerified=false, editCleanup=deleted. Kein Upload, Commit, Rollout oder Testerwechsel. Der alte Bericht erfasste den genauen abgelehnten API-Schritt nicht; eine konkrete fehlende Berechtigung ist daraus nicht belegt.
+
+Der Nutzerscreenshot zeigt am erwarteten Dienstkonto die appbezogenen Rechte „Apps in Test-Tracks veröffentlichen“ und „Test-Tracks verwalten und Testerlisten bearbeiten“ bereits aktiv. Keine Änderung oder Erweiterung von Berechtigungen veranlasst; Administrator-/Produktionsrechte bleiben aus. Offen ist zunächst auch, ob das GitHub-Secret tatsächlich genau zu diesem Konto gehört.
+
+Neuer separater Diagnosepfad: `scripts/google-play-internal-diagnose.py`, `.github/workflows/google-play-internal-diagnose.yml`. Abgleich des client_email-Fingerprints mit dem gezeigten Konto vor OAuth, nur boolesche Ausgabe; bei Abweichung Stopp ohne Anmeldung. Kein Schlüssel/Emailwert wird ausgegeben. Dann Bundle und Ausgangstrack lesen, exakt die vorgesehene Änderung in einem eigenen temporären Edit versuchen, validieren und das Edit immer verwerfen. Der Transport besitzt keine erlaubte Commit-, Upload-, Produktions- oder Testerroute. Keine Veröffentlichung, auch bei erfolgreicher Validierung. Dies ist eine gezielte Diagnose anhand neuer Konto-Evidenz, kein erneuter Aktivierungsversuch.
+
+Der bereinigte Bericht nennt den abgelehnten Schritt und den HTTP-Status. Google-Status/-Reason werden nur aus festen erlaubten Werten übernommen; einzelne vollständig bekannte Fehlertexte werden auf feste Klassen abgebildet, andere Nachrichten bleiben unclassified. HTTP-Fehlerkörper höchstens65536Bytes, danach geschlossen; keine Rohantworten oder privaten Releasefelder im Bericht.
+
+Eigener main-only Opt-in-Workflow mit Marker `[anker-internal17-diagnose]` am eigenen Dateipfad oder Bestätigung DIAGNOSE_CODE17_NO_COMMIT. Gemeinsame Play-Sperrgruppe und unveränderter App-CI-Gate. Der Aktivierungsworkflow wird durch diesen eigenen Pfad nicht ausgelöst. Normale CI prüft8neue Diagnosemethoden und die vorhandenen154Methoden; insgesamt162 lokal grün. YAML geparst. Diagnose erst nach grüner PR-CI ausführen. Die folgenden Abschnitte dokumentieren die vorherige Vorbereitung, keinen Erfolgsnachweis.
+
 ## Auftrag und exakte Wirkung (15.11.2026)
 
 Nach frisch bestätigtem Bestand hat der Nutzer die Bereitstellung von Code17 für seinen internen Test freigegeben. Seine installierte Handyversion ist 1.5.0-rc.2; PC-Begleiter nicht installiert. [Leselauf43738232703](https://github.com/frnkrm/anker/actions/runs/43738232703) auf `40cc4c2ec45d83ac0442a69e37d6c75d13849bd5` bestätigte am15.11.2026 um16:56UTC Code17 draft und Code16 completed, passendes Code17-Bundle, keine Mutation/Veröffentlichung, eigenes leeres Edit gelöscht. PR7 vorher grün/integriert; dessen anfängliche Planung ohne Playmarker wurde durch die spätere ausdrückliche Lese-Freigabe ersetzt.

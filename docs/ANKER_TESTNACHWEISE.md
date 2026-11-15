@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## Code17: HTTP403 vor Commit, sichere Diagnose vorbereitet (15.11.2026)
+
+Erster Bereitstellungslauf43742005929 ohne Commit gestoppt, eigenes Edit gelöscht. Screenshot bestätigt Testrechte bereits gesetzt; keine Rechteänderung. Neue Diagnose prüft Kontoidentität und API-Schritt in einem immer verworfenen Edit ohne Commitroute.162 Offlineprüfungen grün. [Befund und Grenzen](CODE17_INTERN_FREIGABE.md). Aktivierung weiter blockiert; frühere Vorbereitungen unten historisch.
+
 ## Code17: interne Bereitstellung nach Nutzerfreigabe vorbereitet (15.11.2026)
 
 [Umfang, Bestandsbeleg und sichere Ausführung](CODE17_INTERN_FREIGABE.md). Bestehendes Code17-Bundle ohne neuen Upload intern aktivieren, Code16 im Zielrelease behalten; keine öffentliche Freigabe.154 lokale Offlineprüfungen grün, echte Aktivierung noch ausstehend. Frühere Entwurfsgrenze durch ausdrückliche Nutzerfreigabe nur für diesen internen Schritt erweitert.
