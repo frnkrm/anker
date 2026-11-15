@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: Eingabeschema mit Rot-/Grünbeleg lokal abgesichert (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Sieben neue Methoden zuerst am unveränderten Helper ausgeführt: 32 INVALID_SCHEMA-Fehler (31 unvollständige Prepare-Präsenzkombinationen und Resolve-Pfad). Nach Drei-Zeilen-Fix 35/35 ProtocolTests und 5/5 ausgewählte bestehende Workflow-Grenztests grün, keine Skips. Alle 32 Prepare- und 31 unvollständigen sign-Präsenzkombinationen, Typen/Pflichtfelder/Allowlist sowie Quellen-/main-/CI-/Kontextgrenzen abgedeckt. Exakte Befehle und Logs in der lokalen Sicherung. API-/Prozess-/Signierwerte ausschließlich künstlich; kein echter Signier-, Runner-, Paket- oder Gerätebeleg. Java-Verifikator und Produktvollsuiten nicht erneut ausgeführt. Frühere CI unverändert historisch, echter P-Payload unbekannt. Kein U2/S; T-006/V-014 und E-002–E-005 offen.
+
 ## T-006: Screenshotfehler und statischer W-Codeabgleich (15.11.2026)
 
 [Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): `INVALID_SCHEMA` aus dem Nutzerscreenshot zu P43637658561/Versuch 1 ist dem Eingangsschema des W-Helpers zugeordnet, vor CI-Abfragen. Alle 714 öffentlich angezeigten W-Quellzeilen stimmen mit dem unveränderten lokalen Helper überein. Screenshottranskription und Gesprächszuordnung sind Nutzerbelege, kein API-Rohlog oder lokales Bildarchiv. Die tatsächliche Runtime-Eingabeform bleibt unbekannt. Fixtures wurden ausschließlich gelesen; keine synthetische Reproduktion, Tests, Builds, Paketprüfung oder Workflowwiederholung ausgeführt. Frühere 43 Offlinefälle und M-/W-main-CI bleiben getrennte historische Nachweise. P bleibt fehlgeschlagen, U2/S fehlen; T-006/V-014 und E-002–E-005 bleiben offen.

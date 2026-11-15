@@ -132,6 +132,106 @@ class ProtocolTests(unittest.TestCase):
             e = env('prepare'); values = json.loads(e['AAB_INPUTS']); values[key] = value; e['AAB_INPUTS'] = json.dumps(values)
             with self.subTest(key=key), self.assertRaises(P.ProofError): P.invocation(e)
 
+    def test_prepare_accepts_all_optional_binding_presence_combinations(self):
+        # Optional empty workflow inputs need not be present in the JSON object.
+        # These synthetic representations do not establish the failed run's input.
+        canonical = env('prepare')
+        expected = P.invocation(canonical)
+        for mask in range(1 << len(P.SIGN_FIELDS)):
+            values = json.loads(canonical['AAB_INPUTS'])
+            for bit, key in enumerate(P.SIGN_FIELDS):
+                if not mask & (1 << bit):
+                    del values[key]
+            e = dict(canonical, AAB_INPUTS=json.dumps(values))
+            with self.subTest(present_mask=mask):
+                self.assertEqual(P.invocation(e), expected)
+                self.assertEqual(json.loads(e['AAB_INPUTS']), values)
+
+    def test_input_schema_rejects_nonobjects_missing_required_and_unknown_keys(self):
+        for mode in ('prepare', 'sign'):
+            e = env(mode)
+            full = json.loads(e['AAB_INPUTS'])
+            cases = [None, [], '', True, 1, ['mode', 'source_commit', 'expected_workflow_commit']]
+            cases += [{k: v for k, v in full.items() if k != required}
+                      for required in ('mode', 'source_commit', 'expected_workflow_commit')]
+            cases += [dict(full, unexpected=''), dict(full, prepare_run='')]
+            for index, values in enumerate(cases):
+                with self.subTest(mode=mode, case=index), self.assertRaisesRegex(P.ProofError, '^INVALID_SCHEMA$'):
+                    P.invocation(dict(e, AAB_INPUTS=json.dumps(values)))
+
+    def test_prepare_rejects_present_null_wrong_types_and_nonempty_bindings(self):
+        for key in P.SIGN_FIELDS:
+            for value in (None, False, True, 0, 1, [], {}, ' ', '8100'):
+                # Cover both complete and otherwise-omitted optional fields.
+                for complete in (True, False):
+                    e = env('prepare')
+                    values = json.loads(e['AAB_INPUTS'])
+                    if not complete:
+                        values = {k: v for k, v in values.items() if k not in P.SIGN_FIELDS}
+                    values[key] = value
+                    with self.subTest(key=key, type=type(value).__name__, complete=complete), self.assertRaises(P.ProofError):
+                        P.invocation(dict(e, AAB_INPUTS=json.dumps(values)))
+
+    def test_sign_never_defaults_any_missing_binding(self):
+        e = env()
+        full = json.loads(e['AAB_INPUTS'])
+        for mask in range((1 << len(P.SIGN_FIELDS)) - 1):
+            values = dict(full)
+            for bit, key in enumerate(P.SIGN_FIELDS):
+                if not mask & (1 << bit):
+                    del values[key]
+            with self.subTest(present_mask=mask), self.assertRaisesRegex(P.ProofError, '^INVALID_SCHEMA$'):
+                P.invocation(dict(e, AAB_INPUTS=json.dumps(values)))
+        for key in P.SIGN_FIELDS:
+            for value in (None, False, True, 0, 1, [], {}, ''):
+                with self.subTest(key=key, type=type(value).__name__), self.assertRaises(P.ProofError):
+                    P.invocation(dict(e, AAB_INPUTS=json.dumps(dict(full, **{key: value}))))
+
+    def test_optional_prepare_inputs_keep_required_values_and_manual_main_gates(self):
+        e = env('prepare')
+        values = {k: v for k, v in json.loads(e['AAB_INPUTS']).items() if k not in P.SIGN_FIELDS}
+        e['AAB_INPUTS'] = json.dumps(values)
+        for key in values:
+            for value in (None, False, 0, [], {}, ''):
+                with self.subTest(input=key, type=type(value).__name__), self.assertRaises(P.ProofError):
+                    P.invocation(dict(e, AAB_INPUTS=json.dumps(dict(values, **{key: value}))))
+        for key, value in [('GITHUB_ACTIONS', 'false'), ('GITHUB_REPOSITORY', 'other/repo'),
+                           ('GITHUB_EVENT_NAME', 'push'), ('GITHUB_EVENT_NAME', 'pull_request'),
+                           ('GITHUB_REF', 'refs/heads/dev'), ('GITHUB_WORKFLOW_SHA', P.SOURCE),
+                           ('GITHUB_SHA', P.SOURCE), ('GITHUB_RUN_ATTEMPT', '0')]:
+            with self.subTest(env_key=key), self.assertRaises(P.ProofError):
+                P.invocation(dict(e, **{key: value}))
+
+    def test_optional_prepare_inputs_keep_separate_ci_and_context_checks(self):
+        e = env('prepare')
+        values = {k: v for k, v in json.loads(e['AAB_INPUTS']).items() if k not in P.SIGN_FIELDS}
+        e['AAB_INPUTS'] = json.dumps(values)
+        canonical_api, omitted_api = FakeAPI(), FakeAPI()
+        expected = P.resolve(env('prepare'), canonical_api)
+        self.assertEqual(P.resolve(e, omitted_api), expected)
+        self.assertEqual(omitted_api.calls, canonical_api.calls)
+        for ci_path in ('/actions/runs/43601398931', '/actions/runs/9000'):
+            for field, value in [('head_sha', 'd' * 40), ('head_branch', 'dev'), ('event', 'pull_request'),
+                                 ('conclusion', 'failure'), ('status', 'in_progress')]:
+                api = FakeAPI(); api.rows[ci_path][field] = value
+                with self.subTest(ci_path=ci_path, field=field), self.assertRaises(P.ProofError):
+                    P.resolve(e, api)
+        self.assertEqual(P.context(dict(e, AAB_CONTEXT=json.dumps(expected))), expected)
+        for field, value in [('sourceCommit', W), ('workflowCommit', P.SOURCE),
+                             ('run', {'id': 9100, 'attempt': 2}), ('unexpected', '')]:
+            bad = dict(expected, **{field: value})
+            with self.subTest(context_field=field), self.assertRaises(P.ProofError):
+                P.context(dict(e, AAB_CONTEXT=json.dumps(bad)))
+
+    def test_invalid_input_shape_stops_cli_before_github_construction(self):
+        for values in (None, [], {}, dict(json.loads(env('prepare')['AAB_INPUTS']), unexpected='')):
+            e = dict(env('prepare'), AAB_INPUTS=json.dumps(values))
+            with self.subTest(type=type(values).__name__), patch.dict(os.environ, e, clear=True), \
+                 patch.object(P, 'GitHub', side_effect=AssertionError('API_MUST_NOT_BE_CONSTRUCTED')) as api, \
+                 self.assertRaisesRegex(P.ProofError, '^INVALID_SCHEMA$'):
+                P.main(['resolve'])
+            api.assert_not_called()
+
     def test_sign_requires_all_explicit_ids_and_hashes(self):
         for key in P.SIGN_FIELDS:
             e = env(); values = json.loads(e['AAB_INPUTS']); values[key] = ''; e['AAB_INPUTS'] = json.dumps(values)

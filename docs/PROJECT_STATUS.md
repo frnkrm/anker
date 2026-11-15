@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: Prepare-Defaults gezielt lokal korrigiert (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Ausgang I `6fa3af1` sauber bestätigt und gesichert. Vor Fix sieben neue Testmethoden am unveränderten Helper: 32 erwartete INVALID_SCHEMA-Fehler für ausgelassene optionale Prepare-Felder und den zugehörigen Resolve-Pfad. Drei zusätzliche Helperzeilen ergänzen nur bei prepare fehlende optionale leere Defaults. Pflichtfelder, unbekannte Schlüssel, Typprüfungen, sign-Bindungen und sämtliche M-/W-/main-/CI-/Versuchs-/Artefaktgates bleiben strikt. Keine Workflowänderung.
+
+Nach Fix **35 ProtocolTests + 5 gezielte Workflow-Grenztests grün**, keine Skips. Künstliche Werte/Attrappen; keine echte Signierung oder neuer Runnernachweis. Unveränderte Java-/Produkt-/Web-/Browser-/Android-Suiten nicht wiederholt. Tatsächliche Runtimeform von P43637658561 bleibt unbekannt; kein GitHub-Mobile- oder Nutzerfehler behauptet.
+
+Neuer Fix-/Dokumentationsabschluss K ausschließlich lokal, exakte SHA in RESULT.json der Sicherung `/workspace/anker-t006-aab-inputschema-fix-20261115/`. Kein Push oder Workflowstart. M/W/L bleiben historisch getrennte Quellen; aktuelle Remote-Refs heute nicht abgefragt. U1, alte Arbeitsbäume/Sicherungen und Code17 erhalten. Kein U2/H2/HP/A/S. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag: einmaliger begrenzter Entwicklungsbranch-Push K samt automatischer CI-Nachkontrolle nach frischen Ref-/Quell-/Triggerprüfungen; keine main-Integration oder prepare/sign-Freigabe. Folgende Abschnitte historisch.
+
 ## T-006: Resolve-Schemaabbruch durch Screenshot zugeordnet (15.11.2026)
 
 [Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Der Nutzerscreenshot zu P43637658561/Versuch 1 zeigt `AAB-Prüfung abgebrochen: INVALID_SCHEMA`. Der unveränderte Helper aus W wurde öffentlich vollständig mit dem lokalen Code abgeglichen. Der Abbruch liegt in `invocation()`/Zeile 111, vor der GitHub-Konstruktion und den CI-Abfragen: Das geparste Eingabe-JSON ist kein Objekt oder hat eine andere Schlüsselmenge als die acht verlangten Felder. Die tatsächliche Eingabeform und konkrete fehlende oder zusätzliche Felder bleiben unbekannt.

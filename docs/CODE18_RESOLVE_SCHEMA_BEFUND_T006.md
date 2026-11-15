@@ -1,5 +1,9 @@
 # T-006 – Resolve-Detailfehler INVALID_SCHEMA zugeordnet
 
+## Fortschreibung: lokaler Vertragsfehler inzwischen geprüft und korrigiert (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Nach gesondertem Auftrag wurde die optionale Prepare-Repräsentation durch synthetische Offlinefälle rot belegt und mit drei Helperzeilen korrigiert. 35 Protokoll- und fünf gezielte Workflowtests grün; ausschließlich lokal. Die folgende ursprüngliche Ursachenplanung ist historisch. Ihre W-Zeilennummern beziehen sich auf den unveränderten damaligen W-Code. Der tatsächliche P-Payload bleibt unbekannt, kein erneuter Workflowlauf oder U2/S.
+
 Stand **15.11.2026**. Nur Fehlerbeleg, statischer Codeabgleich und Folgemaßnahmenplanung. **Kein Fix, Testlauf oder Workflowneustart.**
 
 ## Beleg und Zuordnung

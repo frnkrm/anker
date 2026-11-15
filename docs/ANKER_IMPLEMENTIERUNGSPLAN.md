@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: kleinste Prepare-Schemakorrektur lokal geprüft (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Drei Helperzeilen ergänzen ausschließlich ausgelassene optionale leere Signierfelder bei prepare; globales exact(), sign und sämtliche anderen Funktionen/Konstanten unverändert. Rotbeleg vor Fix mit 32 Fehlern; nach Fix 35 Protokoll- und fünf gezielte Workflowtests grün. Keine neue Engine, Workflow-/Produkt-/Versionsänderung, echte Signierung oder Übertragung. P-Runtimeform weiterhin unbekannt. Lokaler K-Abschluss gesichert; T-006/V-014 und E-002–E-005/Freigaben offen. Nächster eigener Auftrag nur begrenzter Entwicklungsbranch-Push mit frischer Quellen-/Triggerprüfung und CI-Nachkontrolle; manuelles prepare/sign bleibt ungestartet.
+
 ## T-006: INVALID_SCHEMA statisch zugeordnet, kein Fix (15.11.2026)
 
 [Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Nutzerscreenshot mit `INVALID_SCHEMA` zu P43637658561/Versuch 1; Abbruch im unveränderten W-Helper, `invocation()`/Zeile 111, vor GitHub-/CI-Abfragen. Eingabeobjekt oder Schlüsselmenge weicht vom erwarteten Schema ab; die tatsächliche Form bleibt unbekannt. Der Parser verlangt auch bei prepare alle optionalen Signierfelder; bestehende positive Fixtures decken deren Auslassung nicht ab. Heute nur Ursachenbeleg und Folgeplan, keine Korrektur oder Testausführung. Nächster eigener Auftrag: lokale Vertragsprüfung und gezielte Offlinefälle, danach nur den kleinsten belegten Fix. Pflichtfelder, sign-Bindungen, Allowlist und M-/W-/CI-/Artefakt-Gates strikt erhalten. I ausschließlich lokal committen und sichern. T-006/V-014 sowie E-002–E-005 und weitere Freigaben bleiben offen.

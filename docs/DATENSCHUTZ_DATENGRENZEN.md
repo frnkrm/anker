@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: Prepare-Defaultkorrektur ohne neue Datenflüsse (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Nur fehlende optionale Signierfelder im Prepare-Eingabeobjekt werden auf definierte leere Defaults ergänzt. Vorhandene Werte, unbekannte Schlüssel/null/falsche Typen und sign-Bindungen bleiben streng geprüft. Keine zusätzlichen Daten, Dumps oder Diagnosepayloads gespeichert, keine echten Secrets gelesen. Offlineprüfungen verwenden künstliche Werte und Prozess-/APIattrappen bei blockiertem Netz; keine echte Signierung. Produktdaten, Freigaben, Workflows und U1 unverändert; kein U2/S. Lokaler K-Abschluss mit Rot-/Grünbelegen gesichert, weitere Freigaben offen.
+
 ## T-006: nichtgeheimer Screenshot-Fehlercode zugeordnet (15.11.2026)
 
 [Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Das Nutzerbild liefert den nichtgeheimen Fehlercode `INVALID_SCHEMA` und Exitcode 1, keinen Inputpayload oder Secretwert. Transkription gesichert, kein Bildhash behauptet. Öffentlichen W-Helper lesend abgeglichen; keine Secret-/Session-/Schlüssel-/Auth-/Cloud-/Playabfrage und keine Testausführung. Der Runner brach vor den GitHub-/CI-Abfragen ab; kein Appbuild, Schlüsselgebrauch oder U2/S. Ein späterer belegter Fix darf keine Pflichtfelder, sign-Bindungen oder Gates aufweichen und keine Eingabewerte protokollieren. I bleibt lokal; U1, Sicherungen und offene Freigaben bleiben erhalten.
