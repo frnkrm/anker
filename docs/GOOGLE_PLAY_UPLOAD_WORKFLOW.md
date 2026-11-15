@@ -1,5 +1,16 @@
 # Google Play: internen Entwurf hochladen
 
+## Manueller reiner Bestandsabgleich (15.11.2026)
+
+Der aktuelle Workflow bietet unter Run workflow die Auswahl `operation`: `inspect` (Standard) oder ausdrücklich `upload`. Auch API-Aufrufe ohne Eingabe wählen jetzt inspect. Ungültige Modi und nicht erlaubte Ereignisse stoppen vor Googlezugriff. Bestehende markierte main-Pushregeln bleiben erhalten. Der PR und sein späterer Merge tragen keine Playmarker; bloßes Integrieren startet keinen Playjob.
+
+`inspect` verwendet den bestehenden Inspektor: temporäres leeres Play-Edit anlegen, internal-Track und Bundlebestand lesen, eigenes Edit löschen. Kein Bundleupload zu Google, Track-PUT, Validate, Commit, Testerwechsel oder Rollout. Der Inspektor bestätigt nur den exakt gebundenen Code17-Entwurf mit aktivem Code16; andere heutige Bestände führen zu einem sicheren Stopp und müssen anhand des bereinigten Berichts beurteilt werden. Keine automatische Reparatur. Die vorhandene Preflightprüfung lädt weiterhin das feste öffentliche AAB von GitHub herunter und prüft es; das ist kein Googleupload.
+
+Lokal geprüft: 36 Workflow-, 77 Upload-/Inspektor- und 24 Authmethoden, insgesamt137 grün. Neuer Standardwahltest am unveränderten Workflow zuerst rot. Modusauswahl einschließlich ausgelassener Eingabe, explizitem Upload, unbekannter Eingabe und fremdem Ereignis getestet; bestehende Inspektor-Mutationsverbote und Geheimnisgrenzen mitgeprüft. Keine echte Googleanmeldung oder Workflowausführung, keine Veröffentlichung. Authprogramm, Pins, Bundle und Appcode unverändert.
+
+Nach Review, grüner CI und gesonderter Mergefreigabe kann main manuell mit `operation=inspect` gestartet werden. Ein gelungener API-Abgleich würde den aktuellen Bestand bestätigen, aber einen Entwurf nicht für Handyupdates freigeben.
+
+
 **Abschluss 10.11.2026:** [Lauf42721896696](https://github.com/frnkrm/anker/actions/runs/42721896696), Quelle `d1ff7b90035786e4d0411431dbac4d3a216c1041`, ist erfolgreich. Google bestätigt bereits den internen `completed`-Einzelrelease16 mit exakt der freigegebenen Bundle-SHA `522e3feb9dbfd8a146dec903dff3e496fc50d4e5a8cead72a5a43bc85964d76e`. Ergebnis **`already-active`**: Anmeldung und Bestand verifiziert, kein neuer Bundleupload, Trackwechsel, Validate oder Commit und kein von diesem Lauf neu veröffentlichter Release. Die beiden vorherigen roten Läufe sind sichere Stopps des damaligen Draftpfads vor diesem schon aktiven Bestand; kein App-Testfehler. [Maschinenbeleg](PLAY_CODE16_KONTO_NACHWEIS.json).
 
 Für den Handy-Download in der Play Console **Anker → Testen → Interner Test → Tester** öffnen, das eigene Handy-Google-Konto in eine ausgewählte Testerliste aufnehmen und den dort angezeigten Beitrittslink am Handy öffnen. Der Workflow verändert keine Testerlisten. Ob die konkrete Installation gelingt und welches App-Signierzertifikat Play dafür verwendet, ist dadurch noch nicht am Gerät geprüft. Die öffentliche Produktionsversion wird von diesem Ablauf nicht freigegeben.

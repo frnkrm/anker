@@ -1,8 +1,14 @@
-name: Google Play – internen Entwurf hochladen
+name: Google Play – Bestand lesen oder Entwurf hochladen
 # Bekannte Commit-Meldungsvarianten ändern weder Bundlebindung noch Freigabeumfang.
 
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: 'inspect = nur Bestand lesen; upload = freigegebenes Bundle als Entwurf hochladen'
+        type: choice
+        default: inspect
+        options: [inspect, upload]
   push:
     branches: [main]
     paths: ['.github/workflows/google-play-upload.yml']
@@ -36,6 +42,8 @@ jobs:
       - name: Ausführung eindeutig festlegen
         id: mode
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_OPERATION: ${{ inputs.operation }}
           INSPECTION_REQUESTED: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-play-inspect]') }}
         run: |
           python3 - <<'PY'
@@ -43,8 +51,17 @@ jobs:
           requested = os.environ.get('INSPECTION_REQUESTED')
           if requested not in ['true', 'false']:
               raise SystemExit('Der Ausführungsmodus ist nicht eindeutig bestätigt.')
-          # Inspection always wins, including a commit carrying both markers.
-          mode = 'inspect' if requested == 'true' else 'upload'
+          event = os.environ.get('EVENT_NAME')
+          if event == 'workflow_dispatch':
+              # Older API callers without inputs also default to read-only inspection.
+              mode = os.environ.get('DISPATCH_OPERATION') or 'inspect'
+              if mode not in ['inspect', 'upload']:
+                  raise SystemExit('Der angeforderte Ausführungsmodus ist nicht gültig.')
+          elif event == 'push':
+              # Inspection always wins, including a commit carrying both markers.
+              mode = 'inspect' if requested == 'true' else 'upload'
+          else:
+              raise SystemExit('Dieses Ereignis darf keinen Play-Aufruf starten.')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('mode=' + mode + '\n')
           PY

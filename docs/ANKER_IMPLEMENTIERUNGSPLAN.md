@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## Manueller Play-Lesemodus vorbereitet (15.11.2026)
+
+Nutzer möchte ohne PC den aktuellen Playbestand abfragen. Minimaler sicherer Dispatchmodus ergänzt: inspect als Standard, Upload nur ausdrücklich. 137 Offlineprüfungen grün; kein Livezugriff oder Release. [Grenzen und Nachweise](GOOGLE_PLAY_UPLOAD_WORKFLOW.md). Merge und erste reale Abfrage noch offen.
+
 ## T-001: begrenzter Readback-Abschluss (15.11.2026)
 
 Direkter Wiederaufnahmeauftrag: ausschließlich fehlenden Reihenfolgevergleich rekonstruieren und Abschluss sichern. [Geprüfter Umfang und historische Grenzen](UPDATE_CODE17.md), [Quellenbindung](ANKER_CODE17_NACHWEIS.json). 77 Upload-/24 Auth-/35 Workflowmethoden aktuell grün; keine neue App-/Play-/Gerätefreigabe. Neuere T-006-Arbeit unverändert. Historische Pausierung unten bleibt als damaliger Stand erhalten.
