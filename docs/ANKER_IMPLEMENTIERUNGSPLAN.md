@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: INVALID_SCHEMA statisch zugeordnet, kein Fix (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Nutzerscreenshot mit `INVALID_SCHEMA` zu P43637658561/Versuch 1; Abbruch im unveränderten W-Helper, `invocation()`/Zeile 111, vor GitHub-/CI-Abfragen. Eingabeobjekt oder Schlüsselmenge weicht vom erwarteten Schema ab; die tatsächliche Form bleibt unbekannt. Der Parser verlangt auch bei prepare alle optionalen Signierfelder; bestehende positive Fixtures decken deren Auslassung nicht ab. Heute nur Ursachenbeleg und Folgeplan, keine Korrektur oder Testausführung. Nächster eigener Auftrag: lokale Vertragsprüfung und gezielte Offlinefälle, danach nur den kleinsten belegten Fix. Pflichtfelder, sign-Bindungen, Allowlist und M-/W-/CI-/Artefakt-Gates strikt erhalten. I ausschließlich lokal committen und sichern. T-006/V-014 sowie E-002–E-005 und weitere Freigaben bleiben offen.
+
 ## T-006: einmaliger prepare-Aufruf fehlgeschlagen, kein Fix (14.11.2026)
 
 [Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. VorabQuellen/Workflow/M-/W-CI geprüft; wegenAPIForbidden erlaubterBesitzer-UI-Rückweg,keineAuthreparatur/Doppelstart. TatsächlicherDetailfehler hinterLog-Anmeldung,keineUrsacheerfunden. NurStatusdokumentation,Hlokal sichern;keineProdukt-/Workflow-/Versionsänderung/Tests/Builds/Signieren/Playaktion. T-006/V-014/E-002–E-005/Freigabenoffen. Genau nächsterAuftrag vorhandenenResolvefehler lesend einholen,keinFix/Neustart.

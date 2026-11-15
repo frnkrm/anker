@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: Resolve-Schemaabbruch durch Screenshot zugeordnet (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Der Nutzerscreenshot zu P43637658561/Versuch 1 zeigt `AAB-Prüfung abgebrochen: INVALID_SCHEMA`. Der unveränderte Helper aus W wurde öffentlich vollständig mit dem lokalen Code abgeglichen. Der Abbruch liegt in `invocation()`/Zeile 111, vor der GitHub-Konstruktion und den CI-Abfragen: Das geparste Eingabe-JSON ist kein Objekt oder hat eine andere Schlüsselmenge als die acht verlangten Felder. Die tatsächliche Eingabeform und konkrete fehlende oder zusätzliche Felder bleiben unbekannt.
+
+Der Parser verlangt auch für prepare alle fünf optionalen Signierfelder. Die bisherigen positiven Test-Fixtures setzen sie immer ausdrücklich. Ausgelassene optionale Felder sind damit eine gezielt zu untersuchende Vertrags-/Abdeckungslücke; ihr Fehlen im echten P-Payload ist nicht belegt. Kein Nutzerfehler, falscher SHA-Wert, CI- oder Netzwerkfehler wird daraus abgeleitet. Heute keine Korrektur, Testausführung oder Wiederholung des Workflows.
+
+P bleibt fehlgeschlagen; prepare/sign/verify wurden übersprungen. U2/H2/HP/A/S fehlen. H bezeichnet den Ausgang, I den neuen ausschließlich lokalen Dokumentationsabschluss; W/M bleiben getrennt. Aktuelle Remote-Refs wurden heute nicht erneut abgefragt. U1, alte Arbeitsbäume, Sicherungen und Code17-Nachweise bleiben erhalten. T-006/V-014 bleiben IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster separat zu beauftragender Auftrag: Eingabeschema gezielt lokal untersuchen und ausschließlich den kleinsten durch Vertrag und Offlinefälle belegten Fehler beheben. Kein Push oder Workflowstart. Die folgenden Abschnitte beschreiben historische Stände.
+
 ## T-006: erster prepare-Lauf in resolve abgebrochen (14.11.2026)
 
 [Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. Angefordert war ausschließlichprepare mitApp-M10cc894a/W741fb7b und leerenSignierbindungen; tatsächlicheInputstrings nicht unabhängig öffentlich ausgelesen. Kein Appcheckout/Build/Unsigned-Prüferfolg behauptet.

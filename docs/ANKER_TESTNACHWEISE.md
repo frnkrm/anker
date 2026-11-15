@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: Screenshotfehler und statischer W-Codeabgleich (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): `INVALID_SCHEMA` aus dem Nutzerscreenshot zu P43637658561/Versuch 1 ist dem Eingangsschema des W-Helpers zugeordnet, vor CI-Abfragen. Alle 714 öffentlich angezeigten W-Quellzeilen stimmen mit dem unveränderten lokalen Helper überein. Screenshottranskription und Gesprächszuordnung sind Nutzerbelege, kein API-Rohlog oder lokales Bildarchiv. Die tatsächliche Runtime-Eingabeform bleibt unbekannt. Fixtures wurden ausschließlich gelesen; keine synthetische Reproduktion, Tests, Builds, Paketprüfung oder Workflowwiederholung ausgeführt. Frühere 43 Offlinefälle und M-/W-main-CI bleiben getrennte historische Nachweise. P bleibt fehlgeschlagen, U2/S fehlen; T-006/V-014 und E-002–E-005 bleiben offen.
+
 ## T-006: realer prepare-Abbruch vor Build statt Paketnachweis (14.11.2026)
 
 [Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. ÖffentlicherExitcode1 im resolve-Schritt;keine Bundletool/JAR/Assets/Manifest/SDK/ZIP/ELF-/Nullsignierprüfung inP ausgeführt. Keine tatsächlichenInputstrings/Detailursache öffentlich bestätigt. Jobseite `Sign in to view logs`,keinberechtigterDownload-/Detailzugriff repariert. Vorherige M-/W-CI und43lokaleOfflinefälle getrennt erhalten,keineTests/CIwiederholt. KeinSoftwarebeleg alsHardwarebeobachtung;T-006/V-014/E-002–E-005/offeneFreigaben erhalten.

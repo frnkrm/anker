@@ -1,5 +1,9 @@
 # T-006 – erster Code18-prepare-Aufruf: Abbruch in resolve
 
+## Fortschreibung: konkreter Detailcode nun belegt (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Der Nutzerscreenshot zeigt nun `INVALID_SCHEMA`. Im W-CLI-resolve ist der Fehler eindeutig dem Eingangsschema in `invocation()`/Zeile 111 vor den CI-Abfragen zugeordnet. Die ältere Aussage „Detailfehler unbekannt“ unten beschreibt den Vorzustand. Die tatsächliche Eingabeform und konkret abweichende Schlüssel bleiben unbekannt. Keine Korrektur, Tests oder Workflowwiederholung; U2/S fehlen weiterhin. Nächster eigener Auftrag: gezielte lokale Schemauntersuchung nach separater Beauftragung.
+
 Stand **14.11.2026**. Freigegebener einmaliger manueller prepare-Aufruf durch den Besitzer und lesende Nachkontrolle. **Kein Neustart, Fix oder Signieraufruf. Kein U2 erzeugt.**
 
 ## Bindungen und tatsächliches Ergebnis

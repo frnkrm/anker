@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: nichtgeheimer Screenshot-Fehlercode zugeordnet (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Das Nutzerbild liefert den nichtgeheimen Fehlercode `INVALID_SCHEMA` und Exitcode 1, keinen Inputpayload oder Secretwert. Transkription gesichert, kein Bildhash behauptet. Öffentlichen W-Helper lesend abgeglichen; keine Secret-/Session-/Schlüssel-/Auth-/Cloud-/Playabfrage und keine Testausführung. Der Runner brach vor den GitHub-/CI-Abfragen ab; kein Appbuild, Schlüsselgebrauch oder U2/S. Ein späterer belegter Fix darf keine Pflichtfelder, sign-Bindungen oder Gates aufweichen und keine Eingabewerte protokollieren. I bleibt lokal; U1, Sicherungen und offene Freigaben bleiben erhalten.
+
 ## T-006: prepare vor Appbuild abgebrochen (14.11.2026)
 
 [Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): Besitzer hat einmaligen prepare-UI-Dispatch gestartet;Agent nurGitHub-Ref-/CI-/Workflow-/Run-/Jobmetadaten gelesen. Resolvefailed,prepare/sign/verifyskipped;keinAppbuild/UnsignedArtefakt/Keygebrauch. KeineSecret-/Session-/Key-/Playabfrage,Auth-/Cloudänderung oderNutzdaten-/Geräteaktion. AngeforderteInputs getrennt von nichtlesbarenRuntimeinputs. NurExitcode1 sichtbar,keinDetailfehler erfunden;später ausschließlichnichtgeheimeFehlerzeilen erfragen,keineEnv-/Secretwerte. U1/Sicherungen erhalten,Hnur lokal/Freigabenoffen.

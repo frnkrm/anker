@@ -1,5 +1,9 @@
 # T-006 – konkreter Plan für den signierten Code18-AAB-Prüfweg
 
+## Fortschreibung: Stufe-C-Abbruch im Inputschema lokalisiert (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): `INVALID_SCHEMA` betrifft das Eingangsschema in `invocation()` vor den CI-Abfragen. Auch für prepare verlangt der Parser alle fünf optionalen Signierfelder; positive Fixtures decken deren Auslassung nicht ab. Die tatsächliche Eingabeform in P bleibt unbekannt. Heute keine Korrektur, Tests oder Workflowaktion. Den kleinsten belegten lokalen Schemafix separat beauftragen. U2/H2/HP/A/S fehlen; keine Signierfreigabe. M-/W-/Code17-Gates bleiben erhalten.
+
 ## Fortschreibung: erster Stufe-C-Aufruf in resolve fehlgeschlagen (14.11.2026)
 
 [Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. Kein U2/H2/HP/ArtefaktA und damit keine konkreteSignierübergabe. StufeB/M-/W-main-CI bleibtbelegt,StufeCnichtabgenommen. Detailfehler muss erst lesend belegt werden,keinFix/Neustart/sign oderalteCode17-Manifesteumdeuten. FrüherePlanungsstände historisch,Hnur lokalsichern und weitereFreigabenoffenhalten.
