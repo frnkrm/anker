@@ -1,5 +1,9 @@
 # T-006 – AAB-Eingabeschema lokal korrigiert
 
+## Fortschreibung: Fix K übertragen und eigene Push-CI nachkontrolliert (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Nach gesonderter Freigabe wurde K einmalig auf Entwicklung übertragen; main=W erhalten. Neue CI43664473155/K/push/Entwicklung/Versuch1 erfolgreich mit 1372 Vitest und 379 Browserfällen laut öffentlicher Summary. Die folgende ursprüngliche lokale Fixbeschreibung ist historisch; ihr Rot-/Grünbeleg bleibt unverändert. Kein erneuter lokaler Test/Build, kein prepare/sign oder U2/S. Neuer Abschluss N ausschließlich lokal, kein Nachpush; weiterer Integrationsweg separat.
+
 Stand **15.11.2026**. Ausschließlich gezielte lokale Helperkorrektur und Offlineprüfungen. **Kein Push, Workflowstart, Appbuild oder Signieren.**
 
 ## Ausgang und Beleggrenze

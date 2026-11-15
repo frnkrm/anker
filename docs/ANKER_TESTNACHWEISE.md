@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: neue exakte K-Push-CI statt lokaler Wiederholung (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): CI43664473155, ci.yml/push/entwicklung/anker-neu, vollständiger K `77316d69d637c0445cf5d2f4dada37c23011a70f`, Versuch1, Success/10m3s. Öffentliche Notices: 1372 passed/0 failed/0 skipped für Vitest, 379 passed (8.8m) für Playwright. Workflowansicht und Commitlink binden K; API-run.head_sha/Runnercheckout nicht ausgelesen. Einzelne AAB-Offlinezahlen aus Runnerlogs nicht zusätzlich behauptet. Frühere 35+5 lokale Offlineprüfungen getrennt erhalten, heute keine lokalen Tests/Builds. Keine neue native JUnit, AAB-, Signier- oder Geräteabnahme; P weiterhin fehlgeschlagen, U2/S fehlen. K-Branch-CI ersetzt keine spätere main-CI.
+
 ## T-006: Eingabeschema mit Rot-/Grünbeleg lokal abgesichert (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Sieben neue Methoden zuerst am unveränderten Helper ausgeführt: 32 INVALID_SCHEMA-Fehler (31 unvollständige Prepare-Präsenzkombinationen und Resolve-Pfad). Nach Drei-Zeilen-Fix 35/35 ProtocolTests und 5/5 ausgewählte bestehende Workflow-Grenztests grün, keine Skips. Alle 32 Prepare- und 31 unvollständigen sign-Präsenzkombinationen, Typen/Pflichtfelder/Allowlist sowie Quellen-/main-/CI-/Kontextgrenzen abgedeckt. Exakte Befehle und Logs in der lokalen Sicherung. API-/Prozess-/Signierwerte ausschließlich künstlich; kein echter Signier-, Runner-, Paket- oder Gerätebeleg. Java-Verifikator und Produktvollsuiten nicht erneut ausgeführt. Frühere CI unverändert historisch, echter P-Payload unbekannt. Kein U2/S; T-006/V-014 und E-002–E-005 offen.

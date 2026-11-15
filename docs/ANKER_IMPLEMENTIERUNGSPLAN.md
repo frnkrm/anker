@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: Schemafix auf Entwicklungsbranch mit grüner CI belegt (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): K nach erfüllter aktueller Ref-/Quell-/Hook-/Triggerprüfung einmalig auf Entwicklung gepusht; main=W erhalten. 16 Dateien nur Dokumentation/Helper-/Offline-Regressionen, sechs Workflows unverändert. Neue CI43664473155 für K/push/Entwicklung/Versuch1 erfolgreich, 1372 Vitest ohne Fehler/Skips und 379 Browserfälle laut öffentlicher Summary. Keine lokale Test-/Buildwiederholung, manuellen AAB-/Signier-/Playaktionen oder PR-Erstellung. N ausschließlich lokal sichern, nicht nachpushen. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag regulären neuen PR ohne Merge erstellen.
+
 ## T-006: kleinste Prepare-Schemakorrektur lokal geprüft (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Drei Helperzeilen ergänzen ausschließlich ausgelassene optionale leere Signierfelder bei prepare; globales exact(), sign und sämtliche anderen Funktionen/Konstanten unverändert. Rotbeleg vor Fix mit 32 Fehlern; nach Fix 35 Protokoll- und fünf gezielte Workflowtests grün. Keine neue Engine, Workflow-/Produkt-/Versionsänderung, echte Signierung oder Übertragung. P-Runtimeform weiterhin unbekannt. Lokaler K-Abschluss gesichert; T-006/V-014 und E-002–E-005/Freigaben offen. Nächster eigener Auftrag nur begrenzter Entwicklungsbranch-Push mit frischer Quellen-/Triggerprüfung und CI-Nachkontrolle; manuelles prepare/sign bleibt ungestartet.

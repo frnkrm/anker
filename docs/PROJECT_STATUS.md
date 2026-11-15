@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: Prepare-Schemafix gepusht, eigene Branch-CI grün (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Genau ein normaler Fast-forward-Push von K `77316d69d637c0445cf5d2f4dada37c23011a70f` auf Entwicklung erfolgreich. Frische Refs vorab L/W, danach und zuletzt um 01:55:13 UTC Entwicklung=K und main=W `741fb7b09f0a442d779aaed192bd223724d3523f`. Vollständiger Übergabediff 16 Dateien/713+2−, nur Dokumentation und belegter Helper-/Testfix. Alle sechs Workflows unverändert, keine lokalen Tests/Builds wiederholt.
+
+Neue CI **43664473155 / ci.yml / push / Entwicklung / exakt K / Versuch 1 / Success**, 10m 3s. Öffentliche Summary: **1372 Vitest bestanden, 0 Fehler/Skips; 379 Playwright bestanden (8.8m)**. Workflowdateiquelle K und HTML-Commitlink belegt; API-head_sha/Runnercheckout nicht eigenständig ausgelesen. Kein PR-Lauf oder main-Ersatz. Öffentliche PR-Liste weiterhin 0 offen/3 geschlossen; kein PR erstellt.
+
+N nur neuer lokaler Dokumentationsnachfolger, nicht nachpushen. M bleibt Appquelle, W main-Workflowquelle; K ist nicht neue main-Quelle. Kein prepare/sign gestartet, kein U2/H2/HP/A/S. U1, alte Arbeitsbäume/Sicherungen/Code17 erhalten; P-Runtimeform unbekannt. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag: neuen regulären PR K→main/W vorbereiten und erstellen, ohne Merge; separate Beauftragung nötig. Folgende Abschnitte historisch.
+
 ## T-006: Prepare-Defaults gezielt lokal korrigiert (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Ausgang I `6fa3af1` sauber bestätigt und gesichert. Vor Fix sieben neue Testmethoden am unveränderten Helper: 32 erwartete INVALID_SCHEMA-Fehler für ausgelassene optionale Prepare-Felder und den zugehörigen Resolve-Pfad. Drei zusätzliche Helperzeilen ergänzen nur bei prepare fehlende optionale leere Defaults. Pflichtfelder, unbekannte Schlüssel, Typprüfungen, sign-Bindungen und sämtliche M-/W-/main-/CI-/Versuchs-/Artefaktgates bleiben strikt. Keine Workflowänderung.

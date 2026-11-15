@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: autorisierte Quellübergabe ohne Secret- oder Nutzdatenzugriff (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Ausschließlich freigegebene Quell-/Dokumentationsübertragung K auf den Entwicklungsbranch und öffentliche GitHub-Ref-/PR-/CI-/Workflowmetadaten gelesen. Keine Secret-/Schlüssel-/Session-/Google-Playabfrage oder Auth-/Cloudänderung. Automatische bestehende CI einschließlich synthetischer Offlineprüfungen, Webbuild und PC-Quellpaketartefakt erlaubt; kein manueller AAB-/Signierlauf, kein Paketdownload oder echte Gerätewirkung. U1 unverändert, U2/S fehlen. Öffentliche Commit-/HTML-Belege von nicht gelesenen API-/Runnerdaten getrennt. N mit Belegen nur lokal sichern, weitere Freigaben offen.
+
 ## T-006: Prepare-Defaultkorrektur ohne neue Datenflüsse (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Nur fehlende optionale Signierfelder im Prepare-Eingabeobjekt werden auf definierte leere Defaults ergänzt. Vorhandene Werte, unbekannte Schlüssel/null/falsche Typen und sign-Bindungen bleiben streng geprüft. Keine zusätzlichen Daten, Dumps oder Diagnosepayloads gespeichert, keine echten Secrets gelesen. Offlineprüfungen verwenden künstliche Werte und Prozess-/APIattrappen bei blockiertem Netz; keine echte Signierung. Produktdaten, Freigaben, Workflows und U1 unverändert; kein U2/S. Lokaler K-Abschluss mit Rot-/Grünbelegen gesichert, weitere Freigaben offen.
