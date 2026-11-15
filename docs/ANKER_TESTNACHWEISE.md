@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: echter neuer Runner-Abbruch, kein Paket- oder Geräteerfolg (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/workflow_dispatch/main/W2/Versuch1Failure30s; public Jobgraph resolveSuccess8s, prepareFailure17s, sign/verifySkipped. Jobannotation SDK-Bereitstellung/Exit127 belegt, Runtimefehlertext mangels Logs nicht gelesen. SDK-Quellbefehl nicht als stderr ausgeben; keine Ursache aus Exitcode ableiten. Nachfolgende Paketierung/Unsigned-Prüfung ohne Erfolgsbeleg, Summary keineArtefakte; kein U2/H2/HP/A/S. Vorhandene M-/W2-CI nur gelesen, keine lokalen Tests/Builds/Paket-/Signierprüfungen wiederholt. Rerun/Fix nicht ausgeführt; E-002–E-005 weiter offen.
+
 ## T-006: eigene exakte W2-push/main-CI statt PR-Ersatz (15.11.2026)
 
 [PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): CI43676620317, ci.yml/exaktW2 `87c83fedf5c1aa52450ee36f650134c442928c28`/push/main/Versuch1Success,10m31s. Öffentliche Notices1372 passed/0 failed/0 skipped Vitest,379 passed (9.0m) Playwright. PR-Mergecommit/ElternW,K/Ref/Commitlink/Workflowquelle W2 eindeutig gebunden; API-/Runnerdaten nicht als ausgelesen behauptet. M-CI43601398931/M/push/main/Versuch1Success frisch nur gelesen; kein Neulauf. W2-Helperquellzeilen gleich K/R. Keine lokale Suite, Native-JUnit, App-/Paket-/Signier-/Geräteprüfung wiederholt; frühere K-/PR-CI bleiben getrennt historisch. U2/S und E-002–E-005 weiter offen.

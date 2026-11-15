@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: neuer Prepare-Abbruch nach erfolgreichem Resolve belegt (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/W2/main/workflow_dispatch/Versuch1Failure. Resolve grün, prepare im SDK-Bereitstellungsschritt mit Exit127 rot; konkrete Detailursache hinter Log-Anmeldung/APIForbidden. Nur Ursachenbeleg soweit vorhanden und Zugriffslücke, kein Fix/Retry oder neuer SDK-/Workflow-/Produkt-/Versionseingriff. Sign/verifySkipped, keine Artefakte/U2/S. M/W2-CI-Gates vorab bestätigt, U1/Code17/alte Sicherungen erhalten. D3 lokal sichern, T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag genau vorhandenen SDK-Detailfehler lesend einholen.
+
 ## T-006: regulärer PR4-Merge samt eigenem W2-main-Gate belegt (15.11.2026)
 
 [PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Nach autorisiertem Besitzer-UI-Rückweg PR4Merged/mainW2=87c83fed, zwei ElternW/K und EntwicklungsheadK erhalten. CI43676620317/exaktW2/push/main/Versuch1Success,1372Vitest ohne Fehler/Skips und379Browser laut Summary. Eigener M-Quell-Gate separat bestätigt; keine Docs-Ausnahme oder synthetische Runtime-SHA. W2-Helper717Zeilen entsprechen K/R. Nur Abschlussdokumentation lokal sichern, keine Tests/Builds/Dispatch/Signier-/Playaktion und kein Nachpush. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag separat einmal prepare M/W2.

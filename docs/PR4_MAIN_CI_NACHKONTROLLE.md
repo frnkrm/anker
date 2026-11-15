@@ -1,5 +1,9 @@
 # T-006 – PR4 regulär integriert und eigene W2-main-CI nachkontrolliert
 
+## Fortschreibung: eigener neuer Prepare-Lauf P2 nach W2-Gate gestartet und fehlgeschlagen (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Nach eigener Freigabe neuer P2 43679893044/W2/main/workflow_dispatch/Versuch1Failure30s. Resolve bestanden, Prepare-SDK-Schritt/Exit127 abgebrochen, Detailtext nicht lesbar. Kein Fix/Rerun, sign/verifySkipped, keine Artefakte/U2/S. Der folgende PR4-Merge-/W2-main-CI-Beleg bleibt historisch unverändert gültig und ersetzt keinen erfolgreichen Prepare-/Signiernachweis. D3 nur neue lokale Nachkontrolldokumentation.
+
 Stand **15.11.2026**, lesbare Zeiten **Europe/Berlin (MEZ)**. Autorisierte reguläre PR4-Integration durch den Besitzer nach vorgesehenem UI-Handgriff; anschließend ausschließlich lesende Quellen-/CI-Nachkontrolle. **Kein Agenten-Push, manueller Workflowstart, lokaler Test/Build, Signieren oder Playzugriff.**
 
 ## Tatsächlicher Merge statt vorweggenommener Mergeref

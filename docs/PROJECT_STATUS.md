@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: neuer Prepare-Lauf – Resolve grün, SDK-Schritt rot (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Besitzer startete genau einen neuen P2 **43679893044 / workflow_dispatch / main / W2 / Versuch1 / Failure nach30s**. Vollständiger Lauf-Commitlink und Workflowdateiquelle W2 `87c83fedf5c1aa52450ee36f650134c442928c28` belegt, main=W2/Entwicklung=K erhalten. Resolve132708027128 Success/8s; prepare132708064401 Failure/17s im Schritt „Benötigte bestehende Android-SDK-Versionen bereitstellen“, öffentlich nur `Process completed with exit code 127.`. Sign/verifySkipped; keine Artefakte/U2/H2/HP/A/S.
+
+Quellbefehl im unveränderten Workflow ist sdkmanager mit android-36/build-tools35.0.0; konkrete Runtimefehlermeldung nicht ausgelesen. Jobseite Sign in to view logs, CLI failed to get job/APIForbidden. Keine Ursache aus Exitcode/Schrittname erfunden; tatsächliche Raw-Inputstrings unbekannt. Angefordert war prepare mitM/W2 und fünf leeren Signierbindungen; Prepare-Zweig und erfolgreiches Resolve sind belegt. Kein Rerun/Fix/SDK-Eingriff oder Signieren.
+
+Vorab beide unabhängigen M-/W2-main-CI-Gates und W2-Quellzeilen frisch bestätigt; erster lesender Workflow-Quellabruf503, ein erfolgreicher weiterer Abruf danach, kein Workflowretry. Historischer P43637658561 bleibt getrennt. U1/alte Arbeitsbäume/Sicherungen/Code17 erhalten; D3 nur lokale Nachkontrolle, nicht nachpushen. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag vorhandenen P2-Prepare-SDK-Detailfehler ausschließlich lesend einholen/zuordnen; keine Tests/Neuinstallation/Korrektur. Folgende Abschnitte historisch.
+
 ## T-006: PR4 regulär integriert, eigene W2-main-CI grün (15.11.2026)
 
 [PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Besitzer führte den autorisierten regulären UI-Merge aus. PR4Merged, tatsächliches main-W2 `87c83fedf5c1aa52450ee36f650134c442928c28` und öffentliche Eltern W/K belegt; Entwicklung/PR4-headK erhalten. Letzte Refkontrolle 05:35:46 MEZ. Kein synthetischer PR-Mergeref als W2 vorweggenommen; lokale Q/R-Nachfolger nicht übertragen. W2 fehlt lokal als Gitobjekt, kein Fetch/Checkout.
