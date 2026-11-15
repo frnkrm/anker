@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: PR4-main-Integration konkret vorbereitet, nicht freigegeben (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Saubere Basis Q `1d014c2`, K/M als Vorfahren bestätigt; aktuelle Refs Entwicklung/PR4-head=K `77316d69d637c0445cf5d2f4dada37c23011a70f` und main=W `741fb7b09f0a442d779aaed192bd223724d3523f` belegt. PR4 Open/Zielmain; Push-CI43664473155 und PR-CI43666843700 erneut lesend Success/Versuch1/1372Vitest ohne Fehler/Skips und379Playwright. Vollständiger übernommener W...K-Vergleich mit lokalem L→K-Diff inhaltlich gleich, aktuelle Vergleichsansicht weiterhin7Commits/16Dateien. Kein neuer direkter PR-Rohdiffdownload behauptet.
+
+Vorlage bindet späteren regulären unmittelbaren Merge-Commit an frische Quellen, erfüllte Serverregeln und eigene exakte push/main/ci.yml für tatsächliches W2. No reviews/leere Rulesets sind keine Schutzfreigabe; klassische Schutz-/Konflikt-/angemeldete Bedingungen und PR-Runtime-SHA bleiben unbekannt. Synthetischer Mergeref1f97… nicht W2. App-M behält unabhängigen Quell-CI-Gate, keine Docs-Ausnahme.
+
+Alle sechs Workflowdefinitionen unverändert. Mögliche bereits bestehende main-Webautomatik muss in künftige Integrationsfreigabe eingeschlossen sein; keine Cloudänderung. R nur neue lokale Planungs-/Statusdokumentation, nicht nachpushen. Keine Tests/Builds/CI wiederholt, kein Merge/PR-Schreiben oder prepare/sign/Play-/Secret-/Geräteeingriff. U1/alte Sicherungen/Code17 erhalten; U2/H2/HP/A/S fehlen. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag reguläre PR4-Integration samt neuer W2-main-CI-Nachkontrolle erst nach separater Beauftragung; folgende Abschnitte historisch.
+
 ## T-006: regulärer PR4 offen, eigene PR-CI grün (15.11.2026)
 
 [Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Besitzer führte den vorgesehenen normalen UI-Handgriff aus. PR4 Open, Quelle Entwicklung/K `77316d69d637c0445cf5d2f4dada37c23011a70f`, Ziel main/W `741fb7b09f0a442d779aaed192bd223724d3523f`. Frische Gitrefs bestätigen Entwicklung/PR4-head=K und main=W. Lokaler Ausgang N `a16ac724` nicht übertragen. Vollständiger öffentlicher W...K-Vergleich mit lokalem L→K-Diff inhaltlich abgeglichen: 7 Commits/16 Dateien/713+2−, nur Dokumentation/Helper-/Testfix. Zusätzlicher direkter PR-.diff-Download scheitert nach Weiterleitung an Tunnel403; Vergleichsbeleg und PR-Dateiansicht bleiben getrennt gesichert.

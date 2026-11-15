@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: neue PR4-main-Vorlage mit getrennten Gates (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): K/W-Refs und PR4Open frisch bestätigt, beide bestehenden CI/Versuch1 grün erhalten. Vollständiger Quellenvergleich abgeglichen, neue Vorlage mit regulärem Merge-Commit-Weg, Abbruchbedingungen, späterem tatsächlichem W2 und eigenem main-Push-CI-Gate. Unbekannte Schutz-/Konflikt-/Runtimefelder nicht umgedeutet, keine Docs-Ausnahme. Main-CI und mögliche vorhandene main-Webwirkung müssen im nächsten eigenen Integrationsauftrag ausdrücklich enthalten sein. Heute nur neue Dokumentation lokal sichern, kein Merge/Test/Build/Workflowstart. T-006/V-014 und E-002–E-005/Freigaben offen.
+
 ## T-006: autorisierter regulärer PR4 mit eigener CI belegt (15.11.2026)
 
 [Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Nach APIForbidden normaler Besitzer-UI-Rückweg, PR4 Open/K→mainW öffentlich bestätigt; kein Doppel-PR oder Merge. Vollständiger Vergleich 7 Commits/16 Dateien mit lokalem Übergabediff inhaltlich gleich. Neue PR-CI43666843700/Versuch1 Success, 1372 Vitest ohne Fehler/Skips und379Browser laut Summary. Workflowdateiquelle K, tatsächliche API-/Checkout-SHA unbekannt; synthetischer Mergeref getrennt. Q nur neue lokale Dokumentation/Sicherung, kein Nachpush/Test-/Build-/Workflowneustart. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag nur lesender PR4-main-Integrationsplan.

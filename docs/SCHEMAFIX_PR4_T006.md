@@ -1,5 +1,9 @@
 # T-006 – regulärer Prepare-Schemafix-PR4 erstellt und CI nachkontrolliert
 
+## Fortschreibung: eigene main-Integrationsvorlage erstellt, nicht ausgeführt (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Nach neuem rein lesendem Auftrag K/W/PR4Open und bestehendes Push-/PR-Grün erneut bestätigt. Regulärer Merge-Commit-Weg, Server-/Abbruchbedingungen, spätere tatsächliche W2-SHA samt eigenem main-CI-Gate und getrennte Freigaben konkret geplant. Kein Merge/Push/Test/Build/Dispatch, keine Authreparatur. Die folgende ursprüngliche PR-/CI-Nachkontrolle bleibt historisch erhalten; R nur neue lokale Planungsdokumentation.
+
 Stand **15.11.2026**. Vorhandener regulärer Nutzer-UI-Rückweg nach API-Forbidden; PR erstellt und anschließend ausschließlich lesend bis zum CI-Endergebnis geprüft. **Kein Merge, Push, manueller Workflowstart, Appbuild oder Signieren durch diesen Auftrag.**
 
 ## Tatsächlicher PR und Quellen

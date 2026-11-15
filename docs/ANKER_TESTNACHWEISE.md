@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: bestehendes K-/PR4-Grün nur gelesen, W2-CI erst später (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Aktuelle öffentliche Summarys43664473155/push/Entwicklung und43666843700/pull_request opened#4/Entwicklung weiterhin Success/Versuch1; jeweils1372Vitest ohne Fehler/Skips und379Browser. PR-Workflowdateiquelle K frisch bestätigt, API-run.head_sha/Checkout weiter unbekannt. Keine Tests/CI/Builds neu ausgeführt. Vollständigen früheren W...K-Diff und aktuellen lokalen L→K-Diff inhaltlich abgeglichen; nur ein Hunk-Kontextname anders dargestellt. Direkter PR-.diff/API-Forbidden nicht erneut versucht oder repariert. K-/PR-Grün ersetzt keine spätere eigene W2/main/push/ci.yml und keinen unabhängigen M-Quell-CI-Beleg. E-002–E-005 bleiben echte offene Gerätebeobachtungen.
+
 ## T-006: PR4-CI getrennt vom erfolgreichen K-Pushlauf (15.11.2026)
 
 [Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): CI43666843700, ci.yml/pull_request opened#4/Entwicklung/Versuch1 Success, 9m51s. Öffentliche Notices: 1372 passed/0 failed/0 skipped Vitest;379 passed (8.7m) Playwright. Workflowdateiquelle K und PR-head-K belegt, API-run.head_sha/Runnercheckout weiterhin unbekannt; synthetische PR-Mergeref nicht gleichgesetzt. Vorhandene Push-CI43664473155/K separat erhalten; keine lokale Test-/Buildwiederholung. Direkter PR-.diff-Abruf mit Tunnel403 gescheitert, vorhandener vollständiger W...K-Vergleich mit lokalem L→K-Diff und frischer PR-Dateiansicht abgeglichen. Kein echter AAB-/Signier-/Gerätebeleg oder neues main-W2-Gate. U2/S und E-002–E-005 bleiben offen.

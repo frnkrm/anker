@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: reine PR4-Integrationsplanung ohne neue Datenflüsse (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Nur öffentliche GitHub-Ref-/PR-/CI-/Rulesets-/Workflow-/Vergleichsdaten gelesen und vorhandenen vollständigen Vergleich mit lokalem Diff abgeglichen. Keine Secret-/Schlüssel-/Session-/Auth-/Cloud-/Playabfrage, PR-Schreibaktion oder Workflowausführung. Bekannte Forbidden-Wege nicht erneut versucht/repariert. Mögliche bestehende main-Webwirkung nur als später ausdrücklich freizugebende Integrationswirkung erfasst, keine Aktivierung/Veröffentlichung behauptet. U1/Produktdaten/Freigaben unverändert, U2/S fehlen; R nur lokal sichern.
+
 ## T-006: regulärer PR4 ohne Secret- oder Gerätezugriff (15.11.2026)
 
 [Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Besitzer führte die autorisierte normale PR-Erstellung mit geprüftem Titel/Text aus. Agent las öffentliche GitHub-Ref-/PR-/CI-/Workflowdaten; eigene API-Leseabfrage Forbidden, direkter PR-Diff-Redirect Tunnel403, keine Reparatur/Umgehung oder Secret-/Session-/Schlüsselsuche. Zulässiger vollständiger Vergleich W...K und aktuelle PR-Refs getrennt von unbekannten API-/Runnerdaten belegt. Bestehende automatische PR-CI freigegeben, keine Cloudänderung/manuellen AAB-/Signier-/Play-/Geräteaktionen oder Paketdownloads. U1 unverändert, U2/S fehlen. Historische UI-Wartebelege und aktueller Q-Abschluss lokal sichern, nicht nachpushen.
