@@ -523,7 +523,12 @@ def perform_upload(api: Transport, data: bytes, report: dict) -> None:
             verification_edit = next_edit
             observed = api.request("GET", API_PATH + "/" + verification_edit + "/tracks/internal")
             observed_releases, observed_draft = inspect_track(observed)
-            if not observed_draft or observed_releases != desired["releases"]:
+            # Google may return the two unchanged releases in the opposite order.
+            # Compare full dictionaries; retain strict count and multiplicity.
+            same_releases = observed_releases == desired["releases"] or (
+                len(desired["releases"]) == 2
+                and observed_releases == list(reversed(desired["releases"])))
+            if not observed_draft or not same_releases:
                 raise UploadError("POST_COMMIT_UNVERIFIED")
             report.update(status="draft-committed", draftVerified=True, versionReservationUnknown=False)
             report["steps"].append("persisted-draft-verified")

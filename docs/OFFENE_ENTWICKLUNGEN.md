@@ -1,5 +1,9 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-001: Wiederaufnahme des Readback-Fixes (15.11.2026)
+
+Direkter Wiederaufnahmeauftrag: ausschließlich fehlenden Reihenfolgevergleich rekonstruieren und Abschluss sichern. [Geprüfter Umfang und historische Grenzen](UPDATE_CODE17.md), [Quellenbindung](ANKER_CODE17_NACHWEIS.json). 77 Upload-/24 Auth-/35 Workflowmethoden aktuell grün; keine neue App-/Play-/Gerätefreigabe. Neuere T-006-Arbeit unverändert. Historische Pausierung unten bleibt als damaliger Stand erhalten.
+
 ## T-006: lokale Prepare-SDK-Auflösung geprüft, Remoteabnahme offen (15.11.2026)
 
 [Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Nur Prepare-run-Block und Offlinefälle ergänzt; Rot127 vor Fix, 17SDK/14Workflow/7Protokoll grün. Keine Installation/echte SDK-Ausführung oder Übertragung. J nur lokal, nicht W2/CI-head. Tatsächlicher Runnerbestand sowie U2/S offen. Genau nächster separat zu beauftragender Auftrag: J einmalig auf Entwicklung pushen und bestehende automatische CI lesen, vorher frische Zielrefs/Quellen/Trigger prüfen. T-006/V-014 IN_ARBEIT, E-002–E-005/Freigaben offen; folgende Abschnitte historisch.

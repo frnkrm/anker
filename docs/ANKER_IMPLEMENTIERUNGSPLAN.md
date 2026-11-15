@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-001: begrenzter Readback-Abschluss (15.11.2026)
+
+Direkter Wiederaufnahmeauftrag: ausschließlich fehlenden Reihenfolgevergleich rekonstruieren und Abschluss sichern. [Geprüfter Umfang und historische Grenzen](UPDATE_CODE17.md), [Quellenbindung](ANKER_CODE17_NACHWEIS.json). 77 Upload-/24 Auth-/35 Workflowmethoden aktuell grün; keine neue App-/Play-/Gerätefreigabe. Neuere T-006-Arbeit unverändert. Historische Pausierung unten bleibt als damaliger Stand erhalten.
+
 ## T-006: belegte SDK-Auflösungslücke minimal lokal geschlossen (15.11.2026)
 
 [Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Direkte neue Freigabe erlaubt nur Prepare-SDK-run-Block und notwendige Offlinefälle. Vor Fix konfiguriertes künstliches SDK ohne PATH-Eintrag rot/127, danach 17SDK+14Workflow+7Protokoll grün. Kein neuer Helper, keine neue Action/CI-Einbindung oder Installation. Konsistente kanonische SDK-Wurzeln, ausführbares Werkzeug, feste Argumente, Fehlerweitergabe; übrige Jobs/Gates/Trigger unverändert. Lokale Einrichtung/echte SDK-Prozesse/Builds/Übertragung/Workflowstart unterbleiben. Neuer lokaler J ist nicht W2 oder erfolgreicher Runnerstand. Nächster eigener Auftrag nur gesonderter Branch-Push samt automatischer CI, keine main-/prepare/sign-Freigabe. T-006/V-014/E-002–E-005 und weitere Abnahmen offen; folgende Abschnitte historisch.

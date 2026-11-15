@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-001: 136 aktuelle Offlineprüfungen (15.11.2026)
+
+Direkter Wiederaufnahmeauftrag: ausschließlich fehlenden Reihenfolgevergleich rekonstruieren und Abschluss sichern. [Geprüfter Umfang und historische Grenzen](UPDATE_CODE17.md), [Quellenbindung](ANKER_CODE17_NACHWEIS.json). 77 Upload-/24 Auth-/35 Workflowmethoden aktuell grün; keine neue App-/Play-/Gerätefreigabe. Neuere T-006-Arbeit unverändert. Historische Pausierung unten bleibt als damaliger Stand erhalten.
+
 ## T-006: gezielte Prepare-SDK-Regressionen, kein Runnerneulauf (15.11.2026)
 
 [Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Vor Workflowfix ein neuer Auflösungsfall mit isoliertem künstlichem SDK erwartungsgemäß rot/Exit127. Nach Minimalfix 16SDK+14Workflow=30 grün; danach nur ein zusätzlicher SDK-Startfehlerfall grün und sieben ausgewählte Protokollgates grün. Insgesamt 38 verschiedene Fälle ohne Skips: 17SDK/14Workflow/7Protokoll, genaue Befehle/Logs in neuer lokaler Sicherung. Kein echtes SDK ausgeführt, keine geerbte SDK-/PATH-/Secretumgebung der Prozessattrappen; keine Produkt-/Web-/Android-/Paketvollsuite oder echte Signierung wiederholt. Offlinegrün ersetzt weder Branch-/main-CI noch Prepare/U2/Krypto/Geräte. M/W2-CI und frühere Prüfungen erhalten; U2/H2/HP/A/S/E-002–E-005 offen. Folgende Abschnitte historisch.
