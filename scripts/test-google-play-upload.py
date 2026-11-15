@@ -821,6 +821,47 @@ class ProductionCommitCompatibilityTests(unittest.TestCase):
         with self.assertRaises(uploader.UploadError) as raised:api.request("POST",OWN+":commit"+uploader.COMMIT_QUERY)
         self.assertEqual(limits,[65536]);self.assertTrue(body.closed);self.assertNotIn(PRIVATE_ERROR,str(raised.exception))
 
+    def test_readback_accepts_only_exact_reversed_release_pair(self):
+        for compatibility in [False, True]:
+            with self.subTest(compatibility=compatibility):
+                api = self.api()
+                if not compatibility:
+                    api.failures.clear()
+                target = {"name": uploader.RELEASE_NAME, "versionCodes": ["17"], "status": "draft"}
+                api.readback_response = {"track": "internal", "releases": [target, copy.deepcopy(self.old)]}
+                report = uploader.new_report()
+                self.perform(api, report)
+                self.assertEqual(report["status"], "draft-committed")
+                self.assertTrue(report["draftVerified"])
+                self.assertFalse(report["publishedByThisRun"])
+                self.assertEqual(report["commitCompatibilityAttempts"], int(compatibility))
+
+    def test_readback_rejects_metadata_count_duplicates_and_missing_draft(self):
+        for compatibility in [False, True]:
+            for change in ["metadata16", "metadata17", "duplicate16", "duplicate17", "extra", "missing16", "missing17", "notdraft"]:
+                with self.subTest(compatibility=compatibility, change=change):
+                    api = self.api()
+                    if not compatibility:
+                        api.failures.clear()
+                    old = copy.deepcopy(self.old)
+                    target = {"name": uploader.RELEASE_NAME, "versionCodes": ["17"], "status": "draft"}
+                    rows = [target, old]
+                    if change == "metadata16": old["inAppUpdatePriority"] = 3
+                    elif change == "metadata17": target["name"] += " changed"
+                    elif change == "duplicate16": rows = [old, copy.deepcopy(old)]
+                    elif change == "duplicate17": rows = [target, copy.deepcopy(target)]
+                    elif change == "extra": rows.append(copy.deepcopy(old))
+                    elif change == "missing16": rows = [target]
+                    elif change == "missing17": rows = [old]
+                    else: target["status"] = "completed"
+                    api.readback_response = {"track": "internal", "releases": rows}
+                    report = uploader.new_report()
+                    with self.assertRaises(uploader.UploadError):
+                        self.perform(api, report)
+                    self.assertFalse(report["draftVerified"])
+                    self.assertFalse(report["publishedByThisRun"])
+                    self.assertEqual(api.calls[-1][:2], ("DELETE", VERIFY))
+
     def test_normal_success_has_no_compatibility_attempt(self):
         api=self.api();api.failures.clear();report=uploader.new_report();self.perform(api,report)
         self.assertEqual(report["changesNotSentForReviewEffective"],"true");self.assertEqual(report["commitCompatibilityAttempts"],0)

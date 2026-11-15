@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-15",
+  "baseCommit": "024db974952de0842c50f1273609f52185be0c67",
+  "appSourceCommit": "80f6a692b005ab08edacf9e6ad9e9669e4c383f7",
+  "historicalEvidenceSource": "Nutzerübergabe T-001; externe Actions-Berichte heute nicht unabhängig abrufbar (API Forbidden)",
+  "historicalArtifacts": [
+    {
+      "kind": "APK",
+      "url": "https://raw.githubusercontent.com/frnkrm/anker/a33801e734b9d2d2d31b50b55521742e2ab19ad2/Anker.apk",
+      "bytes": 38645786,
+      "sha256": "e9823be7f69c6304320c5f3c5e94e485ef7bcd4c13482f2a11505f8ef9f269e4"
+    },
+    {
+      "kind": "AAB",
+      "url": "https://raw.githubusercontent.com/frnkrm/anker/e448f35c88a4483a6451a1b65b78b2101f8485bd/Anker.aab",
+      "bytes": 22705124,
+      "sha256": "2e53d046d32ec4fc53f083a0a9a59e688f1224615af7946330642e97b8c84098"
+    },
+    {
+      "kind": "PC-ZIP",
+      "url": "https://codeload.github.com/frnkrm/anker/zip/f8275544b1192d069e23b49d79529f9e805d3945",
+      "bytes": 101757,
+      "sha256": "5ff9081dc3feef75bc193d8c50f7ab483b6904a8bc526df005c61e94ff2c7ddf"
+    }
+  ],
+  "currentPlayState": "unknown",
+  "deviceTests": "open",
+  "currentOfflineTests": {
+    "upload": 77,
+    "auth": 24,
+    "workflow": 35
+  },
+  "testedFilesSha256": {
+    "scripts/google-play-upload.py": "a338ddcc06f1b4cb7b37d84c24b4b30d457369514926193c8cdfa0536c8d70fe",
+    "scripts/test-google-play-upload.py": "0a4f5244d1ccb8ed7fc7b1407df17a5bacc32bf4b7a5285383e0911fa9632b59",
+    "scripts/google-play-auth.py": "cc458c94cf2d069d5f0fbceed315c4c2c6ef4bc8457b80537a0478d23f2d9af9",
+    "scripts/test-google-play-auth.py": "d1e281f01536f110142ec6cdc8fc1ed430fd8d63aa57ecc336602680c2d3b299",
+    "scripts/test-google-play-workflow.py": "7dfbe94793a6d64c4229c27c1bd1d195e367f5a1da5bc9c8e58e90512cbad856"
+  },
+  "pcChannel": {
+    "verification": "local signature and time window verified using verify_channel, installed_version=0.1.0",
+    "expiresAt": "2026-11-17T03:26:52Z"
+  }
+}
