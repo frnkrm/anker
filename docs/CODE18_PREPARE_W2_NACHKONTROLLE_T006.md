@@ -1,5 +1,9 @@
 # T-006 – neuer W2-prepare-Lauf: Resolve grün, SDK-Schritt abgebrochen
 
+## Fortschreibung: Detailfehler inzwischen per Nutzerscreenshot belegt (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Zu genau P2/Versuch1/Job132708064401 liegt jetzt `line 1: sdkmanager: command not found`/Exit127 vor. Paketierung und Unsigned-Prüfung sichtbar übersprungen. SDK-Installation versus PATH bleibt offen; kein Fix/Neulauf. Screenshot zeigt P2-Prepare-Inputobjekt mit drei Pflichtfeldern und binding=null; keine nachträgliche Aussage über alten P. Dieser neue Beleg ersetzt im folgenden historischen D3-Bericht ausschließlich die damalige Unkenntnis des Fehlertexts und der sichtbaren Inputdarstellung. Sämtliche alten Belege bleiben erhalten; aktuelle Zuordnung und genau nächster lokaler Auftrag stehen im verlinkten neuen Bericht.
+
 Stand **15.11.2026**, lesbare Zeiten **Europe/Berlin (MEZ)**. Genau ein neuer autorisierter Besitzer-UI-Dispatch und ausschließlich lesende Nachkontrolle. **Failure dokumentiert; kein Fix, Neustart oder Signieraufruf.**
 
 ## Neuer tatsächlicher Lauf und unveränderte Quellen

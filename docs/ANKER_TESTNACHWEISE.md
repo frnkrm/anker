@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: konkreter SDK-stderr als Screenshotbeleg, kein Testneulauf (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerbild aus exakt P2 43679893044/Job132708064401 zeigt `line 1: sdkmanager: command not found`/Exit127. Vorherige Werkzeug-/Checkout-Schritte grün, nachfolgende Paketierung/Unsigned-Prüfung übersprungen. Kein AAB-/SDK-Bestands-/Geräteerfolg und kein Agenten-API-Log. Screenshot-Inputdarstellung nur für P2 belegt; alter P bleibt hinsichtlich Rohinput unbekannt. Heute nur statische Quellenzuordnung und Dokumentations-/Sicherungsintegrität; keine Produkt-/Offline-/Browser-/Native-Suite, kein Build/Dispatch/Retry. Vorhandene M-/W2-CI und frühere Tests erhalten. U2/H2/HP/A/S fehlen, E-002–E-005 offen; spätere Offlineauflösung wäre noch kein Runnernachweis. Folgende Abschnitte historisch.
+
 ## T-006: echter neuer Runner-Abbruch, kein Paket- oder Geräteerfolg (15.11.2026)
 
 [Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/workflow_dispatch/main/W2/Versuch1Failure30s; public Jobgraph resolveSuccess8s, prepareFailure17s, sign/verifySkipped. Jobannotation SDK-Bereitstellung/Exit127 belegt, Runtimefehlertext mangels Logs nicht gelesen. SDK-Quellbefehl nicht als stderr ausgeben; keine Ursache aus Exitcode ableiten. Nachfolgende Paketierung/Unsigned-Prüfung ohne Erfolgsbeleg, Summary keineArtefakte; kein U2/H2/HP/A/S. Vorhandene M-/W2-CI nur gelesen, keine lokalen Tests/Builds/Paket-/Signierprüfungen wiederholt. Rerun/Fix nicht ausgeführt; E-002–E-005 weiter offen.

@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: vorhandener Fehler als begrenzter Nutzer-Screenshotbeleg (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Vorhandene angemeldete Jobansicht vom Nutzer bereitgestellt. Nur minimaler Fehlertext und relevante nichtgeheime P2-Input-Schlüsselmenge dokumentiert; kein vollständiger Umgebungsdump, kein Bildpfad/-hash erfunden. API-/Logzugriff blieb gesperrt, keine Authreparatur oder Secret-/Schlüssel-/Sessionsuche. Keine neuen Nutzdaten, Datenübertragungen, SDK-/Workflow-/Cloud-/Play-/Geräteänderungen. Nur lokale Dokumentation/Sicherung; U1 und Freigabegrenzen erhalten, U2/S fehlen. Folgende Abschnitte historisch.
+
 ## T-006: einmaliger Prepare-Dispatch ohne Signierfreigabe (15.11.2026)
 
 [Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Autorisierter Besitzer-UI-Start eines neuen prepare-Laufs nach fehlendem Agenten-Dispatchweg; Agent nur GitHub-Metadaten/Quellen/Jobbelege gelesen. Angeforderte M/W2/prepare/Leerbindungen von nicht ausgelesenen Raw-Inputs getrennt. Resolve grün, SDK-Schritt rot; sign/verifySkipped, keine Artefakte/privaten Signierwerte. Keine Secret-/Schlüssel-/Session-/Auth-/Cloud-/Playabfrage, SDK-/Workflowänderung oder Geräteaktion. Tatsächliche Detailursache mangels Logzugriff unbekannt; keine Umgebungsdumps angefordert. U1 unverändert, U2/S fehlen; D3 nur lokal sichern.

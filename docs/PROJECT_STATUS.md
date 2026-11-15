@@ -1,5 +1,11 @@
 # Aktueller Übergabestand
 
+## T-006: P2-Detailfehler belegt – sdkmanager nicht auflösbar (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerscreenshot zu P2 43679893044/Versuch1/Job132708064401 zeigt `line 1: sdkmanager: command not found` und Exit127. Resolve grün, Paketierung/Unsigned-Prüfung sowie sign/verify übersprungen. Belegt ist die fehlende Befehlsauflösung; tatsächliche SDK-Installation oder PATH-Ursache bleiben unbekannt. Keine Korrektur, Tests, SDK-/PATH-Einrichtung oder Workflowwiederholung. P2 zeigt drei Prepare-Inputfelder ohne optionale Signierfelder; keine rückwirkende Aussage über alten P-Rohinput.
+
+Sauberer Ausgang D3 `288d9ec3899080f834561d85930b5986dc4b803b`; D4 nur lokale Dokumentation/Sicherung, exakte SHA in RESULT.json unter `/workspace/anker-t006-p2-sdk-detail-20261115/`. M/W2/K unverändert bekannte Quellen, heute keine frischen Remote-Refs. U1 erhalten, U2/H2/HP/A/S fehlen. T-006/V-014 IN_ARBEIT, E-002–E-005/weitere Freigaben offen. Genau nächster separat zu beauftragender Einzelauftrag: kleinste lokale Prepare-sdkmanager-Auflösung samt gezielten Offlinefällen, ohne Neuinstallation/Dispatch/Übertragung. Folgende Abschnitte sind historisch; ihre frühere Aussage „Detailfehler unbekannt“ ist durch den Screenshot überholt.
+
 ## T-006: neuer Prepare-Lauf – Resolve grün, SDK-Schritt rot (15.11.2026)
 
 [Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Besitzer startete genau einen neuen P2 **43679893044 / workflow_dispatch / main / W2 / Versuch1 / Failure nach30s**. Vollständiger Lauf-Commitlink und Workflowdateiquelle W2 `87c83fedf5c1aa52450ee36f650134c442928c28` belegt, main=W2/Entwicklung=K erhalten. Resolve132708027128 Success/8s; prepare132708064401 Failure/17s im Schritt „Benötigte bestehende Android-SDK-Versionen bereitstellen“, öffentlich nur `Process completed with exit code 127.`. Sign/verifySkipped; keine Artefakte/U2/H2/HP/A/S.

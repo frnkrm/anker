@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: SDK-Abbruch durch Nutzerbeleg eingegrenzt (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): SDK-Schritt P2/Versuch1 scheitert tatsächlich an `sdkmanager: command not found`, nicht allein am bislang sichtbaren Exit127. Befehl nicht gestartet; SDK-Fehlbestand versus Suchpfad weiterhin offen. Direkter Nutzerauftrag beschränkt diesen Abschluss auf Ursachenbeleg und Plan: keine Workflow-/SDK-/PATH-Änderung, Tests oder Neuläufe. Nur sieben Dokumentationsdateien lokal sichern/committen. Nächster separater Auftrag ausschließlich lokale Prepare-Werkzeugauflösung mit künstlichen Offlinefällen; keine ungebundene Installation oder Änderung anderer APK-/Signierpfade. M/W2-Gates und U1 bleiben erhalten; U2/S und T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Folgende Abschnitte historisch.
+
 ## T-006: neuer Prepare-Abbruch nach erfolgreichem Resolve belegt (15.11.2026)
 
 [Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/W2/main/workflow_dispatch/Versuch1Failure. Resolve grün, prepare im SDK-Bereitstellungsschritt mit Exit127 rot; konkrete Detailursache hinter Log-Anmeldung/APIForbidden. Nur Ursachenbeleg soweit vorhanden und Zugriffslücke, kein Fix/Retry oder neuer SDK-/Workflow-/Produkt-/Versionseingriff. Sign/verifySkipped, keine Artefakte/U2/S. M/W2-CI-Gates vorab bestätigt, U1/Code17/alte Sicherungen erhalten. D3 lokal sichern, T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag genau vorhandenen SDK-Detailfehler lesend einholen.
