@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: belegte SDK-Auflösungslücke minimal lokal geschlossen (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Direkte neue Freigabe erlaubt nur Prepare-SDK-run-Block und notwendige Offlinefälle. Vor Fix konfiguriertes künstliches SDK ohne PATH-Eintrag rot/127, danach 17SDK+14Workflow+7Protokoll grün. Kein neuer Helper, keine neue Action/CI-Einbindung oder Installation. Konsistente kanonische SDK-Wurzeln, ausführbares Werkzeug, feste Argumente, Fehlerweitergabe; übrige Jobs/Gates/Trigger unverändert. Lokale Einrichtung/echte SDK-Prozesse/Builds/Übertragung/Workflowstart unterbleiben. Neuer lokaler J ist nicht W2 oder erfolgreicher Runnerstand. Nächster eigener Auftrag nur gesonderter Branch-Push samt automatischer CI, keine main-/prepare/sign-Freigabe. T-006/V-014/E-002–E-005 und weitere Abnahmen offen; folgende Abschnitte historisch.
+
 ## T-006: SDK-Abbruch durch Nutzerbeleg eingegrenzt (15.11.2026)
 
 [P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): SDK-Schritt P2/Versuch1 scheitert tatsächlich an `sdkmanager: command not found`, nicht allein am bislang sichtbaren Exit127. Befehl nicht gestartet; SDK-Fehlbestand versus Suchpfad weiterhin offen. Direkter Nutzerauftrag beschränkt diesen Abschluss auf Ursachenbeleg und Plan: keine Workflow-/SDK-/PATH-Änderung, Tests oder Neuläufe. Nur sieben Dokumentationsdateien lokal sichern/committen. Nächster separater Auftrag ausschließlich lokale Prepare-Werkzeugauflösung mit künstlichen Offlinefällen; keine ungebundene Installation oder Änderung anderer APK-/Signierpfade. M/W2-Gates und U1 bleiben erhalten; U2/S und T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Folgende Abschnitte historisch.

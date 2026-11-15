@@ -110,7 +110,52 @@ jobs:
       - name: Gebundene öffentliche Prüfwerkzeuge vorbereiten
         run: python3 policy/scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/aab-tools"
       - name: Benötigte bestehende Android-SDK-Versionen bereitstellen
-        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+
+          def abort(reason):
+              print('AAB-SDK-Prüfung abgebrochen: ' + reason, file=sys.stderr)
+              print('Vorhandene Android-Commandline-Tools und SDK-Bindung prüfen; fehlende Werkzeuge benötigen eine separate Einrichtung.', file=sys.stderr)
+              raise SystemExit(1)
+
+          roots = []
+          for name in ('ANDROID_HOME', 'ANDROID_SDK_ROOT'):
+              value = os.environ.get(name, '')
+              if not value:
+                  continue
+              if not Path(value).is_absolute() or any(ord(c) < 32 for c in value):
+                  abort('SDK_ROOT_INVALID')
+              try:
+                  root = Path(value).resolve(strict=True)
+                  if not root.is_dir():
+                      abort('SDK_ROOT_INVALID')
+              except (OSError, ValueError, RuntimeError):
+                  abort('SDK_ROOT_INVALID')
+              roots.append(root)
+          if len(set(roots)) > 1:
+              abort('SDK_ROOT_CONFLICT')
+
+          found = shutil.which('sdkmanager')
+          candidate = Path(found) if found else (roots[0] / 'cmdline-tools/latest/bin/sdkmanager' if roots else None)
+          try:
+              if candidate is None or not candidate.is_file() or not os.access(candidate, os.X_OK):
+                  abort('SDKMANAGER_UNAVAILABLE')
+              tool = candidate.resolve(strict=True)
+              if roots and not tool.is_relative_to(roots[0]):
+                  abort('SDK_TOOL_ROOT_CONFLICT')
+          except (OSError, ValueError, RuntimeError):
+              abort('SDKMANAGER_UNAVAILABLE')
+          try:
+              result = subprocess.run([str(tool), 'platforms;android-36', 'build-tools;35.0.0'])
+          except OSError:
+              abort('SDKMANAGER_EXECUTION_FAILED')
+          raise SystemExit(result.returncode if result.returncode >= 0 else 128 - result.returncode)
+          PY
       - name: Ausschließlich M ohne Signierbindung paketieren
         working-directory: app
         env:

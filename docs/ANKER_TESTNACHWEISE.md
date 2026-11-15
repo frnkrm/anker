@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: gezielte Prepare-SDK-Regressionen, kein Runnerneulauf (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Vor Workflowfix ein neuer Auflösungsfall mit isoliertem künstlichem SDK erwartungsgemäß rot/Exit127. Nach Minimalfix 16SDK+14Workflow=30 grün; danach nur ein zusätzlicher SDK-Startfehlerfall grün und sieben ausgewählte Protokollgates grün. Insgesamt 38 verschiedene Fälle ohne Skips: 17SDK/14Workflow/7Protokoll, genaue Befehle/Logs in neuer lokaler Sicherung. Kein echtes SDK ausgeführt, keine geerbte SDK-/PATH-/Secretumgebung der Prozessattrappen; keine Produkt-/Web-/Android-/Paketvollsuite oder echte Signierung wiederholt. Offlinegrün ersetzt weder Branch-/main-CI noch Prepare/U2/Krypto/Geräte. M/W2-CI und frühere Prüfungen erhalten; U2/H2/HP/A/S/E-002–E-005 offen. Folgende Abschnitte historisch.
+
 ## T-006: konkreter SDK-stderr als Screenshotbeleg, kein Testneulauf (15.11.2026)
 
 [P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerbild aus exakt P2 43679893044/Job132708064401 zeigt `line 1: sdkmanager: command not found`/Exit127. Vorherige Werkzeug-/Checkout-Schritte grün, nachfolgende Paketierung/Unsigned-Prüfung übersprungen. Kein AAB-/SDK-Bestands-/Geräteerfolg und kein Agenten-API-Log. Screenshot-Inputdarstellung nur für P2 belegt; alter P bleibt hinsichtlich Rohinput unbekannt. Heute nur statische Quellenzuordnung und Dokumentations-/Sicherungsintegrität; keine Produkt-/Offline-/Browser-/Native-Suite, kein Build/Dispatch/Retry. Vorhandene M-/W2-CI und frühere Tests erhalten. U2/H2/HP/A/S fehlen, E-002–E-005 offen; spätere Offlineauflösung wäre noch kein Runnernachweis. Folgende Abschnitte historisch.

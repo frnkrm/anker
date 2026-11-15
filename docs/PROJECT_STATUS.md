@@ -1,5 +1,11 @@
 # Aktueller Übergabestand
 
+## T-006: Prepare-sdkmanager-Auflösung lokal korrigiert (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Ausgang D4 d565f84 sauber gesichert. Vor Fix reproduziert ein künstlich vorhandenes SDK ohne PATH-Eintrag Exit127. Nur der bestehende Prepare-SDK-run-Block löst jetzt PATH beziehungsweise den festen Kandidaten cmdline-tools/latest/bin/sdkmanager unter konsistenten konfigurierten SDK-Wurzeln auf. Klare Abbrüche bei Fehlbestand/Konflikt, keine Installation oder PATH-Änderung. Argumente android-36/build-tools35.0.0, übrige Workflowjobs/Trigger, M-/CI-/Signier-/Artefaktgates und APK-/Playpfade unverändert.
+
+17 neue SDK-Fälle, 14 bestehende Workflowfälle und sieben gezielte Protokollfälle grün (30+1+7), ausschließlich Attrappen; keine echten SDK-Prozesse oder Builds. J nur lokaler Fix-/Übergabehead; exakte SHA in RESULT.json unter `/workspace/anker-t006-prepare-sdk-fix-20261115/`, nicht gepusht und keine neue main-Workflowquelle. Bekannte M/W2/K heute nicht extern neu geprüft; tatsächlicher Runnerbestand und Erfolg eines künftigen Prepare weiter offen. U1 unverändert, U2/H2/HP/A/S fehlen. T-006/V-014 IN_ARBEIT, E-002–E-005/weitere Freigaben offen. Genau nächster eigener Auftrag: einmaliger begrenzter Entwicklungsbranch-Push J mit frischer Ref-/Quell-/Triggerprüfung und CI-Nachkontrolle; weder main-Integration noch prepare/sign. Folgende Abschnitte historisch.
+
 ## T-006: P2-Detailfehler belegt – sdkmanager nicht auflösbar (15.11.2026)
 
 [P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerscreenshot zu P2 43679893044/Versuch1/Job132708064401 zeigt `line 1: sdkmanager: command not found` und Exit127. Resolve grün, Paketierung/Unsigned-Prüfung sowie sign/verify übersprungen. Belegt ist die fehlende Befehlsauflösung; tatsächliche SDK-Installation oder PATH-Ursache bleiben unbekannt. Keine Korrektur, Tests, SDK-/PATH-Einrichtung oder Workflowwiederholung. P2 zeigt drei Prepare-Inputfelder ohne optionale Signierfelder; keine rückwirkende Aussage über alten P-Rohinput.

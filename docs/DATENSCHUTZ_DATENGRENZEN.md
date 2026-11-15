@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: SDK-Auflösung mit isolierten Offlineprozessen geprüft (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Tests übergeben nur künstliche temporäre SDK-/PATH-Werte und selbst geschriebene Prozessattrappen; keine geerbten Secret-/SDK-/Actions-Ausgabewerte. Neuer Prepare-run-Block gibt bei Konfigurationsfehlern nur feste Diagnosetags aus, keine Pfad-/Input-/Token-/Umgebungsdumps. SDK-/PATH-Umgebung bleibt unverändert; resolve/sign/verify und deren Secretgrenzen unverändert. Keine externe Abfrage, Installation, echte SDK-/Signier-/Cloud-/Play-/Geräteaktion. U1/Code17/alte Sicherungen erhalten, U2/S und weitere Freigaben offen; J nur lokal sichern. Folgende Abschnitte historisch.
+
 ## T-006: vorhandener Fehler als begrenzter Nutzer-Screenshotbeleg (15.11.2026)
 
 [P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Vorhandene angemeldete Jobansicht vom Nutzer bereitgestellt. Nur minimaler Fehlertext und relevante nichtgeheime P2-Input-Schlüsselmenge dokumentiert; kein vollständiger Umgebungsdump, kein Bildpfad/-hash erfunden. API-/Logzugriff blieb gesperrt, keine Authreparatur oder Secret-/Schlüssel-/Sessionsuche. Keine neuen Nutzdaten, Datenübertragungen, SDK-/Workflow-/Cloud-/Play-/Geräteänderungen. Nur lokale Dokumentation/Sicherung; U1 und Freigabegrenzen erhalten, U2/S fehlen. Folgende Abschnitte historisch.

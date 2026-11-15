@@ -1,5 +1,9 @@
 # T-006 – P2-SDK-Detailfehler belegt, noch keine Korrektur
 
+## Fortschreibung: kleinste lokale Auflösungskorrektur geprüft (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Nach gesonderter Freigabe jetzt ausschließlich SDK-run-Block lokal abgesichert, Rotbeleg und 38 gezielte Offlinefälle grün. Keine echten SDK-Prozesse/Installation/Workflowausführung/Übertragung. Der folgende D4-Ursachenbericht bleibt historischer Beleg; seine damalige Aussage „noch keine Korrektur“ ist durch diesen neuen lokalen Stand fortgeschrieben. P2 selbst bleibt Failure, tatsächlicher Runnerbestand offen, kein U2/S und keine neue main-Workflowquelle.
+
 Stand 15.11.2026; lesbare Zeiten Europe/Berlin (MEZ). Ausgang D3 `288d9ec3899080f834561d85930b5986dc4b803b` sauber auf `entwicklung/anker-neu` bestätigt. Der neue Abschluss D4 ist ausschließlich lokale Dokumentation; seine exakte SHA steht in RESULT.json der Sicherung `/workspace/anker-t006-p2-sdk-detail-20261115/`.
 
 ## Beleg und Zuordnung
