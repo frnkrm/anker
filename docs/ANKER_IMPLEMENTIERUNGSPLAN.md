@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: regulärer PR4-Merge samt eigenem W2-main-Gate belegt (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Nach autorisiertem Besitzer-UI-Rückweg PR4Merged/mainW2=87c83fed, zwei ElternW/K und EntwicklungsheadK erhalten. CI43676620317/exaktW2/push/main/Versuch1Success,1372Vitest ohne Fehler/Skips und379Browser laut Summary. Eigener M-Quell-Gate separat bestätigt; keine Docs-Ausnahme oder synthetische Runtime-SHA. W2-Helper717Zeilen entsprechen K/R. Nur Abschlussdokumentation lokal sichern, keine Tests/Builds/Dispatch/Signier-/Playaktion und kein Nachpush. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag separat einmal prepare M/W2.
+
 ## T-006: neue PR4-main-Vorlage mit getrennten Gates (15.11.2026)
 
 [Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): K/W-Refs und PR4Open frisch bestätigt, beide bestehenden CI/Versuch1 grün erhalten. Vollständiger Quellenvergleich abgeglichen, neue Vorlage mit regulärem Merge-Commit-Weg, Abbruchbedingungen, späterem tatsächlichem W2 und eigenem main-Push-CI-Gate. Unbekannte Schutz-/Konflikt-/Runtimefelder nicht umgedeutet, keine Docs-Ausnahme. Main-CI und mögliche vorhandene main-Webwirkung müssen im nächsten eigenen Integrationsauftrag ausdrücklich enthalten sein. Heute nur neue Dokumentation lokal sichern, kein Merge/Test/Build/Workflowstart. T-006/V-014 und E-002–E-005/Freigaben offen.

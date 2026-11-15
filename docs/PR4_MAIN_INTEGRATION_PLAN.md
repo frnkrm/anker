@@ -1,5 +1,9 @@
 # T-006 – PR4-main-Integration konkret vorbereitet
 
+## Fortschreibung: reguläre Integration und eigene main-CI tatsächlich abgeschlossen (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Nach separater neuer Freigabe und Besitzer-UI-Handgriff PR4Merged; tatsächliches W2 `87c83fedf5c1aa52450ee36f650134c442928c28` mit ElternW/K, EntwicklungK erhalten. Eigene ci.yml43676620317/W2/push/main/Versuch1Success und unabhängiges M-Gate belegt. Die folgende ursprüngliche reine Planung ist historisch; ihr damaliges Mergeverbot ersetzt nicht die spätere ausdrückliche Freigabe. Kein prepare/sign/Play oder lokaler Test/Build, kein Nachpush. D2 nur neue lokale Nachkontrolldokumentation.
+
 Stand **15.11.2026**. **Noch nicht ausführen: Dieser Auftrag erteilt keine Mergefreigabe.** Heute ausschließlich aktuelle GitHub-Metadaten/Quellen lesen und neue Planungs-/Statusdokumentation lokal sichern. Keine Tests, Builds, CI-Neustarts oder externen Schreibaktionen.
 
 ## 1. Eindeutige Quellen und heutige Belege

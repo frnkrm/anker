@@ -1,5 +1,9 @@
 # Anker: Testnachweise
 
+## T-006: eigene exakte W2-push/main-CI statt PR-Ersatz (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): CI43676620317, ci.yml/exaktW2 `87c83fedf5c1aa52450ee36f650134c442928c28`/push/main/Versuch1Success,10m31s. Öffentliche Notices1372 passed/0 failed/0 skipped Vitest,379 passed (9.0m) Playwright. PR-Mergecommit/ElternW,K/Ref/Commitlink/Workflowquelle W2 eindeutig gebunden; API-/Runnerdaten nicht als ausgelesen behauptet. M-CI43601398931/M/push/main/Versuch1Success frisch nur gelesen; kein Neulauf. W2-Helperquellzeilen gleich K/R. Keine lokale Suite, Native-JUnit, App-/Paket-/Signier-/Geräteprüfung wiederholt; frühere K-/PR-CI bleiben getrennt historisch. U2/S und E-002–E-005 weiter offen.
+
 ## T-006: bestehendes K-/PR4-Grün nur gelesen, W2-CI erst später (15.11.2026)
 
 [Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Aktuelle öffentliche Summarys43664473155/push/Entwicklung und43666843700/pull_request opened#4/Entwicklung weiterhin Success/Versuch1; jeweils1372Vitest ohne Fehler/Skips und379Browser. PR-Workflowdateiquelle K frisch bestätigt, API-run.head_sha/Checkout weiter unbekannt. Keine Tests/CI/Builds neu ausgeführt. Vollständigen früheren W...K-Diff und aktuellen lokalen L→K-Diff inhaltlich abgeglichen; nur ein Hunk-Kontextname anders dargestellt. Direkter PR-.diff/API-Forbidden nicht erneut versucht oder repariert. K-/PR-Grün ersetzt keine spätere eigene W2/main/push/ci.yml und keinen unabhängigen M-Quell-CI-Beleg. E-002–E-005 bleiben echte offene Gerätebeobachtungen.

@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: autorisierter main-Merge ohne private Schlüssel- oder Playaktion (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Besitzer führte regulären Merge aus; Agent las öffentliche GitHub-Ref-/PR-/Commit-/Eltern-/Quell-/CI-Daten. Keine Authreparatur, Secret-/Schlüssel-/Sessionsuche, Play-/Consoleabfrage oder aktive Cloudänderung. Bestehende automatische main-CI samt Prüfungen/Webbuild/Artefakten und mögliche bereits bestehende main-Webveröffentlichung waren freigegeben; tatsächliche Veröffentlichung nicht separat belegt. Kein manueller AAB-/Signierlauf, Paketdownload oder echte Gerätewirkung. Öffentliche HTML-Bindungen von unbekannten API-/Runnerdaten getrennt. U1 unverändert, U2/S fehlen; D2 nur lokale Nachkontrolle/Sicherung.
+
 ## T-006: reine PR4-Integrationsplanung ohne neue Datenflüsse (15.11.2026)
 
 [Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Nur öffentliche GitHub-Ref-/PR-/CI-/Rulesets-/Workflow-/Vergleichsdaten gelesen und vorhandenen vollständigen Vergleich mit lokalem Diff abgeglichen. Keine Secret-/Schlüssel-/Session-/Auth-/Cloud-/Playabfrage, PR-Schreibaktion oder Workflowausführung. Bekannte Forbidden-Wege nicht erneut versucht/repariert. Mögliche bestehende main-Webwirkung nur als später ausdrücklich freizugebende Integrationswirkung erfasst, keine Aktivierung/Veröffentlichung behauptet. U1/Produktdaten/Freigaben unverändert, U2/S fehlen; R nur lokal sichern.

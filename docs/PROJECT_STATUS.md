@@ -1,5 +1,13 @@
 # Aktueller Übergabestand
 
+## T-006: PR4 regulär integriert, eigene W2-main-CI grün (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Besitzer führte den autorisierten regulären UI-Merge aus. PR4Merged, tatsächliches main-W2 `87c83fedf5c1aa52450ee36f650134c442928c28` und öffentliche Eltern W/K belegt; Entwicklung/PR4-headK erhalten. Letzte Refkontrolle 05:35:46 MEZ. Kein synthetischer PR-Mergeref als W2 vorweggenommen; lokale Q/R-Nachfolger nicht übertragen. W2 fehlt lokal als Gitobjekt, kein Fetch/Checkout.
+
+Neue **ci.yml43676620317 / exakt W2 / push / main / Versuch1 / Success**,10m31s. Öffentliche Summary: **1372 Vitest ohne Fehler/Skips,379 Playwright (9.0m)**. Vollständiger Summary-Commitlink und Workflowdateiquelle W2 getrennt von nicht gelesenen API-/Runnerdaten. Eigener W2-Gate statt Branch-/PR-/Docs-Ausnahme. Unabhängige M-CI43601398931/M/push/main/Versuch1Success erneut gelesen, nicht gestartet. W2-Helper717Zeilen gleich geprüftem K/R-Helper.
+
+D2 nur neuer lokaler Dokumentationsabschluss, nicht nachpushen. Keine lokalen Tests/Builds, manuellen Workflows, Signier-/Play-/Cloud-/Geräteaktionen. Erlaubte bestehende automatische main-CI/gegebenenfalls main-Webautomatik getrennt; tatsächliche Webveröffentlichung nicht separat belegt. U1/alte Arbeitsbäume/Sicherungen/Code17 erhalten; kein U2/H2/HP/A/S, alte P-Rohinputform unbekannt. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf mit M/W2 starten und nachkontrollieren, erst nach neuer separater Freigabe; folgende Abschnitte historisch.
+
 ## T-006: PR4-main-Integration konkret vorbereitet, nicht freigegeben (15.11.2026)
 
 [Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Saubere Basis Q `1d014c2`, K/M als Vorfahren bestätigt; aktuelle Refs Entwicklung/PR4-head=K `77316d69d637c0445cf5d2f4dada37c23011a70f` und main=W `741fb7b09f0a442d779aaed192bd223724d3523f` belegt. PR4 Open/Zielmain; Push-CI43664473155 und PR-CI43666843700 erneut lesend Success/Versuch1/1372Vitest ohne Fehler/Skips und379Playwright. Vollständiger übernommener W...K-Vergleich mit lokalem L→K-Diff inhaltlich gleich, aktuelle Vergleichsansicht weiterhin7Commits/16Dateien. Kein neuer direkter PR-Rohdiffdownload behauptet.
