@@ -1,0 +1,133 @@
+name: Google Play – Code17-Freigabe ohne Commit diagnostizieren
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Nur Diagnose: DIAGNOSE_CODE17_NO_COMMIT eingeben'
+        required: true
+        type: string
+  push:
+    branches: [main]
+    paths: ['.github/workflows/google-play-internal-diagnose.yml']
+
+permissions: {}
+
+concurrency:
+  group: anker-google-play-internal-draft
+  cancel-in-progress: false
+
+jobs:
+  internal17:
+    if: >-
+      github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DIAGNOSE_CODE17_NO_COMMIT') ||
+       (github.event_name == 'push' && contains(github.event.head_commit.message, '[anker-internal17-diagnose]')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Grenzen ohne Google oder Zugangsdaten prüfen
+        run: |
+          python3 scripts/test-google-play-internal-diagnose.py
+          python3 scripts/test-google-play-internal-release.py
+          python3 scripts/test-google-play-upload.py
+          python3 scripts/test-google-play-auth.py
+          python3 scripts/test-google-play-workflow.py
+      - name: Freigegebenen App-Stand und grüne CI prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          manifest = json.loads(pathlib.Path('docs/PLAY_UPLOAD_APPROVAL.json').read_text())
+          approved = json.loads(pathlib.Path('docs/AKTUELLER_UPDATESTAND.json').read_text())
+          checks = [('applicationId', 'packageName'), ('sourceCommit', 'sourceCommit'),
+                    ('sourceFingerprint', 'sourceFingerprint'), ('versionCode', 'versionCode')]
+          if any(approved.get(left) != manifest.get(right) for left, right in checks):
+              raise SystemExit('App-Bundle und letzter freigegebener Update-Stand unterscheiden sich.')
+          cert = lambda value: value.replace(':', '').lower() if isinstance(value, str) else ''
+          if cert(approved.get('publicCertificateSha256')) != cert(manifest.get('signingCertificateSha256')):
+              raise SystemExit('Das freigegebene App-Zertifikat stimmt nicht überein.')
+          repository = 'frnkrm/anker'
+          if os.environ.get('GITHUB_REPOSITORY') != repository:
+              raise SystemExit('Dieser Workflow ist nur für frnkrm/anker freigegeben.')
+          source = manifest['sourceCommit']
+          run_id = manifest['ci']['runId']
+          expected_url = f'https://github.com/{repository}/actions/runs/{run_id}'
+          if approved.get('ciRunURL') != expected_url:
+              raise SystemExit('Das freigegebene CI-Ergebnis gehört nicht zum Bundle.')
+          opener = urllib.request.build_opener(NoRedirect())
+          def get(path):
+              request = urllib.request.Request('https://api.github.com/repos/' + repository + path,
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                           'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
+              try:
+                  with opener.open(request, timeout=30) as response:
+                      data = response.read(3_000_001)
+                      if len(data) > 3_000_000:
+                          raise ValueError()
+                      return json.loads(data)
+              except Exception:
+                  raise SystemExit('Der unabhängige GitHub-CI-Nachweis konnte nicht gelesen werden.') from None
+          run = get(f'/actions/runs/{run_id}')
+          if (run.get('id') != run_id or run.get('head_sha') != source or run.get('head_branch') != 'main'
+              or run.get('event') != 'push' or run.get('status') != 'completed' or run.get('conclusion') != 'success'
+              or run.get('path') != '.github/workflows/ci.yml' or run.get('html_url') != expected_url
+              or run.get('repository', {}).get('full_name') != repository):
+              raise SystemExit('Die exakte main/push-CI des App-Bundles ist nicht erfolgreich nachgewiesen.')
+          jobs = get(f'/actions/runs/{run_id}/jobs?filter=latest&per_page=100')
+          required = {'check', 'PC-Begleiter / ubuntu-latest / Python 3.12', 'PC-Begleiter / windows-latest / Python 3.12'}
+          rows = jobs.get('jobs', [])
+          if (jobs.get('total_count') != 3 or len(rows) != 3 or {row.get('name') for row in rows} != required
+              or len({row.get('id') for row in rows}) != 3
+              or any(row.get('run_id') != run_id or row.get('status') != 'completed'
+                     or row.get('conclusion') != 'success' for row in rows)):
+              raise SystemExit('Nicht alle drei erforderlichen CI-Jobs sind erfolgreich nachgewiesen.')
+          comparison = get('/compare/' + source + '...' + os.environ['GITHUB_SHA'])
+          if comparison.get('status') not in ['ahead', 'identical']:
+              raise SystemExit('Der freigegebene App-Stand ist kein Vorfahr dieses Workflows.')
+          print('Unabhängig bestätigt: Code17-Appstand und alle drei grünen CI-Jobs.')
+          PY
+      - name: Nur für Google Play authentifizieren
+        id: auth
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python3 - <<'PY_ID'
+          import hashlib, json, os
+          expected = '0e013c2bcf19422ba8a64a88a6ea61783c271fd77b2274bab83455c83ccc3b15'
+          try:
+              email = json.loads(os.environ['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'])['client_email']
+              matches = isinstance(email, str) and hashlib.sha256(email.encode()).hexdigest() == expected
+          except Exception:
+              matches = False
+          print('serviceAccountMatchesExpected=' + str(matches).lower())
+          if not matches:
+              raise SystemExit('Das konfigurierte Dienstkonto ist nicht das im Nutzerbild geprüfte Konto. Keine Google-Anmeldung.')
+          PY_ID
+          python3 scripts/google-play-auth.py --run
+      - name: Code17-Aktivierung nur im verworfenen Edit prüfen
+        env:
+          GOOGLE_PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: >-
+          python3 scripts/google-play-internal-diagnose.py
+          --manifest docs/PLAY_UPLOAD_APPROVAL.json
+          --report "$RUNNER_TEMP/anker-internal17-diagnose.json"
+      - name: Begrenztes Ergebnis sichern
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: Anker-Internal17-Diagnose-${{ github.run_id }}
+          path: ${{ runner.temp }}/anker-internal17-diagnose.json
+          if-no-files-found: ignore
+          retention-days: 14
