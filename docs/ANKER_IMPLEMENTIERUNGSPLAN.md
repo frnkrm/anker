@@ -1,5 +1,33 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: belegte SDK-Auflösungslücke minimal lokal geschlossen (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Direkte neue Freigabe erlaubt nur Prepare-SDK-run-Block und notwendige Offlinefälle. Vor Fix konfiguriertes künstliches SDK ohne PATH-Eintrag rot/127, danach 17SDK+14Workflow+7Protokoll grün. Kein neuer Helper, keine neue Action/CI-Einbindung oder Installation. Konsistente kanonische SDK-Wurzeln, ausführbares Werkzeug, feste Argumente, Fehlerweitergabe; übrige Jobs/Gates/Trigger unverändert. Lokale Einrichtung/echte SDK-Prozesse/Builds/Übertragung/Workflowstart unterbleiben. Neuer lokaler J ist nicht W2 oder erfolgreicher Runnerstand. Nächster eigener Auftrag nur gesonderter Branch-Push samt automatischer CI, keine main-/prepare/sign-Freigabe. T-006/V-014/E-002–E-005 und weitere Abnahmen offen; folgende Abschnitte historisch.
+
+## T-006: SDK-Abbruch durch Nutzerbeleg eingegrenzt (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): SDK-Schritt P2/Versuch1 scheitert tatsächlich an `sdkmanager: command not found`, nicht allein am bislang sichtbaren Exit127. Befehl nicht gestartet; SDK-Fehlbestand versus Suchpfad weiterhin offen. Direkter Nutzerauftrag beschränkt diesen Abschluss auf Ursachenbeleg und Plan: keine Workflow-/SDK-/PATH-Änderung, Tests oder Neuläufe. Nur sieben Dokumentationsdateien lokal sichern/committen. Nächster separater Auftrag ausschließlich lokale Prepare-Werkzeugauflösung mit künstlichen Offlinefällen; keine ungebundene Installation oder Änderung anderer APK-/Signierpfade. M/W2-Gates und U1 bleiben erhalten; U2/S und T-006/V-014/E-002–E-005/Gesamtfreigaben offen. Folgende Abschnitte historisch.
+
+## T-006: neuer Prepare-Abbruch nach erfolgreichem Resolve belegt (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/W2/main/workflow_dispatch/Versuch1Failure. Resolve grün, prepare im SDK-Bereitstellungsschritt mit Exit127 rot; konkrete Detailursache hinter Log-Anmeldung/APIForbidden. Nur Ursachenbeleg soweit vorhanden und Zugriffslücke, kein Fix/Retry oder neuer SDK-/Workflow-/Produkt-/Versionseingriff. Sign/verifySkipped, keine Artefakte/U2/S. M/W2-CI-Gates vorab bestätigt, U1/Code17/alte Sicherungen erhalten. D3 lokal sichern, T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag genau vorhandenen SDK-Detailfehler lesend einholen.
+
+## T-006: regulärer PR4-Merge samt eigenem W2-main-Gate belegt (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Nach autorisiertem Besitzer-UI-Rückweg PR4Merged/mainW2=87c83fed, zwei ElternW/K und EntwicklungsheadK erhalten. CI43676620317/exaktW2/push/main/Versuch1Success,1372Vitest ohne Fehler/Skips und379Browser laut Summary. Eigener M-Quell-Gate separat bestätigt; keine Docs-Ausnahme oder synthetische Runtime-SHA. W2-Helper717Zeilen entsprechen K/R. Nur Abschlussdokumentation lokal sichern, keine Tests/Builds/Dispatch/Signier-/Playaktion und kein Nachpush. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag separat einmal prepare M/W2.
+
+## T-006: neue PR4-main-Vorlage mit getrennten Gates (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): K/W-Refs und PR4Open frisch bestätigt, beide bestehenden CI/Versuch1 grün erhalten. Vollständiger Quellenvergleich abgeglichen, neue Vorlage mit regulärem Merge-Commit-Weg, Abbruchbedingungen, späterem tatsächlichem W2 und eigenem main-Push-CI-Gate. Unbekannte Schutz-/Konflikt-/Runtimefelder nicht umgedeutet, keine Docs-Ausnahme. Main-CI und mögliche vorhandene main-Webwirkung müssen im nächsten eigenen Integrationsauftrag ausdrücklich enthalten sein. Heute nur neue Dokumentation lokal sichern, kein Merge/Test/Build/Workflowstart. T-006/V-014 und E-002–E-005/Freigaben offen.
+
+## T-006: autorisierter regulärer PR4 mit eigener CI belegt (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Nach APIForbidden normaler Besitzer-UI-Rückweg, PR4 Open/K→mainW öffentlich bestätigt; kein Doppel-PR oder Merge. Vollständiger Vergleich 7 Commits/16 Dateien mit lokalem Übergabediff inhaltlich gleich. Neue PR-CI43666843700/Versuch1 Success, 1372 Vitest ohne Fehler/Skips und379Browser laut Summary. Workflowdateiquelle K, tatsächliche API-/Checkout-SHA unbekannt; synthetischer Mergeref getrennt. Q nur neue lokale Dokumentation/Sicherung, kein Nachpush/Test-/Build-/Workflowneustart. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag nur lesender PR4-main-Integrationsplan.
+
+## T-006: Schemafix auf Entwicklungsbranch mit grüner CI belegt (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): K nach erfüllter aktueller Ref-/Quell-/Hook-/Triggerprüfung einmalig auf Entwicklung gepusht; main=W erhalten. 16 Dateien nur Dokumentation/Helper-/Offline-Regressionen, sechs Workflows unverändert. Neue CI43664473155 für K/push/Entwicklung/Versuch1 erfolgreich, 1372 Vitest ohne Fehler/Skips und 379 Browserfälle laut öffentlicher Summary. Keine lokale Test-/Buildwiederholung, manuellen AAB-/Signier-/Playaktionen oder PR-Erstellung. N ausschließlich lokal sichern, nicht nachpushen. T-006/V-014/E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag regulären neuen PR ohne Merge erstellen.
+
 ## T-006: kleinste Prepare-Schemakorrektur lokal geprüft (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Drei Helperzeilen ergänzen ausschließlich ausgelassene optionale leere Signierfelder bei prepare; globales exact(), sign und sämtliche anderen Funktionen/Konstanten unverändert. Rotbeleg vor Fix mit 32 Fehlern; nach Fix 35 Protokoll- und fünf gezielte Workflowtests grün. Keine neue Engine, Workflow-/Produkt-/Versionsänderung, echte Signierung oder Übertragung. P-Runtimeform weiterhin unbekannt. Lokaler K-Abschluss gesichert; T-006/V-014 und E-002–E-005/Freigaben offen. Nächster eigener Auftrag nur begrenzter Entwicklungsbranch-Push mit frischer Quellen-/Triggerprüfung und CI-Nachkontrolle; manuelles prepare/sign bleibt ungestartet.

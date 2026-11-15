@@ -1,5 +1,33 @@
 # Anker: Testnachweise
 
+## T-006: gezielte Prepare-SDK-Regressionen, kein Runnerneulauf (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Vor Workflowfix ein neuer Auflösungsfall mit isoliertem künstlichem SDK erwartungsgemäß rot/Exit127. Nach Minimalfix 16SDK+14Workflow=30 grün; danach nur ein zusätzlicher SDK-Startfehlerfall grün und sieben ausgewählte Protokollgates grün. Insgesamt 38 verschiedene Fälle ohne Skips: 17SDK/14Workflow/7Protokoll, genaue Befehle/Logs in neuer lokaler Sicherung. Kein echtes SDK ausgeführt, keine geerbte SDK-/PATH-/Secretumgebung der Prozessattrappen; keine Produkt-/Web-/Android-/Paketvollsuite oder echte Signierung wiederholt. Offlinegrün ersetzt weder Branch-/main-CI noch Prepare/U2/Krypto/Geräte. M/W2-CI und frühere Prüfungen erhalten; U2/H2/HP/A/S/E-002–E-005 offen. Folgende Abschnitte historisch.
+
+## T-006: konkreter SDK-stderr als Screenshotbeleg, kein Testneulauf (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerbild aus exakt P2 43679893044/Job132708064401 zeigt `line 1: sdkmanager: command not found`/Exit127. Vorherige Werkzeug-/Checkout-Schritte grün, nachfolgende Paketierung/Unsigned-Prüfung übersprungen. Kein AAB-/SDK-Bestands-/Geräteerfolg und kein Agenten-API-Log. Screenshot-Inputdarstellung nur für P2 belegt; alter P bleibt hinsichtlich Rohinput unbekannt. Heute nur statische Quellenzuordnung und Dokumentations-/Sicherungsintegrität; keine Produkt-/Offline-/Browser-/Native-Suite, kein Build/Dispatch/Retry. Vorhandene M-/W2-CI und frühere Tests erhalten. U2/H2/HP/A/S fehlen, E-002–E-005 offen; spätere Offlineauflösung wäre noch kein Runnernachweis. Folgende Abschnitte historisch.
+
+## T-006: echter neuer Runner-Abbruch, kein Paket- oder Geräteerfolg (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): P2 43679893044/workflow_dispatch/main/W2/Versuch1Failure30s; public Jobgraph resolveSuccess8s, prepareFailure17s, sign/verifySkipped. Jobannotation SDK-Bereitstellung/Exit127 belegt, Runtimefehlertext mangels Logs nicht gelesen. SDK-Quellbefehl nicht als stderr ausgeben; keine Ursache aus Exitcode ableiten. Nachfolgende Paketierung/Unsigned-Prüfung ohne Erfolgsbeleg, Summary keineArtefakte; kein U2/H2/HP/A/S. Vorhandene M-/W2-CI nur gelesen, keine lokalen Tests/Builds/Paket-/Signierprüfungen wiederholt. Rerun/Fix nicht ausgeführt; E-002–E-005 weiter offen.
+
+## T-006: eigene exakte W2-push/main-CI statt PR-Ersatz (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): CI43676620317, ci.yml/exaktW2 `87c83fedf5c1aa52450ee36f650134c442928c28`/push/main/Versuch1Success,10m31s. Öffentliche Notices1372 passed/0 failed/0 skipped Vitest,379 passed (9.0m) Playwright. PR-Mergecommit/ElternW,K/Ref/Commitlink/Workflowquelle W2 eindeutig gebunden; API-/Runnerdaten nicht als ausgelesen behauptet. M-CI43601398931/M/push/main/Versuch1Success frisch nur gelesen; kein Neulauf. W2-Helperquellzeilen gleich K/R. Keine lokale Suite, Native-JUnit, App-/Paket-/Signier-/Geräteprüfung wiederholt; frühere K-/PR-CI bleiben getrennt historisch. U2/S und E-002–E-005 weiter offen.
+
+## T-006: bestehendes K-/PR4-Grün nur gelesen, W2-CI erst später (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Aktuelle öffentliche Summarys43664473155/push/Entwicklung und43666843700/pull_request opened#4/Entwicklung weiterhin Success/Versuch1; jeweils1372Vitest ohne Fehler/Skips und379Browser. PR-Workflowdateiquelle K frisch bestätigt, API-run.head_sha/Checkout weiter unbekannt. Keine Tests/CI/Builds neu ausgeführt. Vollständigen früheren W...K-Diff und aktuellen lokalen L→K-Diff inhaltlich abgeglichen; nur ein Hunk-Kontextname anders dargestellt. Direkter PR-.diff/API-Forbidden nicht erneut versucht oder repariert. K-/PR-Grün ersetzt keine spätere eigene W2/main/push/ci.yml und keinen unabhängigen M-Quell-CI-Beleg. E-002–E-005 bleiben echte offene Gerätebeobachtungen.
+
+## T-006: PR4-CI getrennt vom erfolgreichen K-Pushlauf (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): CI43666843700, ci.yml/pull_request opened#4/Entwicklung/Versuch1 Success, 9m51s. Öffentliche Notices: 1372 passed/0 failed/0 skipped Vitest;379 passed (8.7m) Playwright. Workflowdateiquelle K und PR-head-K belegt, API-run.head_sha/Runnercheckout weiterhin unbekannt; synthetische PR-Mergeref nicht gleichgesetzt. Vorhandene Push-CI43664473155/K separat erhalten; keine lokale Test-/Buildwiederholung. Direkter PR-.diff-Abruf mit Tunnel403 gescheitert, vorhandener vollständiger W...K-Vergleich mit lokalem L→K-Diff und frischer PR-Dateiansicht abgeglichen. Kein echter AAB-/Signier-/Gerätebeleg oder neues main-W2-Gate. U2/S und E-002–E-005 bleiben offen.
+
+## T-006: neue exakte K-Push-CI statt lokaler Wiederholung (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): CI43664473155, ci.yml/push/entwicklung/anker-neu, vollständiger K `77316d69d637c0445cf5d2f4dada37c23011a70f`, Versuch1, Success/10m3s. Öffentliche Notices: 1372 passed/0 failed/0 skipped für Vitest, 379 passed (8.8m) für Playwright. Workflowansicht und Commitlink binden K; API-run.head_sha/Runnercheckout nicht ausgelesen. Einzelne AAB-Offlinezahlen aus Runnerlogs nicht zusätzlich behauptet. Frühere 35+5 lokale Offlineprüfungen getrennt erhalten, heute keine lokalen Tests/Builds. Keine neue native JUnit, AAB-, Signier- oder Geräteabnahme; P weiterhin fehlgeschlagen, U2/S fehlen. K-Branch-CI ersetzt keine spätere main-CI.
+
 ## T-006: Eingabeschema mit Rot-/Grünbeleg lokal abgesichert (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Sieben neue Methoden zuerst am unveränderten Helper ausgeführt: 32 INVALID_SCHEMA-Fehler (31 unvollständige Prepare-Präsenzkombinationen und Resolve-Pfad). Nach Drei-Zeilen-Fix 35/35 ProtocolTests und 5/5 ausgewählte bestehende Workflow-Grenztests grün, keine Skips. Alle 32 Prepare- und 31 unvollständigen sign-Präsenzkombinationen, Typen/Pflichtfelder/Allowlist sowie Quellen-/main-/CI-/Kontextgrenzen abgedeckt. Exakte Befehle und Logs in der lokalen Sicherung. API-/Prozess-/Signierwerte ausschließlich künstlich; kein echter Signier-, Runner-, Paket- oder Gerätebeleg. Java-Verifikator und Produktvollsuiten nicht erneut ausgeführt. Frühere CI unverändert historisch, echter P-Payload unbekannt. Kein U2/S; T-006/V-014 und E-002–E-005 offen.

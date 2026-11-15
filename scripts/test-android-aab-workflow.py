@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -168,6 +169,155 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn(term, guard)
         self.assertNotRegex(guard, r'signingConfig\s*=(?!=)')
         self.assertNotIn('enabled = false', guard)
+
+
+class PrepareSDKTests(unittest.TestCase):
+    """Execute only the SDK step with isolated PATH/SDK and artificial tools."""
+
+    @classmethod
+    def setUpClass(cls):
+        steps = load_yaml(PATH)['jobs']['prepare']['steps']
+        cls.sdk_step = next(s['run'] for s in steps if s.get('name') == 'Benötigte bestehende Android-SDK-Versionen bereitstellen')
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='anker-sdk-offline-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.bin = self.root / 'path'
+        self.bin.mkdir()
+        # No inherited SDK, PATH, credentials, Actions files or real sdkmanager.
+        (self.bin / 'python3').symlink_to(sys.executable)
+        self.log = self.root / 'invocations.jsonl'
+        self.env = {'PATH': str(self.bin), 'FAKE_SDK_LOG': str(self.log)}
+
+    def fake(self, path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('#!' + sys.executable + '\n' + '''import json, os, sys
+with open(os.environ['FAKE_SDK_LOG'], 'a') as f:
+    f.write(json.dumps(sys.argv[1:]) + '\\n')
+if os.environ.get('FAKE_SDK_EXIT'):
+    print('FAKE_SDK_FAILURE', file=sys.stderr)
+sys.exit(int(os.environ.get('FAKE_SDK_EXIT', '0')))
+''')
+        path.chmod(0o755)
+        return path
+
+    def sdk(self, name='sdk'):
+        root = self.root / name
+        self.fake(root / 'cmdline-tools/latest/bin/sdkmanager')
+        return root
+
+    def invoke(self):
+        return subprocess.run(['/bin/bash', '-e', '-c', self.sdk_step], env=self.env,
+                              cwd=self.root, capture_output=True, text=True, timeout=10)
+
+    def assert_success(self):
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.log.read_text().splitlines(),
+                         [json.dumps(['platforms;android-36', 'build-tools;35.0.0'])])
+
+    def assert_rejected(self, reason):
+        result = self.invoke()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('AAB-SDK-Prüfung abgebrochen: ' + reason, result.stderr)
+        self.assertFalse(self.log.exists(), 'No tool may execute on invalid configuration')
+        self.assertNotIn(str(self.root), result.stderr)
+
+    def test_path_tool_without_sdk_roots(self):
+        self.fake(self.bin / 'sdkmanager')
+        self.assert_success()
+
+    def test_configured_sdk_without_path(self):
+        self.env['ANDROID_HOME'] = str(self.sdk())
+        self.assert_success()
+
+    def test_sdk_root_alias_without_path(self):
+        self.env['ANDROID_SDK_ROOT'] = str(self.sdk())
+        self.assert_success()
+
+    def test_both_roots_same_canonical_sdk(self):
+        sdk = self.sdk()
+        alias = self.root / 'alias'
+        alias.symlink_to(sdk, target_is_directory=True)
+        self.env.update(ANDROID_HOME=str(sdk), ANDROID_SDK_ROOT=str(alias))
+        self.assert_success()
+
+    def test_path_tool_inside_configured_sdk(self):
+        sdk = self.sdk()
+        (self.bin / 'sdkmanager').symlink_to(sdk / 'cmdline-tools/latest/bin/sdkmanager')
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_success()
+
+    def test_conflicting_sdk_roots_do_not_execute_path_tool(self):
+        self.env.update(ANDROID_HOME=str(self.sdk('one')), ANDROID_SDK_ROOT=str(self.sdk('two')))
+        self.fake(self.bin / 'sdkmanager')
+        self.assert_rejected('SDK_ROOT_CONFLICT')
+
+    def test_path_tool_outside_configured_sdk_is_not_silently_replaced(self):
+        self.env['ANDROID_HOME'] = str(self.sdk())
+        self.fake(self.bin / 'sdkmanager')
+        self.assert_rejected('SDK_TOOL_ROOT_CONFLICT')
+
+    def test_no_tool_or_sdk_is_actionable(self):
+        self.assert_rejected('SDKMANAGER_UNAVAILABLE')
+
+    def test_configured_sdk_without_commandline_tools(self):
+        sdk = self.root / 'sdk'
+        sdk.mkdir()
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_rejected('SDKMANAGER_UNAVAILABLE')
+
+    def test_nonexecutable_sdkmanager(self):
+        sdk = self.sdk()
+        (sdk / 'cmdline-tools/latest/bin/sdkmanager').chmod(0o644)
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_rejected('SDKMANAGER_UNAVAILABLE')
+
+    def test_sdkmanager_directory_is_not_executable_tool(self):
+        sdk = self.root / 'sdk'
+        (sdk / 'cmdline-tools/latest/bin/sdkmanager').mkdir(parents=True)
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_rejected('SDKMANAGER_UNAVAILABLE')
+
+    def test_missing_or_relative_root_does_not_fall_back_to_path(self):
+        self.fake(self.bin / 'sdkmanager')
+        for value in [str(self.root / 'missing'), 'relative/sdk', ' ', 'bad\nroot']:
+            with self.subTest(value=repr(value)):
+                self.env['ANDROID_HOME'] = value
+                self.assert_rejected('SDK_ROOT_INVALID')
+
+    def test_empty_roots_allow_existing_path_tool(self):
+        self.env.update(ANDROID_HOME='', ANDROID_SDK_ROOT='')
+        self.fake(self.bin / 'sdkmanager')
+        self.assert_success()
+
+    def test_spaces_and_shell_metacharacters_are_literal_paths(self):
+        sdk = self.sdk('sdk with space;$(touch PWNED)')
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_success()
+        self.assertFalse((self.root / 'PWNED').exists())
+
+    def test_sdk_tool_symlink_outside_root_is_rejected(self):
+        sdk = self.root / 'sdk'
+        candidate = sdk / 'cmdline-tools/latest/bin/sdkmanager'
+        candidate.parent.mkdir(parents=True)
+        candidate.symlink_to(self.fake(self.root / 'other/sdkmanager'))
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_rejected('SDK_TOOL_ROOT_CONFLICT')
+
+    def test_real_tool_exit_and_stderr_propagate_without_retry(self):
+        self.env.update(ANDROID_HOME=str(self.sdk()), FAKE_SDK_EXIT='23')
+        result = self.invoke()
+        self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertIn('FAKE_SDK_FAILURE', result.stderr)
+        self.assertEqual(len(self.log.read_text().splitlines()), 1)
+
+    def test_invalid_tool_interpreter_aborts_with_limited_diagnostic(self):
+        sdk = self.sdk()
+        (sdk / 'cmdline-tools/latest/bin/sdkmanager').write_text('#!/NONEXISTENT-ANKER-TEST-INTERPRETER\n')
+        self.env['ANDROID_HOME'] = str(sdk)
+        self.assert_rejected('SDKMANAGER_EXECUTION_FAILED')
 
 
 if __name__ == '__main__':unittest.main(verbosity=2)

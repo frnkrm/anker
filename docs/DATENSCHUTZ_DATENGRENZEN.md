@@ -1,5 +1,33 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: SDK-Auflösung mit isolierten Offlineprozessen geprüft (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Tests übergeben nur künstliche temporäre SDK-/PATH-Werte und selbst geschriebene Prozessattrappen; keine geerbten Secret-/SDK-/Actions-Ausgabewerte. Neuer Prepare-run-Block gibt bei Konfigurationsfehlern nur feste Diagnosetags aus, keine Pfad-/Input-/Token-/Umgebungsdumps. SDK-/PATH-Umgebung bleibt unverändert; resolve/sign/verify und deren Secretgrenzen unverändert. Keine externe Abfrage, Installation, echte SDK-/Signier-/Cloud-/Play-/Geräteaktion. U1/Code17/alte Sicherungen erhalten, U2/S und weitere Freigaben offen; J nur lokal sichern. Folgende Abschnitte historisch.
+
+## T-006: vorhandener Fehler als begrenzter Nutzer-Screenshotbeleg (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Vorhandene angemeldete Jobansicht vom Nutzer bereitgestellt. Nur minimaler Fehlertext und relevante nichtgeheime P2-Input-Schlüsselmenge dokumentiert; kein vollständiger Umgebungsdump, kein Bildpfad/-hash erfunden. API-/Logzugriff blieb gesperrt, keine Authreparatur oder Secret-/Schlüssel-/Sessionsuche. Keine neuen Nutzdaten, Datenübertragungen, SDK-/Workflow-/Cloud-/Play-/Geräteänderungen. Nur lokale Dokumentation/Sicherung; U1 und Freigabegrenzen erhalten, U2/S fehlen. Folgende Abschnitte historisch.
+
+## T-006: einmaliger Prepare-Dispatch ohne Signierfreigabe (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Autorisierter Besitzer-UI-Start eines neuen prepare-Laufs nach fehlendem Agenten-Dispatchweg; Agent nur GitHub-Metadaten/Quellen/Jobbelege gelesen. Angeforderte M/W2/prepare/Leerbindungen von nicht ausgelesenen Raw-Inputs getrennt. Resolve grün, SDK-Schritt rot; sign/verifySkipped, keine Artefakte/privaten Signierwerte. Keine Secret-/Schlüssel-/Session-/Auth-/Cloud-/Playabfrage, SDK-/Workflowänderung oder Geräteaktion. Tatsächliche Detailursache mangels Logzugriff unbekannt; keine Umgebungsdumps angefordert. U1 unverändert, U2/S fehlen; D3 nur lokal sichern.
+
+## T-006: autorisierter main-Merge ohne private Schlüssel- oder Playaktion (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Besitzer führte regulären Merge aus; Agent las öffentliche GitHub-Ref-/PR-/Commit-/Eltern-/Quell-/CI-Daten. Keine Authreparatur, Secret-/Schlüssel-/Sessionsuche, Play-/Consoleabfrage oder aktive Cloudänderung. Bestehende automatische main-CI samt Prüfungen/Webbuild/Artefakten und mögliche bereits bestehende main-Webveröffentlichung waren freigegeben; tatsächliche Veröffentlichung nicht separat belegt. Kein manueller AAB-/Signierlauf, Paketdownload oder echte Gerätewirkung. Öffentliche HTML-Bindungen von unbekannten API-/Runnerdaten getrennt. U1 unverändert, U2/S fehlen; D2 nur lokale Nachkontrolle/Sicherung.
+
+## T-006: reine PR4-Integrationsplanung ohne neue Datenflüsse (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): Nur öffentliche GitHub-Ref-/PR-/CI-/Rulesets-/Workflow-/Vergleichsdaten gelesen und vorhandenen vollständigen Vergleich mit lokalem Diff abgeglichen. Keine Secret-/Schlüssel-/Session-/Auth-/Cloud-/Playabfrage, PR-Schreibaktion oder Workflowausführung. Bekannte Forbidden-Wege nicht erneut versucht/repariert. Mögliche bestehende main-Webwirkung nur als später ausdrücklich freizugebende Integrationswirkung erfasst, keine Aktivierung/Veröffentlichung behauptet. U1/Produktdaten/Freigaben unverändert, U2/S fehlen; R nur lokal sichern.
+
+## T-006: regulärer PR4 ohne Secret- oder Gerätezugriff (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): Besitzer führte die autorisierte normale PR-Erstellung mit geprüftem Titel/Text aus. Agent las öffentliche GitHub-Ref-/PR-/CI-/Workflowdaten; eigene API-Leseabfrage Forbidden, direkter PR-Diff-Redirect Tunnel403, keine Reparatur/Umgehung oder Secret-/Session-/Schlüsselsuche. Zulässiger vollständiger Vergleich W...K und aktuelle PR-Refs getrennt von unbekannten API-/Runnerdaten belegt. Bestehende automatische PR-CI freigegeben, keine Cloudänderung/manuellen AAB-/Signier-/Play-/Geräteaktionen oder Paketdownloads. U1 unverändert, U2/S fehlen. Historische UI-Wartebelege und aktueller Q-Abschluss lokal sichern, nicht nachpushen.
+
+## T-006: autorisierte Quellübergabe ohne Secret- oder Nutzdatenzugriff (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Ausschließlich freigegebene Quell-/Dokumentationsübertragung K auf den Entwicklungsbranch und öffentliche GitHub-Ref-/PR-/CI-/Workflowmetadaten gelesen. Keine Secret-/Schlüssel-/Session-/Google-Playabfrage oder Auth-/Cloudänderung. Automatische bestehende CI einschließlich synthetischer Offlineprüfungen, Webbuild und PC-Quellpaketartefakt erlaubt; kein manueller AAB-/Signierlauf, kein Paketdownload oder echte Gerätewirkung. U1 unverändert, U2/S fehlen. Öffentliche Commit-/HTML-Belege von nicht gelesenen API-/Runnerdaten getrennt. N mit Belegen nur lokal sichern, weitere Freigaben offen.
+
 ## T-006: Prepare-Defaultkorrektur ohne neue Datenflüsse (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Nur fehlende optionale Signierfelder im Prepare-Eingabeobjekt werden auf definierte leere Defaults ergänzt. Vorhandene Werte, unbekannte Schlüssel/null/falsche Typen und sign-Bindungen bleiben streng geprüft. Keine zusätzlichen Daten, Dumps oder Diagnosepayloads gespeichert, keine echten Secrets gelesen. Offlineprüfungen verwenden künstliche Werte und Prozess-/APIattrappen bei blockiertem Netz; keine echte Signierung. Produktdaten, Freigaben, Workflows und U1 unverändert; kein U2/S. Lokaler K-Abschluss mit Rot-/Grünbelegen gesichert, weitere Freigaben offen.

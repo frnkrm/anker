@@ -1,5 +1,33 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: lokale Prepare-SDK-Auflösung geprüft, Remoteabnahme offen (15.11.2026)
+
+[Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Nur Prepare-run-Block und Offlinefälle ergänzt; Rot127 vor Fix, 17SDK/14Workflow/7Protokoll grün. Keine Installation/echte SDK-Ausführung oder Übertragung. J nur lokal, nicht W2/CI-head. Tatsächlicher Runnerbestand sowie U2/S offen. Genau nächster separat zu beauftragender Auftrag: J einmalig auf Entwicklung pushen und bestehende automatische CI lesen, vorher frische Zielrefs/Quellen/Trigger prüfen. T-006/V-014 IN_ARBEIT, E-002–E-005/Freigaben offen; folgende Abschnitte historisch.
+
+## T-006: P2-Detailfehler zugeordnet, lokale SDK-Auflösung noch offen (15.11.2026)
+
+[P2-SDK-Detailfehler und begrenzter Folgeplan](P2_SDK_DETAILFEHLER_T006.md): Nutzerscreenshot belegt `sdkmanager: command not found`/Exit127 im vorhandenen P2; tatsächliche Installation/PATH-Ursache offen. Kein Fix/Neulauf. Genau nächster separater Auftrag: nur lokalen Prepare-Auflösungsfehler minimal absichern und Offlinefälle mit künstlicher Runnerumgebung prüfen; keine Installation/Übertragung/Workflowausführung. D4 nur lokale Dokumentation, T-006/V-014 IN_ARBEIT; E-002–E-005/Freigaben und U2/H2/HP/A/S offen. Folgende Abschnitte historisch.
+
+## T-006: P2-Resolve grün, Prepare-SDK-Detailfehler offen (15.11.2026)
+
+[Neuer W2-prepare-Lauf und belegter SDK-Abbruch](CODE18_PREPARE_W2_NACHKONTROLLE_T006.md): Neuer P2/Versuch1Failure im Prepare-SDK-Schritt/Exit127, vorher ResolveSuccess. Genaues Detail hinter Sign in to view logs/APIForbidden, keine Artefakte/U2/S. Nur dokumentiert, keine Korrektur oder Wiederholung; nächster eigener Auftrag vorhandene Fehlerzeilen lesend beschaffen/zuordnen. D3 nur lokal, T-006/V-014 IN_ARBEIT,E-002–E-005/Freigaben offen; folgende Abschnitte historisch.
+
+## T-006: PR4Merged und W2-main-CI grün, prepare separat offen (15.11.2026)
+
+[PR4-Merge und eigene W2-main-CI](PR4_MAIN_CI_NACHKONTROLLE.md): Tatsächliches mainW2=87c83fed, reguläre ElternW/K, EntwicklungK erhalten. Neue eigene ci.yml43676620317/W2/push/main/Versuch1Success; M-Quell-Gate separat gelesen. Main-Integration im belegten Umfang abgeschlossen, kein prepare/sign/U2/S. D2 nur lokal, T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag separat einmaliger secretfreier prepare-Lauf M/W2; folgende Abschnitte historisch.
+
+## T-006: PR4-main-Plan erstellt, Integration separat offen (15.11.2026)
+
+[Konkreter PR4-main-Integrationsplan](PR4_MAIN_INTEGRATION_PLAN.md): PR4Open/K→mainW, bestehende Push-/PR-CI grün. Konkreter regulärer Integrationsweg und spätere W2-main-CI geplant; noch kein Merge/Workflowstart/U2/S. Öffentliche Schutz-/Konflikt-/Runtimegrenzen erhalten. R nur lokaler Abschluss. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen; nächster eigener Auftrag reguläre PR4-Integration nur nach separater Freigabe einschließlich unveränderter main-Automatik. Folgende Abschnitte historisch.
+
+## T-006: PR4 Open und PR-CI grün, main-Planung offen (15.11.2026)
+
+[Regulärer Schemafix-PR4 und neue PR-CI](SCHEMAFIX_PR4_T006.md): PR4/K→mainW erstellt; eigene PR-CI43666843700 und K-Push-CI43664473155 jeweils Success/Versuch1. Kein Merge oder manueller AAB-Aufruf. Runtime-/Schutz-/Konfliktgrenzen ausdrücklich erhalten; nächster eigener Auftrag ausschließlich lesende konkrete PR4-main-Integrationsvorlage. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen; Q nur lokal. Folgende Abschnitte historisch.
+
+## T-006: K übertragen und Branch-CI grün, neuer PR noch zu erstellen (15.11.2026)
+
+[Schemafix-Push und neue CI-Nachkontrolle](CODE18_SCHEMAFIX_BRANCH_PUSH_T006.md): Entwicklung=K, main=W nach einmaligem Push aktuell bestätigt. CI43664473155/K/push/Entwicklung/Versuch1 erfolgreich; 1372 Vitest/379 Browser laut Summary. Kein offener PR vorhanden, keiner erstellt; nächster eigener Auftrag regulären PR K→main/W erstellen, ohne Merge. K nicht main-Workflowquelle, kein prepare/sign/U2/S. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Folgende Abschnitte historisch.
+
 ## T-006: lokaler Prepare-Schemafix grün, Remoteprüfung offen (15.11.2026)
 
 [Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Optionale Prepare-Defaults nach Rotbeleg minimal korrigiert; 35 Protokoll- und fünf gezielte Workflow-Grenztests lokal grün. Tatsächliche Eingabeform des fehlgeschlagenen P bleibt unbekannt. K nur lokal, kein neuer Remote-CI-/Workflow-/U2-/Signiernachweis. Nächster eigener Auftrag ausschließlich begrenzter Entwicklungsbranch-Push und CI-Nachkontrolle nach neuer Ref-/Triggerprüfung. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen; folgende Abschnitte historisch.
@@ -93,7 +121,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | T-003 | Roadmap und Übergabedokumentation einrichten | ERLEDIGT | T-002 | [§ 2.2, T-003](ANKER_PLAN.txt) |
 | T-004 | Plattform- und Geräteprüfungen vorbereiten | ERLEDIGT | T-003; nur Vorbereitung, E-002–E-004/Gerätebeobachtungen offen | [§ 2.2, T-004](ANKER_PLAN.txt) |
 | T-005 | Datenschutz und Datengrenzen absichern | ERLEDIGT | Software lokal; Datengrenzen für F-004 dokumentiert, neue Flüsse konkret prüfen | [§ 2.2, T-005](ANKER_PLAN.txt) |
-| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | W/main-CI historisch belegt; Prepare-Defaultfix lokal grün, K-Remote-CI/U2-/Signier-/Upload-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
+| T-006 | Integration und Gesamtabschluss | IN_ARBEIT | PR4Merged/W2-CI belegt; P2 sdkmanager nicht auflösbar belegt; lokale Auflösung/38Offlinefälle grün, Remote-/U2-/Signier-/Gerätefreigaben offen | [§ 2.2, T-006](ANKER_PLAN.txt) |
 | F-001 | Abfahrtsbereitschaft sichtbar machen | ERLEDIGT | T-003 | [§ 2.3, F-001](ANKER_PLAN.txt) |
 | F-002 | Kurzmodus bei Zeitmangel anbieten | ERLEDIGT | T-003, F-001 | [§ 2.3, F-002](ANKER_PLAN.txt) |
 | F-003 | Dynamischen Vorbereitungsimpuls ergänzen | ERLEDIGT | T-003, F-001; F-002 nur bevorzugte Reihenfolge | [§ 2.3, F-003](ANKER_PLAN.txt) |
@@ -122,7 +150,7 @@ Statuswerte: OFFEN, IN_ARBEIT, BLOCKIERT, BEREIT_ZUR_PRÜFUNG, ERLEDIGT. Für di
 | V-011 | Tatsächliche Weckerzuverlässigkeit prüfen | OFFEN | T-004, E-002 | [§ 2.1, V-011](ANKER_PLAN.txt) |
 | V-012 | Windows-Begleiter im Gerätebetrieb prüfen | OFFEN | T-004, E-003 | [§ 2.1, V-012](ANKER_PLAN.txt) |
 | V-013 | Kalenderintegration tatsächlich prüfen | OFFEN | T-004, E-004 | [§ 2.1, V-013](ANKER_PLAN.txt) |
-| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/U1 und W/main-CI belegt; Schemafix lokal geprüft, Remote-CI/U2/S und Geräte/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
+| V-014 | Gesamttests und sichere Releasevorbereitung | IN_ARBEIT | M/U1/W2-CI belegt; SDK-Auflösung lokal geprüft; neue CI/U2/S und Geräte/Gesamtfreigaben offen | [§ 2.1, V-014](ANKER_PLAN.txt) |
 | V-015 | Diagnose und Datenschutz überprüfen | ERLEDIGT | T-005; Code-/Softwareprüfung, Geräte/Konten offen | [§ 2.1, V-015](ANKER_PLAN.txt) |
 
 Bevorzugte spätere Reihenfolge F-001 → F-002 → F-003 → F-004 → F-005 → F-006 → F-007 → F-008 → F-009 → F-010; nicht automatisch abarbeiten. F-003 benötigt technisch kein F-002. Der in T-004 festgestellte native Toolchainblocker ist durch T-002 behoben; keine neue F-002-Abhängigkeit; [T-004-Prüfplan und Toolchainbedarf](GERAETETEST.md). T-004/T-005 rechtzeitig vor abhängigen Aufgaben, T-006 erst zum gemeinsamen Abschluss. Keine Bündelung ohne ausdrückliche Freigabe.
