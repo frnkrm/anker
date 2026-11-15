@@ -1,6 +1,50 @@
 # ⚓ Anker
 
-**Code17 / PC0.1.1 – historischer Releaseabschluss:** [Downloads, Bedienung und Nachweisgrenzen](docs/UPDATE_CODE17.md). Readback-Reihenfolge am 15.11.2026 korrigiert und offline geprüft; heutiger Play-Rollout und echte Gerätetests unbestätigt. Neuere Code18-Entwicklung bleibt separat. Die folgenden Releaseangaben sind historisch.
+**Android: Anker 1.5.0-rc.3 / Code17 · Windows-PC-Begleiter: 0.1.1**
+
+Anker unterstützt deinen Alltag mit einer nächsten Handlung, freiwilliger Abend-/Morgenbegleitung und einem lokalen PC-Begleiter. Der Offline-Kern funktioniert ohne Konto; zusätzliche Funktionen wählst du selbst.
+
+## Herunterladen und einrichten
+
+| Gerät | Aktueller Download | Nächster Schritt |
+| --- | --- | --- |
+| Android | [Anker im Play Store](https://play.google.com/store/apps/details?id=de.frnkrm.anker.mobile) · [Zum internen Test](https://play.google.com/apps/testing/de.frnkrm.anker.mobile) | Mit einem freigeschalteten Testkonto installieren oder **Aktualisieren** wählen. |
+| Windows 10/11 | **[PC-Begleiter 0.1.1 als ZIP herunterladen](https://codeload.github.com/frnkrm/anker/zip/f8275544b1192d069e23b49d79529f9e805d3945)** | Vollständig entpacken; [Einrichtung lesen](pc-companion/README.md#einrichten), dann **Einrichten.cmd** starten. |
+
+Code17 ist seit **15.11.2026 für interne Tester verfügbar**, per Play-Console-Anzeige und anschließender bestätigter Play-Installation von 1.5.0-rc.3 belegt. Es gibt daraus keine bestätigte öffentliche Produktionsfreigabe. Der PC-Download ist ein Quellpaket mit Einrichtungsskripten, keine signierte Windows-EXE. Er benötigt Python mit Tkinter (empfohlen Python 3.12 von python.org, mindestens 3.11); die Einrichtung benötigt einmal Internet für die festgelegten Abhängigkeiten. Zum Starten anschließend **Start.cmd** öffnen.
+
+Der lokale Handy-PC-Abgleich benötigt dasselbe private Netzwerk, aber kein Supabase-Konto. Kopplung, eigene Einstellungen und private Daten bleiben lokal geschützt. Einzelheiten: [PC-Bedienung und Installation](pc-companion/README.md) · [Handy und PC gemeinsam verwenden](docs/PC_BEGLEITER.md).
+
+## Was ist neu?
+
+### 1.5.0-rc.3 / Code17 – gegenüber rc.2
+
+- **Leise Schlafenszeit-Folgehinweise:** freiwillige, standardmäßig ausgeschaltete Begleitung bei eingeschaltetem, interaktivem und entsperrtem Bildschirm. Ohne Ton, Vibration, Bildschirmwecken oder automatischen Appwechsel. **5 Min später** verschiebt; **Heute Ruhe** beendet diese Nacht. Das ursprüngliche Fenster endet spätestens nach zwei Stunden und wird durch Verschieben nicht verlängert. Keine automatischen Erledigungen oder Punkte.
+- **Snoozes bleiben erhalten:** Angeforderte Erinnerungen gehen bei vorübergehenden Ruhe-/Fokus-/Zustellblockaden nicht mehr vorzeitig verloren. Die bisherigen Frischegrenzen gelten weiter.
+- **Google-Kalender auf dem Handy auswählen:** bereits synchronisierte Google-Kalender nach eigener Android-Lesefreigabe verwenden. Dafür ist kein eigenes Google-Cloud-Projekt nötig. Menü: **Mehr → Einstellungen → Kalender & Sync**.
+- **PC-Begleiter 0.1.1:** Kopplungs-QR bleibt bei Statusupdates sichtbar; vierstelliger Vergleichscode, bessere Oberfläche mit Monitor-/DPI-Anpassung und Rückmeldungen, bestätigter manueller WLAN-Abgleich. Minimieren und × lassen den Begleiter weiterlaufen; **Beenden** stoppt ihn. Zusätzliche Einstellungen und ein signierter Updatekanal mit getrennten Entscheidungen für Prüfen, Download und Installation.
+
+Die Schlafbegleitung findest du unter **Mehr → Einstellungen → Schlaf & Anker → Leise Schlafenszeit-Folgehinweise**. Ein eingeschalteter Bildschirm beweist nicht, dass du wach bist; Samsungs Spiel-Touchschutz wird nicht umgangen.
+
+### 1.5.0-rc.2 / Code16 – gegenüber rc.1
+
+- **Weckerverlauf & Diagnose:** lokales Android-Journal, höchstens sieben Tage und 800 technische Ereignisse. Zeitraum und Exportbereiche selbst wählen, Vorschau prüfen und Datei selbst teilen; kein automatischer Versand und keine privaten Aufgaben-/Notiztexte im Diagnoseexport.
+- **Robusterer Weckton:** Bei Fehlern während der Wiedergabe nächste vorhandene Tonquelle oder Ersatzton versuchen; Systemlautstärke und Nicht stören bleiben unverändert.
+- **Verbesserter bisheriger stummer Schlafhinweis:** Displayzustand, tatsächliche Einblendung und bestätigter App-Vordergrund werden genauer unterschieden. Keine Umgehung von Systemsperre oder Spielschutz.
+
+[Ausführliches Changelog](CHANGELOG.md) · [Schlafenszeit-Folgehinweise](docs/SCHLAF_FOLGEHINWEISE.md) · [Historische Software-/Artefaktnachweise Code17](docs/UPDATE_CODE17.md) · [Diagnoseexport Code16](docs/UPDATE_CODE16.md)
+
+<details>
+<summary>Prüfstand und Grenzen</summary>
+
+**Prüfstand:** Die Code17-Downloads wurden am 15.11.2026 erneut auf Größe und SHA256 geprüft; APK/AAB enthalten dieselben Web- und nativen DEX-Dateien. Die Python-Laufzeitdateien des PC-ZIPs stimmen mit dem Release-Quellstand überein. Play-Verfügbarkeit und Handyinstallation wurden anschließend vom Nutzer bestätigt; die Schlafbegleitungs-Einstellung ist sichtbar. Reale Weck-/Zustell-/Kalender-/Windows-Beobachtungen bleiben separat offen. Der PC-Updatekanal ist bis **17.11.2026, 04:26:52 Uhr (Europe/Berlin)** signiert gültig; der manuelle ZIP-Download bleibt davon unabhängig. Neuere Code18-/Roadmaparbeit im Repository ist kein Bestandteil dieser Downloads. Ältere verlinkte Berichte beschreiben ihren damaligen Stand; die aktuelle Verfügbarkeitsangabe steht hier.
+
+</details>
+
+<details>
+<summary>Ältere Releases und damalige Nachweise (historisch)</summary>
+
+Die folgenden Angaben sind erhaltene historische Beschreibungen, keine aktuelle Installationsanleitung. Für eine Play-Installation den Play-Updateweg oben verwenden: Direkt-APKs mit dem Uploadschlüssel sind nicht automatisch mit dem Play-App-Signierer kompatibel. Bei einer Ablehnung keine Deinstallation oder Datenlöschung vornehmen.
 
 **Anker 1.5.0-rc.2 / Code16 ist verfügbar.** [Handyupdate als ZIP](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code16-20261109) · [Installation und Diagnoseexport](docs/UPDATE_CODE16.md). Entpacken und **Anker.apk → Aktualisieren** wählen; gleiche App-Kennung und geprüfter bestehender B4-Schlüssel. Neu sind das lokale Journal (sieben Tage/800 Ereignisse), selektiver Diagnoseexport und abgesicherte Audio-/Schlafhinweiswege. Die Aufzeichnung beginnt erst nach diesem Update; Playerstart beweist weder Hörbarkeit noch Aufwachen. **1.095 Logik-/271 Browser-/197 frische Android-JUnit-/89 PC-Pythonfälle**, 5 Paket-/Installer-, 19 klassische PC-/36 Updatefälle grün; TypeScript und Build erfolgreich, Lint 0 Fehler/1 bestehende Warnung. [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42619085381) bestätigt den exakten main/push-Stand mit allen drei Jobs. Download vollständig in Chromium gespeichert, TLS/CRC und sämtliche Dateibytes geprüft. [Gesamtnachweis](docs/ANKER_CODE16_NACHWEIS.json). Echte Samsung-Ton-/Spiel-/Standbyprüfungen bleiben offen. Die folgenden Code15-Angaben sind historische Belege; der vorhandene PC-Begleiter bleibt unverändert.
 
@@ -9,6 +53,8 @@
 Enthalten sind Abend-/Morgenführung, lokaler PC-Begleiter, Abendlicht, bestätigungsabhängige PC-Hinweisentlastung und freiwillige lokale Schlafvorschläge. Neue Eingriffe beginnen ausgeschaltet. **1.077 Logik-/267 Browser-/174 frische Android-JUnit-/89 PC-Pythonfälle**, fünf Paket- sowie bestehende PC-/Updateprüfungen grün; [GitHub-CI](https://github.com/frnkrm/anker/actions/runs/42607136664) mit Linux und Windows vollständig erfolgreich. Beide Downloads vollständig im Browser gespeichert, CRC und alle Dateien bytegleich geprüft. [Gesamtnachweis](docs/ANKER_V7_UPDATE_NACHWEIS.json) · [Bedienung](docs/PC_BEGLEITER.md) · [Architektur](docs/PC_LINK_PROTOKOLL.md) · [Plan](docs/ANKER_IMPLEMENTIERUNGSPLAN.md). Echte Galaxy-/Windows-/LAN-/Audio-/Standbywirkung bleibt gesondert zu prüfen.
 
 **Vorheriger Stand: 1.4.0-rc.1 / Code14.** [Historisches Paket](https://codeload.github.com/frnkrm/anker/zip/refs/heads/download-anker-code14-20261108) · [UI-Umsetzung und damaliger Prüfstand](docs/UI_UEBERARBEITUNG_CODE14.md). Das aktuelle v7-Update steht darüber.
+
+</details>
 
 Deine persönliche ADHS-Alltags-App: Sie bietet dir **einen nächsten Schritt**, plant mit deinen Arbeitszeiten und Terminen, erinnert und unterstützt Routinen ohne Bestrafung. Du darfst spontan umplanen, Freizeit genießen und pausieren.
 
@@ -25,7 +71,7 @@ Implementierung, automatische Prüfungen und echte Android-/Windows-Beobachtunge
 
 ## Schnellstart (nur das Nötigste)
 
-1. APK aufs Handy (siehe [APK installieren](#7-apk-installieren)), öffnen
+1. Über den [internen Play-Test](https://play.google.com/apps/testing/de.frnkrm.anker.mobile) installieren oder aktualisieren und Anker öffnen
 2. Arbeitsbeginn, Fahrzeit, Thema wählen → **„Passt, los geht’s“**
 3. Zwei Berechtigungen erlauben: Benachrichtigungen, pünktliche Wecker
 4. Fertig. Alles andere ist optional und kann später kommen.
@@ -122,6 +168,8 @@ Die App protokolliert auf dem Server keine Aufgaben-/Adress-Prompts. Technische 
 
 ### 3. Google Cloud (optional: Google Kalender)
 
+Für die native Auswahl bereits auf dem Handy synchronisierter Google-Kalender genügt seit Code17 die bewusste Lesefreigabe in Anker. Die folgende Entwickler-Einrichtung betrifft den separaten direkten Google-OAuth-/Schreibweg.
+
 1. [console.cloud.google.com](https://console.cloud.google.com) → neues Projekt „Anker“.
 2. *APIs & Dienste → Bibliothek →* **Google Calendar API** aktivieren.
 3. *OAuth-Zustimmungsbildschirm:* Typ **Extern**, App-Name „Anker“, deine E-Mail. Lesen nutzt `https://www.googleapis.com/auth/calendar.readonly`. Erst für bewusst gewählte Schreibfunktionen kommt `https://www.googleapis.com/auth/calendar.app.created` hinzu; geschrieben wird nur in Ankers eigenen Kalender. Unter **Testnutzer** deine eigene Gmail-Adresse eintragen. OAuth-Einrichtung und tatsächlicher Rückweg auf Android müssen mit deinem Projekt und Signaturschlüssel geprüft werden.
@@ -190,6 +238,8 @@ Die installierte App verwendet `de.frnkrm.anker.mobile`. Das Kotlin-Namespace un
 
 ### 7. APK installieren
 
+Für die bestehende Play-Installation den Play Store verwenden. Die folgenden Schritte gelten nur für eine Direktinstallation mit passender Signatur. Der Uploadschlüssel allein bestätigt keine Kompatibilität mit Play App Signing. Bei Ablehnung die App und ihre Daten behalten.
+
 1. APK auf dem Handy öffnen (aus dem GitHub-Release herunterladen oder per USB kopieren).
 2. Samsung fragt nach „Unbekannte Apps installieren“ → für den Browser bzw. „Eigene Dateien“ erlauben.
 3. Updates: neue APK einfach drüber installieren, die Daten bleiben erhalten (gleicher Signaturschlüssel nötig).
@@ -220,7 +270,7 @@ Mehr zu Samsung und Hintergrund-Apps: [dontkillmyapp.com/samsung](https://dontki
 
 ### 9. Lokaler PC-Begleiter und klassischer PC-Stopp (Windows)
 
-**Neu in v7:** Unter **Mehr → PC-Stopp → Lokaler PC-Begleiter** koppelt das Handy direkt per QR mit dem Windows-PC. Beide zeigen einen Prüfcode; erst nach PC-Bestätigung und passender Empfangsbestätigung gilt der Plan als angekommen. TCP 47830 und mDNS `_anker._tcp.local.` bleiben im privaten Heimnetz. Neue Systemwirkungen und der zusätzliche strenge Modus benötigen eigene Freigaben. Vor dem gewählten Eingriff gibt es mindestens 60 Sekunden zum Speichern; **Beenden** bleibt möglich. Der echte Morgenabschluss beendet den Wieder-Sperrwächter und entsperrt Windows nicht automatisch. [Vollständiger Setup- und Prüfweg](docs/PC_BEGLEITER.md).
+**Aktueller Download:** [PC-Begleiter 0.1.1 als ZIP](https://codeload.github.com/frnkrm/anker/zip/f8275544b1192d069e23b49d79529f9e805d3945) · [Einrichtung](pc-companion/README.md#einrichten). Unter **Mehr → Abend & Alltag → PC-Stopp → Lokaler PC-Begleiter** koppelt das Handy direkt per QR mit dem Windows-PC. Beide zeigen einen Prüfcode; erst nach PC-Bestätigung und passender Empfangsbestätigung gilt der Plan als angekommen. TCP 47830 und mDNS `_anker._tcp.local.` bleiben im privaten Heimnetz. Neue Systemwirkungen und der zusätzliche strenge Modus benötigen eigene Freigaben. Vor dem gewählten Eingriff gibt es mindestens 60 Sekunden zum Speichern; **Beenden** bleibt möglich. Der echte Morgenabschluss beendet den Wieder-Sperrwächter und entsperrt Windows nicht automatisch. [Vollständiger Setup- und Prüfweg](docs/PC_BEGLEITER.md).
 
 Der klassische Export bleibt als eigener zweiter Weg erhalten. Seine Aufgabe **Anker PC-Stopp** blockiert neue Begleiter-Eingriffe bis zur ausdrücklichen Bereinigung, damit beide Wege nicht gleichzeitig wirken. Für den bisherigen Export gilt:
 
