@@ -48,6 +48,7 @@ jobs:
           python3 scripts/test-google-play-upload.py
           python3 scripts/test-google-play-auth.py
           python3 scripts/test-google-play-workflow.py
+          python3 scripts/test-google-play-internal-release.py
       - run: npm run build
       - name: Playwright-Browser installieren
         run: npx playwright install --with-deps chromium
