@@ -1,5 +1,35 @@
 # Anker: Testnachweise
 
+## T-006: Eingabeschema mit Rot-/Grünbeleg lokal abgesichert (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Sieben neue Methoden zuerst am unveränderten Helper ausgeführt: 32 INVALID_SCHEMA-Fehler (31 unvollständige Prepare-Präsenzkombinationen und Resolve-Pfad). Nach Drei-Zeilen-Fix 35/35 ProtocolTests und 5/5 ausgewählte bestehende Workflow-Grenztests grün, keine Skips. Alle 32 Prepare- und 31 unvollständigen sign-Präsenzkombinationen, Typen/Pflichtfelder/Allowlist sowie Quellen-/main-/CI-/Kontextgrenzen abgedeckt. Exakte Befehle und Logs in der lokalen Sicherung. API-/Prozess-/Signierwerte ausschließlich künstlich; kein echter Signier-, Runner-, Paket- oder Gerätebeleg. Java-Verifikator und Produktvollsuiten nicht erneut ausgeführt. Frühere CI unverändert historisch, echter P-Payload unbekannt. Kein U2/S; T-006/V-014 und E-002–E-005 offen.
+
+## T-006: Screenshotfehler und statischer W-Codeabgleich (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): `INVALID_SCHEMA` aus dem Nutzerscreenshot zu P43637658561/Versuch 1 ist dem Eingangsschema des W-Helpers zugeordnet, vor CI-Abfragen. Alle 714 öffentlich angezeigten W-Quellzeilen stimmen mit dem unveränderten lokalen Helper überein. Screenshottranskription und Gesprächszuordnung sind Nutzerbelege, kein API-Rohlog oder lokales Bildarchiv. Die tatsächliche Runtime-Eingabeform bleibt unbekannt. Fixtures wurden ausschließlich gelesen; keine synthetische Reproduktion, Tests, Builds, Paketprüfung oder Workflowwiederholung ausgeführt. Frühere 43 Offlinefälle und M-/W-main-CI bleiben getrennte historische Nachweise. P bleibt fehlgeschlagen, U2/S fehlen; T-006/V-014 und E-002–E-005 bleiben offen.
+
+## T-006: realer prepare-Abbruch vor Build statt Paketnachweis (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. ÖffentlicherExitcode1 im resolve-Schritt;keine Bundletool/JAR/Assets/Manifest/SDK/ZIP/ELF-/Nullsignierprüfung inP ausgeführt. Keine tatsächlichenInputstrings/Detailursache öffentlich bestätigt. Jobseite `Sign in to view logs`,keinberechtigterDownload-/Detailzugriff repariert. Vorherige M-/W-CI und43lokaleOfflinefälle getrennt erhalten,keineTests/CIwiederholt. KeinSoftwarebeleg alsHardwarebeobachtung;T-006/V-014/E-002–E-005/offeneFreigaben erhalten.
+
+## T-006: neue exakte push/main/W-CI statt Branchersatz (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). Neuer vollständiger CommitlinkW/Ref-/PR-mergeCommitSha/ElternM-L/Actions-/Summaryversuch binden den eigenen main-Nachweis. Separates M/main/push43601398931/Versuch1Success erneuert gelesen,kein Neulauf. PR-Runtime-SHA-Lücke historisch erhalten,kein Ersatz für W-CI nötig. Lokale43Offlinefälle/Fakes bleiben eigene ältere Belege,keine echteSignierung/AAB-/Geräteabnahme/JUnit neu. Keine lokaleSuite/Build/CI-Neustart; T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
+## T-006: vorhandene PR3-/Push-CI gelesen, keine Wiederholung (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): frische öffentliche HTML-Endbelege für ci.yml43614039702/push/Entwicklung/L und43616437865/pull_request opened#3/Entwicklung,beide Success/Versuch1/1372VitestohneFehleroderSkips/379Playwright. Kein Lauf neu gestartet,keine lokale Suite oder Paketprüfung/Build/Signierprobe wiederholt. PR-API-head_sha/Runnercheckout weiter unbekannt,synthetischer0874 separat; keine W-main-CI erfunden. Heute nur Quellen-/Diff-/Trigger-/Dokument-/Bestands-/Bundle-/SHA256-Prüfung. Software/CI ersetzt E-002–E-005 nicht; T-006/V-014/Gesamtfreigaben offen.
+
+## T-006: neue PR3-CI separat vom Pushlauf (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): [PR-Lauf43616437865](https://github.com/frnkrm/anker/actions/runs/43616437865), ci.yml / pull_request opened#3 / Entwicklung / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (8.8m). WorkflowdateiquelleL und PR-Checks-L belegt; API-head_sha und tatsächlicherRunnercheckout nicht ausgelesen, synthetischerMergeref nicht gleichsetzen. Frühere PushCI43614039702/L und lokale43Offlinefälle getrennt erhalten. Kein lokaler Test/Build, echter Signier-/AAB-/Hardwarebeleg oder neue nativeJUnit. Branch-/PR-CI ersetzt W-main-CI nicht; T-006/V-014/E-002–E-005/Gesamtfreigaben offen.
+
+## T-006: tatsächliche Entwicklungsbranch-CI für AAB-Entwurf (14.11.2026)
+
+Die öffentliche Summary bestätigt für den neuen L-Lauf **1372 Vitest bestanden / 0 Fehler / 0 Skips** und **379 Playwright bestanden (9,5Minuten)**. Bestehende Runner-/Node- und eine React-Hook-Lintwarnung bleiben Warnungen, keine neue Änderungsfreigabe. Kein neuer JUnit-/Hardware-/AAB-Signiernachweis.
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): neuer [Lauf43614039702](https://github.com/frnkrm/anker/actions/runs/43614039702) aus exakt L `3f5345dd08032aa6d19328a2c2cee22527150266`, ci.yml / push / entwicklung/anker-neu / Versuch1, **erfolgreich**. Vollständiger Commitlink, aktueller Versuch und Endstatus aus öffentlich lesbarer Actions-Liste/Summary gesichert. Joblogs verlangen Anmeldung; Jobgruppenendpunkt400, API-CONNECT403. Keine unbekannten Einzelzahlen oder lokalen43Fälle als neue Runner-Signierprüfung ausgeben. Kein lokaler Test/Build oder CI-Neustart. M-main-CI bleibt getrennt; L-Branch-CI ersetzt W-main-CI nicht. Kein realer AAB-Workflow-/B4-/Gerätebeleg. T-006/V-014 und E-002–E-005/Gesamtfreigaben offen.
+
 ## T-006: 43 gezielte neue Offlinefälle für AAB-Entwurf (14.11.2026)
 
 [Neuer Entwurfs-/Prüfbericht](CODE18_AAB_WORKFLOW_ENTWURF.md):29Protokoll-/JAR-Grenzfälle und14Workflow-/YAML-/Shell-/Strukturfälle grün,0Skip. API-/Prozessaufrufe in positiven Signierfällen ausschließlich synthetisch;keine echtenSchlüssel/Signierprobe. JDK21 kompiliert nur Verifikationshelfer,liest synthetischesunsignedZIP und verweigert signed;kein Appbuild. Bestehendes js-yaml/bash -n/PythonAST genutzt.17vorhandeneVendorJARs gehasht,Bundletool-Kommandohilfeoffline;neue Prüfhilfen lesen U1 gegen vollständigeManifestbindung/672Einträge/8ELF64,Originalhash unverändert. Erste CLI-Gatereihenfolge korrigiert,initialesFehlerlog erhalten. Neue Schema-/Receipt-/Signierreplay-/Outputbindungsänderungen gezielt nachgeprüft,keineTests gelockert.

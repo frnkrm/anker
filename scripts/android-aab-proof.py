@@ -108,6 +108,9 @@ def invocation(env):
             and env.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
             and env.get('GITHUB_REF') == 'refs/heads/main', 'MANUAL_MAIN_ONLY')
     inputs = json_load(env.get('AAB_INPUTS', '{}'))
+    if isinstance(inputs, dict) and inputs.get('mode') == 'prepare':
+        # Apply only absent optional workflow defaults; explicit values stay strict.
+        inputs = {**dict.fromkeys(SIGN_FIELDS, ''), **inputs}
     exact(inputs, ('mode', 'source_commit', 'expected_workflow_commit', *SIGN_FIELDS))
     w = inputs['expected_workflow_commit']
     require(inputs['source_commit'] == SOURCE and hex_value(w, 40)

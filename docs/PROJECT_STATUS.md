@@ -1,5 +1,63 @@
 # Aktueller Übergabestand
 
+## T-006: Prepare-Defaults gezielt lokal korrigiert (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Ausgang I `6fa3af1` sauber bestätigt und gesichert. Vor Fix sieben neue Testmethoden am unveränderten Helper: 32 erwartete INVALID_SCHEMA-Fehler für ausgelassene optionale Prepare-Felder und den zugehörigen Resolve-Pfad. Drei zusätzliche Helperzeilen ergänzen nur bei prepare fehlende optionale leere Defaults. Pflichtfelder, unbekannte Schlüssel, Typprüfungen, sign-Bindungen und sämtliche M-/W-/main-/CI-/Versuchs-/Artefaktgates bleiben strikt. Keine Workflowänderung.
+
+Nach Fix **35 ProtocolTests + 5 gezielte Workflow-Grenztests grün**, keine Skips. Künstliche Werte/Attrappen; keine echte Signierung oder neuer Runnernachweis. Unveränderte Java-/Produkt-/Web-/Browser-/Android-Suiten nicht wiederholt. Tatsächliche Runtimeform von P43637658561 bleibt unbekannt; kein GitHub-Mobile- oder Nutzerfehler behauptet.
+
+Neuer Fix-/Dokumentationsabschluss K ausschließlich lokal, exakte SHA in RESULT.json der Sicherung `/workspace/anker-t006-aab-inputschema-fix-20261115/`. Kein Push oder Workflowstart. M/W/L bleiben historisch getrennte Quellen; aktuelle Remote-Refs heute nicht abgefragt. U1, alte Arbeitsbäume/Sicherungen und Code17 erhalten. Kein U2/H2/HP/A/S. T-006/V-014 IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster eigener Auftrag: einmaliger begrenzter Entwicklungsbranch-Push K samt automatischer CI-Nachkontrolle nach frischen Ref-/Quell-/Triggerprüfungen; keine main-Integration oder prepare/sign-Freigabe. Folgende Abschnitte historisch.
+
+## T-006: Resolve-Schemaabbruch durch Screenshot zugeordnet (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Der Nutzerscreenshot zu P43637658561/Versuch 1 zeigt `AAB-Prüfung abgebrochen: INVALID_SCHEMA`. Der unveränderte Helper aus W wurde öffentlich vollständig mit dem lokalen Code abgeglichen. Der Abbruch liegt in `invocation()`/Zeile 111, vor der GitHub-Konstruktion und den CI-Abfragen: Das geparste Eingabe-JSON ist kein Objekt oder hat eine andere Schlüsselmenge als die acht verlangten Felder. Die tatsächliche Eingabeform und konkrete fehlende oder zusätzliche Felder bleiben unbekannt.
+
+Der Parser verlangt auch für prepare alle fünf optionalen Signierfelder. Die bisherigen positiven Test-Fixtures setzen sie immer ausdrücklich. Ausgelassene optionale Felder sind damit eine gezielt zu untersuchende Vertrags-/Abdeckungslücke; ihr Fehlen im echten P-Payload ist nicht belegt. Kein Nutzerfehler, falscher SHA-Wert, CI- oder Netzwerkfehler wird daraus abgeleitet. Heute keine Korrektur, Testausführung oder Wiederholung des Workflows.
+
+P bleibt fehlgeschlagen; prepare/sign/verify wurden übersprungen. U2/H2/HP/A/S fehlen. H bezeichnet den Ausgang, I den neuen ausschließlich lokalen Dokumentationsabschluss; W/M bleiben getrennt. Aktuelle Remote-Refs wurden heute nicht erneut abgefragt. U1, alte Arbeitsbäume, Sicherungen und Code17-Nachweise bleiben erhalten. T-006/V-014 bleiben IN_ARBEIT, E-002–E-005 und weitere Freigaben offen. Genau nächster separat zu beauftragender Auftrag: Eingabeschema gezielt lokal untersuchen und ausschließlich den kleinsten durch Vertrag und Offlinefälle belegten Fehler beheben. Kein Push oder Workflowstart. Die folgenden Abschnitte beschreiben historische Stände.
+
+## T-006: erster prepare-Lauf in resolve abgebrochen (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): P43637658561 / workflow_dispatch / main / WorkflowW741fb7b / Versuch1 **Failure nach9s**. Resolvefailed im Schritt „Exakte getrennte main-CI für M und W prüfen“,prepare/sign/verifyskipped;keine Artefakte/U2/H2/HP/A/S. Angefordert war ausschließlichprepare mitApp-M10cc894a/W741fb7b und leerenSignierbindungen; tatsächlicheInputstrings nicht unabhängig öffentlich ausgelesen. Kein Appcheckout/Build/Unsigned-Prüferfolg behauptet.
+
+Öffentlich nur `Process completed with exit code 1.`. Resolve-DetailseiteHTTP200/`Sign in to view logs`;eigentlicheUrsache unbekannt. BekanntegrüneM-/W-main-CI nicht mit diesem rotenPrepare-Lauf gleichsetzen. Kein Fix/Neustart oder Signieraufruf.
+
+Gnur Ausgang,Hnur lokalerAbschluss,nichtpushen. U1/alteArbeitsbäume/Sicherungen/Code17 erhalten;T-006/V-014 IN_ARBEIT,E-002–E-005 und weitereFreigabenoffen. Genau nächster eigenerAuftrag vorhandenenResolve-Detailfehler ausP ausschließlichlesend einholen/zuordnen;keine erneuten bekanntenMetadatenfragen. FolgendeStände historisch;danachstoppen.
+
+## T-006: PR3 regulär integriert, eigene W-main-CI nachkontrolliert (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m).
+
+Appquelle bleibtM `10cc894a27302a5a49b6884c843d2a6b509ab354`,eigener M-CI43601398931/push/main/Versuch1/Success heute erneut gelesen. Workflowdateien ausW entsprechen den geprüften L-Quellzeilen; W noch kein lokales Gitobjekt,kein Fetch/Checkout. AusgangF nicht übertragen, neuer AbschlussG nur lokal. Kein Ersatz durch Branch-/PR-Grün und keine Docs-Ausnahme.
+
+Besitzer führte den erlaubten normalen UI-Merge nach API-Forbidden/fehlenderAgentensteuerung aus. Nur bestehende automatische main-CI/Webbuild/Artefakte und gegebenenfalls bestehende main-Webautomatik freigegeben; tatsächlicheWebveröffentlichung nicht separat belegt. Kein manueller AAB-Dispatch,Signieren,Play-/Cloud-/Geräteeingriff oder lokaleTests/Builds. U1/alteArbeitsbäume/Sicherungen erhalten; U2/S fehlen.
+
+Main-Integration belegt; T-006/V-014 IN_ARBEIT,E-002–E-005 und Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster eigener Auftrag einmaligen secretfreien prepare-Prüflauf aus M mit Workflow W starten und U2-Nachweise nachkontrollieren,separate Beauftragung nötig. Folgende Stände historisch;danach stoppen.
+
+## T-006: PR3-main-Integration konkret geplant, noch nicht freigegeben (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): saubere lokale BasisE1231b3d, aktuelle Refs Entwicklung/PR3-headL3f5345dd und main/App-M10cc894a bestätigt. PR3Open; vorhandene PushCI43614039702 und PRCI43616437865 weiterhin Success, jeVersuch1/1372Vitest/379Playwright. Vollständiger M→L-Diff3Commits/17Dateien/2308+2− abgeglichen; lokale Dokumentationsnachfolger nicht im PR. Keine Tests/CI/Builds wiederholt.
+
+Regulärer späterer Merge-Commit nur nach neuer Integrationsfreigabe und erfüllten Serverbedingungen. No reviews/öffentliche leereRulesetsseite sind keine Schutz-/Reviewfreigabe; klassischerBranchschutz/Konflikt-/angemeldeteAnforderungen und PR-Runtime-SHA bleiben unbekannt. Tatsächlichesmain-W erst nach Merge bestimmen,0874-Mergeref nicht vorwegnehmen; exakte erfolgreiche push/main/ci.yml fürW und getrenntesM-Gate erhalten. Kein Docs-Ersatz. Eine mögliche bestehende main-Webautomatik muss die neue Freigabe ausdrücklich einschließen.
+
+Heute nur Planung/Status lokal committen und sichern, kein Nachpush/Merge/AAB-Dispatch/Signieren/Play-/Cloud-/Geräteeingriff. U1/alteArbeitsbäume/Sicherungen erhalten; W/U2/S fehlen. T-006/V-014 IN_ARBEIT,E-002–E-005 und weitere Freigaben offen. Genau nächster separat zu beauftragender Auftrag: PR3 regulär als Merge-Commit integrieren und eigene main-CI für tatsächlichesW nachkontrollieren, einschließlich unveränderter Automatik nur im ausdrücklich neu freigegebenen Umfang. Folgende Stände historisch; danach stoppen.
+
+## T-006: regulärer PR3 offen, CI nachkontrolliert (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Besitzer hat den normalen UI-Handgriff ausgeführt; [PR3](https://github.com/frnkrm/anker/pull/3) Open, QuelleL `3f5345dd08032aa6d19328a2c2cee22527150266`, Zielmain/AppquelleM `10cc894a27302a5a49b6884c843d2a6b509ab354`. Lokaler AusgangD `a72741d5985ae67d3c790017a9099e8e38d20856` nicht übertragen. Neuer ci.yml-Lauf43616437865 / pull_request opened#3 / Entwicklung / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (8.8m).
+
+Workflowansicht referenziert ci.yml ausL; PR-Checks wählenL. Synthetischer Mergeref `0874d430eea96a7f7f521e26a03d0d2a30ee05cb` separat beobachtet, tatsächliches API-run.head_sha und Runnercheckout öffentlich nicht ausgelesen. Kein Gleichsetzen mitmain/W. No reviews; klassischer Branchschutz/Konfliktstatus/angemeldete Serveranforderungen öffentlich unbekannt, keine Freigabe daraus. APIForbidden/fehlendeBrowsersteuerung nicht repariert; kein Doppel-PR, Push, Merge, AAB-Dispatch, Signieren oder Play-/Cloud-/Geräteeingriff.
+
+E nur lokaler Dokumentationsabschluss/Sicherung, nicht nachpushen. U1/alteArbeitsbäume/Sicherungen unverändert, W/U2/S fehlen. T-006/V-014 IN_ARBEIT, E-002–E-005 und alle weiteren Freigaben offen. Genau nächster eigener Auftrag: PR3-main-Integration ausschließlich lesend konkret vorbereiten; separate Beauftragung nötig. Folgende Stände historisch; danach stoppen.
+
+## T-006: AAB-Entwurf auf Entwicklungsbranch übertragen (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): genau ein Fast-forward-Push von **L `3f5345dd08032aa6d19328a2c2cee22527150266`** auf Entwicklung; main **M `10cc894a27302a5a49b6884c843d2a6b509ab354`** erhalten. PR2 bleibt Merged mit historischem head C; heute kein neuer PR. CI **43614039702**, ci.yml / push / entwicklung/anker-neu / exakt L, Versuch **1**, Ergebnis **erfolgreich**. Die erfolgreiche Entwicklungsbranch-CI ist belegt; ein neuer PR wurde heute nicht angelegt.
+
+Öffentliche Summary: **1372 Vitest bestanden / 0 Fehler / 0 Skips, 379 Playwright bestanden**. API CONNECT403, HTML lesbar; Joblogs verlangen Anmeldung. Keine Authreparatur, keine weiteren Detailzahlen ohne Beleg. Lokale43Offlinefälle bleiben historischer eigener Nachweis; keine lokalen Tests/Builds wiederholt. AAB-Workflow nicht gestartet, kein Signieren/Play-/Cloud-/Geräteeingriff. U1/alte Arbeitsbäume/Sicherungen erhalten. D nur lokaler Abschluss, nicht nachpushen; L ist nicht künftiges main-W, U2/S fehlen.
+
+T-006/V-014 IN_ARBEIT, E-002–E-005 und main-/Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen. Genau nächster eigener Auftrag: neuen regulären PR für den AAB-Workflowentwurf vorbereiten und erstellen, ohne Merge; separate Freigabe erforderlich. Folgende Stände historisch; danach stoppen.
+
 ## T-006: manueller AAB-Workflow lokal entworfen und offline geprüft (14.11.2026)
 
 [Lokaler Entwurfs-/Prüfnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): saubere Basis3fbc6541,Branchentwicklung/anker-neu. Neuer ausschließlicher main/workflow_dispatch-Workflow mit getrennten prepare/sign-Aufrufen,festem App-M,separatem künftigem W,exakten M-/W-main-CI-Gates und Run-/Versuch-/Artefakt-/Archiv-/AAB-/Metadatenbindung. Kein Appcode/Buildartefaktcode im Signierjob,nur W-Prüfcode und bekannteWerkzeuge;vierSecretreferenzen ausschließlich im tatsächlichen Signierschritt,keine Verfügbarkeitsabfrage/kein unsigned Fallback. Secretfreies vollständiges JAR-/B4-/U2↔S-Payloadverify vor finalem Prüfarbeitsartefakt. Bestehende APK-/Release-/Play-/Code17-Pfade unverändert;ci.yml nur JDK21/gezielte neue Offlineprüfungen ergänzt.

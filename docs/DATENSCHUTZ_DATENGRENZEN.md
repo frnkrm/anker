@@ -1,5 +1,33 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: Prepare-Defaultkorrektur ohne neue Datenflüsse (15.11.2026)
+
+[Lokale Eingabeschema-Korrektur und Offlinebelege](CODE18_INPUTSCHEMA_KORREKTUR_T006.md): Nur fehlende optionale Signierfelder im Prepare-Eingabeobjekt werden auf definierte leere Defaults ergänzt. Vorhandene Werte, unbekannte Schlüssel/null/falsche Typen und sign-Bindungen bleiben streng geprüft. Keine zusätzlichen Daten, Dumps oder Diagnosepayloads gespeichert, keine echten Secrets gelesen. Offlineprüfungen verwenden künstliche Werte und Prozess-/APIattrappen bei blockiertem Netz; keine echte Signierung. Produktdaten, Freigaben, Workflows und U1 unverändert; kein U2/S. Lokaler K-Abschluss mit Rot-/Grünbelegen gesichert, weitere Freigaben offen.
+
+## T-006: nichtgeheimer Screenshot-Fehlercode zugeordnet (15.11.2026)
+
+[Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): Das Nutzerbild liefert den nichtgeheimen Fehlercode `INVALID_SCHEMA` und Exitcode 1, keinen Inputpayload oder Secretwert. Transkription gesichert, kein Bildhash behauptet. Öffentlichen W-Helper lesend abgeglichen; keine Secret-/Session-/Schlüssel-/Auth-/Cloud-/Playabfrage und keine Testausführung. Der Runner brach vor den GitHub-/CI-Abfragen ab; kein Appbuild, Schlüsselgebrauch oder U2/S. Ein späterer belegter Fix darf keine Pflichtfelder, sign-Bindungen oder Gates aufweichen und keine Eingabewerte protokollieren. I bleibt lokal; U1, Sicherungen und offene Freigaben bleiben erhalten.
+
+## T-006: prepare vor Appbuild abgebrochen (14.11.2026)
+
+[Erster prepare-Lauf und Abbruchbeleg](CODE18_PREPARE_NACHKONTROLLE_T006.md): Besitzer hat einmaligen prepare-UI-Dispatch gestartet;Agent nurGitHub-Ref-/CI-/Workflow-/Run-/Jobmetadaten gelesen. Resolvefailed,prepare/sign/verifyskipped;keinAppbuild/UnsignedArtefakt/Keygebrauch. KeineSecret-/Session-/Key-/Playabfrage,Auth-/Cloudänderung oderNutzdaten-/Geräteaktion. AngeforderteInputs getrennt von nichtlesbarenRuntimeinputs. NurExitcode1 sichtbar,keinDetailfehler erfunden;später ausschließlichnichtgeheimeFehlerzeilen erfragen,keineEnv-/Secretwerte. U1/Sicherungen erhalten,Hnur lokal/Freigabenoffen.
+
+## T-006: autorisierte Integration ohne Signier-/Paketfreigabe (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): Besitzer-UI-Merge und ausdrücklich freigegebene bestehende main-CI/Webbuilds/Artefakte/gegebenenfalls main-Webautomatik; Agent danach nur öffentliche GitHub-Daten gelesen. Keine Auth-/Cloudkonfiguration,Secret-/Session-/Schlüsselsuche oder neue Nutzdatenerfassung/-übertragung. LokaleProdukt-/Versions-/Workflow-/Freigabemanifeste unverändert,U1/Sicherungen erhalten. Kein manueller prepare/sign/Play-/Geräteweg; B4Upload/8APlayrolle und unbekannterprivaterZugriff getrennt. Gnur lokal,W/M eigenständig belegt; Workflowstart-/Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
+## T-006: Integrationsplanung ohne zusätzliche Freigaben (14.11.2026)
+
+[Neue PR3-main-Integrationsvorlage](PR3_MAIN_INTEGRATION_PLAN.md): ausschließlich öffentliche GitHub-Ref-/PR-/CI-/Rulesetsdaten und lokale Versionierungs-/Workflow-/Netlifydefinitionen gelesen. Keine API-/Secret-/Playabfrage,Authreparatur,neuen Nutzdaten,Schlüssel-/Session-/Wertsuche oder externe Schreibaktion. Reale Cloudbindung/Webveröffentlichung nicht aus netlify.toml behauptet; mögliche main-Webautomatik als künftige eigene Integrationswirkung benannt. Kein AAB-/Signier-/Upload-/Gerätezugriff. U1/alteSicherungen unverändert,B4Upload-/8APlayrolle getrennt. T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
+## T-006: regulärer PR ohne Signier-/Datenfreigabe (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): Nur Gitquellen/öffentliche PR-/Ref-/CI-/Rulesetsdaten geprüft. Besitzer erstelltPR3 über bestehende eigene Sitzung; keine neuen Zugangsdaten, Cookies, Tokens, Schlüssel-/Secretwerte gesucht/angefordert oder Cloudkonfiguration geändert. Vorbereitete PR-Beschreibung enthält ausschließlich Quell-/Prüf-/Freigabeinformationen. Bestehende automatische PR-CI mit Fakes/Webbuilds/Artefakten erlaubt, kein prepare/sign/Play-/Gerätezugriff. U1/Sicherungen erhalten, keine neue Messung/Persistenz/Nutzdatenübertragung. E lokal; T-006/V-014/E-002–E-005 und weitere Freigaben offen.
+
+## T-006: GitHub-Entwurfsübertragung ohne Signier-/Nutzdateneingriff (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): nur freigegebene Gitquellen nach Entwicklung und öffentliche Ref-/PR-/CI-Metadaten gelesen; keine Secrets, privaten Dateien, Nutzdaten oder Google-Play-Quellen abgefragt. Genau ein PushL mit bestehender automatischer CI samt synthetischen Prüfungen/Webbuilds/Artefakten freigegeben. AAB prepare/sign nicht gestartet; kein Schlüsselgebrauch oder neue App-Datenübertragung. U1/alte Sicherungen unverändert; keine zusätzliche Messung/Löschung/Freigabe. Joblog-/API-Lücken bleiben offen. D nur lokal; main-Integration, Workflowstart, Signier-/Upload-/Geräte-/Gesamtfreigaben offen.
+
 ## T-006: AAB-Entwurf mit synthetischen Offlineprüfungen (14.11.2026)
 
 [Entwurfsnachweis](CODE18_AAB_WORKFLOW_ENTWURF.md): neue Automationsdefinition/Prüfhelfer nur lokal geschrieben. Keine externeAbfrage,echtenSignier-/Secret-/Scope-/Wertezugriffe oder Appbuild/Upload/Cloudänderung. Positive Signierregressionen erzeugen ausschließlich synthetische Nichtschlüsselbytes in temporärenDateien und Prozessattrappen,keinen privatenSchlüssel/Signieridentität. EchterJava-JAR-Test nur unsignedsynthetisch/signed-Abweisung;U1nurlesendmitneuenWerkzeugen geprüft. Vorhandene17öffentlicheVendorJARs fürOffline-Toolchecklokalkopiert,keineDownloads oder Paketupdates.

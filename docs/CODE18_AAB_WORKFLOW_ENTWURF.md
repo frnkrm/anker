@@ -1,5 +1,17 @@
 # T-006 – lokaler Entwurf des manuellen Code18-AAB-Prüfworkflows
 
+## Fortschreibung: tatsächliches main-W und eigene CI (14.11.2026)
+
+[PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). NeuerAAB-Workflow jetzt aufmain,aber kein automatischer Dispatch; MbleibtfesteAppquelle,U1historischeunsignedReferenz,U2/Sfehlen. Folgende reinlokale/PR3Open/Wunbekannt-Angaben historisch. Gnichtnachpushen,weitereFreigabenoffen.
+
+## Fortschreibung: regulärer PR3 offen (14.11.2026)
+
+[PR3 und CI-Nachkontrolle](AAB_ENTWURF_PR3_T006.md): neuerPR3/L→mainM über ausdrücklich erlaubten Besitzer-UI-Handgriff erstellt. PR-CI43616437865 / pull_request / Versuch1 **erfolgreich**, separate PushCI43614039702 erhalten. L nicht als tatsächlichesmain-W oder tatsächlichenRunnercheckout ausgeben; synthetischerMergeref getrennt, Runtime-SHA unbekannt. E nur lokal, kein Nachpush/Merge/AAB-Workflowstart oder Signieren. U1unverändert, W/U2/S/Geräte-/Gesamtfreigaben offen; folgende Angaben historisch.
+
+## Fortschreibung: L übertragen, separate Branch-CI nachkontrolliert (14.11.2026)
+
+[Push-/CI-Nachkontrolle](AAB_ENTWURF_BRANCH_PUSH_T006.md): Entwurfshead L `3f5345dd08032aa6d19328a2c2cee22527150266` genau einmal gepusht; main M unverändert. CI43614039702 / push / Entwicklung / exakt L / Versuch1 **erfolgreich**. Kein AAB-Workflowstart oder echte Signierung. Die folgenden Angaben „nur lokal/nicht übertragen“ beschreiben den vorherigen Entwurfsauftrag. D ist neuer lokaler Dokumentationsabschluss, nicht nachgepusht; W/U2/S bleiben unbelegt. Gesamt-/Gerätefreigaben offen.
+
 Stand **14.11.2026, Europe/Berlin**. [Signierwegplan Stufe A](CODE18_AAB_SIGNIERWEG_PLAN.md) lokal umgesetzt und gezielt offline geprüft. **Keine Workflowausführung, Appbuilds, echte Signierung oder Übertragung.**
 
 ## Identitäten und Umfang
