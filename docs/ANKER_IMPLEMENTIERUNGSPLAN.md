@@ -1,5 +1,9 @@
 # Anker 2.0: Implementierungsplan
 
+## Code17: interne Bereitstellung nach Nutzerfreigabe vorbereitet (15.11.2026)
+
+[Umfang, Bestandsbeleg und sichere Ausführung](CODE17_INTERN_FREIGABE.md). Bestehendes Code17-Bundle ohne neuen Upload intern aktivieren, Code16 im Zielrelease behalten; keine öffentliche Freigabe.154 lokale Offlineprüfungen grün, echte Aktivierung noch ausstehend. Frühere Entwurfsgrenze durch ausdrückliche Nutzerfreigabe nur für diesen internen Schritt erweitert.
+
 ## Manueller Play-Lesemodus vorbereitet (15.11.2026)
 
 Nutzer möchte ohne PC den aktuellen Playbestand abfragen. Minimaler sicherer Dispatchmodus ergänzt: inspect als Standard, Upload nur ausdrücklich. 137 Offlineprüfungen grün; kein Livezugriff oder Release. [Grenzen und Nachweise](GOOGLE_PLAY_UPLOAD_WORKFLOW.md). Merge und erste reale Abfrage noch offen.
