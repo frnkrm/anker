@@ -51,7 +51,7 @@ class WorkflowTests(unittest.TestCase):
                      if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
                      and node.targets[0].id in ('SOURCE', 'FINGERPRINT')}
         self.assertEqual(constants['SOURCE'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
-        self.assertEqual(constants['FINGERPRINT'], '4f8a7b5add918138f3dadcfe84fc8f16c818ad8610481dd6b1b56f035923efc1')
+        self.assertEqual(constants['FINGERPRINT'], 'fff132db9c3e7f1654081665551ecabef096717d022bf1588c1d99a2362773df')
         self.assertEqual(self.workflow['on']['workflow_dispatch']['inputs']['source_commit']['default'], constants['SOURCE'])
 
     def test_resolve_is_main_manual_and_has_no_signing_values(self):
