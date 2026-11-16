@@ -1,5 +1,11 @@
 # Anker 2.0: Implementierungsplan
 
+## T-006: PR11-Relaytest – Uhrzeitrennen im Cleanup-Datensatz korrigiert (16.11.2026)
+
+[Nutzerscreenshot, Rot-/Grünbeleg und Grenzen](PR11_RELAY_ZEITANKER_T006.md): Fehlgeschlagener PR-Lauf43877868624/Job133335555439 zeigt pc_link_mailbox_check beim synthetischen Cleanup-Insert seq99. Zwei volatile Zeitabfragen konnten die erlaubten14Tage überschreiten. Deterministischer lokaler Rotbeleg mit fortschreitender synthetischer Uhr, dann gemeinsamer statement_timestamp-Anker ausschließlich im Test.17PGlite0.5.16-Prüfungen grün einschließlich echter Migration/RLS/Cleanup/exakterGrenze und Ablehnung von0Tagen/14Tagen+1ms. Produktmigration, Schutzregeln, Appquelle0c31179, Workflows/Version/Signierweg unverändert. Keine vollständigen Produktsuiten lokal wiederholt.
+
+Korrektur wird innerhalb der bestehenden autonomen Freigabe regulär in PR11 übertragen; neue Push-/PR-CI separat nachkontrollieren. Altes PR-Rot bleibt historisch, kein Retry. Noch kein W-final oder dessen main-CI/Prepare/Sign/AAB/Upload/Handyupdate. T-006/V-014 IN_ARBEIT, E-002–E-005/Geräte/Gesamt offen. Folgende Abschnitte historisch.
+
 ## T-006: Weckzeit-Fix regulär in main und eigene main-CI erfolgreich (16.11.2026)
 
 [Fixquelle und AAB-Quellbindung](CODE18_FINALE_QUELLBINDUNG_T006.md): PR10Merged, main **0c31179be780e0bb6359dee79c3502d4e6e8ba4d**, ElternR2/4ca5d08e, Baum vollständig gleich zum geprüften Fix. Eigene **ci.yml43873584133/exakt0c31179/push/main/Versuch1/Success11m 6s**, öffentliche Summary **381 passed (9.5m); 1377 passed; 0 failed; 0 skipped**. Kein Branch-/PR-Ersatz oder Docs-Sonderfall.

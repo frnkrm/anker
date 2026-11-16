@@ -121,11 +121,27 @@ try {
     assert.equal((await role('service_role', null, () => put(A, '7'.repeat(64), frame('phone', 16), expiry))).ok, true)
   })
   await check('real cleanup removes expired rows and active RLS hides them before cleanup', async () => {
-    await db.query("insert into public.pc_link_mailbox(user_id,pair_id,direction,seq,envelope,created_at,expires_at) values($1,$2,'phone',99,$3::jsonb,clock_timestamp()-interval '15 days',clock_timestamp()-interval '1 day')", [B, PAIR, frame('phone', 99)])
+    // Force separate wall-clock samples to advance even on a fast local machine.
+    // Pinned PGlite uses Date.now for PostgreSQL's realtime clock.
+    const wallClock = Date.now
+    let tick = wallClock()
+    Date.now = () => tick++
+    try {
+      // Both fixture timestamps must share one anchor at the exact retention limit.
+      const inserted = await one("insert into public.pc_link_mailbox(user_id,pair_id,direction,seq,envelope,created_at,expires_at) values($1,$2,'phone',99,$3::jsonb,statement_timestamp()-interval '15 days',statement_timestamp()-interval '1 day') returning expires_at-created_at = interval '14 days' as exact_retention", [B, PAIR, frame('phone', 99)])
+      assert.equal(inserted.exact_retention, true)
+    } finally { Date.now = wallClock }
     const before = await role('authenticated', B, () => db.query('select seq from public.pc_link_mailbox'))
     assert.deepEqual(before.rows.map(row => row.seq), [1])
     assert.equal(await role('service_role', null, () => rpc('pc_link_relay_cleanup', [], [])), 1)
     assert.equal((await one('select count(*)::int as count from public.pc_link_mailbox where seq=99')).count, 0)
+  })
+  await check('table retention constraint still rejects zero and fourteen days plus one millisecond', async () => {
+    for (const interval of ['0 days', '14 days 1 millisecond']) {
+      await assert.rejects(() => db.query("insert into public.pc_link_mailbox(user_id,pair_id,direction,seq,envelope,created_at,expires_at) values($1,$2,'phone',100,$3::jsonb,statement_timestamp(),statement_timestamp()+$4::interval)", [B, PAIR, frame('phone', 100), interval]),
+        error => error.code === '23514' && error.constraint === 'pc_link_mailbox_check')
+    }
+    assert.equal((await one('select count(*)::int as count from public.pc_link_mailbox where seq=100')).count, 0)
   })
   console.log(JSON.stringify({ engine: 'PGlite real PostgreSQL', pglite: '0.5.16', passed, migrationSha256: createHash('sha256').update(sql).digest('hex'), migrationExecuted: true, rlsExecuted: true, liveSupabase: false, pgCronExecuted: false }))
 } finally { await db.close() }
