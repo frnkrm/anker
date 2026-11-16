@@ -37,13 +37,22 @@ class WorkflowTests(unittest.TestCase):
     def test_required_m_w_and_explicit_sign_binding_inputs(self):
         inputs = self.workflow['on']['workflow_dispatch']['inputs']
         self.assertEqual(inputs['mode']['options'], ['prepare', 'sign'])
-        self.assertEqual(inputs['source_commit']['default'], '10cc894a27302a5a49b6884c843d2a6b509ab354')
+        self.assertEqual(inputs['source_commit']['default'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
         self.assertTrue(inputs['source_commit']['required'])
         self.assertTrue(inputs['expected_workflow_commit']['required'])
         self.assertNotIn('default', inputs['expected_workflow_commit'])
         for name in ['prepare_run_id', 'prepare_run_attempt', 'unsigned_artifact_id', 'expected_unsigned_sha256', 'expected_proof_sha256']:
             self.assertEqual(inputs[name]['type'], 'string')
             self.assertEqual(inputs[name]['default'], '')
+
+    def test_workflow_and_helper_pin_the_integrated_fix_source(self):
+        tree = ast.parse((ROOT / 'scripts/android-aab-proof.py').read_text())
+        constants = {node.targets[0].id: ast.literal_eval(node.value) for node in tree.body
+                     if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
+                     and node.targets[0].id in ('SOURCE', 'FINGERPRINT')}
+        self.assertEqual(constants['SOURCE'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
+        self.assertEqual(constants['FINGERPRINT'], '4f8a7b5add918138f3dadcfe84fc8f16c818ad8610481dd6b1b56f035923efc1')
+        self.assertEqual(self.workflow['on']['workflow_dispatch']['inputs']['source_commit']['default'], constants['SOURCE'])
 
     def test_resolve_is_main_manual_and_has_no_signing_values(self):
         job = self.workflow['jobs']['resolve']
@@ -70,7 +79,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(checkouts[0]['path'], 'policy')
         self.assertEqual(checkouts[0]['ref'], '${{ needs.resolve.outputs.workflow }}')
         self.assertEqual(checkouts[1]['path'], 'app')
-        self.assertEqual(checkouts[1]['ref'], '10cc894a27302a5a49b6884c843d2a6b509ab354')
+        self.assertEqual(checkouts[1]['ref'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
         run = next(s for s in job['steps'] if s.get('working-directory') == 'app')['run']
         self.assertEqual(run.count('npm run build'), 2)
         self.assertIn('--dry-run', run)
