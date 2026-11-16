@@ -26,7 +26,8 @@ import zipfile
 
 REPO = 'frnkrm/anker'
 SOURCE = '0c31179be780e0bb6359dee79c3502d4e6e8ba4d'
-FINGERPRINT = '4f8a7b5add918138f3dadcfe84fc8f16c818ad8610481dd6b1b56f035923efc1'
+# Fixed app source after the workflow's Capacitor sync (generated config.xml included).
+FINGERPRINT = 'fff132db9c3e7f1654081665551ecabef096717d022bf1588c1d99a2362773df'
 # Historical unsigned U1 from 10cc894; never a replacement for a fresh fix-source artifact.
 REFERENCE = {'sha256': '74e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50', 'bytes': 54264632}
 CERT = 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'
@@ -440,7 +441,8 @@ def native_and_identity(file):
                     loads += 1
             require(loads > 0, 'ELF_SEGMENTS')
             elf += 1
-    require(fingerprint and elf > 0, 'FINGERPRINT_NATIVE')
+    require(fingerprint, 'FINGERPRINT_MISMATCH')
+    require(elf > 0, 'NATIVE_MISSING')
     return elf
 
 

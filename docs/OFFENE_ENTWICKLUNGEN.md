@@ -1,5 +1,11 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: AAB-Quellkennung nach Capacitor-Sync korrigiert (16.11.2026)
+
+[Konkreter Screenshotbefund, isolierte Reproduktion und kleinster Policyfix](CODE18_FINGERPRINT_SYNC_KORREKTUR_T006.md): Prepare43941667392/W2793dbaa/1 scheiterte laut Nutzerlog mit FINGERPRINT_NATIVE. Die vorhandene Vite-Funktion ergibt für feste App0c31179 vor Sync4f8a7b5a…, nach bestehendem Capacitor-Sync stabilfff132db…; einzig generierte res/xml/config.xml erklärt diese Kennungsabweichung. Bisher fälschlich Vor-Sync-Wert gebunden. Minimaler Policyfix pinnt Nach-Sync-Wert, trennt FINGERPRINT_MISMATCH/NATIVE_MISSING ohne Akzeptanzänderung. App-/Workflow-/Manifest-/Signierquellen und CI-/Versuchs-/Hashgates unverändert.41Protokoll-/Java- und32Workflow-/SDK-Offlinefälle grün; neue unabhängige Nach-Sync-Fixture vorher rot.
+
+Tatsächlicher Runner-ELFbestand/Proof/H2/HP/A bleibt unbekannt, kein erfolgreicher neuer Prepare/AAB/S/HS/Upload/Handybeleg. Geprüften Entwicklungsfix regulär übertragen und dessen neue CI lesen, dann neuer PR/regelgerechte Integration/eigene exakte main-CI nötig. Kein Workflowretry oder Guardlockern, keine neue Promptkette. App0c31179 mit Weckzeitfix/eigener CI43873584133 bleibt fest, bisheriges mainW2793dbaa/eigene CI43939327282 historisch getrennt. T-006/V-014 IN_ARBEIT, E-002–E-005/Geräte/Gesamt offen. Folgende Abschnitte historisch.
+
 ## T-006: Weckzeit-Fix regulär in main und eigene main-CI erfolgreich (16.11.2026)
 
 [Fixquelle und AAB-Quellbindung](CODE18_FINALE_QUELLBINDUNG_T006.md): PR10Merged, main **0c31179be780e0bb6359dee79c3502d4e6e8ba4d**, ElternR2/4ca5d08e, Baum vollständig gleich zum geprüften Fix. Eigene **ci.yml43873584133/exakt0c31179/push/main/Versuch1/Success11m 6s**, öffentliche Summary **381 passed (9.5m); 1377 passed; 0 failed; 0 skipped**. Kein Branch-/PR-Ersatz oder Docs-Sonderfall.

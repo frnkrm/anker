@@ -333,6 +333,43 @@ class ProtocolTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(P.ProofError): P.signature_names(dict(signed, **{name: {}}), True)
         with self.assertRaises(P.ProofError): P.signature_names(signed, False)
 
+    def test_fixed_app_post_sync_fingerprint_is_accepted_with_valid_native_library(self):
+        # Observed through the existing Vite hook on app 0c31179 after pinned
+        # Capacitor sync, including its generated res/xml/config.xml. Deliberately
+        # independent of P.FINGERPRINT so a pre-sync policy pin fails this case.
+        post_sync = b'fff132db9c3e7f1654081665551ecabef096717d022bf1588c1d99a2362773df'
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = Path(tmp) / 'synthetic.aab'; synthetic_bundle(bundle)
+            with zipfile.ZipFile(bundle) as z: files = {n: z.read(n) for n in z.namelist()}
+            files['base/assets/public/main.js'] = b'const BUILD_FINGERPRINT="' + post_sync + b'";'
+            bundle.write_bytes(zip_bytes(files))
+            self.assertEqual(P.native_and_identity(bundle), 1)
+
+    def test_source_identity_and_native_presence_fail_independently(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = Path(tmp) / 'synthetic.aab'; synthetic_bundle(bundle)
+            with zipfile.ZipFile(bundle) as z: files = {n: z.read(n) for n in z.namelist()}
+            for marker in [b'wrong-source', b'4f8a7b5add918138f3dadcfe84fc8f16c818ad8610481dd6b1b56f035923efc1']:
+                bundle.write_bytes(zip_bytes(dict(files, **{'base/assets/public/main.js': marker})))
+                with self.subTest(marker=marker), self.assertRaisesRegex(P.ProofError, '^FINGERPRINT_MISMATCH$'):
+                    P.native_and_identity(bundle)
+            for native in [None, b'\x7fELF\x01\x01' + b'not-64-bit']:
+                changed = {k: v for k, v in files.items() if not k.startswith('base/lib/')}
+                if native is not None: changed['base/lib/armeabi-v7a/test.so'] = native
+                bundle.write_bytes(zip_bytes(changed))
+                with self.subTest(native=native), self.assertRaisesRegex(P.ProofError, '^NATIVE_MISSING$'):
+                    P.native_and_identity(bundle)
+
+    def test_native_alignment_is_not_relaxed_by_source_pin_correction(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = Path(tmp) / 'synthetic.aab'; synthetic_bundle(bundle)
+            with zipfile.ZipFile(bundle) as z: files = {n: z.read(n) for n in z.namelist()}
+            native = bytearray(files['base/lib/arm64-v8a/test.so'])
+            struct.pack_into('<Q', native, 112, 4096)
+            files['base/lib/arm64-v8a/test.so'] = bytes(native)
+            bundle.write_bytes(zip_bytes(files))
+            with self.assertRaisesRegex(P.ProofError, '^ELF_ALIGNMENT$'): P.native_and_identity(bundle)
+
     def test_unsigned_payload_proof_and_u1_u2_separation(self):
         with tempfile.TemporaryDirectory() as tmp:
             bundle = Path(tmp) / 'unsigned.aab'; synthetic_bundle(bundle); ctx = context(); proof = proof_for(bundle, ctx)
