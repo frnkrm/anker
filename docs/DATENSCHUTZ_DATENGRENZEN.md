@@ -1,5 +1,9 @@
 # Datenschutz und Datengrenzen – T-005
 
+## T-006: autonome Arbeitsfreigabe und unveränderte private Datengrenzen (16.11.2026)
+
+Nutzer erlaubt Git-/Google-/Releasefortsetzung selbstständig. Nur Zugang-/Identitätsform und lokale Signierdatei-Metadaten geprüft, keine Werte/privaten Fundorte/Dateiinhalte in Logs/Chat/Artefakte übernommen. GitHub-/Google-API CONNECT403 nicht umgangen, keine neue Identität/Secret-/Auth-/Cloudkonfiguration/Playwirkung. Weckzeitänderung nutzt bestehenden Store-/Tagesausnahme-/Alarmbesitzer, keine neuen Rechte/Telemetrie/Sensorstarts oder Produktdatenkanäle. Lokale synthetische/browserbasierte Regressionen sind keine Geräteprüfung. [Tatsächlicher Fortschritt und Blocker](CODE18_AUTONOME_FORTSETZUNG_T006.md).
+
 ## T-006: SDK-Auflösung mit isolierten Offlineprozessen geprüft (15.11.2026)
 
 [Lokale Prepare-sdkmanager-Korrektur und Offlinebelege](PREPARE_SDK_AUFLOESUNG_T006.md): Tests übergeben nur künstliche temporäre SDK-/PATH-Werte und selbst geschriebene Prozessattrappen; keine geerbten Secret-/SDK-/Actions-Ausgabewerte. Neuer Prepare-run-Block gibt bei Konfigurationsfehlern nur feste Diagnosetags aus, keine Pfad-/Input-/Token-/Umgebungsdumps. SDK-/PATH-Umgebung bleibt unverändert; resolve/sign/verify und deren Secretgrenzen unverändert. Keine externe Abfrage, Installation, echte SDK-/Signier-/Cloud-/Play-/Geräteaktion. U1/Code17/alte Sicherungen erhalten, U2/S und weitere Freigaben offen; J nur lokal sichern. Folgende Abschnitte historisch.

@@ -1,5 +1,11 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## T-006: autonome Fortsetzung, Weckzeitkorrektur auf aktueller isolierter Basis (16.11.2026)
+
+[Autonomer Weckzeit-/Releasestand](CODE18_AUTONOME_FORTSETZUNG_T006.md): Nutzer meldet Herkunftsreferenz „unbekannt“ und erlaubt die selbstständige Fortsetzung ohne wiederholte Einzelprompts. Alter gemeldeter uncommitteter Weckzeit-Diff hier nicht vorhanden; beschriebene Korrektur deshalb gezielt auf isoliertem mainR2 neu umgesetzt. Effektive Weckzeit/Tagespriorität sichtbar, bewusst ändern/entfernen, Standardänderung erhält Override; Smart-Wake-Vorschau aus aktueller Konfiguration.35gezielteVitest/6Chromiumfälle, Typecheck/Webbuild/Lint0Fehler/1bestehendeWarnung grün. Kein nativer Quellenwechsel, kein Gerätebeleg.
+
+Git-Refs/Clone erreichbar; GitHub-API und Google-Play-API CONNECT403. Keine lokal gefundene passende Schlüsselsicherung oder nutzbare Google-Identität belegt, kein Ersatzkey/Reset. Geprüften Entwicklungsstand/CI vom späteren main-Fixquellcommit und neuer Policy-/Prepare-/Signier-/Uploadbindung trennen. M/P5 ohne Fix erfüllt Update nicht. Code18/rc4 unverändert, Playbestand unbekannt/kein stillerCode19. T-006/V-014 IN_ARBEIT/E-002–E-005/Geräte/Gesamt offen. Weitere Ausführung im erteilten Umfang selbstständig, vorhandene Server-/Quell-/CI-/Signiergates erhalten; folgende Abschnitte historisch.
+
 ## T-001: Wiederaufnahme des Readback-Fixes (15.11.2026)
 
 Direkter Wiederaufnahmeauftrag: ausschließlich fehlenden Reihenfolgevergleich rekonstruieren und Abschluss sichern. [Geprüfter Umfang und historische Grenzen](UPDATE_CODE17.md), [Quellenbindung](ANKER_CODE17_NACHWEIS.json). 77 Upload-/24 Auth-/35 Workflowmethoden aktuell grün; keine neue App-/Play-/Gerätefreigabe. Neuere T-006-Arbeit unverändert. Historische Pausierung unten bleibt als damaliger Stand erhalten.

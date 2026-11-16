@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { buildAlarmConfig } from '../../core/alarm'
 import { morningNeed, wakeProposal } from '../../core/sleep'
-import { fmtTime } from '../../core/time'
+import { fmtTime, zonedToUtc } from '../../core/time'
 import { isNative } from '../../platform/native'
 import { applyWakeChange } from '../../platform/wakeChange'
 import { planFor, today, useApp } from '../../state/store'
@@ -18,11 +18,15 @@ export function WakeSuggestion({ date }: { date: string }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [draft, setDraft] = useState<string>()
+  const text = draft ?? (override === undefined ? '' : fmtTime(override))
+  const valid = /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text)
+  const minutes = valid ? Number(text.slice(0, 2)) * 60 + Number(text.slice(3)) : undefined
   const pending = useRef(false)
   const apply = async (wake: number | undefined) => {
     if (pending.current) return
     pending.current = true; setBusy(true); setError(''); setMessage('')
-    try { setMessage((await applyWakeChange(date, wake)).message) }
+    try { setMessage((await applyWakeChange(date, wake)).message); setDraft(undefined) }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Die Weckänderung konnte nicht sicher übernommen werden.') }
     finally { pending.current = false; setBusy(false) }
   }
@@ -35,6 +39,10 @@ export function WakeSuggestion({ date }: { date: string }) {
     {override !== undefined ? <>
       <p>Für diesen Tag im Plan: <strong>{fmtTime(override)}</strong>. Danach gilt wieder der Standard {fmtTime(st.settings.anchor.wake)}.</p>
       <p className="text-sm text-muted">{!isNative() ? 'Nur im Plan gespeichert; kein Android-Wecker in der Web-Version.' : !st.settings.alarm.enabled ? 'Der Hauptwecker ist ausgeschaltet.' : confirmed ? 'Die aktuelle Konfiguration wurde an Android übertragen. Hörbarkeit und Zustellung sind damit noch nicht geprüft.' : 'Die aktuelle Übernahme durch Android ist noch nicht bestätigt.'}</p>
+      <label className="block space-y-2 text-sm">Einmalige Weckzeit ändern
+        <input type="time" value={text} disabled={busy} onChange={(event) => setDraft(event.target.value)} className="min-h-11 rounded-xl bg-surface-2 px-3" />
+      </label>
+      <Button disabled={busy || minutes === undefined || minutes === override || zonedToUtc(date, minutes) <= Date.now()} size="sm" onClick={() => { if (minutes !== undefined) void apply(minutes) }}>Einmalige Zeit speichern</Button>
       <Button disabled={busy} size="sm" onClick={() => void apply(undefined)}>Zurück zu {fmtTime(st.settings.anchor.wake)}</Button>
     </> : outsideDay ? <p className="text-muted">Mit den angegebenen Vorbereitungen liegt die nötige Aufstehzeit außerhalb dieses Morgens. Anker stellt keinen rückwirkenden Wecker. Prüfe den Termin und die Wege, bereite freiwillig etwas vorher vor oder sprich eine Änderung selbst ab.</p> : need?.uncertain ? <p className="text-muted">Ort oder Wegzeit für einen Morgenpunkt ist noch offen. Deshalb schlägt Anker keine vermeintlich sichere spätere Weckzeit vor. Du kannst den Termin bearbeiten.</p> : proposal ? <>
       <p>{proposal.text}</p>

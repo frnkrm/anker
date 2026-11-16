@@ -4,6 +4,7 @@ import { smartWakeWindow } from '../../core/smartWake'
 import { syncAlarm } from '../../platform/alarm'
 import { AnkerNative, isNative, type SmartWakeState } from '../../platform/native'
 import { today, useApp } from '../../state/store'
+import { useNow } from '../../state/hooks'
 import { Button, Card, Section, Stepper, Toggle } from './ui'
 
 const format = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit' })
@@ -12,6 +13,7 @@ const format = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', wee
 export function SmartWake() {
   const st = useApp()
   const settings = st.settings.alarm.smartWake
+  const now = useNow()
   const [state, setState] = useState<SmartWakeState>()
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -39,8 +41,9 @@ export function SmartWake() {
     await st.saveSettings((s) => ({ ...s, alarm: { ...s.alarm, smartWake: { ...s.alarm.smartWake, ...patch } } }))
     await syncAlarm()
   }, 'Einstellung gespeichert. Die Messung startest du für jede Nacht bewusst.')
-  const planned = st.alarmStatus?.scheduledAt ?? nextAlarmTimes(buildAlarmConfig(st.settings, st.days, today()), Date.now()).mainAt
-  const window = smartWakeWindow(state?.active ? state.targetAt : planned, settings.windowMinutes)
+  const planned = nextAlarmTimes(buildAlarmConfig(st.settings, st.days, today()), now).mainAt
+  const window = smartWakeWindow(planned, settings.windowMinutes)
+  const targetChanged = state?.active && state.targetAt !== planned
   const pausedUntil = state?.preWakePausedForTargetAt ?? 0
 
   return (
@@ -57,6 +60,7 @@ export function SmartWake() {
             <Stepper label="Weckfenster Minuten" min={5} max={90} step={5} value={settings.windowMinutes} onChange={(windowMinutes) => save({ windowMinutes })} />
           </div>
           {window && <p className="text-sm">Geplantes Fenster: {format.format(window.from)} bis {format.format(window.to)}. Die feste Weckzeit bleibt die Absicherung.</p>}
+          {targetChanged && <p role="status" className="text-sm text-warm">Die laufende Messung gehört zu einer anderen Weckzeit. Beende sie und starte sie für den aktuellen Termin bewusst neu.</p>}
           <p className="text-sm text-muted">Für jede Nacht bewusst starten. Bewegung und Geräusch werden nur im Fenster ausgewertet; Tonaufnahmen werden nicht gespeichert.</p>
           <details>
           <summary className="min-h-11 cursor-pointer content-center text-sm text-muted">Ablauf und Grenzen der Messung</summary>
