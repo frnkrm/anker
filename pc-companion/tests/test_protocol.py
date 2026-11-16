@@ -6,6 +6,7 @@ import unittest
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from anker_companion.protocol import ProtocolError, b64, canonical, derive_keys, open_envelope, public_bytes, seal, stamp, text, unb64, validate_payload, validate_state, validate_briefing, validate_event, verify_emergency, utc, plan_date
 from tests.helpers import Clock, state
@@ -15,6 +16,27 @@ class ProtocolTests(unittest.TestCase):
     def setUp(self):
         self.clock = Clock()
         self.key = bytes(range(32))
+
+    def test_android_instant_precision_keeps_authenticated_timestamp_bytes(self):
+        for fraction in ('1', '123', '123456', '123456789'):
+            with self.subTest(fraction=fraction):
+                at = f'2026-11-12T21:00:00.{fraction}Z'
+                header = {'v': 3, 'kind': 'anker-link', 'pair': 'pair', 'from': 'phone', 'seq': 1, 'sentAt': at}
+                nonce = bytes(range(12))
+                payload = {'type': 'pull', 'after': 0}
+                envelope = {**header, 'nonce': b64(nonce), 'ct': b64(AESGCM(self.key).encrypt(nonce, canonical(payload), canonical(header)))}
+                decoded, result = open_envelope(envelope, 'pair', 'phone', 0, self.key)
+                self.assertEqual(decoded['sentAt'], at)
+                self.assertEqual(result, payload)
+                self.assertAlmostEqual(stamp(at), stamp('2026-11-12T21:00:00Z') + float('0.' + fraction), places=5)
+                # Even precision-only changes must still invalidate the authenticated header.
+                with self.assertRaisesRegex(ProtocolError, 'authentication'):
+                    open_envelope({**envelope, 'sentAt': at.replace('Z', '0Z') if len(fraction) < 9 else at.replace('789Z', '788Z')}, 'pair', 'phone', 0, self.key)
+
+    def test_timestamp_precision_remains_bounded_and_requires_timezone(self):
+        for at in ('2026-11-12T21:00:00.1234567890Z', '2026-11-12T21:00:00.123456789', '2026-11-12T21:00:00.Z', '2026-11-32T21:00:00.123456789Z'):
+            with self.subTest(at=at), self.assertRaisesRegex(ProtocolError, 'timestamp'):
+                stamp(at)
 
     def test_state_keeps_nullable_unplanned_timestamps(self):
         value = state(self.clock)

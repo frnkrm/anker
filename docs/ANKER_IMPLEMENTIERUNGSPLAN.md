@@ -1,5 +1,13 @@
 # Anker 2.0: Implementierungsplan
 
+## Lokale PC-Verbindung: Android-Zeitstempel korrigiert (17.11.2026)
+
+[Ursache, Prüfungen und echter LAN/WLAN-Abgleich](PC_VERBINDUNG_ZEITSTEMPEL_20261117.md):
+Python akzeptiert nun Android-ISO-Zeitstempel mit bis zu neun Nachkommastellen,
+ohne den authentifizierten Originaltext zu ändern. Windows-Python-Suite 286 Tests,
+zwei übersprungen, keine Fehler. Lokaler PC-Fix mit bestehender Code17-App am echten
+Handy geprüft: Live-Verbindung und aktueller Plan bestätigt. Nur lokal, kein Push/Release.
+
 ## T-006: PR11-Relaytest – Uhrzeitrennen im Cleanup-Datensatz korrigiert (16.11.2026)
 
 [Nutzerscreenshot, Rot-/Grünbeleg und Grenzen](PR11_RELAY_ZEITANKER_T006.md): Fehlgeschlagener PR-Lauf43877868624/Job133335555439 zeigt pc_link_mailbox_check beim synthetischen Cleanup-Insert seq99. Zwei volatile Zeitabfragen konnten die erlaubten14Tage überschreiten. Deterministischer lokaler Rotbeleg mit fortschreitender synthetischer Uhr, dann gemeinsamer statement_timestamp-Anker ausschließlich im Test.17PGlite0.5.16-Prüfungen grün einschließlich echter Migration/RLS/Cleanup/exakterGrenze und Ablehnung von0Tagen/14Tagen+1ms. Produktmigration, Schutzregeln, Appquelle0c31179, Workflows/Version/Signierweg unverändert. Keine vollständigen Produktsuiten lokal wiederholt.
