@@ -165,3 +165,91 @@ Stufe A: pure/mocked Offlinefälle für M/W/main-CI-Verwechslung,alte/andere Ver
 Heute nur lokale Lese-/Planungsarbeit und Dokument-/Quell-/Altbestand-/Bundle-/SHA256-Integrität. Keine externe Abfrage,Secretnamens-/Wertprüfung,Schlüsselsuche,Build/Tests,Signierung,Workflow-/Freigabemanifest-/Cloudänderung oder GitHub-/Play-/Geräteaktion. Alte Arbeitsbäume/Sicherungen/U1/Code17-Dateien unverändert. Sicherung `/workspace/anker-t006-code18-aab-signierplan-20261114/` mit Quellinventar,öffentlichen vorhandenen Referenzbelegen,Dokumentation,Gitbundles/Restore/Hashes,keiner neuen Paket-/Schlüssel-/Secretkopie;nur Cloud-lokal.
 
 **Planung abgeschlossen, Implementierung nicht begonnen. T-006/V-014 IN_ARBEIT;E-002–E-005 und Signier-/Upload-/Geräte-/Gesamtfreigaben offen.** Genau nächster separat zu beauftragender Einzelauftrag ist Stufe A: lokalen manuellen Code18-AAB-Workflow-/Prüfhelferentwurf samt Offline-Regressionsprüfungen erstellen,ohne externe Abfrage/Appbuild/Signierung/Workflowstart/Übertragung. Danach stoppen.
+
+
+## Letzter Arbeitspunkt: Weckzeit-Fix vor dem endgültigen Code18-Update
+
+Der Nutzerauftrag gilt vollständig. Der gemeldete ältere uncommittete Diff ist hier nicht vorhanden; eine gezielte Umsetzung auf aktueller Basis ist lokal geprüft, genaue Quelle/CI/Integration bleiben im autonomen Fortschrittsbericht getrennt. Erst nach erfolgreicher regulärer Integration und exakten main-CI-/Policygates neue endgültige Artefakte erzeugen. Historisches M/P5 genügt nicht. Code18-Playbestand unbekannt, Konflikt bei verbrauchtemCode18 melden, kein stillerCode19.
+
+Vollständiger ursprünglicher Übergabeauftrag unverändert:
+
+```text
+Bitte nimm den bereits lokal umgesetzten Weckzeit-Bugfix in den laufenden Git-/Play-Releaseweg von frnkrm/anker auf. Arbeite mit minimalen Änderungen und erhalte deine bisherigen Releasearbeiten.
+
+Problem und gewünschtes Verhalten:
+- Standard-Weckanker: 08:10 Uhr.
+- Tages-Override für 11.11.: 06:05 Uhr (wakeOverride: 365).
+- Der Override hat absichtlich Vorrang. Damit ist das 45-Minuten-Smart-Wake-Fenster 05:20–06:05 korrekt.
+- Die Priorität war jedoch unzureichend sichtbar. Nach bewusstem Entfernen des Overrides sollen wieder 08:10 und 07:25–08:10 gelten.
+- Standardänderungen dürfen Tages-Overrides nicht automatisch löschen.
+
+Vorhandener lokaler Fix:
+Arbeitsbaum: /workspace/anker
+Branch: entwicklung/anker-neu
+Basis-HEAD: 4f3179c36afaa3408a1a57fc26d4a5a458c516bf
+Die Änderungen sind noch NICHT committed, gepusht oder veröffentlicht. Dieser Arbeitsbaum ist älter als der aktuelle main-Stand. Nicht zurücksetzen oder ungeprüft vollständig übernehmen.
+
+Geänderte Dateien:
+- src/core/alarm.ts
+- src/core/alarm.test.ts
+- src/platform/wakeChange.test.ts
+- src/ui/components/SmartWake.tsx
+- src/ui/components/WakeSuggestion.tsx
+- src/ui/pages/Alarm.tsx
+- src/ui/pages/Settings.tsx
+- docs/ANKER_IMPLEMENTIERUNGSPLAN.md
+- docs/ANKER_TESTNACHWEISE.md
+
+Neue, noch unversionierte Dateien:
+- src/ui/components/NextWake.tsx
+- e2e/wake-priority.spec.ts
+
+Umsetzung:
+- Bestehende Prioritätsregel in TypeScript und Kotlin war bereits korrekt: Tages-Override vor Standardanker.
+- nextWakeDetails() verwendet die bestehende nextAlarmTimes()-Berechnung und liefert Termin, Datum, Minuten und aktive Überschreibung.
+- Gemeinsame Anzeige der nächsten wirksamen Weckzeit unter „Schlaf & Anker“ und beim Wecker; Einstellungsübersicht zeigt ebenfalls die effektive nächste Zeit.
+- Aktive Tagesüberschreibung mit ausdrücklichem Prioritätshinweis.
+- Direkter Zugang zum bewussten Ändern oder Entfernen über den vorhandenen WakeSuggestion-/applyWakeChange-Weg.
+- Zeiteingabe allein speichert nichts; ungültige Eingaben deaktivieren den Speichern-Knopf.
+- Smart-Wake-Vorschau verwendet die aktuelle Konfiguration statt eines möglicherweise veralteten alarmStatus.scheduledAt.
+- Hinweis, wenn eine noch gemeldete aktive Messung zu einem anderen Zieltermin gehört.
+- Bestehender Store-Writer, Neuplanung und native Alarmarchitektur bleiben erhalten. Keine Kotlin-/Brücken-/Versions-/Releaseänderungen durch diesen Fix.
+- Nach Änderung des Messziels bleibt ein bewusster Neustart der Messung erforderlich.
+
+Bisherige Prüfungen auf dieser lokalen Basis:
+- 37/37 Vitest-Fälle erfolgreich:
+  npm test -- src/core/alarm.test.ts src/core/smartWake.test.ts src/platform/alarm.test.ts src/platform/wakeChange.test.ts
+- 5/5 Browserfälle erfolgreich:
+  e2e/wake-priority.spec.ts
+  e2e/travel-sleep.spec.ts
+- Neuer Browserfall nach zusätzlicher Eingabevalidierung nochmals erfolgreich.
+- Typecheck und Produktionsbuild erfolgreich.
+- Lint: keine Fehler, eine bestehende fremde Warnung in TaskAssistance.tsx.
+- git diff --check erfolgreich.
+- Kein echter Android-Hörbarkeits-/Sensor-/Standby-Test.
+
+Regressionen umfassen:
+mit/ohne Override, Änderung des Standardankers bei erhaltenem Override, bewusstes Ändern/Entfernen, native Konfigurationsübertragung, gemeinsamer Haupt-/Vorwecker, 45-Minuten-Fenster, Reload und Erhalt echter Tageserledigungen.
+
+Bitte jetzt:
+1. Prüfe deinen aktuellen Git-/Release-/Play-Stand und laufende Arbeiten frisch.
+2. Sichere und lies den lokalen Diff einschließlich beider unversionierter Dateien. Falls der Arbeitsbaum in deiner Umgebung fehlt, melde das ausdrücklich; der Fix ist noch nicht über GitHub verfügbar.
+3. Übertrage nur diesen Fix auf die aktuelle passende Basis, möglichst in einem isolierten Arbeitsbaum und eigenen kleinen Commit/PR. Bestehende Releasearbeiten und neuere Dokumentation erhalten; Dokumentationseinträge inhaltlich abgleichen.
+4. Führe die gezielten Regressionstests und die erforderlichen Integrationsprüfungen erneut aus.
+5. Nimm den geprüften Fix über den bestehenden Git-/AAB-/Play-Prozess in das nächste interne Update auf, innerhalb bereits erteilter Freigaben.
+
+Zuletzt extern geprüft:
+- main war 860b0ca639b2271b357fd404df626c22ef30b29f.
+- README meldet Code17 seit 15.11.2026 intern verfügbar und eine bestätigte Play-Installation.
+- Code18-Prepare 43758395655 erfolgreich, Artefakt:
+  anker-code18-unsigned-43758395655-1
+  sign/verify übersprungen.
+- Letzter geprüfter Code18-Lauf 43773427542 vom 16.11.2026, 00:11 Uhr Europe/Berlin:
+  resolve fehlgeschlagen bei „Exakte getrennte main-CI für M und W prüfen“; prepare/sign/verify übersprungen.
+- Das sind Beobachtungen, keine aktuelle Play-Bestandsbestätigung. Deinen neueren Stand berücksichtigen.
+
+Versionsregel:
+Ein bereits bei Play verwendeter versionCode kann nicht für ein verändertes Bundle wiederverwendet werden. Vor Auswahl der nächsten Nummer den tatsächlichen Play-Bestand prüfen; Code19 nicht ungeprüft festlegen. App-Kennung und vorhandenen Signierweg erhalten. Keine Direkt-APK als Ersatz für das Play-Update, keine Deinstallation/Datenlöschung und keine öffentliche Produktionsfreigabe aus diesem Auftrag ableiten.
+
+Berichte abschließend kurz: integrierter Commit/PR, Testergebnis, gewählter versionCode, tatsächlicher Play-Status und ob der Fix schon per Play aktualisierbar ist.
+```

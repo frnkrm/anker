@@ -14,6 +14,10 @@ import GuidanceSettings, { MorningLightSuggestion } from './GuidanceSettings'
 import { guidancePreferences } from '../../core/guidance'
 import { ExtraControls } from '../components/ExtraControls'
 import { HealthSleepSettings } from '../components/HealthSleepSettings'
+import { NextWake } from '../components/NextWake'
+import { buildAlarmConfig, nextWakeDetails } from '../../core/alarm'
+import { today } from '../../state/store'
+import { useNow } from '../../state/hooks'
 import { Button, Card, Checkbox, Choice, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
@@ -22,6 +26,8 @@ export default function Settings() {
   const { section } = useParams()
   const st = useApp()
   const s = st.settings
+  const now = useNow()
+  const nextWake = nextWakeDetails(buildAlarmConfig(s, st.days, today()), now)
   const save: Save = (fn) => { void st.saveSettings(fn).then(notifySaved).catch(() => st.showToast('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.')) }
 
   switch (section) {
@@ -68,7 +74,7 @@ export default function Settings() {
         <Row label="Arbeit & Gleitzeit" sub={`${plural(s.work.filter((w) => w.isWorkDay).length, 'Tag', 'Tage')} · ab ${fmtTime(s.work.find((w) => w.isWorkDay)?.start ?? 480)}`} to="/einstellungen/arbeit" />
         <Row label="Arbeitsweg" sub={`${s.commute.minutes} min + ${s.commute.bufferMin} min Puffer`} to="/einstellungen/weg" />
         <Row label="Abend & Morgen begleiten" sub="Zeitfarben, kleine Morgenroutine und bewusster Abendabschluss" to="/einstellungen/begleitung" />
-        <Row label="Schlaf & Anker" sub={`Aufstehen ${fmtTime(s.anchor.wake)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
+        <Row label="Schlaf & Anker" sub={`${nextWake ? `Nächstes Aufstehen ${fmtTime(nextWake.minutes)}${nextWake.overridden ? ' · Tagesüberschreibung' : ''}` : 'Wecker aus'} · Standard ${fmtTime(s.anchor.wake)} · Bett ${fmtTime(s.bed)}`} to="/einstellungen/schlaf" />
         <Row label="Abend" sub="Abendpläne, ruhiger Übergang und Abendmodus" to="/einstellungen/abend" />
         <Row label="Routinen" sub="Morgen- und Abendroutine bearbeiten" to="/einstellungen/routinen" />
         <Row label="Sport" to="/einstellungen/sport" />
@@ -187,6 +193,7 @@ function Sleep({ s, save }: { s: S; save: Save }) {
   return (
     <Page className="settings-page" title="Schlaf & Anker" back="/einstellungen">
       <p className="px-1 text-sm text-muted">Deine Zeiten bleiben anpassbar. Zahlen und Uhrzeiten kannst du direkt eingeben.</p>
+      <NextWake />
 
       <SettingRow label="Stummen Einschlafhinweis beim Zubettgehen starten"><Toggle label="Stummen Einschlafhinweis beim Zubettgehen starten" checked={!!s.sleep.bedtimePromptEnabled} onChange={(value) => setSleep({ bedtimePromptEnabled: value })} /></SettingRow>
       <p className="text-sm text-muted">Einmaliger Hinweis nach „Ich liege im Bett“ über anderen Apps. Dafür gibst du das Einblenden in Android gesondert frei. Die Freigabe allein startet nichts.</p>

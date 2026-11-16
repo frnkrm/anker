@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { alarmPlanningStatus, buildAlarmConfig, nextAlarmTimes } from './alarm'
+import { alarmPlanningStatus, buildAlarmConfig, nextAlarmTimes, nextWakeDetails } from './alarm'
+import { smartWakeWindow } from './smartWake'
 import { applySchedule, defaultSettings, migrateSettings, resetToSuggested } from './defaults'
 import { activePlanDate } from './now'
 import { buildReminders } from './reminders/build'
@@ -8,6 +9,38 @@ import { todayBerlin, zonedToUtc } from './time'
 import type { Settings } from './types'
 
 const s = () => defaultSettings('2026-11-01')
+
+describe('Sichtbare wirksame Weckzeit', () => {
+  const date = '2026-11-11'
+  const now = zonedToUtc('2026-11-10', 19 * 60)
+  const config = () => ({ ...buildAlarmConfig(s(), {}, '2026-11-10'), enabled: true, wakeMinutes: 490, wakeOverrides: { [date]: 365 } })
+
+  it('zeigt die Tagespriorität und dasselbe 45-Minuten-Fenster wie der bestehende Planer', () => {
+    const c = config()
+    const next = nextWakeDetails(c, now)!
+    expect(next).toMatchObject({ date, minutes: 365, overridden: true, mainAt: zonedToUtc(date, 365) })
+    expect(next.mainAt).toBe(nextAlarmTimes(c, now).mainAt)
+    expect(smartWakeWindow(next.mainAt, 45)).toEqual({ from: zonedToUtc(date, 320), to: zonedToUtc(date, 365) })
+  })
+
+  it('Standardänderung löscht die Ausnahme nicht; erst Entfernen stellt den Standard wieder her', () => {
+    const c = config()
+    expect(nextWakeDetails({ ...c, wakeMinutes: 500 }, now)).toMatchObject({ minutes: 365, overridden: true })
+    const next = nextWakeDetails({ ...c, wakeOverrides: {} }, now)!
+    expect(next).toMatchObject({ minutes: 490, overridden: false })
+    expect(smartWakeWindow(next.mainAt, 45)).toEqual({ from: zonedToUtc(date, 445), to: zonedToUtc(date, 490) })
+    expect(c.wakeOverrides[date]).toBe(365)
+  })
+
+  it('zeigt nach dem verstrichenen Termin keine abgelaufene Tagesüberschreibung', () => {
+    expect(nextWakeDetails(config(), zonedToUtc(date, 400))).toMatchObject({ date: '2026-11-12', minutes: 490, overridden: false })
+  })
+
+  it('berücksichtigt Kranktagesauslassung und deaktivierte Wecker', () => {
+    expect(nextWakeDetails({ ...config(), skipDates: [date] }, now)).toMatchObject({ date: '2026-11-12', minutes: 490, overridden: false })
+    expect(nextWakeDetails({ ...config(), enabled: false }, now)).toBeUndefined()
+  })
+})
 
 describe('Ehrliche Weckerplanung (AL-07 / Q09)', () => {
   const state = { scheduledAt: 1000, mainConfirmed: true, exact: true }

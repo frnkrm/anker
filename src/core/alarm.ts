@@ -95,6 +95,14 @@ export function nextAlarmTimes(c: NativeAlarmConfig, nowMs: number): { mainAt: n
   return { mainAt: 0, preWakeAt: 0 }
 }
 
+/** Anzeige derselben Planung; keine zweite Weckerberechnung oder Zustellbestätigung. */
+export function nextWakeDetails(c: NativeAlarmConfig, nowMs: number) {
+  const times = nextAlarmTimes(c, nowMs)
+  if (!times.mainAt) return undefined
+  const { date, minutes } = utcToZoned(times.mainAt)
+  return { ...times, date, minutes, overridden: c.wakeOverrides[date] !== undefined }
+}
+
 /** Reihenfolge der Wege zum Beenden, in Klartext für die Diagnose. */
 export const STOP_METHOD_LABEL: Record<string, string> = {
   qr: 'QR-Code',

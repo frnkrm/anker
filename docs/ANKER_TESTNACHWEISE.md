@@ -1,5 +1,11 @@
 # Anker: Testnachweise
 
+## T-006: autonome Fortsetzung, Weckzeitkorrektur auf aktueller isolierter Basis (16.11.2026)
+
+[Autonomer Weckzeit-/Releasestand](CODE18_AUTONOME_FORTSETZUNG_T006.md): Nutzer meldet Herkunftsreferenz „unbekannt“ und erlaubt die selbstständige Fortsetzung ohne wiederholte Einzelprompts. Alter gemeldeter uncommitteter Weckzeit-Diff hier nicht vorhanden; beschriebene Korrektur deshalb gezielt auf isoliertem mainR2 neu umgesetzt. Effektive Weckzeit/Tagespriorität sichtbar, bewusst ändern/entfernen, Standardänderung erhält Override; Smart-Wake-Vorschau aus aktueller Konfiguration.35gezielteVitest/6Chromiumfälle, Typecheck/Webbuild/Lint0Fehler/1bestehendeWarnung grün. Kein nativer Quellenwechsel, kein Gerätebeleg.
+
+Git-Refs/Clone erreichbar; GitHub-API und Google-Play-API CONNECT403. Keine lokal gefundene passende Schlüsselsicherung oder nutzbare Google-Identität belegt, kein Ersatzkey/Reset. Geprüften Entwicklungsstand/CI vom späteren main-Fixquellcommit und neuer Policy-/Prepare-/Signier-/Uploadbindung trennen. M/P5 ohne Fix erfüllt Update nicht. Code18/rc4 unverändert, Playbestand unbekannt/kein stillerCode19. T-006/V-014 IN_ARBEIT/E-002–E-005/Geräte/Gesamt offen. Weitere Ausführung im erteilten Umfang selbstständig, vorhandene Server-/Quell-/CI-/Signiergates erhalten; folgende Abschnitte historisch.
+
 ## Code17: HTTP403 vor Commit, sichere Diagnose vorbereitet (15.11.2026)
 
 Erster Bereitstellungslauf43742005929 ohne Commit gestoppt, eigenes Edit gelöscht. Screenshot bestätigt Testrechte bereits gesetzt; keine Rechteänderung. Neue Diagnose prüft Kontoidentität und API-Schritt in einem immer verworfenen Edit ohne Commitroute.162 Offlineprüfungen grün. [Befund und Grenzen](CODE17_INTERN_FREIGABE.md). Aktivierung weiter blockiert; frühere Vorbereitungen unten historisch.

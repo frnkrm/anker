@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultSettings, emptyLocal } from '../core/defaults'
 import { initialGame } from '../core/game'
-import { nextAlarmTimes } from '../core/alarm'
+import { buildAlarmConfig, nextAlarmTimes, nextWakeDetails } from '../core/alarm'
 import { zonedToUtc } from '../core/time'
 import type { AnkerNativePlugin } from './native'
 import { MemoryRepository } from '../data/memory'
@@ -28,6 +28,19 @@ beforeEach(async () => {
 afterEach(() => vi.useRealTimers())
 
 describe('Bewusste einmalige Weckänderung', () => {
+  it('behält eine Ausnahme bei Standardänderung und entfernt sie nur bewusst, samt nativer Neuplanung', async () => {
+    await app().saveSettings((s) => ({ ...s, anchor: { ...s.anchor, wake: 490 } }))
+    await app().updateDay(tomorrow, (log) => ({ ...log, steps: { 'morning:teeth': 'done' } }))
+    await applyWakeChange(tomorrow, 365)
+    await app().saveSettings((s) => ({ ...s, anchor: { ...s.anchor, wake: 500 } }))
+    expect(nextWakeDetails(buildAlarmConfig(app().settings, app().days, date), Date.now())).toMatchObject({ minutes: 365, overridden: true })
+    expect(mocks.sync.mock.calls.at(-1)?.[0].wakeOverrides).toEqual({ [tomorrow]: 365 })
+    await applyWakeChange(tomorrow, undefined)
+    expect(mocks.sync.mock.calls.at(-1)?.[0]).toMatchObject({ wakeMinutes: 500, wakeOverrides: {} })
+    expect(app().days[tomorrow]?.steps['morning:teeth']).toBe('done')
+    expect(nextWakeDetails(buildAlarmConfig(app().settings, app().days, date), Date.now())).toMatchObject({ minutes: 500, overridden: false })
+  })
+
   it('speichert im Web nur den Plan und behauptet keine Android-Bestätigung', async () => {
     mocks.native = false
     const result = await applyWakeChange(tomorrow, 7 * 60 + 25)

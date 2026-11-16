@@ -12,6 +12,7 @@ import { scanQr } from '../../platform/qr'
 import { today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
 import { SmartWake } from '../components/SmartWake'
+import { NextWake } from '../components/NextWake'
 import { Ampel, Button, Card, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TimeField, Toggle } from '../components/ui'
 
 export function fmtDateTime(ms: number): string {
@@ -174,12 +175,13 @@ export function AlarmSetup({ embedded = false }: { embedded?: boolean } = {}) {
       <Card>
         <SettingRow label={<div>
           <p className="text-lg font-medium">Aufstehen um {fmtTime(s.anchor.wake)}</p>
-          <p className="text-sm text-muted">Jeden Tag gleich, außer an Kranktagen. Plant sich selbst weiter, auch wenn die App zu ist.</p>
+          <p className="text-sm text-muted">Standard für Tage ohne eigene Überschreibung. Kranke Tage werden ausgelassen.</p>
         </div>}>
           <Toggle label="Wecker" checked={a.enabled} onChange={(v) => set({ enabled: v })} />
         </SettingRow>
       </Card>
 
+      <NextWake />
       <div className="[&_.setting-control]:ml-auto"><SmartWake /></div>
       <Section title="Optional">
         <Card className="space-y-3">
