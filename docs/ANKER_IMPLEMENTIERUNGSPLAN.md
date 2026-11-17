@@ -1,5 +1,7 @@
 # Anker 2.0: Implementierungsplan
 
+Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; AAB-Prepare44167654681 läuft, tatsächliche Signatur/Play-Freigabe weiter getrennt.
+
 Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
 
 ## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)

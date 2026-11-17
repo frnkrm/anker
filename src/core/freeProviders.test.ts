@@ -34,7 +34,10 @@ describe('Kostenfreie Anbieter ohne kostenpflichtigen Fallback', () => {
   it('verwendet Gemini JSON ohne Tools und meldet Grenzen ohne Ersatzanbieter', async () => {
     const { handler, fetcher } = setup()
     expect(await (await handler(request(steps))).json()).toMatchObject({ kind: 'steps', steps: [{ title: 'Ein Blatt bereitlegen' }] })
-    const body = JSON.parse(String(fetcher.mock.calls.at(-1)?.[1]?.body)) as Record<string, unknown>
+    expect(fetcher.mock.calls.at(-1)?.[0]).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent')
+    const capabilities = await handler(new Request('https://test.supabase.co/functions/v1/assistant', { headers: { authorization: 'Bearer test' } }))
+    expect(await capabilities.json()).toMatchObject({ ai: { provider: 'Gemini', model: 'gemini-3.1-flash-lite' }, freeOnly: true })
+    const body = JSON.parse(String(fetcher.mock.calls[2]?.[1]?.body)) as Record<string, unknown>
     expect(body).not.toHaveProperty('tools')
     const failed = setup({}, true)
     expect((await failed.handler(request(steps))).status).toBe(502)
