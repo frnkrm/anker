@@ -115,10 +115,18 @@ def track(response):
     p.require(response.get('track') == 'internal' and isinstance(response.get('releases'), list), 'TRACK_CONFLICT')
     rows = response['releases']
     p.require(1 <= len(rows) <= 2, 'TRACK_CONFLICT')
+    # Play retains earlier binaries by including their codes in the new release,
+    # not by submitting two competing completed releases on the same track.
+    if len(rows) == 1:
+        row = rows[0]
+        if (isinstance(row, dict) and row.get('name') == NAME and row.get('status') == 'completed'
+                and isinstance(row.get('versionCodes'), list) and len(row['versionCodes']) == 3
+                and set(row['versionCodes']) == {'16', '17', '18'} and 'userFraction' not in row):
+            return [], [copy.deepcopy(row)]
     retained = [r for r in rows if isinstance(r, dict) and r.get('status') == 'completed'
                 and r.get('versionCodes') in (['16', '17'], ['17', '16']) and 'userFraction' not in r]
     target = [r for r in rows if isinstance(r, dict) and r.get('versionCodes') == ['18']
-              and r.get('name') == NAME and r.get('status') in ('draft', 'completed') and 'userFraction' not in r]
+              and r.get('name') == NAME and r.get('status') == 'draft' and 'userFraction' not in r]
     p.require(len(retained) == 1 and len(target) <= 1 and len(rows) == len(retained) + len(target), 'TRACK_CONFLICT')
     return copy.deepcopy(retained), copy.deepcopy(target)
 
@@ -145,7 +153,9 @@ def deliver(api, data, body, report, now=None):
             p.require(known_bundle({'bundles': [uploaded]}, data['bundle_sha256']), 'UPLOAD_RESPONSE')
         target = copy.deepcopy(existing[0]) if existing else {'name': NAME, 'versionCodes': ['18'], 'status': wanted}
         target['status'] = wanted
-        desired = {'track': 'internal', 'releases': retained + [target]}
+        if wanted == 'completed':
+            target['versionCodes'] = sorted(retained[0]['versionCodes'] + ['18'], key=int)
+        desired = {'track': 'internal', 'releases': retained + [target] if wanted == 'draft' else [target]}
         if not existing or existing[0]['status'] != wanted:
             changed = api.request('PUT', base + '/tracks/internal', legacy.json_body(desired))
             p.require(changed == desired, 'TRACK_RESPONSE')
@@ -186,7 +196,10 @@ def main():
     result = 0
     try:
         data = invocation(os.environ)
-        report['bundleSha256'] = data['bundle_sha256']
+        report.update(bundleSha256=data['bundle_sha256'], proofSha256=data['proof_sha256'],
+                      mode=data['mode'], signedArtifactId=p.number(data['artifact_id']),
+                      signRunId=p.number(data['sign_run_id']), signRunAttempt=p.number(data['sign_run_attempt']),
+                      sourceFingerprint=p.FINGERPRINT, retainedVersionCodes=[16, 17])
         cp, classes = p.tooling(args.tools)
         if args.phase == 'prepare':
             prepare(p.GitHub(os.environ.get('GH_TOKEN')), data, args.folder, cp, classes)

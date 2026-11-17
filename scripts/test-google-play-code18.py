@@ -87,8 +87,7 @@ class DeliveryTests(unittest.TestCase):
     def test_internal_upload_preserves_old_release_and_reads_back(self):
         api, result = API(), report()
         c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
-        self.assertEqual(api.rows[0], OLD)
-        self.assertEqual(api.rows[1], {'name': c.NAME, 'status': 'completed', 'versionCodes': ['18']})
+        self.assertEqual(api.rows, [{'name': c.NAME, 'status': 'completed', 'versionCodes': ['16', '17', '18']}])
         self.assertTrue(result['activeReleaseVerified'])
         self.assertTrue(result['commitAcknowledged'])
         self.assertEqual(sum('/upload/' in path for _, path, _ in api.calls), 1)
@@ -100,6 +99,7 @@ class DeliveryTests(unittest.TestCase):
     def test_draft_is_default_scope_and_does_not_activate(self):
         api, result = API(), report()
         c.deliver(api, inputs('draft'), BODY, result, now=c.EARLIEST)
+        self.assertEqual(api.rows[0], OLD)
         self.assertEqual(api.rows[1]['status'], 'draft')
         self.assertTrue(result['draftVerified'])
         self.assertFalse(result['activeReleaseVerified'])
@@ -116,6 +116,7 @@ class DeliveryTests(unittest.TestCase):
     def test_existing_active_is_idempotent_and_never_downgraded_to_draft(self):
         for mode in ('draft', 'internal'):
             api = API(existing={'name': c.NAME, 'status': 'completed', 'versionCodes': ['18']}, known=True)
+            api.rows = [{'name': c.NAME, 'status': 'completed', 'versionCodes': ['16', '17', '18']}]
             result = report()
             c.deliver(api, inputs(mode), BODY, result, now=c.EARLIEST)
             self.assertTrue(result['activeReleaseVerified'])

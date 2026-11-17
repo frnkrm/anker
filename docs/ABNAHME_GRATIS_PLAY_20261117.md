@@ -72,7 +72,12 @@ standardmäßig interner Entwurf; interner aktiver Test erfordert die gesonderte
 RELEASE_CODE18_INTERNAL-Wahl. Bestehender Code17-Weg unverändert. Exakte finale
 Artefakt-ID, Signierlauf/-versuch, Workflow-SHAs, AAB-/Proof-Hashes nötig. Unklarer
 Upload/Commit wird nicht wiederholt; kein stiller Code19, kein Production-/Testerpfad,
-keine Reviewabbrüche. Aktiver Code16/17-Release wird vollständig erhalten.
+keine Reviewabbrüche. Im Entwurf bleibt der aktive Code16/17-Release bytegleich erhalten. Bei der
+internen Aktivierung werden16/17 gemäß Googles TrackRelease-Vertrag ausdrücklich
+in versionCodes des neuen abgeschlossenen Releases16/17/18 aufgenommen; kein
+vorheriges aktives Bundle wird entfernt. Zwei konkurrierende completed-Releases
+werden nicht gesendet. Das folgt dem bereits vorhandenen Code17-Aktivierungsweg
+und [Google TrackRelease](https://developers.google.com/android-publisher/api-ref/rest/v3/edits.tracks).
 
 Console hat neuen Uploadschlüssel weiterhin in Bearbeitung angezeigt, gültig erst
 18.11.2026 22:41Berlin. Neuer Uploader blockiert zusätzlich vor diesem Zeitpunkt.
@@ -89,3 +94,12 @@ normalisiert Backslashes; Python-Unterprozess mit bewusst minimaler Linux-Umgebu
 Workflow-SDK-Suite benötigt echte Linux-Pfade/symlinks; volle Bestätigung über eigene
 Linux-CI erforderlich. Keine Tests übersprungen oder Gates gelockert. Lokales echtes
 unsigned AAB unabhängig mit aktualisierter Policy erfolgreich geprüft.
+
+## Anmelderückkehr
+
+Tatsächliche Supabase-URLkonfiguration erlaubte nur die alte Webdomain. Nach
+konkreter Nutzerfreigabe native Rückkehr de.frnkrm.anker.mobile://login ergänzt,
+bestehende Site-URL/Web-Allowlist erhalten. Für echte lokale Prüfung vorübergehend
+http://localhost:4173/verbindungen und entsprechender Assistant-Origin freigegeben.
+Anmelde-Link wurde im lokalen App-Prüfstand erfolgreich versandt; Nutzer öffnet ihn
+selbst. Lokale Freigaben und Testsession nach Abschluss wieder entfernen.
