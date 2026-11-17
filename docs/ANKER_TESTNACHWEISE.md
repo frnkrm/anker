@@ -2,6 +2,14 @@
 
 ## Restanleitung im Testmodul – Folgeänderung vom 17.11.2026
 
+Release-Nachlauf: PR17-Push44186798169 bestand388 Browserfälle; der getrennte
+PR-Lauf44186807251 fand bei 320px/160% einen17px-Überlauf. Der neue äußere
+Katalograhmen nahm der bisherigen Oberfläche zusätzlichen Platz. Sein Rahmen
+liegt jetzt nur um die Zusammenfassung; der Inhalt behält die bisherige Breite.
+Neue Anleitungstexte erlauben bei Bedarf auch innerhalb langer Wörter Umbrüche.
+Kein Verstecken von Inhalt und keine Vergrößerung der erlaubten Überlaufgrenze.
+Gezielte lokale Prüfung beider Ansichten bestanden; neuer Linux-CI-Nachweis folgt.
+
 Standardansicht zeigt verbleibende persönliche Versuche; technische Teilbelege
 vom isolierten Code18-Prüfstand sind separat aufklappbar. Bisheriger Katalog samt
 103 IDs, Berichten und Import/Export bleibt erhalten und standardmäßig geschlossen;

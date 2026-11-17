@@ -31,7 +31,7 @@ const trials: { id?: number; to?: string; title: string; steps: string[] }[] = [
 ]
 
 export function RemainingDeviceTests({ onSelect }: { onSelect: (id: number) => void }) {
-  return <Section title="Für dich noch zu prüfen">
+  return <div className="min-w-0 [overflow-wrap:anywhere]"><Section title="Für dich noch zu prüfen">
     <p className="px-1 text-sm text-muted">Vor allem echte Nächte, deine Hörbeobachtung und deine Hardware fehlen noch. Ein Versuch nach dem anderen; die ausführlichen Sammelfälle sind keine zusätzliche Pflichtliste.</p>
     {trials.map((trial, index) => <details key={trial.title} open={index === 0} className="rounded-2xl border border-line bg-surface p-4">
       <summary className="min-h-11 cursor-pointer py-2 font-medium">{trial.title}</summary>
@@ -52,5 +52,5 @@ export function RemainingDeviceTests({ onSelect }: { onSelect: (id: number) => v
         <p className="text-sm text-muted">Prüfstand danach entfernt. Keine vollständige Nacht, echte QR-/Tagprüfung oder menschliche Hörbeobachtung daraus abgeleitet. Im ausführlichen Sammelfall „Teilweise“ wählen, solange weitere Abschnitte fehlen. Vorhandene Berichte und IDs bleiben erhalten.</p>
       </Card>
     </details>
-  </Section>
+  </Section></div>
 }

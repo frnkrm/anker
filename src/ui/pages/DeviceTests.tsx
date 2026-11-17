@@ -179,8 +179,8 @@ export default function DeviceTests() {
 
   return <Page title="Gemeinsam testen" back="/mehr">
     <RemainingDeviceTests onSelect={id => { setGroup('Alle'); setOnlyOpen(false); select(id, 'Alle') }} />
-    <details className="space-y-3 rounded-2xl border border-line p-4" open={catalogOpen} onToggle={event => { if (event.target === event.currentTarget) setCatalogOpen(event.currentTarget.open) }}>
-      <summary className="min-h-11 cursor-pointer py-2 font-medium">Vollständiger Katalog und bisherige Berichte</summary>
+    <details className="min-w-0 space-y-3" open={catalogOpen} onToggle={event => { if (event.target === event.currentTarget) setCatalogOpen(event.currentTarget.open) }}>
+      <summary className="min-h-11 cursor-pointer rounded-2xl border border-line p-4 font-medium">Vollständiger Katalog und bisherige Berichte</summary>
     <Card className="space-y-2">
       <p>Ein Versuch nach dem anderen. Du kannst jederzeit aufhören und später weitermachen.</p>
       <p>{shortPassed} von {short.length} kurzen Updateprüfungen für diesen Stand {platform === 'android' ? 'auf Android' : 'im Browser'} als „Hat geklappt“ gemeldet.</p>

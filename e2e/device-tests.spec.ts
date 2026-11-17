@@ -163,7 +163,7 @@ test('Zeiteingabe und Testseite bleiben bei schmalem Bildschirm und großer Schr
   for (const route of ['/einstellungen/schlaf', '/geraetetest?fall=62']) {
     await page.goto(route)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), { message: `Kein seitlicher Überlauf auf ${route}` }).toBeLessThanOrEqual(1)
   }
 })
 
