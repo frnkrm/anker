@@ -25,16 +25,17 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 REPO = 'frnkrm/anker'
-SOURCE = '0c31179be780e0bb6359dee79c3502d4e6e8ba4d'
+SOURCE = '9bc717985ca6c9fadb13c0dbb38b0ba3d427715c'
 # Fixed app source after the workflow's Capacitor sync (generated config.xml included).
-FINGERPRINT = 'fff132db9c3e7f1654081665551ecabef096717d022bf1588c1d99a2362773df'
+FINGERPRINT = 'f595199f70ff101f11a164156d96f55d941f1a40ce756e284419640bb31f64ec'
 # Historical unsigned U1 from 10cc894; never a replacement for a fresh fix-source artifact.
 REFERENCE = {'sha256': '74e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50', 'bytes': 54264632}
-CERT = 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'
+# Google Console's downloaded upload_cert.der, 17 Nov; valid for upload from 18 Nov 22:41 Berlin.
+CERT = '4879769897033b9bdd35b9dab927088e0585fdb9fee86ce3aa52cbc2b22f00a3'
 WORKFLOW = '.github/workflows/android-aab-pruefstand.yml'
 CI = '.github/workflows/ci.yml'
-# Full manifest pin retained: fix source changes no Android/config/version/permission inputs.
-MANIFEST_SHA256 = 'ac65d6fa7ac889229ccaf921d16119d3cde43c2d1df75bb94441c1ea1a9742d4'
+# Reviewed manifest: optional SleepLockAdmin receiver; uses-permissions unchanged.
+MANIFEST_SHA256 = 'e41f769f6f9efe90ba45ec9cacfb673d43c4f03e949bf6d2095631bb0b1287bf'
 ROOT = Path(__file__).resolve().parent
 LIMIT = 100 * 1024 * 1024
 JSON_LIMIT = 1024 * 1024
@@ -226,7 +227,7 @@ def resolve(env, api):
         comparison = api.get('/compare/' + commit + '...main')
         require(comparison.get('status') in ('ahead', 'identical')
                 and comparison.get('merge_base_commit', {}).get('sha') == commit, 'NOT_MAIN_ANCESTOR')
-    ctx['sourceCI'] = ci_from_run(api.get('/actions/runs/43873584133'), SOURCE)
+    ctx['sourceCI'] = ci_from_run(api.get('/actions/runs/44144640024'), SOURCE)
     rows = api.get('/actions/workflows/ci.yml/runs?head_sha=' + ctx['workflowCommit'] + '&event=push&status=success&per_page=100').get('workflow_runs')
     require(isinstance(rows, list), 'CI_LIST')
     candidates = []

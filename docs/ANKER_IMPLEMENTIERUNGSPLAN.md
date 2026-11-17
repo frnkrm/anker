@@ -1,5 +1,7 @@
 # Anker 2.0: Implementierungsplan
 
+Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+
 ## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
 
 Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
