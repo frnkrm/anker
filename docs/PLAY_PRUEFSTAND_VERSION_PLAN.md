@@ -1,5 +1,7 @@
 # T-006 – Versions-/Quellvorschlag für den nächsten internen Play-Prüfstand
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 ## Umsetzungsfortschreibung nach separatem Nutzerauftrag (14.11.2026)
 
 Die später ausdrücklich freigegebene **lokale** Versionierung18/rc.4 ist umgesetzt: Versionsquellcommit `014870f3ee52c0233118d2852ef0719aa9bc602b` auf entwicklung/anker-neu, exakt drei Versionsdateien/fünf Werte und unveränderte Dependencies/Signierlogik/SDK/Rechte. [Frischer unsignierter Code18-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md) bindet neue7608…Appkennung, aktuelle Webassets und neues AAB/SHA256d0d5cfedc21e2201329dccf77177040f85884136e0ee44e5ea6ee600acbe282b. Alte Code17-Artefakte/Quellen/Guards/Protokolle/Manifeste erhalten, nicht umetikettiert. Der vorherige Vorschlag gilt damit ausschließlich für die lokale Umsetzung als gesondert beauftragt; er reserviert18weiterhin nicht bei Play und erteilt keine Signier-/Upload-/Remote-/Gerätefreigabe.

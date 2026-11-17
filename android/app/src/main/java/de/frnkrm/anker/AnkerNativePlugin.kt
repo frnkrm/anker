@@ -329,6 +329,7 @@ class AnkerNativePlugin : Plugin() {
         val o = JSObject()
         o.put("ringing", s.ringing != null)
         o.put("kind", s.ringing?.wire)
+        o.put("ringStartedAt", if (s.ringStartedAt > 0) s.ringStartedAt else null)
         o.put("scheduledAt", if (s.mainAt > 0) s.mainAt else null)
         o.put("preWakeAt", if (s.preWakeAt > 0) s.preWakeAt else null)
         o.put("preWakePausedForTargetAt", s.preWakePausedForTargetAt)
@@ -355,6 +356,23 @@ class AnkerNativePlugin : Plugin() {
     fun getSmartWakeState(call: PluginCall) { call.resolve(SmartWakeService.status(context)) }
 
     @PluginMethod
+    fun requestSleepScreenLock(call: PluginCall) {
+        if (!SleepLockAdmin.supported(context)) { call.reject("Dieses Gerät unterstützt die freiwillige Bildschirmsperre nicht."); return }
+        activity.runOnUiThread {
+            try { activity.startActivity(SleepLockAdmin.permissionIntent(context)); call.resolve() }
+            catch (_: Exception) { call.reject("Die Android-Freigabe konnte nicht geöffnet werden. Du kannst den Bildschirm weiterhin selbst sperren.") }
+        }
+    }
+
+    @PluginMethod
+    fun reportSleepPromptVisibility(call: PluginCall) {
+        activity.runOnUiThread {
+            try { BedtimePromptController.reportSleepVisibility(context, call.getString("sessionId") ?: "", call.getBoolean("visible") == true, fromApp = true); call.resolve() }
+            catch (_: Exception) { call.reject("Die Sichtbarkeit konnte nicht bestätigt werden.") }
+        }
+    }
+
+    @PluginMethod
     fun startSmartWake(call: PluginCall) {
         if (getPermissionState("smartAudio") != PermissionState.GRANTED) {
             requestPermissionForAlias("smartAudio", call, "startSmartWakePermitted")
@@ -372,7 +390,9 @@ class AnkerNativePlugin : Plugin() {
             }
             if (activity.isFinishing || activity.isDestroyed) { call.reject("Bitte starte die Messung bei geöffneter App."); return }
             ContextCompat.startForegroundService(context, Intent(context, SmartWakeService::class.java)
-                .setAction(SmartWakeService.ACTION_START).putExtra("targetAt", state.mainAt).putExtra("minutes", cfg.smartWakeWindowMinutes))
+                .setAction(SmartWakeService.ACTION_START).putExtra("targetAt", state.mainAt).putExtra("minutes", cfg.smartWakeWindowMinutes)
+                .putExtra("lockScreen", call.getBoolean("lockScreen") == true)
+                .putExtra("estimateOnset", call.getBoolean("estimateOnset") == true))
             call.resolve()
         } catch (_: Exception) { call.reject("Android hat den Messstart nicht erlaubt. Öffne die App und versuche es erneut. Der feste Wecker bleibt gestellt.") }
     }

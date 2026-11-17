@@ -3,6 +3,7 @@ import type { DayLog, DayPlan, InboxItem, ReminderIntensity, Settings, TomorrowS
 import { eveningLightMinute } from '../guidance/eveningLight'
 import { minuteText } from '../uiText'
 import { preparationImpulses } from './preparation'
+import { returnChecks } from './returnChecks'
 
 export type Channel = 'wecker' | 'uebergang' | 'sanft'
 
@@ -54,7 +55,7 @@ export interface ReminderSpec {
   critical: boolean
   /** Only the opted-in bed trigger enters the separate native silent session. */
   quietFollowUps?: boolean
-  /** Dated preparation must disappear at departure, even if Android delivers late. */
+  /** Dated preparation/status checks expire even if Android delivers late. */
   validUntil?: number
 }
 
@@ -103,6 +104,7 @@ function privateReminders(extras: ReminderExtras): PrivateReminder[] {
 }
 
 interface Base {
+  returnCheckChoice?: number
   key: string
   at: number // Plan-Minuten
   channel: Channel
@@ -154,7 +156,12 @@ function joinSteps(titles: string[]): string {
 const TAG_WORDS: Partial<Record<string, string>> = { tidy: 'Aufräumen', face: 'Gesicht', teeth: 'Zähne' }
 
 function baseReminders(plan: DayPlan, log: DayLog | undefined, s: Settings): Base[] {
-  const out: Base[] = []
+  const out: Base[] = returnChecks(plan, s)
+  if (s.alarm.enabled && s.alarm.smartWake.enabled && s.alarm.smartWake.autoDaily === true && !plan.openEnd) {
+    out.push({ key: 'smartwake-start', at: plan.bed, channel: 'sanft', title: 'Nachtmessung für heute',
+      body: 'Öffne Anker zum Starten. Android erlaubt keinen verlässlichen Mikrofonstart aus dem Hintergrund.',
+      escalate: false, validUntil: zonedToUtc(plan.date, plan.bed + 120) })
+  }
   const t = fmtTime
   const sick = plan.dayType === 'sick'
   const morning = plan.blocks.find((b) => b.routine === 'morning')
@@ -268,7 +275,8 @@ export function reminderAllowed(plan: DayPlan | undefined, log: DayLog | undefin
   const local = utcToZoned(at)
   const m = plan ? minutesOnPlanDay(plan.date, at) : local.minutes
   // Leisure/film windows still keep explicitly selected routes and private reminders, never household nudges.
-  const selected = key.startsWith('go:') || key.startsWith('prep:')
+  // Gewählte Status-Rückfragen müssen auch während eines Termins mit offenem Ende möglich sein.
+  const selected = key.startsWith('go:') || key.startsWith('prep:') || key.startsWith('return-check:')
   const inPlanQuiet = policy ? policy.ranges.some((r) => at >= r.from && at < r.to) : plan && (plan.quiet ?? []).some(([a, e]) => m >= a && m < e)
   if (!selected && inPlanQuiet) return false
   if (!critical && (inQuiet(local.minutes, s) || (extras.focusUntil ?? 0) > at)) return false
@@ -411,8 +419,10 @@ export function buildReminders(
           escalation: e,
           actions: b.escalate || b.key === 'leave-10' || b.key === 'pcstop-15',
           revision,
-          // One opportunity per dated route; changed progress updates the revision, never replays delivery.
-          token: b.preparationTarget ? reminderRevision([plan.date, 'preparation-once', b.preparationTarget]) : reminderDeliveryToken(revision, at, e),
+          // One opportunity per dated route/status check; edits never replay a consumed delivery.
+          token: b.preparationTarget ? reminderRevision([plan.date, 'preparation-once', b.preparationTarget])
+            : b.key.startsWith('return-check:') ? reminderRevision([plan.date, 'return-check-once', b.key, b.returnCheckChoice])
+              : reminderDeliveryToken(revision, at, e),
           critical: !!b.hard,
           ...(b.quietFollowUps === true ? { quietFollowUps: true } : {}),
           ...(b.validUntil !== undefined ? { validUntil: b.validUntil } : {}),

@@ -20,6 +20,16 @@ const input = (events: unknown[] = []): DiagnosticExportInput => ({ app: { versi
 const all = (): DiagnosticExportSelection => ({ ...defaultDiagnosticSelection(NOW), categories: [...DIAGNOSTIC_CATEGORIES], settingsGroups: [...DIAGNOSTIC_SETTINGS_GROUPS] })
 
 describe('Selektiver Diagnoseexport', () => {
+  it('exportiert Messzähler nur bei ausdrücklicher Kategorieauswahl und keine Rohsignale', () => {
+    const data = input([{ ...row(1, 'measurement', 'input_summary'), details: {
+      audioBlocks: 100, motionEvents: 50, validIntervals: 4, missingIntervals: 2, quietSinceAt: NOW - HOUR,
+      waveform: 'PRIVATE-AUDIO', transcript: 'PRIVATE-TEXT', rmsSamples: [1, 2, 3],
+    } }])
+    expect(makeDiagnosticExport(data, defaultDiagnosticSelection(NOW), NOW).logs).toEqual([])
+    const result = makeDiagnosticExport(data, { ...defaultDiagnosticSelection(NOW), categories: ['measurement'] }, NOW)
+    expect(result.logs[0]?.details).toEqual({ audioBlocks: 100, motionEvents: 50, validIntervals: 4, missingIntervals: 2, quietSinceAt: NOW - HOUR })
+    expect(JSON.stringify(result)).not.toMatch(/PRIVATE-/)
+  })
   it('erklärt stille Folgehinweise und Snooze-Sperren ohne deren private Sitzungs- oder Quellenkennungen', () => {
     const data = input([
       { ...row(1, 'bedtime', 'quiet_deferred'), details: { reasonCode: 'budget', targetAt: NOW, token: 'PRIVATE_TOKEN', sourceRevision: 'PRIVATE_REVISION' } },

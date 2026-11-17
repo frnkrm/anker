@@ -14,7 +14,7 @@ const places: Place[] = [
 const commitment: Commitment = { id: 'visit', date, label: 'Kunde', context: 'customer', commitment: 'hard', start: 9 * 60, locationKind: 'onsite', placeId: 'customer-id', originPlaceId: 'home', travelMin: 45, routeMode: 'driving' }
 function fixture(patch: Partial<Commitment> = {}, chosenPlaces = places) {
   const state: TrafficState = { settings, days: {}, events: [], local: { ...emptyLocal(), commitments: [{ ...commitment, ...patch }], places: chosenPlaces,
-    assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } } }
+    assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true } } } }
   const plan = buildDayPlan({ date, settings, commitments: state.local.commitments, places: state.local.places })
   return { state, plan, context: trafficContext(state, plan, commitment.id)! }
 }

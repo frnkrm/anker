@@ -107,6 +107,6 @@ export function AlarmHub() {
   const sleep = location.pathname === '/schlaf'
   return <Page className="settings-page" title="Schlaf & Wecker" back="/mehr">
     <Segmented label="Schlafbereich" value={sleep ? 'sleep' : 'alarm'} onChange={(value) => nav(value === 'sleep' ? '/schlaf' : '/wecker')} options={[{ value: 'alarm', label: 'Wecker' }, { value: 'sleep', label: 'Schlafüberblick' }]} />
-    {sleep ? <SleepDiary embedded /> : <AlarmSetup embedded />}
+    {sleep ? <SleepDiary embedded /> : <div id="alarm"><AlarmSetup embedded /></div>}
   </Page>
 }

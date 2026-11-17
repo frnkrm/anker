@@ -16,6 +16,31 @@ export function validateSleepEntry(date: DateStr, entry: SleepDiaryEntry, nowMs 
   if (!validDate(date)) throw new Error('Bitte wähle ein gültiges Datum für die Nacht.')
   if (entry.source !== undefined && entry.source !== 'health-connect') throw new Error('Die Herkunft der Schlafangaben ist ungültig.')
   const clean: SleepDiaryEntry = {}
+  const timestamp = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= nowMs
+  for (const field of ['alarmAt', 'qrAt', 'wakeFeedbackSkippedAt', 'energySkippedAt'] as const) {
+    const value = entry[field]
+    if (value !== undefined) {
+      if (!timestamp(value)) throw new Error('Der Zeitpunkt der Weckinteraktion ist ungültig.')
+      clean[field] = value
+    }
+  }
+  if (entry.onset !== undefined) {
+    const v = entry.onset
+    if (!v || !timestamp(v.at) || !['estimated', 'confirmed', 'discarded'].includes(v.status)
+      || !['prompt-timeout', 'manual'].includes(v.source)) throw new Error('Die Einschlafangabe ist ungültig.')
+    if (v.status !== 'discarded' && (entry.bedAt !== undefined && v.at < entry.bedAt || entry.wakeAt !== undefined && v.at > entry.wakeAt)) throw new Error('Prüfe die Reihenfolge der Schlafangaben.')
+    clean.onset = { at: v.at, status: v.status, source: v.source }
+  }
+  if (entry.wakeFeedback !== undefined) {
+    const v = entry.wakeFeedback
+    if (!v || !timestamp(v.at) || !['too-early', 'right', 'too-late'].includes(v.value)) throw new Error('Die Rückmeldung zur Weckzeit ist ungültig.')
+    clean.wakeFeedback = { at: v.at, value: v.value }
+  }
+  if (entry.dayEnergy !== undefined) {
+    const v = entry.dayEnergy
+    if (!v || !timestamp(v.at) || ![1, 2, 3, 4, 5].includes(v.value)) throw new Error('Die Energierückmeldung ist ungültig.')
+    clean.dayEnergy = { at: v.at, value: v.value }
+  }
   for (const event of SLEEP_EVENTS) {
     const value = entry[event]
     if (value === undefined) continue

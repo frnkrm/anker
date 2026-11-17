@@ -6,6 +6,7 @@ import { useBedtimeSession } from './BedtimeSession'
 
 const time = (at: number) => new Date(at).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })
 const reasons: Record<string, string> = {
+  'sleep-estimated': 'Eine unsichere Einschlafschätzung wurde vorgemerkt. Bitte prüfe sie morgens.',
   'screen-off': 'Der Bildschirm wurde ausgeschaltet. Dieser Schlafhinweis wurde beendet.',
   locked: 'Das Handy war gesperrt. Dieser Schlafhinweis wurde ausgelassen.',
   'permission-revoked': 'Die Android-Freigabe zum Einblenden ist nicht mehr vorhanden. Dieser Schlafhinweis wurde beendet.',
@@ -20,7 +21,7 @@ const reasons: Record<string, string> = {
 }
 
 /** Ein bewusster Start für diese Nacht; Android besitzt den flüchtigen Sitzungszustand. */
-export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, followUpsEnabled = false, integrated = false, settingsOnly = false, onBed }: { available: boolean; delayMinutes: number; nowMs: number; enabled?: boolean; followUpsEnabled?: boolean; integrated?: boolean; settingsOnly?: boolean; onBed?: () => Promise<void> }) {
+export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, followUpsEnabled = false, integrated = false, settingsOnly = false, lockAfterBed = false, onBed }: { available: boolean; delayMinutes: number; nowMs: number; enabled?: boolean; followUpsEnabled?: boolean; integrated?: boolean; settingsOnly?: boolean; lockAfterBed?: boolean; onBed?: () => Promise<void> }) {
   const { supported, state, busy, error, setError, foreground, run, refresh } = useBedtimeSession()
   const [settingsOpened, setSettingsOpened] = useState(false)
   const waiting = state?.phase === 'waiting'
@@ -40,7 +41,7 @@ export function BedtimePrompt({ available, delayMinutes, nowMs, enabled = true, 
   }
   const markBed = () => run(async () => {
     await onBed?.()
-    if (chosen && supported && !waiting && !shown && !quiet) {
+    if (chosen && supported && !lockAfterBed && !waiting && !shown && !quiet) {
       if (!mayStart) setError('Für den Schlafhinweis fehlt noch die Freigabe. Du findest sie unter „Heute anpassen“.')
       else if (!validDelay) setError('Prüfe die Einschlafzeit unter Schlaf & Anker.')
       else { await BedtimeNative.startBedtimePrompt(startOptions); await refresh.current?.(true) }

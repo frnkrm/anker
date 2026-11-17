@@ -38,7 +38,7 @@ async function seed(page: Page, records: { collection: Collection; id: string; d
 
 async function different(page: Page) {
   const menu = await openTodayAdjust(page)
-  await menu.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await menu.getByText('Termine & Tagesplan', { exact: true }).click()
   await menu.getByRole('button', { name: 'Heute anders', exact: true }).click()
   const dialog = page.getByRole('dialog').last()
   await expect(dialog.getByRole('button', { name: 'Ich habe heute etwas anderes vor', exact: true })).toBeVisible()

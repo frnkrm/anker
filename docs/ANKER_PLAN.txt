@@ -1,3 +1,6 @@
+AKTUELLE ARBEITSWEISE (17.11.2026) — UI-Anpassungen gesammelt zum Schluss nach Logik und Datenmodell, vor finaler Abnahme/Auslieferung.
+Für sämtliche weitere Bearbeitung gilt docs/ARBEITSWEISE.md: effizient, ohne Verschwendung des Nutzungskontingents und autonom im beauftragten Umfang arbeiten. Historische Ablauftexte darunter bleiben erhalten; aktuelle Nutzerfreigaben haben Vorrang. Keine erneute Freigabe bereits autorisierter Schritte, keine Umgehung technischer Schutzregeln.
+
 ANKER – VOLLSTÄNDIGER ENTWICKLUNGSPLAN UND CODEX-PROMPTS
 ========================================================
 

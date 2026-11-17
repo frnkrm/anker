@@ -1,5 +1,83 @@
 # Anker 2.0: Implementierungsplan
 
+## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+
+Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
+implementiert; der aktuelle differenzierte Stand steht in
+[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
+sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
+befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
+separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
+Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+
+## Fortlaufender autonomer Gesamtauftrag (17.11.2026)
+
+Nutzer verlangt Weiterarbeit ohne Freigabe nach jedem Paket; UI weiterhin gesammelt
+zum Schluss. [Implementierungen, Entscheidungen und externe Grenzen](ALLTAG_UMSETZUNG_20261117.md)
+fortlaufend pflegen. Kostenfreie Provideradapter sind noch keine Provideraktivierung;
+nächtliche Zeitvorschläge bleiben rein beobachtend und bestätigungsbedürftig.
+
+## Umsetzung der Alltagskorrekturen begonnen (17.11.2026)
+
+Aktueller Nutzerauftrag autorisiert die Umsetzung der geplanten Fehler/Funktionen;
+die frühere Beschränkung auf reine Planung ist damit für diese Arbeit aufgehoben.
+UI-Anpassungen bleiben gesammelt am Ende. Erstes Logikpaket: BF-001 blendet nach
+bewusst bestätigtem frühem Aufstehen den erledigten Aufstehanker aus der Anzeige
+aus (Wecker bleibt unverändert). BF-002 verwendet den bestehenden ReminderBuilder
+und Android-Scheduler für eine ausdrücklich wählbare, einmalige Status-Rückfrage.
+Neue Wahl bleibt ohne Wert aus, keine automatische Rückkehr und keine neuen Dienste.
+Offene Termin-Planruhe darf für die gewählte Rückfrage übergangen werden, globale
+Nachtruhe und Fokus nicht. Einzelheiten/Grenzen im [Bugfix-Plan](BUGFIX_PLAN.md).
+162 gezielte TS- und 41 Kotlin-Tests grün, Typprüfung/gezieltes ESLint grün;
+keine echte Geräteprüfung oder Lieferung. UI-/Snooze-Abschluss steht aus.
+Keine Versionserhöhung, Signierung oder Änderung der gebundenen Code18-Releasequelle.
+
+## Beauftragtes USB-Update: reale Signaturgrenze (17.11.2026)
+
+Code17 aus Google Play am echten Handy gelesen; base.apk trägt Googles
+Appzertifikat8A:32:…:44:29. Lokaler Uploadschlüssel ist kein passender Direktupdate-
+Signierer. [Befund](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md): keine Installation oder
+Datenänderung, regulären Play-Weg beziehungsweise Google-signierte APK benötigen.
+
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
+## Ergänzte Alltagsplanung (17.11.2026)
+
+Neue Entscheidung: F-015 um täglichen Automatikmodus und sofortige Auswertung ab
+bewusstem Bettgehen erweitert; F-018 ergänzt stillen sichtbarkeitsgeprüften Rückfrage-
+Timeout als unsichere Einschlafschätzung, freiwillige Weck-/Energiemeldungen und
+spätere lokale Zeitvorschläge. Kein medizinischer Diagnoseanspruch, keine bestätigte
+Schlaf-/Aufstehzeit allein aus Timeout oder QR. Datenformat/Skalen später besprechen.
+Alle UI-Anpassungen und neuen Bedienelemente kommen gemeinsam nach Funktionslogik,
+Datenmodell und nativen Fähigkeiten in die letzte UI-Phase vor Abnahme/Auslieferung.
+
+F-015 (Nachtmessung in Jetzt, Signaljournal, freiwillige Sperre), BF-005 (Heute
+anpassen), F-016 (lokale Funktionssuche) und F-017 (appweite Hilfedialoge) geplant;
+Details/Abnahme in Roadmap und Bugfix-Plan. Quellvergleich bestätigt: neue sichtbare
+Weckzeit-Override-Erklärung kam nach Code17. Vorhandene Messung speichert keine
+Tondateien; Bildschirmsperre ist kein garantierter Ausschluss von Mediengeräuschen.
+Keine Umsetzung, Messung oder Berechtigungs-/Releaseänderung durch diese Planung.
+
+Neu ergänzt: BF-004 für verständliche KI-/Verkehrseinrichtung sowie F-013/F-014
+für ausdrücklich kostenfreie Anbieterwege. Derzeit fehlen im gezeigten Build
+Backend-Anschluss und bestätigte Capabilities; OpenAI/Google Routes nicht durch
+ein Häkchen kostenlos machen. Nur Befund/Recherche/Planung, keine Aktivierung.
+
+[Offene Entwicklungen](OFFENE_ENTWICKLUNGEN.md) enthalten F-011 (freiwillige
+Hobby-Vorschläge, mit Online-Recherche) und F-012 (PC-Gestaltung/Dialogposition).
+[Bugfix-Plan](BUGFIX_PLAN.md) enthält zusätzlich BF-003 zur Abgrenzung aufgeklappter
+Bereiche. Alle drei Punkte sind nur geplant. Für sämtliche Pläne gilt die neue
+gemeinsame effiziente, autonome Arbeitsweise; keine neue Produkt- oder Releaseausführung.
+
+## Neuer Bugfix-Plan für Alltagsmeldungen (17.11.2026)
+
+[BUGFIX_PLAN.md](BUGFIX_PLAN.md) sammelt neue Meldungen mit stabilen BF-IDs.
+BF-001 behandelt als ersten Punkt die unklare Jetzt-Anzeige mit „noch 10 min“.
+BF-002 ergänzt den Nutzerwunsch nach einem Hinweis auf den offenen Unterwegs-Zustand
+und die noch ausstehende bewusste Rückkehrbestätigung.
+Nutzerwunsch: effizient und autonom arbeiten, gezielte Prüfungen statt unnötiger
+Wiederholungen. Dieser Schritt ist Planung; kein Produktfix oder neuer Release.
+
 ## Lokale PC-Verbindung: Android-Zeitstempel korrigiert (17.11.2026)
 
 [Ursache, Prüfungen und echter LAN/WLAN-Abgleich](PC_VERBINDUNG_ZEITSTEMPEL_20261117.md):

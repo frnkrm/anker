@@ -37,7 +37,7 @@ beforeEach(async () => {
   mocks.repo = new MemoryRepository()
   useApp.setState({ ready: false, settings: defaultSettings(date), local: emptyLocal(), workUndo: undefined })
   await useApp.getState().load()
-  await useApp.getState().saveLocal((local) => ({ ...local, places: structuredClone(places), commitments: [{ ...visit }], assistance: { routes: { enabled: true, version: 1, at: 1 } } }))
+  await useApp.getState().saveLocal((local) => ({ ...local, places: structuredClone(places), commitments: [{ ...visit }], assistance: { routes: { enabled: true, version: 2, at: 1 } } }))
   clearRouteProposal(visit.id)
   mocks.request.mockReset()
   mocks.request.mockImplementation(async (input) => result(input as RouteRequest))
@@ -49,7 +49,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
     await expect(requestRouteEstimate(visit.id, { ...options(), origin: { address: 'Andere Adresse' } })).rejects.toMatchObject({ issue: 'consent' })
     await useApp.getState().saveLocal((local) => ({ ...local, assistance: undefined }))
     await expect(requestRouteEstimate(visit.id, options())).rejects.toMatchObject({ issue: 'consent' })
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1 } } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1 } } }))
     const request = options()
     await useApp.getState().markCommitment(visit.id, 'leftAt')
     await expect(requestRouteEstimate(visit.id, request)).rejects.toThrow('Plan hat sich geändert')
@@ -119,7 +119,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
   })
 
   it('führt höchstens die drei freigegebenen Gelegenheiten aus, ohne Fahrzeit oder Alarm zu ändern', async () => {
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true } } }))
     const wake = planFor(date).wake
     for (const now of [zonedToUtc('2026-11-08', 19 * 60), zonedToUtc(date, 6 * 60), currentTrafficContext(visit.id)!.leaveAt! - 15 * 60_000]) {
       vi.setSystemTime(now)
@@ -133,7 +133,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
   })
 
   it('beendet technische Fehler ohne wiederholte Versuche und erhält den manuellen Wert', async () => {
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true } } }))
     mocks.request.mockRejectedValueOnce(new AssistanceError('not-configured'))
     await refreshRouteEstimates(); await refreshRouteEstimates()
     expect(mocks.request).toHaveBeenCalledOnce()
@@ -144,7 +144,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
 
   it('verdrängt bei voller lokaler Abrufgrenze keine noch relevanten Merker zugunsten neuer kostenpflichtiger Versuche', async () => {
     const routeChecks = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`seen-${index}`, { at: Date.now(), revision: 'seen' }]))
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true }, routeChecks } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true }, routeChecks } }))
     const writes = vi.spyOn(mocks.repo!, 'putMany')
     await refreshRouteEstimates()
     expect(mocks.request).not.toHaveBeenCalled()
@@ -153,7 +153,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
   })
 
   it('sendet nach einer zwischen Abrufmerker und Anfrage vorgenommenen Terminänderung keine alte Reisezeit', async () => {
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true } } }))
     const save = useApp.getState().saveLocal
     vi.spyOn(useApp.getState(), 'saveLocal').mockImplementationOnce(async (fn) => {
       await save(fn)
@@ -186,7 +186,7 @@ describe('E07: reale Store-Barriere, kurzlebige Routen und begrenzte optionale E
   })
 
   it('beendet beim Ausschalten nur die automatische Anfrage und übernimmt keine späte Antwort', async () => {
-    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 1, at: 1, automatic: true } } }))
+    await useApp.getState().saveLocal((local) => ({ ...local, assistance: { routes: { enabled: true, version: 2, at: 1, automatic: true } } }))
     const gate = deferred<AssistantResult>()
     mocks.request.mockReturnValueOnce(gate.promise)
     const querying = requestRouteEstimate(visit.id, { ...options(), automatic: true })

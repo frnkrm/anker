@@ -19,6 +19,7 @@ import { simplificationOffer, SUPPORT_OFFER_DISMISSED, type NextInput } from '..
 import { planConflicts, validConflictAcknowledgements } from '../core/planConflicts'
 import { currentReminderAction, validReminderAction, withReminderReceipt, type ReminderAction, type ReminderApplyResult } from '../core/reminders/actions'
 import { validateSleepEntry } from '../core/sleepDiary'
+import { validHobbies, type HobbyPreferences } from '../core/hobbies'
 import { acceptHealthSleepSuggestion } from '../core/healthSleep'
 import { addDays, minutesOnPlanDay, todayBerlin, zonedToUtc, type DateStr } from '../core/time'
 import { buildTimeCatalog, currentTimeCatalog, TIME_CATALOG_RECORD_ID, timeCatalogPlanDates, validTimeCatalog, type TimeCatalogRuntime, type TimeCatalogSnapshot } from '../core/timeCatalog'
@@ -139,6 +140,9 @@ interface AppState {
   setEvents(e: CalendarEvent[]): Promise<void>
   applyCalendarSnapshot(events: CalendarEvent[], status: CalendarStatus, accept: () => boolean): Promise<boolean>
   saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
+  saveHobbies(fn: (hobbies: HobbyPreferences) => HobbyPreferences): Promise<void>
+  recordSleepEstimate(date: DateStr, at: number, invalidated?: boolean): Promise<void>
+  updateSleepEntry(date: DateStr, fn: (entry: SleepDiaryEntry) => SleepDiaryEntry): Promise<void>
   /** Rein lesende Zeitübersicht: erst beim bewussten Öffnen initialisieren. */
   refreshTimeCatalog(runtime?: TimeCatalogRuntime): Promise<void>
   saveDeviceTests(fn: (progress: DeviceTestProgress) => DeviceTestProgress): Promise<void>
@@ -509,7 +513,7 @@ async function readAppData(commitMigration = true, snapshot?: readonly Rec[]) {
   const events = (await source.get<CalendarEvent[]>('meta', 'events')) ?? []
   const savedLocal = await source.get<LocalData>('meta', 'local')
   const savedRecovery = recoveryFields(savedLocal)
-  const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...savedRecovery, deviceTests: deviceTestsFromLocal(savedLocal) }
+  const local = { ...emptyLocal(), ...savedLocal, ...eveningLocalFields(savedLocal), ...savedRecovery, deviceTests: deviceTestsFromLocal(savedLocal), hobbies: validHobbies(savedLocal?.hobbies) ? savedLocal?.hobbies : undefined }
   if (!validGuidanceLocal(local.guidance)) local.guidance = undefined
   // Alte/ungültige Cachekopien bleiben ohne Einfluss auf die echten Quelldaten.
   const savedCatalog = await source.get<TimeCatalogSnapshot>('meta', TIME_CATALOG_RECORD_ID)
@@ -1302,6 +1306,32 @@ export const useApp = create<AppState>()((set, get) => ({
       set({ local })
     })
     changed()
+  },
+
+  async saveHobbies(fn) {
+    await get().saveLocal(local => {
+      const hobbies = fn(structuredClone(local.hobbies ?? { items: [] }))
+      if (!validHobbies(hobbies)) throw new Error('Prüfe Namen und freiwillige Angaben zu deinen Hobbys.')
+      return { ...local, hobbies }
+    })
+  },
+
+  async recordSleepEstimate(date, at, invalidated = false) {
+    if (!Number.isFinite(at) || at <= 0 || at > Date.now()) throw new Error('Die Einschlafschätzung ist ungültig.')
+    await get().saveLocal(local => {
+      const old = local.sleepDiary[date] ?? {}
+      // Eigene Korrektur/Bestätigung niemals von einer später eintreffenden Meldung ersetzen.
+      if (old.onset && (old.onset.at !== at || old.onset.status !== 'estimated' || old.onset.source !== 'prompt-timeout')) return local
+      const entry = validateSleepEntry(date, { ...old, onset: { at, status: invalidated ? 'discarded' : 'estimated', source: 'prompt-timeout' } })
+      return { ...local, sleepDiary: { ...local.sleepDiary, [date]: entry } }
+    })
+  },
+
+  async updateSleepEntry(date, fn) {
+    await get().saveLocal(local => {
+      const entry = validateSleepEntry(date, fn(structuredClone(local.sleepDiary[date] ?? {})))
+      return { ...local, sleepDiary: { ...local.sleepDiary, [date]: entry } }
+    })
   },
 
   async saveDeviceTests(fn) {

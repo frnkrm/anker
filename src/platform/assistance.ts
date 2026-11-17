@@ -57,7 +57,7 @@ async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, al
     if (allowed && !allowed()) throw new AssistanceError('consent')
     const response = await fetch(`${base.replace(/\/$/, '')}/functions/v1/assistant`, {
       method: input ? 'POST' : 'GET', signal: controller.signal,
-      headers: { authorization: `Bearer ${data.session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string, 'content-type': 'application/json' },
+      headers: { authorization: `Bearer ${data.session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string, 'content-type': 'application/json', 'x-anker-cost-policy': 'free-only' },
       ...(payload ? { body: JSON.stringify(payload) } : {}),
     })
     if (controller.signal.aborted) throw new AssistanceError(timedOut ? 'timeout' : 'cancelled')
@@ -79,8 +79,8 @@ async function invoke(input?: AssistantRequest, externalSignal?: AbortSignal, al
 export async function assistantCapabilities(signal?: AbortSignal): Promise<AssistantCapabilities> {
   const data = await invoke(undefined, signal)
   if (!record(data) || !record(data.ai) || !record(data.routes) || !record(data.dailyLimits)
-    || typeof data.ai.configured !== 'boolean' || data.ai.provider !== 'OpenAI'
-    || typeof data.routes.configured !== 'boolean' || data.routes.provider !== 'Google Routes'
+    || typeof data.ai.configured !== 'boolean' || !['OpenAI', 'Gemini'].includes(String(data.ai.provider))
+    || typeof data.routes.configured !== 'boolean' || !['Google Routes', 'TomTom'].includes(String(data.routes.provider))
     || !Array.isArray(data.routes.modes) || !data.routes.modes.every((mode) => ['driving', 'transit', 'cycling', 'walking'].includes(String(mode)))
     || typeof data.dailyLimits.steps !== 'number' || typeof data.dailyLimits.route !== 'number') throw new AssistanceError('invalid-response')
   return data as unknown as AssistantCapabilities

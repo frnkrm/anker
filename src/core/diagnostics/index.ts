@@ -52,9 +52,11 @@ const EVENT_CODES: Readonly<Record<DiagnosticCategory, ReadonlySet<string>>> = {
   system: new Set(['reconcile', 'journal_dropped']),
   reminder: new Set(['scheduled', 'delivered', 'delivery_rejected', 'action_accepted', 'action_rejected']),
   pc: new Set(['connected', 'disconnected', 'ack_accepted', 'ack_rejected']),
+  measurement: new Set(['start_requested', 'sampling_started', 'input_summary', 'morning_window', 'screen_lock', 'sleep_estimated', 'stopped', 'error', 'interrupted', 'triggered', 'finished']),
 }
 const DETAIL_RULES: Projection = {
   ...fields('targetAt driftMs alarmVolume alarmVolumeMax interruptionFilter channelImportance focusChange focusResult playerSource playerError playerExtra displayState remainingMs timeoutMs sdk observedAt count routedDeviceType foregroundAttempts', 'integer'),
+  ...fields('windowAt validIntervals missingIntervals quietIntervals audioBlocks motionEvents firstInputAt lastInputAt quietSinceAt', 'integer'),
   ...fields('interactive keyguardLocked userUnlocked alarmMuted notificationsEnabled exactAllowed fullScreenAllowed batteryIgnored powerSave bluetooth wired overlayAllowed accepted started foreground attached alarmEnabled', 'boolean'),
   kind: KINDS, reasonCode: REASONS, audioSource: ['alarm-default', 'notification-default', 'ringtone-default', 'generated'],
 }

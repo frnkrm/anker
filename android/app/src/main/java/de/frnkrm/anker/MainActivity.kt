@@ -17,6 +17,12 @@ class MainActivity : BridgeActivity() {
         handleAlarmIntent(intent)
     }
 
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        // Ein zeitnaher echter Eingriff entwertet nur die unsichere Schätzung, nie Tagesfakten.
+        SmartWakeService.instance?.userAwake()
+    }
+
     /** Wecker: über dem Sperrbildschirm anzeigen und zum Entsperren auffordern (für den QR-Scan). */
     private fun handleAlarmIntent(intent: Intent?) {
         val ringing = intent?.getBooleanExtra(AlarmService.EXTRA_ALARM, false) == true || AnkerPrefs.isRinging(this)

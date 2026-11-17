@@ -1,8 +1,8 @@
 import type { InboxItem, TaskRef, WorkTask } from './types'
 export * from '../../supabase/functions/_shared/assistanceProtocol'
 
-export const ASSISTANCE_NOTICE_VERSION = 1
-export interface AssistanceConsent { enabled: boolean; at: number; version: 1 }
+export const ASSISTANCE_NOTICE_VERSION = 2
+export interface AssistanceConsent { enabled: boolean; at: number; version: 1 | 2 }
 export interface AssistancePreferences {
   ai?: AssistanceConsent
   routes?: AssistanceConsent & { automatic?: boolean; changeThresholdMin?: number }
@@ -17,7 +17,7 @@ export function validAssistancePreferences(value: unknown): value is AssistanceP
   if (!object(value)) return false
   for (const purpose of ['ai', 'routes']) {
     const consent = value[purpose]
-    if (consent !== undefined && (!object(consent) || typeof consent.enabled !== 'boolean' || consent.version !== 1 || !timestamp(consent.at)
+    if (consent !== undefined && (!object(consent) || typeof consent.enabled !== 'boolean' || (consent.version !== 1 && consent.version !== 2) || !timestamp(consent.at)
       || (consent.automatic !== undefined && typeof consent.automatic !== 'boolean')
       || (consent.changeThresholdMin !== undefined && (typeof consent.changeThresholdMin !== 'number' || !Number.isInteger(consent.changeThresholdMin) || consent.changeThresholdMin < 1 || consent.changeThresholdMin > 120)))) return false
   }

@@ -1,9 +1,9 @@
 import type { Settings } from '../types'
 
-export const DIAGNOSTIC_CATEGORIES = ['alarm', 'bedtime', 'reminder', 'system', 'pc'] as const
+export const DIAGNOSTIC_CATEGORIES = ['alarm', 'bedtime', 'reminder', 'system', 'pc', 'measurement'] as const
 export type DiagnosticCategory = typeof DIAGNOSTIC_CATEGORIES[number]
 export const DIAGNOSTIC_CATEGORY_LABELS: Readonly<Record<DiagnosticCategory, string>> = {
-  alarm: 'Wecker', bedtime: 'Stummer Schlafhinweis', reminder: 'Alltags-Erinnerungen', system: 'Systemereignisse', pc: 'PC-Verbindung',
+  alarm: 'Wecker', bedtime: 'Stummer Schlafhinweis', reminder: 'Alltags-Erinnerungen', system: 'Systemereignisse', pc: 'PC-Verbindung', measurement: 'Nachtmessung: technische Eingänge',
 }
 export const DIAGNOSTIC_SETTINGS_GROUPS = ['alarm', 'sleep', 'routines', 'reminders', 'appearance', 'workTimes'] as const
 export type DiagnosticSettingsGroup = typeof DIAGNOSTIC_SETTINGS_GROUPS[number]

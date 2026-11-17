@@ -44,6 +44,7 @@ data class BedtimePromptState(
     val quietVisible: Boolean = false,
     val quietToken: String = "",
     val quietSource: BedtimeQuietSource? = null,
+    val sleepVisibleFromElapsed: Long = 0,
 )
 
 /** Reine Einmalsitzung. Systemzustände und monotone Uhr werden ausdrücklich übergeben. */

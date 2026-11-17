@@ -18,7 +18,9 @@ export function recordForSync(record: Rec): Rec | undefined {
   if (projected.collection !== 'settings' || !object(projected.data)) return projected
   // Freigaben gehören zum jeweiligen Gerät, nicht zum Settings-Abgleich eines anderen Geräts.
   const data = Object.fromEntries(Object.entries(projected.data).filter(([key]) => !['integrations', 'extras', 'guidance'].includes(key)))
+  if (object(data.sleep)) data.sleep = Object.fromEntries(Object.entries(data.sleep).filter(([key]) => key !== 'onsetEstimationEnabled'))
   if (!object(data.alarm)) return { ...projected, data }
   const alarm = Object.fromEntries(Object.entries(data.alarm).filter(([key]) => !['qrSecret', 'medicationEnabled', 'medicationReminderAt'].includes(key)))
+  if (object(alarm.smartWake)) alarm.smartWake = Object.fromEntries(Object.entries(alarm.smartWake).filter(([key]) => !['autoDaily', 'lockOnStart'].includes(key)))
   return { ...projected, data: { ...data, alarm } }
 }

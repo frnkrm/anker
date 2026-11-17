@@ -16,7 +16,7 @@ async function onboard(page: Page) {
 }
 async function openHomeoffice(page: Page) {
   await page.getByRole('button', { name: 'Heute anpassen: Tagesart und Modus', exact: true }).click()
-  await page.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await page.getByText('Termine & Tagesplan', { exact: true }).click()
   await page.getByRole('button', { name: 'Homeoffice und Abendplan', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'Homeoffice', exact: true }).getByRole('radio', { name: 'Ja', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Homeoffice-Kontakt', exact: true })).toBeVisible()

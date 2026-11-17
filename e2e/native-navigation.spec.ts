@@ -261,11 +261,11 @@ test('Messnacht zeigt die Vorweckerpause vor Start, im Status und nach Messungse
   await page.getByRole('link', { name: /Schlaf & Wecker/ }).click()
   await expect(page.getByText(/Beim Start wird der Vorwecker für diese Nacht pausiert/)).toBeVisible()
   await page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true }).click()
-  await expect(page.getByText(/Vorwecker für .* pausiert\./)).toBeVisible()
+  await expect(page.getByText(/^Vorwecker für .* pausiert\./)).toBeVisible()
   await expect(page.getByText('Vorwecker: für diese Messnacht pausiert', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Messung beenden', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true })).toBeVisible()
-  await expect(page.getByText(/Vorwecker für .* pausiert\./)).toBeVisible()
+  await expect(page.getByText(/^Vorwecker für .* pausiert\./)).toBeVisible()
   await expect(page.getByRole('switch', { name: 'Vorwecker', exact: true })).toBeChecked()
 })
 

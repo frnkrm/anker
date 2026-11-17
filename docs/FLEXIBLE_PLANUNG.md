@@ -1,5 +1,7 @@
 # Flexible Planung
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 Ein Plan ist ein Angebot, keine Verpflichtung. Diese Datei beschreibt, wie Anker damit rechnet.
 
 **E04–E09 in Entwicklung.** Der tatsächliche Integrations- und Prüfstand steht im [Plan](ANKER_IMPLEMENTIERUNGSPLAN.md) und in den [Testnachweisen](ANKER_TESTNACHWEISE.md). Neue Handyfunktionen gelten dadurch noch nicht als am Gerät geprüft.

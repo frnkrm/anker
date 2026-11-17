@@ -25,12 +25,19 @@ beforeEach(async () => {
   storage.repo = new MemoryRepository()
   useApp.setState({ ready: false, settings: defaultSettings('2026-11-06'), local: emptyLocal(), days: {}, inbox: [], game: initialGame('2026-11-06') })
   await app().load()
-  await app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: true, at: 1, version: 1 }, routes: { enabled: true, at: 1, version: 1 } } }))
+  await app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: true, at: 1, version: 2 }, routes: { enabled: true, at: 1, version: 2 } } }))
   assistanceEnableConfirmation('ai')(); assistanceEnableConfirmation('routes')()
 })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('Sofortiger Widerruf trotz belegter Store-Schreibbarriere', () => {
+  it.each(['ai', 'routes'] as const)('übernimmt eine alte %s-Freigabe nicht für neue Empfänger', async purpose => {
+    await app().saveLocal(local => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: true, at: 1, version: 1 } } }))
+    const fetcher = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetcher)
+    await expect(requestAssistance(inputs[purpose])).rejects.toMatchObject({ issue: 'consent' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
   it.each(['ai', 'routes'] as const)('sendet nach %s-Widerruf keinen neu begonnenen Request, obwohl RAM noch den alten gespeicherten Wert enthält', async (purpose) => {
     const original = storage.repo!.put.bind(storage.repo!)
     let entered!: () => void; let release!: () => void
@@ -40,7 +47,7 @@ describe('Sofortiger Widerruf trotz belegter Store-Schreibbarriere', () => {
     const previous = app().saveLocal((local) => ({ ...local, taskContext: 'home' }))
     await waiting
     cancelAssistanceRequests(purpose)
-    const revoke = app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: false, at: 2, version: 1 } } }))
+    const revoke = app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: false, at: 2, version: 2 } } }))
     expect(app().local.assistance?.[purpose]?.enabled).toBe(true)
     const fetcher = vi.fn<typeof fetch>(async () => Response.json(results[purpose]))
     vi.stubGlobal('fetch', fetcher)
@@ -52,16 +59,16 @@ describe('Sofortiger Widerruf trotz belegter Store-Schreibbarriere', () => {
   })
   it.each(['ai', 'routes'] as const)('erlaubt %s erst nach erfolgreichem bewusstem Wiedereinschalten', async (purpose) => {
     cancelAssistanceRequests(purpose)
-    await app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: false, at: 2, version: 1 } } }))
+    await app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: false, at: 2, version: 2 } } }))
     const fetcher = vi.fn<typeof fetch>(async () => Response.json(results[purpose]))
     vi.stubGlobal('fetch', fetcher)
     const failedConfirmation = assistanceEnableConfirmation(purpose)
     vi.spyOn(storage.repo!, 'put').mockRejectedValueOnce(new Error('Lokaler Test-Speicherfehler'))
-    await expect(app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: true, at: 3, version: 1 } } })).then(failedConfirmation)).rejects.toThrow('Test-Speicherfehler')
+    await expect(app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: true, at: 3, version: 2 } } })).then(failedConfirmation)).rejects.toThrow('Test-Speicherfehler')
     await expect(requestAssistance(inputs[purpose])).rejects.toMatchObject({ issue: 'consent' })
     expect(fetcher).not.toHaveBeenCalled()
     const confirm = assistanceEnableConfirmation(purpose)
-    await app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: true, at: 4, version: 1 } } })).then(confirm)
+    await app().saveLocal((local) => ({ ...local, assistance: { ...local.assistance, [purpose]: { enabled: true, at: 4, version: 2 } } })).then(confirm)
     expect(await requestAssistance(inputs[purpose])).toEqual(results[purpose])
     expect(fetcher).toHaveBeenCalledOnce()
   })

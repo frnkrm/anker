@@ -139,10 +139,10 @@ test('Relay-Einrichtung passt bei 320 Pixeln und 160 Prozent Schrift ohne horizo
   await page.setViewportSize({ width: 320, height: 844 }); await page.evaluate(() => { document.documentElement.style.fontSize = '160%' })
   await enable(page)
   await expect(panel.getByLabel('Privater PC-Relay-Einrichtungscode', { exact: true })).toHaveValue(SETUP)
-  const boxes = await panel.locator('p, button, input').evaluateAll(nodes => nodes.map(node => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, tag: node.tagName } }))
+  const boxes = await panel.locator('p, button, input').evaluateAll(nodes => nodes.map(node => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, tag: node.tagName, text: node.textContent?.slice(0, 90) } }))
   for (const box of boxes) {
     expect(box.left).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(320)
-    if (box.tag !== 'INPUT') expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1)
+    if (box.tag !== 'INPUT') expect(box.scrollWidth, box.text ?? box.tag).toBeLessThanOrEqual(box.clientWidth + 1)
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 })

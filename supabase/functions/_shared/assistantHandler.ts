@@ -1,4 +1,5 @@
 import { parseSuggestedSteps, record, validAssistantRequest, type AssistantCapabilities, type RoutePoint, type RouteRequest } from './assistanceProtocol.ts'
+import { geminiSteps, tomtomRoute } from './freeProviders.ts'
 
 export interface AssistantServerConfig {
   supabaseUrl: string
@@ -8,6 +9,11 @@ export interface AssistantServerConfig {
   aiKey?: string
   aiModel?: string
   routesKey?: string
+  /** Explizit geprüfte Free-Tier-Projekte ohne Abrechnung, nicht nur ein Ausgabenlimit. */
+  freeOnly?: boolean
+  freePlanConfirmed?: boolean
+  geminiKey?: string
+  tomtomKey?: string
 }
 export interface AssistantServerDependencies { fetch: typeof fetch; now: () => number }
 const LIMITS = { steps: 8, route: 6 }
@@ -48,7 +54,7 @@ export function createAssistantHandler(config: AssistantServerConfig, deps: Assi
   return async (request: Request): Promise<Response> => {
     const origin = request.headers.get('origin') ?? ''
     const headers = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', vary: 'Origin',
-      ...(config.origins.includes(origin) ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, apikey, content-type', 'access-control-allow-methods': 'GET, POST, OPTIONS' } : {}) }
+      ...(config.origins.includes(origin) ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, apikey, content-type, x-anker-cost-policy', 'access-control-allow-methods': 'GET, POST, OPTIONS' } : {}) }
     const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers })
     if (origin && !config.origins.includes(origin)) return json({ error: 'origin' }, 403)
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
@@ -68,13 +74,18 @@ export function createAssistantHandler(config: AssistantServerConfig, deps: Assi
       signal.throwIfAborted()
       if (!record(user) || typeof user.id !== 'string' || !config.allowedUsers.includes(user.id)) return json({ error: 'account-not-allowed' }, 403)
       const capabilities: AssistantCapabilities = {
-        ai: { configured: !!config.aiKey && !!config.aiModel, provider: 'OpenAI', ...(config.aiModel ? { model: config.aiModel } : {}) },
-        routes: { configured: !!config.routesKey, provider: 'Google Routes', modes: ['driving', 'transit', 'cycling', 'walking'] }, dailyLimits: LIMITS,
+        ai: config.freeOnly ? { configured: config.freePlanConfirmed === true && !!config.geminiKey, provider: 'Gemini', model: 'gemini-2.5-flash-lite' }
+          : { configured: !!config.aiKey && !!config.aiModel, provider: 'OpenAI', ...(config.aiModel ? { model: config.aiModel } : {}) },
+        routes: config.freeOnly ? { configured: config.freePlanConfirmed === true && !!config.tomtomKey, provider: 'TomTom', modes: ['driving', 'cycling', 'walking'] }
+          : { configured: !!config.routesKey, provider: 'Google Routes', modes: ['driving', 'transit', 'cycling', 'walking'] }, dailyLimits: LIMITS,
+        ...(config.freeOnly ? { freeOnly: true } : {}),
       }
       if (request.method === 'GET') return json(capabilities)
       const input = await jsonBody(request, signal)
       if (!validAssistantRequest(input)) return json({ error: 'invalid-request' }, 400)
+      if (request.headers.get('x-anker-cost-policy') === 'free-only' && config.freeOnly !== true) return json({ error: 'free-only-required' }, 503)
       if ((input.kind === 'steps' && !capabilities.ai.configured) || (input.kind === 'route' && !capabilities.routes.configured)) return json({ error: 'provider-not-configured' }, 503)
+      if (input.kind === 'route' && !capabilities.routes.modes.includes(input.mode)) return json({ error: 'unsupported-mode' }, 400)
       if (input.kind === 'route' && Date.parse(input.at) < deps.now() - 60_000) return json({ error: 'past-travel-time' }, 400)
       // Ohne vorhandene Budgetmigration geschlossen bleiben; keinen unkontrollierten Ersatzpfad eröffnen.
       signal.throwIfAborted()
@@ -87,6 +98,10 @@ export function createAssistantHandler(config: AssistantServerConfig, deps: Assi
       signal.throwIfAborted()
       if (claimed !== true) return json({ error: 'daily-limit' }, 429)
       if (input.kind === 'steps') {
+        if (config.freeOnly) {
+          const steps = await geminiSteps(input, config.geminiKey!, deps, signal)
+          return steps ? json({ kind: 'steps', revision: input.revision, steps }) : json({ error: 'provider-unavailable' }, 502)
+        }
         const provider = await deps.fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST', signal, headers: { authorization: `Bearer ${config.aiKey!}`, 'content-type': 'application/json' },
           body: JSON.stringify({ model: config.aiModel, max_completion_tokens: 900, response_format: { type: 'json_object' },
@@ -103,7 +118,7 @@ export function createAssistantHandler(config: AssistantServerConfig, deps: Assi
         const steps = typeof content === 'string' ? parseSuggestedSteps(JSON.parse(content) as unknown) : undefined
         return steps ? json({ kind: 'steps', revision: input.revision, steps }) : json({ error: 'invalid-provider-response' }, 502)
       }
-      const route = await googleRoute(input, config.routesKey!, deps, signal)
+      const route = config.freeOnly ? await tomtomRoute(input, config.tomtomKey!, deps, signal) : await googleRoute(input, config.routesKey!, deps, signal)
       return route ? json({ kind: 'route', revision: input.revision, route }) : json({ error: 'route-unavailable' }, 502)
     } catch (error) {
       if (request.signal.aborted) return json({ error: 'request-cancelled' }, 499)

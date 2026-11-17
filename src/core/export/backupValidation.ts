@@ -1,6 +1,7 @@
 import { COLLECTIONS, type Rec } from '../../data/types'
 import { defaultSettings } from '../defaults'
 import { validDeviceTests } from '../deviceTests'
+import { validHobbies } from '../hobbies'
 import { validAssistancePreferences } from '../assistance'
 import { validPackingLocal } from '../packing'
 import { validEveningLocal } from '../evening'
@@ -68,9 +69,12 @@ export function validSettings(value: unknown): boolean {
   if (value.evenings !== undefined && (!Array.isArray(value.evenings) || value.evenings.length !== 7 || !value.evenings.every((v) => choice(v, ['free', 'friends', 'sport', 'cook', 'appointment'])))) return false
   if (object(value.focus) && (!optional(value.focus, 'pulse', (v) => choice(v, ['off', 'gentle', 'strong'])) || !optional(value.focus, 'everyMin', (v) => choice(v, [2, 5])))) return false
   if (object(value.reminders) && !optional(value.reminders, 'intensity', (v) => choice(v, ['gentle', 'normal', 'persistent']))) return false
+  if (object(value.reminders) && !optional(value.reminders, 'returnCheckAfterMin', v => Number.isInteger(v) && Number(v) >= 15 && Number(v) <= 240)) return false
+  if (object(value.sleep) && !optional(value.sleep, 'onsetEstimationEnabled', v => typeof v === 'boolean')) return false
   if (object(value.alarm)) {
     if (!optional(value.alarm, 'mathTasks', (v) => choice(v, [3, 5, 8]))) return false
     if (object(value.alarm.smartWake) && !optional(value.alarm.smartWake, 'windowMinutes', (v) => Number.isInteger(v) && Number(v) >= 5 && Number(v) <= 90)) return false
+    if (object(value.alarm.smartWake) && !fields(value.alarm.smartWake, ['autoDaily', 'lockOnStart'], v => typeof v === 'boolean')) return false
   }
   if (object(value.weather) && (!optional(value.weather, 'lat', (v) => finite(v) && Math.abs(v) <= 90) || !optional(value.weather, 'lng', (v) => finite(v) && Math.abs(v) <= 180))) return false
   if (object(value.routines) && !Object.values(value.routines).every(steps => !Array.isArray(steps) || steps.every(step => object(step) && optional(step, 'isEssentialForZombieMode', flag => typeof flag === 'boolean')))) return false
@@ -124,7 +128,7 @@ function validInbox(value: unknown, id: string): boolean {
 }
 
 function validLocal(value: unknown): boolean {
-  if (!object(value) || !validHomeOfficeContacts(value.homeOfficeContact) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
+  if (!object(value) || !validHobbies(value.hobbies) || !validHomeOfficeContacts(value.homeOfficeContact) || !validPlanningLocal(value) || !validRecoveryLocal(value) || !validWeatherLocal(value)
     || !validPlanUndo(value.planUndo) || !validExtrasLocal(value.extras) || !validAssistancePreferences(value.assistance) || !validPackingLocal(value)
     || !validConflictAcknowledgements(value.acknowledgedPlanConflicts) || !validGuidanceLocal(value.guidance)
     || !optional(value, 'pcBridge', validPcBridgeLocal) || !optional(value, 'healthSleepEnabled', flag => typeof flag === 'boolean')) return false

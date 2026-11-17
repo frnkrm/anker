@@ -1,5 +1,68 @@
 # Anker: Testnachweise
 
+## Alltagsfunktionen und gemeinsame UI-Integration (17.11.2026, nachts)
+
+Stand/Entscheidungen: [Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md).
+
+- TypeScript: 140 Dateien, 1.434 Tests bestanden. Neue Logik umfasst Hobby-
+  Freifenster, Suchkatalog, Status-Rückfrage, Messautomatik, Schlafauswertung,
+  neue Einwilligungsgrenze sowie lokale Speicherung/Importschutz.
+- Android: 281 Tests in 34 Klassen, 0 Fehler/Fehlschläge. Gradle assembleDebug
+  nach Capacitor-Sync erfolgreich. Kein Geräteupdate, keine Gerätemessung.
+- Windows/Python: 290 Tests, davon 2 plattformspezifisch übersprungen, sonst grün.
+  Nach Map-Zeitpunkt-Korrektur gezielt 16 Dialog-/Kopplungsfälle erneut grün.
+  Echter Tk-Test: Wunschgröße 360×220 bleibt erhalten; Win32-Rahmenposition 0/0
+  Pixel Abweichung zur erwarteten Zentrierung, tatsächlicher Parent bestätigt;
+  340×400-Fokus/Scrollen und simulierte Monitor-/DPI-Anpassung ohne Callbackfehler.
+  Nur synthetische Daten/Callbacks, keine Windows-Systemwirkung. Sperrbildschirm
+  verhindert eine tatsächliche visuelle PC-Designabnahme.
+- Browser: 29 gezielte Einstellungs-/Native-Navigationsfälle grün. Gesamtlauf
+  386/387 grün; ausschließlich veralteter Gleitzeit-Locator nach Section-Header-
+  Änderung rot. Locator auf wirklichen Abschnitt korrigiert; Fall anschließend
+  1/1 grün. Damit alle 387 Fälle am Integrationsstand erfolgreich ausgeführt,
+  jedoch noch kein vollständig grüner einzelner Gesamtlauf behauptet.
+  Zwei neue native Brückenfixtures prüfen die Einschlaffrage mit/ohne tatsächlichen
+  Messstatus, Sichtbarkeitsmeldung, eigenes Wegdrücken und fehlende Schlafbuchung.
+- Typprüfung/Build erfolgreich; ESLint 0 Fehler, 1 Hinweis zu vorhandener
+  Request-Generation-Ref-Bereinigung. git diff --check erfolgreich.
+- Browser-Sichtprüfung bei 390×844: Jetzt, Heute-anpassen-Gruppen und PC-Bereiche.
+  Browsernachweise ersetzen keine echten Android-Freigaben, Zustellungen, Sensor-
+  Eingänge, fremde Medien, Vollbild/Systemeinblendungen oder ganze Messnacht.
+- Kein kostenpflichtiger Anbieter aktiviert, keine echte Provideranfrage. Backend
+  und kostenlose Schlüssel fehlen weiterhin. Neue Empfänger verlangen Version-2-
+  Freigabe; historische Version-1-Freigabe löst keine Anfrage aus.
+- Code18-Releasequelle/Automation unverändert; Handy Code17 bleibt erhalten.
+
+## Alltagskorrekturen: erstes Logikpaket BF-001/BF-002 (17.11.2026)
+
+- BF-001: Zwei synthetische Regressionen (Arbeits-/freier Tag) vor Fix rot:
+  bestätigtes frühes Aufstehen behielt den noch zukünftigen Aufstehanker. Nach Fix
+  grün, auch bei fertiger Morgenroutine; Plan und Tagesfakten bleiben unverändert.
+- BF-002: 18 neue TS-Fälle für bewusste Wahl/ungültige Intervalle, unbekanntes und
+  bekanntes Ende, private Texte, Abfahrt/Ankunft, bestätigte Rückkehr/Absage,
+  Zuhause/Remote, keine nächtliche Nachholung, Ruhe/Fokus/Verwerfen, stabile
+  Zustellungstoken und Ablehnung gefälschter Erledigt-Aktionen. Erste Ausführung
+  zeigte die Unterdrückung durch offene Termin-Planruhe; explizite Ausnahme nun
+  auf TS- und Kotlin-Seite konsistent, globale Nachtruhe/Fokus bleiben wirksam.
+- `npm test -- src/core/now.test.ts src/core/reminders src/core/planner`:
+  14 Dateien, 162 Tests bestanden. `npm run typecheck`, gezieltes ESLint und
+  `git diff --check` erfolgreich (bestehender CRLF-Hinweis zu AGENTS.md).
+- Gradle `testDebugUnitTest` mit Filtern ReturnCheckReminderTest,
+  PreparationReminderTest, ReminderModelTest: 41 Tests bestanden, keine Fehler.
+  Neue Android-Tests prüfen feste Jetzt-Navigation, Ablauf/Manipulationsschutz,
+  Nachtruhe/Fokus, Weckervorrang und Räumen bei weggefallener Relevanz.
+- Keine Android-Zustellung/Sichtprüfung, kein Update/Release. Auswahl/Status/Snooze
+  gehören zur noch offenen gemeinsamen UI-Phase. BF-001/BF-002 nicht insgesamt
+  als erledigt werten. Gespeicherte Altbestände aktivieren keine neue Erinnerung.
+
+## Reale USB-Signaturprüfung (17.11.2026)
+
+[Installierter Stand und Updategrenze](SIGNIER_GERAETEBUILD_VORAUSSETZUNGEN.md):
+Code17/1.5.0-rc.3, Installer Google Play, tatsächliche base.apk mit apksigner geprüft:
+Google-Appzertifikat 8A:32:…:44:29. Kein kompatibler lokaler App-Signierschlüssel
+nachgewiesen, keine neue APK gebaut/signiert/installiert. Daten und Installation
+unverändert. Keine Produkt-/Gerätefunktionsprüfung aus dieser Signaturprüfung ableiten.
+
 ## Lokale PC-Verbindung: Android-Zeitstempel (17.11.2026)
 
 [Rot-/Grünbeleg und echte Beobachtung](PC_VERBINDUNG_ZEITSTEMPEL_20261117.md):
@@ -1192,3 +1255,19 @@ CI20 auf8506325:135/138grün. Annotations/Diagnose unter `e04-e09/remote-ci/ci20
 [CI21](https://github.com/frnkrm/anker/actions/runs/42289520357) auf exakt `240033c246892113ecd0650ffe2d673d34740b38` erfolgreich. Öffentliche Jobschritte für npm-ci, Lint, TypeScript, Logiktests, PowerShell, Produktionsbuild, Browserinstallation und Playwright jeweils success. **139/139 Browserfälle in3,8min**, bekannter Gesamtumfang139/28Dateien, keine Skips oder konfigurierten Retries. Gesamter Job5m55s. Artefaktexport bei Fehlern korrekt übersprungen; das ist kein übersprungener Test. Zwei bestehende Warnungen (Actions-Node20-Migration/Ref-Cleanup),0Lintfehler.
 
 Nachweise unter `/workspace/.cache/anker/e04-e09/remote-ci/ci21-240033c/`:metadatengebundeneRun-/Job-HTML,öffentlicherText/Schrittstatus undResultat. Zusätzlich Root24/24CI21-Zielfälle/45s grün; echte Settings-/Loader-/Commit-Barrieren lieferten Rotnachweise für alle CI20-Ursachen. App-Fingerprint e862… und ZIP-SHA bff0a29a… unverändert. Öffentlicher Download HTTP200/22137167Bytes plus Gitblob-Bytegleichheit geprüft. [Windows-Updateblock](UPDATE_E04_E09.md) nur mit echtem PowerShell-Parser geprüft, nicht unterWindows ausgeführt. Keine neue echte Android-, Windows-Signier-/Scheduler-, OAuth- oder Anbieterprüfung.
+
+## CI-Nachbesserung: Schriftberechnung unter Linux
+
+Der erste GitHub-Lauf bestand 385/387 Browserfälle und beide PC-Matrixjobs.
+Zwei echte große-Schrift-Probleme: Der zusätzliche Suchknopf konnte den Jetzt-
+Zeitanker im ungefalteten Kopf zu schmal drücken; lange Relay-Knopftexte konnten
+mit Linux-Schriftmaßen ihre Textfläche überschreiten. Der Kopf darf nun umbrechen,
+der Zeitanker behält eine sinnvolle Basisbreite und normale Knopftexte können
+auch innerhalb langer Wörter umbrechen. Die vorhandene 320px-Prüfung ergänzt eine
+Höhengrenze für den Zeitanker, damit vertikale Buchstabenstapel erkannt werden.
+Keine Vergrößerung der erlaubten Überlaufgrenzen. Gezielte Browserprüfung und
+anschließender CI-Lauf dokumentieren den korrigierten Stand separat.
+
+Gezielter Windows-Browserlauf nach Korrektur: 45/45 Fälle bestanden (Schlafhinweise, Relay, Jetzt und v7-Begleitung).
+
+Linux-Nachlauf zeigte weiterhin zwei Überläufe: flexibler Schlafkarten-Titel und langer Relay-Erklärungstext. Beide erlauben nun ausdrücklich Umbrüche innerhalb langer Wörter; Titel zusätzlich min-width: 0. Die Prüfungen benennen überlaufende Texte statt nur Zahlen. Lokaler gezielter Lauf 2/2 bestanden; Linux-Bestätigung separat.

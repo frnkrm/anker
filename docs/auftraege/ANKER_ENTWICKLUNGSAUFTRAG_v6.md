@@ -1,5 +1,7 @@
 # ANKER · Vollständiger Entwicklungsauftrag für Codex
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](../ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 > Öffentliche technische Fassung: Persönliche Gesundheits-, Beziehungs- und Arbeitsangaben wurden generalisiert. Das unveränderte private Auftragsoriginal bleibt lokal erhalten und ist von Git ausgeschlossen. Technische Anforderungen und ihre IDs bleiben erhalten.
 ## Öffentliche technische Gesamtfassung der bisherigen Anker-Aufträge
 

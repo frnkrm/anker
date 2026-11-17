@@ -75,7 +75,11 @@ function stepAction(plan: DayPlan, log: DayLog | undefined, r: RoutineId): NowAc
 
 /** Beantwortet „Was mache ich JETZT?“ – genau eine Aktion. Reine Funktion. */
 export function nowView(plan: DayPlan, log: DayLog | undefined, m: number): NowView {
-  const hard = nextHardTime(plan, m)
+  // Ein bewusst bestätigtes frühes Aufstehen bleibt erledigt, auch vor der Planzeit.
+  // Nur die Anzeige projizieren; Plan und tatsächlichen Wecker nicht umschreiben.
+  const hard = nextHardTime(log?.wakeAt !== undefined
+    ? { ...plan, hardTimes: plan.hardTimes.filter(h => h.key !== 'wake') }
+    : plan, m)
   const from = previousHardTime(plan, m)
   const elapsed = hard ? Math.min(1, Math.max(0, (m - from) / Math.max(1, hard.at - from))) : 1
   const block = currentBlock(plan, m)

@@ -7,7 +7,7 @@ async function changeToday(page: Page) {
   const direct = page.getByRole('button', { name: 'Heute anders', exact: true })
   if (await direct.isVisible()) { await direct.click(); return }
   const adjust = await openTodayAdjust(page)
-  await adjust.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await adjust.getByText('Termine & Tagesplan', { exact: true }).click()
   await adjust.getByRole('button', { name: 'Heute anders', exact: true }).click()
 }
 
@@ -117,7 +117,7 @@ test('Heute anders: Termin, Routine wartet, Spiel ohne falsches Erledigt, Rückg
   await expect(page).toHaveURL(/\/$/)
 
   const adjust = await openTodayAdjust(page)
-  await adjust.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await adjust.getByText('Termine & Tagesplan', { exact: true }).click()
   await adjust.getByRole('button', { name: 'Homeoffice und Abendplan', exact: true }).click()
   await page.getByRole('radio', { name: 'Ja' }).click()
   await expect(page.getByRole('region', { name: 'Homeoffice-Kontakt', exact: true })).toContainText('sendet nichts automatisch')
@@ -320,7 +320,7 @@ test('Heute anders: später anfangen, Freitag einstellen, Standard bleibt', asyn
   await page.goto('/einstellungen/arbeit')
   await expect(page.getByLabel('Spätester Arbeitsbeginn')).toHaveValue('09:00')
   await expect(page.getByText('Eine Grenze, kein Ziel. Termine können früher beginnen.', { exact: true })).toBeVisible()
-  const flex = page.getByRole('heading', { name: 'Gleitzeit', exact: true }).locator('..')
+  const flex = page.getByRole('heading', { name: 'Gleitzeit', exact: true }).locator('xpath=ancestor::section[1]')
   await flex.getByText('Mehr erfahren', { exact: true }).click()
   await expect(flex).toContainText('Bezahlung und Ausgleich regelt dein Arbeitgeber.')
 

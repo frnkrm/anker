@@ -59,7 +59,7 @@ object ReminderLogic {
     /** Preparation is soft and actionless; incomplete/new corrupt payloads never become unbounded. */
     fun validAt(e: ReminderEntry, now: Long): Boolean =
         (e.validUntil == 0L || now < e.validUntil) &&
-        (!e.key.startsWith("prepare:") || (e.validUntil > e.at && !e.actions && !e.critical && !e.exact && e.channel == "sanft" && !e.quietFollowUps))
+        (!(e.key.startsWith("prepare:") || e.key.startsWith("return-check:")) || (e.validUntil > e.at && !e.actions && !e.critical && !e.exact && e.channel == "sanft" && !e.quietFollowUps))
 
     fun displayDuration(e: ReminderEntry, now: Long): Long =
         if (e.validUntil > 0) minOf(VISIBLE_MS, (e.validUntil - now).coerceAtLeast(0)) else VISIBLE_MS
@@ -96,6 +96,8 @@ object ReminderLogic {
     /** Nur feste App-Ziele: private Gedanken, Schritte und IDs werden nicht in Links weitergegeben. */
     fun tapDestination(key: String): String? = when {
         key.startsWith("prepare:") -> "now"
+        key.startsWith("return-check:") -> "now"
+        key == "smartwake-start" -> "now"
         key == "guidance-wind-down" || key == "guidance-brain-dump" || key == "guidance-evening-light" -> "now"
         key == "wind-down" -> "evening"
         key.startsWith("thought-review:") && key.length > "thought-review:".length -> "thoughts"
@@ -236,7 +238,7 @@ object ReminderLogic {
     /** Only explicitly critical anchors bypass global quiet and a currently running focus. */
     fun allowed(e: ReminderEntry, now: Long, policy: ReminderPolicy, focusUntil: Long): Boolean {
         if (!validAt(e, now)) return false
-        if (!e.key.startsWith("go:") && !e.key.startsWith("prep:") && policy.ranges.any { now >= it.from && now < it.to }) return false
+        if (!e.key.startsWith("go:") && !e.key.startsWith("prep:") && !e.key.startsWith("return-check:") && policy.ranges.any { now >= it.from && now < it.to }) return false
         if (e.critical) return true
         if (now < focusUntil) return false
         return quietUntil(now, policy) == 0L

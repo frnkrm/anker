@@ -26,6 +26,26 @@ def window_geometry(work_area: tuple[int, int, int, int], scale: float = 1.0,
     return width, height, x, y, minimum_width, minimum_height
 
 
+def dialog_geometry(work_area: tuple[int, int, int, int], parent: tuple[int, int, int, int],
+                    requested: tuple[int, int], scale: float = 1.0) -> tuple[int, int, int, int]:
+    """Center over the actual parent, then constrain to its monitor's work area (pixel coordinates)."""
+    if (len(work_area) != 4 or len(parent) != 4 or len(requested) != 2
+            or any(type(n) is not int for n in (*work_area, *parent, *requested))
+            or work_area[2] <= work_area[0] or work_area[3] <= work_area[1]
+            or parent[2] <= 0 or parent[3] <= 0 or min(requested) <= 0):
+        raise ValueError("Invalid dialog geometry")
+    scale = scale if isinstance(scale, (int, float)) and not isinstance(scale, bool) and math.isfinite(scale) else 1.0
+    scale = max(0.75, min(4.0, scale))
+    left, top, right, bottom = work_area
+    margin = min(round(12 * scale), (right - left - 1) // 4, (bottom - top - 1) // 4)
+    frame = min(round(40 * scale), max(0, (bottom - top) // 5))
+    width = min(requested[0], max(1, right - left - 2 * margin))
+    height = min(requested[1], max(1, bottom - top - 2 * margin - frame))
+    x = parent[0] + (parent[2] - width) // 2
+    y = parent[1] + (parent[3] - height) // 2
+    return width, height, max(left + margin, min(x, right - margin - width)), max(top + margin, min(y, bottom - margin - frame - height))
+
+
 _BUTTON_CLASSES: dict[type, type] = {}
 
 

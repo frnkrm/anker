@@ -15,7 +15,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from .windows import PlatformError, WindowsPlatform
-from .widgets import rounded_button, theme_palette, window_geometry
+from .widgets import dialog_geometry, rounded_button, theme_palette, window_geometry
 
 
 class DesktopUI:
@@ -305,6 +305,41 @@ class DesktopUI:
                 pass
         return (0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight()), 1.0
 
+    def _dialog(self):
+        """Normal action dialogs belong to the main window, never globally on top."""
+        window = self.tk.Toplevel(self.root)
+        try:
+            if self.root.state() in {"withdrawn", "iconic"}:
+                self.root.deiconify()
+            window.transient(self.root)
+            window.bind("<Map>", lambda event: window.after_idle(lambda: self._position_dialog(window)) if event.widget is window else None)
+            window.bind("<Destroy>", lambda event: self.root.focus_set() if event.widget is window and self.root.winfo_exists() else None)
+        except (AttributeError, TypeError):
+            pass  # Minimal non-GUI test doubles have no window manager.
+        return window
+
+    def _position_dialog(self, window) -> None:
+        try:
+            if not window.winfo_exists():
+                return
+            window.update_idletasks()
+            area, scale = self._monitor_metrics()
+            parent = (self.root.winfo_rootx(), self.root.winfo_rooty(), self.root.winfo_width(), self.root.winfo_height())
+            requested = (max(window.winfo_width(), window.winfo_reqwidth()), max(window.winfo_height(), window.winfo_reqheight()))
+            width, height, x, y = dialog_geometry(area, parent, requested, scale)
+            window.minsize(min(300, width), min(200, height))
+            window.geometry(f"{width}x{height}")
+            if os.name == "nt":
+                user = ctypes.WinDLL("user32", use_last_error=True)
+                user.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.UINT]
+                user.SetWindowPos.restype = wintypes.BOOL
+                user.SetWindowPos(self._handle(window), None, x, y, 0, 0, 0x1 | 0x4 | 0x10)
+            else:
+                window.geometry(f"{width}x{height}{x:+}{y:+}")
+            window.lift(self.root)
+        except (AttributeError, TypeError, ValueError, OSError):
+            pass  # Keep the reachable default dialog when monitor metrics are unavailable.
+
     def _fit_main_window(self) -> None:
         area, scale = self._monitor_metrics()
         signature = (area, scale)
@@ -410,6 +445,8 @@ class DesktopUI:
         self._remaining_label.pack(fill="x", padx=20, pady=4)
         self._feedback_label = self._label(actions, variable=self._feedback_variable, muted=True)
         self._feedback_label.pack(fill="x", padx=20, pady=(4, 12))
+        group = None
+        section = None
         for key, text, callback, primary in [
             ("sync", "Jetzt im WLAN abgleichen", lambda: self._perform_action({"action": "sync"}, "Abgleich angefragt – warte auf das Handy", "Handystand neu empfangen."), True),
             ("pair", "Mit Handy koppeln", lambda: self._perform_action({"action": "pair"}, "Kopplungs-QR wird vorbereitet", "QR-Code bereit. Scanne ihn mit Anker am Handy."), False),
@@ -422,8 +459,16 @@ class DesktopUI:
             ("settings", "Einstellungen", self._settings, False),
             ("quit", "Beenden", self._request_quit, False),
         ]:
-            button = self._button(actions, text, callback, primary=primary)
-            button.pack(fill="x", padx=16, pady=4)
+            title = {"sync": "Verbindung", "pair": "Verbindung", "savepoint": "Für später", "thought": "Für später",
+                     "extend": "Dein Abend", "extend-until": "Dein Abend", "pause": "Dein Abend",
+                     "test": "App & Einrichtung", "settings": "App & Einrichtung", "quit": "App & Einrichtung"}[key]
+            if title != group:
+                group = title
+                section = tk.Frame(actions, bg=self.BG, highlightbackground=self.SURFACE, highlightthickness=1)
+                section.pack(fill="x", padx=16, pady=6)
+                self._label(section, title, size=11, muted=True).pack(fill="x", padx=12, pady=(10, 4))
+            button = self._button(section, text, callback, primary=primary)
+            button.pack(fill="x", padx=10, pady=(0, 6))
             self._action_buttons[key] = button
         self._label(actions, "Minimieren oder ×: Anker läuft weiter. Nur Beenden schließt den Begleiter.", muted=True).pack(fill="x", padx=20, pady=(12, 20))
         self.root.update_idletasks()
@@ -602,7 +647,7 @@ class DesktopUI:
         available = max(160, min(640, self.root.winfo_screenwidth() - 64, self.root.winfo_screenheight() - 260))
         code.box_size = max(1, min(6, available // modules))
         image = code.make_image(fill_color="black", back_color="white").get_image()
-        self._offer_window = self.tk.Toplevel(self.root)
+        self._offer_window = self._dialog()
         self._offer_window.title("Mit Handy koppeln")
         self._offer_window.configure(bg=self.BG)
         self._offer_window.geometry(f"{max(360, image.width + 48)}x{image.height + 190}")
@@ -839,7 +884,7 @@ class DesktopUI:
         if self._strict():
             self._extend(15)
             return
-        window = self.tk.Toplevel(self.root)
+        window = self._dialog()
         window.title("Bis zu einer Uhrzeit"); window.configure(bg=self.BG)
         window.geometry("440x300")
         body = self._scroll_body(window)
@@ -915,7 +960,7 @@ class DesktopUI:
         window.bind("<Return>", submit); entry.focus_set()
 
     def _form(self, kind: str) -> None:
-        window = self.tk.Toplevel(self.root)
+        window = self._dialog()
         window.title("Speicherpunkt" if kind == "savepoint" else "Gedanke")
         window.configure(bg=self.BG); window.geometry("460x320")
         dialog = self._scroll_body(window)
@@ -981,7 +1026,7 @@ class DesktopUI:
         if self._offer_window is not None:
             self._offer_window.destroy()
             self._offer_window = self._qr = self._qr_image = None
-        dialog = self.tk.Toplevel(self.root)
+        dialog = self._dialog()
         self._pair_window = dialog
         dialog.title("Handy koppeln"); dialog.configure(bg=self.BG)
         self._label(dialog, "Stimmt dieser Code auf deinem Handy?", size=16).pack(padx=20, pady=12)
@@ -1005,7 +1050,7 @@ class DesktopUI:
     def _note(self, title: str, text: str) -> None:
         if self.root is None:
             self.show_note(title, text); return
-        dialog = self.tk.Toplevel(self.root); dialog.title(title[:120]); dialog.configure(bg=self.BG)
+        dialog = self._dialog(); dialog.title(title[:120]); dialog.configure(bg=self.BG)
         self._label(dialog, title[:120], size=18).pack(fill="x", padx=20, pady=12)
         body = self.tk.Text(dialog, height=10, width=40, wrap="word", bg=self.SURFACE, fg=self.FG, font=(self.FONT, 12))
         scroll = self.tk.Scrollbar(dialog, command=body.yview)
@@ -1016,7 +1061,7 @@ class DesktopUI:
         dialog.bind("<Escape>", lambda _event: dialog.destroy())
 
     def _settings(self) -> None:
-        window = self.tk.Toplevel(self.root); window.title("Einstellungen"); window.configure(bg=self.BG)
+        window = self._dialog(); window.title("Einstellungen"); window.configure(bg=self.BG)
         window.geometry("500x650"); dialog = self._scroll_body(window)
         # Effective preferences include the phone choice. Never turn that into local consent.
         prefs = self.snapshot.get("localPrefs", {})
@@ -1100,7 +1145,7 @@ class DesktopUI:
     def _desktop_settings(self) -> None:
         prefs = self.snapshot.get("desktopPrefs", {})
         if not isinstance(prefs, dict): prefs = {}
-        window = self.tk.Toplevel(self.root)
+        window = self._dialog()
         window.title("Darstellung & PC-Verwaltung"); window.configure(bg=self.BG)
         window.geometry("480x650"); window.minsize(340, 360)
         body = self._scroll_body(window)
@@ -1242,7 +1287,7 @@ class DesktopUI:
     def _relay_settings(self) -> None:
         if self._relay_window is not None and self._relay_window.winfo_exists():
             self._relay_window.lift(); return
-        window = self.tk.Toplevel(self.root); self._relay_window = window
+        window = self._dialog(); self._relay_window = window
         window.title('Optionale Online-Verbindung'); window.configure(bg=self.BG)
         window.geometry('470x540'); window.minsize(340, 330)
         body = self._scroll_body(window)
@@ -1302,7 +1347,7 @@ class DesktopUI:
     def _update_settings(self) -> None:
         if self._updates_window is not None and self._updates_window.winfo_exists():
             self._updates_window.lift(); return
-        window = self.tk.Toplevel(self.root); self._updates_window = window
+        window = self._dialog(); self._updates_window = window
         window.title('Anker-PC-Updates'); window.configure(bg=self.BG)
         window.geometry('470x440'); window.minsize(340, 320)
         body = self._scroll_body(window)

@@ -122,6 +122,8 @@ function withoutDeviceConsents(record: Rec): Rec {
   if (record.deleted || !object(record.data)) return record
   if (record.collection === 'settings') {
     const data = without(record.data, ['integrations', 'extras', 'guidance'])
+    if (object(data.sleep)) data.sleep = without(data.sleep, ['onsetEstimationEnabled'])
+    if (object(data.alarm) && object(data.alarm.smartWake)) data.alarm = { ...data.alarm, smartWake: without(data.alarm.smartWake, ['autoDaily', 'lockOnStart']) }
     return { ...record, data: object(data.weather) ? { ...data, weather: { ...data.weather, enabled: false } } : data }
   }
   if (record.collection !== 'meta' || record.id !== 'local') return record

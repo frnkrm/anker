@@ -49,6 +49,7 @@ object BedtimePromptController {
     // Session cleanup must never discard a newer settings/source handoff queued on Main.
     private val entryHandler = Handler(Looper.getMainLooper())
     private var card: View? = null
+    private var drawnSleepSession = ""
     private var windowManager: WindowManager? = null
     private var screenReceiver: BroadcastReceiver? = null
     private var receiverContext: Context? = null
@@ -103,7 +104,7 @@ object BedtimePromptController {
             p.getString("sourceDate", "")?.takeIf { it.isNotEmpty() }?.let {
                 BedtimeQuietSource(it, p.getString("sourceKey", "") ?: "", p.getString("sourceRevision", "") ?: "",
                     p.getString("sourceToken", "") ?: "", p.getLong("sourceAt", 0))
-            })
+            }, p.getLong("sleepVisibleFromElapsed", 0))
     } catch (_: Exception) { BedtimePromptState() }
 
     private fun save(ctx: Context, s: BedtimePromptState, restDate: String? = null, explicitStart: Boolean = false) {
@@ -119,6 +120,7 @@ object BedtimePromptController {
             .putString("sourceDate", s.quietSource?.date ?: "").putString("sourceKey", s.quietSource?.key ?: "")
             .putString("sourceRevision", s.quietSource?.revision ?: "").putString("sourceToken", s.quietSource?.token ?: "")
             .putLong("sourceAt", s.quietSource?.at ?: 0)
+            .putLong("sleepVisibleFromElapsed", s.sleepVisibleFromElapsed)
             .putString("reason", s.reason)
         if (restDate != null) editor.putString("quietRestDate", restDate)
         if (explicitStart) editor.putBoolean("quietEnabled", true).remove("quietRestDate")
@@ -294,7 +296,22 @@ object BedtimePromptController {
         return json(ctx, next)
     }
 
+    /** Bestehender Fensterbesitzer, keine Weck-/CPU-Alarme für zusätzliche Schlaf-Rückfragen. */
+    fun offerSleepQuestion(ctx: Context) {
+        val observed = screen(ctx)
+        if (SmartWakeService.instance?.estimatesOnset() != true || !permitted(ctx) || !observed.interactive
+            || !observed.visible || !unlocked(ctx) || alarmActive(ctx)) return
+        val old = read(ctx)
+        if (old.phase in setOf(BedtimePromptPhase.WAITING, BedtimePromptPhase.SHOWN)) return
+        cleanup(ctx, old)
+        val next = BedtimePromptModel.arm(UUID.randomUUID().toString(), 0, SystemClock.elapsedRealtime(), System.currentTimeMillis(), boot(ctx), false)
+            .copy(wakeup = false, allowWhileIdle = false)
+        save(ctx, next)
+        onDue(ctx, next.sessionId)
+    }
+
     fun stop(ctx: Context, id: String?): JSObject {
+        if (id == null || read(ctx).sessionId == id) SmartWakeService.instance?.pauseSleepQuestions()
         val before = read(ctx)
         val next = BedtimePromptModel.stop(before, id)
         if (next != before) {
@@ -306,6 +323,7 @@ object BedtimePromptController {
 
     fun ack(ctx: Context, id: String): JSObject {
         val before = read(ctx)
+        if (before.sessionId == id && before.phase in setOf(BedtimePromptPhase.SHOWN, BedtimePromptPhase.QUIET)) SmartWakeService.instance?.userAwake()
         val next = when {
             before.phase == BedtimePromptPhase.QUIET -> BedtimePromptModel.snoozeQuiet(before, id, SystemClock.elapsedRealtime(), boot(ctx), System.currentTimeMillis())
             before.followUps -> BedtimePromptModel.quiet(before, id, SystemClock.elapsedRealtime(), System.currentTimeMillis())
@@ -367,12 +385,31 @@ object BedtimePromptController {
     fun expire(ctx: Context, id: String) {
         val before = read(ctx)
         if (before.sessionId != id || before.phase != BedtimePromptPhase.SHOWN) return
-        val next = BedtimePromptModel.reconcile(before, SystemClock.elapsedRealtime(), boot(ctx), System.currentTimeMillis())
+        if (before.sleepVisibleFromElapsed > 0) reportSleepVisibility(ctx, id, appForeground || card?.isShown == true, fromApp = appForeground)
+        val next = if (SmartWakeService.instance?.hasOnsetEstimate() == true) BedtimePromptModel.skip(before, "sleep-estimated")
+            else BedtimePromptModel.reconcile(before, SystemClock.elapsedRealtime(), boot(ctx), System.currentTimeMillis())
         if (next != before) {
             save(ctx, next); cleanup(ctx, before)
             if (next.phase == BedtimePromptPhase.QUIET) { watchScreen(ctx); scheduleQuiet(ctx, next) }
             record(ctx, "session_skipped", next, mapOf("reasonCode" to "expired")); publish(ctx, next)
         }
+    }
+
+    /** Nur die tatsächlich gezeichnete App-/Overlay-Frage meldet Sichtbarkeit, nicht deren Planung. */
+    fun reportSleepVisibility(ctx: Context, id: String, visible: Boolean, fromApp: Boolean = false) {
+        val s = read(ctx)
+        if (s.sessionId != id) return
+        val service = SmartWakeService.instance ?: return
+        val observed = screen(ctx)
+        val accepted = visible && s.phase == BedtimePromptPhase.SHOWN && observed.interactive && observed.visible
+            && unlocked(ctx) && !alarmActive(ctx) && (fromApp && appForeground || drawnSleepSession == id && card?.isShown == true)
+        if (accepted && service.estimatesOnset() && s.sleepVisibleFromElapsed == 0L) {
+            val elapsed = SystemClock.elapsedRealtime()
+            val next = s.copy(sleepVisibleFromElapsed = elapsed, visibleUntilElapsed = elapsed + 60_000)
+            save(ctx, next)
+            ctx.getSystemService(AlarmManager::class.java)?.set(AlarmManager.ELAPSED_REALTIME, next.visibleUntilElapsed, pending(ctx, id, ACTION_EXPIRE))
+        }
+        service.observeSleepPrompt(id, accepted)
     }
 
     /** Erst eine tatsächlich fortgesetzte Anker-Activity, nicht ein fehlerfreier startActivity-Aufruf. */
@@ -440,7 +477,7 @@ object BedtimePromptController {
     private fun removeCard() {
         handler.removeCallbacksAndMessages(null)
         card?.let { try { windowManager?.removeViewImmediate(it) } catch (_: Exception) { } }
-        card = null; windowManager = null
+        card = null; windowManager = null; drawnSleepSession = ""
     }
 
     private fun cancelQuietNotification(ctx: Context) {
@@ -578,6 +615,7 @@ object BedtimePromptController {
         check(permitted(ctx) && screen(ctx).visible && unlocked(ctx) && !alarmActive(ctx))
         val manager = ctx.getSystemService(WindowManager::class.java) ?: error("Kein Fenster verfügbar")
         val density = ctx.resources.displayMetrics.density
+        val sleepQuestion = SmartWakeService.instance?.estimatesOnset() == true
         fun dp(n: Int) = (n * density).toInt()
         val panel = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
@@ -586,18 +624,19 @@ object BedtimePromptController {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         }
         fun text(value: String, size: Float) = TextView(ctx).apply { text = value; textSize = size; setTextColor(Color.rgb(236, 238, 242)); setPadding(0, 0, 0, dp(10)) }
-        panel.addView(text("Anker · Schlafhinweis", 18f))
-        panel.addView(text("Deine Einschlafzeit ist um. Wenn es passt, leg das Handy jetzt weg.", 16f))
+        if (sleepQuestion) panel.gravity = Gravity.CENTER
+        panel.addView(text(if (sleepQuestion) "Schläfst du schon?" else "Anker · Schlafhinweis", if (sleepQuestion) 28f else 18f))
+        panel.addView(text(if (sleepQuestion) "Wenn du noch wach bist, tippe unten. Ohne Antwort wird nur eine unsichere Einschlafschätzung vorgemerkt." else "Deine Einschlafzeit ist um. Wenn es passt, leg das Handy jetzt weg.", 16f))
         val buttons = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         buttons.addView(Button(ctx).apply { text = "Jetzt öffnen"; setOnClickListener { asynchronously(ctx, s.sessionId) { openNow(ctx, s.sessionId, automatic = false) } } })
-        buttons.addView(Button(ctx).apply { text = if (s.followUps) "5 Min später" else "Schließen"; setOnClickListener { asynchronously(ctx, s.sessionId) { ack(ctx, s.sessionId) } } })
-        if (s.followUps) buttons.addView(Button(ctx).apply { text = "Heute Ruhe"; setOnClickListener { asynchronously(ctx, s.sessionId) { stop(ctx, s.sessionId) } } })
+        buttons.addView(Button(ctx).apply { text = if (sleepQuestion) "Ich bin noch wach" else if (s.followUps) "5 Min später" else "Schließen"; setOnClickListener { asynchronously(ctx, s.sessionId) { ack(ctx, s.sessionId) } } })
+        if (s.followUps || sleepQuestion) buttons.addView(Button(ctx).apply { text = "Heute Ruhe"; setOnClickListener { asynchronously(ctx, s.sessionId) { stop(ctx, s.sessionId) } } })
         panel.addView(buttons)
         val width = minOf(dp(360), ctx.resources.displayMetrics.widthPixels - dp(24)).coerceAtLeast(dp(180))
-        val layout = WindowManager.LayoutParams(width, WindowManager.LayoutParams.WRAP_CONTENT,
+        val layout = WindowManager.LayoutParams(if (sleepQuestion) WindowManager.LayoutParams.MATCH_PARENT else width, if (sleepQuestion) WindowManager.LayoutParams.MATCH_PARENT else WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; y = dp(32); title = "Anker Schlafhinweis" }
+            PixelFormat.TRANSLUCENT).apply { gravity = if (sleepQuestion) Gravity.CENTER else Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; y = if (sleepQuestion) 0 else dp(32); title = "Anker Schlafhinweis" }
         // Kleine touchbare Karte; kein transparentes, vollflächiges Durchreichfenster.
         record(ctx, "overlay_requested", s)
         manager.addView(panel, layout)
@@ -610,11 +649,12 @@ object BedtimePromptController {
         var drawn = false
         val drawListener = object : ViewTreeObserver.OnDrawListener {
             override fun onDraw() {
+                drawnSleepSession = s.sessionId
                 if (drawn) return
                 drawn = true
                 panel.post {
                     if (panel.viewTreeObserver.isAlive) panel.viewTreeObserver.removeOnDrawListener(this)
-                    for (delay in listOf(200L, 1400L)) handler.postDelayed({
+                    for (delay in if (sleepQuestion) emptyList() else listOf(200L, 1400L)) handler.postDelayed({
                         asynchronously(ctx, s.sessionId) {
                             if (panel.isAttachedToWindow && panel.isShown && card === panel)
                                 openNow(ctx, s.sessionId, automatic = true)
@@ -636,6 +676,7 @@ object BedtimePromptController {
                 asynchronously(ctx, s.sessionId) {
                 val current = read(ctx)
                 if (current.phase != BedtimePromptPhase.SHOWN) return@asynchronously
+                if (card?.isShown == true) reportSleepVisibility(ctx, s.sessionId, true)
                 when {
                     !screen(ctx).visible -> reset(ctx, "screen-off")
                     !unlocked(ctx) -> reset(ctx, "locked")

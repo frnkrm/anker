@@ -7,7 +7,7 @@ import { openTodayAdjust } from './helpers/controls'
 
 async function changeToday(page: Page) {
   const adjust = await openTodayAdjust(page)
-  await adjust.getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await adjust.getByText('Termine & Tagesplan', { exact: true }).click()
   await adjust.getByRole('button', { name: 'Heute anders', exact: true }).click()
 }
 
@@ -44,7 +44,7 @@ async function seed(page: Page, sick: boolean, regularSession = false) {
 test('Krank reduziert eigene Aufgaben und erhält die vorhandenen festen Termine im tatsächlichen Bedienweg', async ({ page }) => {
   await onboard(page); await seed(page, true)
   await page.goto('/tag')
-  const terms = page.getByRole('heading', { name: 'Termine', exact: true }).locator('..')
+  const terms = page.getByRole('heading', { name: 'Termine', exact: true }).locator('xpath=ancestor::section[1]')
   await expect(terms).toContainText('Fester Termin')
   await expect(terms).toContainText('Fahrt etwa 45 min')
   await expect(terms).not.toContainText('Keine zusätzlichen Termine')
@@ -57,7 +57,7 @@ test('Krank reduziert eigene Aufgaben und erhält die vorhandenen festen Termine
 test('Knapp nach Feierabend beginnt der direkte Weg am Büro und erzeugt keinen gleichzeitig laufenden Heimweg', async ({ page }) => {
   await onboard(page); await seed(page, false)
   await page.goto('/tag')
-  const terms = page.getByRole('heading', { name: 'Termine', exact: true }).locator('..')
+  const terms = page.getByRole('heading', { name: 'Termine', exact: true }).locator('xpath=ancestor::section[1]')
   await expect(terms).toContainText('Büro → Bekannter Ort')
   await expect(page.getByRole('list', { name: 'Tageslinie', exact: true })).not.toContainText('Heimweg')
   expect((await storedRecord<LocalData>(page, 'meta', 'local'))!.commitments[0]).toEqual(visit)

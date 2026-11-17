@@ -71,8 +71,8 @@ export interface AlarmPreferences {
   medicationEnabled: boolean
   /** Eigene Erinnerungszeit (Plan-Minuten), null = keine */
   medicationReminderAt: number | null
-  /** Freiwilliges Aktivitäts-Weckfenster. Jede Nacht bewusst starten; keine Schlafphasenmessung. */
-  smartWake: { enabled: boolean; windowMinutes: number }
+  /** Freiwillige lokale Nachtmessung; keine Schlafphasenmessung. Neue Automatiken beginnen aus. */
+  smartWake: { enabled: boolean; windowMinutes: number; autoDaily?: boolean; lockOnStart?: boolean }
 }
 
 export interface Settings {
@@ -85,7 +85,7 @@ export interface Settings {
   /** Index 0 = Montag */
   work: WorkDay[]
   commute: { minutes: number; mode: CommuteMode; bufferMin: number }
-  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number; bedtimePromptEnabled?: boolean; bedtimeFollowUpsEnabled?: boolean }
+  sleep: { needMin: number; fallAsleepMin: number; screenOffMin: number; bedtimePromptEnabled?: boolean; bedtimeFollowUpsEnabled?: boolean; onsetEstimationEnabled?: boolean }
   anchor: {
     wake: number
     wakeToleranceMin: number
@@ -107,7 +107,14 @@ export interface Settings {
   evenings: EveningPlan[]
   eveningDurations: Record<EveningPlan, number>
   routines: Record<RoutineId, RoutineStep[]>
-  reminders: { intensity: ReminderIntensity; repeatAfterMin: number; quietStart: number; quietEnd: number }
+  reminders: {
+    intensity: ReminderIntensity
+    repeatAfterMin: number
+    quietStart: number
+    quietEnd: number
+    /** Bewusst gewählter Status-Check nach Terminbeginn (15–240 Min), sonst aus. */
+    returnCheckAfterMin?: number
+  }
   rewards: Reward[]
   meals: Meal[]
   prepDay: number
@@ -444,6 +451,15 @@ export interface SleepDiaryEntry {
   bedAt?: number
   wakeAt?: number
   source?: 'health-connect'
+  /** Unsichere Schätzung separat von bestätigtem Schlafbeginn führen. */
+  onset?: { at: number; status: 'estimated' | 'confirmed' | 'discarded'; source: 'prompt-timeout' | 'manual' }
+  alarmAt?: number
+  qrAt?: number
+  wakeFeedbackSkippedAt?: number
+  energySkippedAt?: number
+  wakeFeedback?: { at: number; value: 'too-early' | 'right' | 'too-late' }
+  /** Energie des auf diese Nacht folgenden Tages, freiwillig 1–5. */
+  dayEnergy?: { at: number; value: 1 | 2 | 3 | 4 | 5 }
 }
 
 export type WorkSessionKind = 'regular' | 'maintenance' | 'incident' | 'onsite' | 'other'
@@ -536,6 +552,8 @@ export interface Commitment {
   leftAt?: number
   arrivedAt?: number
   backAt?: number
+  /** Bewusst gewählter nächster Status-Check, UTC; keine Rückkehrzeit. */
+  returnCheckAt?: number
 }
 
 /** Berechneter Weg zu einem Termin */
@@ -614,6 +632,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Hobbys bleiben in meta/local; nur in bewusst erstellten lokalen Sicherungen enthalten. */
+  hobbies?: import('./hobbies').HobbyPreferences
   /** Gerätespezifische PC-Verbindung und bestätigte Ereignisse, nie Sync-/Backupinhalt. */
   pcBridge?: import('./pcLink/types').PcBridgeLocal
   /** Private Zustandsfakten der freiwilligen Abend-/Morgenbegleitung. */

@@ -22,7 +22,7 @@ export type AssistantRequest = StepsRequest | RouteRequest
 export interface SuggestedStep { title: string; estimateMin?: number }
 export interface RouteEstimate {
   durationMin: number
-  source: 'Google Routes'
+  source: 'Google Routes' | 'TomTom'
   fetchedAt: number
   travelAt: string
   mode: AssistantTravelMode
@@ -34,9 +34,10 @@ export interface RouteEstimate {
 export type AssistantResult = { kind: 'steps'; revision: string; steps: SuggestedStep[] }
   | { kind: 'route'; revision: string; route: RouteEstimate }
 export interface AssistantCapabilities {
-  ai: { configured: boolean; provider: 'OpenAI'; model?: string }
-  routes: { configured: boolean; provider: 'Google Routes'; modes: AssistantTravelMode[] }
+  ai: { configured: boolean; provider: 'OpenAI' | 'Gemini'; model?: string }
+  routes: { configured: boolean; provider: 'Google Routes' | 'TomTom'; modes: AssistantTravelMode[] }
   dailyLimits: { steps: number; route: number }
+  freeOnly?: boolean
 }
 
 export const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -87,7 +88,7 @@ export function validAssistantResult(value: unknown): value is AssistantResult {
   if (!record(value) || !boundedText(value.revision, 120)) return false
   if (value.kind === 'steps') return !!parseSuggestedSteps(value)
   const route = value.route
-  return value.kind === 'route' && record(route) && route.source === 'Google Routes' && route.estimated === true
+  return value.kind === 'route' && record(route) && ['Google Routes', 'TomTom'].includes(String(route.source)) && route.estimated === true
     && typeof route.durationMin === 'number' && Number.isFinite(route.durationMin) && route.durationMin > 0 && route.durationMin <= 24 * 60
     && typeof route.fetchedAt === 'number' && Number.isFinite(route.fetchedAt) && route.fetchedAt >= 0
     && stamp(route.travelAt) && validTravelMode(route.mode) && typeof route.trafficAware === 'boolean'
