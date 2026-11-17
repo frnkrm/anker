@@ -1,5 +1,21 @@
 # Aktueller Übergabestand
 
+## Folgeentwicklung F-019: Jetzt und gemeinsame Bedienung (18.11.2026)
+
+Auf separatem Branch `codex/ux-jetzt-20261118` umgesetzt: eindeutiger Countdown
+mit Kalendertag, kompakte Abweichungs-/Unterwegs-/Messzustände, Erklärungen auf
+Info-Tipp, kurze Weckerfehler mit direktem Einstellungsweg, Suchabsichten und
+acht freiwillige lokale Favoriten. Gemeinsame Sheets halten den Schließen-Knopf
+sichtbar, schmale Seitenköpfe lassen Überschriften lesbar. Vorhandene Handlung,
+Planung, Historie, Rücknahme und Freigaben bleiben Grundlage.
+
+Logikprüfung 1.442/1.442, Browser-Gesamtabnahme 391/391 und Produktions-Build
+erfolgreich; Lint ohne Fehler. Jetzt-Screenshot zusätzlich visuell geprüft.
+[Umfang](ANKER_IMPLEMENTIERUNGSPLAN.md#f-019--ruhige-eindeutige-alltagsoberfläche-18112026)
+und [Nachweise](ANKER_TESTNACHWEISE.md). Diese Folgeentwicklung ist noch nicht
+auf dem Handy installiert. Das darunter beschriebene signierte Code18 und sein
+geplanter Play-Weg wurden durch diesen Auftrag nicht verändert.
+
 ## Aktuell: Testansicht im geplanten Code18 enthalten (18.11.2026)
 
 PR17 integriert; Appquelle8a51bdb und Policy918370f haben ihre eigenen main-CIs

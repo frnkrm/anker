@@ -32,7 +32,7 @@ test('Eine unter Arbeit gespeicherte Startzeit erscheint zusätzlich auf Jetzt; 
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))?.work[0]?.earliestStart).toBe(new Date('2026-11-06T10:30:00+01:00').getTime())
   await page.getByRole('link', { name: 'Jetzt', exact: true }).click()
   const hints = page.getByLabel('Danach', { exact: true })
-  await expect(hints).toHaveText('Danach: Ab 10:30 · Tabelle vorbereiten')
+  await expect(hints).toHaveText('Danach: Start · Heute um 10:30 · Tabelle vorbereiten')
   await expect(page.locator('section[aria-live] h1')).toHaveCount(1)
   expect(await page.locator('section[aria-live] button, section[aria-live] a').count()).toBeLessThanOrEqual(3)
   const before = (await storedRecord<LocalData>(page, 'meta', 'local'))!
@@ -60,11 +60,11 @@ test('Danach trennt nächste Frist und nächsten Start; vergangene oder erledigt
   await expect(page.getByRole('heading', { name: 'Alter Zeitpunkt', exact: true })).toBeVisible()
   await expect(page.getByText('Frist war 09:50 · ein kleiner Anfang reicht', { exact: true })).toBeVisible()
   const hints = page.getByLabel('Danach', { exact: true })
-  await expect(hints).toHaveText('Danach: Frist 10:20 · Rückmeldung')
+  await expect(hints).toHaveText('Danach: Frist · Heute um 10:20 · Rückmeldung')
   await expect(hints).not.toContainText(/Viel später|Schon erledigt|Alter Zeitpunkt|10:50/)
-  await page.reload(); await expect(hints).toHaveText('Danach: Frist 10:20 · Rückmeldung')
+  await page.reload(); await expect(hints).toHaveText('Danach: Frist · Heute um 10:20 · Rückmeldung')
   await page.clock.setFixedTime(new Date('2026-11-06T10:21:00+01:00')); await page.reload()
-  await expect(hints).toHaveText('Danach: Ab 10:40 · Datei öffnen')
+  await expect(hints).toHaveText('Danach: Start · Heute um 10:40 · Datei öffnen')
   const persisted = (await storedRecord<LocalData>(page, 'meta', 'local'))!
   expect(persisted.work.find(task => task.id === 'done')?.done).toBe(true)
   expect(persisted.work.find(task => task.id === 'past')?.deadline).toBe(time('09:50'))

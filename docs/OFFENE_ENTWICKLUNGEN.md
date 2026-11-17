@@ -1,5 +1,16 @@
 # Entwicklungsstand und verbleibende Abnahme
 
+## Neuer Auftrag F-019 (18.11.2026)
+
+Ruhige Jetzt-Ansicht, eindeutige Zeit-/Statusanzeigen, einheitliche Bedienmuster,
+weniger dauerhafte Erklärungen, Suche mit Absichten/Favoriten und gezielte
+Lesbarkeits-/Überlappungsprüfung. Alle acht Vorschläge sind beauftragt;
+[Umfang und Reihenfolge](ANKER_IMPLEMENTIERUNGSPLAN.md#f-019--ruhige-eindeutige-alltagsoberfläche-18112026).
+Status: implementiert und automatisch geprüft (1.442 Logiktests, 391 Browserfälle,
+Produktions-Build, Lint ohne Fehler); Jetzt-Screenshot zusätzlich visuell geprüft.
+Neue Gerätebeobachtung und spätere Auslieferung sind davon getrennt.
+Das bereits signierte Code18 mit Testansicht bleibt als geplanter Play-Build gebunden.
+
 Aktualisierung18.11.: Neue Testansicht ist jetzt im neu signierten Code18 enthalten.
 Appquelle8a51bdb/Policy918370f samt eigenen main-CIs erfolgreich; finales
 Artefakt14378791154 aus Sign/Verify44194672103. Bestehenden Play-Auftrag auf die

@@ -134,7 +134,7 @@ test('Aktivitäts-Weckfenster bleibt freiwillig und startet im Web keine Sensore
   await expect(option).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByRole('spinbutton', { name: 'Weckfenster Minuten', exact: true })).toHaveValue('50')
   await expect(page.getByRole('button', { name: 'Messung für diese Nacht starten', exact: true })).toHaveCount(0)
-  await expect(page.getByText(/Die Bewegungs- und Mikrofonmessung ist nur in der Android-App verfügbar/)).toBeVisible()
+  await expect(page.getByText(/Messung nur in der Android-App./)).toBeVisible()
   await option.click()
   await expect.poll(async () => (await storedRecord<Settings>(page, 'settings', 'main'))?.alarm.smartWake.enabled).toBe(false)
   await page.reload()

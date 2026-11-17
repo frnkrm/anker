@@ -5,7 +5,8 @@ import { App as CapApp } from '@capacitor/app'
 import { fmtTime } from '../../core/time'
 import { isNative } from '../../platform/native'
 import { clockMinutes, countdownLabel, germanDateValue, remainingFraction } from './fieldValues'
-import { searchFunctions } from '../../core/functionSearch'
+import { favoriteFunctions, normaliseFunctionFavorites, searchFunctions } from '../../core/functionSearch'
+import { useApp } from '../../state/store'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'warm'
 
@@ -35,11 +36,11 @@ export function Page({ title, back, children, actions, className = '' }: { title
   useLayoutEffect(() => { heading.current?.focus() }, [])
   return (
     <div className={`mx-auto max-w-xl px-4 pb-28 safe-top ${className}`}>
-      <header className="mb-4 flex min-h-12 items-center gap-2">
+      <header className="ui-page-header mb-4 flex min-h-12 items-center gap-2">
         {back && (
           <BackButton to={typeof back === 'string' ? back : undefined} />
         )}
-        <h1 ref={heading} tabIndex={-1} className="min-w-0 flex-1 break-words text-2xl font-semibold">{title}</h1>
+        <h1 ref={heading} tabIndex={-1} className="ui-page-title min-w-0 flex-1 break-words text-2xl font-semibold">{title}</h1>
         {actions}
         <SearchButton />
       </header>
@@ -69,21 +70,37 @@ export function Info({ title, children }: { title: string; children: ReactNode }
 
 export function SearchButton() {
   const [open, setOpen] = useState(false), [query, setQuery] = useState('')
+  const ids = useApp(s => s.local.functionFavorites)
+  const [favoriteError, setFavoriteError] = useState('')
+  const favorites = normaliseFunctionFavorites(ids)
   const input = useRef<HTMLInputElement>(null)
+  const searchId = useId()
   useEffect(() => {
     if (!open) return
     const frame = requestAnimationFrame(() => input.current?.focus())
     return () => cancelAnimationFrame(frame)
   }, [open])
   const navigate = useNavigate()
-  const results = searchFunctions(query, { native: isNative() })
-  const close = () => { setOpen(false); setQuery('') }
+  const results = query.trim() ? searchFunctions(query, { native: isNative() }) : favoriteFunctions(ids, isNative())
+  const close = () => { setOpen(false); setQuery(''); setFavoriteError('') }
+  const toggleFavorite = async (id: string) => {
+    setFavoriteError('')
+    if (!favorites.includes(id) && favorites.length >= 8) { setFavoriteError('Du kannst bis zu acht Favoriten wählen. Entferne zuerst einen.'); return }
+    try { await useApp.getState().toggleFunctionFavorite(id); if (!query.trim()) input.current?.focus() }
+    catch { setFavoriteError('Favorit konnte nicht gespeichert werden. Versuche es erneut.') }
+  }
   return <>
     <button type="button" aria-label="Funktionen und Einstellungen suchen" className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full text-muted" onClick={() => setOpen(true)}><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg></button>
     <Sheet open={open} onClose={close} title="Funktionen suchen">
       <input ref={input} type="search" aria-label="Funktion oder Einstellung suchen" placeholder="Zum Beispiel: Aufstehen, PC, Fotografieren …" value={query} maxLength={160} onChange={event => setQuery(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-surface px-3 text-base" />
       <div className="mt-4 space-y-2" aria-live="polite">
-        {!query.trim() ? <p className="text-sm text-muted">Suche nach einer Funktion oder dem, was du machen möchtest.</p> : !results.length ? <p>Kein passender Treffer. Probiere ein kürzeres Wort.</p> : results.map(result => <button key={result.id} type="button" className="flex min-h-16 w-full flex-col justify-center rounded-xl border border-line bg-surface p-3 text-left" onClick={() => { close(); navigate(result.target) }}><span className="font-medium">{result.title}</span><span className="text-sm text-muted">{result.group}{result.unavailableReason ? ` · ${result.unavailableReason}` : ''}</span></button>)}
+        {!query.trim() && <p className="text-sm text-muted">{results.length ? 'Deine Favoriten' : 'Suche nach einer Funktion oder deinem Vorhaben. Mit dem Stern merkst du dir einen Treffer.'}</p>}
+        {query.trim() && !results.length && <p>Kein passender Treffer. Probiere ein kürzeres Wort.</p>}
+        {results.map(result => <div key={result.id} role="group" aria-label={result.title} className="flex min-w-0 items-center gap-1 rounded-xl border border-line bg-surface">
+          <button type="button" className="flex min-h-16 min-w-0 flex-1 flex-col justify-center p-3 text-left [overflow-wrap:anywhere]" onClick={() => { close(); navigate(result.target) }}><span id={`${searchId}-${result.id}`} className="font-medium">{result.title}</span><span className="text-sm text-muted">{result.group}{result.unavailableReason ? ` · ${result.unavailableReason}` : ''}</span></button>
+          <button type="button" aria-label={favorites.includes(result.id) ? 'Favorit entfernen' : 'Favorit merken'} aria-describedby={`${searchId}-${result.id}`} aria-pressed={favorites.includes(result.id)} className="grid min-h-12 min-w-12 shrink-0 place-items-center text-xl text-accent" onClick={() => void toggleFavorite(result.id)}>{favorites.includes(result.id) ? '★' : '☆'}</button>
+        </div>)}
+        {favoriteError && <p role="alert" className="text-sm text-warm">{favoriteError}</p>}
       </div>
     </Sheet>
   </>
@@ -397,7 +414,7 @@ export function Sheet({ open, onClose, children, title, fullscreen = false }: { 
         onClick={(e) => e.stopPropagation()}
         className={`anker-sheet w-full overflow-y-auto overscroll-contain bg-surface p-5 safe-bottom ${fullscreen ? 'h-dvh max-h-dvh' : 'max-h-[calc(100dvh-0.75rem)] max-w-xl rounded-t-3xl'}`}
       >
-        <header className="mb-3 flex min-h-11 items-center gap-2">
+        <header className="sticky -top-5 z-10 -mx-5 -mt-5 mb-3 flex min-h-14 items-center gap-2 border-b border-line bg-surface px-5 py-3">
           {title && <h2 className="min-w-0 flex-1 break-words text-xl font-semibold">{title}</h2>}
           <button type="button" aria-label="Schließen" data-sheet-close onClick={onClose} className="ml-auto grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl text-muted">×</button>
         </header>

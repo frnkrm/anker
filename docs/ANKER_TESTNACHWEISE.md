@@ -1,5 +1,30 @@
 # Anker: Testnachweise
 
+## F-019: Jetzt, Status und gemeinsame Bedienmuster (18.11.2026)
+
+- Softwareänderung auf `codex/ux-jetzt-20261118`, getrennt vom gebundenen
+  signierten Code18. Keine Änderung an Version, nativer Brücke, Freigaben oder
+  Releaseautomation; noch keine Installation dieser UX-Änderung auf dem Handy.
+- Vollständige Logikprüfung: 143 Dateien / 1.442 Fälle erfolgreich.
+  Neue Fälle prüfen den echten Kalendertag nach Mitternacht, Countdown-Bezug,
+  Suchabsichten und bekannte Favoritenziele; Storefälle prüfen schnelle parallele
+  Favoritenwahlen, Persistenz, Schreibfehler und ausbleibende Plan-/Weckeränderung.
+- Produktions-Build einschließlich TypeScript erfolgreich. ESLint: keine Fehler;
+  bestehende, nicht geänderte Ref-Cleanup-Warnung in `TaskAssistance.tsx:41`.
+- Gezielte Browserprüfung bestätigt tatsächliche native Statusdarstellung mit
+  Testbrücke, freiwillige Messung und Vorweckerpause, unveränderte Direktlinks,
+  eindeutige Jetzt-Anzeige und lokale Favoriten nach Neustart. Alte reine
+  Texterwartungen an die absichtlich gekürzte/konkretisierte Beschriftung angepasst.
+- Vollständige Browser-Integrationsprüfung: 391/391 erfolgreich in 7,6 Minuten,
+  `test-results/ux-jetzt-integration`. Darin schmale/160%-Layouts, abgesicherter
+  Sheetverlauf, Offline-/Sicherungs-/Rücknahmewege und bestehende Weckerfälle.
+  Neue Jetzt-Aufnahme `ux-now-Jetzt-nennt-Countdo-8101c-ls-öffnen-ohne-Planänderung/jetzt.png`
+  zusätzlich visuell geprüft: klare Hierarchie, keine Überlappung bei 390×844.
+- Browserprüfung ist keine neue echte Android-/Windows-Beobachtung. Die bereits
+  dokumentierten eigenen Nacht-/Wecker-/Hardwareversuche bleiben getrennt offen.
+  Ein dargestellter Countdown, Speichererfolg oder nativer Testdouble bestätigt
+  weder Schlaf noch echte Erledigung oder tatsächlichen Android-Alarmempfang.
+
 ## Neues Code18 mit Testansicht: final geprüft (18.11.2026)
 
 - Korrigierte Appquelle8a51bdb: eigene main-CI44191339291 erfolgreich; unabhängige

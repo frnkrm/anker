@@ -1,5 +1,53 @@
 # Anker 2.0: Implementierungsplan
 
+## F-019 – Ruhige, eindeutige Alltagsoberfläche (18.11.2026)
+
+Aktueller Nutzerauftrag: sämtliche acht UX-Vorschläge autonom und effizient im
+bestehenden System umsetzen. Zuerst Darstellung aus vorhandenen Zuständen ableiten,
+dann die zusammenhängende UI-Phase und gezielte Abnahme. Keine neue Planungsengine.
+
+1. Jetzt: aktuelle Handlung, eine hervorgehobene Aktion, nächster Schritt.
+2. Zeitangaben: Bezug, Datum/Heute/Morgen und einmalige Abweichung eindeutig.
+3. Sonderzustände: Unterwegs, offenes Abendende, Messung und Abweichungen kompakt.
+4. Ruhige Hierarchie: weniger doppelte Rahmen/Texte; längere Erklärungen nur auf Info-Tipp.
+5. Bedienmuster: kurze Auswahl im Sheet, umfangreiche Einrichtung auf ihrer Seite;
+   Schließen bleibt erreichbar. Abgesicherten Sheet-Verlauf und Fokus erhalten.
+6. Suche: Absichten/Synonyme und wenige selbst gewählte lokale Favoriten mit stabiler Reihenfolge.
+7. Probleme: kurze verständliche Meldung und direkte passende Einstellung;
+   bestehende Rücknahmewege erhalten, technische Details nur auf Nachfrage.
+8. Lesbarkeit: große Schrift, kleine Breite, Tastatur/Navigation und Modalgrenzen prüfen.
+
+Umsetzung: Jetzt nennt den Bezug direkt, beispielsweise „Aufstehen in 10 min“ und
+„Heute um 06:40“. Auch der nächste Schritt unterscheidet Start und Frist mit
+Kalendertag; Planminuten nach Mitternacht behalten ihren tatsächlichen Tag.
+Einmalige Aufstehzeit, Unterwegs mit unbestätigter Rückkehr und offenes Abendende
+erscheinen kompakt. Standardzeiten und Erläuterungen stehen im Infofenster.
+Die bestehende zentrale Handlung bleibt erhalten; die kompakte Nachtmessung ist
+eine nachgeordnete Aktion und zeigt nur den tatsächlich nativen Laufstatus an.
+
+Gemeinsame Bedienmuster: Info-/Auswahlsheets behalten Verlauf, Fokus und Modalgrenzen;
+der Schließen-Knopf bleibt beim Scrollen sichtbar. Seitenüberschriften bekommen bei
+schmaler Breite eine eigene Zeile. Vorhandene Einstellungsseiten, gruppiertes
+„Heute anpassen“ und Rücknahmewege werden weiterverwendet. Kurze Weckerfehler führen
+direkt zur passenden Einstellung; die vollständige Meldung öffnet sich gezielt.
+Passive Messungs-/Pausenerklärungen sind ebenfalls auf Nachfrage verfügbar.
+
+Suche versteht zusätzliche Absichten wie „morgen länger schlafen“ oder „PC bleibt
+an“. Bis zu acht selbst gewählte Favoriten erscheinen in gewählter Reihenfolge.
+Nur bekannte Katalog-IDs werden lokal über die bestehende Schreibqueue gespeichert;
+schnelle Änderungen gehen nicht verloren, Speicherfehler werden sichtbar und lösen
+keine neue Plan-/Weckerabstimmung aus. Keine fremden URLs aus Sicherungen ausführen.
+
+Status: implementiert und automatisch geprüft: 1.442 Logiktests, 391 Browserfälle,
+Produktions-Build und Lint ohne Fehler. Jetzt-Screenshot zusätzlich visuell geprüft.
+Keine neue echte Android-/Windows-Abnahme behauptet. Vorhandene
+Statusdaten, Store-Queue, meta/local und Suchkatalog wiederverwendet.
+Anzeige ist kein Empfangs-, Erledigungs- oder Schlafnachweis.
+Keine automatische Aktivierung strenger Wirkungen. Pflichtfolgen und nötige
+Fehler-/Freigabehinweise bleiben direkt sichtbar, passive Langtexte wandern ins Infofenster.
+Bereits signiertes/geplantes Code18-Artefakt und Play-Automation bleiben unverändert;
+diese neue UX-Serie ist ein getrennter Entwicklungsstand, kein freigegebener neuer Release.
+
 ## Aufnahme in Code18 abgeschlossen (18.11.2026)
 
 Ausdrücklicher Nutzerauftrag erfüllt: neue Testansicht in denselben geplanten
