@@ -1,53 +1,65 @@
-# Entwicklungsstand nach dem aktuellen Codeabgleich
+# Entwicklungsstand und verbleibende Abnahme
 
-Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; Code18 aus Prepare44167654681 und Sign/Verify44169177734 tatsächlich fertig signiert, zusätzlich mit echtem Publisherprüfer bestätigt; [Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Play-Upload/Freigabe erst nach Schlüsselaktivierung18.11.22:41, bestehender Auftrag22:50.
+Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
+dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
+abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
+angemeldete App und kostenlose Anbieter erfolgreich geprüft. Aktueller main-Code:
+`8f452fd5317cabc002f53ebe55ceedfc47559e0b`; eigene CI `44172620113` erfolgreich
+(1.436 TypeScript-, 387 Browserfälle; PC-Matrix je 290 Fälle, davon zwei erwartete
+Plattform-Skips). Das ist keine vollständige Geräte- oder Nachtabnahme.
 
-Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+Verbindliche [Restliste mit Voraussetzungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen).
+[Anbieterbelege](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md),
+[gebundenes signiertes Code18-Artefakt](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+Auf dem Handy ist weiterhin Code17/1.5.0-rc.3 installiert. Code18 ist fertig
+signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
+nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
+oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
 
-## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+Verbindlich: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Arbeit wurde wie beauftragt gesammelt nach der Logik umgesetzt.
 
-Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
-implementiert; der aktuelle differenzierte Stand steht in
-[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
-sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
-befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
-separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
-Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+## Tatsächlich offene Prüfungen
 
-Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+| Auftrag | Was noch fehlt | Voraussetzung / nächster sinnvoller Schritt |
+| --- | --- | --- |
+| E-002 / V-011 | Echte Wecker/Erinnerungen einschließlich gesperrtem Gerät, Hintergrundbetrieb und QR-Ablauf | Code18 nach dem Store-Update testen; historische Code17-Belege nicht auf Code18 übertragen. Echte Weckversuche bewusst planen, vorhandenen Ersatzwecker behalten. |
+| F-015/F-018, G96/G101 | Vollständiger Nachtlauf, automatische Starts unter Android-Bedingungen, überdeckender Einschlafhinweis samt unbeantwortetem Zeitfenster sowie Morgenrückmeldung | Die kurze reale Mikrofon-/Bewegungs-/Sperrprobe ist bestanden. Ein echter Nachtlauf und die längerfristige Qualität persönlicher Vorschläge lassen sich daraus nicht ableiten. Nachtmessung benötigt die eigene ausdrückliche Wahl; keine Aktivierung während der Handynutzung. |
+| E-003 / V-012, G97/G98/G102/G103 | Vollständiger Windows-Gerätebetrieb: Tray, echte Monitor-/DPI-Wechsel, Netzwechsel und ausdrücklich gewählte Systemwirkungen | Neue Sichtprüfung von Hauptfenster und darüber geöffnetem Dialog bestanden; vorhandene Geometrie-/Tastaturtests wiederverwenden. Reale Netzwechsel, Sperre, Audio, Shutdown/WoL während der PC-Nutzung nicht ungefragt auslösen. |
+| E-004 / V-013 | Echte Kalenderquelle auswählen, lesen, abwählen und Widerruf prüfen | READ_CALENDAR ist am verbundenen Code17-Gerät erlaubt; das ersetzt weder die Auswahl einer echten Quelle noch den Code18-Nachweis. Persönlichen Kalender und Berechtigungen nicht für einen Test eigenmächtig ändern. |
+| E-005 | Optionaler NFC-Betrieb mit geeignetem physischem Test-Tag | Tag und bewusste Zuordnung vor Ort erforderlich; vorhandene manuelle Wege bleiben erhalten. |
+| T-006 / V-014 | Play-Upload, interne Verfügbarkeit und tatsächliches Store-Update | Bestehender einmaliger Auftrag 18.11.22:50; Freischaltung des Uploadschlüssels abwarten. PC/Codex müssen für den Auftrag laufen. Keine Produktionsfreigabe. |
 
-## Aktuelle offene Punkte – Kurzfassung vom 17.11.2026
+Es ist derzeit **keine zusätzliche noch unimplementierte beauftragte Funktion oder
+bestätigte unbehandelte Fehlermeldung** gefunden worden. Die vorstehenden Punkte
+sind verbleibende Abnahmen, Beobachtungszeiträume oder die geplante Auslieferung.
+Sie bleiben offen, bis ihr konkreter Nachweis vorliegt; die 103 bestehenden
+G-Prüfzeilen werden nicht pauschal abgehakt. Interne Testauslieferung ist kein
+Nachweis einer vollständig abgenommenen öffentlichen Version.
 
-Diese Zusammenfassung berücksichtigt die neueren Beobachtungen aus dem aktuellen
-Chat. Die datierten Einträge weiter unten bleiben historische Nachweise;
-bereits integrierte Fixes sind keine erneut offenen Implementierungen.
+Spätere Optionen/Entscheidungen bleiben Lichtwecker-Hardware, soziale
+Fokusbegleitung, kostenpflichtige Windows-Codesignatur und eine gegebenenfalls
+später zu vereinbarende andere langfristige Ablage der Schlafauswertung.
+Keine zusätzliche Implementierung, Kostenaktivierung oder Produktivfreigabe daraus ableiten.
 
-- **BF-001:** Jetzt-Anzeige: Countdownbezug, nächste Handlung, doppelte Angaben und Punkteanzeige klären.
-- **BF-002:** Offenen Unterwegs-Zustand außerhalb der App sichtbar halten und an die bewusste Rückkehrbestätigung erinnern.
-- **BF-003:** Aufklappbare Bereiche mit eindeutigem Anfang, Inhalt und Ende gestalten.
-- **BF-004:** KI-/Verkehrseinrichtung: Nutzen, Sperrgrund und passende nächste Schritte verständlich erklären.
-- **BF-005:** „Heute anpassen“ nach täglichen Änderungen und verständlichen Themen strukturieren.
-- **F-011:** Freiwillige Hobby-Vorschläge für tatsächlich freie Zeit; Einrichtung und Auswahl siehe unten.
-- **F-012:** PC-Begleiter minimalistisch und ansprechend gestalten; Dialoge direkt über dem Hauptfenster öffnen.
-- **F-013:** Kostenlose Hilfe zum Zerlegen von Aufgaben; lokale Grundfunktion erhalten, geeigneten KI-Anbieterweg ergänzen.
-- **F-014:** Kostenlose Fahrzeit-/Verkehrsanbindung mit harten Gratisgrenzen und ehrlichem manuellen Rückweg.
-- **F-015:** Nachtmessung auf Jetzt, sofortiger Bettgeh-Start, technisches Signalprotokoll, freiwillige Sperre und täglicher Automatikmodus mit Android-Machbarkeitsprüfung.
-- **F-016:** Appweite lokale Suche mit Schlagwörtern und direktem Sprung zur passenden Funktion/Einstellung.
-- **F-017:** Lange Funktionserklärungen appweit über ein zugängliches Infosymbol in Hilfefenstern öffnen.
-- **F-018:** Geschätzter Schlafbeginn, freiwillige Energie-/Weckrückmeldungen und persönliche Zeitvorschläge aus dem bestehenden Schlafjournal.
-- **T-006 / V-014:** Gesamtabschluss und Code18-Play-Update: Build, gültige Uploadsignatur, interne Freigabe und anschließendes Store-Update bestätigen. PR12/PR13 sind inzwischen integriert; der PC-Zeitstempelfix ist am Handy bestätigt. Uploadschlüssel laut Console erst am 18.11.2026 um 22:41 gültig; einmaliger Auftrag am 18.11. um 22:50 eingerichtet, Ausführung noch ausstehend.
-- **E-002 / V-011:** Android-Wecker und Erinnerungen im echten Gerätebetrieb vollständig prüfen.
-- **E-003 / V-012:** Windows-Begleiter vollständig prüfen, insbesondere Dialoge/DPI/Monitore, Tray, Netzwechsel und bewusst gewählte Systemwirkungen. Erfolgreiche Kopplung allein ist kein Gesamtabschluss.
-- **E-004 / V-013:** Kalenderzugriff, Auswahl, Widerruf und echte Datenquellen am Handy prüfen.
-- **E-005:** Optionalen NFC-Betrieb mit geeigneten Tags am Gerät prüfen.
+## Bereits erledigte neue Softwarepakete
 
-F-001 bis F-010 gelten laut vorhandener Roadmap im jeweils dokumentierten
-Softwareumfang als umgesetzt. Offene Geräteabnahmen stehen oben; sie sind keine
-erneuten Implementierungsaufträge. Lichtwecker-Hardware, soziale Fokusbegleitung
-und kostenpflichtige Windows-Codesignatur sind spätere Optionen beziehungsweise
-Entscheidungen, aktuell keine beauftragte Implementierung.
+- BF-001–BF-005: verständliche Jetzt-Anzeige, freiwilliger Unterwegs-Check,
+  klare aufklappbare Bereiche, verständliche Einrichtung und gegliedertes „Heute anpassen“.
+- F-011/F-012: Hobby-Vorschläge und PC-Gestaltung/Dialogposition.
+- F-013/F-014: kostenlose KI-/Fahrzeitwege einschließlich echter Anbieterabnahme.
+- F-015–F-018: Messstart/Automatik/Signaljournal/optionale Sperre, Suche,
+  Hilfedialoge und vorsichtige, bestätigungsbedürftige persönliche Schlafzeitvorschläge.
 
-## Aktuelle Umsetzung (17.11.2026)
+Die vorhandenen F-001–F-010 sind ebenfalls im dokumentierten Softwareumfang
+umgesetzt. Maßgeblich bleiben jeweilige Prüfnachweise und die offenen Gerätefälle.
+
+## Historischer Planungsverlauf
+
+Die nachfolgenden datierten Zwischenstände und ursprünglichen Aufgabenbeschreibungen
+dokumentieren den Verlauf. Angaben wie „geplant“, „in Umsetzung“ oder fehlende
+Providerkonten gelten dort für den damaligen Zeitpunkt, nicht als neue offene Aufträge.
+
+## Zwischenstand zu Beginn der Umsetzung (17.11.2026)
 
 Vom Nutzer jetzt ausdrücklich gestartet. Erstes Logikpaket BF-001/BF-002 umgesetzt:
 kein erneuter Aufstehanker nach bestätigtem frühem Aufstehen; optionaler, einmaliger

@@ -1,5 +1,7 @@
 # Geräteprüfung
 
+Aktueller Abnahmestand: [verbleibende Prüfungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen) und [neue Windows-Sichtbelege](ANKER_TESTNACHWEISE.md#windows-sichtprüfung-am-17112026). Die historischen 103 Prüffälle darunter behalten ihre IDs und ihren damaligen Versionsbezug.
+
 ## T-006: Code18 lokal unsigniert geprüft, keine Installation (14.11.2026)
 
 [Neuer Code18/1.5.0-rc.4-AAB-Nachweis](CODE18_AAB_INTEGRATION_T006.md) aus Versionsquelle014870f mit frischen Webassets/7608…Kennung belegt. Nur lokale freigegebene Versions-/Paketumsetzung, kein direkt installierbares oder Play-angenommenes/signiertes Update. Nutzerherkunft Google Play und Rollen8A-App/B4-Upload bleiben getrennt; tatsächlich installierter Stand nicht ausgelesen, keine B4-Direkt-APK als Update einer8A-Installation zusagen. Kein Installieren, Testalarm, neue Freigabe, Geräte-/Tag-/PC-Aktion oder Häkchen. Alle103historischen Gerätezeilen und ausgelieferter Katalog erhalten; E-002–E-005/T-006/V-014/Gesamt-/Signier-/Upload-/Gerätefreigaben offen. Alte Code17-Belege behalten ihren ursprünglichen Bezug.

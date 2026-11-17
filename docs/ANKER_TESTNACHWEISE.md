@@ -1,8 +1,53 @@
 # Anker: Testnachweise
 
-Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; Code18 aus Prepare44167654681 und Sign/Verify44169177734 tatsächlich fertig signiert, zusätzlich mit echtem Publisherprüfer bestätigt; [Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Play-Upload/Freigabe erst nach Schlüsselaktivierung18.11.22:41, bestehender Auftrag22:50.
+Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
+dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
+abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
+angemeldete App und kostenlose Anbieter erfolgreich geprüft. Aktueller main-Code:
+`8f452fd5317cabc002f53ebe55ceedfc47559e0b`; eigene CI `44172620113` erfolgreich
+(1.436 TypeScript-, 387 Browserfälle; PC-Matrix je 290 Fälle, davon zwei erwartete
+Plattform-Skips). Das ist keine vollständige Geräte- oder Nachtabnahme.
 
-Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+Verbindliche [Restliste mit Voraussetzungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen).
+[Anbieterbelege](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md),
+[gebundenes signiertes Code18-Artefakt](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+Auf dem Handy ist weiterhin Code17/1.5.0-rc.3 installiert. Code18 ist fertig
+signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
+nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
+oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
+
+## Windows-Sichtprüfung am 17.11.2026
+
+- Aktuelle `DesktopUI` direkt aus dem unveränderten main-Stand gestartet, mit
+  synthetischem Status und leerem Aktionsrückruf. Kein Controller, produktiver
+  Store, Netzkanal, Tray, WindowsPlatform oder registrierter Hotkey eingebunden.
+  Die Sichtprüfung ersetzt deshalb keine Transport-/Tray-/Systemwirkungsabnahme.
+- Unter Windows tatsächlich gesehen: dunkles Hauptfenster mit getrennten Gruppen
+  „Verbindung“, „Für später“, „Dein Abend“ und „App & Einrichtung“; Beschriftungen
+  im sichtbaren Bereich lesbar. Der über den Knopf geöffnete Speicherdialog liegt
+  mittig über dem Hauptfenster und enthält beide Eingaben sowie „Merken“.
+  Hauptinhalt ist scrollbar. Kein neuer Darstellungsfehler in diesen Ansichten gefunden.
+- [Hauptfenster](belege/20261117-pc-hauptfenster.png) und
+  [geöffneter Dialog](belege/20261117-pc-dialog.png) als synthetische Sichtbelege
+  gespeichert. Der erste verdeckte Screenshot war kein Anker-Beleg und wurde
+  nicht gespeichert. Keine neue erfolgreiche Größenänderung oder echter
+  Monitor-/DPI-Wechsel behauptet; vorhandene programmatische Geometriebelege bleiben separat.
+- Dialog ohne Speicherung geschlossen, danach Prüfstand geschlossen;
+  Fensterinventar und Prozessende bestätigt. Kein produktiver PC-Begleiter
+  umkonfiguriert, keine Kopplung, Sperre, Audioänderung oder Abschaltung ausgelöst.
+- ADB-Gerät ist verbunden. Ausschließlich Paketmetadaten gelesen:
+  `de.frnkrm.anker.mobile`, Code17, `1.5.0-rc.3`; READ_CALENDAR, RECORD_AUDIO und
+  POST_NOTIFICATIONS bereits erlaubt. Keine Berechtigung geändert, kein Kalender
+  ausgelesen, kein Alarm oder Mikrofonlauf gestartet und kein Update installiert.
+  Diese Bestandsaufnahme ist kein Code18-Gerätetest.
+
+Die Änderung dieses Nachweises und der Statusübersichten betrifft ausschließlich
+Dokumentation/Bilder. Keine neue Produktsuite oder App-Signierung dafür wiederholt;
+die grüne exakte main-CI und bisherigen Nachweise werden wiederverwendet.
+
+## Historische Zwischenstände
+
+Die folgenden datierten Abschnitte bleiben als Verlauf erhalten; der obige aktuelle Stand hat Vorrang.
 
 ## Alltagsfunktionen und gemeinsame UI-Integration (17.11.2026, nachts)
 
