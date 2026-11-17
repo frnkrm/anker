@@ -8,7 +8,14 @@ Katalograhmen nahm der bisherigen Oberfläche zusätzlichen Platz. Sein Rahmen
 liegt jetzt nur um die Zusammenfassung; der Inhalt behält die bisherige Breite.
 Neue Anleitungstexte erlauben bei Bedarf auch innerhalb langer Wörter Umbrüche.
 Kein Verstecken von Inhalt und keine Vergrößerung der erlaubten Überlaufgrenze.
-Gezielte lokale Prüfung beider Ansichten bestanden; neuer Linux-CI-Nachweis folgt.
+Gezielte lokale Prüfung beider Ansichten bestanden.
+
+Korrigierter PR17-Kopf561f398: eigene Push-CI44189227210 und PR-CI44189238345
+vollständig erfolgreich,388 Browserfälle einschließlich der unverändert strengen
+Überlaufprüfung. Neu integriert als8a51bdb; Releasebindung wird darauf erneuert.
+Lokal zusätzlich5 gezielte Quellen-/Fingerprint-/CI-Grenzfälle und16 Publisherfälle
+bestanden. Windows kann die unveränderten Linux-SDK-/Shell-Gesamttestfälle nicht
+vollständig ausführen; deren reale erfolgreiche Linux-main-CI bleibt erforderlich.
 
 Standardansicht zeigt verbleibende persönliche Versuche; technische Teilbelege
 vom isolierten Code18-Prüfstand sind separat aufklappbar. Bisheriger Katalog samt

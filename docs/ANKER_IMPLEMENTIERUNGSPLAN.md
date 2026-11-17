@@ -22,6 +22,15 @@ als Nachweis für den neuen Inhalt verwenden, keine Schutzgates lockern. Termin,
 interner Umfang, bestehende aktive Versionen und Produktionsgrenze bleiben erhalten.
 Bis zum neuen signierten Nachweis ist der Austausch noch in Arbeit.
 
+PR17 mit korrigierter schmaler Ansicht vollständig geprüft und integriert:
+Appquelle M=`8a51bdba1ba6348008800c4969f043537c0552de`, eigene main-CI44191339291
+läuft. Nach Capacitor-Sync unabhängig ermittelte Appkennung
+`c01034e154e304cafbc5b4e148cf27b7684b4c319b36c0df1b627db46930df7b`.
+Releasepolicy ändert ausschließlich Quellen-/Kennungs-/CI-Bindung und passende
+Negativtests; bisherige Quelle9bc wird explizit vor jedem API-Aufruf abgewiesen.
+Die echte erfolgreiche main-CI für M und die neue Policy-W bleibt Voraussetzung
+vor Prepare/Sign. Keine Umgehung der Lauf-, Signatur-, Manifest- oder Uploadgates.
+
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
 abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
