@@ -45,8 +45,11 @@ Statusdaten, Store-Queue, meta/local und Suchkatalog wiederverwendet.
 Anzeige ist kein Empfangs-, Erledigungs- oder Schlafnachweis.
 Keine automatische Aktivierung strenger Wirkungen. Pflichtfolgen und nötige
 Fehler-/Freigabehinweise bleiben direkt sichtbar, passive Langtexte wandern ins Infofenster.
-Bereits signiertes/geplantes Code18-Artefakt und Play-Automation bleiben unverändert;
-diese neue UX-Serie ist ein getrennter Entwicklungsstand, kein freigegebener neuer Release.
+Folgeauftrag18.11.: Nutzer autorisiert ausdrücklich Aufnahme dieser Änderungen in
+dieselbe geplante Play-Auslieferung. Dafür neue integrierte Quelle und eigene CI,
+exakt daran gebundene Signierpolicy und neues geprüftes AAB erzeugen; anschließend
+den bestehenden einmaligen Auftrag aktualisieren. Code18/Version, Termin und
+interner Umfang bleiben erhalten. Das bisherige AAB ist danach kein Fallback.
 
 ## Aufnahme in Code18 abgeschlossen (18.11.2026)
 
