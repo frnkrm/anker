@@ -16,6 +16,67 @@ signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
 nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
 oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
 
+## Android-Geräteprüfung über USB am 17.11.2026
+
+Auf aktuellen Nutzerauftrag autonom auf dem verbundenen Samsung SM-S948B,
+Android SDK37, geprüft. Vorhandenes Code18/1.5.0-rc.4-Debug-APK wiederverwendet:
+eigene Paketkennung `de.frnkrm.anker.mobile.abnahme`, frische synthetische Daten,
+kein Import produktiver Daten. Nur diesem Prüfstand vorübergehend die normale
+Benachrichtigungsfreigabe erteilt. Keine neue Mikrofon-, Kalender-, Overlay- oder
+Administratorfreigabe; keine erneute Messung oder Bildschirmsperre.
+Das Debug-APK ist nicht das identische signierte Play-Artefakt.
+
+Konkreter [maschinenlesbarer Nachweis mit APK-/Bildhashes](belege/20261117-android-geraeteabnahme.json):
+
+- **E-002, Testwecker im Hintergrund:** tatsächlich nach fünf Sekunden ausgelöst,
+  gemessene Abweichung 16ms. Native Zustände `ringing=true`, `kind=test`,
+  `testResult=rang`; Diagnosejournal belegt Foreground-Dienst und gestarteten
+  Player. Nach kurzer Probe gestoppt; `ringing=false`. Lautstärke15/15,
+  Nicht-stören-Filter1 und nächster produktiver Systemwecker blieben unverändert.
+  Frage nach Hörbarkeit bewusst nicht mit Ja/Nein beantwortet; kein menschlicher
+  Hörnachweis und kein vollständiger Hauptwecker-/Sperrbildschirm-/QR-Test.
+- **BF-002, befristeter Unterwegs-Status-Check:** reale Android-Zustellung,
+  ein sichtbarer Slot/eine aktive Meldung, danach Ablauf und Entfernung bestätigt;
+  Queue/Slots/aktive Meldungen anschließend0. Kein automatischer Rückkehr-Receipt
+  oder andere Aktion in der nativen Aktionsqueue. Der erste Hintergrund-Prüfaufruf
+  lief nach25s aus; Journal belegte dennoch Zustellung. Nach bestätigter Bereinigung
+  mit neuem Token im sichtbaren Prüfstand vollständig bestanden.
+- **Stummer Schlafhinweis:** eigener `quiet`-Zustand und echte Android-Meldung
+  (`quietVisible=true`, von Androids aktiven Meldungen abgeleitet), anschließend
+  wieder `idle`. Keine Ton-/Weck-/CPU-Ausnahme aktiviert. Die erste Testauswertung
+  prüfte irrtümlich den Zähler gewöhnlicher Hinweise1001–1003; der separate
+  Schlafhinweis7412 gehört nicht dazu. Erwartung anhand des bestehenden Codes
+  korrigiert und im Nachweis offengelegt; keine Produktkorrektur erforderlich.
+- **E-005, NFC ohne physischen Tag:** Reader verfügbar; gezielter Abbruch und
+  automatischer Abbruch beim App-Wechsel bestätigt. Im Hintergrund `blocked` und
+  `canOpen=false`; Bestätigung ohne gescannten Tag `allowed=false`.
+  Kein Tag geschrieben oder reale Tagzuordnung bestätigt.
+- **E-004 und Schutzgrenzen:** Kalenderrecht im Prüfstand aus; Listen-/Ereignislesen
+  mit `DEVICE_CALENDAR_PERMISSION_REQUIRED` abgewiesen. Vollbild-Schlafhinweis
+  ohne Overlayfreigabe sowie ungültige Verzögerung abgewiesen. Ungültiger
+  Morgen-Token bestätigt keine Aktivität. Messung blieb aus; kein Schlaf abgeleitet.
+- **Echte UI-Stichproben:** synthetische Ersteinrichtung, gruppiertes
+  [Heute-anpassen-Sheet](belege/20261117-android-heute-anpassen.png),
+  [Suche nach Nachtmessung](belege/20261117-android-suche.png) mit zwei passenden
+  Treffern und Sprung in die Weckfenster-Einstellung sowie
+  [Info-Fenster](belege/20261117-android-hilfe.png) tatsächlich bedient und gesichtet.
+  Kein sichtbarer Überlauf in diesen Ansichten. Keine vollständige visuelle
+  Abnahme sämtlicher Appbereiche daraus ableiten.
+
+Abschluss: Prüfwecker/Messung/Schlafhinweis gestoppt, Testalarme und Erinnerungen
+gelöscht, Hauptwecker im Prüfstand deaktiviert. Produktiver nächster Systemwecker
+wieder unverändert. Prüf-App deinstalliert, USB-Debugforward42865 entfernt;
+im getesteten Hauptprofil nur produktive Paketkennung vorhanden. Code17/1.5.0-rc.3
+und dessen bestehende Mikrofon-/Kalender-/Benachrichtigungsrechte unverändert.
+Kein Produktionsupdate, Datenverlust, neuer Release oder Änderung an Play-Automation.
+
+**Weiter offen:** ganze Nacht, täglicher Automatikbetrieb unter realen
+Android-Bedingungen, überdeckender Schlafhinweis und echtes unbeantwortetes
+Sichtbarkeitsfenster, Hörbarkeit beim Aufwachen/QR-Ablauf, bewusste Kalenderauswahl
+mit positivem Lesen/Widerruf und physischer NFC-Tag. Bestehende103 G-Zeilen behalten
+ihren Versionsbezug; keine pauschalen Häkchen. Für reine Nachweispflege keine
+bereits grünen vollständigen Produktsuiten wiederholt.
+
 ## Windows-Sichtprüfung am 17.11.2026
 
 - Aktuelle `DesktopUI` direkt aus dem unveränderten main-Stand gestartet, mit

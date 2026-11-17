@@ -1,5 +1,11 @@
 # Geräteprüfung
 
+Neue [partielle USB-Abnahme am17.11.](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026)
+im isolierten Code18-Prüfstand: Hintergrund-Testwecker, befristete Erinnerung,
+stummer Schlafhinweis, NFC-Abbruch, Freigabegrenzen und UI-Stichproben.
+Prüfstand wieder entfernt; produktive App weiterhin Code17. Keine der103
+historischen Zeilen pauschal auf einen neuen Build übertragen.
+
 Aktueller Abnahmestand: [verbleibende Prüfungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen) und [neue Windows-Sichtbelege](ANKER_TESTNACHWEISE.md#windows-sichtprüfung-am-17112026). Die historischen 103 Prüffälle darunter behalten ihre IDs und ihren damaligen Versionsbezug.
 
 ## T-006: Code18 lokal unsigniert geprüft, keine Installation (14.11.2026)

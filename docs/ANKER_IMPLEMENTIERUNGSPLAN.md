@@ -22,6 +22,13 @@ nicht erneut begonnen; mögliche wirkungsfreie Sichtprüfungen werden ergänzt u
 echte Geräte-/Nachtbeobachtungen getrennt offen gehalten. Nur Dokumentation und
 Belege ändern sich, die signierte Releasequelle bleibt unverändert.
 
+Aktueller USB-Testauftrag: vorhandenen getrennten Code18-Prüfstand für reversible
+native Geräteprüfungen und UI-Stichproben wiederverwendet; produktive Code17-Daten
+geschützt. Technische Hintergrund-Wecker-/Hinweiszustellung, Ablauf, NFC-Abbruch
+und sichere Ablehnungen zusätzlich belegt; danach Prüfstand samt Testfreigaben
+entfernt. [Detaillierte Ergebnisse und offene Grenzen](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026).
+Keine Änderung der eingefrorenen Appquelle, Signatur oder Play-Ausführung.
+
 ## Historische Zwischenstände
 
 Die folgenden datierten Abschnitte bleiben als Verlauf erhalten; der obige aktuelle Stand hat Vorrang.

@@ -62,7 +62,7 @@ gemäß [Arbeitsweise](ARBEITSWEISE.md) und Ausführungsreihenfolge der Roadmap.
 | ID | Thema | Priorität | Status |
 | --- | --- | --- | --- |
 | BF-001 | Jetzt-Ansicht: Countdown, nächste Handlung und Punkte sind unklar | Hoch: Kernansicht | Logik und UI implementiert; automatische Integration und Geräteabnahme getrennt |
-| BF-002 | Offener Unterwegs-Zustand: Rückkehrbestätigung gerät ohne Erinnerung in Vergessenheit | Hoch: Alltagsbegleitung | Basis, Wahl und spätere Rückfrage implementiert; Geräteabnahme offen |
+| BF-002 | Offener Unterwegs-Zustand: Rückkehrbestätigung gerät ohne Erinnerung in Vergessenheit | Hoch: Alltagsbegleitung | Implementiert; befristete native Zustellung/Entfernung ohne automatische Rückkehr im isolierten Code18-Gerätetest bestätigt; vollständiger Alltagsablauf getrennt |
 | BF-003 | Aufklappbare Bereiche haben keine eindeutig erkennbare Inhaltsgrenze | Mittel: Orientierung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |
 | BF-004 | KI-/Verkehrseinrichtung erklärt Sperren und nächste Schritte nicht verständlich | Mittel: Einrichtung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |
 | BF-005 | „Heute anpassen“ ist unübersichtlich; Aktionen und Einstellungen schwer auffindbar | Hoch: tägliche Bedienung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |

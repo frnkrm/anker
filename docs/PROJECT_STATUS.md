@@ -16,6 +16,12 @@ signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
 nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
 oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
 
+Zusätzliche USB-Geräteabnahme17.11.: Testwecker im Hintergrund technisch ausgelöst
+und gestoppt, befristete Unterwegs-Erinnerung zugestellt und entfernt, stummer
+Schlafhinweis, NFC-Abbruch und Schutzgrenzen geprüft. Suche/Heute-anpassen/Info-
+Fenster auf echtem Android gesichtet. Isolierten Code18-Prüfstand danach entfernt;
+Produktions-App weiterhin Code17. [Belege und verbleibende Grenzen](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026).
+
 ## Historische Zwischenstände
 
 Die folgenden datierten Abschnitte bleiben als Verlauf erhalten; der obige aktuelle Stand hat Vorrang.

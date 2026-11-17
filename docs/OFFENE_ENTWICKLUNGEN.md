@@ -22,11 +22,11 @@ Verbindlich: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Arbeit wurde 
 
 | Auftrag | Was noch fehlt | Voraussetzung / nächster sinnvoller Schritt |
 | --- | --- | --- |
-| E-002 / V-011 | Echte Wecker/Erinnerungen einschließlich gesperrtem Gerät, Hintergrundbetrieb und QR-Ablauf | Code18 nach dem Store-Update testen; historische Code17-Belege nicht auf Code18 übertragen. Echte Weckversuche bewusst planen, vorhandenen Ersatzwecker behalten. |
+| E-002 / V-011 | Vollständiger Hauptwecker-/Sperrbildschirm-/QR-Ablauf und menschliche Hörbarkeit | Im isolierten Code18-Prüfstand jetzt zusätzlich echter Hintergrund-Testwecker samt Playerstart/Stopp und befristete Erinnerungszustellung/-entfernung bestanden. Vollständigen Ablauf nach dem Store-Update prüfen; historische Code17-Belege nicht übertragen. Echte Weckversuche bewusst planen, vorhandenen Ersatzwecker behalten. |
 | F-015/F-018, G96/G101 | Vollständiger Nachtlauf, automatische Starts unter Android-Bedingungen, überdeckender Einschlafhinweis samt unbeantwortetem Zeitfenster sowie Morgenrückmeldung | Die kurze reale Mikrofon-/Bewegungs-/Sperrprobe ist bestanden. Ein echter Nachtlauf und die längerfristige Qualität persönlicher Vorschläge lassen sich daraus nicht ableiten. Nachtmessung benötigt die eigene ausdrückliche Wahl; keine Aktivierung während der Handynutzung. |
 | E-003 / V-012, G97/G98/G102/G103 | Vollständiger Windows-Gerätebetrieb: Tray, echte Monitor-/DPI-Wechsel, Netzwechsel und ausdrücklich gewählte Systemwirkungen | Neue Sichtprüfung von Hauptfenster und darüber geöffnetem Dialog bestanden; vorhandene Geometrie-/Tastaturtests wiederverwenden. Reale Netzwechsel, Sperre, Audio, Shutdown/WoL während der PC-Nutzung nicht ungefragt auslösen. |
-| E-004 / V-013 | Echte Kalenderquelle auswählen, lesen, abwählen und Widerruf prüfen | READ_CALENDAR ist am verbundenen Code17-Gerät erlaubt; das ersetzt weder die Auswahl einer echten Quelle noch den Code18-Nachweis. Persönlichen Kalender und Berechtigungen nicht für einen Test eigenmächtig ändern. |
-| E-005 | Optionaler NFC-Betrieb mit geeignetem physischem Test-Tag | Tag und bewusste Zuordnung vor Ort erforderlich; vorhandene manuelle Wege bleiben erhalten. |
+| E-004 / V-013 | Echte Kalenderquelle auswählen, lesen, abwählen und Widerruf prüfen | Verweigerter Zugriff im Code18-Prüfstand jetzt real geprüft. READ_CALENDAR ist am produktiven Code17-Gerät erlaubt; das ersetzt weder die Auswahl einer echten Quelle noch einen positiven Code18-Nachweis. Persönlichen Kalender und Berechtigungen nicht für einen Test eigenmächtig ändern. |
+| E-005 | Optionaler NFC-Betrieb mit geeignetem physischem Test-Tag | Readerverfügbarkeit, Abbruch, Hintergrundsperre und fehlende Bestätigung ohne Tag im Code18-Prüfstand bestanden. Physischer Tag und bewusste Zuordnung vor Ort weiterhin erforderlich; manuelle Wege bleiben erhalten. |
 | T-006 / V-014 | Play-Upload, interne Verfügbarkeit und tatsächliches Store-Update | Bestehender einmaliger Auftrag 18.11.22:50; Freischaltung des Uploadschlüssels abwarten. PC/Codex müssen für den Auftrag laufen. Keine Produktionsfreigabe. |
 
 Es ist derzeit **keine zusätzliche noch unimplementierte beauftragte Funktion oder
@@ -40,6 +40,11 @@ Spätere Optionen/Entscheidungen bleiben Lichtwecker-Hardware, soziale
 Fokusbegleitung, kostenpflichtige Windows-Codesignatur und eine gegebenenfalls
 später zu vereinbarende andere langfristige Ablage der Schlafauswertung.
 Keine zusätzliche Implementierung, Kostenaktivierung oder Produktivfreigabe daraus ableiten.
+
+Zusätzliche [USB-Gerätenachweise vom17.11.](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026):
+auch der stumme Schlafhinweis sowie Suche mit Einstellungs-Sprung, Hilfefenster
+und gegliedertes Heute-anpassen auf Android geprüft. Prüfstand anschließend entfernt;
+keine Nacht oder vollständig bestandene Geräteabnahme behauptet.
 
 ## Bereits erledigte neue Softwarepakete
 
