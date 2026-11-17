@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import tempfile
 
 
 def module(name, file):
@@ -81,7 +82,14 @@ def verify_files(folder, data, cp, classes):
     p.validate_ci_proof(ctx.get('workflowCI'), data['sign_workflow_commit'])
     p.inspect_bundle(folder / 'Anker-Code18-SIGNIERT.aab', cp)
     p.native_and_identity(folder / 'Anker-Code18-SIGNIERT.aab')
-    report = p.jar_report(folder / 'Anker-Code18-SIGNIERT.aab', classes, signed=True, certificate=p.CERT)
+    with tempfile.TemporaryDirectory(prefix='anker-play18-public-') as tmp:
+        certificate = Path(tmp) / 'public.der'
+        report = p.jar_report(folder / 'Anker-Code18-SIGNIERT.aab', classes, signed=True, certificate=certificate)
+        p.require(p.sha(p.regular(certificate)) == p.CERT, 'SIGNER_CERTIFICATE')
+        trust = Path(tmp) / 'public-trust.p12'
+        p.tool(['keytool', '-importcert', '-noprompt', '-alias', 'anker-upload', '-file', str(certificate),
+                '-keystore', str(trust), '-storetype', 'PKCS12', '-storepass', 'public-verification-only'])
+        p.tool(['jarsigner', '-verify', '-strict', '-keystore', str(trust), '-storepass', 'public-verification-only', str(folder / 'Anker-Code18-SIGNIERT.aab')])
     p.require(report == proof.get('jarVerification'), 'JAR_PROOF')
     return body
 

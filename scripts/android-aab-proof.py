@@ -30,7 +30,8 @@ SOURCE = '9bc717985ca6c9fadb13c0dbb38b0ba3d427715c'
 FINGERPRINT = 'f595199f70ff101f11a164156d96f55d941f1a40ce756e284419640bb31f64ec'
 # Historical unsigned U1 from 10cc894; never a replacement for a fresh fix-source artifact.
 REFERENCE = {'sha256': '74e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50', 'bytes': 54264632}
-CERT = 'b47ffffebe137cf15129961de43a27e3ec811acffe4542b6324e11768995b13a'
+# Google Console's downloaded upload_cert.der, 17 Nov; valid for upload from 18 Nov 22:41 Berlin.
+CERT = '4879769897033b9bdd35b9dab927088e0585fdb9fee86ce3aa52cbc2b22f00a3'
 WORKFLOW = '.github/workflows/android-aab-pruefstand.yml'
 CI = '.github/workflows/ci.yml'
 # Reviewed manifest: optional SleepLockAdmin receiver; uses-permissions unchanged.

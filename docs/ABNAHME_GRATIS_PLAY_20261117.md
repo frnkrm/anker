@@ -87,7 +87,7 @@ nochmals mit dem vorhandenen Signierschlüssel vergleichen.
 
 ## Prüfstand dieser Fortsetzung
 
-15 neue Offline-Tests für Code18-Auslieferung bestanden; inklusive Freigabe-/Hash-/
+16 neue Offline-Tests für Code18-Auslieferung bestanden; inklusive Freigabe-/Hash-/
 Zeit-/Konflikt-/Erhaltungs-/Wiederholungsgrenzen sowie Workflowtrennung.
 Lokale bestehende AAB-Suite41:39bestanden,2Windows-Unverträglichkeiten (ZIP-Writer
 normalisiert Backslashes; Python-Unterprozess mit bewusst minimaler Linux-Umgebung).
@@ -103,3 +103,21 @@ bestehende Site-URL/Web-Allowlist erhalten. Für echte lokale Prüfung vorüberg
 http://localhost:4173/verbindungen und entsprechender Assistant-Origin freigegeben.
 Anmelde-Link wurde im lokalen App-Prüfstand erfolgreich versandt; Nutzer öffnet ihn
 selbst. Lokale Freigaben und Testsession nach Abschluss wieder entfernen.
+
+## Tatsächlicher neuer Uploadschlüssel
+
+Am17.11.20:45Berlin aus dem Uploadschlüssel-Abschnitt der echten Play Console
+öffentliches upload_cert.der heruntergeladen: SHA256
+4879769897033b9bdd35b9dab927088e0585fdb9fee86ce3aa52cbc2b22f00a3.
+Datei-X509-Fingerprint unabhängig mit SHA256 und JDK-keytool bestätigt; RSA2048,
+Erstellung16.11.22:39Berlin. Console nennt weiterhin18.11.22:41als Aktivierungszeit.
+GitHub-Signiersecret-Metadaten zeigen Aktualisierung16.11.21:45/46UTC, ohne Werte
+zu lesen. Das beweist allein noch keinen passenden privaten Schlüssel.
+Code18-Policy nun exakt an das von Google gelieferte Zertifikat gebunden; der
+isolierte Actions-Signierschritt muss den vorhandenen Keystore dagegen verifizieren
+und bei Abweichung abbrechen. Code17-Pins/Manifeste bleiben unverändert. Keine
+Zurücksetzung abgebrochen/beantragt, kein Schlüssel erzeugt, keine Prüfung entfernt.
+Neue Uploadprüfung verwendet ein temporäres öffentliches Zertifikat und einen
+wegwerfbaren Truststore für jarsigner -verify -strict; danach wird beides entfernt.
+Das wird durch einen zusätzlichen Protokolltest für Pfad/Lebensdauer/strikte Prüfung
+und ablehnende falsche Appquellen-/Fingerprint-Proben abgesichert.

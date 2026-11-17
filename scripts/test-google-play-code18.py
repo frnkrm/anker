@@ -176,6 +176,51 @@ class DeliveryTests(unittest.TestCase):
                 with self.assertRaises(c.p.ProofError):
                     c.verify_files(root, inputs(), None, None)
 
+    def test_signed_recheck_uses_disposable_public_certificate_and_strict_trust(self):
+        public = b'SYNTHETIC PUBLIC CERTIFICATE'
+        cert_hash = c.p.sha(public)
+        def ci(commit):
+            return dict(id=1, attempt=1, headSha=commit, branch='main', event='push',
+                        status='completed', conclusion='success', workflow=c.p.CI)
+        jar = dict(signed=True, payloadEntries=10, minSigners=1, maxSigners=1,
+                   certificateSha256=cert_hash, publicKeyAlgorithm='RSA')
+        proof = dict(schemaVersion=1, kind='anker-code18-signed-verified', signedSHA256=DIGEST,
+                     signedBytes=len(BODY), certificateSHA256=cert_hash, payloadUnchanged=True,
+                     uploadedToPlay=False, jarVerification=jar,
+                     context=dict(sourceCommit=c.p.SOURCE, sourceFingerprint=c.p.FINGERPRINT,
+                                  workflowCommit='b' * 40, mode='sign', run=dict(id=123, attempt=1),
+                                  sourceCI=ci(c.p.SOURCE), workflowCI=ci('b' * 40)))
+        paths, calls = [], []
+        def read_jar(file, classes, *, signed, certificate):
+            self.assertTrue(signed)
+            self.assertIsInstance(certificate, Path)
+            self.assertFalse(certificate.exists())
+            certificate.write_bytes(public)
+            paths.append(certificate)
+            return copy.deepcopy(jar)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'Anker-Code18-SIGNIERT.aab').write_bytes(BODY)
+            for field in (None, 'sourceCommit', 'sourceFingerprint'):
+                value = copy.deepcopy(proof)
+                if field:
+                    value['context'][field] = '0' * (40 if field == 'sourceCommit' else 64)
+                raw = json.dumps(value).encode()
+                (root / 'proof.json').write_bytes(raw)
+                data = {**inputs(), 'proof_sha256': c.p.sha(raw)}
+                with patch.object(c.p, 'CERT', cert_hash), patch.object(c.p, 'jar_report', side_effect=read_jar), \
+                     patch.object(c.p, 'inspect_bundle'), patch.object(c.p, 'native_and_identity'), \
+                     patch.object(c.p, 'tool', side_effect=lambda args: calls.append(args)):
+                    if field:
+                        with self.assertRaises(c.p.ProofError):
+                            c.verify_files(root, data, None, None)
+                    else:
+                        self.assertEqual(c.verify_files(root, data, None, None), BODY)
+        self.assertEqual(len(paths), 1)
+        self.assertFalse(paths[0].exists())
+        self.assertEqual([args[0] for args in calls], ['keytool', 'jarsigner'])
+        self.assertIn('-strict', calls[1])
+
     def test_workflow_has_no_push_and_auth_only_after_artifact_check(self):
         root = Path(__file__).resolve().parents[1]
         js = "console.log(JSON.stringify(require('js-yaml').load(require('node:fs').readFileSync('.github/workflows/google-play-code18.yml','utf8'))))"
