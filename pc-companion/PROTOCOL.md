@@ -3,7 +3,9 @@
 Der PC ist ein lokaler TLS-Server auf Port **47830**, mDNS **`_anker._tcp.local.`**.
 Android verwendet den SHA-256-Pin des Blattzertifikats. Keine globale
 Cleartext-Freigabe, keine Systemlautstärke-/Sperrwirkung ohne eigene Aktivierung.
-Zeitstempel sind ISO-8601 mit Zeitzone; Uhrzeiten kommen ausschließlich vom Handy.
+Zeitstempel sind ISO-8601 mit Zeitzone und optional einer bis neun Nachkommastellen
+(Android `Instant`). Für AES-GCM bleibt der ursprüngliche Zeitstempeltext unverändert;
+nur Zeitvergleiche verwenden die geparste Zeit. Uhrzeiten kommen ausschließlich vom Handy.
 Aktuelle Android-Zustände werden über **WSS `/v3/ws?pair=<id>`** mit Wiederverbindung
 gesendet. Der Server unterstützt zusätzlich **POST `/v3/link`** für kompatible
 Clients und Integrationstests; Android verspricht keinen REST-Datenfallback.

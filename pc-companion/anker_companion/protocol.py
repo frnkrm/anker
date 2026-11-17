@@ -19,7 +19,8 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 MAX_BYTES = 65_536
 MAX_SEQ = 2**53 - 1
-STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$")
+# Android Instant.now() can emit nanoseconds; retain the original string for GCM AAD.
+STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$")
 STATES = {"DAY_ACTIVE", "IDLE", "MORNING_PENDING", "MORNING_ACTIVE", "MORNING_COMPLETED", "ALARM_RINGING", "EVENING_WIND_DOWN", "WIND_DOWN_T30", "BRAIN_DUMP_T10", "BEDTIME_HARD_CUT", "NIGHT_LOCK", "ZOMBIE_MODE"}
 PREF_KEYS = {"enforceEnabled", "strictLock", "dimEnabled", "dimMax", "audioDuck", "shareBrainDump", "morningCountdown", "offlinePolicy", "stopAction", "graceSeconds"}
 EVENT_KINDS = {"pc-rest", "pc-resumed", "extended", "suspended-today", "resumed-today", "shutdown-started", "shutdown-blocked", "save-point", "thought", "unpaired"}

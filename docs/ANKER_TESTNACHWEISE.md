@@ -1,5 +1,14 @@
 # Anker: Testnachweise
 
+## Lokale PC-Verbindung: Android-Zeitstempel (17.11.2026)
+
+[Rot-/Grünbeleg und echte Beobachtung](PC_VERBINDUNG_ZEITSTEMPEL_20261117.md):
+Sechs-/neunstellige Android-Zeitstempel vor Fix abgelehnt; danach vollständige
+Windows-Python-Suite 286 Tests, zwei übersprungen, keine Fehler. Authentifizierter
+Zeitstempel bleibt unverändert; Manipulationen werden abgelehnt. Echter lokaler
+Abgleich mit Code17-Handy bestätigt Live-Verbindung und aktuellen Plan am PC.
+Keine Aussage zu Sperr-/Audio-/Shutdownwirkungen, kein veröffentlichter Fix.
+
 ## T-006: AAB-Quellkennung nach Capacitor-Sync korrigiert (16.11.2026)
 
 [Konkreter Screenshotbefund, isolierte Reproduktion und kleinster Policyfix](CODE18_FINGERPRINT_SYNC_KORREKTUR_T006.md): Prepare43941667392/W2793dbaa/1 scheiterte laut Nutzerlog mit FINGERPRINT_NATIVE. Die vorhandene Vite-Funktion ergibt für feste App0c31179 vor Sync4f8a7b5a…, nach bestehendem Capacitor-Sync stabilfff132db…; einzig generierte res/xml/config.xml erklärt diese Kennungsabweichung. Bisher fälschlich Vor-Sync-Wert gebunden. Minimaler Policyfix pinnt Nach-Sync-Wert, trennt FINGERPRINT_MISMATCH/NATIVE_MISSING ohne Akzeptanzänderung. App-/Workflow-/Manifest-/Signierquellen und CI-/Versuchs-/Hashgates unverändert.41Protokoll-/Java- und32Workflow-/SDK-Offlinefälle grün; neue unabhängige Nach-Sync-Fixture vorher rot.
