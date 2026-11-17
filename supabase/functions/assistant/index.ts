@@ -1,5 +1,6 @@
 // Optionaler, standardmäßig geschlossener Vorschlagsdienst. Keine Bereitstellung/Aktivierung durch den Appbuild.
 import { createAssistantHandler } from '../_shared/assistantHandler.ts'
+import { providerDiagnosticFetch } from '../_shared/providerDiagnostics.ts'
 
 const list = (name: string) => (Deno.env.get(name) ?? '').split(',').map((value) => value.trim()).filter(Boolean)
 Deno.serve(createAssistantHandler({
@@ -14,4 +15,4 @@ Deno.serve(createAssistantHandler({
   freePlanConfirmed: Deno.env.get('ANKER_FREE_PLAN_CONFIRMED') === 'true',
   geminiKey: Deno.env.get('GEMINI_API_KEY'),
   tomtomKey: Deno.env.get('TOMTOM_API_KEY'),
-}))
+}, { fetch: providerDiagnosticFetch(fetch, (event) => console.warn(JSON.stringify(event))), now: Date.now }))

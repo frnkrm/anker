@@ -1,5 +1,5 @@
 import { parseSuggestedSteps, record, validAssistantRequest, type AssistantCapabilities, type RoutePoint, type RouteRequest } from './assistanceProtocol.ts'
-import { geminiSteps, tomtomRoute } from './freeProviders.ts'
+import { GEMINI_STEPS_MODEL, geminiSteps, tomtomRoute } from './freeProviders.ts'
 
 export interface AssistantServerConfig {
   supabaseUrl: string
@@ -74,7 +74,7 @@ export function createAssistantHandler(config: AssistantServerConfig, deps: Assi
       signal.throwIfAborted()
       if (!record(user) || typeof user.id !== 'string' || !config.allowedUsers.includes(user.id)) return json({ error: 'account-not-allowed' }, 403)
       const capabilities: AssistantCapabilities = {
-        ai: config.freeOnly ? { configured: config.freePlanConfirmed === true && !!config.geminiKey, provider: 'Gemini', model: 'gemini-2.5-flash-lite' }
+        ai: config.freeOnly ? { configured: config.freePlanConfirmed === true && !!config.geminiKey, provider: 'Gemini', model: GEMINI_STEPS_MODEL }
           : { configured: !!config.aiKey && !!config.aiModel, provider: 'OpenAI', ...(config.aiModel ? { model: config.aiModel } : {}) },
         routes: config.freeOnly ? { configured: config.freePlanConfirmed === true && !!config.tomtomKey, provider: 'TomTom', modes: ['driving', 'cycling', 'walking'] }
           : { configured: !!config.routesKey, provider: 'Google Routes', modes: ['driving', 'transit', 'cycling', 'walking'] }, dailyLimits: LIMITS,

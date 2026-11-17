@@ -1,5 +1,7 @@
 # Aktueller Übergabestand
 
+Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; Code18 aus Prepare44167654681 und Sign/Verify44169177734 tatsächlich fertig signiert, zusätzlich mit echtem Publisherprüfer bestätigt; [Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Play-Upload/Freigabe erst nach Schlüsselaktivierung18.11.22:41, bestehender Auftrag22:50.
+
 Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
 
 ## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
