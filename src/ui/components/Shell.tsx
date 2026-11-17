@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, NavLink, useLocation, useNavigationType } from 'react-router'
 import { addDays, minutesOnPlanDay } from '../../core/time'
 import type { ResumePoint } from '../../core/types'
 import { nextNow } from '../../state/hooks'
@@ -26,6 +26,34 @@ const FULLSCREEN = ['/fokus', '/aufgabe', '/wecker/klingelt', '/start', '/druck'
 
 export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
+  const navigationType = useNavigationType()
+  const lastTarget = useRef('')
+  useEffect(() => {
+    const targetUrl = loc.pathname + loc.hash
+    const repeatedPop = navigationType === 'POP' && lastTarget.current === targetUrl
+    lastTarget.current = targetUrl
+    if (!loc.hash || repeatedPop) return
+    let id: string
+    try { id = decodeURIComponent(loc.hash.slice(1)) } catch { return }
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    let highlighted: HTMLElement | null = null
+    const focusTarget = () => {
+      const target = document.getElementById(id)
+      if (!target) return false
+      for (let parent: HTMLElement | null = target; parent; parent = parent.parentElement) {
+        if (parent instanceof HTMLDetailsElement) parent.open = true
+      }
+      target.tabIndex = -1
+      target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'center' })
+      target.classList.add('search-target-highlight'); highlighted = target
+      timeout = setTimeout(() => target.classList.remove('search-target-highlight'), 3500)
+      return true
+    }
+    const observer = new MutationObserver(() => { if (focusTarget()) observer.disconnect() })
+    if (!focusTarget()) observer.observe(document.body, { childList: true, subtree: true })
+    const stop = setTimeout(() => observer.disconnect(), 5000)
+    return () => { observer.disconnect(); clearTimeout(stop); clearTimeout(timeout); highlighted?.classList.remove('search-target-highlight') }
+  }, [loc.pathname, loc.hash, loc.key, navigationType])
   const full = FULLSCREEN.some((p) => loc.pathname.startsWith(p))
   const activeTest = useApp((s) => s.local.deviceTests?.activeId)
   const quietPage = activeTest !== undefined || ['/abend', '/schlaf', '/einstellungen/abenduebergang', '/geraetetest'].includes(loc.pathname)

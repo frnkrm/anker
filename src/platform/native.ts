@@ -13,17 +13,23 @@ export type AlarmKindWire = 'main' | 'snooze' | 'prewake' | 'wakecheck' | 'test'
 
 export interface SmartWakeState {
   active: boolean
-  phase: 'idle' | 'waiting' | 'measuring' | 'triggered' | 'finished' | 'stopped' | 'interrupted' | 'error'
+  phase: 'idle' | 'waiting' | 'settling' | 'measuring' | 'triggered' | 'finished' | 'stopped' | 'interrupted' | 'error'
   message: string
   targetAt: number
   windowAt: number
   hasMotion: boolean
   microphoneGranted: boolean
   preWakePausedForTargetAt?: number
+  screenLockAvailable?: boolean
+  screenLockSupported?: boolean
+  estimatedOnsetAt?: number
+  estimateInvalidated?: boolean
+  onsetEstimationActive?: boolean
 }
 
 export interface AlarmStateInfo {
   ringing: boolean
+  ringStartedAt?: number
   kind?: AlarmKindWire | null
   scheduledAt?: number | null
   preWakeAt?: number | null
@@ -241,7 +247,9 @@ export interface AnkerNativePlugin {
   syncAlarmConfig(c: NativeAlarmConfig): Promise<AlarmStateInfo>
   getAlarmState(): Promise<AlarmStateInfo>
   getSmartWakeState(): Promise<SmartWakeState>
-  startSmartWake(): Promise<void>
+  startSmartWake(o?: { lockScreen?: boolean; estimateOnset?: boolean }): Promise<void>
+  requestSleepScreenLock(): Promise<void>
+  reportSleepPromptVisibility(o: { sessionId: string; visible: boolean }): Promise<void>
   stopSmartWake(): Promise<void>
   /** Klingeln beenden. method erscheint nur in der eigenen Diagnose. */
   stopAlarm(o: { method: string }): Promise<AlarmStateInfo>

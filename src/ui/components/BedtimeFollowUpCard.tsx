@@ -1,6 +1,6 @@
 import { BedtimeNative } from '../../platform/bedtimePrompt'
 import { useBedtimeSession } from './BedtimeSession'
-import { Button, Card } from './ui'
+import { Button, Card, Info } from './ui'
 
 const time = (at: number) => new Date(at).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' })
 /** Native session status only; never writes a bedtime, completion or game state. */
@@ -12,10 +12,11 @@ export function BedtimeFollowUpCard() {
   const until = typeof state.quietUntilAt === 'number' && Number.isFinite(state.quietUntilAt) ? state.quietUntilAt : undefined
   return <Card className="min-w-0 space-y-3 !bg-black !text-white" >
     <section aria-label="Leise Schlafenszeit-Folgehinweise" className="min-w-0 space-y-3">
-      <h2 className="break-words font-semibold">Deine gewählte Schlafenszeit</h2>
+      <div className="flex items-center justify-between gap-2"><h2 className="break-words font-semibold">Deine gewählte Schlafenszeit</h2><Info title="Deine gewählte Schlafenszeit"><p>Bleibt stumm, auch in Ruhezeiten: ohne Ton, Vibration, Bildschirmwecken oder Appwechsel. Der stille Folgehinweis allein erkennt nicht, ob du schläfst. „Heute Ruhe“ beendet diese Nacht.</p></Info></div>
+      <p className="text-sm text-muted">Anker erkennt nicht, ob du schläfst.</p>
       {ready ? <p className="break-words text-sm text-muted">Wenn du noch am Handy bist: Möchtest du es für heute weglegen? Du entscheidest.</p>
         : <p role="status" className="break-words text-sm text-muted">Die leise Abendrunde ruht.{due !== undefined ? ` Frühestens wieder ab ${time(due)}; eine Anzeige wird nicht zugesagt.` : ' Sie wartet auf den erlaubten nativen Gerätezustand.'}</p>}
-      <p className="break-words text-sm text-muted">Bleibt stumm, auch in Ruhezeiten: ohne Ton, Vibration, Bildschirmwecken oder Appwechsel. Anker erkennt nicht, ob du schläfst. „Heute Ruhe“ beendet diese Nacht.{until ? ` Diese Abendrunde endet spätestens um ${time(until)}.` : ''}</p>
+      {until ? <p className="text-sm text-muted">Spätestens bis {time(until)}.</p> : null}
       <div className="grid min-w-0 gap-2">
         {ready && <Button disabled={busy} className="w-full" onClick={() => void run(() => BedtimeNative.ackBedtimePrompt({ sessionId: state.sessionId! }))}>5 Min später</Button>}
         <Button disabled={busy} variant="ghost" className="w-full" onClick={() => void run(() => BedtimeNative.stopBedtimePrompt({ sessionId: state.sessionId }))}>Heute Ruhe</Button>

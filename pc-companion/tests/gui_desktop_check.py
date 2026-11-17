@@ -16,7 +16,7 @@ import tkinter as tk
 from PIL import ImageGrab, ImageTk
 
 from anker_companion.ui import DesktopUI
-from anker_companion.widgets import rounded_button
+from anker_companion.widgets import dialog_geometry, rounded_button
 
 
 def check(output: Path) -> dict:
@@ -50,7 +50,7 @@ def check(output: Path) -> dict:
         def guarded():
             try: callback()
             except Exception as error:
-                errors.append({'phase': callback.__name__, 'type': type(error).__name__})
+                errors.append({'phase': callback.__name__, 'type': type(error).__name__, 'detail': str(error)})
                 ui.root.destroy()
         ui.root.after(ms, guarded)
 
@@ -90,6 +90,28 @@ def check(output: Path) -> dict:
         save('main-paired-pause-feedback.png')
         result['mainDefaultSize'] = [ui.root.winfo_width(), ui.root.winfo_height()]
         result['pauseFeedbackVisible'] = True
+        dialog = ui._dialog()
+        dialog.geometry('360x220')
+        ui.root.update()
+        parent = (ui.root.winfo_rootx(), ui.root.winfo_rooty(), ui.root.winfo_width(), ui.root.winfo_height())
+        area, scale = ui._monitor_metrics()
+        expected = dialog_geometry(area, parent, (dialog.winfo_width(), dialog.winfo_height()), scale)
+        x, y = dialog.winfo_rootx(), dialog.winfo_rooty()
+        if sys.platform == 'win32':
+            import ctypes
+            from ctypes import wintypes
+            rectangle = wintypes.RECT()
+            get_rect = ctypes.WinDLL('user32').GetWindowRect
+            get_rect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
+            assert get_rect(ui._handle(dialog), ctypes.byref(rectangle))
+            x, y = rectangle.left, rectangle.top
+        error = [abs(x-expected[2]), abs(y-expected[3])]
+        assert max(error) <= 2, (error, expected)
+        assert (dialog.winfo_width(), dialog.winfo_height()) == (360, 220)
+        assert str(dialog.transient()) == str(ui.root)
+        result['ownedDialogCenterErrorPixels'] = error
+        result['dialogHasActualParent'] = True
+        dialog.destroy()
         result['tkScalingBefore'] = float(ui.root.tk.call('tk', 'scaling'))
         ui.show_pairing_offer('anker-pc-pair:v3:SYNTHETIC_GUI_TEST_NO_DEVICE_SECRET', time.time()+60, 'synthetic-ui-id')
         later(180, dpi)

@@ -71,6 +71,7 @@ export function cancelAutomaticRouteRequests(): void {
 }
 
 export function requestRouteEstimate(id: string, options: { origin: RoutePoint; destination: RoutePoint; mode: AssistantTravelMode; at: string; timing: 'departure' | 'arrival'; oneShot?: boolean; expectedSignature?: string; automatic?: boolean }, externalSignal?: AbortSignal): Promise<RouteProposal> {
+  if (options.mode === 'transit') return Promise.reject(new Error('ÖPNV bleibt im kostenlosen Verkehrsweg manuell. Es wurde nichts gesendet.'))
   if (!assistanceAllowed(useApp.getState().local.assistance, 'routes')) return Promise.reject(new AssistanceError('consent'))
   if (options.automatic && useApp.getState().local.assistance?.routes?.automatic !== true) return Promise.reject(new AssistanceError('cancelled'))
   const context = currentTrafficContext(id)

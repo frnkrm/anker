@@ -9,8 +9,8 @@ import { useApp } from '../../state/store'
 import { minuteText } from '../../core/uiText'
 import { Button, Checkbox, Choice, DateField, Sheet, Stepper, TextInput, Toggle } from './ui'
 
-const MODES: { value: AssistantTravelMode; label: string }[] = [
-  { value: 'driving', label: 'Auto' }, { value: 'transit', label: 'ÖPNV' }, { value: 'cycling', label: 'Rad' }, { value: 'walking', label: 'Zu Fuß' },
+const MODES: { value: AssistantTravelMode; label: string; disabled?: boolean }[] = [
+  { value: 'driving', label: 'Auto' }, { value: 'transit', label: 'ÖPNV · manuell', disabled: true }, { value: 'cycling', label: 'Rad' }, { value: 'walking', label: 'Zu Fuß' },
 ]
 const moment = (at: number) => new Date(at).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 
@@ -99,7 +99,7 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
     {error && !open && <p role="alert" className="text-sm text-warm">{error}</p>}
     <Sheet open={open} onClose={close} title="Fahrtzeit bewusst prüfen">
       <div className="space-y-4">
-        <p className="text-sm text-muted">Google Routes erhält die unten gezeigten Ortsangaben, Reisezeit und Verkehrsmittel über deinen angemeldeten Server. Dabei können Kosten entstehen. Es wird keine Ortung gestartet.</p>
+        <p className="text-sm text-muted">TomTom erhält nur diese ausgewählten Ortsangaben, Reisezeit und Verkehrsmittel über deinen Server im geprüften kostenlosen Kontingent. Keine Ortung. ÖPNV bleibt manuell.</p>
         <label className="block space-y-1"><span>Start ({context.originLabel})</span><TextInput aria-label="Start für die Fahrtschätzung" value={origin} onChange={(event) => { setOrigin(event.target.value); setOneShot(false) }} placeholder="Adresse oder Breite, Länge" /></label>
         <label className="block space-y-1"><span>Ziel ({context.destinationLabel})</span><TextInput aria-label="Ziel für die Fahrtschätzung" value={destination} onChange={(event) => { setDestination(event.target.value); setOneShot(false) }} placeholder="Adresse oder Breite, Länge" /></label>
         <Choice label="Verkehrsmittel für die Schätzung" value={mode} onChange={setMode} options={MODES} />
@@ -108,7 +108,7 @@ export function RouteEstimateCard({ commitmentId }: { commitmentId: string }) {
         {needsConsent ? <Checkbox checked={oneShot} onChange={setOneShot}>Diese eingegebenen Orte für diese Anfrage freigeben</Checkbox> : <p className="text-sm text-muted">Für diese beiden gespeicherten Orte liegt deine Routenfreigabe vor.</p>}
         {formStale && <div className="space-y-2"><p className="text-warm">Dein Plan hat sich geändert.</p><Button onClick={initialize}>Aktuelle Angaben laden</Button></div>}
         {error && <p role="alert" className="text-warm">{error}</p>}
-        <Button variant="primary" className="w-full" disabled={busy} onClick={() => void fetchEstimate()}>{busy ? 'Schätzung wird angefragt …' : 'Diese Daten senden und Schätzung anfragen'}</Button>
+        <Button variant="primary" className="w-full" disabled={busy || mode === 'transit'} onClick={() => void fetchEstimate()}>{busy ? 'Schätzung wird angefragt …' : 'Diese Daten senden und Schätzung anfragen'}</Button>
         {busy && <Button className="w-full" onClick={() => { cancelRouteRequest(commitmentId); controller.current?.abort() }}>Anfrage abbrechen</Button>}
         <p className="text-sm text-muted">Erst dein anschließendes Übernehmen ändert die persönliche Fahrzeit. Harte Termine und Wecker werden dabei nicht verschoben.</p>
       </div>

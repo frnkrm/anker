@@ -18,7 +18,8 @@ import { NextWake } from '../components/NextWake'
 import { buildAlarmConfig, nextWakeDetails } from '../../core/alarm'
 import { today } from '../../state/store'
 import { useNow } from '../../state/hooks'
-import { Button, Card, Checkbox, Choice, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
+import Hobbies from './Hobbies'
+import { Button, Card, Checkbox, Choice, Info, MoreInfo, notifySaved, Page, Row, Section, SettingRow, Segmented, Stepper, TextInput, TimeField, TimeStepper, Toggle } from '../components/ui'
 
 type Save = (fn: (s: S) => S) => void
 
@@ -31,6 +32,7 @@ export default function Settings() {
   const save: Save = (fn) => { void st.saveSettings(fn).then(notifySaved).catch(() => st.showToast('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.')) }
 
   switch (section) {
+    case 'hobbys': return <Hobbies />
     case 'begleitung': return <GuidanceSettings />
     case 'arbeit':
       return <Work s={s} save={save} />
@@ -81,6 +83,7 @@ export default function Settings() {
       </Section>
       {sug.wake !== s.anchor.wake && <p className="px-1 text-sm text-muted">Rechnerischer Vorschlag zum Aufstehen: {fmtTime(sug.wake)}.</p>}
       <Section title="App">
+        <Row label="Hobbys" sub="Eigene Ideen für freie Zeit" to="/einstellungen/hobbys" />
         <Row label="Erinnerungen" to="/einstellungen/erinnerungen" />
         <Row label="Alltagshilfen" sub="Fokus-Puls, Ankommen und lokale Sprache" to="/einstellungen/hilfen" />
         <Row label="Darstellung & Thema" to="/einstellungen/darstellung" />
@@ -198,8 +201,8 @@ function Sleep({ s, save }: { s: S; save: Save }) {
       <SettingRow label="Stummen Einschlafhinweis beim Zubettgehen starten"><Toggle label="Stummen Einschlafhinweis beim Zubettgehen starten" checked={!!s.sleep.bedtimePromptEnabled} onChange={(value) => setSleep({ bedtimePromptEnabled: value })} /></SettingRow>
       <p className="text-sm text-muted">Einmaliger Hinweis nach „Ich liege im Bett“ über anderen Apps. Dafür gibst du das Einblenden in Android gesondert frei. Die Freigabe allein startet nichts.</p>
       <SettingRow label="Leise Schlafenszeit-Folgehinweise"><Toggle label="Leise Schlafenszeit-Folgehinweise" checked={s.sleep.bedtimeFollowUpsEnabled === true} onChange={(value) => setSleep({ bedtimeFollowUpsEnabled: value })} /></SettingRow>
-      <p className="text-sm text-muted">Eigene Wahl: Zur festen Bettzeit oder nach deiner Bettbestätigung kann Anker nach der geschätzten Einschlafdauer still weiter erinnern. Ohne Ton, Vibration, Bildschirmwecken oder automatischen Appwechsel. Auf Jetzt kannst du „5 Min später“ oder „Heute Ruhe“ wählen.</p>
-      <p className="text-sm text-muted">Keine Schlaferkennung: Ein eingeschalteter Bildschirm beweist nicht, dass du wach bist. Ausgeschalteter oder gesperrter Bildschirm wird für Folgehinweise nicht geweckt. Offene Abende bleiben ohne festen Bettzeit-Start.</p>
+      <p className="text-sm text-muted">Keine Schlaferkennung: Dies sind nur stille Hinweise.</p>
+      <Info title="Leise Schlafenszeit-Folgehinweise"><p>Nach deiner gewählten Einschlafdauer kann Anker still weiter erinnern. Ohne Ton, Vibration, Bildschirmwecken oder automatischen Appwechsel. Auf Jetzt stehen „5 Min später“ und „Heute Ruhe“ bereit.</p><p>Diese Folgehinweise erkennen keinen Schlaf. Gesperrte oder ausgeschaltete Displays werden nicht geweckt. Offene Abende haben keinen festen Bettzeit-Start.</p></Info>
       <HealthSleepSettings />
       <Card className="space-y-4">
         <SettingRow label={<span>Schlafbedarf</span>}>
@@ -405,7 +408,11 @@ function Reminders({ s, save }: { s: S; save: Save }) {
   const set = (patch: Partial<S['reminders']>) => save((x) => ({ ...x, reminders: { ...x.reminders, ...patch } }))
   return (
     <Page className="settings-page" title="Erinnerungen" back="/einstellungen">
-      <Card className="space-y-3">
+      <div id="rueckkehr"><Card className="space-y-3"><SettingRow label="An offenen Unterwegs-Status erinnern"><Toggle label="Rückkehr-Erinnerung" checked={r.returnCheckAfterMin !== undefined} onChange={enabled => set({ returnCheckAfterMin: enabled ? 60 : undefined })} /></SettingRow>
+        {r.returnCheckAfterMin !== undefined && <SettingRow label="Nach Terminbeginn"><Stepper label="Rückkehr-Rückfrage nach Minuten" min={15} max={240} step={15} value={r.returnCheckAfterMin} onChange={returnCheckAfterMin => set({ returnCheckAfterMin })} /></SettingRow>}
+        <Info title="Rückkehr-Erinnerung"><p>Eine sanfte Rückfrage zum noch offenen Status, frühestens nach einem bekannten Terminende. Die gewählte Zeit ist kein errechneter Rückkehrzeitpunkt. Globale Ruhezeiten und Fokus bleiben wirksam. „Bin wieder da“ bestätigst du selbst.</p></Info>
+      </Card></div>
+      <Card id="erinnerungen" className="space-y-3">
         <Segmented<ReminderIntensity>
           label="Intensität"
           value={r.intensity}
@@ -473,7 +480,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
   return (
     <Page className="settings-page" title="Alltagshilfen" back="/einstellungen">
       <ExtraControls />
-      <MoreInfo summary="Fokus-Puls"><p className="text-sm text-muted">Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.</p>
+      <MoreInfo id="fokus-puls" summary="Fokus-Puls"><p className="text-sm text-muted">Läuft nur, solange der Fokus-Modus offen ist, und nie in den Ruhezeiten.</p>
         <Card className="space-y-3">
           <Segmented<S['focus']['pulse']>
             label="Fokus-Puls"
@@ -506,7 +513,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
           )}
         </Card>
       </MoreInfo>
-      <MoreInfo summary="Ankommen nach der Arbeit"><p className="text-sm text-muted">Zwei bis drei kurze Schritte, bevor der Abend beginnt.</p>
+      <MoreInfo id="ankommen" summary="Ankommen nach der Arbeit"><p className="text-sm text-muted">Zwei bis drei kurze Schritte, bevor der Abend beginnt.</p>
         <Card className="space-y-3">
           <SettingRow label={<span>Einschalten</span>}>
             <Toggle label="Ankommen" checked={sup.arrival.enabled} onChange={(v) => setSup({ arrival: { ...sup.arrival, enabled: v } })} />
@@ -564,7 +571,7 @@ function Supports({ s, save }: { s: S; save: Save }) {
           </form>
         </Card>
       </MoreInfo>
-      <MoreInfo summary="Wetter"><p className="text-sm text-muted">Freiwillig, mit lokalem Wetterort und eigenen Kleidungsvorlieben.</p>
+      <MoreInfo id="wetter" summary="Wetter"><p className="text-sm text-muted">Freiwillig, mit lokalem Wetterort und eigenen Kleidungsvorlieben.</p>
         <WeatherSettings s={s} save={save} />
       </MoreInfo>
       <MoreInfo summary="Rückfrage und Homeoffice">

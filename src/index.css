@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+.search-target-highlight { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: .75rem; scroll-margin-top: 2rem; }
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Farb-Tokens: ruhig, kontrastreich, kein Alarm-Rot */
@@ -176,6 +178,8 @@ textarea {
 /* Embedded settings reuse their hub's gutters instead of narrowing each control twice. */
 .settings-page .settings-page { padding-inline: 0; }
 .settings-page .ui-card { padding: 14px; }
+.settings-page .more-info > div { padding: 14px; }
+.settings-page .more-info > div > .ui-card { padding: 0; border: 0; background: transparent; }
 .settings-page :where(input, select, textarea, button, fieldset) { min-width: 0; max-width: 100%; }
 .settings-page button { overflow-wrap: anywhere; }
 /* Kompakte Routinekarten: feste Touchflächen, Dauer neben dem Label, alle Aktionen unten. */
@@ -243,3 +247,7 @@ textarea {
   .print-page li { break-inside: avoid; overflow-wrap: anywhere; }
   .print-page [role='img'] { border-radius: 0; padding: 0; }
 }
+
+/* Inner disclosures share the surrounding card's control column. */
+.settings-page .ui-card .more-info { border-inline: 0; }
+.settings-page .ui-card .more-info > div { padding-inline: 0; }

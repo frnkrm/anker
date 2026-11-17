@@ -116,6 +116,7 @@ test('Ein Seitenlink im Sheet verbraucht dessen Hilfseintrag und erzeugt keine u
   await page.goto('/arbeit')
   await page.getByRole('link', { name: 'Jetzt', exact: true }).click()
   await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
+  await page.getByRole('dialog').getByText('Termine & Tagesplan', { exact: true }).click()
   await page.getByRole('link', { name: 'Ganzen Tag ansehen ›', exact: true }).click()
   await expect(page).toHaveURL(/\/tag$/)
   await page.goBack()

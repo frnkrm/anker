@@ -1,5 +1,62 @@
 # Aktueller Übergabestand
 
+## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+
+Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
+implementiert; der aktuelle differenzierte Stand steht in
+[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
+sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
+befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
+separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
+Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+
+## Laufende autonome Umsetzung (17.11.2026, nachts)
+
+[Aktueller Arbeitsstand aller neuen Pakete](ALLTAG_UMSETZUNG_20261117.md).
+F-011/F-016/F-015/F-018 sowie kostenlose Provideradapter sind in Umsetzung;
+UI bleibt bis zur gemeinsamen Schlussphase zurückgestellt. Kein Paketabschluss-Prompt
+an den Nutzer nötig. Externe Schlüssel/Play-Signaturgrenze bleiben reale Voraussetzungen.
+
+## Umsetzung begonnen: erstes Logikpaket (17.11.2026)
+
+BF-001: bestätigtes frühes Aufstehen erzeugt keinen erneuten Aufsteh-Countdown.
+BF-002: vorhandene Erinnerungsplanung um bewusst wählbaren, einmaligen und
+befristeten Unterwegs-Status-Check erweitert; zunächst aus. TS/Kotlin passend,
+keine automatische Rückkehr. 162 gezielte TS-/41 Android-Unit-Tests und Typprüfung/
+gezieltes ESLint grün. Bedienung/Status/Snooze, übrige Countdownklärung und echte
+Geräteabnahme offen. Alle UI-Arbeit bleibt gesammelt am Ende. Noch keine neue
+Version gebaut/installiert oder neue Änderungen in den gebundenen Play-Weg übernommen.
+
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
+## Neue Planung und gemeinsame Arbeitsweise (17.11.2026)
+
+F-015 erweitert und F-018 neu geplant: nächtliche Automatik mit Android-Prüfgate,
+sofortiger Start bei Bettbestätigung, unsichere Einschlafschätzung, freiwillige
+Morgen-/Energierückmeldungen und ausschließlich bestätigungsbedürftige Zeitvorschläge.
+Endgültige Datenablage bleibt Gesprächspunkt. Alle UI-Arbeit gesammelt zum Schluss.
+
+Neu: BF-005 und F-015–F-017 (Heute-anpassen-Struktur, Nachtmessung/Signaljournal/
+optionale Sperre, Funktionssuche, Hilfedialoge), alle nur geplant. Quellabgleich:
+neue Weckzeit-Override-Anzeige erst nach Code17. Allgemeiner Messstatus bereits
+vorhanden, dauerhaftes Eingangsjournal im gelesenen SmartWake-Dienst nicht vorhanden.
+
+BF-004 (Einrichtung) und F-013/F-014 (kostenfreie KI-/Verkehrswege) ergänzt.
+Kostenfreiheit ist eine ausdrückliche Nutzeranforderung; bestehende OpenAI-/Google-
+Routes-Anbindung ist dafür nicht freigegeben. Keine Server-/Provideraktivierung erfolgt.
+
+Aktuelle kurze [Gesamtübersicht](OFFENE_ENTWICKLUNGEN.md): BF-001–BF-003 offen,
+F-011 Hobby-Vorschläge und F-012 PC-Gestaltung/Dialogposition neu geplant.
+[Arbeitsweise](ARBEITSWEISE.md) gilt für alle Pläne. Bestehende F-001–F-010 nicht
+erneut als unimplementiert aufführen; Geräteabnahme und Play-Release bleiben getrennt.
+
+## Alltags-Bugfixes (17.11.2026)
+
+Neuer [Bugfix-Plan](BUGFIX_PLAN.md): BF-001 betrifft die unklare Jetzt-Anzeige,
+BF-002 eine Erinnerung an den offenen Unterwegs-Zustand und „Bin wieder da“.
+Beide offen, bisher nur geplant;
+effiziente autonome Bearbeitung und konkrete Abnahme im Plan festgehalten.
+
 ## T-006: AAB-Quellkennung nach Capacitor-Sync korrigiert (16.11.2026)
 
 [Konkreter Screenshotbefund, isolierte Reproduktion und kleinster Policyfix](CODE18_FINGERPRINT_SYNC_KORREKTUR_T006.md): Prepare43941667392/W2793dbaa/1 scheiterte laut Nutzerlog mit FINGERPRINT_NATIVE. Die vorhandene Vite-Funktion ergibt für feste App0c31179 vor Sync4f8a7b5a…, nach bestehendem Capacitor-Sync stabilfff132db…; einzig generierte res/xml/config.xml erklärt diese Kennungsabweichung. Bisher fälschlich Vor-Sync-Wert gebunden. Minimaler Policyfix pinnt Nach-Sync-Wert, trennt FINGERPRINT_MISMATCH/NATIVE_MISSING ohne Akzeptanzänderung. App-/Workflow-/Manifest-/Signierquellen und CI-/Versuchs-/Hashgates unverändert.41Protokoll-/Java- und32Workflow-/SDK-Offlinefälle grün; neue unabhängige Nach-Sync-Fixture vorher rot.

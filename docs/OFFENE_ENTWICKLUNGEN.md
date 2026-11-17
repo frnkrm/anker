@@ -1,5 +1,483 @@
 # Entwicklungsstand nach dem aktuellen Codeabgleich
 
+## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+
+Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
+implementiert; der aktuelle differenzierte Stand steht in
+[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
+sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
+befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
+separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
+Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
+## Aktuelle offene Punkte – Kurzfassung vom 17.11.2026
+
+Diese Zusammenfassung berücksichtigt die neueren Beobachtungen aus dem aktuellen
+Chat. Die datierten Einträge weiter unten bleiben historische Nachweise;
+bereits integrierte Fixes sind keine erneut offenen Implementierungen.
+
+- **BF-001:** Jetzt-Anzeige: Countdownbezug, nächste Handlung, doppelte Angaben und Punkteanzeige klären.
+- **BF-002:** Offenen Unterwegs-Zustand außerhalb der App sichtbar halten und an die bewusste Rückkehrbestätigung erinnern.
+- **BF-003:** Aufklappbare Bereiche mit eindeutigem Anfang, Inhalt und Ende gestalten.
+- **BF-004:** KI-/Verkehrseinrichtung: Nutzen, Sperrgrund und passende nächste Schritte verständlich erklären.
+- **BF-005:** „Heute anpassen“ nach täglichen Änderungen und verständlichen Themen strukturieren.
+- **F-011:** Freiwillige Hobby-Vorschläge für tatsächlich freie Zeit; Einrichtung und Auswahl siehe unten.
+- **F-012:** PC-Begleiter minimalistisch und ansprechend gestalten; Dialoge direkt über dem Hauptfenster öffnen.
+- **F-013:** Kostenlose Hilfe zum Zerlegen von Aufgaben; lokale Grundfunktion erhalten, geeigneten KI-Anbieterweg ergänzen.
+- **F-014:** Kostenlose Fahrzeit-/Verkehrsanbindung mit harten Gratisgrenzen und ehrlichem manuellen Rückweg.
+- **F-015:** Nachtmessung auf Jetzt, sofortiger Bettgeh-Start, technisches Signalprotokoll, freiwillige Sperre und täglicher Automatikmodus mit Android-Machbarkeitsprüfung.
+- **F-016:** Appweite lokale Suche mit Schlagwörtern und direktem Sprung zur passenden Funktion/Einstellung.
+- **F-017:** Lange Funktionserklärungen appweit über ein zugängliches Infosymbol in Hilfefenstern öffnen.
+- **F-018:** Geschätzter Schlafbeginn, freiwillige Energie-/Weckrückmeldungen und persönliche Zeitvorschläge aus dem bestehenden Schlafjournal.
+- **T-006 / V-014:** Gesamtabschluss und Code18-Play-Update: Build, gültige Uploadsignatur, interne Freigabe und anschließendes Store-Update bestätigen. PR12/PR13 sind inzwischen integriert; der PC-Zeitstempelfix ist am Handy bestätigt. Uploadschlüssel laut Console erst am 18.11.2026 um 22:41 gültig; einmaliger Auftrag am 18.11. um 22:50 eingerichtet, Ausführung noch ausstehend.
+- **E-002 / V-011:** Android-Wecker und Erinnerungen im echten Gerätebetrieb vollständig prüfen.
+- **E-003 / V-012:** Windows-Begleiter vollständig prüfen, insbesondere Dialoge/DPI/Monitore, Tray, Netzwechsel und bewusst gewählte Systemwirkungen. Erfolgreiche Kopplung allein ist kein Gesamtabschluss.
+- **E-004 / V-013:** Kalenderzugriff, Auswahl, Widerruf und echte Datenquellen am Handy prüfen.
+- **E-005:** Optionalen NFC-Betrieb mit geeigneten Tags am Gerät prüfen.
+
+F-001 bis F-010 gelten laut vorhandener Roadmap im jeweils dokumentierten
+Softwareumfang als umgesetzt. Offene Geräteabnahmen stehen oben; sie sind keine
+erneuten Implementierungsaufträge. Lichtwecker-Hardware, soziale Fokusbegleitung
+und kostenpflichtige Windows-Codesignatur sind spätere Optionen beziehungsweise
+Entscheidungen, aktuell keine beauftragte Implementierung.
+
+## Aktuelle Umsetzung (17.11.2026)
+
+Vom Nutzer jetzt ausdrücklich gestartet. Erstes Logikpaket BF-001/BF-002 umgesetzt:
+kein erneuter Aufstehanker nach bestätigtem frühem Aufstehen; optionaler, einmaliger
+und befristeter Unterwegs-Status-Check über bestehende TS-/Android-Erinnerungswege.
+162 gezielte TS-/41 Android-Unit-Tests grün. Beide Punkte bleiben bis zur gemeinsamen
+UI-Phase und echten Abnahme offen; neue Erinnerungswahl zunächst ausgeschaltet.
+Nächste Funktionspakete: F-011 Hobbydaten/Auswahl, F-016 Suchkatalog; danach
+Nachtmessungs-/Journalgrundlagen gemäß Abhängigkeiten. Keine neue UI vor Abschluss
+der Funktionspakete, kein vorzeitiger Release. Details im Bugfix- und Testnachweis.
+
+## Ausführungsreihenfolge für neue Entwicklungen
+
+Verbindlich gemäß [Arbeitsweise](ARBEITSWEISE.md): zunächst Funktionsregeln,
+Datenmodell, Logik, native Dienste und Integrationen für die jeweils beauftragten
+Punkte stabilisieren. Danach eine gemeinsame UI-Phase für BF-001/BF-003/BF-004/
+BF-005, F-012/F-016/F-017 sowie sämtliche Bedienelemente der neuen Funktionen.
+BF-002 und F-011/F-013/F-014/F-015/F-018 bereiten zuerst ihre Regeln/Schnittstellen
+vor, ihre Oberflächen kommen ebenfalls in diese letzte UI-Phase. F-016 kann den
+Suchkatalog/die Rangfolge vorher vorbereiten. Keine neue Funktion ohne abschließende
+UI-/E2E-/Geräteabnahme ausliefern. Diese Planung startet nicht automatisch die Umsetzung.
+
+## F-011 – Hobbys einrichten und freie Zeit freundlich anbieten
+
+**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026, Beispiel Fotografie.
+Einordnung: neue freiwillige Produktfunktion. Integration über bestehenden Planer,
+Jetzt-Projektion und Store; keine zweite Freizeitplanung.
+
+**Einrichtung:** Unter „Mehr“ einen schlanken Bereich „Hobbys“ vorsehen. Zum Anlegen
+genügt ein Name; optionale Vorlagen wie Fotografieren sind bearbeitbar. Danach
+freiwillig konkrete kleine Aktivitäten mit geschätzter Gesamtdauer, Energiebedarf,
+passendem Kontext (drinnen/draußen) und benötigten Dingen ergänzen. Optionale
+Angaben nicht als Pflichtfragebogen gestalten. Dauer umfasst nötige Vorbereitung;
+Wege nicht automatisch erfinden. Hobbys/Varianten lassen sich pausieren und bearbeiten.
+
+**Beispiele für Fotografie:** „Ein Motiv mit dem Handy fotografieren“ (5 Minuten),
+„Licht und Schatten ausprobieren“ (15 Minuten), „Eine kleine Fotorunde“ (30 Minuten).
+Das sind bearbeitbare Startvorschläge, keine festgelegten Nutzerzeiten oder Aufgaben.
+
+**Anzeige und Auswahl:** Neben dem normalen Jetzt-Inhalt eine dezente nachgeordnete
+Karte, etwa „Lust auf 5 Minuten Fotografieren?“. Höchstens ein Vorschlag gleichzeitig,
+mit „Andere Idee“ und „Heute nicht“. „Einfach Pause machen“ bleibt gleichwertig.
+Die aktuelle Hauptaktion bleibt erkennbar, die App wechselt nicht selbst die Seite.
+Nur bei einem aus vorhandenen Daten plausibel freien Zeitfenster vorschlagen:
+keine laufende Arbeit/Routine, kein offener Unterwegs-Zustand, kein anstehender
+Pflichtschritt, Alarm oder Schlaf-/Nachtzustand. Bekannte Vorbereitung/Puffer vor
+dem nächsten festen Planpunkt berücksichtigen. Bei unklarer Verfügbarkeit keine
+sichere Zeitspanne behaupten. Vorschläge nicht bei jeder Aktualisierung wechseln.
+
+**Grenzen:** Keine Hobby-Pflicht, Streaks oder Schuldtexte; keine automatische
+Erledigung oder XP durch Vorschlag/Start/Timerende. Kein automatischer Kalendereintrag,
+Verschieben von Verpflichtungen oder Freizeit-Timerzwang. Grundfunktion offline,
+keine KI-Aufrufe, Kamera-/Foto-/Standortrechte oder Cloudübertragung zum bloßen
+Einrichten nötig. Speicherung über vorhandene Store-/Repositorywege; Datenschutz,
+Backup und optionale Synchronisation vor neuen Datenfeldern ausdrücklich festlegen.
+
+**Abnahme:** Ein Hobby nur mit Namen anlegen; eigene Varianten bearbeiten/pausieren;
+passende Dauer/Kontext/Energie berücksichtigen, ohne Unbekanntes zu erraten; freiwillige
+Abwahl respektieren; kein Vorschlag in gesperrten Zuständen; Freiraum und harte Termine
+aus demselben Plan berechnen. Offline sowie bei 320px/großer Schrift prüfen.
+Reine Auswahlregel gezielt testen, dann UI; noch keine Umsetzung oder Produktprüfung.
+
+**Recherche, 17.11.2026:**
+
+- [GTD: Choosing what to do](https://gettingthingsdone.com/2023/01/choosing-what-to-do/)
+  beschreibt Auswahl nach verfügbarem Kontext, Zeit und Energie. Daraus leiten wir
+  optionale Auswahlfelder für passende Hobbyvarianten ab, keinen Wirksamkeitsnachweis.
+- [Daylio: Ziele aus Aktivitäten](https://daylio.net/faq/docs/daylio-faq/tutorials/setting-up-goals/)
+  zeigt eigene Aktivitäten sowie getrennte Wiederholungs-/Erinnerungseinstellungen.
+  Anker übernimmt die einfache eigene Einrichtung; feste Ziele/Streaks sind dafür
+  nicht erforderlich. Das ist unsere Produktentscheidung.
+- [Bearable: Konfiguration](https://bearable.app/support/howto/configure-and-enter-data-into-bearable/)
+  beschreibt anpassbare und abschaltbare Bereiche. Für Anker spricht das für ein
+  bewusst eingerichtetes, pausierbares Angebot statt zusätzlicher Pflichtverwaltung.
+
+## F-012 – PC-Begleiter: ruhige Gestaltung und zugehörige Dialogfenster
+
+**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026: minimalistisch, aber
+ansehnlicher. Separate Fenster nach Buttonklick bleiben; sie sollen direkt über
+dem Hauptfenster erscheinen. Der optische Gesamtwunsch ist eine Weiterentwicklung;
+fehlerhafte Dialogzuordnung/-positionierung wird in diesem Paket mit korrigiert.
+
+**Umfang:** Einheitliche Schrift, bewusste Abstände, dezente Flächen/Umrandungen,
+klare Statusanzeige und eine erkennbare Hauptaktion statt einer gleichgewichteten
+Buttonwand. Bestehende Funktionen und freiwillige Systemwirkungen erhalten.
+Bestehendes Python-/Tk-UI verbessern, kein Frameworkwechsel oder Komplettneubau.
+
+**Dialogverhalten:** Beim Öffnen zum tatsächlichen aktuellen Hauptfenster zentrieren,
+über diesem Fenster anzeigen und ihm zuordnen; kein globales Always-on-top.
+Auf demselben Monitor und vollständig in dessen nutzbarem Bildschirmbereich halten.
+Lange/große Dialoge begrenzen und bei Bedarf scrollbar machen. Fokus beim Öffnen
+passend setzen und beim Schließen zurückgeben. Modale Sperre nur dort, wo der
+Vorgang sie braucht; Beenden/Abbrechen muss zuverlässig erreichbar bleiben.
+
+**Abnahme:** Hauptfenster verschieben und erneut Dialog öffnen; gleicher Monitor
+auch bei negativen Monitorpositionen; gemischte DPI und große Schrift; kleine
+Bildschirme/Taskleiste; Hauptfenster minimiert oder per Tray wieder geöffnet;
+Dialog bleibt sichtbar und bedienbar, keine verlorenen Fenster oder abgeschnittenen
+Bestätigungen. Helle/dunkle Darstellung, Tastatur, Escape/Abbrechen und bestehende
+Bestätigungsgrenzen prüfen. Geometrie soweit sinnvoll rein testen, tatsächliche
+Position/Fokus/Skalierung anschließend unter Windows beobachten. Noch keine neue
+UI implementiert oder echte Dialogprüfung durchgeführt.
+
+## F-013 – Kostenlose Unterstützung für kleine Aufgabenschritte
+
+**Status:** Offen, nur geplant; Nutzerforderung vom 17.11.2026: keine Anbietergebühren.
+Nutzen: Einen bewusst ausgewählten Aufgabentext in bearbeitbare kleine Schritte
+zerlegen. Bereits vorhandene lokale Teilschritt-Vorlagen bleiben kostenlos/offline.
+Das ist keine frei generierende KI, aber ein unmittelbar nutzbarer Rückweg.
+
+Der bestehende Onlineweg ist OpenAI über Supabase und nicht als garantiert kostenlos
+eingerichtet. Kostenfreie Alternativen benötigen eine echte Anbieterintegration;
+keinen fremden API-Key in die OpenAI-Konfiguration stecken. Bevorzugte kostenfreie
+KI-Variante zunächst auf Machbarkeit prüfen: lokal ausgeführtes Modell über Ollama
+auf dem vorhandenen PC. Keine API-Nutzungsgebühr bei lokalem Betrieb, aber Hardware,
+Strom und ein laufender/erreichbarer PC werden benötigt. Modelllizenz/Eignung prüfen.
+Keine ungeschützte Ollama-Schnittstelle ins LAN/Internet öffnen; vorhandene sichere
+PC-Verbindung nur nach Vertrags-/Datengrenzenprüfung erweitern, nicht voraussetzen.
+
+Gemini-Free-Tier als mögliche Onlinealternative prüfen: modell-/konto-/regionabhängige
+Gratislimits, aktuelle Datenbedingungen und Verfügbarkeit. Nicht als unbegrenzt oder
+dauerhaft gratis garantieren. Ohne aktives Bezahlmodell arbeiten, bei Quotenende
+stoppen und lokale Hilfe anbieten, niemals automatisch kostenpflichtig ausweichen.
+Serverbetrieb ebenfalls in die Kostenprüfung einbeziehen. Keine Zahlungsdaten,
+Tarifupgrades oder neue Konten ohne erforderliche Nutzerhandlung einrichten.
+
+Abnahme: verständliche Einrichtung (BF-004), deutscher kleiner Schrittvorschlag,
+Vorschau/Einzelfreigabe vor Versand, keine Pflichtübertragung von Beschreibung/Notiz,
+lokale Funktion ohne Server, klarer Fehler bei nicht erreichbarem PC oder erschöpfter
+Quote. Keine automatische Übernahme/Erledigung und keine Dienstschlüssel in App/Logs.
+Vorerst keine Bereitstellung oder Aktivierung erfolgt.
+
+Recherche 17.11.2026: [Ollama API](https://docs.ollama.com/api/introduction),
+[lokaler Betrieb](https://docs.ollama.com/faq),
+[Gemini API-Preise und Free Tier](https://ai.google.dev/gemini-api/docs/pricing).
+Die lokale Variante ist eine Planungsempfehlung, noch kein nachgewiesener Anschluss.
+
+## F-014 – Kostenfreie Fahrzeit-/Verkehrsvorschläge
+
+**Status:** Offen, nur geplant; kostenlose Schnittstelle ausdrücklich gewünscht.
+Nutzen: Für eine bewusst freigegebene Strecke eine aktuelle Fahrzeitschätzung
+anbieten. Normale Routenschätzung, Live-Verkehr und ÖPNV getrennt ausweisen;
+eine kostenlose Routing-API ohne Verkehrsdaten nicht als Stauprognose bezeichnen.
+
+Der bestehende Handler verwendet Google Routes über Supabase. Google Maps Platform
+hat Freikontingente, benötigt aber Billing und ist damit kein bedingungslos kostenloser
+Weg. Kostenhinweise nicht einfach entfernen und die aktuelle Freigabe nicht ankreuzen.
+
+TomTom als konkreten Kandidaten prüfen: offizielle Preisseite nennt für Routing
+20.000 kostenlose monatliche Anfragen und Einstieg ohne Kreditkarte. Die API bietet
+verkehrsberücksichtigte Routen. Vor Einrichtung tatsächlichen kostenlosen Kontotarif,
+gewählte API, Region, Geocodingbedarf, Nutzungs-/Speicherbedingungen und Verhalten
+bei Quotenende verifizieren. Keine automatische Nachzahlung, kein Guthabenkauf,
+kein Bezahlfallback. Alte Tageslimits aus Drittanbieterartikeln nicht übernehmen.
+Auch Gateway/Server müssen in die Kostenbetrachtung einfließen; App-Zähler allein
+sind keine garantierte Kostensperre.
+
+Abnahme: klare schrittweise Einrichtung (BF-004), Schlüssel sicher verwahren,
+Start-/Zieladresse nur nach bewusster Freigabe, kein dauerhaftes GPS. Quoten technisch
+begrenzen, Abrufe drosseln und Ergebnisse nur im erlaubten Rahmen zwischenspeichern.
+Bei Fehler/Gratislimit manuelle Fahrzeit erhalten und Datenalter anzeigen; keine
+Pünktlichkeitsgarantie oder automatisch geänderte Weckzeit. Unterstützte Verkehrsmittel
+ehrlich ausweisen statt den bisherigen Google-Funktionsumfang zu versprechen.
+Noch keine neue Anbindung implementiert oder ein Konto aktiviert.
+
+Recherche 17.11.2026: [TomTom Preise](https://docs.tomtom.com/pricing),
+[TomTom Limits/FAQ](https://docs.tomtom.com/platform/documentation/status-and-support/faqs),
+[Google Maps Billing/FAQ](https://developers.google.com/maps/faq).
+
+## F-015 – Nachtmessung von Jetzt aus starten und nachvollziehbar machen
+
+**Status:** Offen, nur geplant; Nutzerwunsch vom 17.11.2026. Gemeint ist das
+experimentelle Aktivitäts-Weckfenster (SmartWake), keine durchgehende Schlafaufnahme.
+Vorhanden: `SmartWake.tsx` für Einrichtung/Start und `SmartWakeService.kt` für
+Mikrofon-Foreground-Dienst, Beschleunigung und kurzlebige Pegelwerte. Derzeit wird
+vor dem eigentlichen Weckfenster nicht ausgewertet; Abendstart und tatsächlicher
+Messbeginn sind verschiedene Zustände. Keine Tondateien gespeichert/versendet.
+Es gibt aktuelle Phase/Meldung/Zielzeit in Preferences, aber im gelesenen Dienst
+kein dauerhaftes Journal der Messsignal-Eingänge. Nicht behaupten, dass deshalb
+bisher keine Signale eingingen.
+
+**Jetzt-Einstieg:** Nur bei aktivierter Setup-Option anbieten, bevorzugt im passenden
+Abend-/Nachtkontext. Dieselben Start-/Stopp-/Berechtigungswege wiederverwenden;
+keine zweite SmartWake-Instanz. „Messung für diese Nacht starten“ und danach
+„Bereit – Auswertung ab …“ beziehungsweise „Messung läuft“ ehrlich unterscheiden.
+Tatsächlich wirksame Weckzeit einschließlich Tagesüberschreibung verwenden.
+Startanfrage ist kein Laufbeleg; Doppelklicks, fehlender Sensor/Mikrofonrecht,
+laufende Messung und später geänderte Weckzeit sauber behandeln. Deaktiviertes
+Setup entfernt die Startmöglichkeit; laufenden Zustand über bestehenden Weg beenden.
+
+**Technisches Protokoll:** Bestehendes lokales Diagnosejournal erweitern, soweit
+passend, statt unbeschränktes neues Log anzulegen. Pro Messnacht Start, Ziel und
+Auswertungsfenster, tatsächlichen Beginn, Sensor-/Mikrofonverfügbarkeit, ersten/letzten
+gültigen Eingang, aggregierte Anzahl gültiger Bewegungs-/Audioblöcke und Lücken,
+Lesefehler, Ablehnungs-/Abbruchgrund und Ergebnis festhalten. Signal vorhanden,
+Signal unter Schwelle, kein Eingang und nicht ausgewertet unterscheiden; die Werte
+sind keine verlässliche Schlafphasen- oder Wachheitserkennung. Keine Rohsamples,
+Tondateien, Transkripte, Appinhalte oder personenbezogenen Umgebungsdaten persistieren.
+Begrenzte Aufbewahrung/Größe im vorhandenen Journalrahmen, zusammengefasste Einträge
+statt Schreiben pro Sample, Export nur bewusst ausgewählt. Ohne Export kein Sync.
+
+**Start mit Bildschirm sperren:** Gewünschten Ablauf „Messung starten und sperren“
+prüfen: zuerst erforderliche Freigaben und tatsächliche Dienstbereitschaft, dann
+eine ausdrücklich gewählte Sperre. Abendlicher Nutzerstart soll sperren können;
+beim späteren Auswertungsbeginn nicht ungefragt erneut sperren, insbesondere nicht
+über einem Wecker. Android-Machbarkeit und erforderliche Rechte zuerst gezielt
+prüfen; keine Geräteadministrator-/Bedienungshilferechte still hinzufügen oder
+Sperre allein durch eine schwarze Appansicht vortäuschen. Ohne verfügbare Sperrfähigkeit
+ehrlicher Hinweis auf die seitliche Sperrtaste, normaler Messstart bleibt möglich.
+Sperren bleibt reversibel durch normales Entsperren, kein Blockieren von Hardwaretasten.
+
+**Wichtige Grenze:** Bildschirmsperre garantiert keine Stille: Medien können unter
+Android auch bei gesperrtem Gerät weiterlaufen. Eigenen Medienbetrieb soweit zulässig
+erkennen und als mögliche Störquelle erklären; eine gezielt erlaubte Pause vorhandener
+Wiedergabe erst technisch prüfen, nicht versprechen. Niemals andere Apps zwangsbeenden,
+Lautstärke/DND selbst ändern oder sämtliche Fremdgeräusche als ausgeschlossen melden.
+Auch ohne hörbaren Handyton können Umgebungsgeräusche Signale beeinflussen.
+
+**Abnahme:** Setup aus/an; Start in Jetzt; verweigertes Recht; Abend-Wartephase und
+echter Fensterbeginn; Eingänge unter/über Schwelle und fehlende Eingänge; Mikrofon-
+Lesefehler; manueller Stopp; geänderte Zielzeit; Prozess-/Geräteunterbrechung.
+Echte Android-Sperre, gesperrtes Display, Medienwiedergabe und normale Entsperrung
+separat am Gerät prüfen. Regulärer Hauptwecker bleibt abgesichert; Vorweckerpause
+bleibt auf den Zieltermin begrenzt und wird nicht versehentlich wieder eingeschaltet.
+Keine Erledigung/XP aus Messung oder Weckerereignis. TS-/Kotlin-Brücke und reine
+Status-/Diagnoselogik gemeinsam sinnvoll testen; Geräteeingänge nicht aus Tests ableiten.
+
+Quellen für die Machbarkeitsprüfung:
+[Android lockNow](https://developer.android.com/reference/android/app/admin/DevicePolicyManager#lockNow()),
+[Android-Hintergrundwiedergabe](https://developer.android.com/media/media3/session/background-playback).
+Keine Messung gestartet, Rechte aktiviert oder Gerätewirkung ausgeführt.
+
+### Erweiterung F-015: tägliche Automatik und sofortiger Beginn beim Bettgehen
+
+Nutzerwunsch vom 17.11.2026 erweitert den bisherigen reinen Weckfensterbetrieb:
+Eine eigene ausgeschaltete Setup-Option „Jede Nacht automatisch“ soll die Messung
+regelmäßig starten. Geplante Start-/Endbedingungen, „Heute nicht“, sichtbarer
+Mikrofonstatus und jederzeitiger Stopp müssen Teil der Einrichtung sein; keine
+24-Stunden-Überwachung und keine heimliche Mikrofonaktivierung.
+
+Vor einem Versprechen vollautomatischer Starts Android-Machbarkeit am Zielgerät
+prüfen: Mikrofon-Foreground-Dienste können wegen While-in-use- und Hintergrundregeln
+nicht beliebig aus einer Uhrzeit-/Bootaktion gestartet werden. Der Automatikschalter
+ist keine Umgehung solcher Regeln. Ist ein Start im Hintergrund nicht zulässig,
+eine ehrliche Startaufforderung anbieten und die verbleibende Nutzeraktion klar
+benennen, nicht als laufende Messung ausgeben. Keine neue Sonderberechtigung still
+vergeben. Die bereits vorhandene Hauptweckerplanung bleibt unabhängig funktionsfähig.
+
+Bei einem bewussten Bettgeh-Ereignis wie „Ich liege im Bett“ soll die eingerichtete
+Messung nach erfolgreicher Freigabe/Dienstbereitschaft **sofort** beginnen, auch vor
+dem Weckfenster. Ähnliche Einstiegspunkte fachlich zentral zuordnen: Nur eine echte
+bewusste Schlafabsicht, nicht das Öffnen einer Seite, planmäßige Bettzeit oder ein
+Infofenster, löst aus. Diese Änderung des bisherigen Dienstverhaltens muss explizit
+umgesetzt/getestet werden; ein neuer Button allein reicht nicht.
+
+Eine gemeinsame Nachtinstanz führt zwei getrennte Phasen: abendliche Ruhe-/
+Einschlafschätzung (F-018) und morgendliches Aktivitäts-Weckfenster. Abendliche
+Signale dürfen keinen frühen Morgenwecker auslösen. Doppelte Starts aus Automatik,
+Jetzt und Bettbestätigung zusammenführen; Zeiten/Quelle protokollieren. Erweiterten
+Akkuverbrauch und tatsächlichen kontinuierlichen Dienst-/Sensorbetrieb prüfen;
+ein zeitlich vorbereitetes Fenster ist keine durchgehende Messung. Alte Aussagen
+„vor dem Fenster keine Auswertung“ bleiben Ist-Codebefund, nicht Ziel dieses Zusatzes.
+
+[Android-Startbeschränkungen](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start)
+sind ein technisches Prüfgate, keine bereits gelöste Voraussetzung.
+
+## F-016 – Suche für Funktionen und Einstellungen
+
+**Status:** Offen, nur geplant. Ein gut erreichbarer Suchen-Button öffnet eine
+lokale Suche, etwa aus Jetzt/Mehr, ohne die Hauptaktion zu verdrängen. Ein gemeinsamer
+Katalog erhält pro tatsächlich vorhandener Funktion einen verständlichen Namen,
+passende deutsche Stichwörter/Synonyme, Kurzbeschreibung, Kategorie, Route und bei
+Bedarf ein stabiles Abschnittsziel. Beispiele: „Aufstehen/Weckzeit/Wecker“,
+„Messung/Nacht/Mikrofon“, „Termin/Heute anders“, „PC/Kopplung“, „Hobbys/Fotografie“
+erst nach Umsetzung. Katalog mit bestehenden Routen und Labels abgleichen, keine
+Suche durch private Aufgaben/Notizen und keine externen KI-/Suchanfragen.
+
+Exakte Namen zuerst, dann Synonyme/Wortteile; Groß-/Kleinschreibung und Umlaute
+handhaben, begrenzte Tippfehlertoleranz gezielt prüfen. Wenige nachvollziehbar
+sortierte Treffer mit Kategorie und Kurzbeschreibung statt einer unstrukturierten
+Liste. Keine Treffer ehrlich melden. Antippen navigiert wie bei Android zur
+passenden Seite, öffnet nötigen Bereich und macht die konkrete Einstellung durch
+Scroll-/Fokusziel und dezente Markierung sichtbar. Es ändert keinen Schalter und
+startet keine Messung, Anmeldung oder PC-Wirkung. Nicht verfügbare Android-/Online-
+Funktionen als solche kennzeichnen; keine toten Verweise auf geplante Funktionen.
+
+Abnahme: Synonyme, Wortteile, Umlaute, Tippfehler und leere/fehlende Treffer; passende
+Zielmarkierung bei geschlossenen Bereichen, Zurücknavigation und Tastatur/Screenreader;
+Web-/Android-Unterschiede, Offlinebetrieb und große Schrift. Reine Suchrangfolge
+gezielt testen und repräsentative Navigation prüfen. Keine Suchhistorie oder
+Telemetrie nötig. Bestehende Sheet-Portal-/Historyregeln weiterverwenden.
+
+## F-017 – Erklärungen bei Bedarf im Infofenster statt dauerhaftem Langtext
+
+**Status:** Offen, nur geplant; gilt appweit für wiederkehrende Funktionserklärungen,
+z.B. den langen Text unter „Deine gewählte Schlafenszeit“ auf Jetzt. Ein benanntes,
+gut antippbares Infosymbol bei der jeweiligen Funktion öffnet einen kurzen
+verständlichen Hilfedialog mit Zweck, Ablauf und Grenzen. Keine reine Hoverhilfe
+oder unbeschriftete Mini-Schaltfläche. Einheitliche Komponente/Struktur im vorhandenen
+UI-Kit und Portal-Sheet bevorzugen; vorhandene Texte prüfen und wiederverwenden.
+
+Vor Umsetzung betroffene Erklärtexte gezielt inventarisieren und in überschaubaren
+Bereichen umstellen. Aktuelle nächste Handlung, Zeit, laufender Messstatus,
+konkreter Fehler/Sperrgrund und notwendige Entscheidung bleiben unmittelbar sichtbar.
+Längere allgemeine Erklärungen wandern ins Infofenster. Daten-/Kostenfreigabe vor
+Aktivierung/Versand bleibt ausdrücklich; nicht durch ein verstecktes Infofenster
+ersetzen. Kein Funktionsstart oder Speichern durch Öffnen/Schließen einer Hilfe.
+
+Abnahme: gleiche Hilfe aufrufbar in Jetzt, Einstellungen und weiteren betroffenen
+Seiten; klarer Titel, lesbarer Text und Schließen; Fokus im Dialog und Rückkehr zur
+Info-Schaltfläche, Escape/Android-Zurück ohne unerwartete Navigation; mehrere Sheets
+und große Schrift/320px. Texte für Messung und Schlafhinweis fachlich nicht mischen.
+Info- und Suchfenster gemeinsam mit BF-003/BF-005 abstimmen, ohne eine zweite UI-Lösung.
+[WAI-Dialogmuster](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
+als Grundlage; bei der Entwicklung gezielt aktuelle Gestaltungsquellen ergänzen.
+
+## F-018 – Schlafjournal, Rückfragen und persönliche Zeitvorschläge
+
+**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026; abhängig von F-015.
+Persönliche Beobachtung und Vorschläge, keine medizinische Diagnose oder automatische
+Festsetzung des Schlafbedarfs. Endgültige Ablage, Darstellung, Skalen und Auswertungs-
+schwellen ausdrücklich später mit dem Nutzer besprechen. Jetzt nur fachlichen
+Vertrag festhalten. Bestehende `LocalData.sleepDiary`-/`sleepNightFor`- und Health-
+Übernahmepfade erweitern, kein zweites Schlafjournal und keine Überschreibung eigener
+oder bestätigter Einträge durch Heuristiken.
+
+### Abend: Ruhe erkennen und nach Schlafabsicht still rückfragen
+
+- Mit dem tatsächlichen Messbeginn ab Bettbestätigung beobachten, ob es ruhiger
+  wird. Pegel-/Bewegungsdaten nur zusammenfassen; keine gespeicherten Tonaufnahmen,
+  Sprachinhalte, Fremdappdaten oder Cloudauswertung. Leise Umgebung allein beweist
+  keinen Schlaf; Sensorfehler oder fehlender Audioeingang bedeuten nicht „leise“.
+- Im ausdrücklich gewählten Modus gelegentlich still „Schläfst du schon?“ nachfragen:
+  gewünschte Vollbild-Überlagerung über anderen Apps auf Basis des vorhandenen
+  stummen Schlafhinweis-Controllers prüfen. Kein zweiter Overlaybesitzer. Schließen/
+  Wegdrücken und „Noch wach“ einfach erreichbar, keine Hardwaretastensperre, keine
+  Wiedervorlage unmittelbar nach Abwahl. „Heute Ruhe“ und Gesamt-Aus erhalten.
+- Kein Ton, Vibration, automatisches Entsperren oder Displaywecken. Wecker/System-
+  Sicherheitsdialoge haben Vorrang. Gesperrtes oder ausgeschaltetes Display nicht
+  aufwecken, um eine Schlafvermutung zu testen; die Sperrfunktion aus F-015 und die
+  Überlagerung sind unterschiedliche, nicht gleichzeitig erzwingbare Zustände.
+- Gewünschte Größenordnung „nach etwa einer Minute ohne Wegdrücken“ als
+  **Timeout-Heuristik** aufnehmen. Frist erst ab nachweislich sichtbarer, bedienbarer
+  Überlagerung bei interaktivem Display zählen. Geplant/zugestellt ist kein Sichtbeleg.
+  Abbruch, verdecktes Fenster, App-/Prozesswechsel oder Display-Aus ergeben keinen
+  bestätigten Antwortausfall. Frequenz und Höchstzahl später festlegen; begrenzen,
+  damit Rückfragen nicht selbst Schlaf stören.
+- Nach gültigem Timeout einen **vermuteten Einschlafzeitpunkt** mit Quelle und
+  Unsicherheit vormerken; Beginn der ruhigen Phase, Sichtbeginn und Timeout getrennt
+  nachvollziehbar halten. Nicht still als exakte Einschlafzeit, Schlafphase oder
+  erfülltes Tagesziel ausgeben. Weitere Rückfragen für diese vermutete Schlafphase
+  beenden. Spätere Interaktion kann die Vermutung entkräften. Morgens bestätigbar,
+  korrigierbar oder verwerfbar; fehlende Bestätigung bleibt fehlend.
+
+### Morgen: Weckereignisse und subjektive Rückmeldung
+
+- Frühen Aktivitätsalarm, reguläres Klingeln, Schlummern, Stoppen und QR-Scan als
+  technische Ereignisse mit Uhrzeit/Quelle auseinanderhalten. Ein QR-Scan belegt
+  eine Interaktion zu dieser Zeit, nicht die erste Wachminute oder das Aufstehen.
+- Nach dem bewussten Beenden eine kurze überspringbare Frage zur Weckzeit anbieten,
+  auch bei regulärem Alarm und nach QR: beispielsweise „Zu früh / passend / zu spät“
+  und optional „Wie erholt fühlst du dich?“. Skala später festlegen. Keine Rückfrage,
+  die Alarmstoppen/QR blockiert; keine doppelte Frage aus denselben Nacht-/Alarmereignissen.
+- Tatsächliche Rückmeldezeit vom bewerteten Weckzeitpunkt und einer vom Nutzer
+  bestätigten/korrigierten Wach-/Aufstehzeit trennen. Kein Eintrag „aufgestanden“
+  allein aus Alarmende oder QR. Rückmeldung auslassen/nachtragen/löschen erlauben.
+- Nacht über vorhandene Nachtzuordnung auch nach 04:00/bei Nachtarbeit stabil
+  referenzieren, nicht blind den aktuellen Plantag verwenden. Sommerzeit, Zeitkorrektur,
+  mehrere Alarme und verspätetes Feedback gezielt behandeln.
+
+### Tagesenergie und Auswertung
+
+- Vor dem Schlafengehen optional „Wie viel Energie hattest du heute?“ anbieten,
+  ausdrücklich überspringbar und nicht Voraussetzung für Messung oder Bettbestätigung.
+  Keine fehlende Angabe als schlechte Energie oder mittleren Wert auffüllen.
+- Tagesenergie gehört zum vergangenen Wach-Tag und zur **davorliegenden** Nacht;
+  nicht zur erst bevorstehenden Nacht. Bei unklarer Zuordnung keine Beziehung erfinden.
+- Einschlafschätzung, geschätzte Wachzeit und bestätigte Angaben getrennt halten.
+  Bettzeit bis QR-Scan ist keine gemessene Schlafdauer; unbekannte nächtliche
+  Wachphasen erlauben höchstens eine entsprechend beschriftete Zeitspanne/Schätzung.
+- Zunächst eine nachvollziehbare lokale Tagebuchübersicht. Erst bei ausreichend
+  vollständigen, vergleichbaren Nächten vorsichtige Zusammenhänge anbieten, etwa
+  „Bei diesen Zeitfenstern hast du häufiger gute Energie gemeldet“. Anzahl/Zeitraum,
+  Datenqualität, fehlende Werte und Unsicherheit sichtbar machen. Keine exakte
+  „optimale Schlafdauer“ aus einer Handvoll unbestätigter Timeouts berechnen.
+- Geplantes Auswertungsverfahren: bestätigte Angaben bevorzugen, unbestätigte
+  Schätzungen separat; robuste Zusammenfassungen/Spannen statt Scheingenauigkeit;
+  Arbeits-/freie Tage und freiwillig gemeldete Störungen berücksichtigen, ohne neue
+  Gesundheitsdaten automatisch zu sammeln. Ausreißer nicht heimlich löschen. Wenige
+  vergleichbare Nächte ergeben „noch nicht genug Daten“, keinen erfundenen Vorschlag.
+- Mehrwöchige Beobachtung, z.B. ein initiales Zwei-Wochen-Tagebuch, als Entwurfsstart,
+  nicht als klinisch validierte Mindestgrenze oder Erfolgsgarantie. Konkrete Schwellen,
+  Skalen, Gewichtung, Aufbewahrung und Export erst im späteren Datenmodellschritt klären.
+- Vorschläge zu Bett-/Aufstehzeit oder einer auszuprobierenden Zeitspanne nur mit
+  Begründung und bewusster Annahme. Keine automatische Änderung von Wecker, Tages-
+  Override, Arbeitsbeginn oder hartem Termin; kein absichtliches Verkürzen der
+  Schlafzeit für Datensammlung. Ruhe/Pausieren/Abwahl ohne Nachteile ermöglichen.
+- Keine Diagnose von Schlafstörungen, keine Aussage, eine bestimmte Zeit mache den
+  Nutzer sicher „happy“. Bei eigener anhaltender Beschwerde kann der vorhandene
+  Hilfebereich unterstützen; die App ersetzt keine fachliche Schlafdiagnostik.
+
+**Prüfung:** Reine Ereignis-/Nachtzuordnung, ruhige Werte versus fehlende Samples,
+sichtbarer versus nur geplanter Timeout, spätere Wachinteraktion, manuelle Korrektur,
+übersprungene/doppelte Rückmeldung, Tagesenergie-Zuordnung, kleine/unvollständige
+Stichproben und harte Plananker automatisiert prüfen. Android-Mikrofon, Overlay-
+Sichtbarkeit, Sperrbildschirm, Medien, Nacht-/Uhrwechsel und Akku separat am Gerät.
+Keine neue Implementierung, Messung oder Gesundheitsdatenpersistenz erfolgt.
+
+**Recherche vom 17.11.2026:**
+[NHLBI-Schlaftagebuch](https://www.nhlbi.nih.gov/resources/sleep-diary) erfasst
+Schlafmenge/-qualität und Befinden am Tag. Das stützt die Tagebuchstruktur, nicht
+die Validität einer Mikrofon-/Timeout-Erkennung.
+[National Sleep Foundation: Tagebuch](https://www.thensf.org/nsf-sleep-diary/)
+nennt zwei Wochen Beobachtung; daraus folgt keine bewiesene Anker-Optimierung.
+[AASM-Positionspapier](https://pmc.ncbi.nlm.nih.gov/articles/PMC5940440/) grenzt
+nicht hinreichend validierte Consumer-Schlaftechnik von medizinischer Diagnostik ab.
+Die konkrete Heuristik und spätere Empfehlung sind eigene Produktentwürfe.
+
+## Geklärt: Tagesüberschreibung der Weckzeit und Code17
+
+Quellvergleich vom 17.11.2026: Die sichtbare „Nächste wirksame Weckzeit“ samt
+explizitem Vorrang der Tagesüberschreibung (`NextWake.tsx`/`nextWakeDetails`) wurde
+zwischen der freigegebenen Code17-Quelle `80f6a692…` und der Code18-Appquelle
+`0c31179…` hinzugefügt. Aktuell in Wecker-/Planungseinstellungen eingebunden.
+Die Tagesüberschreibungslogik selbst war schon vorher vorhanden; neue Anzeige und
+bereits vorhandene Override-Funktion nicht gleichsetzen. Kein neuer Bugfix nur
+wegen der fehlenden Anzeige in Code17. Code18-Quellstand ist kein Beleg einer bereits
+erfolgten Play-Veröffentlichung. F-015 verwendet dieselbe wirksame Weckzeit.
+
+## Neue Alltagsmeldungen
+
+Siehe [Bugfix-Plan](BUGFIX_PLAN.md): BF-001 zur unklaren Jetzt-Anzeige und BF-002
+zur Erinnerung an einen offenen Unterwegs-Zustand sind offen.
+Bestehende Auftrags-IDs und Releasebindungen bleiben erhalten.
+
 ## T-006: AAB-Quellkennung nach Capacitor-Sync korrigiert (16.11.2026)
 
 [Konkreter Screenshotbefund, isolierte Reproduktion und kleinster Policyfix](CODE18_FINGERPRINT_SYNC_KORREKTUR_T006.md): Prepare43941667392/W2793dbaa/1 scheiterte laut Nutzerlog mit FINGERPRINT_NATIVE. Die vorhandene Vite-Funktion ergibt für feste App0c31179 vor Sync4f8a7b5a…, nach bestehendem Capacitor-Sync stabilfff132db…; einzig generierte res/xml/config.xml erklärt diese Kennungsabweichung. Bisher fälschlich Vor-Sync-Wert gebunden. Minimaler Policyfix pinnt Nach-Sync-Wert, trennt FINGERPRINT_MISMATCH/NATIVE_MISSING ohne Akzeptanzänderung. App-/Workflow-/Manifest-/Signierquellen und CI-/Versuchs-/Hashgates unverändert.41Protokoll-/Java- und32Workflow-/SDK-Offlinefälle grün; neue unabhängige Nach-Sync-Fixture vorher rot.

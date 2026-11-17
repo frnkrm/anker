@@ -112,6 +112,6 @@ export function automaticRouteRequest(state: TrafficState, context: TrafficConte
   const key = routeCheckKey(context, stage)
   if (state.local.assistance.routeChecks?.[key]) return undefined
   const mode = context.commitment.routeMode
-  if (!mode || mode === 'none') return undefined
+  if (!mode || mode === 'none' || mode === 'transit') return undefined
   return { key, request: { kind: 'route', revision: context.revision, origin: context.origin, destination: context.destination, at: new Date(context.arrivalAt).toISOString(), timing: 'arrival', mode } }
 }

@@ -1,5 +1,7 @@
 # T-006 – PR3 regulär nach main integrieren: noch nicht auszuführende Vorlage
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 ## Fortschreibung: reguläre Integration ausgeführt (14.11.2026)
 
 [PR3-Merge und neue exakte main-CI](PR3_MAIN_CI_NACHKONTROLLE.md): PR3Merged, tatsächlichesW `741fb7b09f0a442d779aaed192bd223724d3523f` mit ElternM/L und EntwicklungsheadL erhalten. Neue ci.yml43622275785 / exaktW / push / main / Versuch1 **erfolgreich**. Öffentliche Summary: 1372 Vitest bestanden / 0 Fehler / 0 Skips; 379 Playwright bestanden (9.4m). Der folgende frühere Plan bleibt als Vorzustand erhalten. TatsächlichesW nicht0874 vorweggenommen; M eigenständige Appquelle/M-CI, G lokalerAbschluss. Noch kein prepare/sign,keinU2/S/Geräte-/Gesamtbeleg. NächsteStufe ausschließlich separat autorisieren.

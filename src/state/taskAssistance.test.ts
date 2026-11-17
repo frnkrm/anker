@@ -18,7 +18,7 @@ beforeEach(async () => {
   storage.repo = new MemoryRepository()
   useApp.setState({ ready: false, settings: defaultSettings('2026-11-06'), local: emptyLocal(), days: {}, inbox: [], game: initialGame('2026-11-06') })
   await app().load()
-  await app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: true, at: 1, version: 1 } } }))
+  await app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: true, at: 1, version: 2 } } }))
 })
 afterEach(() => vi.useRealTimers())
 async function create(kind: TaskRef['kind'] = 'task') {
@@ -64,7 +64,7 @@ describe('Atomare bewusste KI-Übernahme in bestehende Aufgaben', () => {
     const hold = new Promise<void>((resolve) => { release = resolve })
     vi.spyOn(storage.repo!, 'put').mockImplementationOnce(async (...args) => { entered(); await hold; return original(...args) })
     const before = structuredClone(task())
-    const revoke = app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: false, at: Date.now(), version: 1 } } }))
+    const revoke = app().saveLocal((local) => ({ ...local, assistance: { ai: { enabled: false, at: Date.now(), version: 2 } } }))
     await enteredPromise
     const apply = app().replaceTaskParts(ref, proposed, expected)
     const rejected = expect(apply).rejects.toThrow('KI-Freigabe ist ausgeschaltet')

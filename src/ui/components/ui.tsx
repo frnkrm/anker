@@ -5,6 +5,7 @@ import { App as CapApp } from '@capacitor/app'
 import { fmtTime } from '../../core/time'
 import { isNative } from '../../platform/native'
 import { clockMinutes, countdownLabel, germanDateValue, remainingFraction } from './fieldValues'
+import { searchFunctions } from '../../core/functionSearch'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'warm'
 
@@ -25,8 +26,8 @@ export function Button({
   return <button type="button" className={`inline-flex min-w-0 items-center justify-center gap-2 transition disabled:opacity-40 ${sizes[size]} ${VARIANTS[variant]} ${className}`} {...p} />
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`ui-card rounded-2xl border border-line bg-surface p-4 ${className}`}>{children}</div>
+export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
+  return <div id={id} className={`ui-card rounded-2xl border border-line bg-surface p-4 ${className}`}>{children}</div>
 }
 
 export function Page({ title, back, children, actions, className = '' }: { title: string; back?: boolean | string; children: ReactNode; actions?: ReactNode; className?: string }) {
@@ -40,6 +41,7 @@ export function Page({ title, back, children, actions, className = '' }: { title
         )}
         <h1 ref={heading} tabIndex={-1} className="min-w-0 flex-1 break-words text-2xl font-semibold">{title}</h1>
         {actions}
+        <SearchButton />
       </header>
       <div className="space-y-4">{children}</div>
       <SaveFeedback />
@@ -47,14 +49,44 @@ export function Page({ title, back, children, actions, className = '' }: { title
   )
 }
 
-export function Section({ title, children, hint }: { title?: string; children: ReactNode; hint?: string }) {
+export function Section({ title, children, hint, id }: { title?: string; children: ReactNode; hint?: string; id?: string }) {
   return (
-    <section className="space-y-2">
-      {title && <h2 className="px-1 text-sm font-medium uppercase tracking-wide text-muted">{title}</h2>}
+    <section id={id} className="space-y-2">
+      {(title || hint) && <div className="flex items-center justify-between gap-2">{title && <h2 className="px-1 text-sm font-medium uppercase tracking-wide text-muted">{title}</h2>}{hint && <Info title={title ?? 'Hinweis'}>{hint}</Info>}</div>}
       <div className="space-y-2">{children}</div>
-      {hint && <p className="px-1 text-sm text-muted">{hint}</p>}
     </section>
   )
+}
+
+/** Passive Erklärungen teilen den vorhandenen barrierefreien Sheet-/Zurück-Verlauf. */
+export function Info({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return <>
+    <button type="button" aria-label={`Info: ${title}`} onClick={() => setOpen(true)} className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-accent"><span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full border border-current font-serif text-base">i</span></button>
+    <Sheet open={open} onClose={() => setOpen(false)} title={title}><div className="space-y-3 text-base leading-relaxed">{children}</div></Sheet>
+  </>
+}
+
+export function SearchButton() {
+  const [open, setOpen] = useState(false), [query, setQuery] = useState('')
+  const input = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const frame = requestAnimationFrame(() => input.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [open])
+  const navigate = useNavigate()
+  const results = searchFunctions(query, { native: isNative() })
+  const close = () => { setOpen(false); setQuery('') }
+  return <>
+    <button type="button" aria-label="Funktionen und Einstellungen suchen" className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full text-muted" onClick={() => setOpen(true)}><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg></button>
+    <Sheet open={open} onClose={close} title="Funktionen suchen">
+      <input ref={input} type="search" aria-label="Funktion oder Einstellung suchen" placeholder="Zum Beispiel: Aufstehen, PC, Fotografieren …" value={query} maxLength={160} onChange={event => setQuery(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-surface px-3 text-base" />
+      <div className="mt-4 space-y-2" aria-live="polite">
+        {!query.trim() ? <p className="text-sm text-muted">Suche nach einer Funktion oder dem, was du machen möchtest.</p> : !results.length ? <p>Kein passender Treffer. Probiere ein kürzeres Wort.</p> : results.map(result => <button key={result.id} type="button" className="flex min-h-16 w-full flex-col justify-center rounded-xl border border-line bg-surface p-3 text-left" onClick={() => { close(); navigate(result.target) }}><span className="font-medium">{result.title}</span><span className="text-sm text-muted">{result.group}{result.unavailableReason ? ` · ${result.unavailableReason}` : ''}</span></button>)}
+      </div>
+    </Sheet>
+  </>
 }
 
 export function Row({ label, sub, children, to, onClick }: { label: ReactNode; sub?: ReactNode; children?: ReactNode; to?: string; onClick?: () => void }) {
@@ -264,7 +296,9 @@ function registerSheet(layer: SheetLayer): () => void {
         updateSheetLayers()
         const previous = sheetBackFocus
         sheetBackFocus = undefined
-        if (!sheetLayers.length && previous?.isConnected && !previous.closest('[inert]')) previous.focus()
+        requestAnimationFrame(() => {
+          if (!sheetLayers.length && previous?.isConnected && !previous.closest('[inert]')) previous.focus()
+        })
         return
       }
       if (!sheetLayers.length || history.state?.ankerSheet === marker) return
@@ -304,12 +338,13 @@ function registerSheet(layer: SheetLayer): () => void {
       sheetCleanupTimer = undefined
       if (sheetLayers.length || sheetBackPending || removeHistoryBack !== closingManager || sheetHistoryMarker !== closingMarker) return
       if (history.state?.ankerSheet === closingMarker) {
-        sheetBackFocus = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
+        sheetBackFocus = sheetBackFocus?.isConnected ? sheetBackFocus : document.activeElement instanceof HTMLElement ? document.activeElement : undefined
         sheetBackPending = true
         updateSheetLayers()
         history.back()
       } else {
         // Navigation or the browser Back button has already consumed the entry.
+        sheetBackFocus = undefined
         removeHistoryBack?.(); removeNativeBack?.()
         updateSheetLayers()
       }
@@ -317,7 +352,7 @@ function registerSheet(layer: SheetLayer): () => void {
   }
 }
 
-export function Sheet({ open, onClose, children, title }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
+export function Sheet({ open, onClose, children, title, fullscreen = false }: { open: boolean; onClose: () => void; children: ReactNode; title?: string; fullscreen?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const close = useEffectEvent(onClose)
   useEffect(() => {
@@ -346,6 +381,7 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
     return () => {
       active = false; window.removeEventListener('keydown', onKey); unregister?.()
       if (previous?.isConnected && !previous.closest('[inert]')) previous.focus()
+      else if (previous?.isConnected && !sheetLayers.length) sheetBackFocus = previous
     }
   }, [open])
   if (!open) return null
@@ -359,7 +395,7 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
         aria-label={title ?? 'Optionen'}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="anker-sheet max-h-[calc(100dvh-0.75rem)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-3xl bg-surface p-5 safe-bottom"
+        className={`anker-sheet w-full overflow-y-auto overscroll-contain bg-surface p-5 safe-bottom ${fullscreen ? 'h-dvh max-h-dvh' : 'max-h-[calc(100dvh-0.75rem)] max-w-xl rounded-t-3xl'}`}
       >
         <header className="mb-3 flex min-h-11 items-center gap-2">
           {title && <h2 className="min-w-0 flex-1 break-words text-xl font-semibold">{title}</h2>}
@@ -396,8 +432,8 @@ export function BackButton({ to, onClick, label = 'Zurück', className = '' }: {
   return <button type="button" aria-label={label} onClick={() => onClick ? onClick() : to ? navigate(to) : navigate(-1)} className={`-ml-2 grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl text-muted active:bg-surface-2 ${className}`}>‹</button>
 }
 
-export function MoreInfo({ children, summary = 'Mehr erfahren', className = '', open }: { children: ReactNode; summary?: string; className?: string; open?: boolean }) {
-  return <details open={open} className={`more-info min-w-0 space-y-2 text-sm text-muted ${className}`}><summary className="min-h-11 cursor-pointer py-2">{summary}</summary><div className="space-y-3">{children}</div></details>
+export function MoreInfo({ children, summary = 'Mehr erfahren', className = '', open, id }: { children: ReactNode; summary?: string; className?: string; open?: boolean; id?: string }) {
+  return <details id={id} open={open} className={`more-info min-w-0 overflow-hidden rounded-2xl border border-line bg-surface text-sm ${className}`}><summary className="min-h-14 cursor-pointer px-4 py-4 font-medium text-text">{summary}</summary><div className="space-y-3 border-t border-line p-4 text-muted">{children}</div></details>
 }
 
 export function Checkbox({ checked, onChange, label, children, disabled = false, className = '', ...props }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'checked' | 'onChange' | 'size'> & { checked: boolean; onChange: (checked: boolean) => void; label?: ReactNode; children?: ReactNode }) {

@@ -39,7 +39,7 @@ async function onboard(page: Page, minute = 8 * 60) {
 async function fixture(page: Page) {
   const requests = await installAssistanceBackend(page, async (input: AssistantRequest, route) => {
     if (input.kind !== 'route') throw new Error('Q84 erwartet nur die ausdrücklich angeforderte Fahrtschätzung')
-    await route.fulfill({ json: { kind: 'route', revision: input.revision, route: { durationMin: 70, source: 'Google Routes', fetchedAt: zonedToUtc(DATE, 750), travelAt: input.at, mode: input.mode, trafficAware: true, estimated: true } } })
+    await route.fulfill({ json: { kind: 'route', revision: input.revision, route: { durationMin: 70, source: 'TomTom', fetchedAt: zonedToUtc(DATE, 750), travelAt: input.at, mode: input.mode, trafficAware: true, estimated: true } } })
   })
   await onboard(page)
   const settings = (await storedRecord<Settings>(page, 'settings', 'main'))!
@@ -57,7 +57,7 @@ async function fixture(page: Page) {
     { id: 'office', label: 'Büro', kind: 'office', latitude: 50, longitude: 7, externalUse: { routes: true } },
     { id: 'private', label: 'Privater Ort', kind: 'private', latitude: 50.1, longitude: 7.1, externalUse: { routes: true } },
   ]
-  data.assistance = { routes: { enabled: true, version: 1, at: zonedToUtc(DATE, 480), automatic: false } }
+  data.assistance = { routes: { enabled: true, version: 2, at: zonedToUtc(DATE, 480), automatic: false } }
   // Die laufende App hält noch den ungesäten Spielstand. Vor direkten Fixture-Writes
   // entladen, damit ihr verzögerter Fortschrittsabgleich keine Testdaten überschreibt.
   await page.goto(`${server.url}/icon.svg`)

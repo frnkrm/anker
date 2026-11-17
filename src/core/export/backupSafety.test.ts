@@ -106,7 +106,7 @@ describe('Sicherungen prüfen den ganzen Bestand vor irgendeinem Import', () => 
   })
 
   it('prüft vorhandene optionale Freigaben und Packlisten ohne sie alten Sicherungen vorzuschreiben', () => {
-    for (const assistance of [null, { ai: { enabled: 'ja', at, version: 1 } }, { routes: { enabled: true, at, version: 2 } }, { routeChecks: { c: { at: -1, revision: 'r' } } }]) {
+    for (const assistance of [null, { ai: { enabled: 'ja', at, version: 1 } }, { routes: { enabled: true, at, version: 3 } }, { routeChecks: { c: { at: -1, revision: 'r' } } }]) {
       expect(() => parse([record('meta', 'local', { assistance })])).toThrow()
     }
     for (const packTemplates of [[{}], [{ id: 'p', label: 'Test', context: 'customer', items: [42] }]]) {

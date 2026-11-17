@@ -4,7 +4,7 @@ import { ASSISTANCE_NOTICE_VERSION, assistanceAllowed, type AssistantCapabilitie
 import { AssistanceError, assistanceEnableConfirmation, assistantCapabilities, cancelAssistanceRequests } from '../../platform/assistance'
 import { supabaseConfigured } from '../../platform/supabase'
 import { useApp } from '../../state/store'
-import { Button, Card, Checkbox, Page, Section, SettingRow, Toggle } from '../components/ui'
+import { Button, Card, Checkbox, Info, Page, Section, SettingRow, Toggle } from '../components/ui'
 import { RouteCheckPreferences } from '../components/RouteEstimateCard'
 
 type Purpose = 'ai' | 'routes'
@@ -42,7 +42,7 @@ export default function AssistanceSettings() {
       const latest = await assistantCapabilities(signal)
       if (!mounted.current || signal.aborted) return
       setCapabilities(latest)
-      if (!latest[purpose].configured) throw new AssistanceError('not-configured')
+      if (!latest[purpose].configured || latest.freeOnly !== true || latest.ai.provider !== 'Gemini' || latest.routes.provider !== 'TomTom') throw new AssistanceError('not-configured')
     } else cancelAssistanceRequests(purpose)
     if (signal.aborted || !mounted.current) return
     await st.saveLocal((local) => ({ ...local, assistance: {
@@ -64,11 +64,13 @@ export default function AssistanceSettings() {
   const ai = assistanceAllowed(st.local.assistance, 'ai')
   const routes = assistanceAllowed(st.local.assistance, 'routes')
   const aiNextStep = !supabaseConfigured
-    ? 'KI-Vorschläge sind noch nicht verfügbar: In dieser App-Version fehlt die Server-Verbindung. Dafür muss zuerst die Verbindung eingerichtet werden.'
+    ? 'Diese App-Version enthält noch keine Server-Verbindung. Dafür ist zuerst ein entsprechend eingerichtetes App-Update nötig. Lokale Teilschritte funktionieren weiter.'
     : error
       ? error
       : !capabilities
         ? 'Prüfe zuerst die Verbindung. Der Check klärt, ob KI auf deinem Server eingerichtet ist; er ruft keinen Anbieter auf.'
+        : capabilities.freeOnly !== true
+          ? 'Der Server bestätigt noch keinen ausschließlich kostenlosen Betrieb. Eine Freigabe bleibt deshalb gesperrt.'
         : !capabilities.ai.configured
           ? 'KI ist auf deinem Server noch nicht eingerichtet. Die Server-Einrichtung ist ein gesonderter Schritt; das Kostenhäkchen allein schaltet keinen Dienst ein.'
           : !acceptedAI
@@ -84,12 +86,12 @@ export default function AssistanceSettings() {
       <p className="text-xs text-muted">Der Check sendet nur deine Anmeldung an deinen Server. Er ruft keine Anbieter auf und überträgt keine Aufgaben oder Adressen.</p>
       {capabilities && <p role="status" className="text-sm">Server: KI {capabilities.ai.configured ? 'eingerichtet' : 'noch nicht eingerichtet'} · Verkehr {capabilities.routes.configured ? 'eingerichtet' : 'noch nicht eingerichtet'}. Tagesgrenzen: {capabilities.dailyLimits.steps} KI-Anfragen und {capabilities.dailyLimits.route} Verkehrsprüfungen. Diese Grenzen sind keine Kostenobergrenze beim Anbieter.</p>}
     </Card>
-    <Section title="KI für kleine Schritte">
+    <div id="ki"><Section title="KI für kleine Schritte">
       <Card className="min-w-0 space-y-3 [overflow-wrap:anywhere]">
-        <p className="text-sm">Empfänger: dein Supabase-Server und OpenAI. Übermittelt werden der von dir bearbeitbare Aufgabentext und die Detailtiefe. Beschreibung und nächster Schritt sind je Anfrage freiwillig abgewählt. Vor jedem Senden siehst du die Inhalte und bestätigst sie gesondert; berufliche Angaben prüfst du selbst.</p>
-        <p className="text-sm text-muted">Es können Kosten bei OpenAI und deinem Server entstehen. Prüfe vor echter Aktivierung die <a className="text-accent underline" href="https://openai.com/api/pricing/" target="_blank" rel="noreferrer">aktuellen API-Preise</a> und <a className="text-accent underline" href="https://openai.com/policies/business-terms/" target="_blank" rel="noreferrer">Anbieterbedingungen</a>.</p>
-        {!ai && <Checkbox label="Übertragung an OpenAI und mögliche Anbieter-/Serverkosten für KI-Vorschläge sind für mich in Ordnung." checked={acceptedAI} disabled={busy} onChange={acceptAI} />}
-        <fieldset className="min-w-0 disabled:opacity-50" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured))}><SettingRow label={<span>KI-Vorschläge erlauben</span>}>
+        <p className="text-sm">Vorgesehener Empfänger: dein Server und Gemini im Free Tier. Nur dein ausgewählter Aufgabentext und die Detailtiefe werden gesendet; zusätzliche Beschreibung wählst du selbst. Keine vertraulichen Angaben senden.</p>
+        <Info title="Kostenfreie KI einrichten"><p>1. Eine App-Version mit Server-Verbindung verwenden und anmelden.</p><p>2. Auf dem Server einen Gemini-Schlüssel aus einem geprüften Free-Tier-Projekt ohne Abrechnung hinterlegen lassen. Auch der Server muss im kostenlosen Kontingent bleiben.</p><p>3. Verbindung prüfen und danach hier bewusst freigeben. Bei Grenzen stoppt die Funktion; es gibt keinen kostenpflichtigen Ersatzanbieter.</p><p>Gemini-Free-Tier-Bedingungen können eine Nutzung von Eingaben zur Produktverbesserung vorsehen. Prüfe die <a className="underline" href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noreferrer">Preise und Datenhinweise</a>. Für jeden Vorschlag bestätigst du den konkreten Inhalt separat.</p></Info>
+        {!ai && <Checkbox label="Ausgewählten Text über meinen Server an Gemini im geprüften Free Tier senden erlauben." checked={acceptedAI} disabled={busy} onChange={acceptAI} />}
+        <fieldset className="min-w-0 disabled:opacity-50" disabled={busy || (!ai && (!acceptedAI || !capabilities?.ai.configured || capabilities.freeOnly !== true))}><SettingRow label={<span>KI-Vorschläge erlauben</span>}>
               <Toggle label="KI-Vorschläge erlauben" checked={ai} onChange={(value) => void change('ai', value)} />
             </SettingRow></fieldset>
         {!ai && <div className="space-y-2">
@@ -99,18 +101,19 @@ export default function AssistanceSettings() {
           <Link className="flex min-h-11 items-center text-accent" to="/arbeit">Lokale Teilschritte unter Arbeit öffnen</Link>
         </div>}
       </Card>
-    </Section>
-    <Section title="Verkehr für Fahrzeiten">
+    </Section></div>
+    <div id="verkehr"><Section title="Verkehr für Fahrzeiten">
       <Card className="min-w-0 space-y-3 [overflow-wrap:anywhere]">
-        <p className="text-sm">Empfänger: dein Supabase-Server und Google Routes. Übermittelt werden die für die gewählte Fahrt ausdrücklich freigegebenen Start-/Zieladressen, Verkehrsmittel und Abfahrtszeit. Aufgaben, Medikamente und Routinentexte werden nicht automatisch angehängt. Keine laufende Standortverfolgung.</p>
-        <p className="text-sm text-muted">Anbieter und Server können Kosten verursachen. Prüfe die <a className="text-accent underline" href="https://mapsplatform.google.com/pricing/" target="_blank" rel="noreferrer">aktuellen Maps-Preise</a> und <a className="text-accent underline" href="https://cloud.google.com/maps-platform/terms" target="_blank" rel="noreferrer">Google-Maps-Bedingungen</a>. Eine Verkehrsfreigabe aktiviert keine automatischen Abrufe; dafür gibt es eine eigene Wahl bei deiner Fahrt.</p>
-        {!routes && <Checkbox label="Übertragung der gewählten Fahrtdaten an Google Routes und mögliche Anbieter-/Serverkosten sind für mich in Ordnung." checked={acceptedRoutes} disabled={busy} onChange={acceptRoutes} />}
-        <fieldset className="min-w-0" disabled={busy || (!routes && (!acceptedRoutes || !capabilities?.routes.configured))}><SettingRow label={<span>Verkehrsvorschläge erlauben</span>}>
+        <p className="text-sm">Vorgesehener Empfänger: dein Server und TomTom im kostenlosen Kontingent. Nur ausdrücklich ausgewählte Start-/Zielangaben, Verkehrsmittel und Fahrtzeit. Keine laufende Standortverfolgung.</p>
+        {!routes && <p role="status" className="text-sm text-muted">{!supabaseConfigured ? 'Diese App-Version enthält noch keine Server-Verbindung. Ein eingerichtetes App-Update ist nötig.' : !capabilities ? 'Prüfe zuerst Anmeldung und Server-Verbindung.' : !capabilities.routes.configured || capabilities.freeOnly !== true ? 'Der kostenlose Verkehrsweg ist auf deinem Server noch nicht bestätigt und eingerichtet.' : 'Bereit für deine bewusste Freigabe.'}</p>}
+        <Info title="Kostenfreie Fahrzeiten einrichten"><p>Auf dem Server muss ein TomTom-Schlüssel aus einem geprüften kostenlosen Konto ohne automatische Abrechnung eingerichtet sein. Danach Verbindung prüfen und die Datenübertragung freigeben.</p><p>Auto, Fahrrad und Fußwege werden unterstützt; ÖPNV bleibt manuell. Mehrdeutige Adressen werden nicht geraten. Ist ein Kontingent erschöpft, bleibt deine manuelle Planung erhalten. Automatische Abrufe sind eine zusätzliche eigene Wahl.</p><a className="underline" href="https://docs.tomtom.com/pricing" target="_blank" rel="noreferrer">Aktuelle TomTom-Kontingente</a></Info>
+        {!routes && <Checkbox label="Ausgewählte Fahrtdaten über meinen Server an TomTom im geprüften kostenlosen Kontingent senden erlauben." checked={acceptedRoutes} disabled={busy} onChange={acceptRoutes} />}
+        <fieldset className="min-w-0" disabled={busy || (!routes && (!acceptedRoutes || !capabilities?.routes.configured || capabilities.freeOnly !== true))}><SettingRow label={<span>Verkehrsvorschläge erlauben</span>}>
               <Toggle label="Verkehrsvorschläge erlauben" checked={routes} onChange={(value) => void change('routes', value)} />
             </SettingRow></fieldset>
       </Card>
       <RouteCheckPreferences />
-    </Section>
+    </Section></div>
     <Card className="space-y-3">
       <p className="text-sm text-muted">{privacy}</p>
       <p className="text-sm text-muted">Du kannst beide Freigaben jederzeit auch ohne Verbindung ausschalten. Ein Abbruch beendet die weitere Verarbeitung in der App; bereits beim Anbieter eingegangene Inhalte lassen sich dadurch nicht zurückholen.</p>

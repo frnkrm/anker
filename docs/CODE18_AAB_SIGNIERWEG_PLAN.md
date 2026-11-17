@@ -1,5 +1,7 @@
 # T-006 – konkreter Plan für den signierten Code18-AAB-Prüfweg
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 ## Fortschreibung: Stufe-C-Abbruch im Inputschema lokalisiert (15.11.2026)
 
 [Resolve-Schema-Befund und begrenzter Folgeplan](CODE18_RESOLVE_SCHEMA_BEFUND_T006.md): `INVALID_SCHEMA` betrifft das Eingangsschema in `invocation()` vor den CI-Abfragen. Auch für prepare verlangt der Parser alle fünf optionalen Signierfelder; positive Fixtures decken deren Auslassung nicht ab. Die tatsächliche Eingabeform in P bleibt unbekannt. Heute keine Korrektur, Tests oder Workflowaktion. Den kleinsten belegten lokalen Schemafix separat beauftragen. U2/H2/HP/A/S fehlen; keine Signierfreigabe. M-/W-/Code17-Gates bleiben erhalten.

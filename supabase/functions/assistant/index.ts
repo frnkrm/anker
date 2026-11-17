@@ -10,4 +10,8 @@ Deno.serve(createAssistantHandler({
   aiKey: Deno.env.get('OPENAI_API_KEY'),
   aiModel: Deno.env.get('ANKER_AI_MODEL'),
   routesKey: Deno.env.get('GOOGLE_ROUTES_API_KEY'),
+  freeOnly: true,
+  freePlanConfirmed: Deno.env.get('ANKER_FREE_PLAN_CONFIRMED') === 'true',
+  geminiKey: Deno.env.get('GEMINI_API_KEY'),
+  tomtomKey: Deno.env.get('TOMTOM_API_KEY'),
 }))

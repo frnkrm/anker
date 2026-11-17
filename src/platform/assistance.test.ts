@@ -11,7 +11,7 @@ const result = { kind: 'steps', revision: input.revision, steps: [{ title: 'Eine
 beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co')
   vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'public-test-key')
-  context.profile = { ai: { enabled: true, version: 1, at: 1 } }; context.token = true; context.sessionDelay = undefined
+  context.profile = { ai: { enabled: true, version: 2, at: 1 } }; context.token = true; context.sessionDelay = undefined
   assistanceEnableConfirmation('ai')()
 })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
@@ -22,7 +22,7 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     vi.stubGlobal('fetch', fetcher)
     context.profile = undefined
     await expect(requestAssistance(input)).rejects.toMatchObject({ issue: 'consent' })
-    context.profile = { ai: { enabled: true, version: 1, at: 1 } }; context.token = false
+    context.profile = { ai: { enabled: true, version: 2, at: 1 } }; context.token = false
     await expect(requestAssistance(input)).rejects.toMatchObject({ issue: 'signed-out' })
     expect(fetcher).not.toHaveBeenCalled()
   })
@@ -44,7 +44,7 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({ ...input, description: 'Bewusst gewählter Kontext', nextStep: 'Unterlage öffnen' })
   })
   it('entfernt Zusatzfelder auch innerhalb ausgewählter Routenpunkte', async () => {
-    context.profile = { routes: { enabled: true, version: 1, at: 1 } }
+    context.profile = { routes: { enabled: true, version: 2, at: 1 } }
     const route = { kind: 'route' as const, revision: 'route:current', origin: { latitude: 52, longitude: 13, private: 'synthetic-extra-coordinate' },
       destination: { address: 'Bewusst gewähltes Ziel', private: 'synthetic-extra-address' }, mode: 'walking' as const, at: '2026-11-06T12:00:00Z', timing: 'departure' as const }
     const fetcher = vi.fn<typeof fetch>(async () => Response.json({ kind: 'route', revision: route.revision, route: {
@@ -73,7 +73,7 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     vi.stubGlobal('fetch', () => pending)
     const requesting = requestAssistance(input)
     await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
-    context.profile = { ai: { enabled: false, version: 1, at: 1 } }
+    context.profile = { ai: { enabled: false, version: 2, at: 1 } }
     finish(Response.json(result))
     await expect(requesting).rejects.toMatchObject({ issue: 'consent' })
   })
@@ -83,7 +83,7 @@ describe('Vorschläge nur nach Zweckfreigabe, ohne stille Planänderungen', () =
     const fetcher = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetcher)
     const requesting = requestAssistance(input)
-    context.profile = { ai: { enabled: false, version: 1, at: 1 } }
+    context.profile = { ai: { enabled: false, version: 2, at: 1 } }
     release()
     await expect(requesting).rejects.toMatchObject({ issue: 'consent' })
     expect(fetcher).not.toHaveBeenCalled()

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { EVENING_LABELS } from '../../core/defaults'
 import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
 import { recoveryPreview, resumeRoute } from '../../core/recovery'
@@ -26,7 +26,12 @@ import { countdownLabel } from '../components/fieldValues'
 import { SportToggle } from '../components/SportToggle'
 import { StuckSheet } from '../components/Stuck'
 import { LateForm, openRoute, TodayDifferent } from '../components/TodayDifferent'
-import { Button, Card, Choice, Progress, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
+import { Button, Card, Choice, Info, MoreInfo, Progress, SearchButton, Segmented, Sheet, TextInput, TimeStepper } from '../components/ui'
+import { SmartWake } from '../components/SmartWake'
+import { markBedAndStartMeasurement } from '../../platform/nightMeasurement'
+import { HobbyIdea } from '../components/HobbyIdea'
+import { SleepQuestion } from '../components/SleepQuestion'
+import { SleepReflections } from '../components/SleepReflections'
 import { WorkChip } from '../components/WorkControls'
 import { GeofenceSuggestions } from '../components/GeofenceVisit'
 import { HomeOfficeContact } from '../components/HomeOfficeContact'
@@ -44,6 +49,7 @@ const DAY_LABEL: Record<DayType, string> = { work: 'Arbeitstag', weekend: 'Frei'
 export default function Now() { return <BedtimeSessionProvider><NowContent /></BedtimeSessionProvider> }
 
 function NowContent() {
+  const location = useLocation()
   const { now } = useToday(1000)
   const st = useApp()
   const guidance = useGuidanceView()
@@ -52,7 +58,8 @@ function NowContent() {
   const log = st.days[date] ?? emptyLog(date)
   const m = minutesOnPlanDay(date, now)
   const guidanceOptions = guidancePreferences(st.settings.guidance)
-  const [adjust, setAdjust] = useState(false)
+  const [adjust, setAdjust] = useState(location.hash === '#heute-anpassen')
+  useEffect(() => { if (location.hash === '#heute-anpassen') setAdjust(true) }, [location.hash, location.key])
   const [stuck, setStuck] = useState(false)
   const [dayOpen, setDayOpen] = useState(false)
   const [longer, setLonger] = useState(false)
@@ -78,7 +85,7 @@ function NowContent() {
   const conflict = nowConflictNotice(plan, m, st.local.acknowledgedPlanConflicts?.[date] ?? [])
   const next = upcoming.find((entry) => !((a.type === 'worktask') && entry.task.id === a.task.id))
   const after = next ? `${next.kind === 'start' ? 'Ab' : 'Frist'} ${utcToZoned(next.at).date !== utcToZoned(now).date ? 'morgen ' : ''}${fmtTime(utcToZoned(next.at).minutes)} · ${taskTitle(next.task)}`
-    : plan.blocks.find((block) => block.start > m && block.title !== a.title)?.title
+    : plan.blocks.find((block) => block.start > m && block.title !== a.title && !(block.kind === 'wake' && log.wakeAt !== undefined))?.title
   const task = a.type === 'worktask' || a.type === 'task' ? a.task : undefined
   const deadline = task?.deadline !== undefined ? utcToZoned(task.deadline) : undefined
   const reason = deadline ? `${task!.deadline! <= now ? 'Frist war' : 'Frist'} ${deadline.date !== utcToZoned(now).date ? new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'Europe/Berlin' }).format(task!.deadline!) + ' ' : ''}${fmtTime(deadline.minutes)}${task!.deadline! <= now ? ' · ein kleiner Anfang reicht' : ''}`
@@ -94,20 +101,23 @@ function NowContent() {
     {!bedtime && <>
       <header className={`now-header${timeArc ? ' now-header-with-arc' : ''}`}>
         {timeArc && v.hard && <GuidanceTimeArc date={date} hard={v.hard} now={now} />}
-        <div className="now-anchor">{v.hard ? <>{v.hard.key === 'commitment' ? v.hard.label.startsWith('Los') ? 'Los' : 'Termin' : v.hard.label} {fmtTime(v.hard.at)}{near && <span className="block">noch {fmtDuration(v.hard.at - m)}</span>}</> : fmtTime(m)}</div>
+        <div className="now-anchor">{v.hard ? <>{v.hard.key === 'commitment' ? v.hard.label.startsWith('Los') ? 'Losgehen' : 'Termin' : v.hard.label}{near ? <> in {fmtDuration(Math.max(0, v.hard.at - m))}<span className="block">um {fmtTime(v.hard.at)}</span></> : <> um {fmtTime(v.hard.at)}</>}</> : fmtTime(m)}</div>
         <button type="button" onClick={() => setAdjust(true)} className="now-day-chip" aria-label="Heute anpassen: Tagesart und Modus">{plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} · {MODE_LABEL[mode]} ▾</button>
+        <SearchButton />
       </header>
       {near && !timeArc && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
       <WorkChip date={date} plan={plan} log={log} m={m} now={now} />
     </>}
     {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
+    {log.override.wakeOverride !== undefined && <Link to="/einstellungen/schlaf" className="flex min-h-11 items-center text-sm text-accent">Heute gewählte Aufstehzeit: {fmtTime(plan.wake)} · Standard {fmtTime(st.settings.anchor.wake)}</Link>}
 
     <section aria-live="polite" className="now-action">
-      {!bedtime && hint && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{hint} ›</Link> : <p className="now-context">{hint}</p>)}
-      <h1 className="now-title">{nowActionTitle(a, plan, m)}</h1>
+      {!bedtime && hint && !(a.type === 'info' && a.title === 'Kurz durchatmen') && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{hint} ›</Link> : <p className="now-context">{hint}</p>)}
+      <h1 className="now-title">{a.type === 'info' && a.title === 'Kurz durchatmen' ? 'Ein ruhiger Moment' : nowActionTitle(a, plan, m)}</h1>
+      {a.type === 'info' && a.title === 'Kurz durchatmen' && <p className="now-context">Gerade kein Handlungsschritt im Plan.</p>}
       {!bedtime && reason && <p className="now-reason">{reason}</p>}
       <div className="now-buttons">
-        {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} onBed={() => st.mark(date, 'bedAt')} />
+        {bedtime && !adjust ? <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} integrated enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} lockAfterBed={st.settings.alarm.smartWake.enabled && st.settings.alarm.smartWake.lockOnStart === true} onBed={() => markBedAndStartMeasurement(date)} />
           : bedtime ? null : <ActionButtons action={a} date={date} m={m} mode={mode} estimatedMin={primaryLabelMinutes} onLate={() => setLate(true)} onLonger={() => setLonger(true)} onStuck={() => setStuck(true)} onInterrupted={() => setInterrupted(true)} />}
       </div>
       {!bedtime && after && <p className="now-after" aria-label="Danach">Danach: {after}</p>}
@@ -115,6 +125,7 @@ function NowContent() {
 
     {!bedtime && <DepartureReadiness plan={plan} log={log} now={now} />}
     {!bedtime && <MorningShortOffer plan={plan} log={log} now={now} />}
+    {!bedtime && <HobbyIdea input={input} alarmActive={guidance.phase === 'ALARM_RINGING'} />}
 
     {!bedtime && readyToReview > 0 && m >= 14 * 60 && <Link to="/abend" className="flex min-h-11 items-center text-sm text-muted">Geparkt · {readyToReview} zum Ansehen ›</Link>}
     {!bedtime && conflict.active.slice(0, 1).map((item) => <aside key={item.id} className="now-conflict" aria-label="Überschneidung prüfen"><p>{item.summary}</p><div className="now-conflict-actions"><Link to="/tag" className="underline">Ansehen</Link><button type="button" onClick={() => void st.acknowledgePlanConflict(date, item.id).catch(() => st.showToast('Der Hinweis konnte noch nicht bestätigt werden. Versuche es erneut.'))}>Passt so</button></div></aside>)}
@@ -122,45 +133,50 @@ function NowContent() {
     {!adjust && !dayOpen && !stuck && !longer && !late && !interrupted && !rescue && !different && !drifted && !capture && <HomeOfficeContact date={date} reminderOnly />}
     <GuidanceHomeExtras />
     <BedtimeFollowUpCard />
+    <SleepQuestion />
+    <SleepReflections now={now} minute={m} wake={plan.wake} />
+    {st.settings.alarm.smartWake.enabled && <SmartWake compact />}
     <button type="button" className="now-adjust" onClick={() => setAdjust(true)}>Heute anpassen</button>
 
     <Sheet open={adjust} onClose={() => setAdjust(false)} title="Heute anpassen">
-      <div className="space-y-3">
-        <Choice label="Unterstützung" value={mode} options={MODES.map((value) => ({ value, label: MODE_LABEL[value] }))} onChange={(value) => void st.setOverride(date, { mode: value })} />
-        <Choice<DayType> label="Tagesart" value={plan.dayType} options={[{ value: 'work', label: 'Arbeit' }, { value: 'weekend', label: 'Frei' }, { value: 'vacation', label: 'Urlaub' }, { value: 'sick', label: 'Krank' }]} onChange={(value) => void st.setOverride(date, { dayType: value })} />
-        <div className="now-options-menu">
+      <div id="heute-anpassen" className="space-y-3">
+        <MoreInfo summary="Jetzt Unterstützung" open><div className="now-options-menu">
+          <Choice label="Unterstützung" value={mode} options={MODES.map((value) => ({ value, label: MODE_LABEL[value] }))} onChange={(value) => void st.setOverride(date, { mode: value })} />
           <Button className="w-full !justify-start" onClick={() => openPanel(() => setCapture(true))}>Gedanke festhalten</Button>
           <Button className="w-full !justify-start" onClick={() => openPanel(() => setDrifted(true))}>Ich bin abgedriftet</Button>
-          <Link to="/tag">Ganzen Tag ansehen ›</Link>
-        </div>
-        <details className="rounded-xl border border-line px-3">
-          <summary className="min-h-12 content-center text-muted">Weitere Möglichkeiten</summary>
-          <div className="now-options-menu pb-3">
+          {behind && <Button onClick={() => openPanel(() => setRescue(true))}>Tag neu sortieren</Button>}
+        </div></MoreInfo>
+        <MoreInfo summary="Termine & Tagesplan"><div className="now-options-menu">
+            <Choice<DayType> label="Tagesart" value={plan.dayType} options={[{ value: 'work', label: 'Arbeit' }, { value: 'weekend', label: 'Frei' }, { value: 'vacation', label: 'Urlaub' }, { value: 'sick', label: 'Krank' }]} onChange={(value) => void st.setOverride(date, { dayType: value })} />
             <Button onClick={() => openDifferent('event')}>Termin planen</Button>
             <Button onClick={() => openDifferent()}>Heute anders</Button>
             <Button onClick={() => openDifferent('work')}>Arbeit heute anders</Button>
+            <Button onClick={() => openPanel(() => setDayOpen(true))}>Homeoffice und Abendplan</Button>
+            <Button onClick={() => openPanel(() => setLonger(true))}>Heute länger arbeiten</Button>
+            <Link to="/tag">Ganzen Tag ansehen ›</Link><Link to="/arbeit">Arbeit öffnen</Link>
+        </div></MoreInfo>
+        <MoreInfo summary="Routinen & Aufgaben"><div className="now-options-menu">
             <Button onClick={() => openDifferent('later')}>Diese Routine später</Button>
             <Button onClick={() => openDifferent('not-needed')}>Heute nicht nötig</Button>
-            <Button onClick={() => openDifferent('late')}>Länger wach bleiben</Button>
             <Button onClick={() => openDifferent('covered')}>Für morgen schon versorgt</Button>
             <Button onClick={() => openDifferent('covered-today')}>Morgenroutine heute prüfen</Button>
             {a.type === 'step' && <><Link to={`/fokus/${a.routine}`}>Fokus öffnen</Link><Button onClick={() => void st.setStep(date, a.routine, a.step.id, 'skipped')}>Diesen Schritt überspringen</Button>{stepLink(a.step) && <Link to={stepLink(a.step)!.to}>{stepLink(a.step)!.label}</Link>}</>}
             {a.type === 'task' && <Button onClick={() => void st.updateTask({ kind: 'task', id: a.task.id }, { taskDate: addDays(date, 1), state: 'deferred' })}>Aufgabe auf morgen verschieben</Button>}
-            <Button onClick={() => openPanel(() => setDayOpen(true))}>Homeoffice und Abendplan</Button>
-            <Link to="/arbeit">Arbeit öffnen</Link><Link to="/abend">Abend & morgen</Link>
-            <Button onClick={() => openPanel(() => setLonger(true))}>Heute länger arbeiten</Button>
-            <Button onClick={() => openPanel(() => setLate(true))}>Abendzeit ändern</Button>
-            {suggestion && <Button onClick={() => void st.setOverride(date, { mode: suggestion })}>{MODE_LABEL[suggestion]} für heute Abend einschalten</Button>}
             <Segmented label="Mein Aufgabenkontext" value={st.local.taskContext ?? 'any'} onChange={(context) => void st.saveLocal((local) => ({ ...local, taskContext: context }))} options={[{ value: 'any' as const, label: 'Offen' }, { value: 'home' as const, label: 'Zuhause' }, { value: 'work' as const, label: 'Arbeit' }, { value: 'errand' as const, label: 'Unterwegs' }]} />
-            {behind && <Button onClick={() => openPanel(() => setRescue(true))}>Tag neu sortieren</Button>}
             {!sportInRoutine(st.settings) && !sportDone(plan, log, st.settings) && <SportToggle plan={plan} />}
-            <GeofenceSuggestions />
+        </div></MoreInfo>
+        <MoreInfo summary="Abend & Schlaf"><div className="now-options-menu">
+            <Button onClick={() => openDifferent('late')}>Länger wach bleiben</Button>
+            <Button onClick={() => openPanel(() => setLate(true))}>Abendzeit ändern</Button>
+            <Link to="/abend">Abend & morgen</Link><Link to="/wecker#nachtmessung">Nachtmessung einrichten</Link>
+            {suggestion && <Button onClick={() => void st.setOverride(date, { mode: suggestion })}>{MODE_LABEL[suggestion]} für heute Abend einschalten</Button>}
             {adjust && <BedtimePrompt available delayMinutes={st.settings.sleep.fallAsleepMin} nowMs={now} enabled={st.settings.sleep.bedtimePromptEnabled ?? false} followUpsEnabled={st.settings.sleep.bedtimeFollowUpsEnabled ?? false} settingsOnly />}
-            {v.reason && <p className="text-sm text-muted">{v.reason}</p>}
-            {plan.notes.map((note) => <p key={note} className="text-sm text-muted">{note}</p>)}
+        </div></MoreInfo>
+        <MoreInfo summary="Weitere Möglichkeiten"><div className="now-options-menu">
+            <GeofenceSuggestions />
+            {(v.reason || plan.notes.length > 0) && <Info title="Hinweise zu deinem heutigen Plan">{v.reason && <p>{v.reason}</p>}{plan.notes.map(note => <p key={note}>{note}</p>)}</Info>}
             <Extras date={date} />
-          </div>
-        </details>
+        </div></MoreInfo>
       </div>
     </Sheet>
     <StuckSheet open={stuck} onClose={() => setStuck(false)} action={a} />
@@ -376,9 +392,12 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       )
     case 'away':
       return (
-        <Button size="lg" className="w-full" onClick={() => st.markCommitment(a.leg.commitment.id, 'backAt')}>
-          Bin wieder da
-        </Button>
+        <><Button size="lg" className="w-full" onClick={() => st.markCommitment(a.leg.commitment.id, 'backAt')}>Bin wieder da</Button>
+        <Button variant="ghost" className="w-full" onClick={() => {
+          const at = Date.now() + 30 * 60_000
+          if (minutesOnPlanDay(date, at) >= planFor(date, st).bed) { st.showToast('Diese Rückfrage läge nach deiner Bettzeit. Dein Status bleibt offen.'); return }
+          void st.updateCommitment(a.leg.commitment.id, { returnCheckAt: at }).then(() => st.showToast('Rückfrage in 30 Minuten vorgemerkt. Dein Status bleibt offen.'), () => st.showToast('Die Rückfrage konnte noch nicht vorgemerkt werden.'))
+        }}>In 30 Minuten an meinen Status erinnern</Button></>
       )
     case 'work-break':
       return (
@@ -498,7 +517,7 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
       )
     case 'bed':
       return (
-        <Button variant="primary" size="xl" className="w-full" onClick={() => st.mark(date, 'bedAt')}>
+        <Button variant="primary" size="xl" className="w-full" onClick={() => markBedAndStartMeasurement(date)}>
           Ich liege im Bett
         </Button>
       )
@@ -510,7 +529,7 @@ function ActionButtons({ action: a, date, m, mode, estimatedMin, onLate, onLonge
           </Link>
         )
       }
-      return <div className="flex gap-2">{StuckButton}</div>
+      return null
     default:
       return null
   }

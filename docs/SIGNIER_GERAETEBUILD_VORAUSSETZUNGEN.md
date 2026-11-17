@@ -1,5 +1,26 @@
 # T-006 – Voraussetzungen für einen signierten Geräteprüfbuild
 
+## Reales USB-Gerät geprüft: Play-Signatur verhindert lokales Direktupdate (17.11.2026)
+
+Nutzer beauftragte Code18 als signiertes Update der bestehenden App per USB.
+ADB bestätigt `de.frnkrm.anker.mobile`, Code17 / 1.5.0-rc.3,
+Installationsquelle `com.android.vending`. Die tatsächlich installierte base.apk
+wurde ausschließlich gelesen und mit Android Build Tools 36.0.0/apksigner geprüft.
+Öffentliches Signaturzertifikat SHA256:
+`8a32e7b77eedcd88477b740fef2b5836f55a5ccb22c735f20e322aa905304429` (Google).
+Eine mit separatem Upload-/Debugschlüssel signierte lokale APK passt nicht dazu.
+Der App-Signierschlüssel ist bei Play App Signing von einem Uploadschlüssel zu
+unterscheiden; öffentliches Zertifikat und installierte APK enthalten keinen
+verwendbaren privaten Signierschlüssel.
+
+Kein unnötiger Build mit unpassender Signatur, kein Installationsversuch, keine
+Deinstallation, Datenlöschung oder neue Schlüsselerzeugung. App bleibt auf Code17.
+Ein passendes Direktupdate erfordert eine von Google passend signierte Code18-APK,
+alternativ den regulären internen Play-Updateweg. Die bereits geplante Play-Aktion
+bleibt unverändert. Neue gewünschte Funktionen sind bisher nur geplant und nicht
+Bestandteil der vorhandenen Code18-Quelle. main ab2f3e6 hat eigene erfolgreiche
+CI43985744534; das ist kein Signier-/Installationsbeleg.
+
 ## T-006: manueller AAB-Prüfworkflow lokal entworfen, Signierfreigabe fehlt (14.11.2026)
 
 [LokalerEntwurfStufeA](CODE18_AAB_WORKFLOW_ENTWURF.md): separateprepare/sign-Dispatches,fixesM/gekoppelteexaktemain-CI,späteresWmiteigenermain-CI,exakteP/Versuch/A/H2/HP-Bindung,Keyisolierung/keinFallback/secretfreiesJAR-Verify implementiert.43Offlinefällegrün,positiveSignierung ausschließlichProzessattrappen;kein privaterZugriff oder echteB4-Signaturbelegt. VierNamen/Scope/Keyzugriff weiterhinunbestätigt,nichtabgefragt;B4/8Agetrennt. Actionlintfehlt,realerServer-/Runnerpfadungeprüft. LlokalerEntwurfistnichtW,keinesignedS/U2entstanden. BestehendeAPK-/Code17-Pfade undManifesteunverändert. Nächster eigenerAuftrag begrenzterBranch-PushL/CI-Abgleich,separateFreigabe;regulärespäteremain-Integration/WCI,prepare,sign/verify,Upload/Geräte weitereeigeneFreigaben. T-006/V-014/E-002–E-005/Gesamtfreigabenoffen.

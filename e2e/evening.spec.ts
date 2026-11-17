@@ -53,7 +53,7 @@ test('Abendroutine bietet nach PC-Stopp und Bettzeit keine neue Freizeit an', as
 test('Abend mit offenem Ende bekommt im Fokus keine erfundene Freizeitgrenze', async ({ page }) => {
   await onboard(page)
   await openTodayAdjust(page)
-  await page.getByRole('dialog').getByText('Weitere Möglichkeiten', { exact: true }).click()
+  await page.getByRole('dialog').getByText('Abend & Schlaf', { exact: true }).click()
   await page.getByRole('button', { name: 'Länger wach bleiben', exact: true }).click()
   await page.getByRole('button', { name: 'Weiß ich noch nicht', exact: true }).click()
   await page.getByRole('button', { name: 'Übernehmen', exact: true }).click()

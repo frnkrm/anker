@@ -35,7 +35,7 @@ export function validCommitment(value: unknown): value is Commitment {
   for (const key of ['originPlaceId', 'placeId']) if (value[key] !== undefined && !nonempty(value[key])) return false
   for (const key of ['placeLabel', 'address']) if (value[key] !== undefined && !text(value[key])) return false
   for (const key of ['travelMin', 'travelHomeMin', 'arrivalBufferMin', 'prepMin']) if (value[key] !== undefined && !minutes(value[key])) return false
-  for (const key of ['leftAt', 'arrivedAt', 'backAt']) if (value[key] !== undefined && !timestamp(value[key])) return false
+  for (const key of ['leftAt', 'arrivedAt', 'backAt', 'returnCheckAt']) if (value[key] !== undefined && !timestamp(value[key])) return false
   for (const key of ['items', 'preparedItems']) if (value[key] !== undefined && !stringList(value[key])) return false
   for (const key of ['replacesCommute', 'prepIncludesMorning']) if (value[key] !== undefined && typeof value[key] !== 'boolean') return false
   if (value.routeMode !== undefined && !choice(value.routeMode, ['driving', 'transit', 'cycling', 'walking', 'none'])) return false
@@ -85,7 +85,7 @@ export function normalizeCommitment(value: unknown): Commitment | undefined {
   const base = { id: value.id, date: value.date, label: value.label, context: value.context, commitment: value.commitment, start: value.start }
   if (!validCommitment(base)) return undefined
   const next = { ...value }
-  for (const key of ['end', 'locationKind', 'originPlaceId', 'placeId', 'placeLabel', 'address', 'travelMin', 'travelHomeMin', 'arrivalBufferMin', 'prepMin', 'leftAt', 'arrivedAt', 'backAt', 'items', 'preparedItems', 'replacesCommute', 'prepIncludesMorning', 'routeMode', 'workKind', 'thenTo', 'status', 'source']) {
+  for (const key of ['end', 'locationKind', 'originPlaceId', 'placeId', 'placeLabel', 'address', 'travelMin', 'travelHomeMin', 'arrivalBufferMin', 'prepMin', 'leftAt', 'arrivedAt', 'backAt', 'returnCheckAt', 'items', 'preparedItems', 'replacesCommute', 'prepIncludesMorning', 'routeMode', 'workKind', 'thenTo', 'status', 'source']) {
     if (!validCommitment({ ...base, [key]: next[key] })) delete next[key]
   }
   return next as unknown as Commitment

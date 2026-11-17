@@ -4,10 +4,11 @@ import { guidancePreferences } from '../../core/guidance'
 import { completeMorningAlarmHandoff, confirmMorningActivity } from '../../platform/guidance'
 import { alarmPlanningStatus, STOP_METHOD_LABEL } from '../../core/alarm'
 import { randomId } from '../../core/defaults'
+import { sleepNightFor } from '../../core/sleepDiary'
 import { fmtTime, todayBerlin, utcToZoned } from '../../core/time'
 import type { AlarmPreferences, MedsStatus } from '../../core/types'
 import { makeMathTask, syncAlarm } from '../../platform/alarm'
-import { AnkerNative, isNative, safe, type AlarmDiagnostics, type AlarmKindWire, type ReminderChannelId } from '../../platform/native'
+import { AnkerNative, isNative, safe, type AlarmDiagnostics, type AlarmKindWire, type AlarmStateInfo, type ReminderChannelId } from '../../platform/native'
 import { scanQr } from '../../platform/qr'
 import { today, useApp } from '../../state/store'
 import { QrCode } from '../components/QrCode'
@@ -184,7 +185,7 @@ export function AlarmSetup({ embedded = false }: { embedded?: boolean } = {}) {
       <NextWake />
       <div className="[&_.setting-control]:ml-auto"><SmartWake /></div>
       <Section title="Optional">
-        <Card className="space-y-3">
+        <Card id="vorwecker" className="space-y-3">
           <SettingRow label={<div>
             <p className="font-medium">Vorwecker</p>
             <p className="text-sm text-muted">Ein früherer, sanfter Ton. Der Hauptwecker bleibt unabhängig davon geplant.</p>
@@ -197,7 +198,7 @@ export function AlarmSetup({ embedded = false }: { embedded?: boolean } = {}) {
             </SettingRow>
           )}
         </Card>
-        <Card className="space-y-3">
+        <Card id="wachheitscheck" className="space-y-3">
           <SettingRow label={<div>
             <p className="font-medium">Wachheits-Check</p>
             <p className="text-sm text-muted">Einmal kurz nachfragen, nachdem du den Wecker beendet hast. Keine Wiederholung.</p>
@@ -210,7 +211,7 @@ export function AlarmSetup({ embedded = false }: { embedded?: boolean } = {}) {
             </SettingRow>
           )}
         </Card>
-        <Card className="space-y-3">
+        <Card id="einnahme" className="space-y-3">
           <SettingRow label={<div>
             <p className="font-medium">Privates Einnahmeprotokoll</p>
             <p className="text-sm text-muted">Nur ein Notizbuch für dich. Bleibt auf dem Gerät, wird nicht synchronisiert und sagt dir nie, was oder wann du etwas nehmen sollst. Das klärst du mit deiner Ärztin oder deinem Arzt.</p>
@@ -303,6 +304,7 @@ export function AlarmRinging() {
   const st = useApp()
   const nav = useNavigate()
   const [kind, setKind] = useState<AlarmKindWire | 'none' | null>(null)
+  const ringingSnapshot = useRef<AlarmStateInfo | undefined>(undefined)
   const [snoozed, setSnoozed] = useState(0)
   const [msg, setMsg] = useState<string>()
   const [mode, setMode] = useState<'main' | 'other' | 'math' | 'emergency' | 'testAsk'>('main')
@@ -310,6 +312,7 @@ export function AlarmRinging() {
   useEffect(() => {
     const load = () =>
       safe(() => AnkerNative.getAlarmState(), { ringing: false, snoozed: 0, kind: null }).then((s) => {
+        ringingSnapshot.current = s
         setSnoozed(s.snoozed)
         setKind(s.ringing && s.kind ? s.kind : 'none')
       })
@@ -327,7 +330,13 @@ export function AlarmRinging() {
   /** „Ich bin wach“ wird nur beim echten Wecken vermerkt, nicht bei Test oder Vorwecker. */
   const finishMain = async (method: string) => {
     try {
+      const before = ringingSnapshot.current
       await AnkerNative.stopAlarm({ method })
+      if (before?.ringing && (before.kind === 'main' || before.kind === 'snooze') && before.ringStartedAt) {
+        const night = sleepNightFor('wakeAt', before.ringStartedAt), at = Date.now()
+        await st.updateSleepEntry(night, entry => ({ ...entry, alarmAt: entry.alarmAt ?? before.ringStartedAt, ...(method === 'qr' ? { qrAt: at } : {}) }))
+          .catch(() => st.showToast('Wecker beendet. Die optionale Rückmeldung konnte noch nicht vorbereitet werden.'))
+      }
       const guidance = guidancePreferences(useApp.getState().settings.guidance)
       if (guidance.enabled && guidance.zeroGapMorning && await completeMorningAlarmHandoff()) {
         await syncAlarm()

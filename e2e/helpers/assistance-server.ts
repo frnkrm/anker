@@ -8,9 +8,9 @@ import type { AssistantRequest } from '../../src/core/assistance'
 
 export const assistanceHost = 'https://assistance-fixture.supabase.co'
 export const configuredCapabilities = {
-  ai: { configured: true, provider: 'OpenAI', model: 'controlled-browser-fixture' },
-  routes: { configured: true, provider: 'Google Routes', modes: ['driving', 'transit', 'cycling', 'walking'] },
-  dailyLimits: { steps: 8, route: 6 },
+  ai: { configured: true, provider: 'Gemini', model: 'controlled-browser-fixture' },
+  routes: { configured: true, provider: 'TomTom', modes: ['driving', 'cycling', 'walking'] },
+  dailyLimits: { steps: 8, route: 6 }, freeOnly: true,
 }
 
 /** Realer Produktionsbuild mit öffentlicher Test-Konfiguration, ohne Testschalter im Produkt. */

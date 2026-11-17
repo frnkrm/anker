@@ -11,6 +11,16 @@ const plan = buildDayPlan({ date: MON, settings: s })
 const log = (patch: Partial<DayLog> = {}): DayLog => ({ date: MON, override: {}, steps: {}, ...patch })
 
 describe('nowView', () => {
+  it.each(['2026-11-02', '2026-11-08'])('zeigt nach bewusst bestätigtem frühem Aufstehen keinen erneuten Aufsteh-Countdown (%s)', date => {
+    const p = buildDayPlan({ date, settings: s })
+    const facts: DayLog = { date, override: {}, steps: {}, wakeAt: zonedToUtc(date, p.wake - 15) }
+    const before = JSON.stringify({ p, facts })
+    expect(nowView(p, undefined, p.wake - 10).hard?.key).toBe('wake')
+    expect(nowView(p, facts, p.wake - 10).hard?.key).not.toBe('wake')
+    const finished = { ...facts, steps: Object.fromEntries((p.blocks.find(b => b.routine === 'morning')?.steps ?? []).map(step => [`morning:${step.id}`, 'done' as const])) }
+    expect(nowView(p, finished, p.wake - 10).hard?.key).not.toBe('wake')
+    expect(JSON.stringify({ p, facts })).toBe(before)
+  })
   it('nachts: Schlafen', () => {
     expect(nowView(plan, undefined, 300).action.type).toBe('sleep')
   })

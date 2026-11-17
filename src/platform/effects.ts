@@ -11,6 +11,7 @@ import { AnkerNative, isNative, safe } from './native'
 import { drainActions, rescheduleAll, setupNotifications } from './notifications'
 import { refreshRouteEstimates } from './traffic'
 import { refreshPcRelayAuthorizationIfNeeded } from './pcRelay'
+import { reconcileDailyMeasurement } from './nightMeasurement'
 
 const reconcileWidget = coalesceAsync(async () => {
   if (!isNative()) return
@@ -114,6 +115,7 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
     if (!isNative() || !useApp.getState().settings.onboarded
       || (typeof document !== 'undefined' && document.visibilityState !== 'visible')) return
     await attempt('PC-Relay-Freigabe', refreshPcRelayAuthorizationIfNeeded)
+    await attempt('Gewählte tägliche Nachtmessung', reconcileDailyMeasurement)
   })
   // Optionale Dienste dürfen eine neue lokale Weckerplanung nicht auf ihre Netzantwort warten lassen.
   const optionalEffects = coalesceAsync(async () => {
@@ -150,5 +152,6 @@ export function startEffects(extra: { sync?: () => Promise<void> } = {}) {
     void localEffects().catch(() => console.warn('[Anker] Widget wird beim nächsten Anlass erneut versucht.'))
     // Prüft nur diskrete noch offene Gelegenheiten. Keine Anfrage bei jedem Takt.
     void attempt('Fahrtschätzung', refreshRouteEstimates)
+    void attempt('Gewählte tägliche Nachtmessung', reconcileDailyMeasurement)
   }, 5 * 60_000)
 }

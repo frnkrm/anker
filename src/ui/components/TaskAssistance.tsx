@@ -126,7 +126,7 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
         <p className="text-sm text-muted">KI-Vorschläge sind ausgeschaltet. Lokale Vorlagen stehen oben zur Verfügung.</p>
         <Link className="flex min-h-11 items-center text-accent" to="/einstellungen/assistenz">Optionale Vorschläge einrichten</Link>
       </> : <>
-        <p className="text-sm text-muted">Dieser Inhalt geht über deinen eingerichteten Server an OpenAI. Es können Anbieterkosten entstehen. {taskRef.kind === 'work' ? 'Bei dieser Arbeitsaufgabe können berufliche Angaben enthalten sein.' : 'Prüfe auch private Angaben vor dem Senden.'} Die Antwort ist ein Vorschlag.</p>
+        <p className="text-sm text-muted">Dieser ausgewählte Inhalt geht über deinen Server an Gemini im geprüften Free Tier. {taskRef.kind === 'work' ? 'Keine vertraulichen beruflichen Angaben senden.' : 'Prüfe private Angaben vor dem Senden.'} Die Antwort bleibt ein Vorschlag; bei Kontingentgrenzen gibt es keinen kostenpflichtigen Fallback.</p>
         <form className="min-w-0 space-y-3" onSubmit={(event) => { event.preventDefault(); void submit() }}>
           <fieldset className="min-w-0 space-y-3" disabled={busy || saving}>
             <label className="block space-y-1"><span>Text für den KI-Vorschlag</span><TextInput aria-label="Text für den KI-Vorschlag" maxLength={300} required value={title} onChange={(event) => edit(() => setTitle(event.target.value))} /></label>
@@ -136,7 +136,7 @@ export function TaskAssistance({ taskRef, task, depth }: { taskRef: TaskRef; tas
             {sendNextStep && <label className="block space-y-1"><span>Nächster Schritt für diese Anfrage</span><TextInput aria-label="Nächster Schritt für die KI-Anfrage" maxLength={300} value={nextStep} onChange={(event) => edit(() => setNextStep(event.target.value))} /></label>}
             <Segmented<TaskDetailDepth> label="KI-Detailtiefe" value={detailDepth} options={[{ value: 'three', label: '3 Schritte' }, { value: 'normal', label: 'Normal' }, { value: 'tiny', label: 'Sehr klein' }]} onChange={(value) => edit(() => setDetailDepth(value))} />
             <p className="text-xs text-muted">Übertragen werden der sichtbare Text, die gewählte Detailtiefe und nur die zusätzlich angehakten Felder. Zielgrund, Arbeitszeit, Einnahmen, Adressen und übrige Aufgaben werden nicht automatisch angehängt.</p>
-            <Checkbox label="Diesen Inhalt für diese Anfrage an OpenAI freigeben" checked={consent} onChange={setConsent} />
+            <Checkbox label="Diesen Inhalt für diese Anfrage an Gemini freigeben" checked={consent} onChange={setConsent} />
             <Button type="submit" size="sm">{busy ? 'Vorschlag wird angefragt …' : 'KI-Vorschlag anfordern'}</Button>
           </fieldset>
         </form>

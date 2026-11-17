@@ -1,5 +1,7 @@
 # Anker v7 – Codex-Auftrag: PC-Begleiter, Abend & Morgen
 
+Verbindlich für die weitere Bearbeitung: [Effizient und autonom arbeiten](../ARBEITSWEISE.md). UI-Anpassungen gesammelt zum Schluss, nach Funktionslogik und Datenmodell.
+
 Nov 9, 2026 · @Franky
 
 ## 00 Direkter Auftrag an Codex

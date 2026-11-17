@@ -26,7 +26,7 @@ async function seed(page: Page, consentedPlaces = true, extra: Partial<Commitmen
     { id: 'home', label: 'Nur der Name zuhause', kind: 'home', address: 'Bewusste Startadresse', externalUse: { routes: consentedPlaces } },
     { id: 'customer', label: 'Nur der Kundenname', kind: 'customer', latitude: 52, longitude: 13, externalUse: { routes: consentedPlaces } },
   ]
-  local.assistance = { routes: { enabled: true, version: 1, at: NOW, automatic: false } }
+  local.assistance = { routes: { enabled: true, version: 2, at: NOW, automatic: false } }
   await page.evaluate((local) => new Promise<void>((resolve, reject) => {
     const request = indexedDB.open('anker')
     request.onerror = () => reject(request.error)
@@ -47,7 +47,7 @@ async function open(page: Page) {
 }
 function reply(input: AssistantRequest, durationMin = 70) {
   if (input.kind !== 'route') throw new Error('Der Test erwartet eine Routenanfrage')
-  return { kind: 'route', revision: input.revision, route: { durationMin, source: 'Google Routes', fetchedAt: NOW, travelAt: input.at, mode: input.mode, trafficAware: input.mode === 'driving', estimated: true } }
+  return { kind: 'route', revision: input.revision, route: { durationMin, source: 'TomTom', fetchedAt: NOW, travelAt: input.at, mode: input.mode, trafficAware: input.mode === 'driving', estimated: true } }
 }
 
 test('E07: Vorschau sendet nichts, Quelle wird sichtbar und nur Übernehmen speichert eine eigene Fahrzeit', async ({ page }) => {
@@ -60,7 +60,7 @@ test('E07: Vorschau sendet nichts, Quelle wird sichtbar und nur Übernehmen spei
   expect(requests).toEqual([])
   await dialog.getByRole('button', { name: 'Diese Daten senden und Schätzung anfragen', exact: true }).click()
   await expect(page.getByText('Vorschlag: etwa 70 Minuten', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Google Routes · abgerufen/)).toBeVisible()
+  await expect(page.getByText(/TomTom · abgerufen/)).toBeVisible()
   expect(requests).toHaveLength(1)
   expect(requests[0]).toMatchObject({ kind: 'route', origin: { address: 'Bewusste Startadresse' }, destination: { latitude: 52, longitude: 13 }, timing: 'arrival' })
   expect((await storedRecord<LocalData>(page, 'meta', 'local'))!.commitments[0]?.travelMin).toBe(45)
@@ -68,7 +68,7 @@ test('E07: Vorschau sendet nichts, Quelle wird sichtbar und nur Übernehmen spei
   await expect.poll(async () => (await storedRecord<LocalData>(page, 'meta', 'local'))!.commitments[0]?.travelMin).toBe(70)
   const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
   expect(local.commitments[0]).toEqual({ ...visit, travelMin: 70 })
-  expect(JSON.stringify(local)).not.toMatch(/Google Routes|fetchedAt|trafficAware|durationMin/)
+  expect(JSON.stringify(local)).not.toMatch(/TomTom|fetchedAt|trafficAware|durationMin/)
   expect((await storedRecord<Settings>(page, 'settings', 'main'))!.anchor).toEqual(beforeSettings.anchor)
   await page.reload()
   await expandDetails(page, 'Weg & Vorbereitung')
@@ -84,7 +84,7 @@ test('E07: unfreigegebene Orte und Namen werden nicht ergänzt; manuelle Angaben
   const destination = dialog.getByRole('textbox', { name: 'Ziel für die Fahrtschätzung' })
   await expect(start).toHaveValue(''); await expect(destination).toHaveValue('')
   await start.fill('Manuelle Startadresse'); await destination.fill('Manuelle Zieladresse')
-  await chooseValue(page, 'Verkehrsmittel für die Schätzung', 'transit', dialog)
+  await chooseValue(page, 'Verkehrsmittel für die Schätzung', 'driving', dialog)
   const send = dialog.getByRole('button', { name: 'Diese Daten senden und Schätzung anfragen', exact: true })
   await expect(send).toBeEnabled()
   await send.click()
@@ -93,12 +93,12 @@ test('E07: unfreigegebene Orte und Namen werden nicht ergänzt; manuelle Angaben
   await dialog.getByRole('checkbox', { name: 'Diese eingegebenen Orte für diese Anfrage freigeben', exact: true }).check()
   await send.click()
   await expect(page.getByText('Vorschlag: etwa 55 Minuten', { exact: true })).toBeVisible()
-  expect(requests[0]).toMatchObject({ origin: { address: 'Manuelle Startadresse' }, destination: { address: 'Manuelle Zieladresse' }, mode: 'transit' })
+  expect(requests[0]).toMatchObject({ origin: { address: 'Manuelle Startadresse' }, destination: { address: 'Manuelle Zieladresse' }, mode: 'driving' })
   expect(JSON.stringify(requests)).not.toMatch(/Nur der Name|Nur der Kundenname|Mappe|Besuch am Montag/)
   await page.getByRole('button', { name: 'Vorschlag verwerfen', exact: true }).click()
   const local = (await storedRecord<LocalData>(page, 'meta', 'local'))!
   expect(local.commitments[0]).toEqual(visit)
-  expect(JSON.stringify(local)).not.toMatch(/Manuelle Startadresse|Manuelle Zieladresse|Google Routes/)
+  expect(JSON.stringify(local)).not.toMatch(/Manuelle Startadresse|Manuelle Zieladresse|TomTom/)
 })
 
 test('E07: Verbindungsfehler erhalten manuelle Wege und auch große Schrift bleibt bedienbar', async ({ page }) => {

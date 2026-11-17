@@ -107,7 +107,7 @@ class PairingUiTests(unittest.TestCase):
                 self.assertFalse(window.destroyed)
         self.root.mainloop_callback = mainloop
         with patch('tkinter.Tk', return_value=self.root), patch('tkinter.StringVar', side_effect=UiValue), \
-             patch('tkinter.Toplevel', side_effect=self.window), patch.object(self.ui, '_start_tray'):
+             patch('tkinter.Toplevel', side_effect=self.window), patch('tkinter.Frame', side_effect=lambda _parent=None, **options: UiWidget(**options)), patch.object(self.ui, '_start_tray'):
             self.ui.run()
         self.assertIsNone(self.ui._offer_window)  # run() cleanup owns shutdown.
         self.assertEqual(self.platform.effects, [])

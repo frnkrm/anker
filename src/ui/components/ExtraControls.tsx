@@ -32,7 +32,7 @@ export function ExtraControls() {
     else await safe(() => AnkerNative.stopSpeaking(), undefined)
   }
   return <>
-    <Section title="Lokale Sprache" hint="Standard aus. Text funktioniert immer; lokale Android-Modelle und Stimmen sind geräteabhängig.">
+    <Section id="sprache" title="Lokale Sprache" hint="Standard aus. Text funktioniert immer; lokale Android-Modelle und Stimmen sind geräteabhängig.">
       <Card className="space-y-3">
         {!isNative() && <p className="text-sm text-muted">Die lokale Anker-Spracheingabe ist in der Android-App verfügbar. Im Browser kannst du tippen oder die Spracheingabe deiner Tastatur selbst wählen.</p>}
         <div className="flex items-center justify-between gap-3"><span>Gedanken bewusst diktieren</span><Toggle label="Lokales Diktieren" checked={config.dictation} onChange={(value) => change('dictation', value)} /></div>

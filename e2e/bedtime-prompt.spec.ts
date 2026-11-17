@@ -27,8 +27,9 @@ interface BedtimeProbe {
 }
 
 /** Kontrollierte Capacitor-/SQLite-Brücke. Dies prüft weder Android-Overlays noch Entsperrung am Gerät. */
-async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean; diagnostics?: boolean; followUps?: boolean; overlayEnabled?: boolean; quiet?: boolean; strict?: boolean } = {}) {
+async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: number; daytime?: boolean; waiting?: boolean; diagnostics?: boolean; followUps?: boolean; overlayEnabled?: boolean; quiet?: boolean; strict?: boolean; onset?: boolean; measurementActive?: boolean } = {}) {
   const settings = { ...defaultSettings('2026-11-06'), onboarded: true }
+  settings.sleep.onsetEstimationEnabled = options.onset === true
   settings.sleep.fallAsleepMin = options.delay ?? 15
   settings.sleep.bedtimePromptEnabled = options.overlayEnabled ?? true
   settings.sleep.bedtimeFollowUpsEnabled = options.followUps ?? false
@@ -59,7 +60,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
       appActive(isActive) { for (const listener of listeners.values()) if (listener.event === 'appStateChange') listener.callback({ isActive }) },
     }
     const bedtime = ['getBedtimePromptState', 'startBedtimePrompt', 'stopBedtimePrompt', 'ackBedtimePrompt', 'openOverlayPermissionSettings']
-    const common = ['getAlarmState', 'getAlarmDiagnostics', 'getDiagnosticJournal', 'getSmartWakeState', 'syncAlarmConfig', 'syncReminders', 'drainReminderActions', 'ackReminderActions', 'setReminderFocus', 'updateWidget', 'getGeofenceState', 'ackGeofenceSuggestions', 'stopSpeaking']
+    const common = ['getAlarmState', 'getAlarmDiagnostics', 'getDiagnosticJournal', 'getSmartWakeState', 'reportSleepPromptVisibility', 'syncAlarmConfig', 'syncReminders', 'drainReminderActions', 'ackReminderActions', 'setReminderFocus', 'updateWidget', 'getGeofenceState', 'ackGeofenceSuggestions', 'stopSpeaking']
     const observableActions = ['testAlarm', 'playTestTone', 'stopAlarm', 'snoozeAlarm', 'startSmartWake', 'startSleepAudio', 'syncRoutinePaceKeeper', 'pcBridgeStart']
     Object.assign(window, { __bedtimeProbe: probe, CapacitorCustomPlatform: { name: 'android' }, Capacitor: {
       PluginHeaders: [
@@ -115,7 +116,7 @@ async function nativeBedtime(page: Page, options: { granted?: boolean; delay?: n
           if (method === 'openOverlayPermissionSettings' || method === 'stopBedtimePrompt' || method === 'ackBedtimePrompt') return {}
           if (method === 'getAlarmState' || method === 'syncAlarmConfig') return alarm
           if (method === 'getAlarmDiagnostics') return { ...alarm, notificationsEnabled: true, fullScreen: true, sdk: 36, device: 'Browserfixture', alarmVolume: 5, alarmVolumeMax: 7 }
-          if (method === 'getSmartWakeState') return { active: false, phase: 'idle', message: '', targetAt: 0, windowAt: 0, hasMotion: true, microphoneGranted: false }
+          if (method === 'getSmartWakeState') return { onsetEstimationActive: options.onset === true && options.measurementActive !== false, active: false, phase: 'idle', message: '', targetAt: 0, windowAt: 0, hasMotion: true, microphoneGranted: false }
           if (method === 'drainReminderActions') return { actions: [] }
           if (method === 'getGeofenceState') return { registered: 0, fineGranted: false, backgroundGranted: false, suggestions: [] }
           return {}
@@ -167,7 +168,7 @@ const stored = async (page: Page) => (await probe(page)).records.map((row) => ({
 async function openControls(page: Page) {
   if (!(await page.getByRole('dialog', { name: 'Heute anpassen', exact: true }).count())) {
     await page.getByRole('button', { name: 'Heute anpassen', exact: true }).click()
-    await page.getByRole('dialog').getByText('Weitere Möglichkeiten', { exact: true }).click()
+    await page.getByRole('dialog').getByText('Abend & Schlaf', { exact: true }).click()
   }
   await expect(page.getByRole('heading', { name: 'Stummer Schlafhinweis', exact: true })).toBeVisible()
 }
@@ -481,4 +482,30 @@ test('Native Diagnose teilt nur gewählte Logzeiten und sichere Einstellungen oh
   expect(json).not.toContain('PRIVATE_')
   expect(await starts(page)).toEqual([])
   expect(await stored(page)).toEqual(before)
+})
+
+for (const measurementActive of [true, false]) test(`Einschlaffrage benötigt echte native Messung: ${measurementActive}`, async ({ page }) => {
+  await nativeBedtime(page, { onset: true, measurementActive })
+  await page.evaluate(() => {
+    const p = (window as unknown as { __bedtimeProbe: BedtimeProbe }).__bedtimeProbe
+    p.state.sessionId = 'sleep-question-test'
+    p.phase('shown')
+  })
+  const question = page.getByRole('dialog', { name: 'Schläfst du schon?', exact: true })
+  if (!measurementActive) {
+    await expect(question).toHaveCount(0)
+    await expect.poll(async () => (await probe(page)).calls.filter(c => c.method === 'getSmartWakeState').length).toBeGreaterThan(0)
+    expect((await probe(page)).calls.some(c => c.method === 'reportSleepPromptVisibility' && c.options.visible)).toBe(false)
+    return
+  }
+  await expect(question).toBeVisible()
+  await expect(question).toContainText('unsichere Einschlafschätzung')
+  await expect.poll(async () => (await probe(page)).calls.some(c => c.method === 'reportSleepPromptVisibility' && c.options.sessionId === 'sleep-question-test' && c.options.visible === true)).toBe(true)
+  await question.getByRole('button', { name: 'Ich bin noch wach', exact: true }).click()
+  await expect(question).toHaveCount(0)
+  const p = await probe(page)
+  expect(p.calls.some(c => c.method === 'ackBedtimePrompt' && c.options.sessionId === 'sleep-question-test')).toBe(true)
+  expect(p.calls.some(c => c.method === 'reportSleepPromptVisibility' && c.options.visible === false)).toBe(true)
+  const diary = p.records.find(r => r.collection === 'meta' && r.id === 'local')
+  expect((JSON.parse(diary!.data) as { sleepDiary: object }).sleepDiary).toEqual({})
 })

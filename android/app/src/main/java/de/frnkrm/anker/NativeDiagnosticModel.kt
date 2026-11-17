@@ -9,13 +9,15 @@ object NativeDiagnosticModel {
     const val MAX_ENTRIES = 800
     const val RETENTION_DAYS = 7
     const val RETENTION_MS = RETENTION_DAYS * 24 * 3600_000L
-    private val categories = setOf("alarm", "bedtime", "reminder", "system", "pc")
+    private val categories = setOf("alarm", "bedtime", "reminder", "system", "pc", "measurement")
     private val numbers = setOf("targetAt", "driftMs", "alarmVolume", "alarmVolumeMax", "interruptionFilter", "channelImportance",
-        "focusChange", "focusResult", "playerSource", "playerError", "playerExtra", "displayState", "remainingMs", "timeoutMs", "sdk", "observedAt", "count", "routedDeviceType")
+        "focusChange", "focusResult", "playerSource", "playerError", "playerExtra", "displayState", "remainingMs", "timeoutMs", "sdk", "observedAt", "count", "routedDeviceType",
+        "windowAt", "validIntervals", "missingIntervals", "quietIntervals", "audioBlocks", "motionEvents", "firstInputAt", "lastInputAt", "quietSinceAt")
     private val booleans = setOf("interactive", "keyguardLocked", "userUnlocked", "alarmMuted", "notificationsEnabled", "exactAllowed",
         "fullScreenAllowed", "batteryIgnored", "powerSave", "bluetooth", "wired", "overlayAllowed", "accepted", "started", "foreground", "attached", "alarmEnabled")
     private val reasons = setOf("boot", "locked-boot", "package-replaced", "time-changed", "timezone-changed", "exact-permission-changed", "system", "config", "fired", "timeout", "stopped", "snoozed", "smart-fired", "smart-prepared", "morning-confirmed", "legacy-fire", "unknown", "qr", "nfc", "math", "emergency", "locked", "prewake", "wakecheck", "test", "test-stop", "invalid-target", "replaced-target", "already-consumed", "priority", "ignored", "no-active-alarm", "expired", "normal", "exact-fallback", "screen-off", "permission-revoked", "restart", "updated", "alarm-active", "storage-failed", "schedule-failed", "overlay-failed", "acknowledged", "interrupted", "overlay-not-drawn", "foreground-unconfirmed", "foreground-requested", "foreground-confirmed", "activity-start-failed", "inexact-schedule", "stale-session", "not-due", "focus", "quiet-hours", "budget", "channel-blocked", "quiet-finished", "quiet-disabled")
     private val codes = mapOf(
+        "measurement" to setOf("start_requested", "sampling_started", "input_summary", "morning_window", "screen_lock", "sleep_estimated", "stopped", "error", "interrupted", "triggered", "finished"),
         "alarm" to setOf("scheduled", "schedule_cancelled", "schedule_fallback", "schedule_error", "reconcile", "fired_accepted", "fired_rejected",
             "service_requested", "service_start_error", "service_entered", "foreground_started", "foreground_error", "screen_wake_requested", "screen_wake_error", "screen_wake_notify_error",
             "audio_focus_result", "audio_focus_change", "audio_focus_error", "player_started", "player_error", "player_route_changed", "tone_started", "tone_error", "audio_stopped", "service_destroyed",

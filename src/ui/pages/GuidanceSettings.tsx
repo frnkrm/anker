@@ -102,7 +102,7 @@ export function IfThenEditor() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const templates = ['Wenn der Abendhinweis kommt, setze ich einen Speicherpunkt und beende die Runde.', 'Wenn ich noch etwas anfangen möchte, parke ich den nächsten Schritt für morgen.', 'Wenn ich im Bett weiter scrolle, lege ich das Handy auf seinen Ladeplatz.']
-  return <MoreInfo summary="Mein Wenn-dann-Abendplan">
+  return <MoreInfo id="wenn-dann" summary="Mein Wenn-dann-Abendplan">
     <form className="space-y-3" onSubmit={event => { event.preventDefault(); setBusy(true); setMessage(''); void st.saveIfThenPlan(draft).then(() => { setMessage('Abendplan gespeichert.'); notifySaved() }).catch(() => setMessage('Der Abendplan konnte noch nicht gespeichert werden.')).finally(() => setBusy(false)) }}>
       <p className="text-sm text-muted">Ein eigener Plan für den Übergang, ohne Bewertung. Diese Notiz bleibt lokal.</p>
       {([['wish', 'Was wünsche ich mir für meinen Abend?'], ['outcome', 'Was wäre daran gut?'], ['obstacle', 'Was hält mich innerlich fest?'], ['sentence', 'Mein Wenn-dann-Satz']] as const).map(([key, label]) => <label key={key} className="block space-y-1"><span>{label}</span><TextInput aria-label={label} maxLength={500} value={draft[key]} onChange={event => setDraft(value => ({ ...value, [key]: event.target.value }))} /></label>)}
