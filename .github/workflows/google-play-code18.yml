@@ -1,0 +1,104 @@
+name: Google Play – geprüftes Code18 intern ausliefern
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [draft, internal]
+        default: draft
+        required: true
+      confirmation:
+        description: UPLOAD_CODE18_DRAFT oder ausdrücklich RELEASE_CODE18_INTERNAL
+        type: string
+        required: true
+      expected_workflow_commit:
+        description: Geprüfte vollständige main-SHA dieses Uploadworkflows
+        type: string
+        required: true
+      sign_workflow_commit:
+        description: Geprüfte vollständige Policy-SHA des Signierlaufs
+        type: string
+        required: true
+      sign_run_id:
+        type: string
+        required: true
+      sign_run_attempt:
+        type: string
+        required: true
+      artifact_id:
+        description: Finales verifiziertes AAB-Artefakt, kein Pending-Artefakt
+        type: string
+        required: true
+      bundle_sha256:
+        description: SHA256 der signierten AAB-Datei
+        type: string
+        required: true
+      proof_sha256:
+        description: SHA256 der finalen proof.json
+        type: string
+        required: true
+
+permissions: {}
+concurrency:
+  group: anker-google-play-internal-draft
+  cancel-in-progress: false
+
+jobs:
+  code18:
+    if: github.repository == 'frnkrm/anker' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PLAY18_INPUTS: ${{ toJSON(inputs) }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/google-play-code18.py
+            scripts/google-play-upload.py
+            scripts/google-play-auth.py
+            scripts/android-aab-proof.py
+            scripts/android-aab-tools.json
+            scripts/AnkerAabVerifier.java
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Öffentliche gebundene Prüfwerkzeuge bereitstellen
+        run: python3 scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/play18-tools"
+      - name: Quellen CI Artefakt Signatur und Nutzlast ohne Play-Zugang prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 scripts/google-play-code18.py prepare
+          --folder "$RUNNER_TEMP/play18-input" --tools "$RUNNER_TEMP/play18-tools"
+          --report "$RUNNER_TEMP/play18-prepare.json"
+      - name: Ausschließlich für Play authentifizieren
+        id: auth
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: python3 scripts/google-play-auth.py --run
+      - name: Nur das geprüfte Code18-Bundle intern ausliefern und nachlesen
+        env:
+          GOOGLE_PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: >-
+          python3 scripts/google-play-code18.py deliver
+          --folder "$RUNNER_TEMP/play18-input" --tools "$RUNNER_TEMP/play18-tools"
+          --report "$RUNNER_TEMP/play18-result.json"
+      - name: Begrenzte öffentliche Ergebnisse sichern
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: Anker-Code18-Play-Ergebnis-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/play18-prepare.json
+            ${{ runner.temp }}/play18-result.json
+          if-no-files-found: ignore
+          retention-days: 14

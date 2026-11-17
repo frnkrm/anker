@@ -1,0 +1,198 @@
+"""Offline delivery protocol tests; no real credentials or Google requests."""
+import copy
+from datetime import timedelta
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+
+spec = importlib.util.spec_from_file_location('delivery', Path(__file__).with_name('google-play-code18.py'))
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+BODY = b'synthetic verified bundle'
+DIGEST = c.p.sha(BODY)
+OLD = {'name': 'existing release', 'versionCodes': ['16', '17'], 'status': 'completed',
+       'releaseNotes': [{'language': 'de-DE', 'text': 'Keep this metadata'}]}
+
+
+def inputs(mode='internal'):
+    return dict(mode=mode, confirmation='RELEASE_CODE18_INTERNAL' if mode == 'internal' else 'UPLOAD_CODE18_DRAFT',
+                expected_workflow_commit='a' * 40, sign_workflow_commit='b' * 40,
+                sign_run_id='123', sign_run_attempt='1', artifact_id='456', bundle_sha256=DIGEST, proof_sha256='c' * 64)
+
+
+class API:
+    def __init__(self, *, existing=None, known=False, fail=None):
+        self.rows = [copy.deepcopy(OLD)] + ([copy.deepcopy(existing)] if existing else [])
+        self.known = known
+        self.fail = fail
+        self.calls = []
+        self.next_id = 0
+
+    def request(self, method, path, payload=None, **kwargs):
+        self.calls.append((method, path, payload))
+        if self.fail and self.fail in path:
+            raise c.legacy.UploadError('NETWORK_ERROR')
+        if method == 'POST' and path == c.legacy.API_PATH:
+            self.next_id += 1
+            return {'id': str(self.next_id)}
+        if path.endswith('/bundles') and method == 'GET':
+            return {'bundles': [{'versionCode': 18, 'sha256': DIGEST}] if self.known else []}
+        if kwargs.get('bundle'):
+            self.known = True
+            return {'versionCode': 18, 'sha256': DIGEST}
+        if path.endswith('/tracks/internal'):
+            if method == 'PUT':
+                self.rows = json.loads(payload)['releases']
+            return {'track': 'internal', 'releases': copy.deepcopy(self.rows)}
+        if method == 'DELETE':
+            return {}
+        return {'id': path.rsplit('/', 1)[1].split(':')[0]}
+
+
+def report():
+    return {'commitAttempted': False, 'commitAcknowledged': False, 'bundleUploadAttempted': False}
+
+
+class DeliveryTests(unittest.TestCase):
+    def test_exact_manual_main_invocation_only(self):
+        env = dict(GITHUB_ACTIONS='true', GITHUB_REPOSITORY=c.p.REPO, GITHUB_REF='refs/heads/main',
+                   GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_WORKFLOW_REF=c.p.REPO + '/' + c.WORKFLOW + '@refs/heads/main',
+                   GITHUB_SHA='a' * 40, GITHUB_WORKFLOW_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1', PLAY18_INPUTS=json.dumps(inputs()))
+        self.assertEqual(c.invocation(env), inputs())
+        for field, value in [('GITHUB_ACTIONS', 'false'), ('GITHUB_REF', 'refs/heads/other'),
+                             ('GITHUB_EVENT_NAME', 'push'), ('GITHUB_RUN_ATTEMPT', '2'), ('GITHUB_SHA', 'd' * 40)]:
+            with self.subTest(field=field), self.assertRaises(c.p.ProofError):
+                c.invocation({**env, field: value})
+        for field, value in [('mode', 'production'), ('confirmation', 'UPLOAD_CODE18_DRAFT'), ('artifact_id', '0'),
+                             ('bundle_sha256', 'BAD')]:
+            with self.subTest(field=field), self.assertRaises(c.p.ProofError):
+                c.invocation({**env, 'PLAY18_INPUTS': json.dumps({**inputs(), field: value})})
+
+    def test_time_gate_before_any_google_request(self):
+        api = API()
+        with self.assertRaises(c.p.ProofError):
+            c.deliver(api, inputs(), BODY, report(), now=c.EARLIEST - timedelta(seconds=1))
+        self.assertEqual(api.calls, [])
+
+    def test_hash_gate_before_any_google_request(self):
+        api = API()
+        with self.assertRaises(c.p.ProofError):
+            c.deliver(api, inputs(), b'wrong', report(), now=c.EARLIEST)
+        self.assertEqual(api.calls, [])
+
+    def test_internal_upload_preserves_old_release_and_reads_back(self):
+        api, result = API(), report()
+        c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
+        self.assertEqual(api.rows[0], OLD)
+        self.assertEqual(api.rows[1], {'name': c.NAME, 'status': 'completed', 'versionCodes': ['18']})
+        self.assertTrue(result['activeReleaseVerified'])
+        self.assertTrue(result['commitAcknowledged'])
+        self.assertEqual(sum('/upload/' in path for _, path, _ in api.calls), 1)
+        commits = [path for _, path, _ in api.calls if ':commit' in path]
+        self.assertEqual(len(commits), 1)
+        self.assertIn('ERROR_IF_IN_REVIEW', commits[0])
+        self.assertNotIn('changesNotSentForReview', commits[0])
+
+    def test_draft_is_default_scope_and_does_not_activate(self):
+        api, result = API(), report()
+        c.deliver(api, inputs('draft'), BODY, result, now=c.EARLIEST)
+        self.assertEqual(api.rows[1]['status'], 'draft')
+        self.assertTrue(result['draftVerified'])
+        self.assertFalse(result['activeReleaseVerified'])
+        self.assertTrue(any('changesNotSentForReview=true' in path for _, path, _ in api.calls))
+
+    def test_existing_exact_draft_can_be_activated_without_reupload(self):
+        api = API(existing={'name': c.NAME, 'status': 'draft', 'versionCodes': ['18']}, known=True)
+        result = report()
+        c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
+        self.assertFalse(result['bundleUploadAttempted'])
+        self.assertTrue(result['activeReleaseVerified'])
+        self.assertTrue(any(method == 'PUT' for method, _, _ in api.calls))
+
+    def test_existing_active_is_idempotent_and_never_downgraded_to_draft(self):
+        for mode in ('draft', 'internal'):
+            api = API(existing={'name': c.NAME, 'status': 'completed', 'versionCodes': ['18']}, known=True)
+            result = report()
+            c.deliver(api, inputs(mode), BODY, result, now=c.EARLIEST)
+            self.assertTrue(result['activeReleaseVerified'])
+            self.assertFalse(any(method == 'PUT' or ':commit' in path for method, path, _ in api.calls))
+
+    def test_conflicting_code18_hash_rejected(self):
+        with self.assertRaises(c.p.ProofError):
+            c.known_bundle({'bundles': [{'versionCode': 18, 'sha256': 'e' * 64}]}, DIGEST)
+        with self.assertRaises(c.p.ProofError):
+            c.known_bundle({'bundles': [{'versionCode': 18, 'sha256': DIGEST}] * 2}, DIGEST)
+
+    def test_unknown_or_in_progress_releases_untouched(self):
+        for row in [{'name': 'unknown', 'status': 'draft', 'versionCodes': ['19']},
+                    {'name': c.NAME, 'status': 'inProgress', 'versionCodes': ['18']},
+                    {'name': c.NAME, 'status': 'draft', 'versionCodes': ['18'], 'userFraction': 0.5}]:
+            api = API(existing=row)
+            with self.assertRaises(c.p.ProofError):
+                c.deliver(api, inputs(), BODY, report(), now=c.EARLIEST)
+            self.assertFalse(any(method == 'PUT' or '/upload/' in path or ':commit' in path for method, path, _ in api.calls))
+            self.assertEqual(api.calls[-1][0], 'DELETE')
+
+    def test_ambiguous_commit_never_retried_or_deleted(self):
+        api, result = API(fail=':commit'), report()
+        with self.assertRaises(c.legacy.UploadError):
+            c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
+        self.assertTrue(result['commitAttempted'])
+        self.assertFalse(result['commitAcknowledged'])
+        self.assertEqual(sum(':commit' in path for _, path, _ in api.calls), 1)
+        self.assertFalse(any(method == 'DELETE' for method, _, _ in api.calls))
+
+    def test_ambiguous_upload_never_retried(self):
+        api, result = API(fail='/upload/'), report()
+        with self.assertRaises(c.legacy.UploadError):
+            c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
+        self.assertTrue(result['bundleUploadAttempted'])
+        self.assertFalse(result['commitAttempted'])
+        self.assertEqual(sum('/upload/' in path for _, path, _ in api.calls), 1)
+
+    def test_existing_transport_remains_code17(self):
+        self.assertEqual(c.legacy.VERSION, 17)
+        self.assertEqual(c.legacy.SOURCE, '80f6a692b005ab08edacf9e6ad9e9669e4c383f7')
+
+    def test_artifact_origin_failure_stops_before_download(self):
+        class GitHub:
+            def archive(self, _):
+                raise AssertionError('Must not download an untrusted artifact')
+        with patch.object(c, 'check_ci'), patch.object(c.p, 'artifact_metadata', side_effect=c.p.ProofError('ARTIFACT_ORIGIN')):
+            with self.assertRaises(c.p.ProofError):
+                c.prepare(GitHub(), inputs(), Path('unused'), None, None)
+
+    def test_mismatched_proof_fails_before_crypto_or_play(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'proof.json').write_text('{}')
+            (root / 'Anker-Code18-SIGNIERT.aab').write_bytes(BODY)
+            with patch.object(c.p, 'jar_report', side_effect=AssertionError('Do not trust mismatched proof')):
+                with self.assertRaises(c.p.ProofError):
+                    c.verify_files(root, inputs(), None, None)
+
+    def test_workflow_has_no_push_and_auth_only_after_artifact_check(self):
+        root = Path(__file__).resolve().parents[1]
+        js = "console.log(JSON.stringify(require('js-yaml').load(require('node:fs').readFileSync('.github/workflows/google-play-code18.yml','utf8'))))"
+        workflow = json.loads(subprocess.run(['node', '-e', js], cwd=root, capture_output=True, text=True, check=True).stdout)
+        self.assertEqual(set(workflow['on']), {'workflow_dispatch'})
+        self.assertEqual(workflow['on']['workflow_dispatch']['inputs']['mode']['default'], 'draft')
+        self.assertFalse(workflow['concurrency']['cancel-in-progress'])
+        job = workflow['jobs']['code18']
+        self.assertEqual(job['permissions'], {'contents': 'read', 'actions': 'read'})
+        steps = job['steps']
+        auth = next(i for i, s in enumerate(steps) if s.get('id') == 'auth')
+        verify = next(i for i, s in enumerate(steps) if 'google-play-code18.py prepare' in s.get('run', ''))
+        self.assertLess(verify, auth)
+        self.assertEqual(sum('secrets.' in json.dumps(s) for s in steps), 1)
+        for s in steps:
+            self.assertNotIn('${{', s.get('run', ''))
+            self.assertNotIn('ANKER_ANDROID_', json.dumps(s))
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

@@ -1,5 +1,7 @@
 # Anker: Testnachweise
 
+Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+
 ## Alltagsfunktionen und gemeinsame UI-Integration (17.11.2026, nachts)
 
 Stand/Entscheidungen: [Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md).

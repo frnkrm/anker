@@ -37,7 +37,7 @@ class WorkflowTests(unittest.TestCase):
     def test_required_m_w_and_explicit_sign_binding_inputs(self):
         inputs = self.workflow['on']['workflow_dispatch']['inputs']
         self.assertEqual(inputs['mode']['options'], ['prepare', 'sign'])
-        self.assertEqual(inputs['source_commit']['default'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
+        self.assertEqual(inputs['source_commit']['default'], '9bc717985ca6c9fadb13c0dbb38b0ba3d427715c')
         self.assertTrue(inputs['source_commit']['required'])
         self.assertTrue(inputs['expected_workflow_commit']['required'])
         self.assertNotIn('default', inputs['expected_workflow_commit'])
@@ -50,8 +50,8 @@ class WorkflowTests(unittest.TestCase):
         constants = {node.targets[0].id: ast.literal_eval(node.value) for node in tree.body
                      if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
                      and node.targets[0].id in ('SOURCE', 'FINGERPRINT')}
-        self.assertEqual(constants['SOURCE'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
-        self.assertEqual(constants['FINGERPRINT'], 'fff132db9c3e7f1654081665551ecabef096717d022bf1588c1d99a2362773df')
+        self.assertEqual(constants['SOURCE'], '9bc717985ca6c9fadb13c0dbb38b0ba3d427715c')
+        self.assertEqual(constants['FINGERPRINT'], 'f595199f70ff101f11a164156d96f55d941f1a40ce756e284419640bb31f64ec')
         self.assertEqual(self.workflow['on']['workflow_dispatch']['inputs']['source_commit']['default'], constants['SOURCE'])
 
     def test_resolve_is_main_manual_and_has_no_signing_values(self):
@@ -79,13 +79,22 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(checkouts[0]['path'], 'policy')
         self.assertEqual(checkouts[0]['ref'], '${{ needs.resolve.outputs.workflow }}')
         self.assertEqual(checkouts[1]['path'], 'app')
-        self.assertEqual(checkouts[1]['ref'], '0c31179be780e0bb6359dee79c3502d4e6e8ba4d')
+        self.assertEqual(checkouts[1]['ref'], '9bc717985ca6c9fadb13c0dbb38b0ba3d427715c')
         run = next(s for s in job['steps'] if s.get('working-directory') == 'app')['run']
         self.assertEqual(run.count('npm run build'), 2)
         self.assertIn('--dry-run', run)
         self.assertIn('android-aab-unsigned.gradle', run)
         for forbidden in ['assembleDebug', 'assembleRelease', 'signReleaseBundle', 'bundleRelease']:
             self.assertNotIn(forbidden, run)
+
+    def test_public_backend_config_is_only_in_unsigned_build(self):
+        steps = self.workflow['jobs']['prepare']['steps']
+        build = next(s for s in steps if s.get('working-directory') == 'app')
+        self.assertEqual(build['env']['VITE_SUPABASE_URL'], '${{ vars.VITE_SUPABASE_URL }}')
+        self.assertEqual(build['env']['VITE_SUPABASE_ANON_KEY'], '${{ vars.VITE_SUPABASE_ANON_KEY }}')
+        for name in ('resolve', 'sign', 'verify'):
+            self.assertNotIn('VITE_', json.dumps(self.workflow['jobs'][name]))
+        self.assertNotIn('secrets.', json.dumps(self.workflow['jobs']['prepare']))
 
     def test_sign_job_has_only_sparse_trusted_W_code_and_no_app_execution(self):
         job = self.workflow['jobs']['sign']
