@@ -27,11 +27,37 @@ async function settings(page: Page): Promise<{ pcStop: number; bed: number; comm
   }))
 }
 
+test('Restanleitung trennt echte Eigenversuche von früheren technischen Teilbelegen', async ({ page }) => {
+  await onboard(page)
+  const before = await settings(page)
+  await page.goto('/geraetetest')
+  await expect(page.getByRole('heading', { name: 'Für dich noch zu prüfen', exact: true })).toBeVisible()
+  await expect(page.getByText(/Morgens Schlafüberblick und Weckerverlauf/)).toBeVisible()
+  await expect(page.getByLabel('Test auswählen', { exact: true })).not.toBeVisible()
+  await page.setViewportSize({ width: 320, height: 780 })
+  await page.addStyleTag({ content: 'html { font-size: 160%; }' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
+  await page.screenshot({ path: 'test-results/device-guide-check/restanleitung.png', fullPage: true })
+  await page.getByText('Technische Teilprüfungen bereits belegt', { exact: true }).click()
+  await expect(page.getByText(/isolierter Code18\/1.5.0-rc.4-Debugbuild/)).toBeVisible()
+  await expect(page.getByText(/Deine Hörbarkeit bleibt offen/)).toBeVisible()
+  await expect(page.getByText(/0 von 103 im Browser/)).not.toBeVisible()
+  expect(await settings(page)).toEqual(before)
+  await page.getByRole('button', { name: 'Notiz im bisherigen Testfall erfassen · 54', exact: true }).click()
+  await expect(page).toHaveURL(/fall=54/)
+  await expect(page.getByRole('heading', { name: /^Test 54/ })).toBeVisible()
+  await expect(page.getByText(/0 von 103 im Browser/)).toBeVisible()
+  await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
+  await expect(page.getByLabel('Test auswählen', { exact: true })).toBeVisible()
+  expect(await settings(page)).toEqual(before)
+})
+
 test('Testseite beginnt offen und speichert ausschließlich bewusst berichtete Browserergebnisse', async ({ page }) => {
   await onboard(page)
   await page.goto('/einstellungen')
   await page.getByRole('switch', { name: 'Test- und Entwicklerwerkzeuge anzeigen', exact: true }).click()
   await page.getByRole('link', { name: /Gemeinsam testen/ }).click()
+  await page.getByText('Vollständiger Katalog und bisherige Berichte', { exact: true }).click()
   await expect(page.getByText(/0 von 103 im Browser/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Separaten Test in 10 Sekunden starten', exact: true })).toHaveCount(0)
   await chooseValue(page, 'Testbereich', 'Alle')
@@ -118,7 +144,7 @@ test('Dauern lassen sich direkt ändern, leeres Tippen speichert keine Null und 
 
 test('Testauswahl zeigt neue Weckfensterpunkte und nicht relevant zählt nicht als Erfolg', async ({ page }) => {
   await onboard(page)
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Weckfenster prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: /Test 53 ·/ })).toBeVisible()
@@ -159,7 +185,7 @@ test('Nachtzeiten aus der Ersteinrichtung bleiben beim späteren Neuberechnen ge
 
 test('Bereichsfilter steuert auch den sichtbaren Versuch und die Navigation bis zur leeren Auswahl', async ({ page }) => {
   await onboard(page)
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await chooseValue(page, 'Testbereich', 'Befund Vollbild (05.11.2026)')
   await expect(page.getByRole('heading', { name: /Test 47 ·/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Vorheriger Test', exact: true })).toBeDisabled()
@@ -191,7 +217,7 @@ test('Export enthält nur bewusste Testberichte und deren Codestand', async ({ p
 
 test('E02-Prüfwege führen zu Erinnerungen und Papier und bleiben bis zur Rückmeldung offen', async ({ page }) => {
   await onboard(page)
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Erinnerungen & Druck prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 66 · E02: Erinnerungen und Papier', exact: true })).toBeVisible()
@@ -215,7 +241,7 @@ test('Systemleistenprüfung führt zu Jetzt, Fokus und Eingabe; Browseransichten
   const expectedSettings = migrateSettings(before!, '2026-11-05')
   // Prüft ausgelieferte Seiten und den nutzbaren Browserbereich, keine Android-WindowInsets oder echte Tastatur.
   await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /viewport-fit=contain/)
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Systemleisten prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 75 · Android-Systemleisten', exact: true })).toBeVisible()
@@ -276,7 +302,7 @@ test('E03-Testlinks öffnen passende Bereiche ohne Timer, Aufgabenänderung oder
   await onboard(page)
   const beforeSettings = await storedRecord<Settings>(page, 'settings', 'main')
   const before = await storedRecord<LocalData>(page, 'meta', 'local')
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
   await page.getByRole('button', { name: 'Aufgaben & Wiedereinstieg prüfen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Test 76 · E03: Aufgaben und Wiedereinstieg', exact: true })).toBeVisible()
@@ -390,7 +416,7 @@ test('Abschlussstationen führen begleitet durch vorhandene Bereiche und starten
   await onboard(page)
   const beforeSettings = await storedRecord<Settings>(page, 'settings', 'main')
   const before = await storedRecord<LocalData>(page, 'meta', 'local')
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
   await page.getByRole('button', { name: 'Gemeinsamer Abschlusslauf', exact: true }).click()
   const destinations: [number, string, RegExp][] = [
     [86, 'Sicherung und Vorschau öffnen', /\/backup$/],

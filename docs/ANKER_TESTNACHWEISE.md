@@ -1,5 +1,29 @@
 # Anker: Testnachweise
 
+## Restanleitung im Testmodul – Folgeänderung vom 17.11.2026
+
+Standardansicht zeigt verbleibende persönliche Versuche; technische Teilbelege
+vom isolierten Code18-Prüfstand sind separat aufklappbar. Bisheriger Katalog samt
+103 IDs, Berichten und Import/Export bleibt erhalten und standardmäßig geschlossen;
+direkte Falllinks und Notizknöpfe öffnen ihn. Keine automatisch übernommenen Erfolge,
+keine neuen Fortschritts-IDs und keine Gerätewirkung durch Öffnen der Anleitung.
+Auch die alte Weckfenster-Anleitung erklärt nun korrekt Auswertung ab Messstart
+und frühere Weckung nur im morgendlichen Fenster.
+
+Prüfungen: TypeScript und gezieltes ESLint erfolgreich. Beide betroffenen
+Browserdateien bestanden vollständig mit22 Fällen (einschließlich Berichtshistorie,
+Import/Export und Einstellungs-Sprüngen). Nach Ergänzung der 320px-/160%-Prüfung und
+letzter Textkorrektur zwei gezielte Fälle erneut bestanden, einschließlich
+Horizontalüberlaufprüfung, Öffnen verschachtelter Bereiche und unveränderten
+Einstellungen. Screenshot `test-results/device-guide-check/restanleitung.png`
+gesichtet: Texte umbrechen und bleiben scrollbar; kein horizontaler Überlauf.
+Build einschließlich Typprüfung erfolgreich; keine vollständige Produktsuite wiederholt.
+
+Nur Browserbeleg für diese Folgeänderung, keine neue Android-Installation oder
+Sichtabnahme dieser Oberfläche auf dem Handy. Bereits signiertes Code18-Artefakt,
+main-Releasequelle und geplanter Play-Auftrag unverändert; Anleitung erst mit
+einem späteren Folgeupdate verfügbar.
+
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
 abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte

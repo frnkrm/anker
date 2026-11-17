@@ -1,5 +1,22 @@
 # Anker 2.0: Implementierungsplan
 
+## Folgeauftrag: persönliche Restanleitung im Testmodul (17.11.2026)
+
+Auf ausdrücklichen Nutzerauftrag steht vor dem vollständigen Katalog eine kurze
+Anleitung zu den verbleibenden eigenen Nacht-/Weck-/Kalender-/NFC-/PC-Versuchen.
+Frühere technische Teilbelege sind separat aufklappbar, mit Datum, Gerät und
+isoliertem Code18-Debug-Prüfstand gekennzeichnet. Keine künstlichen aktuellen
+Ergebnisse und kein automatisches Abhaken kompletter Sammelfälle. Bestehende
+103 IDs, Berichte, Historien und Import/Export bleiben erhalten; der vollständige
+Katalog ist standardmäßig geschlossen, direkte Falllinks öffnen ihn weiterhin.
+Notizen führen zu passenden bestehenden Sammelfällen; NFC direkt zu Ankerpunkten,
+weil es dafür keine eigene alte G-ID gibt. Kein zweites Fortschrittsmodell.
+
+Diese Folgeänderung ist ausschließlich im Entwicklungsstand vorbereitet. Keine
+Versionsänderung, neue Signierung, Installation oder Aufnahme in das bereits
+fest gebundene Code18-Play-Artefakt; dessen Quelle und geplanter Auftrag bleiben
+unverändert. Neue Anleitung kommt erst mit einem gesonderten Folgeupdate aufs Handy.
+
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
 abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte

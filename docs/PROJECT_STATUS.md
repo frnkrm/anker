@@ -1,5 +1,11 @@
 # Aktueller Übergabestand
 
+Neue Folgeänderung17.11.: Die persönliche Restanleitung ist im Testmodul umgesetzt.
+Eigene verbleibende Versuche stehen zuerst, belegte technische Teilprüfungen sind
+gesondert gekennzeichnet; der bisherige Katalog samt Berichten bleibt aufklappbar.
+Nur Entwicklungsstand, noch nicht in der installierten App oder dem bereits
+signierten Code18-Paket. [Entscheidung](ANKER_IMPLEMENTIERUNGSPLAN.md#folgeauftrag-persönliche-restanleitung-im-testmodul-17112026).
+
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
 abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte

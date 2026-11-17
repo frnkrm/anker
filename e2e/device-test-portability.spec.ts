@@ -15,7 +15,7 @@ async function onboard(page: Page) {
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await page.getByRole('button', { name: /Passt, los/ }).click()
   await expect(page).toHaveURL(/\/$/)
-  await page.goto('/geraetetest')
+  await page.goto('/geraetetest?katalog=1')
 }
 
 async function chooseFile(page: Page, content: string) {
@@ -30,7 +30,7 @@ async function downloadReports(page: Page) {
   return readFile((await (await event).path())!, 'utf8')
 }
 
-test('Sechs kurze Originalfälle sind Standard; alle 103 bleiben freiwillig erreichbar', async ({ page }) => {
+test('Optionaler Katalog beginnt mit sechs Originalfällen; alle 103 bleiben freiwillig erreichbar', async ({ page }) => {
   await onboard(page)
   await expect(page.getByLabel('Testbereich', { exact: true })).toContainText('Kurzer Updatecheck')
   expect(await choiceValues(page, 'Test auswählen')).toEqual(['1', '21', '62', '92', '95', '96'])
