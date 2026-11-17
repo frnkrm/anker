@@ -3,28 +3,29 @@
   "packageName": "de.frnkrm.anker.mobile",
   "versionCode": 18,
   "versionName": "1.5.0-rc.4",
-  "sourceCommit": "9bc717985ca6c9fadb13c0dbb38b0ba3d427715c",
-  "sourceFingerprint": "f595199f70ff101f11a164156d96f55d941f1a40ce756e284419640bb31f64ec",
-  "sourceCIRunId": 44144640024,
-  "signWorkflowCommit": "ce07450700707b1abf57036c3a4b05100f48c6f8",
-  "signWorkflowCIRunId": 44164946645,
+  "sourceCommit": "8a51bdba1ba6348008800c4969f043537c0552de",
+  "sourceFingerprint": "c01034e154e304cafbc5b4e148cf27b7684b4c319b36c0df1b627db46930df7b",
+  "sourceCIRunId": 44191339291,
+  "signWorkflowCommit": "918370f80cd8af6c4bbe3b76d4d22e5934b86544",
+  "signWorkflowCIRunId": 44191751112,
   "prepare": {
-    "runId": 44167654681,
+    "runId": 44193618462,
     "attempt": 1,
-    "artifactId": 14367480668,
-    "archiveDigest": "sha256:aa808f2887634b632075e1e573467a69aaf399ca508a50dafa624750fb4f6194",
-    "bundleSha256": "7bf25f4fb79bb140a315cad1bb20d01656c6226012c87f374874381a1a5e478b",
-    "proofSha256": "2f1cda984b1549d6156f8f74a3c36b5c0ff6d9389dffb6c0b7b5130fd99de9ba"
+    "artifactId": 14377373821,
+    "archiveDigest": "sha256:da9e09989c3a6221e302340d08bc53eef4445dcd6f5b3ec976152f3e751b9d06",
+    "bundleSha256": "444be134239a3548038794cef9a6de0bcb876c3f92e850c3a2e0c495bcc2215c",
+    "proofSha256": "35b2470a4614194a7e951d5061b6c018fb99dbc56ae1977dc1bfe67767cc2364",
+    "bytes": 54558225
   },
   "signed": {
-    "runId": 44169177734,
+    "runId": 44194672103,
     "attempt": 1,
-    "artifactId": 14367656025,
-    "artifactName": "Anker-Code18-AAB-Pruefstand-44169177734-1",
-    "archiveDigest": "sha256:95ee902b60be70edb03ce96ec9ad448001796d217343a226997bf9f523deaa24",
-    "bundleSha256": "f4d3796ba39bdcb5ecd705583da390580d6074b23a798287d52ee7657f666382",
-    "proofSha256": "923c8cc3d552d50848a6ec352c03ea9bdc20b4dfe65ea9f64cf750d82e96941a",
-    "bytes": 54615244,
+    "artifactId": 14378791154,
+    "artifactName": "Anker-Code18-AAB-Pruefstand-44194672103-1",
+    "archiveDigest": "sha256:5f5a777a86c8c8540547b6a4b501c0343e9e083b62592ca7559586f8c3cf68c8",
+    "bundleSha256": "8be042d17d8bae0d6c3b8e3092f8ef0db30e2822d2eea600cf845bc53d964a68",
+    "proofSha256": "cb2a07a3e59bef4fd8d205ad7ee0978af3ed74a64b55d9a45bf81418f2da3d3e",
+    "bytes": 54622069,
     "certificateSha256": "4879769897033b9bdd35b9dab927088e0585fdb9fee86ce3aa52cbc2b22f00a3",
     "signatureAlgorithm": "SHA256withRSA",
     "payloadUnchanged": true,
@@ -41,7 +42,7 @@
     "workflow": ".github/workflows/google-play-code18.yml",
     "modeAuthorizedByUser": "internal",
     "confirmation": "RELEASE_CODE18_INTERNAL",
-    "uploadWorkflowCommit": "resolve-exact-current-main-with-own-successful-CI-at-dispatch",
+    "uploadWorkflowCommit": "918370f80cd8af6c4bbe3b76d4d22e5934b86544",
     "retainedVersionCodes": [
       16,
       17
@@ -49,6 +50,30 @@
     "allowProduction": false,
     "allowTesterChanges": false,
     "allowBlindRetry": false,
-    "allowSilentCode19": false
-  }
+    "allowSilentCode19": false,
+    "uploadWorkflowCIRunId": 44191751112
+  },
+  "updatedLocalDate": "2026-11-18",
+  "timezone": "Europe/Berlin",
+  "includesRemainingGuide": true,
+  "sourcePullRequest": 17,
+  "supersedes": {
+    "sourceCommit": "9bc717985ca6c9fadb13c0dbb38b0ba3d427715c",
+    "signedArtifactId": 14367656025,
+    "signRunId": 44169177734,
+    "reason": "Nutzerauftrag: neue Testansicht in denselben geplanten Code18 aufnehmen",
+    "oldArtifactNotAuthorizedAsFallback": true
+  },
+  "automationReadback": {
+    "id": "anker-play-update-intern-freigeben",
+    "status": "ACTIVE",
+    "name": "Anker: Play-Update intern freigeben",
+    "newBindingReadback": true,
+    "scheduleUnchanged": true,
+    "targetThreadUnchanged": true,
+    "promptSha256": "d31c97b0dd4273e023e22316cb1031741558b8d1f9ccf94072e11456e17617cb"
+  },
+  "newGuideBundleMarkersVerified": true,
+  "pendingArtifactExcluded": 14378507221,
+  "recordedAtUTC": "2026-11-17T23:01:16.725973+00:00"
 }

@@ -1,5 +1,37 @@
 # Anker: Testnachweise
 
+## Neues Code18 mit Testansicht: final geprüft (18.11.2026)
+
+- Korrigierte Appquelle8a51bdb: eigene main-CI44191339291 erfolgreich; unabhängige
+  Releasepolicy918370f: eigene main-CI44191751112 erfolgreich. Vor Prepare beide
+  tatsächlichen Ergebnisse bestätigt; die Laufzeitgates haben sie erneut geprüft.
+- Prepare44193618462/1 erfolgreich: unveränderliches Artefakt14377373821,
+  neues post-sync-Fingerprintc01034e154e304cafbc5b4e148cf27b7684b4c319b36c0df1b627db46930df7b,
+  Paket de.frnkrm.anker.mobile, Code18/1.5.0-rc.4. Manifest, Assets, native Bibliotheken
+  und unsigned Zustand durch bestehenden Prüfer bestätigt.
+- Sign/Verify44194672103/1 erfolgreich: finales Artefakt14378791154,
+  54.622.069Bytes, Nutzlast677Einträge unverändert, genau ein RSA-Signierer,
+  SHA256withRSA und bestehender erwarteter Uploadschlüssel. Pending14378507221
+  ausdrücklich ausgeschlossen. Detaillierte Hashes/Archivdigest/CIs im
+  [neuen Beleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+- „Eine Nacht messen“, „Technische Teilprüfungen bereits belegt“ und
+  „Vollständiger Katalog und bisherige Berichte“ direkt in beiden tatsächlichen
+  AABs gefunden. Keine bloße Behauptung aus Branchname oder Versionsnummer.
+- Echter aktueller Publisher-`verify_files` akzeptiert das neue signierte AAB
+  lokal: Manifest/Native/JAR, exakte Kontext-/Dateihashes und jarsigner-strict
+  mit wegwerfbarem öffentlichen Zertifikat/Truststore. Keine Google-Anfrage,
+  Signiersecrets oder privaten Schlüssel lokal benötigt.
+- Bestehende Play-Automation auf neue Quelle/CI/Signierpolicy/Läufe/Artefakt/Hashes
+  aktualisiert. Dateireadback bestätigt ACTIVE, alle neuen Bindungswerte, gleichen
+  Chat und unveränderten einmaligen Termin18.11.2026 um22:50Berlin.
+
+Keine neue Android-Installation oder vollständige Nachtabnahme behauptet.
+Play-Upload und interne Verfügbarkeit bleiben bis zur geplanten tatsächlichen
+Ausführung offen; die überholte alte Artefaktbindung darf nicht als Ersatz dienen.
+Für reine Belegpflege keine zusätzliche App- oder Produktsuite erzeugt.
+
+## Historische Umsetzung und Nachläufe
+
 ## Restanleitung im Testmodul – Folgeänderung vom 17.11.2026
 
 Release-Nachlauf: PR17-Push44186798169 bestand388 Browserfälle; der getrennte

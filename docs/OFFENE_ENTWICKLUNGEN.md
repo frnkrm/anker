@@ -1,5 +1,13 @@
 # Entwicklungsstand und verbleibende Abnahme
 
+Aktualisierung18.11.: Neue Testansicht ist jetzt im neu signierten Code18 enthalten.
+Appquelle8a51bdb/Policy918370f samt eigenen main-CIs erfolgreich; finales
+Artefakt14378791154 aus Sign/Verify44194672103. Bestehenden Play-Auftrag auf die
+neue Bindung umgestellt und zurückgelesen, Termin weiterhin18.11.22:50Berlin.
+[Aktueller Beleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Nur tatsächlicher
+Upload/Readback/Store-Verfügbarkeit und die unten genannten eigenen Geräteversuche
+bleiben offen; kein gesondertes Folgeupdate für die Testansicht mehr erforderlich.
+
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
 abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte

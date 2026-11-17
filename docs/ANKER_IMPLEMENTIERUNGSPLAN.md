@@ -1,5 +1,23 @@
 # Anker 2.0: Implementierungsplan
 
+## Aufnahme in Code18 abgeschlossen (18.11.2026)
+
+Ausdrücklicher Nutzerauftrag erfüllt: neue Testansicht in denselben geplanten
+Code18 aufgenommen. Quelle8a51bdb/main-CI44191339291 und Policy918370f/main-CI44191751112
+erfolgreich. Neues signiertes, unabhängig verifiziertes finales Artefakt14378791154
+aus Prepare44193618462 und Sign44194672103. Neuer Publisherprüfer akzeptiert das
+echte AAB; Restanleitungs-Textmarken direkt im Paket bestätigt. Gleiche Version,
+Paketkennung, Manifest-/Native-Grenzen und bestehender Uploadschlüssel.
+
+Bestehenden einmaligen Play-Auftrag aktualisiert, ACTIVE-Zustand, vollständige neue
+Bindung, Termin18.11.22:50 und Chatzuordnung durch Readback bestätigt. Frühere
+Artefaktbindung als Fallback ausdrücklich ausgeschlossen. Noch keine vorzeitige
+Google-Auslieferung, keine Produktion, Testeränderung oder neue Automation.
+[Maschinenlesbarer neuer Beleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+
+Die folgenden Abschnitte dokumentieren Entscheidungen und Zwischenstände während
+der Umsetzung; dortige Angaben „noch in Arbeit“ sind durch diesen Abschluss ersetzt.
+
 ## Folgeauftrag: persönliche Restanleitung im Testmodul (17.11.2026)
 
 Auf ausdrücklichen Nutzerauftrag steht vor dem vollständigen Katalog eine kurze

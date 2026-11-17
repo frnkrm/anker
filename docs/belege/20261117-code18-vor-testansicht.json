@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "packageName": "de.frnkrm.anker.mobile",
+  "versionCode": 18,
+  "versionName": "1.5.0-rc.4",
+  "sourceCommit": "9bc717985ca6c9fadb13c0dbb38b0ba3d427715c",
+  "sourceFingerprint": "f595199f70ff101f11a164156d96f55d941f1a40ce756e284419640bb31f64ec",
+  "sourceCIRunId": 44144640024,
+  "signWorkflowCommit": "ce07450700707b1abf57036c3a4b05100f48c6f8",
+  "signWorkflowCIRunId": 44164946645,
+  "prepare": {
+    "runId": 44167654681,
+    "attempt": 1,
+    "artifactId": 14367480668,
+    "archiveDigest": "sha256:aa808f2887634b632075e1e573467a69aaf399ca508a50dafa624750fb4f6194",
+    "bundleSha256": "7bf25f4fb79bb140a315cad1bb20d01656c6226012c87f374874381a1a5e478b",
+    "proofSha256": "2f1cda984b1549d6156f8f74a3c36b5c0ff6d9389dffb6c0b7b5130fd99de9ba"
+  },
+  "signed": {
+    "runId": 44169177734,
+    "attempt": 1,
+    "artifactId": 14367656025,
+    "artifactName": "Anker-Code18-AAB-Pruefstand-44169177734-1",
+    "archiveDigest": "sha256:95ee902b60be70edb03ce96ec9ad448001796d217343a226997bf9f523deaa24",
+    "bundleSha256": "f4d3796ba39bdcb5ecd705583da390580d6074b23a798287d52ee7657f666382",
+    "proofSha256": "923c8cc3d552d50848a6ec352c03ea9bdc20b4dfe65ea9f64cf750d82e96941a",
+    "bytes": 54615244,
+    "certificateSha256": "4879769897033b9bdd35b9dab927088e0585fdb9fee86ce3aa52cbc2b22f00a3",
+    "signatureAlgorithm": "SHA256withRSA",
+    "payloadUnchanged": true,
+    "payloadEntries": 677
+  },
+  "publisherArtifactRecheck": true,
+  "fullReleaseDeviceVerified": false,
+  "play": {
+    "uploaded": false,
+    "internalReleaseConfirmed": false,
+    "uploadKeyActivationAnnouncedAt": "2026-11-18T22:41:00+01:00",
+    "scheduledAt": "2026-11-18T22:50:00+01:00",
+    "automationId": "anker-play-update-intern-freigeben",
+    "workflow": ".github/workflows/google-play-code18.yml",
+    "modeAuthorizedByUser": "internal",
+    "confirmation": "RELEASE_CODE18_INTERNAL",
+    "uploadWorkflowCommit": "resolve-exact-current-main-with-own-successful-CI-at-dispatch",
+    "retainedVersionCodes": [
+      16,
+      17
+    ],
+    "allowProduction": false,
+    "allowTesterChanges": false,
+    "allowBlindRetry": false,
+    "allowSilentCode19": false
+  }
+}
