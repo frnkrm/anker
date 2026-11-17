@@ -379,6 +379,8 @@ test('Leise Folgekarte und unabhängiger Einstellschalter passen bei 320 Pixeln 
   await page.setViewportSize({ width: 320, height: 844 }); await page.evaluate(() => { document.documentElement.style.fontSize = '160%' })
   const card = page.getByRole('region', { name: 'Leise Schlafenszeit-Folgehinweise', exact: true })
   await expect(card).toBeVisible()
+  const anchor = await page.locator('.now-anchor').boundingBox()
+  expect(anchor!.height).toBeLessThan(100)
   const buttons = await card.getByRole('button').all()
   const first = await buttons[0]!.boundingBox(), second = await buttons[1]!.boundingBox()
   expect(first!.height).toBeGreaterThanOrEqual(44); expect(second!.y).toBeGreaterThanOrEqual(first!.y + first!.height)

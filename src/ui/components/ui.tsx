@@ -23,7 +23,7 @@ export function Button({
   ...p
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   const sizes = { sm: 'min-h-11 px-3 text-sm rounded-xl', md: 'min-h-12 px-4 rounded-2xl', lg: 'min-h-14 px-5 text-lg rounded-2xl', xl: 'min-h-20 px-6 text-2xl rounded-3xl' }
-  return <button type="button" className={`inline-flex min-w-0 items-center justify-center gap-2 transition disabled:opacity-40 ${sizes[size]} ${VARIANTS[variant]} ${className}`} {...p} />
+  return <button type="button" className={`inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal [overflow-wrap:anywhere] transition disabled:opacity-40 ${sizes[size]} ${VARIANTS[variant]} ${className}`} {...p} />
 }
 
 export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {

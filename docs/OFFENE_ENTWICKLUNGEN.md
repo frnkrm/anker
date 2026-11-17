@@ -67,7 +67,7 @@ UI-/E2E-/Geräteabnahme ausliefern. Diese Planung startet nicht automatisch die 
 
 ## F-011 – Hobbys einrichten und freie Zeit freundlich anbieten
 
-**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026, Beispiel Fotografie.
+**Status:** Implementiert und lokal automatisch geprüft; echte Abnahme offen. Nutzerwunsch vom 17.11.2026, Beispiel Fotografie.
 Einordnung: neue freiwillige Produktfunktion. Integration über bestehenden Planer,
 Jetzt-Projektion und Store; keine zweite Freizeitplanung.
 
@@ -120,7 +120,7 @@ Reine Auswahlregel gezielt testen, dann UI; noch keine Umsetzung oder Produktpr�
 
 ## F-012 – PC-Begleiter: ruhige Gestaltung und zugehörige Dialogfenster
 
-**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026: minimalistisch, aber
+**Status:** Implementiert; Windows-Lauf/Geometrie geprüft, visuelle Abnahme offen. Nutzerwunsch vom 17.11.2026: minimalistisch, aber
 ansehnlicher. Separate Fenster nach Buttonklick bleiben; sie sollen direkt über
 dem Hauptfenster erscheinen. Der optische Gesamtwunsch ist eine Weiterentwicklung;
 fehlerhafte Dialogzuordnung/-positionierung wird in diesem Paket mit korrigiert.
@@ -148,7 +148,7 @@ UI implementiert oder echte Dialogprüfung durchgeführt.
 
 ## F-013 – Kostenlose Unterstützung für kleine Aufgabenschritte
 
-**Status:** Offen, nur geplant; Nutzerforderung vom 17.11.2026: keine Anbietergebühren.
+**Status:** Kostenloser Adapter und Einrichtung vorbereitet; externe Gratis-Konten/Schlüssel fehlen. Nutzerforderung vom 17.11.2026: keine Anbietergebühren.
 Nutzen: Einen bewusst ausgewählten Aufgabentext in bearbeitbare kleine Schritte
 zerlegen. Bereits vorhandene lokale Teilschritt-Vorlagen bleiben kostenlos/offline.
 Das ist keine frei generierende KI, aber ein unmittelbar nutzbarer Rückweg.
@@ -182,7 +182,7 @@ Die lokale Variante ist eine Planungsempfehlung, noch kein nachgewiesener Anschl
 
 ## F-014 – Kostenfreie Fahrzeit-/Verkehrsvorschläge
 
-**Status:** Offen, nur geplant; kostenlose Schnittstelle ausdrücklich gewünscht.
+**Status:** Kostenloser Adapter vorbereitet; Aktivierung ohne geprüfte Gratis-Konten/Schlüssel gesperrt. Kostenlose Schnittstelle ausdrücklich gewünscht.
 Nutzen: Für eine bewusst freigegebene Strecke eine aktuelle Fahrzeitschätzung
 anbieten. Normale Routenschätzung, Live-Verkehr und ÖPNV getrennt ausweisen;
 eine kostenlose Routing-API ohne Verkehrsdaten nicht als Stauprognose bezeichnen.
@@ -214,7 +214,7 @@ Recherche 17.11.2026: [TomTom Preise](https://docs.tomtom.com/pricing),
 
 ## F-015 – Nachtmessung von Jetzt aus starten und nachvollziehbar machen
 
-**Status:** Offen, nur geplant; Nutzerwunsch vom 17.11.2026. Gemeint ist das
+**Status:** Implementiert und automatisch geprüft; reale Messnacht/Freigaben noch offen. Nutzerwunsch vom 17.11.2026. Gemeint ist das
 experimentelle Aktivitäts-Weckfenster (SmartWake), keine durchgehende Schlafaufnahme.
 Vorhanden: `SmartWake.tsx` für Einrichtung/Start und `SmartWakeService.kt` für
 Mikrofon-Foreground-Dienst, Beschleunigung und kurzlebige Pegelwerte. Derzeit wird
@@ -311,7 +311,7 @@ sind ein technisches Prüfgate, keine bereits gelöste Voraussetzung.
 
 ## F-016 – Suche für Funktionen und Einstellungen
 
-**Status:** Offen, nur geplant. Ein gut erreichbarer Suchen-Button öffnet eine
+**Status:** Implementiert und automatisch geprüft. Ein gut erreichbarer Suchen-Button öffnet eine
 lokale Suche, etwa aus Jetzt/Mehr, ohne die Hauptaktion zu verdrängen. Ein gemeinsamer
 Katalog erhält pro tatsächlich vorhandener Funktion einen verständlichen Namen,
 passende deutsche Stichwörter/Synonyme, Kurzbeschreibung, Kategorie, Route und bei
@@ -337,7 +337,7 @@ Telemetrie nötig. Bestehende Sheet-Portal-/Historyregeln weiterverwenden.
 
 ## F-017 – Erklärungen bei Bedarf im Infofenster statt dauerhaftem Langtext
 
-**Status:** Offen, nur geplant; gilt appweit für wiederkehrende Funktionserklärungen,
+**Status:** Gemeinsame Info-Komponente und zentrale Erklärungen implementiert; gilt appweit für wiederkehrende Funktionserklärungen,
 z.B. den langen Text unter „Deine gewählte Schlafenszeit“ auf Jetzt. Ein benanntes,
 gut antippbares Infosymbol bei der jeweiligen Funktion öffnet einen kurzen
 verständlichen Hilfedialog mit Zweck, Ablauf und Grenzen. Keine reine Hoverhilfe
@@ -361,7 +361,7 @@ als Grundlage; bei der Entwicklung gezielt aktuelle Gestaltungsquellen ergänzen
 
 ## F-018 – Schlafjournal, Rückfragen und persönliche Zeitvorschläge
 
-**Status:** Offen, nur geplant. Nutzerwunsch vom 17.11.2026; abhängig von F-015.
+**Status:** Lokales Modell, Auswertung und freiwillige UI implementiert; echte Nachtprüfung und endgültige Skalenabstimmung offen. Nutzerwunsch vom 17.11.2026; abhängig von F-015.
 Persönliche Beobachtung und Vorschläge, keine medizinische Diagnose oder automatische
 Festsetzung des Schlafbedarfs. Endgültige Ablage, Darstellung, Skalen und Auswertungs-
 schwellen ausdrücklich später mit dem Nutzer besprechen. Jetzt nur fachlichen

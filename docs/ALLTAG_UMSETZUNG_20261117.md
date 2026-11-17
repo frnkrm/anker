@@ -139,3 +139,17 @@ Nach den Funktionspaketen wurden die Oberflächen gemeinsam ergänzt:
   kein Appdatenverlust, keine Versionsänderung. Neue Arbeit ist noch kein Release.
 - Der geplante Code18-Play-Auftrag vom 18.11. um 22:50 bleibt an seine bisherige
   Quelle gebunden. Diese neue Funktionsserie wurde nicht still hineingemischt.
+
+## CI-Nachbesserung: Schriftberechnung unter Linux
+
+Der erste GitHub-Lauf bestand 385/387 Browserfälle und beide PC-Matrixjobs.
+Zwei echte große-Schrift-Probleme: Der zusätzliche Suchknopf konnte den Jetzt-
+Zeitanker im ungefalteten Kopf zu schmal drücken; lange Relay-Knopftexte konnten
+mit Linux-Schriftmaßen ihre Textfläche überschreiten. Der Kopf darf nun umbrechen,
+der Zeitanker behält eine sinnvolle Basisbreite und normale Knopftexte können
+auch innerhalb langer Wörter umbrechen. Die vorhandene 320px-Prüfung ergänzt eine
+Höhengrenze für den Zeitanker, damit vertikale Buchstabenstapel erkannt werden.
+Keine Vergrößerung der erlaubten Überlaufgrenzen. Gezielte Browserprüfung und
+anschließender CI-Lauf dokumentieren den korrigierten Stand separat.
+
+Gezielter Windows-Browserlauf nach Korrektur: 45/45 Fälle bestanden (Schlafhinweise, Relay, Jetzt und v7-Begleitung).

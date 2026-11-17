@@ -1255,3 +1255,17 @@ CI20 auf8506325:135/138grün. Annotations/Diagnose unter `e04-e09/remote-ci/ci20
 [CI21](https://github.com/frnkrm/anker/actions/runs/42289520357) auf exakt `240033c246892113ecd0650ffe2d673d34740b38` erfolgreich. Öffentliche Jobschritte für npm-ci, Lint, TypeScript, Logiktests, PowerShell, Produktionsbuild, Browserinstallation und Playwright jeweils success. **139/139 Browserfälle in3,8min**, bekannter Gesamtumfang139/28Dateien, keine Skips oder konfigurierten Retries. Gesamter Job5m55s. Artefaktexport bei Fehlern korrekt übersprungen; das ist kein übersprungener Test. Zwei bestehende Warnungen (Actions-Node20-Migration/Ref-Cleanup),0Lintfehler.
 
 Nachweise unter `/workspace/.cache/anker/e04-e09/remote-ci/ci21-240033c/`:metadatengebundeneRun-/Job-HTML,öffentlicherText/Schrittstatus undResultat. Zusätzlich Root24/24CI21-Zielfälle/45s grün; echte Settings-/Loader-/Commit-Barrieren lieferten Rotnachweise für alle CI20-Ursachen. App-Fingerprint e862… und ZIP-SHA bff0a29a… unverändert. Öffentlicher Download HTTP200/22137167Bytes plus Gitblob-Bytegleichheit geprüft. [Windows-Updateblock](UPDATE_E04_E09.md) nur mit echtem PowerShell-Parser geprüft, nicht unterWindows ausgeführt. Keine neue echte Android-, Windows-Signier-/Scheduler-, OAuth- oder Anbieterprüfung.
+
+## CI-Nachbesserung: Schriftberechnung unter Linux
+
+Der erste GitHub-Lauf bestand 385/387 Browserfälle und beide PC-Matrixjobs.
+Zwei echte große-Schrift-Probleme: Der zusätzliche Suchknopf konnte den Jetzt-
+Zeitanker im ungefalteten Kopf zu schmal drücken; lange Relay-Knopftexte konnten
+mit Linux-Schriftmaßen ihre Textfläche überschreiten. Der Kopf darf nun umbrechen,
+der Zeitanker behält eine sinnvolle Basisbreite und normale Knopftexte können
+auch innerhalb langer Wörter umbrechen. Die vorhandene 320px-Prüfung ergänzt eine
+Höhengrenze für den Zeitanker, damit vertikale Buchstabenstapel erkannt werden.
+Keine Vergrößerung der erlaubten Überlaufgrenzen. Gezielte Browserprüfung und
+anschließender CI-Lauf dokumentieren den korrigierten Stand separat.
+
+Gezielter Windows-Browserlauf nach Korrektur: 45/45 Fälle bestanden (Schlafhinweise, Relay, Jetzt und v7-Begleitung).

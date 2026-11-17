@@ -230,7 +230,7 @@ ungefragt zuklappt. Lange Inhalte sollen ihre zugehörigen Aktionen klar enthalt
 - PC-Seite und mindestens eine weitere `MoreInfo`-Verwendung visuell prüfen;
   nur bei neuer Zustandslogik zusätzliche Logiktests ergänzen.
 
-**Status:** Nur geplant, keine Produktänderung oder neue Prüfung.
+**Status:** Gemeinsame Karten-/Bereichsgrenzen implementiert und automatisch geprüft; echte visuelle Android-Abnahme bleibt offen.
 
 ## BF-004 – Gesperrte KI-/Verkehrsschalter verständlich erklären
 
