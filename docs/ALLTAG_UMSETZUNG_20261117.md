@@ -153,3 +153,5 @@ Keine Vergrößerung der erlaubten Überlaufgrenzen. Gezielte Browserprüfung un
 anschließender CI-Lauf dokumentieren den korrigierten Stand separat.
 
 Gezielter Windows-Browserlauf nach Korrektur: 45/45 Fälle bestanden (Schlafhinweise, Relay, Jetzt und v7-Begleitung).
+
+Linux-Nachlauf zeigte weiterhin zwei Überläufe: flexibler Schlafkarten-Titel und langer Relay-Erklärungstext. Beide erlauben nun ausdrücklich Umbrüche innerhalb langer Wörter; Titel zusätzlich min-width: 0. Die Prüfungen benennen überlaufende Texte statt nur Zahlen. Lokaler gezielter Lauf 2/2 bestanden; Linux-Bestätigung separat.

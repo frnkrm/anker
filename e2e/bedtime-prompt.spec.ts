@@ -381,6 +381,8 @@ test('Leise Folgekarte und unabhängiger Einstellschalter passen bei 320 Pixeln 
   await expect(card).toBeVisible()
   const anchor = await page.locator('.now-anchor').boundingBox()
   expect(anchor!.height).toBeLessThan(100)
+  const overflows = await card.locator('h2,p,button').evaluateAll(nodes => nodes.filter(n => n.scrollWidth > n.clientWidth + 1).map(n => ({ text: n.textContent, width: n.clientWidth, content: n.scrollWidth })))
+  expect(overflows).toEqual([])
   const buttons = await card.getByRole('button').all()
   const first = await buttons[0]!.boundingBox(), second = await buttons[1]!.boundingBox()
   expect(first!.height).toBeGreaterThanOrEqual(44); expect(second!.y).toBeGreaterThanOrEqual(first!.y + first!.height)

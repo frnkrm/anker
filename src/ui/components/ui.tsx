@@ -433,7 +433,7 @@ export function BackButton({ to, onClick, label = 'Zurück', className = '' }: {
 }
 
 export function MoreInfo({ children, summary = 'Mehr erfahren', className = '', open, id }: { children: ReactNode; summary?: string; className?: string; open?: boolean; id?: string }) {
-  return <details id={id} open={open} className={`more-info min-w-0 overflow-hidden rounded-2xl border border-line bg-surface text-sm ${className}`}><summary className="min-h-14 cursor-pointer px-4 py-4 font-medium text-text">{summary}</summary><div className="space-y-3 border-t border-line p-4 text-muted">{children}</div></details>
+  return <details id={id} open={open} className={`more-info min-w-0 [overflow-wrap:anywhere] overflow-hidden rounded-2xl border border-line bg-surface text-sm ${className}`}><summary className="min-h-14 cursor-pointer px-4 py-4 font-medium text-text">{summary}</summary><div className="space-y-3 border-t border-line p-4 text-muted">{children}</div></details>
 }
 
 export function Checkbox({ checked, onChange, label, children, disabled = false, className = '', ...props }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'checked' | 'onChange' | 'size'> & { checked: boolean; onChange: (checked: boolean) => void; label?: ReactNode; children?: ReactNode }) {

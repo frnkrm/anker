@@ -12,7 +12,7 @@ export function BedtimeFollowUpCard() {
   const until = typeof state.quietUntilAt === 'number' && Number.isFinite(state.quietUntilAt) ? state.quietUntilAt : undefined
   return <Card className="min-w-0 space-y-3 !bg-black !text-white" >
     <section aria-label="Leise Schlafenszeit-Folgehinweise" className="min-w-0 space-y-3">
-      <div className="flex items-center justify-between gap-2"><h2 className="break-words font-semibold">Deine gewählte Schlafenszeit</h2><Info title="Deine gewählte Schlafenszeit"><p>Bleibt stumm, auch in Ruhezeiten: ohne Ton, Vibration, Bildschirmwecken oder Appwechsel. Der stille Folgehinweis allein erkennt nicht, ob du schläfst. „Heute Ruhe“ beendet diese Nacht.</p></Info></div>
+      <div className="flex items-center justify-between gap-2"><h2 className="min-w-0 [overflow-wrap:anywhere] font-semibold">Deine gewählte Schlafenszeit</h2><Info title="Deine gewählte Schlafenszeit"><p>Bleibt stumm, auch in Ruhezeiten: ohne Ton, Vibration, Bildschirmwecken oder Appwechsel. Der stille Folgehinweis allein erkennt nicht, ob du schläfst. „Heute Ruhe“ beendet diese Nacht.</p></Info></div>
       <p className="text-sm text-muted">Anker erkennt nicht, ob du schläfst.</p>
       {ready ? <p className="break-words text-sm text-muted">Wenn du noch am Handy bist: Möchtest du es für heute weglegen? Du entscheidest.</p>
         : <p role="status" className="break-words text-sm text-muted">Die leise Abendrunde ruht.{due !== undefined ? ` Frühestens wieder ab ${time(due)}; eine Anzeige wird nicht zugesagt.` : ' Sie wartet auf den erlaubten nativen Gerätezustand.'}</p>}
