@@ -225,6 +225,8 @@ for (const target of ['now', 'alarm']) {
     await page.getByRole('link', { name: 'Mehr', exact: true }).click()
     await expect(page.getByRole('link', { name: /Einstellungen/ })).toBeVisible()
     await page.evaluate(() => { history.pushState({}, '', '/geraetetest'); window.dispatchEvent(new PopStateEvent('popstate')) })
+    await expect(page.getByRole('heading', { name: 'Für dich noch zu prüfen', exact: true })).toBeVisible()
+    await page.getByText('Vollständiger Katalog und bisherige Berichte', { exact: true }).click()
     await expect(page.getByLabel('Test auswählen', { exact: true })).toBeVisible()
     await page.getByText('Einzelne Bereiche prüfen', { exact: true }).click()
     await page.getByRole('button', { name: 'Zeiteingabe prüfen', exact: true }).click()

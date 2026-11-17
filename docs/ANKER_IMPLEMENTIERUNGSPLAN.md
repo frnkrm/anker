@@ -12,10 +12,15 @@ Katalog ist standardmäßig geschlossen, direkte Falllinks öffnen ihn weiterhin
 Notizen führen zu passenden bestehenden Sammelfällen; NFC direkt zu Ankerpunkten,
 weil es dafür keine eigene alte G-ID gibt. Kein zweites Fortschrittsmodell.
 
-Diese Folgeänderung ist ausschließlich im Entwicklungsstand vorbereitet. Keine
-Versionsänderung, neue Signierung, Installation oder Aufnahme in das bereits
-fest gebundene Code18-Play-Artefakt; dessen Quelle und geplanter Auftrag bleiben
-unverändert. Neue Anleitung kommt erst mit einem gesonderten Folgeupdate aufs Handy.
+Aktueller Nutzerauftrag vom17.11.: Die neue Testansicht ausdrücklich in die bereits
+geplante nächste Play-Auslieferung aufnehmen. Das ersetzt die zuvor vorgesehene
+Trennung in ein Folgeupdate. Code18/1.5.0-rc.4 bleibt erhalten, solange noch kein
+Code18-Bundle bei Google angenommen wurde. Neue integrierte Appquelle und deren
+eigene main-CI exakt binden; neue Prepare-/Sign-/Prüfläufe und anschließend den
+bestehenden einmaligen Auftrag auf das neue Artefakt umstellen. Keine alten Hashes
+als Nachweis für den neuen Inhalt verwenden, keine Schutzgates lockern. Termin,
+interner Umfang, bestehende aktive Versionen und Produktionsgrenze bleiben erhalten.
+Bis zum neuen signierten Nachweis ist der Austausch noch in Arbeit.
 
 Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
 dokumentierten Softwareumfang implementiert und integriert**, einschließlich der

@@ -86,6 +86,7 @@ test('Gewählte Abendbegleitung zeigt Bettzeit als PC-Grenze und erhält die sep
 test('Die v7-Kurzrunde nutzt sieben vorhandene Berichtplätze und bewahrt die Standard-Kurzrunde', async ({ page }) => {
   await onboard(page)
   await page.goto('/geraetetest')
+  await page.getByText('Vollständiger Katalog und bisherige Berichte', { exact: true }).click()
   expect(await choiceValues(page, 'Test auswählen')).toEqual(['1', '21', '62', '92', '95', '96'])
   await page.getByRole('button', { name: 'v7 gemeinsam ausprobieren · 7 Stationen', exact: true }).click()
   expect(await choiceValues(page, 'Test auswählen')).toEqual(['97', '98', '99', '100', '101', '102', '103'])
