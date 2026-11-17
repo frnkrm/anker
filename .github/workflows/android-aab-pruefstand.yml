@@ -163,6 +163,12 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
         run: |
+          python3 - <<'PY'
+          import os, re
+          if (os.environ.get('VITE_SUPABASE_URL') != 'https://bnthnmkhwumaqfurbgte.supabase.co'
+              or not re.fullmatch(r'sb_publishable_[A-Za-z0-9_-]{16,256}', os.environ.get('VITE_SUPABASE_ANON_KEY', ''))):
+              raise SystemExit('Öffentliche Serverkonfiguration fehlt oder ist nicht freigegeben.')
+          PY
           npm ci
           npm run build
           node node_modules/@capacitor/cli/bin/capacitor sync android

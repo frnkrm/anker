@@ -37,7 +37,18 @@ Bestehender Gemini-Schlüssel nach ausdrücklicher Freigabe ausschließlich serv
 hinterlegt; Free-Plan-Bestätigung und eigene Benutzer-/Native-Origin-Allowlist gesetzt.
 Kein Anbieter-/Service-Role-Schlüssel in App, Git oder Protokollen.
 Ein authentifizierter echter Gemini-Aufruf ist noch offen; kein Gesamterfolg behauptet.
-TomTom-Registrierung ausdrücklich freigegeben; aktueller Kontostand separat nachlesen.
+TomTom-Registrierung und serverseitige Schlüsselablage ausdrücklich freigegeben.
+Nutzer hat Passwort/Registrierung selbst abgeschlossen; Portal zeigt Freemium.
+Automatisch angelegten bestehenden Schlüssel auf Geocoding API/Routing API begrenzt,
+NameAnker Fahrzeiten, keine Rotation/neuer Schlüssel, keine Zahlung/Upgrade.
+TOMTOM_API_KEY im bestehenden Supabase-Secretstore gespeichert und Namen nachgelesen.
+Echter TomTom-Maps-v1-API-Explorer-Aufruf mit diesem Schlüssel auf öffentliche
+Dokumentationskoordinaten: HTTP200,2.280m/385s am17.11.20:31Berlin. Keine privaten
+Adressen. Das bestätigt den Providerzugang, noch keinen authentifizierten kompletten
+App→Supabase→Provider-Rückweg. Origin-/Nutzer-/Tagesbudgetgates bleiben aktiv.
+[Offizielle aktuelle Preise](https://docs.tomtom.com/pricing): jeweils20.000 monatliche
+Gratisanfragen für Routing/Geocoding; kein kostenpflichtiger Ersatz. Eigener bisheriger
+Serverdeckel6Routen/Tag und höchstens2Geocodes pro Route bleibt deutlich darunter.
 
 ## Releasebindung und Schutzgrenzen
 
@@ -53,7 +64,9 @@ Geprüftes Manifestdelta: optionaler SleepLockAdmin-Receiver mit BIND_DEVICE_ADM
 
 AAB-Prüfworkflow nun an diese feste Quelle, deren eigene main-CI und neue Kennung
 gebunden. Öffentliche Serverkonfiguration aus Repositoryvariablen ausschließlich
-im unsigned Build, nicht aus privaten Secrets. Signatur-/Payload-/16KB-/Lauf-/Versuchs-
+im unsigned Build, nicht aus privaten Secrets. Vor npm ci verlangt der Build zusätzlich
+die konkrete freigegebene Projekt-URL und einen modernen sb_publishable_-Schlüssel;
+Secret-/Service-Role-Werte werden dadurch nicht versehentlich in die App eingebaut. Signatur-/Payload-/16KB-/Lauf-/Versuchs-
 und Artefaktprüfungen bleiben erhalten. Neue Code18-Auslieferung strikt manuell/main,
 standardmäßig interner Entwurf; interner aktiver Test erfordert die gesonderte
 RELEASE_CODE18_INTERNAL-Wahl. Bestehender Code17-Weg unverändert. Exakte finale

@@ -1,6 +1,7 @@
 """Parse and inspect the draft without running Actions, Gradle or a signer."""
 import ast
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -92,9 +93,24 @@ class WorkflowTests(unittest.TestCase):
         build = next(s for s in steps if s.get('working-directory') == 'app')
         self.assertEqual(build['env']['VITE_SUPABASE_URL'], '${{ vars.VITE_SUPABASE_URL }}')
         self.assertEqual(build['env']['VITE_SUPABASE_ANON_KEY'], '${{ vars.VITE_SUPABASE_ANON_KEY }}')
+        self.assertIn('sb_publishable_', build['run'])
+        self.assertIn('https://bnthnmkhwumaqfurbgte.supabase.co', build['run'])
+        self.assertLess(build['run'].index('sb_publishable_'), build['run'].index('npm ci'))
         for name in ('resolve', 'sign', 'verify'):
             self.assertNotIn('VITE_', json.dumps(self.workflow['jobs'][name]))
         self.assertNotIn('secrets.', json.dumps(self.workflow['jobs']['prepare']))
+
+    def test_public_config_gate_rejects_secret_and_wrong_destination(self):
+        step = next(s for s in self.workflow['jobs']['prepare']['steps'] if s.get('working-directory') == 'app')
+        script = step['run'].split("python3 - <<'PY'\n", 1)[1].split('\nPY\n', 1)[0]
+        good = {'VITE_SUPABASE_URL': 'https://bnthnmkhwumaqfurbgte.supabase.co',
+                'VITE_SUPABASE_ANON_KEY': 'sb_publishable_' + 'synthetic_' * 4}
+        for updates, expected in [({}, 0), ({'VITE_SUPABASE_URL': 'https://other.example'}, 1),
+                                  ({'VITE_SUPABASE_ANON_KEY': 'sb_secret_SYNTHETIC'}, 1),
+                                  ({'VITE_SUPABASE_ANON_KEY': ''}, 1)]:
+            result = subprocess.run([sys.executable, '-c', script], env={**os.environ, **good, **updates}, capture_output=True, text=True)
+            self.assertEqual(result.returncode, expected)
+            self.assertNotIn('sb_secret_', result.stderr)
 
     def test_sign_job_has_only_sparse_trusted_W_code_and_no_app_execution(self):
         job = self.workflow['jobs']['sign']
