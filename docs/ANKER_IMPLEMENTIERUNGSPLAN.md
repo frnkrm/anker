@@ -1,18 +1,59 @@
 # Anker 2.0: Implementierungsplan
 
-Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; Code18 aus Prepare44167654681 und Sign/Verify44169177734 tatsächlich fertig signiert, zusätzlich mit echtem Publisherprüfer bestätigt; [Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Play-Upload/Freigabe erst nach Schlüsselaktivierung18.11.22:41, bestehender Auftrag22:50.
+## Folgeauftrag: persönliche Restanleitung im Testmodul (17.11.2026)
 
-Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+Auf ausdrücklichen Nutzerauftrag steht vor dem vollständigen Katalog eine kurze
+Anleitung zu den verbleibenden eigenen Nacht-/Weck-/Kalender-/NFC-/PC-Versuchen.
+Frühere technische Teilbelege sind separat aufklappbar, mit Datum, Gerät und
+isoliertem Code18-Debug-Prüfstand gekennzeichnet. Keine künstlichen aktuellen
+Ergebnisse und kein automatisches Abhaken kompletter Sammelfälle. Bestehende
+103 IDs, Berichte, Historien und Import/Export bleiben erhalten; der vollständige
+Katalog ist standardmäßig geschlossen, direkte Falllinks öffnen ihn weiterhin.
+Notizen führen zu passenden bestehenden Sammelfällen; NFC direkt zu Ankerpunkten,
+weil es dafür keine eigene alte G-ID gibt. Kein zweites Fortschrittsmodell.
 
-## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+Aktueller Nutzerauftrag vom17.11.: Die neue Testansicht ausdrücklich in die bereits
+geplante nächste Play-Auslieferung aufnehmen. Das ersetzt die zuvor vorgesehene
+Trennung in ein Folgeupdate. Code18/1.5.0-rc.4 bleibt erhalten, solange noch kein
+Code18-Bundle bei Google angenommen wurde. Neue integrierte Appquelle und deren
+eigene main-CI exakt binden; neue Prepare-/Sign-/Prüfläufe und anschließend den
+bestehenden einmaligen Auftrag auf das neue Artefakt umstellen. Keine alten Hashes
+als Nachweis für den neuen Inhalt verwenden, keine Schutzgates lockern. Termin,
+interner Umfang, bestehende aktive Versionen und Produktionsgrenze bleiben erhalten.
+Bis zum neuen signierten Nachweis ist der Austausch noch in Arbeit.
 
-Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
-implementiert; der aktuelle differenzierte Stand steht in
-[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
-sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
-befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
-separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
-Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
+dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
+abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
+angemeldete App und kostenlose Anbieter erfolgreich geprüft. Aktueller main-Code:
+`8f452fd5317cabc002f53ebe55ceedfc47559e0b`; eigene CI `44172620113` erfolgreich
+(1.436 TypeScript-, 387 Browserfälle; PC-Matrix je 290 Fälle, davon zwei erwartete
+Plattform-Skips). Das ist keine vollständige Geräte- oder Nachtabnahme.
+
+Verbindliche [Restliste mit Voraussetzungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen).
+[Anbieterbelege](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md),
+[gebundenes signiertes Code18-Artefakt](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+Auf dem Handy ist weiterhin Code17/1.5.0-rc.3 installiert. Code18 ist fertig
+signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
+nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
+oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
+
+Entscheidung zur Fortsetzung: Der Nutzer beauftragt am 17.11. die autonome
+Bearbeitung aller übrigen offenen Punkte. Deshalb werden erledigte Implementierungen
+nicht erneut begonnen; mögliche wirkungsfreie Sichtprüfungen werden ergänzt und
+echte Geräte-/Nachtbeobachtungen getrennt offen gehalten. Nur Dokumentation und
+Belege ändern sich, die signierte Releasequelle bleibt unverändert.
+
+Aktueller USB-Testauftrag: vorhandenen getrennten Code18-Prüfstand für reversible
+native Geräteprüfungen und UI-Stichproben wiederverwendet; produktive Code17-Daten
+geschützt. Technische Hintergrund-Wecker-/Hinweiszustellung, Ablauf, NFC-Abbruch
+und sichere Ablehnungen zusätzlich belegt; danach Prüfstand samt Testfreigaben
+entfernt. [Detaillierte Ergebnisse und offene Grenzen](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026).
+Keine Änderung der eingefrorenen Appquelle, Signatur oder Play-Ausführung.
+
+## Historische Zwischenstände
+
+Die folgenden datierten Abschnitte bleiben als Verlauf erhalten; der obige aktuelle Stand hat Vorrang.
 
 ## Fortlaufender autonomer Gesamtauftrag (17.11.2026)
 

@@ -35,15 +35,23 @@ ergänzen, keine vermuteten Fehler als beobachtet eintragen.
   umgesetzt. Der separat autorisierte Play-Releaseauftrag bleibt bestehen;
   neue Bugfixes werden nicht still in dessen fest gebundene Appquelle aufgenommen.
 
-## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+## Aktueller Integrationsstand (17.11.2026)
 
-Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
-implementiert; der aktuelle differenzierte Stand steht in
-[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
-sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
-befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
-separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
-Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
+dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
+abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
+angemeldete App und kostenlose Anbieter erfolgreich geprüft. Aktueller main-Code:
+`8f452fd5317cabc002f53ebe55ceedfc47559e0b`; eigene CI `44172620113` erfolgreich
+(1.436 TypeScript-, 387 Browserfälle; PC-Matrix je 290 Fälle, davon zwei erwartete
+Plattform-Skips). Das ist keine vollständige Geräte- oder Nachtabnahme.
+
+Verbindliche [Restliste mit Voraussetzungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen).
+[Anbieterbelege](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md),
+[gebundenes signiertes Code18-Artefakt](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+Auf dem Handy ist weiterhin Code17/1.5.0-rc.3 installiert. Code18 ist fertig
+signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
+nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
+oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
 
 ## Übersicht
 
@@ -54,10 +62,10 @@ gemäß [Arbeitsweise](ARBEITSWEISE.md) und Ausführungsreihenfolge der Roadmap.
 | ID | Thema | Priorität | Status |
 | --- | --- | --- | --- |
 | BF-001 | Jetzt-Ansicht: Countdown, nächste Handlung und Punkte sind unklar | Hoch: Kernansicht | Logik und UI implementiert; automatische Integration und Geräteabnahme getrennt |
-| BF-002 | Offener Unterwegs-Zustand: Rückkehrbestätigung gerät ohne Erinnerung in Vergessenheit | Hoch: Alltagsbegleitung | Basis, Wahl und spätere Rückfrage implementiert; Geräteabnahme offen |
-| BF-003 | Aufklappbare Bereiche haben keine eindeutig erkennbare Inhaltsgrenze | Mittel: Orientierung | UI implementiert; Integrationsprüfung läuft |
-| BF-004 | KI-/Verkehrseinrichtung erklärt Sperren und nächste Schritte nicht verständlich | Mittel: Einrichtung | UI implementiert; Integrationsprüfung läuft |
-| BF-005 | „Heute anpassen“ ist unübersichtlich; Aktionen und Einstellungen schwer auffindbar | Hoch: tägliche Bedienung | UI implementiert; Integrationsprüfung läuft |
+| BF-002 | Offener Unterwegs-Zustand: Rückkehrbestätigung gerät ohne Erinnerung in Vergessenheit | Hoch: Alltagsbegleitung | Implementiert; befristete native Zustellung/Entfernung ohne automatische Rückkehr im isolierten Code18-Gerätetest bestätigt; vollständiger Alltagsablauf getrennt |
+| BF-003 | Aufklappbare Bereiche haben keine eindeutig erkennbare Inhaltsgrenze | Mittel: Orientierung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |
+| BF-004 | KI-/Verkehrseinrichtung erklärt Sperren und nächste Schritte nicht verständlich | Mittel: Einrichtung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |
+| BF-005 | „Heute anpassen“ ist unübersichtlich; Aktionen und Einstellungen schwer auffindbar | Hoch: tägliche Bedienung | UI integriert, automatische Integration bestanden; echte Geräteabnahme getrennt |
 
 ## BF-001 – Die Jetzt-Ansicht erklärt nicht eindeutig, was jetzt dran ist
 

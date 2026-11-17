@@ -14,6 +14,7 @@ import { AnkerNative, isNative } from '../../platform/native'
 import { useApp } from '../../state/store'
 import { Button, Card, Checkbox, Choice, Page, Row, Section, TextInput } from '../components/ui'
 import { AlarmDiagnosis, fmtDateTime } from './Alarm'
+import { RemainingDeviceTests } from '../components/RemainingDeviceTests'
 
 const TEST_ALARM_CASES = new Set([1, 2, 3, 9, 14, 15, 16, 17, 18, 19, 20, 47, 48, 70])
 const HARDWARE_CASES = new Set([...Array.from({ length: 30 }, (_, i) => i + 1), 35, 37, 38, 41, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 84, 85, 86, 88, 90, 94, 95, 97, 98, 99, 100, 101, 102, 103])
@@ -145,7 +146,7 @@ function extraHelp(id: number): string[] {
   if (id === 8) return ['Schalte „Wachheits-Check“ in den Weckeroptionen ein. Beende einen regulären Hauptwecker und warte die eingestellte Verzögerung ab.', 'Nach dem Beenden des Checks darf kein weiterer Check entstehen. Stelle die Option anschließend nach deinem Wunsch ein.']
   if (id === 14) return ['Öffne „Nicht stören“ unten. Teste einmal mit und einmal ohne erlaubte Wecker-Ausnahme.', 'Notiere beide Ergebnisse. Stelle danach deine üblichen Nicht-stören-Einstellungen wieder her.']
   if (id === 15) return ['Öffne die Ton-Einstellungen. Stelle die Alarmlautstärke bewusst niedrig und kontrolliere die Warnung in der Diagnose.', 'Teste die tatsächliche Hörbarkeit und stelle danach deine übliche Lautstärke wieder her. Anker regelt sie nicht automatisch.']
-  if (id >= 53 && id <= 59) return ['Öffne die Weckeroptionen, prüfe deinen festen Hauptwecker und schalte das Aktivitäts-Weckfenster nur für diesen Versuch bewusst ein.', 'Die Messung muss für jede Nacht bei geöffneter App gestartet werden. Sie wertet erst im gewählten Fenster aus; es gibt hier keinen beschleunigten Nachweis für Schlafphasen.', 'Dein Handy liegt auf der Matratze. Beobachte Bewegung, Geräusche und den festen Ersatztermin getrennt. Beende die Messung oder schalte die Option nach dem Versuch aus, wenn du sie nicht nutzen möchtest.']
+  if (id >= 53 && id <= 59) return ['Öffne die Weckeroptionen, prüfe deinen festen Hauptwecker und schalte das Aktivitäts-Weckfenster nur für diesen Versuch bewusst ein.', 'Starte bei geöffneter App oder prüfe die bewusst gewählte tägliche Vormerkung. Die Messung wertet technische Eingänge ab Start aus; nur im gewählten morgendlichen Fenster darf sie früher wecken. Im Hintergrund ist ein automatischer Mikrofonstart nicht verlässlich. Es gibt keinen beschleunigten Nachweis für Schlafphasen.', 'Dein Handy liegt auf der Matratze. Beobachte Bewegung, Geräusche und den festen Ersatztermin getrennt. Beende die Messung oder schalte die Option nach dem Versuch aus, wenn du sie nicht nutzen möchtest.']
   if (id === 62) return ['Notiere deine eigenen Zeiten und Dauern vor der Änderung.', 'Tippe in die angezeigte Uhrzeit und gib 20:00 bzw. 00:30 ein. Bei einer Dauer kannst du die Zahl direkt eingeben und das Feld verlassen.', 'Öffne die App neu, prüfe die Werte und stelle deine eigenen Einstellungen anschließend wieder her.']
   if (id === 63) return ['Speichere unten bewusst „Teilweise“ mit einer kurzen Beobachtung. Öffne die App neu und wähle diesen Test erneut.', 'Öffne die verlinkte Einstellung und kehre mit dem Test-Banner zurück. Kontrolliere, dass weder Routine noch Spiel dadurch als erledigt markiert wurden.']
   return ['Öffne den passenden Bereich über die Knöpfe unten.', 'Führe den beschriebenen Versuch aus. Falls du dafür Einstellungen änderst, notiere vorher deine Werte und stelle sie danach wieder her.', 'Vergleiche deine Beobachtung mit der Erwartung und speichere dein Ergebnis. „Teilweise“ ist sinnvoll, wenn noch ein Teil offen ist.']
@@ -158,6 +159,7 @@ export default function DeviceTests() {
   const [group, setGroup] = useState(() => params.get('auswahl') === 'v7' || Number(params.get('fall')) >= 97 && Number(params.get('fall')) <= 103 ? V7_GROUP : params.get('auswahl') === 'kurz' || !params.has('fall') ? DEVICE_TEST_SHORT_GROUP
     : Number(params.get('fall')) >= 86 && Number(params.get('fall')) <= 95 ? DEVICE_TEST_CAMPAIGN_GROUP : 'Alle')
   const [onlyOpen, setOnlyOpen] = useState(false)
+  const [catalogOpen, setCatalogOpen] = useState(() => params.has('fall') || params.has('auswahl') || params.get('katalog') === '1')
   const [reportBusy, setReportBusy] = useState(false)
   const platform = isNative() ? 'android' : 'web'
   const requested = Number(params.get('fall') ?? saved.activeId ?? 1)
@@ -173,9 +175,12 @@ export default function DeviceTests() {
   const earlier = catalog.map((test) => ({ test, previous: deviceTestEvidence(saved, test.id, platform, BUILD_FINGERPRINT).previous })).filter((entry) => entry.previous.length)
   const neverTested = catalog.filter((test) => !saved.reports[test.id] && !saved.history?.[test.id]?.length).length
   const shortPassed = short.filter((test) => currentTestReport(saved.reports[test.id], platform, BUILD_FINGERPRINT)?.result === 'passed').length
-  const select = (id: number, selectedGroup = group) => setParams({ fall: String(id), ...(selectedGroup === DEVICE_TEST_SHORT_GROUP ? { auswahl: 'kurz' } : selectedGroup === V7_GROUP ? { auswahl: 'v7' } : {}) })
+  const select = (id: number, selectedGroup = group) => { setCatalogOpen(true); setParams({ fall: String(id), ...(selectedGroup === DEVICE_TEST_SHORT_GROUP ? { auswahl: 'kurz' } : selectedGroup === V7_GROUP ? { auswahl: 'v7' } : {}) }) }
 
   return <Page title="Gemeinsam testen" back="/mehr">
+    <RemainingDeviceTests onSelect={id => { setGroup('Alle'); setOnlyOpen(false); select(id, 'Alle') }} />
+    <details className="min-w-0 space-y-3" open={catalogOpen} onToggle={event => { if (event.target === event.currentTarget) setCatalogOpen(event.currentTarget.open) }}>
+      <summary className="min-h-11 cursor-pointer rounded-2xl border border-line p-4 font-medium">Vollständiger Katalog und bisherige Berichte</summary>
     <Card className="space-y-2">
       <p>Ein Versuch nach dem anderen. Du kannst jederzeit aufhören und später weitermachen.</p>
       <p>{shortPassed} von {short.length} kurzen Updateprüfungen für diesen Stand {platform === 'android' ? 'auf Android' : 'im Browser'} als „Hat geklappt“ gemeldet.</p>
@@ -234,6 +239,7 @@ export default function DeviceTests() {
       <p className="px-1 text-sm text-muted">Im gesamten freiwilligen Katalog: {passed} von {catalog.length} {platform === 'android' ? 'auf Android' : 'im Browser'} von dir als „Hat geklappt“ gemeldet. Die Einzelfälle sind keine Pflichtliste.</p>
       <Card><p className="text-sm text-muted">Logik, Speicherung und Bedienwege werden zusätzlich automatisch geprüft. Das bestätigt keinen Ton und kein Vollbild auf deinem Handy. Hier setzt nur deine bewusste Rückmeldung einen Haken. Es gibt dafür weder Punkte noch Strafen.</p></Card>
     </Section>
+    </details>
   </Page>
 }
 

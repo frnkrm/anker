@@ -1,0 +1,356 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Europe/Berlin",
+  "scope": "E-002/E-004/E-005 partial real-device acceptance; F-016/F-017/BF-005 UI samples",
+  "device": {
+    "model": "samsung SM-S948B",
+    "sdk": 37,
+    "serialRecorded": false
+  },
+  "fixture": {
+    "package": "de.frnkrm.anker.mobile.abnahme",
+    "versionCode": 18,
+    "versionName": "1.5.0-rc.4",
+    "apkSha256": "c2137d0e62b71e9979d1bd9bb04cedc850d32304745a1167fe999f739eb000b6",
+    "debugIsolated": true,
+    "identicalToSignedPlayArtifact": false,
+    "removedAfterTests": true
+  },
+  "production": {
+    "package": "de.frnkrm.anker.mobile",
+    "versionCodeBefore": 17,
+    "versionCodeAfter": 17,
+    "versionNameAfter": "1.5.0-rc.3",
+    "existingPermissionsUnchanged": true,
+    "dataCopied": false
+  },
+  "nativeSmoke": {
+    "at": "2026-11-17T21:28:29.965Z",
+    "platform": "android",
+    "initialAlarm": {
+      "ringing": false,
+      "preWakePausedForTargetAt": 0,
+      "snoozed": 0,
+      "mainConfirmed": false,
+      "preWakeConfirmed": false,
+      "exact": true,
+      "error": ""
+    },
+    "calendarPermission": {
+      "granted": false
+    },
+    "calendarListDenied": {
+      "rejected": true,
+      "message": "DEVICE_CALENDAR_PERMISSION_REQUIRED"
+    },
+    "calendarReadDenied": {
+      "rejected": true,
+      "message": "DEVICE_CALENDAR_PERMISSION_REQUIRED"
+    },
+    "nfc": {
+      "status": "ready",
+      "canOpen": true
+    },
+    "nfcCancel": {
+      "status": "cancelled"
+    },
+    "nfcWithoutScan": {
+      "allowed": false
+    },
+    "overlayWithoutPermission": {
+      "rejected": true,
+      "message": "Erlaube zuerst bewusst das Anzeigen über anderen Apps."
+    },
+    "invalidPrompt": {
+      "rejected": true,
+      "message": "Die Einschlafzeit ist ungültig."
+    },
+    "noFalseMorning": {
+      "confirmed": false
+    },
+    "finalAlarm": {
+      "ringing": false,
+      "preWakePausedForTargetAt": 0,
+      "snoozed": 0,
+      "mainConfirmed": false,
+      "preWakeConfirmed": false,
+      "exact": true,
+      "error": ""
+    },
+    "smartWake": {
+      "active": false,
+      "phase": "idle",
+      "message": "Für diese Nacht noch nicht gestartet.",
+      "targetAt": 0,
+      "windowAt": 0,
+      "screenLockAvailable": false,
+      "screenLockSupported": true,
+      "estimatedOnsetAt": 0,
+      "estimateInvalidated": false,
+      "onsetEstimationActive": false,
+      "preWakePausedForTargetAt": 0,
+      "hasMotion": true,
+      "microphoneGranted": false
+    },
+    "voice": {
+      "dictationSupported": true,
+      "localOnly": true,
+      "speechSupported": null
+    }
+  },
+  "backgroundTestAlarm": {
+    "at": "2026-11-17T21:29:08.495Z",
+    "backgroundNfc": {
+      "status": "cancelled"
+    },
+    "nfcWhileBackground": {
+      "status": "blocked",
+      "canOpen": false
+    },
+    "before": {
+      "systemNextAt": 1794986400000,
+      "alarmVolume": 15,
+      "interruptionFilter": 1
+    },
+    "scheduled": {
+      "at": 1794950953498
+    },
+    "fired": {
+      "ringing": true,
+      "kind": "test",
+      "ringStartedAt": 1794950953514,
+      "preWakePausedForTargetAt": 0,
+      "snoozed": 0,
+      "mainConfirmed": false,
+      "preWakeConfirmed": false,
+      "exact": true,
+      "error": ""
+    },
+    "during": {
+      "ringing": true,
+      "kind": "test",
+      "testResult": "rang",
+      "notificationsEnabled": true,
+      "channelImportance": 4,
+      "audioOk": true,
+      "alarmVolume": 15,
+      "interruptionFilter": 1
+    },
+    "stopped": {
+      "ringing": false,
+      "preWakePausedForTargetAt": 0,
+      "snoozed": 0,
+      "mainConfirmed": false,
+      "preWakeConfirmed": false,
+      "exact": true,
+      "error": ""
+    },
+    "after": {
+      "ringing": false,
+      "testResult": "rang",
+      "systemNextAt": 1794986400000,
+      "alarmVolume": 15,
+      "interruptionFilter": 1,
+      "lastStopMethod": "device-abnahme-test"
+    },
+    "technicalPass": true,
+    "heardByUser": "not-observed"
+  },
+  "boundedReturnCheck": {
+    "at": "2026-11-17T21:31:41.244Z",
+    "visibility": "visible",
+    "entry": {
+      "key": "return-check:device-fixture-foreground",
+      "date": "2026-11-17",
+      "actions": false,
+      "exact": false,
+      "validUntil": 1794951111243
+    },
+    "scheduled": {
+      "queued": 1,
+      "visible": 0,
+      "channels": [
+        {
+          "id": "sanft",
+          "importance": 3,
+          "blocked": false
+        },
+        {
+          "id": "uebergang",
+          "importance": 4,
+          "blocked": false
+        },
+        {
+          "id": "wecker",
+          "importance": 4,
+          "blocked": false
+        }
+      ],
+      "nextAt": 1794951101843,
+      "nextChannel": "sanft",
+      "focusUntil": 0,
+      "quietUntil": 0,
+      "planQuietUntil": 0,
+      "storedSlots": 0,
+      "activeNotifications": 0,
+      "lastSyncAt": 1794951101247
+    },
+    "delivered": {
+      "queued": 0,
+      "visible": 1,
+      "channels": [
+        {
+          "id": "sanft",
+          "importance": 3,
+          "blocked": false
+        },
+        {
+          "id": "uebergang",
+          "importance": 4,
+          "blocked": false
+        },
+        {
+          "id": "wecker",
+          "importance": 4,
+          "blocked": false
+        }
+      ],
+      "nextAt": 0,
+      "nextChannel": "",
+      "focusUntil": 0,
+      "quietUntil": 0,
+      "planQuietUntil": 0,
+      "storedSlots": 1,
+      "activeNotifications": 1,
+      "lastSyncAt": 1794951101247
+    },
+    "noAutomaticAction": true,
+    "afterExpiry": {
+      "queued": 0,
+      "visible": 0,
+      "channels": [
+        {
+          "id": "sanft",
+          "importance": 3,
+          "blocked": false
+        },
+        {
+          "id": "uebergang",
+          "importance": 4,
+          "blocked": false
+        },
+        {
+          "id": "wecker",
+          "importance": 4,
+          "blocked": false
+        }
+      ],
+      "nextAt": 0,
+      "nextChannel": "",
+      "focusUntil": 0,
+      "quietUntil": 0,
+      "planQuietUntil": 0,
+      "storedSlots": 0,
+      "activeNotifications": 0,
+      "lastSyncAt": 1794951101247
+    },
+    "afterCleanup": {
+      "queued": 0,
+      "visible": 0,
+      "channels": [
+        {
+          "id": "sanft",
+          "importance": 3,
+          "blocked": false
+        },
+        {
+          "id": "uebergang",
+          "importance": 4,
+          "blocked": false
+        },
+        {
+          "id": "wecker",
+          "importance": 4,
+          "blocked": false
+        }
+      ],
+      "nextAt": 0,
+      "nextChannel": "",
+      "focusUntil": 0,
+      "quietUntil": 0,
+      "planQuietUntil": 0,
+      "storedSlots": 0,
+      "activeNotifications": 0,
+      "lastSyncAt": 1794951112453
+    },
+    "technicalPass": true
+  },
+  "quietNotification": {
+    "phaseDuring": "quiet",
+    "androidNotificationPresent": true,
+    "phaseAfter": "idle",
+    "overlayAttached": false,
+    "originalHarnessPass": false,
+    "ordinaryReminderNotificationCount": 0,
+    "assessmentPass": true,
+    "assertionCorrection": "Ordinary reminder counter counts only IDs 1001-1003. Quiet notification uses ID 7412; quietVisible independently checks Android activeNotifications. Initial harness assertion expected the wrong counter; no product change or replay required."
+  },
+  "harnessLimitations": [
+    "First background reminder evaluation timed out at 25s. Native journal confirmed delivery; cleanup was observed, then the case was repeated while visible with a new token and passed.",
+    "WebView Page.captureScreenshot timed out. Actual visible fixture was captured through ADB only after focus/package validation.",
+    "No heard/not-heard response submitted. Native player startup is not proof of human audibility."
+  ],
+  "journal": {
+    "eventCountAtRead": 16,
+    "codes": [
+      "alarm:audio_focus_result",
+      "alarm:audio_stopped",
+      "alarm:fired_accepted",
+      "alarm:foreground_started",
+      "alarm:player_started",
+      "alarm:reconcile",
+      "alarm:schedule_cancelled",
+      "alarm:scheduled",
+      "alarm:service_destroyed",
+      "alarm:service_entered",
+      "alarm:service_requested",
+      "alarm:stop_requested",
+      "reminder:delivered"
+    ],
+    "rawAudioFilesSaved": false,
+    "productionJournalRead": false
+  },
+  "cleanup": {
+    "allFixtureServicesStopped": true,
+    "fixtureAlarmConfigurationDisabled": true,
+    "fixtureReminderSlotsAfter": 0,
+    "systemNextAlarmRestored": true,
+    "alarmVolumeUnchanged": true,
+    "dndUnchanged": true,
+    "microphoneGranted": false,
+    "screenLockAdminActive": false,
+    "debugForwardRemoved": true,
+    "fixturePackageAbsentInTestedUser0": true
+  },
+  "uiObserved": [
+    "Synthetic onboarding completed",
+    "Grouped Today adjustment sheet",
+    "Search nachtmessung returned two relevant results",
+    "Search result opened sleep/alarm setup",
+    "Activity wake window help opened and closed"
+  ],
+  "screenshots": {
+    "20261117-android-heute-anpassen.png": "ca39246be011d6fba46613f09caac5e92d157d9052edd7fa1653dc8b7768c4db",
+    "20261117-android-hilfe.png": "2a00affd138e8b3ff7fee13d52dc0759aeb5b20dbb0d6926e5e5db7c465350ad",
+    "20261117-android-suche.png": "5ada931d16361425a73b53e698a901fb025bfd9c2a1a739a702b9bc8f074b66f"
+  },
+  "stillOpen": [
+    "Full night and long-term sleep suggestion quality",
+    "Real wake audibility and lockscreen/QR flow",
+    "Daily measurement under real Android/background conditions",
+    "Cross-app sleep overlay and unanswered-window evidence",
+    "Positive calendar selection/read/revocation with a deliberately chosen source",
+    "Physical NFC tag read/confirmation",
+    "Play Store update"
+  ]
+}

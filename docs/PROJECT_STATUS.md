@@ -1,18 +1,38 @@
 # Aktueller Übergabestand
 
-Aktuell17.11.abends: **F-013/F-014 echt erfolgreich geprüft** (angemeldete App→Supabase→Gemini/TomTom), temporäre Zugänge zurückgenommen. [Detaillierte Anbieterabnahme](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md). PR15/Releasepolicy integriert, eigene main-CI44164946645 grün; Code18 aus Prepare44167654681 und Sign/Verify44169177734 tatsächlich fertig signiert, zusätzlich mit echtem Publisherprüfer bestätigt; [Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Play-Upload/Freigabe erst nach Schlüsselaktivierung18.11.22:41, bestehender Auftrag22:50.
+Neue Folgeänderung17.11.: Die persönliche Restanleitung ist im Testmodul umgesetzt.
+Eigene verbleibende Versuche stehen zuerst, belegte technische Teilprüfungen sind
+gesondert gekennzeichnet; der bisherige Katalog samt Berichten bleibt aufklappbar.
+Auf aktuellen ausdrücklichen Nutzerauftrag nun Aufnahme in die geplante
+Code18-Auslieferung: neue Quelle/CI und neues signiertes Artefakt werden gebunden,
+danach derselbe Play-Termin aktualisiert. Noch kein neuer Signier-/Uploaderfolg
+behauptet. [Entscheidung](ANKER_IMPLEMENTIERUNGSPLAN.md#folgeauftrag-persönliche-restanleitung-im-testmodul-17112026).
 
-Aktuelle Fortsetzung17.11.: [Gerätebelege, kostenlose Schnittstellen und Code18-Auslieferung](ABNAHME_GRATIS_PLAY_20261117.md). PR14 integriert; neue Releasepolicy in Prüfung. Historische Stände darunter bleiben als Verlauf erhalten.
+Stand 17.11.2026, nach PR16: **BF-001–BF-005 und F-001–F-018 sind im
+dokumentierten Softwareumfang implementiert und integriert**, einschließlich der
+abschließenden gemeinsamen UI-Phase. F-013/F-014 sind zusätzlich über die echte
+angemeldete App und kostenlose Anbieter erfolgreich geprüft. Aktueller main-Code:
+`8f452fd5317cabc002f53ebe55ceedfc47559e0b`; eigene CI `44172620113` erfolgreich
+(1.436 TypeScript-, 387 Browserfälle; PC-Matrix je 290 Fälle, davon zwei erwartete
+Plattform-Skips). Das ist keine vollständige Geräte- oder Nachtabnahme.
 
-## Integrationsstand der neuen Alltagsfunktionen (17.11.2026)
+Verbindliche [Restliste mit Voraussetzungen](OFFENE_ENTWICKLUNGEN.md#tatsächlich-offene-prüfungen).
+[Anbieterbelege](GRATIS_SCHNITTSTELLEN_ABNAHME_20261117.md),
+[gebundenes signiertes Code18-Artefakt](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+Auf dem Handy ist weiterhin Code17/1.5.0-rc.3 installiert. Code18 ist fertig
+signiert; Play-Ausführung bleibt für den 18.11.2026 um 22:50 Berlin geplant,
+nach der Schlüsselaktivierung um 22:41. Kein neuer App-Build, keine neue Version
+oder Änderung am gebundenen Artefakt durch diese reine Status-/Abnahmepflege.
 
-Funktionspakete und anschließende gemeinsame UI-Phase sind im Arbeitsbaum
-implementiert; der aktuelle differenzierte Stand steht in
-[Alltagsumsetzung](ALLTAG_UMSETZUNG_20261117.md). Historische Planstände darunter
-sind keine erneuten Aufträge. BF-001 bis BF-005 sowie F-011/F-012/F-015 bis F-018
-befinden sich in der abschließenden Integration; echte Geräteabnahmen bleiben
-separat offen. F-013/F-014 sind vorbereitet, benötigen aber kostenlose Provider-
-Konten/Schlüssel. Code18-Releasebindung und installierte Code17-App unverändert.
+Zusätzliche USB-Geräteabnahme17.11.: Testwecker im Hintergrund technisch ausgelöst
+und gestoppt, befristete Unterwegs-Erinnerung zugestellt und entfernt, stummer
+Schlafhinweis, NFC-Abbruch und Schutzgrenzen geprüft. Suche/Heute-anpassen/Info-
+Fenster auf echtem Android gesichtet. Isolierten Code18-Prüfstand danach entfernt;
+Produktions-App weiterhin Code17. [Belege und verbleibende Grenzen](ANKER_TESTNACHWEISE.md#android-geräteprüfung-über-usb-am-17112026).
+
+## Historische Zwischenstände
+
+Die folgenden datierten Abschnitte bleiben als Verlauf erhalten; der obige aktuelle Stand hat Vorrang.
 
 ## Laufende autonome Umsetzung (17.11.2026, nachts)
 
