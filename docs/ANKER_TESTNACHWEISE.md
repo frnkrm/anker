@@ -2,6 +2,13 @@
 
 ## F-019: Jetzt, Status und gemeinsame Bedienmuster (18.11.2026)
 
+Folgeauftrag: Aufnahme in denselben geplanten Code18 autorisiert. PR18 integriert;
+Push-CI44203112741 bestand mit 1.442 Logik- und 391 Browserfällen. Separater PR-Lauf
+zeigte einen fehlenden Test-Wartepunkt beim Sheetabschluss; gezielt korrigiert,
+alle drei Q84-Integrationsfälle lokal erfolgreich. Ein normaler Folgecommit startet
+die eigene main-CI: Der Squashtext hatte einen historischen `[skip ci]`-Vermerk
+aus der reinen Belegpflege übernommen. Kein Guard wird dafür umgangen.
+
 - Softwareänderung auf `codex/ux-jetzt-20261118`, getrennt vom gebundenen
   signierten Code18. Keine Änderung an Version, nativer Brücke, Freigaben oder
   Releaseautomation; noch keine Installation dieser UX-Änderung auf dem Handy.
