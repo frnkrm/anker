@@ -51,6 +51,13 @@ exakt daran gebundene Signierpolicy und neues geprüftes AAB erzeugen; anschlie�
 den bestehenden einmaligen Auftrag aktualisieren. Code18/Version, Termin und
 interner Umfang bleiben erhalten. Das bisherige AAB ist danach kein Fallback.
 
+Neue Releasebindung: integrierte Appquelle003b14416f859404700dda21161377a257b6b268,
+eigene main-CI44205435977. Post-Sync-Fingerprint unabhängig mit dem vorhandenen
+Vite-Hook bestimmt:15bd26708e0d6e690b68b7a0c24818e4a0ae1c26ee9bb5d524ea2af1ad449521.
+Nur feste Quellen-/Fingerprint-/CI-Werte und zugehörige Tests im bestehenden
+Prüfweg ändern. Vor Prepare müssen diese CI und die eigene main-CI der neuen
+Policy tatsächlich erfolgreich sein; vor Signierung die neuen Artefaktwerte prüfen.
+
 ## Aufnahme in Code18 abgeschlossen (18.11.2026)
 
 Ausdrücklicher Nutzerauftrag erfüllt: neue Testansicht in denselben geplanten

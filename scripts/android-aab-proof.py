@@ -25,9 +25,9 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 REPO = 'frnkrm/anker'
-SOURCE = '8a51bdba1ba6348008800c4969f043537c0552de'
+SOURCE = '003b14416f859404700dda21161377a257b6b268'
 # Fixed app source after the workflow's Capacitor sync (generated config.xml included).
-FINGERPRINT = 'c01034e154e304cafbc5b4e148cf27b7684b4c319b36c0df1b627db46930df7b'
+FINGERPRINT = '15bd26708e0d6e690b68b7a0c24818e4a0ae1c26ee9bb5d524ea2af1ad449521'
 # Historical unsigned U1 from 10cc894; never a replacement for a fresh fix-source artifact.
 REFERENCE = {'sha256': '74e65b1a1999f7a1b9b19244d9aa5fcf058d025904009d8ca0c08448de050d50', 'bytes': 54264632}
 # Google Console's downloaded upload_cert.der, 17 Nov; valid for upload from 18 Nov 22:41 Berlin.
@@ -227,7 +227,7 @@ def resolve(env, api):
         comparison = api.get('/compare/' + commit + '...main')
         require(comparison.get('status') in ('ahead', 'identical')
                 and comparison.get('merge_base_commit', {}).get('sha') == commit, 'NOT_MAIN_ANCESTOR')
-    ctx['sourceCI'] = ci_from_run(api.get('/actions/runs/44191339291'), SOURCE)
+    ctx['sourceCI'] = ci_from_run(api.get('/actions/runs/44205435977'), SOURCE)
     rows = api.get('/actions/workflows/ci.yml/runs?head_sha=' + ctx['workflowCommit'] + '&event=push&status=success&per_page=100').get('workflow_runs')
     require(isinstance(rows, list), 'CI_LIST')
     candidates = []

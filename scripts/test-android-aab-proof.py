@@ -52,7 +52,7 @@ def run(commit=W, event='push', path=P.CI, id=9000, attempt=1, completed=True):
 
 def context(mode='sign'):
     ctx = P.invocation(env(mode))
-    ctx.update(sourceCI=P.ci_from_run(run(P.SOURCE, id=44191339291), P.SOURCE),
+    ctx.update(sourceCI=P.ci_from_run(run(P.SOURCE, id=44205435977), P.SOURCE),
                workflowCI=P.ci_from_run(run(), W))
     return ctx
 
@@ -89,7 +89,7 @@ class FakeAPI:
     def __init__(self, archive=b'archive'):
         self.rows = {'/compare/' + P.SOURCE + '...main': {'status': 'ahead', 'merge_base_commit': {'sha': P.SOURCE}},
                      '/compare/' + W + '...main': {'status': 'identical', 'merge_base_commit': {'sha': W}},
-                     '/actions/runs/44191339291': run(P.SOURCE, id=44191339291), '/actions/runs/9000': run(),
+                     '/actions/runs/44205435977': run(P.SOURCE, id=44205435977), '/actions/runs/9000': run(),
                      '/actions/workflows/ci.yml/runs?head_sha=' + W + '&event=push&status=success&per_page=100': {'workflow_runs': [run()]}}
         prepare = run(event='workflow_dispatch', path=P.WORKFLOW, id=8100, attempt=2)
         self.rows['/actions/runs/8100'] = prepare
@@ -210,7 +210,7 @@ class ProtocolTests(unittest.TestCase):
         expected = P.resolve(env('prepare'), canonical_api)
         self.assertEqual(P.resolve(e, omitted_api), expected)
         self.assertEqual(omitted_api.calls, canonical_api.calls)
-        for ci_path in ('/actions/runs/44191339291', '/actions/runs/9000'):
+        for ci_path in ('/actions/runs/44205435977', '/actions/runs/9000'):
             for field, value in [('head_sha', 'd' * 40), ('head_branch', 'dev'), ('event', 'pull_request'),
                                  ('conclusion', 'failure'), ('status', 'in_progress')]:
                 api = FakeAPI(); api.rows[ci_path][field] = value
@@ -254,7 +254,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(result['workflowCI']['headSha'], W)
         for field, value in [('head_sha', W), ('head_branch', 'dev'), ('event', 'pull_request'),
                              ('path', P.WORKFLOW), ('status', 'in_progress'), ('conclusion', 'failure')]:
-            api = FakeAPI(); api.rows['/actions/runs/44191339291'][field] = value
+            api = FakeAPI(); api.rows['/actions/runs/44205435977'][field] = value
             with self.subTest(field=field), self.assertRaises(P.ProofError): P.resolve(env(), api)
 
     def test_old_app_source_is_rejected_before_any_api_request(self):
@@ -268,12 +268,12 @@ class ProtocolTests(unittest.TestCase):
 
     def test_old_main_ci_cannot_prove_the_integrated_wake_fix(self):
         api = FakeAPI()
-        key = '/actions/runs/44191339291'
+        key = '/actions/runs/44205435977'
         api.rows[key] = run('10cc894a27302a5a49b6884c843d2a6b509ab354', id=43601398931)
         with self.assertRaisesRegex(P.ProofError, 'RUN_IDENTITY'): P.resolve(env(), api)
 
     def test_workflow_ci_cannot_replace_source_ci_or_use_wrong_repository(self):
-        api = FakeAPI(); api.rows['/actions/runs/44191339291'] = run()
+        api = FakeAPI(); api.rows['/actions/runs/44205435977'] = run()
         with self.assertRaises(P.ProofError): P.resolve(env(), api)
         for field in ['repository', 'head_repository']:
             api = FakeAPI(); api.rows['/actions/runs/9000'][field]['id'] = 0
@@ -336,10 +336,10 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(P.ProofError): P.signature_names(signed, False)
 
     def test_fixed_app_post_sync_fingerprint_is_accepted_with_valid_native_library(self):
-        # Observed through the existing Vite hook on app 8a51bdb after pinned
+        # Observed through the existing Vite hook on app 003b144 after pinned
         # Capacitor sync, including its generated res/xml/config.xml. Deliberately
         # independent of P.FINGERPRINT so a pre-sync policy pin fails this case.
-        post_sync = b'c01034e154e304cafbc5b4e148cf27b7684b4c319b36c0df1b627db46930df7b'
+        post_sync = b'15bd26708e0d6e690b68b7a0c24818e4a0ae1c26ee9bb5d524ea2af1ad449521'
         with tempfile.TemporaryDirectory() as tmp:
             bundle = Path(tmp) / 'synthetic.aab'; synthetic_bundle(bundle)
             with zipfile.ZipFile(bundle) as z: files = {n: z.read(n) for n in z.namelist()}
