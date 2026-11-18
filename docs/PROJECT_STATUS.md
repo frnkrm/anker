@@ -1,5 +1,42 @@
 # Aktueller Übergabestand
 
+## Folgeentwicklung F-019: Jetzt und gemeinsame Bedienung (18.11.2026)
+
+Auf separatem Branch `codex/ux-jetzt-20261118` umgesetzt: eindeutiger Countdown
+mit Kalendertag, kompakte Abweichungs-/Unterwegs-/Messzustände, Erklärungen auf
+Info-Tipp, kurze Weckerfehler mit direktem Einstellungsweg, Suchabsichten und
+acht freiwillige lokale Favoriten. Gemeinsame Sheets halten den Schließen-Knopf
+sichtbar, schmale Seitenköpfe lassen Überschriften lesbar. Vorhandene Handlung,
+Planung, Historie, Rücknahme und Freigaben bleiben Grundlage.
+
+Logikprüfung 1.442/1.442, Browser-Gesamtabnahme 391/391 und Produktions-Build
+erfolgreich; Lint ohne Fehler. Jetzt-Screenshot zusätzlich visuell geprüft.
+[Umfang](ANKER_IMPLEMENTIERUNGSPLAN.md#f-019--ruhige-eindeutige-alltagsoberfläche-18112026)
+und [Nachweise](ANKER_TESTNACHWEISE.md). Diese Folgeentwicklung ist noch nicht
+auf dem Handy installiert. Das darunter beschriebene signierte Code18 und sein
+geplanter Play-Weg wurden durch diesen Auftrag nicht verändert.
+
+## Aktuell: Testansicht im geplanten Code18 enthalten (18.11.2026)
+
+PR17 integriert; Appquelle8a51bdb und Policy918370f haben ihre eigenen main-CIs
+44191339291/44191751112 vollständig bestanden. Neues AAB aus Prepare44193618462
+und Sign/Verify44194672103 erfolgreich gebaut, signiert und unabhängig geprüft.
+Finales Artefakt14378791154 enthält die neue Restanleitung und technischen Teilbelege;
+im unsigned und signierten Bundle direkt nachgewiesen. Echter Publisherprüfer
+akzeptiert das neue AAB zusätzlich lokal ohne Google-Anfrage.
+
+Bestehende Automation `anker-play-update-intern-freigeben` auf diese neue Bindung
+aktualisiert und aus der gespeicherten Planung zurückgelesen: weiterhin ACTIVE,
+18.11.2026 um22:50 Europe/Berlin, gleicher Chat und interner Umfang. Noch kein
+Play-Upload oder interner Release bestätigt. Produktive Handy-App weiterhin Code17.
+[Neuer Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json);
+[überholtes Paket als historischer Beleg](belege/20261117-code18-vor-testansicht.json).
+
+Die Belegpflege liegt separat von der unveränderten ausführbaren main-Policy918370f,
+damit die geprüfte Dispatch-Bindung bis zum geplanten Upload erhalten bleibt.
+
+## Historische Zwischenstände
+
 Neue Folgeänderung17.11.: Die persönliche Restanleitung ist im Testmodul umgesetzt.
 Eigene verbleibende Versuche stehen zuerst, belegte technische Teilprüfungen sind
 gesondert gekennzeichnet; der bisherige Katalog samt Berichten bleibt aufklappbar.

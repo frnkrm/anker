@@ -5,11 +5,12 @@ import { pendingTomorrowSteps, reviewDue } from '../../core/evening'
 import { recoveryPreview, resumeRoute } from '../../core/recovery'
 import { guidancePlanDate } from '../../core/guidance/model'
 import { activePlanDate } from '../../core/now'
+import { nowAnchorLabel, planTimeLabel } from '../../core/nowPresentation'
 import { taskTitle } from '../../core/tasks'
 import { sportDone, sportInRoutine, theme } from '../../core/game'
 import { currentMode, isBehind, MODE_HINT, MODE_LABEL, rescueItems, suggestedMode, supportContextKey, workTasksQuiet, type NextAction } from '../../core/support'
 import { guidanceNightVisible, transitionHint } from '../../core/guidance/transitions'
-import { addDays, fmtDuration, fmtTime, minutesOnPlanDay, todayBerlin, utcToZoned, weekday } from '../../core/time'
+import { addDays, fmtTime, minutesOnPlanDay, todayBerlin, utcToZoned, weekday } from '../../core/time'
 import { upcomingWorkTasks } from '../../core/upcomingWork'
 import { plural } from '../../core/uiText'
 import { nowConflictNotice } from '../../core/planConflicts'
@@ -84,8 +85,11 @@ function NowContent() {
   const near = !!v.hard && v.hard.at - m >= 0 && v.hard.at - m < 120
   const conflict = nowConflictNotice(plan, m, st.local.acknowledgedPlanConflicts?.[date] ?? [])
   const next = upcoming.find((entry) => !((a.type === 'worktask') && entry.task.id === a.task.id))
-  const after = next ? `${next.kind === 'start' ? 'Ab' : 'Frist'} ${utcToZoned(next.at).date !== utcToZoned(now).date ? 'morgen ' : ''}${fmtTime(utcToZoned(next.at).minutes)} · ${taskTitle(next.task)}`
-    : plan.blocks.find((block) => block.start > m && block.title !== a.title && !(block.kind === 'wake' && log.wakeAt !== undefined))?.title
+  const nextBlock = plan.blocks.find((block) => block.start > m && block.title !== a.title && !(block.kind === 'wake' && log.wakeAt !== undefined))
+  const after = next ? `${next.kind === 'start' ? 'Start' : 'Frist'} · ${planTimeLabel(utcToZoned(next.at).date, utcToZoned(next.at).minutes, now)} · ${taskTitle(next.task)}`
+    : nextBlock ? `${nextBlock.title} · ${planTimeLabel(date, nextBlock.start, now)}` : undefined
+  const anchorLabel = v.hard ? nowAnchorLabel(v.hard, date, m, now) : undefined
+  const alarmIssue = st.alarmStatus?.message?.split(/\n|[.!?]\s/)[0]?.trim() || 'Planung nicht bestätigt'
   const task = a.type === 'worktask' || a.type === 'task' ? a.task : undefined
   const deadline = task?.deadline !== undefined ? utcToZoned(task.deadline) : undefined
   const reason = deadline ? `${task!.deadline! <= now ? 'Frist war' : 'Frist'} ${deadline.date !== utcToZoned(now).date ? new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'Europe/Berlin' }).format(task!.deadline!) + ' ' : ''}${fmtTime(deadline.minutes)}${task!.deadline! <= now ? ' · ein kleiner Anfang reicht' : ''}`
@@ -101,15 +105,24 @@ function NowContent() {
     {!bedtime && <>
       <header className={`now-header${timeArc ? ' now-header-with-arc' : ''}`}>
         {timeArc && v.hard && <GuidanceTimeArc date={date} hard={v.hard} now={now} />}
-        <div className="now-anchor">{v.hard ? <>{v.hard.key === 'commitment' ? v.hard.label.startsWith('Los') ? 'Losgehen' : 'Termin' : v.hard.label}{near ? <> in {fmtDuration(Math.max(0, v.hard.at - m))}<span className="block">um {fmtTime(v.hard.at)}</span></> : <> um {fmtTime(v.hard.at)}</>}</> : fmtTime(m)}</div>
+        <div className="now-anchor" aria-label="Nächster fester Zeitpunkt">{anchorLabel ? <><span>{anchorLabel.title}</span><span className="block">{anchorLabel.time}</span></> : `Jetzt ${fmtTime(m)}`}</div>
         <button type="button" onClick={() => setAdjust(true)} className="now-day-chip" aria-label="Heute anpassen: Tagesart und Modus">{plan.homeOffice ? 'Homeoffice' : DAY_LABEL[plan.dayType]} · {MODE_LABEL[mode]} ▾</button>
         <SearchButton />
       </header>
       {near && !timeArc && <Progress label="Zeit bis zum nächsten festen Punkt" value={v.elapsed} className="!h-1" />}
       <WorkChip date={date} plan={plan} log={log} m={m} now={now} />
     </>}
-    {st.alarmStatus && !st.alarmStatus.ok && <Link to="/wecker" className="rounded-xl border border-warm px-3 py-2 text-sm text-warm">Wecker prüfen: {st.alarmStatus.message}</Link>}
-    {log.override.wakeOverride !== undefined && <Link to="/einstellungen/schlaf" className="flex min-h-11 items-center text-sm text-accent">Heute gewählte Aufstehzeit: {fmtTime(plan.wake)} · Standard {fmtTime(st.settings.anchor.wake)}</Link>}
+    {st.alarmStatus && !st.alarmStatus.ok && <aside className="now-status text-warm" role="alert"><Link to="/wecker" className="flex min-h-11 items-center underline">Wecker prüfen · {alarmIssue.length > 140 ? `${alarmIssue.slice(0, 137)}…` : alarmIssue}</Link><Info title="Weckerproblem"><p>{st.alarmStatus.message}</p><Link to="/wecker" className="flex min-h-12 items-center underline">Weckereinstellungen öffnen</Link></Info></aside>}
+    {(log.override.wakeOverride !== undefined || plan.openEnd || a.type === 'away') && <aside className="now-status" aria-label="Aktueller Planstatus">
+      {log.override.wakeOverride !== undefined && <Link to="/einstellungen/schlaf" className="flex min-h-11 items-center">Aufstehzeit einmalig: {planTimeLabel(date, plan.wake, now)}</Link>}
+      {plan.openEnd && <Link to="/tag" className="flex min-h-11 items-center">Abend ohne feste Endzeit</Link>}
+      {a.type === 'away' && <p>Unterwegs{a.leg.commitment.leftAt !== undefined ? ` seit ${planTimeLabel(utcToZoned(a.leg.commitment.leftAt).date, utcToZoned(a.leg.commitment.leftAt).minutes, now).replace(/^Heute/, 'heute').replace(/^Gestern/, 'gestern')}` : ''} · Rückkehr noch nicht bestätigt</p>}
+      <Info title="Heutige Abweichungen">
+        {log.override.wakeOverride !== undefined && <p>Die Aufstehzeit {fmtTime(plan.wake)} gilt einmalig für den {date}. Dein Standard bleibt {fmtTime(st.settings.anchor.wake)}. Die tatsächliche native Weckerbestätigung findest du unter Schlaf & Wecker.</p>}
+        {plan.openEnd && <p>Für diesen Abend gibt es kein festes Ende. Anker erfindet daraus keine Bett- oder Rückkehrzeit.</p>}
+        {a.type === 'away' && <p>Erst deine Rückkehrbestätigung beendet den Unterwegs-Zustand. Ein abgelaufener Termin bestätigt keine Rückkehr.</p>}
+      </Info>
+    </aside>}
 
     <section aria-live="polite" className="now-action">
       {!bedtime && hint && !(a.type === 'info' && a.title === 'Kurz durchatmen') && (a.type === 'step' ? <Link to={`/fokus/${a.routine}`} className="now-context flex min-h-11 items-center underline" aria-label="Routine im Fokus öffnen">{hint} ›</Link> : <p className="now-context">{hint}</p>)}

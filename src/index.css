@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+/* Whole headings stay readable alongside navigation at narrow widths. */
+@media (max-width: 420px) {
+  .ui-page-header { flex-wrap: wrap; }
+  .ui-page-header .ui-page-title { order: 3; flex: 1 0 100%; overflow-wrap: break-word; }
+}
+
 .search-target-highlight { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: .75rem; scroll-margin-top: 2rem; }
 
 @custom-variant dark (&:where(.dark, .dark *));

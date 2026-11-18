@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { FUNCTION_CATALOG, normaliseSearch, searchFunctions } from './functionSearch'
+import { favoriteFunctions, FUNCTION_CATALOG, normaliseFunctionFavorites, normaliseSearch, searchFunctions } from './functionSearch'
 
 describe('Lokale Funktionssuche', () => {
+  it('findet verständliche Vorhaben und behält bewusst gewählte Favoriten in ihrer Reihenfolge', () => {
+    expect(searchFunctions('ich möchte morgen länger schlafen')[0]?.id).toBe('wake')
+    expect(searchFunctions('PC bleibt an')[0]?.id).toBe('pc')
+    expect(normaliseFunctionFavorites(['pc', 'wake', 'pc', 'javascript:evil', 7])).toEqual(['pc', 'wake'])
+    expect(normaliseFunctionFavorites(null)).toEqual([])
+    expect(favoriteFunctions(['smartwake', 'pc']).map(value => value.id)).toEqual(['smartwake', 'pc'])
+    expect(favoriteFunctions(['smartwake'])[0]?.unavailableReason).toBeTruthy()
+  })
   it.each([['fotografie', 'hobbies'], ['bin wieder da', 'return'], ['schriftgroße', 'look'], ['qr code', 'alarm'], ['mikrofon', 'smartwake'], ['wlan', 'pc'], ['kostenlos verkehr', 'traffic'], ['aufgabe zerlegen', 'ai']])('findet %s über passende Schlagwörter', (q, id) => {
     expect(searchFunctions(q).some(e => e.id === id)).toBe(true)
   })

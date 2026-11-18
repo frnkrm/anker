@@ -632,6 +632,8 @@ export interface DeviceTestProgress {
 
 /** Nur auf diesem Gerät (Sammlung meta, vom Sync ausgenommen): Arbeit, private Schritte und Protokolle. */
 export interface LocalData {
+  /** Explicitly pinned public function IDs; local UI choice, no planning or permission effect. */
+  functionFavorites?: string[]
   /** Hobbys bleiben in meta/local; nur in bewusst erstellten lokalen Sicherungen enthalten. */
   hobbies?: import('./hobbies').HobbyPreferences
   /** Gerätespezifische PC-Verbindung und bestätigte Ereignisse, nie Sync-/Backupinhalt. */

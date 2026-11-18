@@ -12,7 +12,7 @@ const entry = (id: string, title: string, group: string, route: string, keywords
   ({ id, title, group, route, keywords, ...(anchor ? { anchor } : {}), ...(nativeOnly ? { nativeOnly } : {}) })
 
 export const FUNCTION_CATALOG: readonly FunctionEntry[] = [
-  entry('wake', 'Aufstehzeit und Schlafenszeit', 'Schlaf & Morgen', '/einstellungen/schlaf', 'wecken weckzeit uhrzeit bett schlafdauer ausschlafen früher override'),
+  entry('wake', 'Aufstehzeit und Schlafenszeit', 'Schlaf & Morgen', '/einstellungen/schlaf', 'wecken weckzeit uhrzeit bett schlafdauer ausschlafen früher override morgen länger schlafen später aufstehen'),
   entry('alarm', 'Wecker und QR-Stopp', 'Schlaf & Morgen', '/wecker', 'alarm klingeln schlummern snooze qr code scannen aufwachen', 'alarm'),
   entry('smartwake', 'Nachtmessung und Aktivitäts-Weckfenster', 'Schlaf & Morgen', '/wecker', 'messung schlafen mikrofon bewegung smart wake einschlafen automatisch nacht', 'nachtmessung', true),
   entry('sleepdiary', 'Schlafprotokoll und Rückmeldungen', 'Schlaf & Morgen', '/schlaf', 'schlaftagebuch energie auswertung wach aufstehzeit einschlafzeit feedback', 'schlafprotokoll'),
@@ -26,7 +26,7 @@ export const FUNCTION_CATALOG: readonly FunctionEntry[] = [
   entry('sport', 'Sport planen', 'Planung', '/einstellungen/sport', 'training fitness bewegung sporttage'),
   entry('evenings', 'Abendpläne', 'Planung', '/einstellungen/abend', 'kochen freunde verabredung woche', 'plaene'),
   entry('winddown', 'Sanfter Abendübergang', 'Abend & Alltag', '/einstellungen/abenduebergang', 'runterkommen licht entspannen hobby abend'),
-  entry('pc', 'PC-Begleiter und PC-Stopp', 'Abend & Alltag', '/pc-stopp', 'computer laptop koppeln verbinden live wlan lan pc ausschalten sperren wake on lan'),
+  entry('pc', 'PC-Begleiter und PC-Stopp', 'Abend & Alltag', '/pc-stopp', 'computer laptop koppeln verbinden live wlan lan pc ausschalten sperren wake on lan bleibt an'),
   entry('guidance', 'Abend- und Morgenbegleitung', 'Abend & Alltag', '/einstellungen/begleitung', 'führung stumm einschlafhinweis zombie streng nacht begleitung'),
   entry('hobbies', 'Hobbys und freiwillige Ideen', 'Abend & Alltag', '/einstellungen/hobbys', 'hobby hobbies fotografieren fotografie freizeit vorschlag pause idee'),
   entry('reminders', 'Erinnerungen und Ruhezeiten', 'App', '/einstellungen/erinnerungen', 'benachrichtigung hinweis mitteilung leise laut erinnern ruhe', 'erinnerungen'),
@@ -64,6 +64,20 @@ export const FUNCTION_CATALOG: readonly FunctionEntry[] = [
 export function normaliseSearch(text: string): string {
   return text.toLocaleLowerCase('de').replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 }
+
+/** Only known public function IDs, in the order explicitly chosen by the user. */
+export function normaliseFunctionFavorites(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return [...new Set(value.filter((id): id is string => typeof id === 'string' && FUNCTION_CATALOG.some(entry => entry.id === id)))].slice(0, 8)
+}
+
+export function favoriteFunctions(value: unknown, native = false): FunctionResult[] {
+  return normaliseFunctionFavorites(value).flatMap(id => {
+    const entry = FUNCTION_CATALOG.find(item => item.id === id)!
+    return [{ ...entry, score: 0, target: `${entry.route}${entry.anchor ? `#${encodeURIComponent(entry.anchor)}` : ''}`,
+      ...(entry.nativeOnly && !native ? { unavailableReason: 'Diese Funktion benötigt die Android-App.' } : {}) }]
+  })
+}
 /** Genau ein Tippfehler, nur bei hinreichend langen Wörtern. */
 function near(a: string, b: string): boolean {
   if (a.length < 5 || Math.abs(a.length - b.length) > 1) return false
@@ -79,7 +93,7 @@ function near(a: string, b: string): boolean {
 export interface FunctionResult extends FunctionEntry { score: number; target: string; unavailableReason?: string }
 export function searchFunctions(query: string, options: { native?: boolean; limit?: number } = {}): FunctionResult[] {
   const q = normaliseSearch(query.slice(0, 160))
-  const terms = q.split(' ').filter(w => w.length > 1 && !['ich', 'wie', 'kann', 'die', 'das', 'der', 'und', 'fur', 'meine', 'mein'].includes(w))
+  const terms = q.split(' ').filter(w => w.length > 1 && !['ich', 'wie', 'kann', 'die', 'das', 'der', 'und', 'fur', 'meine', 'mein', 'mochte', 'will', 'bitte', 'kannst', 'du'].includes(w))
   if (!terms.length) return []
   const results = FUNCTION_CATALOG.flatMap(e => {
     const title = normaliseSearch(e.title), words = normaliseSearch(`${e.title} ${e.keywords}`).split(' ')

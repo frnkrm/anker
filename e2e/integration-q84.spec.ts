@@ -170,6 +170,8 @@ test('Q84: freie Tagesänderung und Rücknahme bewahren echte Arbeits- und Reise
   await dialog.getByRole('button', { name: 'Heute nicht nötig', exact: true }).click()
   await dialog.getByRole('button', { name: 'Ganze Abendroutine', exact: true }).click()
   await expect.poll(async () => Object.values((await day(page))?.steps ?? {}).filter((value) => value === 'not-needed').length).toBeGreaterThan(0)
+  await expect(dialog).toHaveCount(0)
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false)
   await page.goto(`${server.url}/druck?typ=evening&tag=${DATE}`)
   await expect(page.locator('[data-sheet="evening"]')).toContainText('Heute nicht nötig:')
   await expect(page.locator('[data-sheet="evening"]')).not.toContainText('Erledigt:')
@@ -180,6 +182,8 @@ test('Q84: freie Tagesänderung und Rücknahme bewahren echte Arbeits- und Reise
   await dialog.getByText('Weitere Möglichkeiten', { exact: true }).click()
   await dialog.getByRole('button', { name: 'Zurück zum ursprünglichen Plan', exact: true }).click()
   await expect.poll(async () => (await local(page))?.planUndo).toBeUndefined()
+  await expect(dialog).toHaveCount(0)
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false)
   await page.reload()
   expect((await local(page))?.workSessions).toEqual(sessions)
   // Bereits angetretene Reisen behalten auch ihren tatsächlich verwendeten Planungskontext.

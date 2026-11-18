@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { normaliseFunctionFavorites } from '../core/functionSearch'
 import { assistanceAllowed, taskAssistanceRevision, type TaskSuggestionExpectation } from '../core/assistance'
 import { coalesceAsync } from '../core/coalesced'
 import { validCalendarStatus, type CalendarStatus } from '../core/extras'
@@ -140,6 +141,7 @@ interface AppState {
   setEvents(e: CalendarEvent[]): Promise<void>
   applyCalendarSnapshot(events: CalendarEvent[], status: CalendarStatus, accept: () => boolean): Promise<boolean>
   saveLocal(fn: (l: LocalData) => LocalData): Promise<void>
+  toggleFunctionFavorite(id: string): Promise<void>
   saveHobbies(fn: (hobbies: HobbyPreferences) => HobbyPreferences): Promise<void>
   recordSleepEstimate(date: DateStr, at: number, invalidated?: boolean): Promise<void>
   updateSleepEntry(date: DateStr, fn: (entry: SleepDiaryEntry) => SleepDiaryEntry): Promise<void>
@@ -1338,6 +1340,18 @@ export const useApp = create<AppState>()((set, get) => ({
     await atomic(async () => {
       const local = { ...get().local, deviceTests: fn(structuredClone(deviceTestsFromLocal(get().local))) }
       if (!validDeviceTests(local.deviceTests)) throw new Error('Die Testangaben sind ungültig.')
+      await repo.put('meta', 'local', sourceLocal(local))
+      set({ local })
+    })
+  },
+
+  async toggleFunctionFavorite(id) {
+    await atomic(async () => {
+      if (!normaliseFunctionFavorites([id]).length) throw new Error('Unbekannte Funktion.')
+      const before = normaliseFunctionFavorites(get().local.functionFavorites)
+      if (!before.includes(id) && before.length >= 8) throw new Error('Höchstens acht Favoriten.')
+      const functionFavorites = before.includes(id) ? before.filter(value => value !== id) : [...before, id]
+      const local = { ...get().local, functionFavorites }
       await repo.put('meta', 'local', sourceLocal(local))
       set({ local })
     })
