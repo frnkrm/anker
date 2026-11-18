@@ -9,9 +9,12 @@ Lesbarkeits-/Überlappungsprüfung. Alle acht Vorschläge sind beauftragt;
 Status: implementiert und automatisch geprüft (1.442 Logiktests, 391 Browserfälle,
 Produktions-Build, Lint ohne Fehler); Jetzt-Screenshot zusätzlich visuell geprüft.
 Neue Gerätebeobachtung und spätere Auslieferung sind davon getrennt.
-Das bereits signierte Code18 mit Testansicht bleibt als geplanter Play-Build gebunden.
+Auf Folgeauftrag auch für Play neu paketiert: finales signiertes Code18-Artefakt
+14383604542 enthält F-019 und die persönliche Testansicht. Publisher-Recheck und
+Automations-Readback erfolgreich, Termin weiterhin18.11.22:50Berlin. Tatsächliche
+interne Auslieferung/Store-Verfügbarkeit und eigene Geräteversuche bleiben offen.
 
-Aktualisierung18.11.: Neue Testansicht ist jetzt im neu signierten Code18 enthalten.
+Historischer Zwischenstand vor F-019: Neue Testansicht im damals signierten Code18.
 Appquelle8a51bdb/Policy918370f samt eigenen main-CIs erfolgreich; finales
 Artefakt14378791154 aus Sign/Verify44194672103. Bestehenden Play-Auftrag auf die
 neue Bindung umgestellt und zurückgelesen, Termin weiterhin18.11.22:50Berlin.

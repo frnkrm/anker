@@ -1,5 +1,20 @@
 # Anker 2.0: Implementierungsplan
 
+## Aktuell: F-019 im geplanten Code18 enthalten (18.11.2026)
+
+Ausdrücklichen Folgeauftrag erfüllt: PR18/19 integrieren die neue UX samt Nachweisen;
+Appquelle003b144 und eigene main-CI44205435977 erfolgreich. PR20 bindet den
+Releaseweg an diese Quelle; Policy8e670e7/main-CI44205697813 ebenfalls erfolgreich.
+Prepare44207288338 und Sign/Verify44208364804 erzeugen finales Artefakt14383604542.
+Der tatsächliche Publisherprüfer akzeptiert das signierte Paket zusätzlich lokal;
+Testanleitung und F-019-Textmarken sind in unsigned und signed AAB nachgewiesen.
+
+Bestehende Play-Automation auf das neue Paket aktualisiert und exakt zurückgelesen:
+ACTIVE, gleicher Chat, weiterhin18.11.2026 um22:50Berlin und interner Umfang.
+Benachrichtigung nach bestätigter tatsächlicher Store-Verfügbarkeit bleibt enthalten.
+Kein vorzeitiger Upload, keine Installation behauptet. Alter Build14378791154 ist
+kein Fallback. [Verbindliche Bindung](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+
 ## F-019 – Ruhige, eindeutige Alltagsoberfläche (18.11.2026)
 
 Aktueller Nutzerauftrag: sämtliche acht UX-Vorschläge autonom und effizient im

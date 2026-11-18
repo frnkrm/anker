@@ -1,5 +1,20 @@
 # Aktueller Übergabestand
 
+## Aktuell: F-019 für die geplante Play-Auslieferung neu paketiert (18.11.2026)
+
+UX und persönliche Testansicht gemeinsam im neu signierten Code18/1.5.0-rc.4:
+Appquelle003b144/main-CI44205435977, Policy8e670e7/main-CI44205697813 erfolgreich.
+Prepare44207288338 und Sign/Verify44208364804 erfolgreich; ausschließlich finales
+Artefakt14383604542. Tatsächlicher Publisherprüfer akzeptiert das neue AAB lokal;
+sieben Textmarken der Testanleitung und UX in beiden Bundles bestätigt.
+
+Bestehenden Play-Auftrag aktualisiert und vollständigen Prompt/Termin/Chat/Status
+zurückgelesen: ACTIVE,18.11.2026 um22:50Europe/Berlin, interne Freigabe mit
+anschließender Verfügbarkeitsmeldung. Kein Play-Upload oder Handyupdate vorweggenommen.
+[Aktueller Beleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json). Alter Testansichts-Build
+14378791154 ist überholt. Reine Belegpflege auf eigenem Branch, damit main8e670e7
+und seine geprüfte Dispatch-Bindung bis zum geplanten Upload stabil bleiben.
+
 ## Folgeentwicklung F-019: Jetzt und gemeinsame Bedienung (18.11.2026)
 
 Auf separatem Branch `codex/ux-jetzt-20261118` umgesetzt: eindeutiger Countdown
@@ -13,10 +28,10 @@ Logikprüfung 1.442/1.442, Browser-Gesamtabnahme 391/391 und Produktions-Build
 erfolgreich; Lint ohne Fehler. Jetzt-Screenshot zusätzlich visuell geprüft.
 [Umfang](ANKER_IMPLEMENTIERUNGSPLAN.md#f-019--ruhige-eindeutige-alltagsoberfläche-18112026)
 und [Nachweise](ANKER_TESTNACHWEISE.md). Diese Folgeentwicklung ist noch nicht
-auf dem Handy installiert. Das darunter beschriebene signierte Code18 und sein
-geplanter Play-Weg wurden durch diesen Auftrag nicht verändert.
+auf dem Handy installiert. Der anschließende ausdrückliche Auslieferungsauftrag
+ist im aktuellen Abschnitt oben umgesetzt; der folgende frühere Paketstand ist historisch.
 
-## Aktuell: Testansicht im geplanten Code18 enthalten (18.11.2026)
+## Historisch: Code18 nur mit neuer Testansicht (18.11.2026)
 
 PR17 integriert; Appquelle8a51bdb und Policy918370f haben ihre eigenen main-CIs
 44191339291/44191751112 vollständig bestanden. Neues AAB aus Prepare44193618462
@@ -29,7 +44,7 @@ Bestehende Automation `anker-play-update-intern-freigeben` auf diese neue Bindun
 aktualisiert und aus der gespeicherten Planung zurückgelesen: weiterhin ACTIVE,
 18.11.2026 um22:50 Europe/Berlin, gleicher Chat und interner Umfang. Noch kein
 Play-Upload oder interner Release bestätigt. Produktive Handy-App weiterhin Code17.
-[Neuer Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json);
+[Damals gültiger Beleg](belege/20261118-code18-vor-f019.json);
 [überholtes Paket als historischer Beleg](belege/20261117-code18-vor-testansicht.json).
 
 Die Belegpflege liegt separat von der unveränderten ausführbaren main-Policy918370f,

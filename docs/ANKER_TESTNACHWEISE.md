@@ -1,5 +1,31 @@
 # Anker: Testnachweise
 
+## F-019 im neuen signierten Code18 nachgewiesen (18.11.2026)
+
+- Appquelle003b14416f859404700dda21161377a257b6b268, eigene erfolgreiche
+  main-CI44205435977. Releasepolicy8e670e762d449b1019d044e0546adace253d90a7,
+  eigene erfolgreiche main-CI44205697813. Paketierung erst danach gestartet.
+- Policy-CI bestätigt Linux-Prüfung:41Paket-,34Workflow-,16Publisherfälle,
+  außerdem1.442Logik- und391Browserfälle erfolgreich. Windows konnte die
+  Linux-SDK-/Pfadfälle lokal nicht vollständig ausführen; kein Erfolg dafür erfunden.
+- Prepare44207288338/1 erfolgreich: Artefakt14384612398. Sign/Verify44208364804/1
+  erfolgreich: ausschließlich finales Artefakt14383604542; Pending14384263187
+  ausgeschlossen. Exakte Archiv-/Dateihashes und Quellenkennung im
+  [aktuellen Beleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json).
+- Signiertes AAB54.626.184Bytes;676Nutzlasteinträge gegenüber dem neuen unsigned
+  Paket unverändert, ein RSA-Signierer und bestehendes Uploadzertifikat.
+  Echter Publisher-verify_files akzeptiert es zusätzlich lokal einschließlich
+  Manifest, Native, JAR und jarsigner-strict; keine Google-Anfrage/privaten Schlüssel.
+- Sieben Textmarken direkt in unsigned UND signed Assets bestätigt: persönliche
+  Nachtanleitung, technische Teilbelege, bisheriger Katalog, Favoriten, Planstatus,
+  eindeutiger nächster Zeitpunkt und Abweichungsinfo.
+- Bestehende Automation exakt auf neue Bindung aktualisiert. Readback bestätigt
+  vollständigen Prompt, ACTIVE, gleichen Chat, unveränderten einmaligen Termin
+  18.11.2026 um22:50Berlin und ungedämpfte Ergebnisbenachrichtigung. Vorheriges
+  Paket14378791154 ausdrücklich kein Fallback; alter Beleg separat archiviert.
+- Keine neue echte Android-/Windows-Abnahme, kein vorzeitiger Play-Upload und keine
+  bestätigte Store-Verfügbarkeit behauptet. Bestehende eigene Nachtversuche bleiben offen.
+
 ## F-019: Jetzt, Status und gemeinsame Bedienmuster (18.11.2026)
 
 Folgeauftrag: Aufnahme in denselben geplanten Code18 autorisiert. PR18 integriert;

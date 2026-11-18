@@ -72,6 +72,7 @@ Erinnerungen/Wecker neu, aktualisiert Widget, synchronisiert (gedrosselt: Sync 1
 - Native Fähigkeiten über `AnkerNative` (TS: `src/platform/native.ts`, Kotlin: `AnkerNativePlugin.kt`), beide Seiten synchron halten.
 - Sheets/Overlays per Portal rendern (`Sheet` in ui.tsx), da die Navigation `backdrop-filter` nutzt.
 - Commits auf Deutsch, klein und thematisch.
+- Squash-Merges mit explizitem Betreff und Body ausführen; historische CI-Skip-Vermerke aus Belegcommits nicht in neue main-Committexte übernehmen. Eigene main-CI vor Release weiter tatsächlich prüfen.
 
 ## Wecker und Erinnerungen (Regeln)
 
