@@ -1,5 +1,18 @@
 # Anker 2.0: Implementierungsplan
 
+## Play-Nachlauf19.11.: Werkzeugvorbereitung korrigieren
+
+Lauf44426030841 stoppte mit INVALID_SCHEMA beim öffentlichen Tools-Aufruf,
+vor Authentifizierung und vor jeder Google-Anfrage. Ursache: der Play-Workflow
+rief eine CLI auf, die ausschließlich den getrennten AAB-Kontext akzeptiert.
+Der Schritt nutzt nun dieselbe gebundene Werkzeugfunktion nach der bestehenden
+strengen Play-invocation-Prüfung. Keine Änderung an Appquelle, Signierpolicy,
+Artefakt oder Upload-/Signaturgates. Tatsächlichen Workflow-Schritt offline
+ausgeführt: gültiger Play-Aufruf akzeptiert; Push, fremder Branch/SHA und
+Produktionsmodus vor jedem Werkzeugabruf abgelehnt.17Publisherfälle grün.
+Neue Dispatch-Policy erst nach ihrer erfolgreichen eigenen main-CI verwenden.
+
+
 ## F-019 – Ruhige, eindeutige Alltagsoberfläche (18.11.2026)
 
 Aktueller Nutzerauftrag: sämtliche acht UX-Vorschläge autonom und effizient im

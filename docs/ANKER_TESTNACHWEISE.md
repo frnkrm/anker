@@ -1,5 +1,16 @@
 # Anker: Testnachweise
 
+## Play-Vorbereitung19.11.: vor Upload erkannter Aufruffehler
+
+- Lauf44426030841: INVALID_SCHEMA in öffentlicher Werkzeugvorbereitung.
+  Authentifizierung, Google-Zugriff, Bundleupload und Commit nicht ausgeführt.
+- Nur Workflow-Aufruf korrigiert: unveränderte gebundene Tools-Funktion hinter
+  vorhandener strenger Play-Aufrufprüfung. Neue Offlineprüfung führt den echten
+  YAML-Schritt aus und prüft gültigen Aufruf sowie vier Ablehnungen vor Abruf.
+-17Publisherfälle lokal erfolgreich; vollständige main-CI vor erneutem Dispatch
+  weiterhin nötig. Signierpolicy8e670e7 und finales Artefakt14383604542 unverändert.
+
+
 ## F-019: Jetzt, Status und gemeinsame Bedienmuster (18.11.2026)
 
 Folgeauftrag: Aufnahme in denselben geplanten Code18 autorisiert. PR18 integriert;

@@ -3,6 +3,8 @@ import copy
 from datetime import timedelta
 import importlib.util
 import json
+import os
+from types import SimpleNamespace
 from pathlib import Path
 import subprocess
 import tempfile
@@ -220,6 +222,30 @@ class DeliveryTests(unittest.TestCase):
         self.assertFalse(paths[0].exists())
         self.assertEqual([args[0] for args in calls], ['keytool', 'jarsigner'])
         self.assertIn('-strict', calls[1])
+
+    def test_public_tools_step_accepts_only_the_publisher_context_before_fetch(self):
+        root = Path(__file__).resolve().parents[1]
+        js = "console.log(JSON.stringify(require('js-yaml').load(require('node:fs').readFileSync('.github/workflows/google-play-code18.yml','utf8'))))"
+        workflow = json.loads(subprocess.run(['node', '-e', js], cwd=root, capture_output=True, text=True, check=True).stdout)
+        step = next(s for s in workflow['jobs']['code18']['steps'] if s.get('name') == 'Öffentliche gebundene Prüfwerkzeuge bereitstellen')
+        self.assertTrue(step['run'].startswith("python3 - <<'PY'\n"))
+        code = step['run'].split('\n', 1)[1].rsplit('\nPY', 1)[0]
+        env = dict(GITHUB_ACTIONS='true', GITHUB_REPOSITORY=c.p.REPO, GITHUB_REF='refs/heads/main',
+                   GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_WORKFLOW_REF=c.p.REPO + '/' + c.WORKFLOW + '@refs/heads/main',
+                   GITHUB_SHA='a' * 40, GITHUB_WORKFLOW_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1',
+                   PLAY18_INPUTS=json.dumps(inputs()), RUNNER_TEMP=str(root / 'synthetic-runner-temp'))
+        loader = SimpleNamespace(exec_module=lambda module: None)
+        for change in [{}, {'GITHUB_EVENT_NAME': 'push'}, {'GITHUB_REF': 'refs/heads/other'},
+                       {'GITHUB_SHA': 'd' * 40}, {'PLAY18_INPUTS': json.dumps({**inputs(), 'mode': 'production'})}]:
+            with self.subTest(change=change), patch.dict(os.environ, {**env, **change}, clear=True), \
+                 patch.object(importlib.util, 'spec_from_file_location', return_value=SimpleNamespace(loader=loader)), \
+                 patch.object(importlib.util, 'module_from_spec', return_value=c), patch.object(c.p, 'tooling') as fetch:
+                if change:
+                    with self.assertRaises(c.p.ProofError):exec(compile(code, '<public-tools-step>', 'exec'), {})
+                    fetch.assert_not_called()
+                else:
+                    exec(compile(code, '<public-tools-step>', 'exec'), {})
+                    fetch.assert_called_once_with(Path(env['RUNNER_TEMP']) / 'play18-tools', fetch=True)
 
     def test_workflow_has_no_push_and_auth_only_after_artifact_check(self):
         root = Path(__file__).resolve().parents[1]
