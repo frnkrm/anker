@@ -1,5 +1,49 @@
 # Anker: Testnachweise
 
+## Aktuell19.11.: Code18 intern verfügbar – Auftrag abgeschlossen
+
+Nach ausdrücklicher Nutzerfreigabe über die bereits angemeldete Play Console
+hochgeladen und ausschließlich intern veröffentlicht. Code18/1.5.0-rc.4,
+„Anker 1.5.0-rc.4 · Code18“, Release3. Frischer Console-Readback bestätigt
+„Für interne Tester verfügbar“, Veröffentlichung19.11.01:59Berlin.
+Originaldatei von Google zurückgeladen:54.626.184Bytes und exakt SHA256
+a9e1f8eba4354eb761da281a1cdbaf264cc194e42e68bb1dad44731fe90d0c44.
+Damit dieselbe geprüfte F-019-/Testanleitungs-Nutzlast nachgewiesen.
+
+Google verbietet den vollständig überschatteten Code17 zusätzlich im neuen
+completed-Release. Deshalb enthält der neue Release nur18; vorhandene Bundles
+und Veröffentlichungshistorie wurden nicht gelöscht. Keine Produktion, keine
+Testeränderungen und keine Handy-/Datenänderung. Zwei nicht blockierende Hinweise
+betreffen nur optionale ReTrace-/native Debugsymbole. Der tatsächliche Updatevertrag
+ist im Publisher korrigiert und mit18 gezielten Offlinefällen geprüft.
+
+Die zuvor ausdrücklich autorisierte API-Ausführung44431155585 scheiterte beim
+Bundleupload mitHTTP403, ohne Commit; danach getrennt in der Console nur16/17
+beobachtet, keine blinde Wiederholung. API-Zugriffsursache bleibt ungeklärt,
+keine Kontorechte/Schlüssel geändert. Erfolgreiche Auslieferung erfolgte anschließend
+über den separat ausdrücklich freigegebenen Console-Weg. Einmalige Automation
+nach bestätigter Verfügbarkeit mit ausdrücklicher Nutzerfreigabe gelöscht.
+[Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json) und
+[Console-/Hash-Readback](belege/20261119-play18-console-freigabe.json).
+
+
+## Historisch: vor Nutzerfreigabe erkannter Trackkonflikt (19.11.)
+
+PR21 korrigiert die öffentliche Werkzeugvorbereitung; eigene main-CI44426454457
+auf49631dc erfolgreich. Ein vorübergehender Werkzeugabruf scheiterte vor Google;
+nach frischer Erreichbarkeitsprüfung gelang der einmalige neue Lauf44428543886
+bis zur echten signierten Paketprüfung, Authentifizierung und Bestandsabfrage.
+Ergebnis: TRACK_CONFLICT, bundleUploadAttempted=false, commitAttempted=false,
+eigener temporärer Edit gelöscht. Keine Produktions-/Testeränderung.
+
+Play Console frisch beobachtet: Code17 für interne Tester verfügbar, ein
+Versionscode17 in der aufgeklappten Übersicht. Der bestehende strenge Vertrag
+erwartet gemeinsam16/17. Gemäß gespeicherter Konfliktregel keine automatische
+Lockerung, keine blinde Wiederholung, kein stiller Code19. Vor Weiterarbeit ist
+die Beibehaltungsregel zu klären. Code18 ist noch nicht über Play verfügbar.
+[Ergebnisbeleg](belege/20261119-play18-trackkonflikt.json).
+
+
 ## Play-Vorbereitung19.11.: vor Upload erkannter Aufruffehler
 
 - Lauf44426030841: INVALID_SCHEMA in öffentlicher Werkzeugvorbereitung.
