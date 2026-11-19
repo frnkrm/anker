@@ -16,7 +16,7 @@ c = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(c)
 BODY = b'synthetic verified bundle'
 DIGEST = c.p.sha(BODY)
-OLD = {'name': 'existing release', 'versionCodes': ['16', '17'], 'status': 'completed',
+OLD = {'name': c.RETAINED_NAME, 'versionCodes': ['17'], 'status': 'completed',
        'releaseNotes': [{'language': 'de-DE', 'text': 'Keep this metadata'}]}
 
 
@@ -89,7 +89,7 @@ class DeliveryTests(unittest.TestCase):
     def test_internal_upload_preserves_old_release_and_reads_back(self):
         api, result = API(), report()
         c.deliver(api, inputs(), BODY, result, now=c.EARLIEST)
-        self.assertEqual(api.rows, [{'name': c.NAME, 'status': 'completed', 'versionCodes': ['16', '17', '18']}])
+        self.assertEqual(api.rows, [{**OLD, 'name': c.NAME, 'status': 'completed', 'versionCodes': ['17', '18']}])
         self.assertTrue(result['activeReleaseVerified'])
         self.assertTrue(result['commitAcknowledged'])
         self.assertEqual(sum('/upload/' in path for _, path, _ in api.calls), 1)
@@ -118,7 +118,7 @@ class DeliveryTests(unittest.TestCase):
     def test_existing_active_is_idempotent_and_never_downgraded_to_draft(self):
         for mode in ('draft', 'internal'):
             api = API(existing={'name': c.NAME, 'status': 'completed', 'versionCodes': ['18']}, known=True)
-            api.rows = [{'name': c.NAME, 'status': 'completed', 'versionCodes': ['16', '17', '18']}]
+            api.rows = [{'name': c.NAME, 'status': 'completed', 'versionCodes': ['17', '18']}]
             result = report()
             c.deliver(api, inputs(mode), BODY, result, now=c.EARLIEST)
             self.assertTrue(result['activeReleaseVerified'])
@@ -139,6 +139,23 @@ class DeliveryTests(unittest.TestCase):
                 c.deliver(api, inputs(), BODY, report(), now=c.EARLIEST)
             self.assertFalse(any(method == 'PUT' or '/upload/' in path or ':commit' in path for method, path, _ in api.calls))
             self.assertEqual(api.calls[-1][0], 'DELETE')
+
+    def test_changed_baseline_stops_before_upload_and_preserves_all_metadata(self):
+        for change in [{'versionCodes': ['16', '17']}, {'versionCodes': ['16']},
+                       {'versionCodes': ['17', '19']}, {'name': 'unknown'},
+                       {'status': 'inProgress'}, {'userFraction': 0.5}]:
+            api = API()
+            api.rows = [{**copy.deepcopy(OLD), **change}]
+            before = copy.deepcopy(api.rows)
+            with self.subTest(change=change), self.assertRaises(c.p.ProofError):
+                c.deliver(api, inputs(), BODY, report(), now=c.EARLIEST)
+            self.assertEqual(api.rows, before)
+            self.assertFalse(any(method == 'PUT' or '/upload/' in path or ':commit' in path for method, path, _ in api.calls))
+        api = API()
+        api.rows[0]['inAppUpdatePriority'] = 2
+        old = copy.deepcopy(api.rows[0])
+        c.deliver(api, inputs(), BODY, report(), now=c.EARLIEST)
+        self.assertEqual(api.rows, [{**old, 'name': c.NAME, 'versionCodes': ['17', '18']}])
 
     def test_ambiguous_commit_never_retried_or_deleted(self):
         api, result = API(fail=':commit'), report()
