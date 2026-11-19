@@ -1,5 +1,34 @@
 # Anker 2.0: Implementierungsplan
 
+## Nutzerfreigabe19.11.: tatsächlichen Code17-Track erhalten
+
+Nutzer bestätigt ausdrücklich: Releaseweg an den vorhandenen Track anpassen,
+Code18 intern ausliefern und den einmaligen automatischen Auftrag anschließend
+löschen. Geprüfter Ausgangszustand ist nur der completed-Release
+„Anker 1.5.0-rc.3 · Code17“ mit Versionscode17. Nur diesen Zustand oder den
+exakt bereits aktiven Code18 mit17/18 akzeptieren; unbekannte/zusätzliche Codes,
+Status, Namen und Teilrollouts bleiben gesperrt. Vorhandene Release-Metadaten
+in die neue completed-Version übernehmen; Code16-Bundle nicht löschen oder ändern.
+Artefakt, Signierpolicy, Hashes und übrige Prüfungen bleiben unverändert.
+
+
+## Aktueller Play-Blocker19.11.: interner Track weicht vom Uploadvertrag ab
+
+PR21 korrigiert die öffentliche Werkzeugvorbereitung; eigene main-CI44426454457
+auf49631dc erfolgreich. Ein vorübergehender Werkzeugabruf scheiterte vor Google;
+nach frischer Erreichbarkeitsprüfung gelang der einmalige neue Lauf44428543886
+bis zur echten signierten Paketprüfung, Authentifizierung und Bestandsabfrage.
+Ergebnis: TRACK_CONFLICT, bundleUploadAttempted=false, commitAttempted=false,
+eigener temporärer Edit gelöscht. Keine Produktions-/Testeränderung.
+
+Play Console frisch beobachtet: Code17 für interne Tester verfügbar, ein
+Versionscode17 in der aufgeklappten Übersicht. Der bestehende strenge Vertrag
+erwartet gemeinsam16/17. Gemäß gespeicherter Konfliktregel keine automatische
+Lockerung, keine blinde Wiederholung, kein stiller Code19. Vor Weiterarbeit ist
+die Beibehaltungsregel zu klären. Code18 ist noch nicht über Play verfügbar.
+[Ergebnisbeleg](belege/20261119-play18-trackkonflikt.json).
+
+
 ## Play-Nachlauf19.11.: Werkzeugvorbereitung korrigieren
 
 Lauf44426030841 stoppte mit INVALID_SCHEMA beim öffentlichen Tools-Aufruf,

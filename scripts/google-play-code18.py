@@ -22,6 +22,7 @@ p = module('code18proof', 'android-aab-proof.py')
 legacy = module('playtransport', 'google-play-upload.py')
 WORKFLOW = '.github/workflows/google-play-code18.yml'
 NAME = 'Anker 1.5.0-rc.4 · Code18'
+RETAINED_NAME = 'Anker 1.5.0-rc.3 · Code17'
 EARLIEST = datetime(2026, 11, 18, 21, 41, tzinfo=timezone.utc)
 FIELDS = ('mode', 'confirmation', 'expected_workflow_commit', 'sign_workflow_commit',
           'sign_run_id', 'sign_run_attempt', 'artifact_id', 'bundle_sha256', 'proof_sha256')
@@ -128,11 +129,11 @@ def track(response):
     if len(rows) == 1:
         row = rows[0]
         if (isinstance(row, dict) and row.get('name') == NAME and row.get('status') == 'completed'
-                and isinstance(row.get('versionCodes'), list) and len(row['versionCodes']) == 3
-                and set(row['versionCodes']) == {'16', '17', '18'} and 'userFraction' not in row):
+                and isinstance(row.get('versionCodes'), list) and len(row['versionCodes']) == 2
+                and set(row['versionCodes']) == {'17', '18'} and 'userFraction' not in row):
             return [], [copy.deepcopy(row)]
     retained = [r for r in rows if isinstance(r, dict) and r.get('status') == 'completed'
-                and r.get('versionCodes') in (['16', '17'], ['17', '16']) and 'userFraction' not in r]
+                and r.get('name') == RETAINED_NAME and r.get('versionCodes') == ['17'] and 'userFraction' not in r]
     target = [r for r in rows if isinstance(r, dict) and r.get('versionCodes') == ['18']
               and r.get('name') == NAME and r.get('status') == 'draft' and 'userFraction' not in r]
     p.require(len(retained) == 1 and len(target) <= 1 and len(rows) == len(retained) + len(target), 'TRACK_CONFLICT')
@@ -162,6 +163,7 @@ def deliver(api, data, body, report, now=None):
         target = copy.deepcopy(existing[0]) if existing else {'name': NAME, 'versionCodes': ['18'], 'status': wanted}
         target['status'] = wanted
         if wanted == 'completed':
+            target = {**copy.deepcopy(retained[0]), **target}
             target['versionCodes'] = sorted(retained[0]['versionCodes'] + ['18'], key=int)
         desired = {'track': 'internal', 'releases': retained + [target] if wanted == 'draft' else [target]}
         if not existing or existing[0]['status'] != wanted:
@@ -207,7 +209,7 @@ def main():
         report.update(bundleSha256=data['bundle_sha256'], proofSha256=data['proof_sha256'],
                       mode=data['mode'], signedArtifactId=p.number(data['artifact_id']),
                       signRunId=p.number(data['sign_run_id']), signRunAttempt=p.number(data['sign_run_attempt']),
-                      sourceFingerprint=p.FINGERPRINT, retainedVersionCodes=[16, 17])
+                      sourceFingerprint=p.FINGERPRINT, retainedVersionCodes=[17])
         cp, classes = p.tooling(args.tools)
         if args.phase == 'prepare':
             prepare(p.GitHub(os.environ.get('GH_TOKEN')), data, args.folder, cp, classes)
