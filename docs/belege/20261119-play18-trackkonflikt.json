@@ -1,0 +1,28 @@
+{
+  "runId": 44428543886,
+  "report": {
+    "activeReleaseVerified": false,
+    "bundleSha256": "a9e1f8eba4354eb761da281a1cdbaf264cc194e42e68bb1dad44731fe90d0c44",
+    "bundleUploadAttempted": false,
+    "commitAcknowledged": false,
+    "commitAttempted": false,
+    "editCleanup": "deleted",
+    "mode": "internal",
+    "productionChanged": false,
+    "proofSha256": "a0275479ac185efd78ad696e6246ef2c72fb799568eb31ceae2021444070f7fb",
+    "reason": "TRACK_CONFLICT",
+    "retainedVersionCodes": [
+      16,
+      17
+    ],
+    "signRunAttempt": 1,
+    "signRunId": 44208364804,
+    "signedArtifactId": 14383604542,
+    "sourceCommit": "003b14416f859404700dda21161377a257b6b268",
+    "sourceFingerprint": "15bd26708e0d6e690b68b7a0c24818e4a0ae1c26ee9bb5d524ea2af1ad449521",
+    "status": "failed",
+    "testerListsChanged": false,
+    "track": "internal",
+    "versionCode": 18
+  }
+}

@@ -1,6 +1,37 @@
 # Anker 2.0: Implementierungsplan
 
-## Nutzerfreigabe19.11.: tatsächlichen Code17-Track erhalten
+## Aktuell19.11.: Code18 intern verfügbar – Auftrag abgeschlossen
+
+Nach ausdrücklicher Nutzerfreigabe über die bereits angemeldete Play Console
+hochgeladen und ausschließlich intern veröffentlicht. Code18/1.5.0-rc.4,
+„Anker 1.5.0-rc.4 · Code18“, Release3. Frischer Console-Readback bestätigt
+„Für interne Tester verfügbar“, Veröffentlichung19.11.01:59Berlin.
+Originaldatei von Google zurückgeladen:54.626.184Bytes und exakt SHA256
+a9e1f8eba4354eb761da281a1cdbaf264cc194e42e68bb1dad44731fe90d0c44.
+Damit dieselbe geprüfte F-019-/Testanleitungs-Nutzlast nachgewiesen.
+
+Google verbietet den vollständig überschatteten Code17 zusätzlich im neuen
+completed-Release. Deshalb enthält der neue Release nur18; vorhandene Bundles
+und Veröffentlichungshistorie wurden nicht gelöscht. Keine Produktion, keine
+Testeränderungen und keine Handy-/Datenänderung. Zwei nicht blockierende Hinweise
+betreffen nur optionale ReTrace-/native Debugsymbole. Der tatsächliche Updatevertrag
+ist im Publisher korrigiert und mit18 gezielten Offlinefällen geprüft.
+
+Die zuvor ausdrücklich autorisierte API-Ausführung44431155585 scheiterte beim
+Bundleupload mitHTTP403, ohne Commit; danach getrennt in der Console nur16/17
+beobachtet, keine blinde Wiederholung. API-Zugriffsursache bleibt ungeklärt,
+keine Kontorechte/Schlüssel geändert. Erfolgreiche Auslieferung erfolgte anschließend
+über den separat ausdrücklich freigegebenen Console-Weg. Einmalige Automation
+nach bestätigter Verfügbarkeit mit ausdrücklicher Nutzerfreigabe gelöscht.
+[Auslieferungsbeleg](CODE18_AUSLIEFERUNGSBELEG_20261117.json) und
+[Console-/Hash-Readback](belege/20261119-play18-console-freigabe.json).
+
+
+## Historische Freigabe19.11.: Code17-Bestand erhalten
+
+Die ursprünglich geplante zusätzliche Beibehaltung im neuen Release wurde
+durch Googles konkrete Validierung korrigiert: nur18 im neuen completed-Release,
+17 unverändert in Bibliothek/Historie. Aktuelle Regel und Beleg stehen oben.
 
 Nutzer bestätigt ausdrücklich: Releaseweg an den vorhandenen Track anpassen,
 Code18 intern ausliefern und den einmaligen automatischen Auftrag anschließend
@@ -12,7 +43,7 @@ in die neue completed-Version übernehmen; Code16-Bundle nicht löschen oder än
 Artefakt, Signierpolicy, Hashes und übrige Prüfungen bleiben unverändert.
 
 
-## Aktueller Play-Blocker19.11.: interner Track weicht vom Uploadvertrag ab
+## Historisch: vor Nutzerfreigabe erkannter Trackkonflikt (19.11.)
 
 PR21 korrigiert die öffentliche Werkzeugvorbereitung; eigene main-CI44426454457
 auf49631dc erfolgreich. Ein vorübergehender Werkzeugabruf scheiterte vor Google;

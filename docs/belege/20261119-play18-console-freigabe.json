@@ -1,0 +1,41 @@
+{
+  "versionCode": 18,
+  "versionName": "1.5.0-rc.4",
+  "available": true,
+  "releaseName": "Anker 1.5.0-rc.4 · Code18",
+  "bundleSha256": "a9e1f8eba4354eb761da281a1cdbaf264cc194e42e68bb1dad44731fe90d0c44",
+  "bundleBytes": 54626184,
+  "consoleArtifactId": "4860252848661403527",
+  "consoleReleaseId": "3",
+  "statusLabel": "Für interne Tester verfügbar",
+  "previousCode17BundleNotDeleted": true,
+  "productionChanged": false,
+  "testerListsChanged": false,
+  "automationDeleted": true,
+  "methodExplicitlyAuthorized": true,
+  "lastApiFailure": {
+    "activeReleaseVerified": false,
+    "bundleSha256": "a9e1f8eba4354eb761da281a1cdbaf264cc194e42e68bb1dad44731fe90d0c44",
+    "bundleUploadAttempted": true,
+    "commitAcknowledged": false,
+    "commitAttempted": false,
+    "editCleanup": "deleted",
+    "mode": "internal",
+    "productionChanged": false,
+    "proofSha256": "a0275479ac185efd78ad696e6246ef2c72fb799568eb31ceae2021444070f7fb",
+    "reason": "HTTP_FORBIDDEN",
+    "retainedVersionCodes": [
+      17
+    ],
+    "signRunAttempt": 1,
+    "signRunId": 44208364804,
+    "signedArtifactId": 14383604542,
+    "sourceCommit": "003b14416f859404700dda21161377a257b6b268",
+    "sourceFingerprint": "15bd26708e0d6e690b68b7a0c24818e4a0ae1c26ee9bb5d524ea2af1ad449521",
+    "status": "inconclusive",
+    "testerListsChanged": false,
+    "track": "internal",
+    "versionCode": 18
+  },
+  "recordedAtUTC": "2026-11-19T01:05:18.477625+00:00"
+}

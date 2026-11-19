@@ -129,8 +129,8 @@ def track(response):
     if len(rows) == 1:
         row = rows[0]
         if (isinstance(row, dict) and row.get('name') == NAME and row.get('status') == 'completed'
-                and isinstance(row.get('versionCodes'), list) and len(row['versionCodes']) == 2
-                and set(row['versionCodes']) == {'17', '18'} and 'userFraction' not in row):
+                and isinstance(row.get('versionCodes'), list) and len(row['versionCodes']) == 1
+                and set(row['versionCodes']) == {'18'} and 'userFraction' not in row):
             return [], [copy.deepcopy(row)]
     retained = [r for r in rows if isinstance(r, dict) and r.get('status') == 'completed'
                 and r.get('name') == RETAINED_NAME and r.get('versionCodes') == ['17'] and 'userFraction' not in r]
@@ -164,7 +164,9 @@ def deliver(api, data, body, report, now=None):
         target['status'] = wanted
         if wanted == 'completed':
             target = {**copy.deepcopy(retained[0]), **target}
-            target['versionCodes'] = sorted(retained[0]['versionCodes'] + ['18'], key=int)
+            # Google rejects a fully shadowed Code17 in the new completed release.
+            # Existing bundles and release history are not deleted by this track update.
+            target['versionCodes'] = ['18']
         desired = {'track': 'internal', 'releases': retained + [target] if wanted == 'draft' else [target]}
         if not existing or existing[0]['status'] != wanted:
             changed = api.request('PUT', base + '/tracks/internal', legacy.json_body(desired))
@@ -209,7 +211,8 @@ def main():
         report.update(bundleSha256=data['bundle_sha256'], proofSha256=data['proof_sha256'],
                       mode=data['mode'], signedArtifactId=p.number(data['artifact_id']),
                       signRunId=p.number(data['sign_run_id']), signRunAttempt=p.number(data['sign_run_attempt']),
-                      sourceFingerprint=p.FINGERPRINT, retainedVersionCodes=[17])
+                      sourceFingerprint=p.FINGERPRINT, previousVersionCodes=[17],
+                      retainedVersionCodes=[17] if data['mode'] == 'draft' else [], releaseVersionCodes=[18])
         cp, classes = p.tooling(args.tools)
         if args.phase == 'prepare':
             prepare(p.GitHub(os.environ.get('GH_TOKEN')), data, args.folder, cp, classes)
