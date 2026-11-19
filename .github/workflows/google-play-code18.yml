@@ -72,7 +72,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Öffentliche gebundene Prüfwerkzeuge bereitstellen
-        run: python3 scripts/android-aab-proof.py tools --tools "$RUNNER_TEMP/play18-tools"
+        run: |
+          python3 - <<'PY'
+          import importlib.util
+          import os
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location('play18_public_tools', 'scripts/google-play-code18.py')
+          publisher = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(publisher)
+          publisher.invocation(os.environ)
+          publisher.p.tooling(Path(os.environ['RUNNER_TEMP']) / 'play18-tools', fetch=True)
+          PY
       - name: Quellen CI Artefakt Signatur und Nutzlast ohne Play-Zugang prüfen
         env:
           GH_TOKEN: ${{ github.token }}
